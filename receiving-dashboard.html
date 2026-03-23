@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receiving Dashboard — Pine Central</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          #f0f2f0;
+    --surface:     #ffffff;
+    --border:      #e2e8e2;
+    --border-dark: #c8d4c8;
+    --green:       #1e6b45;
+    --green-light: #e8f5ee;
+    --green-mid:   #2d8a5a;
+    --green-btn:   #1e6b45;
+    --text:        #1a1f1a;
+    --muted:       #6b7a6b;
+    --muted-light: #9aaa9a;
+    --red:         #c0392b;
+    --red-bg:      #fdf2f2;
+    --red-border:  #f5c6c6;
+    --yellow:      #b7791f;
+    --yellow-bg:   #fffbeb;
+    --yellow-border:#fde68a;
+    --blue:        #1d4ed8;
+    --blue-bg:     #eff6ff;
+    --blue-border: #bfdbfe;
+    --radius:      8px;
+    --shadow:      0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md:   0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+    --mono:        'JetBrains Mono', monospace;
+    --sans:        'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; padding-bottom: 60px; }
+
+  /* HEADER */
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; gap: 14px; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-mark { width: 38px; height: 38px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .logo-pine { font-size: 22px; font-weight: 800; color: var(--green); font-style: italic; letter-spacing: -0.5px; }
+  .header-divider { width: 1px; height: 28px; background: var(--border); }
+  .header-info { display: flex; flex-direction: column; gap: 1px; }
+  .header-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .header-sub { font-size: 12px; color: var(--muted); }
+
+  /* PAGE */
+  .page { max-width: 900px; margin: 0 auto; padding: 28px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* PANEL */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .panel-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text); }
+  .panel-body { padding: 20px; }
+  .panel-hide { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; font-family: var(--sans); }
+  .panel-hide:hover { color: var(--text); }
+
+  /* CONNECTION */
+  .conn-grid { display: grid; grid-template-columns: 1fr 280px; gap: 14px; margin-bottom: 14px; }
+  .field-label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .field-input { width: 100%; background: var(--bg); border: 1px solid var(--border-dark); border-radius: 6px; padding: 9px 12px; font-size: 13px; font-family: var(--mono); color: var(--text); transition: border-color 0.15s; }
+  .field-input:focus { outline: none; border-color: var(--green); background: #fff; }
+  .field-input::placeholder { color: var(--muted-light); }
+  .conn-actions { display: flex; gap: 10px; margin-bottom: 14px; }
+  .btn-primary { background: var(--green-btn); color: #fff; border: none; border-radius: 6px; padding: 9px 18px; font-size: 13px; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .btn-primary:hover { background: var(--green-mid); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-dark); border-radius: 6px; padding: 9px 16px; font-size: 13px; font-weight: 500; font-family: var(--sans); cursor: pointer; transition: all 0.15s; }
+  .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+  .conn-status { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; border: 1px solid; }
+  .conn-status.success { background: var(--green-light); border-color: #a7d4b8; color: var(--green); }
+  .conn-status.error { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+  .conn-status.hidden { display: none; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.green { background: var(--green); }
+  .status-dot.red { background: var(--red); }
+
+  /* SUMMARY */
+  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); }
+  .summary-stat { padding: 16px 20px; border-right: 1px solid var(--border); }
+  .summary-stat:last-child { border-right: none; }
+  .summary-val { font-size: 26px; font-weight: 700; line-height: 1; color: var(--green); font-family: var(--mono); }
+  .summary-val.red { color: var(--red); }
+  .summary-val.yellow { color: var(--yellow); }
+  .summary-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; margin-top: 4px; }
+
+  /* FILTERS */
+  .filter-bar { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .filter-label-txt { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .filter-chip { background: var(--bg); border: 1px solid var(--border-dark); color: var(--muted); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-family: var(--sans); transition: all 0.12s; }
+  .filter-chip:hover { border-color: var(--green); color: var(--green); }
+  .filter-chip.active { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .filter-spacer { flex: 1; }
+  .btn-refresh { display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--border-dark); color: var(--muted); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: var(--sans); transition: all 0.12s; }
+  .btn-refresh:hover { border-color: var(--green); color: var(--green); }
+  .btn-refresh:disabled { opacity: 0.4; cursor: not-allowed; }
+  .spin { animation: spin 0.8s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* STATE */
+  .state-box { padding: 60px 20px; text-align: center; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .state-icon { font-size: 32px; }
+  .state-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .state-sub { font-size: 13px; }
+
+  /* ORDER GROUP */
+  .order-group { border-bottom: 1px solid var(--border); animation: fadeIn 0.2s ease; }
+  .order-group:last-child { border-bottom: none; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; } }
+
+  .order-group-header { display: flex; align-items: center; gap: 12px; padding: 13px 20px; cursor: pointer; user-select: none; transition: background 0.1s; }
+  .order-group-header:hover { background: #fafcfa; }
+  .order-num { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--green); min-width: 52px; }
+  .order-customer { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .order-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid; }
+  .badge-urgent { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+  .badge-soon { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border); }
+  .badge-count { background: var(--bg); color: var(--muted); border-color: var(--border-dark); }
+  .chevron-icon { color: var(--muted-light); font-size: 11px; transition: transform 0.2s; flex-shrink: 0; }
+  .order-group.open .chevron-icon { transform: rotate(180deg); }
+
+  /* LINE ITEMS */
+  .line-items-container { display: none; background: #fafcfa; }
+  .order-group.open .line-items-container { display: block; }
+  .line-item { border-top: 1px solid var(--border); }
+
+  .li-row { display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 36px; cursor: pointer; transition: background 0.1s; }
+  .li-row:hover { background: #f4f7f4; }
+  .li-expand { color: var(--muted-light); font-size: 10px; transition: transform 0.2s; flex-shrink: 0; }
+  .line-item.expanded .li-expand { transform: rotate(90deg); }
+  .li-ref { font-family: var(--mono); font-size: 12px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .li-info { display: flex; gap: 16px; align-items: center; flex-shrink: 0; }
+  .li-info-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .li-info-item strong { color: var(--text); font-weight: 500; font-family: var(--mono); }
+  .delta-badge { font-size: 11px; font-weight: 600; font-family: var(--mono); padding: 2px 8px; border-radius: 4px; border: 1px solid; white-space: nowrap; flex-shrink: 0; }
+  .delta-match { background: var(--green-light); color: var(--green); border-color: #a7d4b8; }
+  .delta-short { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+  .delta-over { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+  .delta-empty { background: var(--bg); color: var(--muted); border-color: var(--border-dark); }
+
+  /* DETAIL */
+  .li-detail { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 20px 20px 20px 36px; }
+  .line-item.expanded .li-detail { display: block; }
+  .detail-meta { display: flex; gap: 24px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .meta-field { display: flex; flex-direction: column; gap: 3px; }
+  .meta-field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+  .meta-field-value { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  .meta-field-value.green { color: var(--green); font-weight: 600; }
+  .meta-field-value.red { color: var(--red); }
+
+  /* SIZE GRID */
+  .size-grid-wrap { margin-bottom: 16px; overflow-x: auto; }
+  .size-grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .size-grid th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--bg); border: 1px solid var(--border); }
+  .size-grid th.col-actual { color: var(--green); }
+  .size-grid th.col-delta { text-align: right; }
+  .size-grid th:first-child { width: 70px; }
+  .size-grid td { padding: 8px 12px; border: 1px solid var(--border); background: var(--surface); }
+  .size-grid tr.total-row td { background: var(--bg); font-weight: 600; border-top: 2px solid var(--border-dark); }
+  .size-label { font-weight: 600; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .ordered-val { font-family: var(--mono); color: var(--text); }
+  .actual-input { width: 72px; background: var(--bg); border: 1px solid var(--border-dark); border-radius: 5px; padding: 5px 8px; font-family: var(--mono); font-size: 13px; color: var(--text); transition: border-color 0.15s, background 0.15s; -moz-appearance: textfield; }
+  .actual-input::-webkit-outer-spin-button, .actual-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .actual-input:focus { outline: none; border-color: var(--green); background: var(--green-light); }
+  .actual-input:disabled { opacity: 0.4; cursor: not-allowed; }
+  .delta-cell { text-align: right; }
+  .delta-pill { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; border: 1px solid; }
+
+  /* RECEIVED */
+  .recv-row { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+  .recv-note { font-size: 12px; color: var(--muted); }
+  .btn-received { display: flex; align-items: center; gap: 7px; background: var(--green-btn); color: #fff; border: none; border-radius: 6px; padding: 9px 20px; font-size: 13px; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.15s; }
+  .btn-received:hover { background: var(--green-mid); }
+  .btn-received:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; font-size: 13px; font-weight: 500; padding: 11px 18px; border-radius: 7px; z-index: 999; box-shadow: var(--shadow-md); animation: slideUp 0.2s ease; display: flex; align-items: center; gap: 8px; }
+  .toast.success::before { content: '✓'; color: #4ade80; font-weight: 700; }
+  .toast.error::before { content: '✕'; color: #f87171; font-weight: 700; }
+  @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .overdue-flag { font-size: 11px; color: var(--yellow); font-weight: 500; }
+
+  @media (max-width: 600px) {
+    .conn-grid { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: repeat(2,1fr); }
+    .li-info { display: none; }
+    .li-detail { padding-left: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M11 2L4 9V20h4.5v-5.5h5V20H18V9L11 2Z" fill="white"/>
+      </svg>
+    </div>
+    <span class="logo-pine">Pine</span>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-info">
+    <div class="header-title">Receiving Dashboard</div>
+    <div class="header-sub">Pine Central</div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- CONNECTION SETUP -->
+  <div class="panel" id="connPanel">
+    <div class="panel-header">
+      <div class="panel-title">⚙ &nbsp;Connection Setup</div>
+      <button class="panel-hide" onclick="toggleConn()">Hide</button>
+    </div>
+    <div class="panel-body" id="connBody">
+      <div class="conn-grid">
+        <div>
+          <div class="field-label">Airtable API Token</div>
+          <input type="password" class="field-input" id="tokenInput" placeholder="pat••••••••••••••••••••••••••••••••••••••••••">
+        </div>
+        <div>
+          <div class="field-label">Base ID</div>
+          <input type="text" class="field-input" id="baseInput" value="appJkaLk8DykjsgHR" readonly style="color:var(--muted);cursor:not-allowed;">
+        </div>
+      </div>
+      <div class="conn-actions">
+        <button class="btn-primary" id="testBtn" onclick="testConnection()">Test Connection</button>
+        <button class="btn-secondary" onclick="saveToken()">Save Token</button>
+      </div>
+      <div class="conn-status hidden" id="connStatus">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel">
+    <div class="summary-grid">
+      <div class="summary-stat"><div class="summary-val" id="statOrders">—</div><div class="summary-label">Orders Pending</div></div>
+      <div class="summary-stat"><div class="summary-val" id="statLines">—</div><div class="summary-label">Line Items</div></div>
+      <div class="summary-stat"><div class="summary-val red" id="statUrgent">—</div><div class="summary-label">Print ≤ 4 Days</div></div>
+      <div class="summary-stat"><div class="summary-val yellow" id="statOverdue">—</div><div class="summary-label">Overdue Arrival</div></div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label-txt">Show:</span>
+      <button class="filter-chip active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-chip" onclick="setFilter('urgent',this)">🔴 Prints ≤ 4 Days</button>
+      <button class="filter-chip" onclick="setFilter('week',this)">This Week</button>
+      <button class="filter-chip" onclick="setFilter('overdue',this)">⚠️ Overdue Arrival</button>
+      <div class="filter-spacer"></div>
+      <button class="btn-refresh" id="refreshBtn" onclick="loadData()"><span id="refreshIcon">↻</span> Refresh</button>
+    </div>
+    <div id="resultsArea">
+      <div class="state-box">
+        <div class="state-icon">📦</div>
+        <div class="state-title">Enter your API token to load orders</div>
+        <div class="state-sub">Use the Connection Setup panel above</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BASE_ID='appJkaLk8DykjsgHR', TABLE_ID='tblJx5UlwO7oMSk5H', MIN_ORDER=9000;
+const F={
+  ref:'fldU6oLyZnxhhm2kX',ordered:'fldBnjGyTLLjzz97l',received:'fldwaSkM0sJJ2oYsQ',
+  po:'fldIUAnkNscvEVDjU',supplier:'fldoboa9QhrHbEe8A',arrival:'fld9EfCdiP8cgSepO',
+  printDate:'fldxJsB2j9FO0t3ZL',orderNum:'fldRNXpvna5jpa1v5',customer:'fldB4mKfMl2Lp9UK0',
+  orderedTotal:'fldRnt7Y6jEFqoZMC',actualTotal:'fldseqgzoicivqc0p',delta:'fld4I3jlP9dSPEWH0',
+  oXS:'fldVA9ZmYxhDxtnYZ',oS:'fldCZr5lB6Jx80lfG',oM:'fldzTs1qKe9IBxxSn',
+  oL:'fldnRLJxjUDa1mQTj',oXL:'fldTRgdexcpBXXQPv',o2XL:'fldin7j6uGO0uRTec',
+  o3XL:'fldpltq9fdRkrvIvt',o4XL:'fldrsci7JnToa43Zd',o5XL:'fldchnRSKFukouW6N',
+  oOSFA:'fld2bgIlmPbANgLVK',o6XL:'fldI8gTtsEJwg33BI',
+  aXS:'fldam6SyOjB3VebzQ',aS:'fldM6F2oo5fV9zPse',aM:'fldejqlR3EGch1svc',
+  aL:'fldn3bdKPd3LkuuP3',aXL:'fldVsaOkMG6JglWv3',a2XL:'fld1YCamiJYBRjoZL',
+  a3XL:'fld1itap3IIl4UbST',a4XL:'fldkPODsJyE4OZXXZ',a5XL:'fldJpbBIdckvwHj7K',
+  aOSFA:'fldcseeXJjlFbIBhA',
+};
+const SIZES=[
+  {l:'XS',ok:'oXS',ak:'aXS'},{l:'S',ok:'oS',ak:'aS'},{l:'M',ok:'oM',ak:'aM'},
+  {l:'L',ok:'oL',ak:'aL'},{l:'XL',ok:'oXL',ak:'aXL'},{l:'2XL',ok:'o2XL',ak:'a2XL'},
+  {l:'3XL',ok:'o3XL',ak:'a3XL'},{l:'4XL',ok:'o4XL',ak:'a4XL'},{l:'5XL',ok:'o5XL',ak:'a5XL'},
+  {l:'OSFA',ok:'oOSFA',ak:'aOSFA'},{l:'6XL',ok:'o6XL',ak:null},
+];
+let allRecords=[],currentFilter='all',pendingUpdates={},connOpen=true;
+
+function getToken(){return localStorage.getItem('pc_token')||sessionStorage.getItem('pc_token')||'';}
+function saveToken(){
+  const t=document.getElementById('tokenInput').value.trim();
+  if(!t){showToast('Enter a token first','error');return;}
+  localStorage.setItem('pc_token',t);
+  showToast('Token saved','success');
+}
+function toggleConn(){
+  connOpen=!connOpen;
+  document.getElementById('connBody').style.display=connOpen?'':'none';
+  document.querySelector('.panel-hide').textContent=connOpen?'Hide':'Show';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=getToken();
+  if(saved){document.getElementById('tokenInput').value=saved;loadData();}
+});
+
+async function testConnection(){
+  const token=document.getElementById('tokenInput').value.trim();
+  if(!token){showStatus('Enter a token first',false);return;}
+  const btn=document.getElementById('testBtn');
+  btn.disabled=true;btn.textContent='Testing...';
+  try{
+    const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?maxRecords=1`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(!res.ok)throw new Error(`Status ${res.status}`);
+    showStatus('Connected to Pine Central ✓',true);
+    sessionStorage.setItem('pc_token',token);
+    loadData();
+  }catch(e){showStatus('Connection failed — check your token',false);}
+  finally{btn.disabled=false;btn.textContent='Test Connection';}
+}
+function showStatus(msg,ok){
+  const el=document.getElementById('connStatus');
+  el.className='conn-status '+(ok?'success':'error');
+  document.getElementById('statusDot').className='status-dot '+(ok?'green':'red');
+  document.getElementById('statusMsg').textContent=msg;
+}
+
+async function loadData(){
+  const token=document.getElementById('tokenInput').value.trim()||getToken();
+  if(!token){showToast('Enter your API token first','error');return;}
+  const btn=document.getElementById('refreshBtn'),icon=document.getElementById('refreshIcon');
+  btn.disabled=true;icon.className='spin';
+  document.getElementById('resultsArea').innerHTML=`<div class="state-box"><div class="state-icon spin" style="display:inline-block">↻</div><div class="state-title">Loading orders...</div></div>`;
+  try{
+    const raw=await fetchAll(token);
+    allRecords=raw.filter(r=>fv(r,'ordered')===true&&fv(r,'received')!==true&&orderNum(r)>=MIN_ORDER);
+    renderAll();updateSummary();
+  }catch(e){
+    showToast('Load failed: '+e.message,'error');
+    document.getElementById('resultsArea').innerHTML=`<div class="state-box"><div class="state-icon">⚠️</div><div class="state-title">Could not load</div><div class="state-sub">${esc(e.message)}</div></div>`;
+  }finally{btn.disabled=false;icon.className='';}
+}
+
+async function fetchAll(token){
+  const fields=Object.values(F);
+  let records=[],offset=null;
+  do{
+    const p=new URLSearchParams();
+    fields.forEach(id=>p.append('fields[]',id));
+    p.set('returnFieldsByFieldId','true');
+    p.set('sort[0][field]',F.printDate);p.set('sort[0][direction]','asc');
+    if(offset)p.set('offset',offset);
+    const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?${p}`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(!res.ok){const d=await res.json();throw new Error(d.error?.message||`API ${res.status}`);}
+    const data=await res.json();
+    records=records.concat(data.records||[]);
+    offset=data.offset;
+  }while(offset);
+  return records;
+}
+
+function fv(r,key){const id=F[key];return r.fields?.[id]??r.cellValuesByFieldId?.[id]??undefined;}
+function orderNum(r){
+  const v=fv(r,'orderNum');
+  if(!v)return 0;
+  if(typeof v==='number')return v;
+  if(typeof v==='object'&&v.valuesByLinkedRecordId)return Object.values(v.valuesByLinkedRecordId).flat()[0]||0;
+  return parseInt(v)||0;
+}
+function supplierName(r){
+  const v=fv(r,'supplier');
+  if(!v)return '—';
+  if(Array.isArray(v))return v.map(s=>s.name||s).join(', ');
+  return v.name||String(v);
+}
+function getPD(r){const v=fv(r,'printDate');return(!v||(typeof v==='object'&&v.error))?null:String(v);}
+function daysUntil(ds){
+  if(!ds)return null;
+  const pts=ds.split('/');
+  let d=pts.length===3?new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])):new Date(ds);
+  if(isNaN(d))return null;
+  const t=new Date();t.setHours(0,0,0,0);
+  return Math.round((d-t)/86400000);
+}
+function groupByOrder(records){
+  const map={};
+  records.forEach(r=>{
+    const num=orderNum(r);if(!num)return;
+    if(!map[num])map[num]={num,customer:fv(r,'customer')||'—',printDate:getPD(r),records:[]};
+    map[num].records.push(r);
+    const pd=getPD(r);
+    if(pd&&(!map[num].printDate||daysUntil(pd)<daysUntil(map[num].printDate)))map[num].printDate=pd;
+  });
+  return Object.values(map).sort((a,b)=>{
+    const da=daysUntil(a.printDate),db=daysUntil(b.printDate);
+    if(da===null&&db===null)return a.num-b.num;
+    if(da===null)return 1;if(db===null)return -1;return da-db;
+  });
+}
+function applyFilter(groups){
+  if(currentFilter==='all')return groups;
+  if(currentFilter==='urgent')return groups.filter(g=>{const d=daysUntil(g.printDate);return d!==null&&d<=4&&d>=0;});
+  if(currentFilter==='week')return groups.filter(g=>{const d=daysUntil(g.printDate);return d!==null&&d<=7&&d>=0;});
+  if(currentFilter==='overdue')return groups.filter(g=>g.records.some(r=>{const d=daysUntil(fv(r,'arrival'));return d!==null&&d<0;}));
+  return groups;
+}
+function updateSummary(){
+  const g=groupByOrder(allRecords);
+  document.getElementById('statOrders').textContent=g.length;
+  document.getElementById('statLines').textContent=allRecords.length;
+  document.getElementById('statUrgent').textContent=g.filter(x=>{const d=daysUntil(x.printDate);return d!==null&&d<=4&&d>=0;}).length;
+  document.getElementById('statOverdue').textContent=allRecords.filter(r=>{const d=daysUntil(fv(r,'arrival'));return d!==null&&d<0;}).length;
+}
+function renderAll(){
+  const groups=applyFilter(groupByOrder(allRecords));
+  const area=document.getElementById('resultsArea');
+  if(!groups.length){
+    area.innerHTML=`<div class="state-box"><div class="state-icon">✅</div><div class="state-title">All clear</div><div class="state-sub">No pending orders match this filter</div></div>`;
+    return;
+  }
+  area.innerHTML=groups.map(g=>renderGroup(g)).join('');
+}
+function renderGroup(g){
+  const days=daysUntil(g.printDate);
+  let badge='';
+  if(days!==null&&days===0)badge=`<span class="badge badge-urgent">Prints TODAY</span>`;
+  else if(days!==null&&days<=4)badge=`<span class="badge badge-urgent">Prints in ${days}d</span>`;
+  else if(days!==null&&days<=7)badge=`<span class="badge badge-soon">Prints in ${days}d</span>`;
+  else if(g.printDate)badge=`<span class="badge badge-count">${g.printDate}</span>`;
+  else badge=`<span class="badge badge-count" style="color:var(--muted-light)">No print date</span>`;
+  return `<div class="order-group" id="grp-${g.num}">
+    <div class="order-group-header" onclick="toggleGroup(${g.num})">
+      <span class="order-num">${g.num}</span>
+      <span class="order-customer">${esc(g.customer)}</span>
+      <div class="order-badges">${badge}<span class="badge badge-count">${g.records.length} line${g.records.length!==1?'s':''}</span></div>
+      <span class="chevron-icon">▼</span>
+    </div>
+    <div class="line-items-container">${g.records.map(r=>renderLI(r)).join('')}</div>
+  </div>`;
+}
+function renderLI(r){
+  const id=r.id,ref=fv(r,'ref')||id,po=fv(r,'po')||'—',sup=supplierName(r);
+  const arr=fv(r,'arrival')||'—',pd=getPD(r)||'—';
+  const ordTotal=fv(r,'orderedTotal')||0,delta=fv(r,'delta')||0;
+  const arrDays=daysUntil(arr!=='—'?arr:null);
+  const overdueFlag=arrDays!==null&&arrDays<0?`<span class="overdue-flag">⚠️ ${Math.abs(arrDays)}d overdue</span>`:'';
+  let db=`<span class="delta-badge delta-empty">—</span>`;
+  if(ordTotal>0){
+    if(delta===0)db=`<span class="delta-badge delta-match">✓ Match</span>`;
+    else if(delta<0)db=`<span class="delta-badge delta-short">${delta}</span>`;
+    else db=`<span class="delta-badge delta-over">+${delta}</span>`;
+  }
+  const activeSizes=SIZES.filter(s=>(fv(r,s.ok)||0)>0);
+  const sizeRows=activeSizes.map(s=>{
+    const oVal=fv(r,s.ok)||0,aVal=s.ak?(fv(r,s.ak)??''):null;
+    const aNum=s.ak&&aVal!==''&&aVal!==null&&aVal!==undefined?Number(aVal):null;
+    const dNum=aNum!==null?oVal-aNum:null;
+    let dCell='<td class="delta-cell">—</td>';
+    if(dNum!==null){
+      if(dNum===0)dCell=`<td class="delta-cell"><span class="delta-pill delta-match">✓</span></td>`;
+      else if(dNum>0)dCell=`<td class="delta-cell"><span class="delta-pill delta-short">-${dNum}</span></td>`;
+      else dCell=`<td class="delta-cell"><span class="delta-pill delta-over">+${Math.abs(dNum)}</span></td>`;
+    }
+    const inp=s.ak
+      ?`<td><input type="number" min="0" class="actual-input" data-rec="${id}" data-field="${F[s.ak]}" value="${aVal!==''&&aVal!==null&&aVal!==undefined?aVal:''}" placeholder="0" oninput="onInput(this,'${id}')"></td>`
+      :`<td style="color:var(--muted-light);font-size:11px;font-family:var(--mono)">—</td>`;
+    return `<tr><td class="size-label">${s.l}</td><td class="ordered-val">${oVal}</td>${inp}${dCell}</tr>`;
+  }).join('');
+  return `<div class="line-item" id="li-${id}">
+    <div class="li-row" onclick="toggleLI('${id}')">
+      <span class="li-expand">▶</span>
+      <span class="li-ref">${esc(ref)}</span>
+      <div class="li-info">
+        <span class="li-info-item">PO# <strong>${esc(po)}</strong></span>
+        <span class="li-info-item">📦 <strong>${esc(sup)}</strong></span>
+        <span class="li-info-item">Arrives <strong>${arr}</strong> ${overdueFlag}</span>
+        <span class="li-info-item">Ordered <strong>${ordTotal}</strong></span>
+      </div>
+      ${db}
+    </div>
+    <div class="li-detail">
+      <div class="detail-meta">
+        <div class="meta-field"><div class="meta-field-label">PO #</div><div class="meta-field-value green">${esc(po)}</div></div>
+        <div class="meta-field"><div class="meta-field-label">Supplier</div><div class="meta-field-value">${esc(sup)}</div></div>
+        <div class="meta-field"><div class="meta-field-label">Expected Arrival</div><div class="meta-field-value ${arrDays!==null&&arrDays<0?'red':''}">${arr} ${overdueFlag}</div></div>
+        <div class="meta-field"><div class="meta-field-label">Print Date</div><div class="meta-field-value">${pd}</div></div>
+        <div class="meta-field"><div class="meta-field-label">Ordered Total</div><div class="meta-field-value">${ordTotal}</div></div>
+      </div>
+      <div class="size-grid-wrap">
+        <table class="size-grid">
+          <thead><tr><th>Size</th><th>Ordered</th><th class="col-actual">Actual ✏️</th><th class="col-delta">+/−</th></tr></thead>
+          <tbody>
+            ${sizeRows||'<tr><td colspan="4" style="color:var(--muted);padding:12px;font-style:italic">No sizes with ordered qty</td></tr>'}
+            <tr class="total-row">
+              <td class="size-label">Total</td>
+              <td class="ordered-val" id="to-${id}">${ordTotal}</td>
+              <td id="ta-${id}">—</td>
+              <td class="delta-cell" id="td-${id}">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="recv-row">
+        <div class="recv-note">Enter actuals from packing slip, then mark received when confirmed.</div>
+        <button class="btn-received" id="rb-${id}" onclick="markReceived('${id}',this)">✓ Mark as Received</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleGroup(num){document.getElementById(`grp-${num}`)?.classList.toggle('open');}
+function toggleLI(id){document.getElementById(`li-${id}`)?.classList.toggle('expanded');}
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderAll();
+}
+function onInput(input,recId){
+  const fieldId=input.dataset.field,val=input.value===''?null:parseInt(input.value)||0;
+  if(!pendingUpdates[recId])pendingUpdates[recId]={};
+  pendingUpdates[recId][fieldId]=val;
+  // per-row delta
+  const row=input.closest('tr');
+  if(row){
+    const oVal=parseInt(row.cells[1].textContent)||0,dCell=row.cells[3];
+    if(val===null)dCell.innerHTML='—';
+    else{const d=oVal-val;
+      if(d===0)dCell.innerHTML=`<span class="delta-pill delta-match">✓</span>`;
+      else if(d>0)dCell.innerHTML=`<span class="delta-pill delta-short">-${d}</span>`;
+      else dCell.innerHTML=`<span class="delta-pill delta-over">+${Math.abs(d)}</span>`;
+    }
+  }
+  // totals row
+  const inputs=document.querySelectorAll(`input[data-rec="${recId}"]`);
+  let sum=0,allFilled=true;
+  inputs.forEach(i=>{if(i.value==='')allFilled=false;else sum+=parseInt(i.value)||0;});
+  const ord=parseInt(document.getElementById(`to-${recId}`)?.textContent)||0;
+  const taEl=document.getElementById(`ta-${recId}`),tdEl=document.getElementById(`td-${recId}`);
+  if(taEl)taEl.textContent=allFilled?sum:sum+'+';
+  if(tdEl&&allFilled){
+    const d=ord-sum;
+    if(d===0)tdEl.innerHTML=`<span class="delta-pill delta-match">✓ Match</span>`;
+    else if(d>0)tdEl.innerHTML=`<span class="delta-pill delta-short">-${d} short</span>`;
+    else tdEl.innerHTML=`<span class="delta-pill delta-over">+${Math.abs(d)} over</span>`;
+  }
+}
+async function markReceived(recId,btn){
+  const token=document.getElementById('tokenInput').value.trim()||getToken();
+  if(!token){showToast('No token — check Connection Setup','error');return;}
+  btn.disabled=true;btn.textContent='⏳ Saving...';
+  try{
+    const fields={...pendingUpdates[recId]||{},[F.received]:true};
+    const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recId}`,{
+      method:'PATCH',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({fields})
+    });
+    if(!res.ok){const d=await res.json();throw new Error(d.error?.message||`API ${res.status}`);}
+    delete pendingUpdates[recId];
+    allRecords=allRecords.filter(r=>r.id!==recId);
+    const li=document.getElementById(`li-${recId}`);
+    if(li){
+      li.style.transition='opacity 0.25s,transform 0.25s';li.style.opacity='0';li.style.transform='translateX(16px)';
+      setTimeout(()=>{
+        const grp=li.closest('.order-group'),rem=grp?.querySelectorAll('.line-item').length||0;
+        if(rem<=1){if(grp){grp.style.transition='opacity 0.25s';grp.style.opacity='0';setTimeout(()=>{grp.remove();updateSummary();},260);}}
+        else{li.remove();updateSummary();}
+      },260);
+    }
+    showToast('Marked as received ✓','success');
+  }catch(e){showToast('Error: '+e.message,'error');btn.disabled=false;btn.innerHTML='✓ Mark as Received';}
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+let toastTimer;
+function showToast(msg,type='success'){
+  document.querySelector('.toast')?.remove();clearTimeout(toastTimer);
+  const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;
+  document.body.appendChild(t);toastTimer=setTimeout(()=>t.remove(),3500);
+}
+</script>
+</body>
+</html>
