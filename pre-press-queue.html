@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Press Queue — Pine Central</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f2f0;--surface:#fff;--surface2:#f7f8f7;
+  --border:#e2e8e2;--border-dk:#c8d4c8;
+  --green:#1e6b45;--green-l:#e8f5ee;--green-m:#2d8a5a;
+  --text:#1a1f1a;--muted:#6b7a6b;--muted-l:#9aaa9a;
+  --red:#c0392b;--red-bg:#fdf2f2;
+  --orange:#b7791f;--orange-bg:#fffbeb;
+  --blue:#1d4ed8;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;
+  --purple:#6d28d9;--purple-bg:#f5f3ff;--purple-bd:#ddd6fe;
+  --r:8px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --sh-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.04);
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;padding-bottom:60px}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 22px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;box-shadow:var(--sh)}
+.logo-pine{font-size:19px;font-weight:800;color:var(--green);font-style:italic;letter-spacing:-.5px;line-height:1}
+.logo-sub{font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase}
+.hdiv{width:1px;height:26px;background:var(--border);flex-shrink:0}
+.htitle{font-size:14px;font-weight:600}
+.hsub{font-size:11px;color:var(--muted)}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hcount{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:3px 10px;border-radius:20px;white-space:nowrap}
+.role-bar{display:flex;border-radius:6px;overflow:hidden;border:1px solid var(--border-dk);flex-shrink:0}
+.rbtn{font-size:11px;font-weight:600;padding:5px 13px;border:none;background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.rbtn:not(:last-child){border-right:1px solid var(--border-dk)}
+.rbtn.active{color:#fff}
+.rbtn.art.active{background:var(--purple)}
+.rbtn.screen.active{background:var(--blue)}
+.hbtn{font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid var(--green);background:var(--green);color:#fff;cursor:pointer;white-space:nowrap}
+.hbtn:hover{opacity:.85}
+.hbtn.sec{background:transparent;color:var(--green)}
+.hbtn.sec:hover{background:var(--green-l)}
+.setup-wrap{max-width:460px;margin:56px auto;padding:0 20px}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--green);border-radius:var(--r);padding:26px 26px 22px;box-shadow:var(--sh-md)}
+.setup-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:block}
+.setup-input{width:100%;font-family:var(--mono);font-size:13px;padding:9px 11px;border:1px solid var(--border-dk);border-radius:6px;background:var(--surface2);color:var(--text);outline:none;transition:border-color .15s;margin-bottom:14px}
+.setup-input:focus{border-color:var(--green)}
+.setup-btn{width:100%;font-size:14px;font-weight:600;padding:10px;border-radius:6px;border:none;background:var(--green);color:#fff;cursor:pointer;font-family:var(--sans)}
+.setup-btn:hover{opacity:.88}
+.setup-hint{font-size:11px;color:var(--muted-l);margin-top:11px;line-height:1.5}
+.setup-err{font-size:12px;color:var(--red);margin-top:8px;display:none}
+.page{max-width:1000px;margin:0 auto;padding:16px 18px}
+.mode-banner{padding:9px 14px;border-radius:var(--r);margin-bottom:12px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;border:1px solid}
+.mode-banner.art{background:var(--purple-bg);border-color:var(--purple-bd);color:var(--purple)}
+.mode-banner.screen{background:var(--blue-bg);border-color:var(--blue-bd);color:var(--blue)}
+.mode-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mode-banner.art .mode-dot{background:var(--purple)}
+.mode-banner.screen .mode-dot{background:var(--blue)}
+.controls{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;margin-bottom:13px;box-shadow:var(--sh);display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.ctrl-grp{display:flex;flex-direction:column;gap:4px}
+.ctrl-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+select,input[type=text]{font-family:var(--sans);font-size:13px;padding:6px 9px;border:1px solid var(--border-dk);border-radius:6px;background:var(--surface2);color:var(--text);outline:none;transition:border-color .15s}
+select:focus,input:focus{border-color:var(--green)}
+select{min-width:150px;cursor:pointer}
+.search-in{width:175px}
+.stats{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.sp{font-size:11px;font-weight:500;padding:3px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.sp.grn{background:var(--green-l);border-color:#a7d4bc;color:var(--green)}
+.sp.blu{background:var(--blue-bg);border-color:var(--blue-bd);color:var(--blue)}
+.sp.org{background:var(--orange-bg);border-color:#fde68a;color:var(--orange)}
+.sp.pur{background:var(--purple-bg);border-color:var(--purple-bd);color:var(--purple)}
+.og{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:11px;box-shadow:var(--sh);overflow:hidden}
+.og.collapsed .ig{display:none}
+.oh{display:flex;align-items:center;gap:8px;padding:9px 15px;border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer;user-select:none}
+.og.collapsed .oh{border-bottom:none}
+.oh:hover{background:#eef0ee}
+.on{font-family:var(--mono);font-size:12px;font-weight:600;flex-shrink:0}
+.oc{font-size:13px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dt{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.dt-past{background:var(--red-bg);color:var(--red);border:1px solid #f5c6c6}
+.dt-soon{background:var(--orange-bg);color:var(--orange);border:1px solid #fde68a}
+.dt-ok{background:var(--green-l);color:var(--green);border:1px solid #a7d4bc}
+.dt-none{background:var(--bg);color:var(--muted-l);border:1px solid var(--border)}
+.ah-b{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.ah-asap{background:var(--red-bg);color:var(--red);border:1px solid #f5c6c6}
+.ah-hard{background:var(--orange-bg);color:var(--orange);border:1px solid #fde68a}
+.op{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.chv{font-size:10px;color:var(--muted-l);transition:transform .2s;flex-shrink:0}
+.og.collapsed .chv{transform:rotate(-90deg)}
+.ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding:11px 13px}
+.ic{border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:var(--surface)}
+.ic:hover{border-color:var(--border-dk)}
+.it{height:100px;background:#f0f2f0;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--border);overflow:hidden}
+.it img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in}
+.np{display:flex;flex-direction:column;align-items:center;gap:4px}
+.npb{width:26px;height:26px;background:#d4ddd8;border-radius:4px}
+.npt{font-size:9px;color:var(--muted-l)}
+.rf{position:absolute;top:5px;left:5px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;background:var(--orange-bg);color:var(--orange);border:1px solid #fde68a;text-transform:uppercase}
+.sep-ind{position:absolute;top:5px;right:5px;font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd);text-decoration:none}
+.sep-ind:hover{background:var(--purple);color:#fff}
+.ib{padding:8px 10px;flex:1;display:flex;flex-direction:column;gap:5px}
+.iid{font-family:var(--mono);font-size:11px;font-weight:600}
+.ink{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ibd{display:flex;gap:3px;flex-wrap:wrap}
+.bd{font-size:9px;font-weight:600;padding:2px 6px;border-radius:7px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
+.b-loc{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
+.b-type{background:var(--green-l);color:var(--green);border:1px solid #a7d4bc}
+.b-dA,.b-dAp{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.b-dBp,.b-dB{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.b-dC{background:var(--orange-bg);color:var(--orange);border:1px solid #fde68a}
+.b-dD{background:var(--red-bg);color:var(--red);border:1px solid #f5c6c6}
+.b-dlc{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd)}
+.idet{font-size:10px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap}
+.inotes{font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 7px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ifoot{display:flex;align-items:center;gap:6px;padding:6px 10px;border-top:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;min-height:34px}
+.ck-row{display:flex;gap:8px;flex:1}
+.ck{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;color:var(--muted);cursor:pointer;user-select:none;padding:2px 0}
+.ck.on{color:var(--green-m)}
+.ck.bn.on{color:var(--blue)}
+.ck.disabled{opacity:.4;pointer-events:none}
+.ck-box{width:13px;height:13px;border-radius:3px;border:1.5px solid var(--border-dk);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;transition:all .1s}
+.ck.on .ck-box{background:var(--green);border-color:var(--green)}
+.ck.bn.on .ck-box{background:var(--blue);border-color:var(--blue)}
+.ck-v{width:6px;height:4px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translateY(-1px);display:none}
+.ck.on .ck-v,.ck.bn.on .ck-v{display:block}
+.upload-btn{font-size:10px;font-weight:600;padding:3px 9px;border-radius:6px;border:1px solid var(--purple-bd);background:var(--purple-bg);color:var(--purple);cursor:pointer;white-space:nowrap;font-family:var(--sans);transition:all .15s;flex-shrink:0}
+.upload-btn:hover:not(:disabled){background:var(--purple);color:#fff;border-color:var(--purple)}
+.upload-btn:disabled{opacity:.5;cursor:default}
+.view-sep-btn{font-size:10px;font-weight:600;padding:3px 9px;border-radius:6px;border:1px solid var(--blue-bd);background:var(--blue-bg);color:var(--blue);white-space:nowrap;text-decoration:none;flex-shrink:0}
+.view-sep-btn:hover{background:var(--blue);color:#fff}
+input[type=file]{display:none}
+.loading{text-align:center;padding:56px 20px;color:var(--muted)}
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-sub{font-size:12px;color:var(--muted-l);margin-top:6px}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty h3{font-size:15px;margin-bottom:5px;color:var(--text)}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:999;cursor:zoom-out}
+.lb img{max-width:90vw;max-height:86vh;object-fit:contain;border-radius:6px}
+.lb-x{position:fixed;top:13px;right:17px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:19px;cursor:pointer}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:12px;font-weight:600;padding:7px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+.toast.err{background:var(--red)}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="logo-pine">Pine.</div><div class="logo-sub">Print Shop</div></div>
+  <div class="hdiv"></div>
+  <div><div class="htitle">Pre-Press Queue</div><div class="hsub" id="roleLabel">Art Department</div></div>
+  <div class="hright">
+    <div class="role-bar">
+      <button class="rbtn art active" onclick="setRole('art')">Art Dept</button>
+      <button class="rbtn screen" onclick="setRole('screen')">Screen Room</button>
+    </div>
+    <div class="hcount" id="hcount" style="display:none"></div>
+    <button class="hbtn sec" id="changeTokBtn" style="display:none" onclick="changeToken()">Token</button>
+    <button class="hbtn" id="refreshBtn" style="display:none" onclick="loadData()">&#8635; Refresh</button>
+  </div>
+</header>
+
+<div id="setupScreen" class="setup-wrap">
+  <div class="setup-card">
+    <div class="setup-title">Pre-Press Queue</div>
+    <div class="setup-sub">Enter your Airtable Personal Access Token to load the queue.</div>
+    <label class="field-label">Airtable API Token</label>
+    <input class="setup-input" type="password" id="tokenInput" placeholder="patXXXXXXXXXXXXXX" autocomplete="off" onkeydown="if(event.key==='Enter')connect()">
+    <button class="setup-btn" onclick="connect()">Connect &amp; Load Queue</button>
+    <div class="setup-hint">Token stored in session only. Get yours at airtable.com/create/tokens</div>
+    <div class="setup-err" id="setupErr"></div>
+  </div>
+</div>
+
+<div id="appScreen" style="display:none">
+  <div class="page">
+    <div class="mode-banner art" id="modeBanner">
+      <div class="mode-dot"></div><span id="modeText">Art Department &mdash; mark sep&apos;d and upload sep files when done.</span>
+    </div>
+    <div class="controls">
+      <div class="ctrl-grp"><div class="ctrl-lbl">Separator</div><select id="sepFilter" onchange="render()"><option value="">All separators</option></select></div>
+      <div class="ctrl-grp"><div class="ctrl-lbl">Customer</div><select id="custFilter" onchange="render()"><option value="">All customers</option></select></div>
+      <div class="ctrl-grp"><div class="ctrl-lbl">Print Type</div><select id="typeFilter" onchange="render()"><option value="">All types</option></select></div>
+      <div class="ctrl-grp"><div class="ctrl-lbl">Search</div><input type="text" id="search" class="search-in" placeholder="Order #, customer..." oninput="render()"></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div class="lb" id="lb" style="display:none" onclick="closeLB()">
+  <div class="lb-x" onclick="closeLB()">&#215;</div>
+  <img id="lb-img" src="" alt="">
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const BASE = 'appJkaLk8DykjsgHR';
+const TBL  = 'tbln9oAGvz2PNBZLV';
+// Field IDs for PATCH writes only
+const FID_SEP   = 'fldlMcHtldbifKzDN';
+const FID_BURN  = 'fldEL51Nwrxuyn9Zo';
+const FID_SEPS  = 'fld80YHri5mFmKpvt';
+
+// IMPORTANT: API returns fields by NAME when not specifying fields[] param
+// These are the exact field names in Airtable:
+const FN = {
+  imprintId:    'Imprint ID',
+  nickname:     'Imprint Nickname',
+  type:         'Imprint Type',
+  location:     'Location',
+  screens:      'Screen Count',
+  seped:        "Sep'd",
+  burned:       'Screens Burned',
+  repeat:       'Repeat?',
+  customer:     'Customer',
+  printNotes:   'Print Notes',
+  discharge:    'Discharge Rating Lookup',
+  proofImages:  'Proof Images (from Line Items)',
+  separator:    'Separator',
+  meshCount:    'Mesh Count',
+  addNotes:     'Additional Notes',
+  dueDate:      'Customer Due Date (from Linked Orders)',
+  asapHard:     'ASAP or Hard Deadline Lookup',
+  sepsFile:     'Seps',
+  orderStatus:  'Order Status Lookup',
+};
+
+const SKIP_TYPES = new Set([
+  'Embroidery','Patch Application','Hem Label','Woven Label',
+  'Patch/Label ONLY','Finishing-Fold&Bag','Finishing - UPC sticker',
+  'Finishing-Bandana Hanger'
+]);
+
+const ACTIVE_STATUSES = new Set([
+  'Pre-press','Ordered - In Production','Received & Staged',
+  'Scheduled, Screened, & Inbound','On-Press',
+  'Delayed - Mis-Print','Delayed - Mis-Shipment - Needs Order',
+  'Delayed - Mis-Print - Needs Order'
+]);
+
+let ALL = [], state = {}, role = 'art';
+
+// ─── ROLE ────────────────────────────────────────────────────────────────────
+function setRole(r) {
+  role = r;
+  document.querySelectorAll('.rbtn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.rbtn.' + r).classList.add('active');
+  document.getElementById('roleLabel').textContent = r === 'art' ? 'Art Department' : 'Screen Room';
+  document.getElementById('modeBanner').className = 'mode-banner ' + r;
+  document.getElementById('modeText').textContent = r === 'art'
+    ? "Art Department \u2014 mark sep\u2019d and upload sep files when done."
+    : "Screen Room \u2014 sep\u2019d imprints ready to burn. Mark burned when screen is exposed.";
+  if (ALL.length) render();
+}
+
+// ─── AUTH ────────────────────────────────────────────────────────────────────
+const tok = () => sessionStorage.getItem('pat');
+
+async function connect() {
+  const t = document.getElementById('tokenInput').value.trim();
+  if (!t) { showErr('Please enter your token.'); return; }
+  if (!t.startsWith('pat')) { showErr('Token should start with "pat".'); return; }
+  sessionStorage.setItem('pat', t);
+  await loadData();
+}
+function showErr(m) { const e = document.getElementById('setupErr'); e.textContent = m; e.style.display = 'block'; }
+function changeToken() {
+  sessionStorage.removeItem('pat');
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('setupScreen').style.display = 'block';
+  ['refreshBtn','changeTokBtn'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('hcount').style.display = 'none';
+}
+
+// ─── LOAD ────────────────────────────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('list').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...<div class="loading-sub" id="lsub">Connecting to Airtable</div></div>';
+  document.getElementById('hcount').style.display = 'none';
+  ['refreshBtn','changeTokBtn'].forEach(id => document.getElementById(id).style.display = 'none');
+
+  const token = tok();
+  if (!token) { document.getElementById('setupScreen').style.display = 'block'; document.getElementById('appScreen').style.display = 'none'; return; }
+
+  try {
+    const recs = await fetchAll(token);
+    ALL = parseRecords(recs);
+    state = {};
+    ALL.forEach(r => { state[r.id] = { sp: r.sp, b: r.b, sepsUrl: r.sepsUrl, sepsName: r.sepsName }; });
+    populateFilters();
+    render();
+    document.getElementById('hcount').style.display = '';
+    ['refreshBtn','changeTokBtn'].forEach(id => document.getElementById(id).style.display = '');
+  } catch(err) {
+    document.getElementById('list').innerHTML = `<div class="empty"><h3>Load failed</h3><p>${err.message}</p></div>`;
+    document.getElementById('changeTokBtn').style.display = '';
+    console.error(err);
+  }
+}
+
+async function fetchAll(token) {
+  // Fetch by field NAMES (no fields[] param = returns all fields by name)
+  // Filter: IS_AFTER created time to last 12 months to limit scope
+  // Then filter client-side by order status
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 12);
+  const formula = `IS_AFTER(CREATED_TIME(), "${cutoff.toISOString().slice(0,10)}")`;
+
+  const params = new URLSearchParams();
+  params.set('filterByFormula', formula);
+  params.set('pageSize', '100');
+
+  let all = [], offset = null;
+  do {
+    const url = `https://api.airtable.com/v0/${BASE}/${TBL}?${params.toString()}${offset ? '&offset=' + encodeURIComponent(offset) : ''}`;
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.error?.message || `API error ${res.status}`);
+    }
+    const d = await res.json();
+    all = all.concat(d.records || []);
+    offset = d.offset || null;
+    const sub = document.getElementById('lsub');
+    if (sub) sub.textContent = `Loaded ${all.length} records${offset ? '...' : ''}`;
+  } while (offset);
+
+  return all;
+}
+
+function parseRecords(records) {
+  const out = [];
+  records.forEach(r => {
+    const f = r.fields || {};
+
+    const iid = f[FN.imprintId] || '';
+    if (!iid || !iid.includes('-')) return;
+
+    // Skip embroidery / finishing
+    const typeName = f[FN.type] || '';
+    if (SKIP_TYPES.has(typeName)) return;
+
+    // Filter to active order statuses only (client-side)
+    const statuses = f[FN.orderStatus] || [];
+    const statusList = Array.isArray(statuses) ? statuses : [statuses];
+    if (statusList.length > 0 && !statusList.some(s => ACTIVE_STATUSES.has(s))) return;
+
+    // Proof thumbnail — field is an array of attachment objects
+    let thumbUrl = '', largeUrl = '';
+    const proofs = f[FN.proofImages];
+    if (Array.isArray(proofs) && proofs.length) {
+      const p = proofs[0];
+      if (p && p.thumbnails) {
+        thumbUrl = p.thumbnails.small?.url || '';
+        largeUrl = p.thumbnails.large?.url || p.url || '';
+      }
+    }
+
+    // Sep file attachment
+    let sepsUrl = '', sepsName = '';
+    const sa = f[FN.sepsFile];
+    if (Array.isArray(sa) && sa.length) { sepsUrl = sa[0].url || ''; sepsName = sa[0].filename || 'sep'; }
+
+    // Discharge ratings — array of strings
+    const discVals = Array.isArray(f[FN.discharge]) ? f[FN.discharge].filter(Boolean) : [];
+
+    // Mesh count — single select object or string
+    const meshRaw = f[FN.meshCount];
+    const meshName = meshRaw ? (typeof meshRaw === 'object' ? meshRaw.name : meshRaw) : '';
+
+    // Separator — plain string
+    const sep = f[FN.separator] || '';
+
+    // ASAP / Hard Deadline — array of strings
+    const asapArr = Array.isArray(f[FN.asapHard]) ? f[FN.asapHard] : [];
+    const asapVal = asapArr[0] || '';
+
+    // Due date — array of date strings
+    const dueArr = Array.isArray(f[FN.dueDate]) ? f[FN.dueDate] : [];
+    const dueDate = (dueArr[0] || '').slice(0, 10);
+
+    // Customer — array of strings
+    const custArr = Array.isArray(f[FN.customer]) ? f[FN.customer] : [f[FN.customer] || ''];
+    const cust = custArr[0] || '';
+
+    // Repeat — boolean or string
+    const repeatVal = f[FN.repeat] === true || f[FN.repeat] === 'true';
+
+    out.push({
+      id: r.id,
+      i: iid,
+      o: iid.split('-')[0],
+      n: f[FN.nickname] || '',
+      t: typeName,
+      l: f[FN.location] || '',
+      s: f[FN.screens] || null,
+      sp: f[FN.seped] === true,
+      b:  f[FN.burned] === true,
+      rp: repeatVal,
+      c: cust,
+      pn: f[FN.printNotes] || '',
+      an: f[FN.addNotes] || '',
+      d: discVals,
+      m: meshName ? [meshName] : [],
+      sep,
+      th: thumbUrl,
+      lg: largeUrl,
+      due: dueDate,
+      ah: asapVal,
+      sepsUrl,
+      sepsName,
+    });
+  });
+
+  // Sort: with due date asc first, then undated by order number desc
+  const dated   = out.filter(x => x.due).sort((a,b) => a.due.localeCompare(b.due) || a.i.localeCompare(b.i));
+  const undated = out.filter(x => !x.due).sort((a,b) => b.o.localeCompare(a.o) || a.i.localeCompare(b.i));
+  return [...dated, ...undated];
+}
+
+// ─── FILTERS ─────────────────────────────────────────────────────────────────
+function populateFilters() {
+  const seps = new Set(), custs = new Set(), types = new Set();
+  ALL.forEach(r => { if(r.sep) seps.add(r.sep); if(r.c) custs.add(r.c); if(r.t) types.add(r.t); });
+  function fill(id, set, label) {
+    const el = document.getElementById(id), cur = el.value;
+    el.innerHTML = `<option value="">All ${label}</option>`;
+    [...set].sort().forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; el.appendChild(o); });
+    if (cur && [...set].includes(cur)) el.value = cur;
+  }
+  fill('sepFilter', seps, 'separators');
+  fill('custFilter', custs, 'customers');
+  fill('typeFilter', types, 'types');
+}
+
+function groupByOrder(records) {
+  const map = {}, order = [];
+  records.forEach(r => { if (!map[r.o]) { map[r.o] = []; order.push(r.o); } map[r.o].push(r); });
+  return order.map(o => ({ orderNum: o, imprints: map[o] }));
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const sep  = document.getElementById('sepFilter').value;
+  const cust = document.getElementById('custFilter').value;
+  const type = document.getElementById('typeFilter').value;
+  const q    = (document.getElementById('search').value || '').toLowerCase().trim();
+
+  const filtered = ALL.filter(r => {
+    const s = state[r.id] || r;
+    if (role === 'art'    && s.sp)           return false;
+    if (role === 'screen' && (!s.sp || s.b)) return false;
+    if (sep  && r.sep !== sep)  return false;
+    if (cust && r.c   !== cust) return false;
+    if (type && r.t   !== type) return false;
+    if (q && !`${r.i} ${r.c} ${r.n} ${r.o}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const groups = groupByOrder(filtered);
+  document.getElementById('hcount').textContent = `${filtered.length} in queue`;
+  document.getElementById('stats').innerHTML = `
+    <div class="sp">${groups.length} order${groups.length !== 1 ? 's' : ''}</div>
+    <div class="sp ${role === 'art' ? 'pur' : 'blu'}">${filtered.length} ${role === 'art' ? 'to sep' : 'to burn'}</div>
+    ${filtered.filter(r => r.due).length ? `<div class="sp org">${filtered.filter(r => r.due).length} with due dates</div>` : ''}
+    ${sep ? `<div class="sp grn">Sep: ${sep}</div>` : ''}
+  `;
+
+  const list = document.getElementById('list');
+  if (!groups.length) {
+    list.innerHTML = `<div class="empty"><h3>${role === 'art' ? 'No imprints need separation.' : "No sep\u2019d imprints waiting to burn."}</h3></div>`;
+    return;
+  }
+  list.innerHTML = groups.map(buildGroup).join('');
+}
+
+function fmtDate(d) { try { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch(e) { return d; } }
+function daysDiff(d) { if (!d) return null; const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(d + 'T12:00:00') - t) / 864e5); }
+function discCls(v) { const u = (v||'').toUpperCase(); if(u==='A'||u==='A+') return 'b-dA'; if(u==='B+') return 'b-dBp'; if(u==='B') return 'b-dB'; if(u==='C') return 'b-dC'; if(u==='D') return 'b-dD'; return 'b-dlc'; }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function buildGroup(g) {
+  const total = g.imprints.length;
+  const due   = g.imprints[0].due;
+  const days  = daysDiff(due);
+  const ah    = g.imprints[0].ah;
+  const dueCls = !due ? 'dt-none' : days < 0 ? 'dt-past' : days <= 3 ? 'dt-soon' : 'dt-ok';
+  const dueLbl = !due ? 'No date' : days < 0 ? `${Math.abs(days)}d overdue` : days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : fmtDate(due);
+  const ahBadge = ah === 'ASAP' ? `<span class="ah-b ah-asap">ASAP</span>` : ah === 'Hard Deadline' ? `<span class="ah-b ah-hard">Hard</span>` : '';
+  const gid = 'g-' + g.orderNum;
+  return `<div class="og" id="${gid}">
+    <div class="oh" onclick="toggleGrp('${gid}')">
+      <span class="on">#${g.orderNum}</span>
+      <span class="oc">${esc(g.imprints[0].c)}</span>
+      ${ahBadge}<span class="dt ${dueCls}">${dueLbl}</span>
+      <span class="op">${total} imprint${total !== 1 ? 's' : ''}</span>
+      <span class="chv">&#9660;</span>
+    </div>
+    <div class="ig">${g.imprints.map(buildCard).join('')}</div>
+  </div>`;
+}
+
+function buildCard(r) {
+  const s = state[r.id] || { sp: r.sp, b: r.b, sepsUrl: r.sepsUrl, sepsName: r.sepsName };
+  const thumb = r.th
+    ? `<img src="${r.th}" loading="lazy" alt="${r.i}" onclick="openLB('${r.lg || r.th}',event)">`
+    : `<div class="np"><div class="npb"></div><span class="npt">no proof</span></div>`;
+  const sepInd = s.sepsUrl
+    ? `<a class="sep-ind" href="${s.sepsUrl}" target="_blank" onclick="event.stopPropagation()" title="${esc(s.sepsName)}">sep &#8599;</a>` : '';
+  const locBadge  = r.l && r.l !== 'Flatstock' ? `<span class="bd b-loc">${esc(r.l)}</span>` : '';
+  const typeBadge = r.t ? `<span class="bd b-type">${esc(r.t)}</span>` : '';
+  const discBadges = (r.d || []).map(d => `<span class="bd ${discCls(d)}">${esc(d)}</span>`).join('');
+  const meshBadge  = (r.m || []).length ? `<span class="bd b-dlc">${r.m.join('/')}</span>` : '';
+  const det = [r.s ? `screens: ${r.s}` : '', r.sep ? `sep: ${esc(r.sep)}` : ''].filter(Boolean).join(' &middot; ');
+  const notes = r.pn || r.an ? `<div class="inotes">${esc(r.pn || r.an)}</div>` : '';
+
+  let footer = '';
+  if (role === 'art') {
+    footer = `<div class="ifoot">
+      <div class="ck-row">
+        <label class="ck${s.sp ? ' on' : ''}" onclick="toggle('${r.id}','sep',event)">
+          <div class="ck-box"><div class="ck-v"></div></div>sep'd
+        </label>
+      </div>
+      <button class="upload-btn" id="ubtn-${r.id}" onclick="triggerUpload('${r.id}')">${s.sepsUrl ? 'Replace sep' : 'Upload sep'}</button>
+      <input type="file" id="ufile-${r.id}" accept=".pdf,.ai,.eps,.psd,.png,.tif,.tiff,.jpg" onchange="handleUpload('${r.id}',this)">
+    </div>`;
+  } else {
+    footer = `<div class="ifoot">
+      <div class="ck-row">
+        <label class="ck disabled${s.sp ? ' on' : ''}"><div class="ck-box"><div class="ck-v"></div></div>sep'd</label>
+        <label class="ck bn${s.b ? ' on' : ''}" onclick="toggle('${r.id}','burn',event)">
+          <div class="ck-box"><div class="ck-v"></div></div>burned
+        </label>
+      </div>
+      ${s.sepsUrl ? `<a class="view-sep-btn" href="${s.sepsUrl}" target="_blank">View sep &#8599;</a>` : `<span style="font-size:10px;color:var(--muted-l)">no sep file</span>`}
+    </div>`;
+  }
+
+  return `<div class="ic" id="ic-${r.id}">
+    <div class="it">${thumb}${r.rp ? `<span class="rf">Repeat</span>` : ''}${sepInd}</div>
+    <div class="ib">
+      <div class="iid">${r.i}</div>
+      ${r.n ? `<div class="ink">${esc(r.n)}</div>` : ''}
+      <div class="ibd">${locBadge}${typeBadge}${discBadges}${meshBadge}</div>
+      ${det ? `<div class="idet">${det}</div>` : ''}
+      ${notes}
+    </div>
+    ${footer}
+  </div>`;
+}
+
+function toggleGrp(gid) { document.getElementById(gid).classList.toggle('collapsed'); }
+
+// ─── CHECKBOXES ──────────────────────────────────────────────────────────────
+function toggle(id, which, e) {
+  e.preventDefault();
+  if (!state[id]) state[id] = { sp: false, b: false, sepsUrl: '', sepsName: '' };
+  const s = state[id];
+  const field = which === 'sep' ? 'sp' : 'b';
+  s[field] = !s[field];
+
+  const card = document.getElementById('ic-' + id);
+  if (card) {
+    const cks = card.querySelectorAll('.ck:not(.disabled)');
+    const ck  = role === 'art' ? cks[0] : (which === 'burn' ? cks[0] : null);
+    if (ck) ck.classList.toggle('on', s[field]);
+  }
+
+  const shouldRemove = s[field] && ((role === 'art' && which === 'sep') || (role === 'screen' && which === 'burn'));
+  if (shouldRemove) {
+    setTimeout(() => {
+      const c = document.getElementById('ic-' + id);
+      if (c) { c.style.transition = 'opacity .4s'; c.style.opacity = '0'; }
+      setTimeout(() => {
+        document.getElementById('ic-' + id)?.remove();
+        document.querySelectorAll('.og').forEach(g => { if (!g.querySelector('.ic')) g.remove(); });
+        document.getElementById('hcount').textContent = `${document.querySelectorAll('.ic').length} in queue`;
+      }, 420);
+    }, 700);
+  }
+
+  saveField(id, which === 'sep' ? FID_SEP : FID_BURN, s[field]);
+}
+
+// ─── UPLOAD ──────────────────────────────────────────────────────────────────
+function triggerUpload(id) { const b = document.getElementById('ubtn-' + id); if (b && b.disabled) return; document.getElementById('ufile-' + id).click(); }
+
+async function handleUpload(id, input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 20 * 1024 * 1024) { showToast('File too large (max 20MB)', true); input.value = ''; return; }
+  const btn = document.getElementById('ubtn-' + id);
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
+  const token = tok();
+  if (!token) { showToast('No token', true); if (btn) { btn.disabled = false; btn.textContent = 'Upload sep'; } return; }
+  try {
+    const b64 = await new Promise((res, rej) => { const reader = new FileReader(); reader.onload = e => res(e.target.result); reader.onerror = rej; reader.readAsDataURL(file); });
+    const res = await fetch(`https://api.airtable.com/v0/${BASE}/${TBL}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ records: [{ id, fields: { [FID_SEPS]: [{ filename: file.name, url: b64 }] } }] })
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || res.status); }
+    const result = await res.json();
+    const att = (result.records?.[0]?.fields?.[FID_SEPS] || [])[0] || {};
+    if (state[id]) { state[id].sepsUrl = att.url || ''; state[id].sepsName = att.filename || file.name; }
+    const card = document.getElementById('ic-' + id);
+    if (card && att.url) {
+      let ind = card.querySelector('.sep-ind');
+      if (!ind) { ind = document.createElement('a'); ind.className = 'sep-ind'; ind.target = '_blank'; ind.onclick = ev => ev.stopPropagation(); card.querySelector('.it').appendChild(ind); }
+      ind.href = att.url; ind.title = att.filename || file.name; ind.innerHTML = 'sep &#8599;';
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Replace sep'; }
+    showToast('\u2713 Sep file uploaded');
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Upload sep'; }
+    showToast('Upload failed: ' + err.message, true);
+    console.error(err);
+  }
+  input.value = '';
+}
+
+// ─── SAVE FIELD ──────────────────────────────────────────────────────────────
+async function saveField(id, fld, val) {
+  const token = tok();
+  if (!token) { showToast('No token', true); return; }
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${BASE}/${TBL}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ records: [{ id, fields: { [fld]: val } }] })
+    });
+    if (res.ok) {
+      showToast(fld === FID_SEP ? (val ? "\u2713 Marked sep\u2019d" : "Unmarked sep\u2019d") : (val ? "\u2713 Marked burned" : "Unmarked burned"));
+    } else {
+      showToast('Save error \u2014 check token', true);
+    }
+  } catch(e) { showToast('Save failed', true); }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function showToast(msg, err = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function openLB(url, e) { e.stopPropagation(); if (!url) return; document.getElementById('lb-img').src = url; document.getElementById('lb').style.display = 'flex'; }
+function closeLB() { document.getElementById('lb').style.display = 'none'; document.getElementById('lb-img').src = ''; }
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+if (tok()) loadData();
+</script>
+</body>
+</html>
