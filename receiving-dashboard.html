@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receiving Dashboard — Pine Central</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f2f0;--surface:#ffffff;--border:#e2e8e2;--border-dk:#c8d4c8;
+  --green:#1e6b45;--green-lt:#e8f5ee;--green-md:#2d8a5a;
+  --text:#1a1f1a;--muted:#6b7a6b;--muted-lt:#9aaa9a;
+  --red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+  --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;
+  --blue:#1d4ed8;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;
+  --radius:8px;--mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;padding-bottom:60px}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:14px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:38px;height:38px;background:var(--green);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-pine{font-size:22px;font-weight:800;color:var(--green);font-style:italic;letter-spacing:-.5px}
+.hd{width:1px;height:28px;background:var(--border)}
+.header-info{display:flex;flex-direction:column;gap:1px}
+.header-title{font-size:15px;font-weight:600}
+.header-sub{font-size:12px;color:var(--muted)}
+
+/* PAGE */
+.page{max-width:900px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.panel-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.panel-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.panel-body{padding:20px}
+.panel-hide{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--sans)}
+.panel-hide:hover{color:var(--text)}
+
+/* CONNECTION */
+.conn-grid{display:grid;grid-template-columns:1fr 280px;gap:14px;margin-bottom:14px}
+.fl{font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border-dk);border-radius:6px;padding:9px 12px;font-size:13px;font-family:var(--mono);color:var(--text);transition:border-color .15s}
+.fi:focus{outline:none;border-color:var(--green);background:#fff}
+.fi::placeholder{color:var(--muted-lt)}
+.conn-actions{display:flex;gap:10px;margin-bottom:14px}
+.btn-primary{background:var(--green);color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s;white-space:nowrap}
+.btn-primary:hover{background:var(--green-md)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-sec{background:var(--surface);color:var(--text);border:1px solid var(--border-dk);border-radius:6px;padding:9px 16px;font-size:13px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:all .15s}
+.btn-sec:hover{border-color:var(--green);color:var(--green)}
+.conn-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:6px;font-size:13px;font-weight:500;border:1px solid}
+.cs-ok{background:var(--green-lt);border-color:#a7d4b8;color:var(--green)}
+.cs-err{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+.cs-hide{display:none}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-g{background:var(--green)}.dot-r{background:var(--red)}
+
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)}
+.ss{padding:16px 20px;border-right:1px solid var(--border)}
+.ss:last-child{border-right:none}
+.sv{font-size:26px;font-weight:700;line-height:1;color:var(--green);font-family:var(--mono)}
+.sv.red{color:var(--red)}.sv.amb{color:var(--amb)}
+.sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-top:4px}
+
+/* FILTERS */
+.filter-bar{display:flex;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.flt{font-size:12px;color:var(--muted);font-weight:500}
+.chip{background:var(--bg);border:1px solid var(--border-dk);color:var(--muted);font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:var(--sans);transition:all .12s}
+.chip:hover{border-color:var(--green);color:var(--green)}
+.chip.on{background:var(--green-lt);border-color:var(--green);color:var(--green)}
+.fsp{flex:1}
+.btn-refresh{display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border-dk);color:var(--muted);font-size:12px;font-weight:500;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--sans);transition:all .12s}
+.btn-refresh:hover{border-color:var(--green);color:var(--green)}
+.btn-refresh:disabled{opacity:.4;cursor:not-allowed}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+/* SEARCH BAR */
+.search-bar{padding:10px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.search-wrap{position:relative;display:flex;align-items:center}
+.search-icon{position:absolute;left:10px;font-size:14px;color:var(--muted-lt);pointer-events:none}
+.search-input{width:100%;background:var(--bg);border:1px solid var(--border-dk);border-radius:6px;padding:8px 36px 8px 32px;font-size:13px;font-family:var(--sans);color:var(--text);transition:border-color .15s}
+.search-input:focus{outline:none;border-color:var(--green);background:#fff}
+.search-input::placeholder{color:var(--muted-lt)}
+.search-clear{position:absolute;right:10px;background:none;border:none;color:var(--muted-lt);cursor:pointer;font-size:15px;line-height:1;padding:2px;display:none}
+.search-clear.show{display:block}
+.search-clear:hover{color:var(--text)}
+.search-hint{font-size:11px;color:var(--muted-lt);margin-top:5px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* STATE */
+.state-box{padding:60px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.si{font-size:32px}.st{font-size:15px;font-weight:600;color:var(--text)}.sb{font-size:13px}
+
+/* ORDER GROUP */
+.order-group{border-bottom:1px solid var(--border);animation:fadeIn .2s ease}
+.order-group:last-child{border-bottom:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+
+.order-hd{display:flex;align-items:center;gap:12px;padding:13px 20px;cursor:pointer;user-select:none;transition:background .1s;background:var(--bg)}
+.order-hd:hover{background:#eef0ee}
+.onum{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green);min-width:50px}
+.ocust{font-size:14px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.obdgs{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.bdg{font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;white-space:nowrap;border:1px solid}
+.bdg-red{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.bdg-amb{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.bdg-gray{background:var(--bg);color:var(--muted);border-color:var(--border-dk)}
+.chev{font-size:11px;color:var(--muted-lt);transition:transform .2s;flex-shrink:0}
+.order-open .chev{transform:rotate(180deg)}
+.order-open .order-hd{border-bottom:1px solid var(--border)}
+
+/* LINE ITEMS */
+.li-container{display:none}
+.order-open .li-container{display:block}
+.li{border-bottom:1px solid var(--border)}
+.li:last-child{border-bottom:none}
+
+/* COLLAPSED ROW — no expand arrow, full row is clickable */
+.li-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:16px;
+  padding:12px 20px;
+  cursor:pointer;
+  transition:background .1s;
+  background:var(--surface);
+}
+.li-row:hover{background:#fafcfa}
+.li-exp .li-row{background:#fafcfa;border-bottom:1px solid var(--border)}
+
+.li-left{display:flex;flex-direction:column;gap:4px}
+.li-ref{font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.4}
+.li-meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.lm{font-size:12px;color:var(--muted);white-space:nowrap}
+.lm strong{color:var(--text);font-weight:500;font-family:var(--mono)}
+
+.li-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.dbdg{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;font-family:var(--mono);white-space:nowrap}
+.d-empty{background:var(--bg);color:var(--muted);border-color:var(--border-dk)}
+.d-ok{background:var(--green-lt);color:var(--green);border-color:#a7d4b8}
+.d-sh{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.d-ov{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+
+/* close X — only when expanded */
+.li-close{width:24px;height:24px;border-radius:50%;background:var(--surface);border:1px solid var(--border-dk);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);cursor:pointer;flex-shrink:0;transition:all .1s;line-height:1}
+.li-close:hover{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+
+/* DETAIL */
+.li-detail{display:none;background:var(--surface);padding:16px 20px;border-top:none}
+.li-exp .li-detail{display:block}
+
+.dmeta{display:flex;gap:20px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.df{display:flex;flex-direction:column;gap:3px}
+.dl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.dv{font-family:var(--mono);font-size:13px;color:var(--text)}
+.dv.grn{color:var(--green);font-weight:600}
+.dv.red{color:var(--red)}
+.dv.amb{color:var(--amb);font-weight:600}
+
+/* SIZE GRID */
+.sgwrap{overflow-x:auto;margin-bottom:14px}
+.sgrid{width:100%;border-collapse:collapse;font-size:13px}
+.sgrid th{padding:7px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--bg);border:1px solid var(--border);text-align:left}
+.sgrid th.ra{text-align:right}
+.sgrid th.grn{color:var(--green)}
+.sgrid td{padding:7px 10px;border:1px solid var(--border);background:var(--surface);font-family:var(--mono)}
+.sgrid tr.tot td{background:var(--bg);font-weight:600;border-top:2px solid var(--border-dk)}
+.slbl{color:var(--muted);font-size:12px;font-weight:600}
+.oval{color:var(--text)}
+.xval{color:var(--muted);font-size:12px}
+
+.ainp{width:68px;background:var(--bg);border:1px solid var(--border-dk);border-radius:5px;padding:5px 8px;font-family:var(--mono);font-size:13px;color:var(--text);transition:border-color .15s,background .15s;-moz-appearance:textfield}
+.ainp::-webkit-outer-spin-button,.ainp::-webkit-inner-spin-button{-webkit-appearance:none}
+.ainp:focus{outline:none;border-color:var(--green);background:var(--green-lt)}
+.dc{text-align:right}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;border:1px solid}
+.p-ok{background:var(--green-lt);color:var(--green);border-color:#a7d4b8}
+.p-sh{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.p-ov{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+
+/* extras note */
+.extras-note{font-size:11px;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:var(--amb-bg);border:1px solid var(--amb-bd);border-radius:5px;display:none}
+.extras-note.show{display:block}
+
+/* RECEIVED ROW */
+.recv-row{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.recv-note{font-size:12px;color:var(--muted)}
+.btn-recv{display:flex;align-items:center;gap:7px;background:var(--green);color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s}
+.btn-recv:hover{background:var(--green-md)}
+.btn-recv:disabled{opacity:.5;cursor:not-allowed}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;font-size:13px;font-weight:500;padding:11px 18px;border-radius:7px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:slideUp .2s ease;display:flex;align-items:center;gap:8px}
+.toast.ok::before{content:'✓';color:#4ade80;font-weight:700}
+.toast.err::before{content:'✕';color:#f87171;font-weight:700}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-out{opacity:0;transform:translateX(14px);transition:opacity .25s,transform .25s}
+/* RECENTLY RECEIVED */
+.recv-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-top:0}
+.recv-panel-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--green-lt);border-bottom:1px solid #a7d4b8;cursor:pointer;user-select:none}
+.recv-panel-title{font-size:13px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:8px}
+.recv-panel-chev{font-size:11px;color:var(--green);transition:transform .2s}
+.recv-panel-open .recv-panel-chev{transform:rotate(180deg)}
+.recv-panel-body{display:none;padding:0}
+.recv-panel-open .recv-panel-body{display:block}
+.recv-row-item{display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border)}
+.recv-row-item:last-child{border-bottom:none}
+.recv-onum{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green);min-width:50px}
+.recv-cust{font-size:13px;font-weight:500;flex:1}
+.recv-time{font-size:11px;color:var(--muted)}
+.btn-reprint{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border-dk);color:var(--muted);font-size:12px;font-weight:500;padding:5px 11px;border-radius:5px;cursor:pointer;font-family:var(--sans);transition:all .12s;white-space:nowrap}
+.btn-reprint:hover{border-color:var(--green);color:var(--green)}
+
+/* REPRINT SEARCH */
+.reprint-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.reprint-panel-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--bg);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.reprint-panel-title{font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px}
+.reprint-panel-body{display:none;padding:16px 20px}
+.reprint-panel-open .reprint-panel-body{display:block}
+.reprint-search-row{display:flex;gap:10px;margin-bottom:12px}
+.reprint-inp{flex:1;background:var(--bg);border:1px solid var(--border-dk);border-radius:6px;padding:8px 12px;font-size:13px;font-family:var(--mono);color:var(--text);transition:border-color .15s}
+.reprint-inp:focus{outline:none;border-color:var(--green);background:#fff}
+.reprint-inp::placeholder{color:var(--muted-lt)}
+.btn-reprint-search{background:var(--green);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;white-space:nowrap}
+.btn-reprint-search:disabled{opacity:.5;cursor:not-allowed}
+.reprint-result{background:var(--green-lt);border:1px solid #a7d4b8;border-radius:6px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.reprint-result-info{display:flex;flex-direction:column;gap:3px}
+.reprint-result-ord{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green)}
+.reprint-result-cust{font-size:13px;color:var(--text)}
+.reprint-result-date{font-size:11px;color:var(--muted)}
+
+/* PRINT LABEL */
+.btn-label{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border-dk);color:var(--muted);font-size:12px;font-weight:500;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--sans);transition:all .12s;white-space:nowrap}
+.btn-label:hover{border-color:var(--green);color:var(--green)}
+
+
+
+/* PROOF OVERLAY */
+.proof-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+.proof-overlay-inner{position:relative;max-width:90vw;max-height:90vh;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:default;display:flex;align-items:center;justify-content:center;background:#fff;padding:16px}
+.proof-overlay-close{position:absolute;top:-14px;right:-14px;width:32px;height:32px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:1;line-height:1;color:var(--text)}
+.proof-overlay-close:hover{background:var(--red-bg);color:var(--red)}
+
+/* COLLAPSED ROW THUMBNAIL */
+.li-thumb{width:38px;height:38px;object-fit:contain;border:1px solid var(--border);border-radius:4px;background:var(--surface);flex-shrink:0;cursor:pointer;transition:transform .1s}
+.li-thumb:hover{transform:scale(1.08)}
+
+/* IMPRINT STRIP */
+.imp-strip{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
+.imp-ids{display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1}
+.imp-id{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--green);background:var(--green-lt);border:1px solid #a7d4b8;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.imp-proofs{display:flex;gap:6px;align-items:center}
+.proof-thumb{width:44px;height:44px;object-fit:contain;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;transition:transform .1s}
+.proof-thumb:hover{transform:scale(1.1)}
+
+
+/* QUICK FILL PER SIZE */
+.btn-fill{background:none;border:none;color:var(--muted-lt);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;font-family:var(--mono);transition:all .1s;white-space:nowrap;line-height:1}
+.btn-fill:hover{background:var(--green-lt);color:var(--green)}
+.btn-fill.filled{color:var(--green);opacity:.6;text-decoration:line-through}
+
+/* MIS-SHIP */
+.ms-bdg{font-size:11px;font-weight:600;padding:3px 9px;border-radius:4px;border:1px solid;white-space:nowrap}
+.ms-flag{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.ms-prog{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.ms-box{background:var(--red-bg);border:1px solid var(--red-bd);border-radius:6px;padding:12px 14px;margin-bottom:14px}
+.ms-box-prog{background:var(--amb-bg);border:1px solid var(--amb-bd);border-radius:6px;padding:12px 14px;margin-bottom:14px}
+.ms-box-title{font-size:12px;font-weight:600;color:var(--red);margin-bottom:4px}
+.ms-box-title-prog{font-size:12px;font-weight:600;color:var(--amb);margin-bottom:4px}
+.ms-box-note{font-size:12px;color:var(--text);line-height:1.5}
+.ms-flag-form{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:none}
+.ms-flag-form.open{display:block}
+.ms-flag-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.ms-textarea{width:100%;background:var(--bg);border:1px solid var(--border-dk);border-radius:5px;padding:8px 10px;font-size:13px;font-family:var(--sans);color:var(--text);resize:vertical;min-height:72px;transition:border-color .15s}
+.ms-textarea:focus{outline:none;border-color:var(--red);background:#fff}
+.ms-textarea::placeholder{color:var(--muted-lt)}
+.ms-actions{display:flex;gap:8px;margin-top:8px}
+.btn-ms-save{background:var(--red);color:#fff;border:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s}
+.btn-ms-save:hover{background:#a93226}
+.btn-ms-save:disabled{opacity:.5;cursor:not-allowed}
+.btn-ms-cancel{background:none;border:1px solid var(--border-dk);color:var(--muted);border-radius:5px;padding:7px 12px;font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer}
+.btn-ms-cancel:hover{border-color:var(--text);color:var(--text)}
+.btn-flag{display:flex;align-items:center;gap:5px;background:none;border:1px solid var(--red-bd);color:var(--red);border-radius:5px;padding:7px 12px;font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:all .12s}
+.btn-flag:hover{background:var(--red-bg)}
+
+/* PROGRESS BADGE */
+.prog-bdg{font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.prog-done{background:var(--green-lt);color:var(--green);border-color:#a7d4b8}
+.prog-part{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.prog-none{background:var(--bg);color:var(--muted);border-color:var(--border-dk)}
+
+
+.overdue{color:var(--red);font-size:11px;font-weight:500}
+
+@media(max-width:600px){
+  .conn-grid{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+  .li-meta{display:none}
+  .dmeta{gap:14px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M11 2L4 9V20h4.5v-5.5h5V20H18V9L11 2Z" fill="white"/>
+      </svg>
+    </div>
+    <span class="logo-pine">Pine</span>
+  </div>
+  <div class="hd"></div>
+  <div class="header-info">
+    <div class="header-title">Receiving Dashboard</div>
+    <div class="header-sub">Pine Central</div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- CONNECTION -->
+  <div class="panel" id="connPanel">
+    <div class="panel-hd">
+      <div class="panel-title">⚙ &nbsp;Connection Setup</div>
+      <button class="panel-hide" onclick="toggleConn()">Hide</button>
+    </div>
+    <div class="panel-body" id="connBody">
+      <div class="conn-grid">
+        <div>
+          <div class="fl">Airtable API Token</div>
+          <input type="password" class="fi" id="tokenInput" placeholder="pat••••••••••••••••••••••••••••••••••••••••••">
+        </div>
+        <div>
+          <div class="fl">Base ID</div>
+          <input type="text" class="fi" value="appJkaLk8DykjsgHR" readonly style="color:var(--muted);cursor:not-allowed">
+        </div>
+      </div>
+      <div class="conn-actions">
+        <button class="btn-primary" id="testBtn" onclick="testConn()">Test Connection</button>
+        <button class="btn-sec" onclick="saveToken()">Save Token</button>
+      </div>
+      <div class="conn-status cs-hide" id="connStatus">
+        <div class="dot" id="statusDot"></div>
+        <span id="statusMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel">
+    <div class="summary-grid">
+      <div class="ss"><div class="sv" id="sO">—</div><div class="sl">Orders pending</div></div>
+      <div class="ss"><div class="sv" id="sL">—</div><div class="sl">Line items</div></div>
+      <div class="ss"><div class="sv red" id="sU">—</div><div class="sl">Print ≤ 4 days</div></div>
+      <div class="ss"><div class="sv amb" id="sV">—</div><div class="sl">Overdue arrival</div></div>
+    </div>
+    <div class="filter-bar">
+      <span class="flt">Show:</span>
+      <button class="chip on" onclick="setFilter('all',this)">All</button>
+      <button class="chip" onclick="setFilter('urgent',this)">🔴 Prints ≤ 4 days</button>
+      <button class="chip" onclick="setFilter('misship',this)">⚠️ Mis-ships</button>
+      <button class="chip" onclick="setFilter('overdue',this)">⚠️ Overdue arrival</button>
+      <div class="fsp"></div>
+      <button class="btn-refresh" id="refreshBtn" onclick="loadData()"><span id="refreshIcon">↻</span> Refresh</button>
+    </div>
+    <div class="search-bar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search customer, PO #, or order #..." oninput="onSearch(this.value)">
+        <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+      </div>
+      <div class="search-hint" id="searchHint"></div>
+    </div>
+    <div id="resultsArea">
+      <div class="state-box">
+        <div class="si">📦</div>
+        <div class="st">Enter your API token to load orders</div>
+        <div class="sb">Use the Connection Setup panel above</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- RECENTLY RECEIVED THIS SESSION -->
+  <div class="recv-panel" id="recentPanel" style="display:none">
+    <div class="recv-panel-hd" onclick="togRecentPanel()">
+      <div class="recv-panel-title">✓ Recently Received <span id="recentCount" style="background:var(--green);color:#fff;font-size:11px;padding:1px 7px;border-radius:10px">0</span></div>
+      <span class="recv-panel-chev">▼</span>
+    </div>
+    <div class="recv-panel-body" id="recentBody"></div>
+  </div>
+
+  <!-- REPRINT LABEL SEARCH -->
+  <div class="reprint-panel" id="reprintPanel">
+    <div class="reprint-panel-hd" onclick="togReprintPanel()">
+      <div class="reprint-panel-title">🖨 Reprint a Label</div>
+      <span class="recv-panel-chev" id="reprintChev">▼</span>
+    </div>
+    <div class="reprint-panel-body" id="reprintBody">
+      <div class="reprint-search-row">
+        <input type="text" class="reprint-inp" id="reprintInp" placeholder="Order # (e.g. 9691)" onkeydown="if(event.key==='Enter')searchReprint()">
+        <button class="btn-reprint-search" id="reprintBtn" onclick="searchReprint()">Find Order</button>
+      </div>
+      <div id="reprintResult"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BASE_ID='appJkaLk8DykjsgHR',TABLE_ID='tblJx5UlwO7oMSk5H',MIN_ORDER=9000;
+const EXCLUDE_STATUS=['Completed','Received & Staged','Shipped'];
+
+const F={
+  ref:'fldU6oLyZnxhhm2kX',ordered:'fldBnjGyTLLjzz97l',received:'fldwaSkM0sJJ2oYsQ',
+  po:'fldIUAnkNscvEVDjU',supplier:'fldoboa9QhrHbEe8A',supplierName:'fldj5Oq8JVUocLzS2',
+  arrival:'fld9EfCdiP8cgSepO',printDate:'fldxJsB2j9FO0t3ZL',
+  orderNum:'fldRNXpvna5jpa1v5',customer:'fldB4mKfMl2Lp9UK0',
+  orderedTotal:'fldRnt7Y6jEFqoZMC',
+  totalQty:'fldFfuKAcduwWQp8g',actualTotal:'fldseqgzoicivqc0p',delta:'fld4I3jlP9dSPEWH0',
+  orderStatus:'fldpCv8bxptGJ1gty',
+  dueDate:'fldqoBVfIvvKZrgiM',
+  productType:'fld8LIkrBXv8WoRRb',
+  misship:'fldDlrzYoe2q31K0U',
+  misshipDetails:'fldQP8hzBdUXl50Io',
+  misshipInProgress:'fldKNP8l61EEaJHmA',
+  misshipResolved:'fldt0vrDUpL3eKatw',
+  // Ordered sizes
+  oXS:'fldVA9ZmYxhDxtnYZ',oS:'fldCZr5lB6Jx80lfG',oM:'fldzTs1qKe9IBxxSn',
+  oL:'fldnRLJxjUDa1mQTj',oXL:'fldTRgdexcpBXXQPv',o2XL:'fldin7j6uGO0uRTec',
+  o3XL:'fldpltq9fdRkrvIvt',o4XL:'fldrsci7JnToa43Zd',o5XL:'fldchnRSKFukouW6N',
+  oOSFA:'fld2bgIlmPbANgLVK',o6XL:'fldI8gTtsEJwg33BI',
+  // Actual sizes
+  aXS:'fldam6SyOjB3VebzQ',aS:'fldM6F2oo5fV9zPse',aM:'fldejqlR3EGch1svc',
+  aL:'fldn3bdKPd3LkuuP3',aXL:'fldVsaOkMG6JglWv3',a2XL:'fld1YCamiJYBRjoZL',
+  a3XL:'fld1itap3IIl4UbST',a4XL:'fldkPODsJyE4OZXXZ',a5XL:'fldJpbBIdckvwHj7K',
+  aOSFA:'fldcseeXJjlFbIBhA',
+  // Extra sizes
+  eXS:'fldKcVhxgaclD1csp',eS:'fldgf19Xi1VDqro4Q',eM:'fldWxiQEIFsqwxFW1',
+  eL:'fldclPpJQpcXuT4Wn',eXL:'fldWjibddJoIC1JGu',e2XL:'fldgd2JZCSS3YBYX2',
+  e3XL:'fldbht14x4cRBPRVL',e4XL:'fldLyB756Va085UDj',e5XL:'fldHZ0WmjhzF34noZ',
+  eOSFA:'fldKS4Jk6aZvxR4Nn',
+  imprintIds:'fldmGRcdXyvheWjmv',
+  proofImages:'flddhvdkKI31tFTdX',
+  imprintDesc:'fldvYZN7iEdKfGhjg',
+  linkedOrderRecId:'fldzKRiMKCRQLjUFZ',
+  orderRef:'fld5r0tFvdpzWV5pA',
+  deliveryMethod:'fldagpKBGR1uiLGK6',
+};
+
+const EXCLUDE_PRODUCT_TYPES=['Promo','Stickers','Flatstock'];
+
+const SIZES=[
+  {l:'XS', ok:'oXS', ak:'aXS', ek:'eXS'},
+  {l:'S',  ok:'oS',  ak:'aS',  ek:'eS'},
+  {l:'M',  ok:'oM',  ak:'aM',  ek:'eM'},
+  {l:'L',  ok:'oL',  ak:'aL',  ek:'eL'},
+  {l:'XL', ok:'oXL', ak:'aXL', ek:'eXL'},
+  {l:'2XL',ok:'o2XL',ak:'a2XL',ek:'e2XL'},
+  {l:'3XL',ok:'o3XL',ak:'a3XL',ek:'e3XL'},
+  {l:'4XL',ok:'o4XL',ak:'a4XL',ek:'e4XL'},
+  {l:'5XL',ok:'o5XL',ak:'a5XL',ek:'e5XL'},
+  {l:'OSFA',ok:'oOSFA',ak:'aOSFA',ek:'eOSFA'},
+  {l:'6XL',ok:'o6XL',ak:null,ek:null},
+];
+
+let allRecords=[],currentFilter='all',searchTerm='',pending={},fillState={},openOrds=new Set(),openLines=new Set(),connOpen=true,orderReceivedCount={},receivedOrders={};
+
+// TOKEN
+function getToken(){return localStorage.getItem('pc_token')||sessionStorage.getItem('pc_token')||'';}
+function saveToken(){
+  const t=document.getElementById('tokenInput').value.trim();
+  if(!t){toast('Enter a token first','err');return;}
+  localStorage.setItem('pc_token',t);
+  toast('Token saved','ok');
+}
+function toggleConn(){
+  connOpen=!connOpen;
+  document.getElementById('connBody').style.display=connOpen?'':'none';
+  document.querySelector('.panel-hide').textContent=connOpen?'Hide':'Show';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const s=getToken();
+  if(s){document.getElementById('tokenInput').value=s;loadData();}
+});
+
+async function testConn(){
+  const token=document.getElementById('tokenInput').value.trim();
+  if(!token){showStatus('Enter a token first',false);return;}
+  const btn=document.getElementById('testBtn');
+  btn.disabled=true;btn.textContent='Testing...';
+  try{
+    const r=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?maxRecords=1`,{headers:{Authorization:`Bearer ${token}`}});
+    if(!r.ok)throw new Error();
+    showStatus('Connected to Pine Central ✓',true);
+    sessionStorage.setItem('pc_token',token);
+    loadData();
+  }catch{showStatus('Connection failed — check your token',false);}
+  finally{btn.disabled=false;btn.textContent='Test Connection';}
+}
+function showStatus(msg,ok){
+  const el=document.getElementById('connStatus');
+  el.className='conn-status '+(ok?'cs-ok':'cs-err');
+  document.getElementById('statusDot').className='dot '+(ok?'dot-g':'dot-r');
+  document.getElementById('statusMsg').textContent=msg;
+}
+
+// FETCH
+async function loadData(){
+  const token=document.getElementById('tokenInput').value.trim()||getToken();
+  if(!token){toast('Enter your API token first','err');return;}
+  const btn=document.getElementById('refreshBtn'),icon=document.getElementById('refreshIcon');
+  btn.disabled=true;icon.className='spin';
+  document.getElementById('resultsArea').innerHTML=`<div class="state-box"><div class="si spin" style="display:inline-block">↻</div><div class="st">Loading orders...</div></div>`;
+  try{
+    const raw=await fetchAll(token);
+    orderReceivedCount={};
+    fillState={};
+    receivedOrders={};
+    allRecords=raw.filter(r=>{
+      if(fv(r,'ordered')!==true)return false;
+      if(fv(r,'received')===true)return false;
+      if(orderNum(r)<MIN_ORDER)return false;
+      const st=getStatus(r);
+      if(EXCLUDE_STATUS.includes(st))return false;
+      // Exclude non-garment product types
+      const pt=fv(r,'productType');
+      if(pt){
+        const ptName=typeof pt==='object'?pt.name:String(pt);
+        if(EXCLUDE_PRODUCT_TYPES.includes(ptName))return false;
+      }
+      return true;
+    });
+    renderAll();updateStats();
+  }catch(e){
+    toast('Load failed: '+e.message,'err');
+    document.getElementById('resultsArea').innerHTML=`<div class="state-box"><div class="si">⚠️</div><div class="st">Could not load</div><div class="sb">${esc(e.message)}</div></div>`;
+  }finally{btn.disabled=false;icon.className='';}
+}
+
+async function fetchAll(token){
+  let records=[],offset=null;
+  do{
+    const p=new URLSearchParams();
+    Object.values(F).forEach(id=>p.append('fields[]',id));
+    p.set('returnFieldsByFieldId','true');
+    p.set('sort[0][field]',F.printDate);
+    p.set('sort[0][direction]','asc');
+    if(offset)p.set('offset',offset);
+    const r=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?${p}`,{headers:{Authorization:`Bearer ${token}`}});
+    if(!r.ok){const d=await r.json();throw new Error(d.error?.message||`API ${r.status}`);}
+    const data=await r.json();
+    records=records.concat(data.records||[]);
+    offset=data.offset;
+  }while(offset);
+  return records;
+}
+
+// HELPERS
+function fv(r,key){const id=F[key];return r.fields?.[id]??r.cellValuesByFieldId?.[id];}
+function orderNum(r){
+  const v=fv(r,'orderNum');
+  if(!v)return 0;
+  if(typeof v==='number')return v;
+  if(typeof v==='object'&&v.valuesByLinkedRecordId)return Object.values(v.valuesByLinkedRecordId).flat()[0]||0;
+  return parseInt(v)||0;
+}
+function getStatus(r){
+  const v=fv(r,'orderStatus');
+  if(!v)return '';
+  if(typeof v==='object'&&v.valuesByLinkedRecordId)return Object.values(v.valuesByLinkedRecordId).flat()[0]||'';
+  if(Array.isArray(v))return v[0]||'';
+  return String(v);
+}
+function supName(r){
+  const f=fv(r,'supplierName');
+  if(f&&typeof f==='string'&&f.trim())return f.trim();
+  const v=fv(r,'supplier');
+  if(!v)return '—';
+  if(Array.isArray(v))return v.map(s=>s.name||s).join(', ');
+  return v.name||String(v);
+}
+function getPD(r){
+  const v=fv(r,'printDate');
+  if(v&&!(typeof v==='object'&&v.error))return{date:String(v),isDue:false};
+  // Fallback to Customer Due Date for orders with no scheduled print date (e.g. promo)
+  const dv=fv(r,'dueDate');
+  if(dv){
+    if(typeof dv==='object'&&dv.valuesByLinkedRecordId){
+      const d=Object.values(dv.valuesByLinkedRecordId).flat()[0];
+      if(d)return{date:String(d).split('T')[0],isDue:true};
+    }
+    if(typeof dv==='string')return{date:dv.split('T')[0],isDue:true};
+  }
+  return null;
+}
+function getPDStr(r){const p=getPD(r);return p?p.date:null;}
+function getPDIsDue(r){const p=getPD(r);return p?p.isDue:false;}
+function daysUntil(ds){
+  if(!ds)return null;
+  const pts=ds.split('/');
+  let d=pts.length===3?new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])):new Date(ds);
+  if(isNaN(d))return null;
+  const t=new Date();t.setHours(0,0,0,0);
+  return Math.round((d-t)/86400000);
+}
+
+function groupByOrder(records){
+  const map={};
+  records.forEach(r=>{
+    const num=orderNum(r);if(!num)return;
+    if(!map[num])map[num]={num,customer:fv(r,'customer')||'—',printDate:getPDStr(r),isDue:getPDIsDue(r),records:[],receivedCount:orderReceivedCount[num]||0};
+    map[num].records.push(r);
+    const pd=getPDStr(r);
+    if(pd&&(!map[num].printDate||daysUntil(pd)<daysUntil(map[num].printDate))){map[num].printDate=pd;map[num].isDue=getPDIsDue(r);}
+  });
+  // totalCount = pending + already received this session
+  Object.values(map).forEach(g=>{g.totalCount=g.records.length+g.receivedCount;});
+  return Object.values(map).sort((a,b)=>{
+    const da=daysUntil(a.printDate),db=daysUntil(b.printDate);
+    if(da===null&&db===null)return a.num-b.num;
+    if(da===null)return 1;if(db===null)return-1;return da-db;
+  });
+}
+function applyFilter(groups){
+  let result=groups;
+  if(currentFilter==='urgent')result=result.filter(g=>{const d=daysUntil(g.printDate);return d!==null&&d<=4&&d>=0;});
+  else if(currentFilter==='misship')result=result.filter(g=>g.records.some(r=>fv(r,'misship')===true&&fv(r,'misshipResolved')!==true));
+  else if(currentFilter==='overdue')result=result.filter(g=>g.records.some(r=>{const d=daysUntil(fv(r,'arrival'));return d!==null&&d<0;}));
+  // Apply search — filter records within each group, remove empty groups
+  if(searchTerm){
+    result=result.map(g=>({
+      ...g,
+      records:g.records.filter(r=>matchesSearch(r,g.num))
+    })).filter(g=>g.records.length>0);
+  }
+  return result;
+}
+function updateStats(){
+  const g=groupByOrder(allRecords);
+  document.getElementById('sO').textContent=g.length;
+  document.getElementById('sL').textContent=allRecords.length;
+  document.getElementById('sU').textContent=g.filter(x=>{const d=daysUntil(x.printDate);return d!==null&&d<=4&&d>=0;}).length;
+  document.getElementById('sV').textContent=allRecords.filter(r=>{const d=daysUntil(fv(r,'arrival'));return d!==null&&d<0;}).length;
+}
+
+// DELTA — compares actual vs ordered+extra per size
+function rowDelta(o,e,a){
+  if(a===null||a===undefined||a==='')return'—';
+  const expected=o+(e||0);
+  const d=expected-Number(a);
+  if(d===0)return`<span class="pill p-ok">✓</span>`;
+  if(d>0)return`<span class="pill p-sh">-${d}</span>`;
+  return`<span class="pill p-ov">+${Math.abs(d)}</span>`;
+}
+function collapsedDelta(lineId,sizes,r){
+  const a=pending[lineId]||{};
+  if(!Object.keys(a).length)return`<span class="dbdg d-empty">—</span>`;
+  let tExpected=0,tActual=0;
+  sizes.forEach(s=>{
+    const o=fv(r,s.ok)||0,e=fv(r,s.ek)||0;
+    tExpected+=o+e;
+    tActual+=Number(a[s.ak]||0);
+  });
+  const d=tExpected-tActual;
+  if(d===0)return`<span class="dbdg d-ok">✓ Match</span>`;
+  if(d>0)return`<span class="dbdg d-sh">${d} short</span>`;
+  return`<span class="dbdg d-ov">+${Math.abs(d)} over</span>`;
+}
+
+// RENDER
+function renderAll(){
+  const groups=applyFilter(groupByOrder(allRecords));
+  const area=document.getElementById('resultsArea');
+  if(!groups.length){
+    const msg=searchTerm?`No results for "${searchTerm}"` :'No pending orders match this filter';
+    const icon=searchTerm?'🔍':'✅';
+    area.innerHTML=`<div class="state-box"><div class="si">${icon}</div><div class="st">${searchTerm?'No results':'All clear'}</div><div class="sb">${msg}</div></div>`;
+    return;
+  }
+  const hint=document.getElementById('searchHint');
+  if(hint&&searchTerm){
+    const total=groups.reduce((s,g)=>s+g.records.length,0);
+    hint.textContent=`${total} line item${total!==1?'s':''} found across ${groups.length} order${groups.length!==1?'s':''}`;
+  }
+  area.innerHTML=groups.map(g=>renderGroup(g)).join('');
+}
+
+function renderGroup(g){
+  const days=daysUntil(g.printDate);
+  let badge='';
+  const pfx=g.isDue?'Due':'Prints';
+  if(days!==null&&days===0)badge=`<span class="bdg bdg-red">${pfx} TODAY</span>`;
+  else if(days!==null&&days<=4)badge=`<span class="bdg bdg-red">${pfx} in ${days}d</span>`;
+  else if(days!==null&&days<=7)badge=`<span class="bdg bdg-amb">${pfx} in ${days}d</span>`;
+  else if(g.printDate)badge=`<span class="bdg bdg-gray">${pfx} ${g.printDate}</span>`;
+  else badge=`<span class="bdg bdg-gray" style="color:var(--muted-lt)">No date</span>`;
+  const isOpen=openOrds.has(g.num)||(searchTerm.length>0);
+  const progBdg=progressBadge(g.receivedCount||0,g.totalCount||g.records.length);
+  return`<div class="order-group${isOpen?' order-open':''}" id="og-${g.num}">
+    <div class="order-hd" onclick="togOrd(${g.num})">
+      <span class="onum">${g.num}</span>
+      <span class="ocust">${esc(g.customer)}</span>
+      <div class="obdgs">${badge}${progBdg}<span class="bdg bdg-gray">${g.records.length} line${g.records.length!==1?'s':''} pending</span></div>
+      <button class="btn-label" onclick="event.stopPropagation();printLabel(${g.num})" title="Print box label">🖨 Label</button>
+      <span class="chev">▼</span>
+    </div>
+    <div class="li-container" id="lc-${g.num}">
+      ${g.records.map(r=>renderLI(r,g)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderLI(r,g){
+  const id=r.id;
+  const ref=fv(r,'ref')||id;
+  const po=fv(r,'po')||'—';
+  const sup=supName(r);
+  const arr=fv(r,'arrival')||'—';
+  const pdObj=getPD(r);
+  const pd=pdObj?pdObj.date:'—';
+  const pdIsDue=pdObj?pdObj.isDue:false;
+  // Use Total Quantity formula (auto-calc) first, fall back to manual Ordered Total field, then sum sizes
+  const ordTotal=fv(r,'totalQty')||fv(r,'orderedTotal')||
+    SIZES.reduce((s,z)=>s+(fv(r,z.ok)||0),0);
+  const isExp=openLines.has(id)||(searchTerm.length>0&&matchesSearch(r,g.num));
+  const arrDays=daysUntil(arr!=='—'?arr:null);
+  const arrOvr=arrDays!==null&&arrDays<0;
+
+  // Active sizes (ordered > 0)
+  const activeSizes=SIZES.filter(s=>(fv(r,s.ok)||0)>0);
+
+  // Check if any extras exist
+  const hasExtras=activeSizes.some(s=>s.ek&&(fv(r,s.ek)||0)>0);
+
+  // Collapsed delta
+  const pendActs=pending[id]||{};
+  const deltaTag=Object.keys(pendActs).length?collapsedDelta(id,activeSizes,r):`<span class="dbdg d-empty">—</span>`;
+
+  // Size rows
+  const sizeRows=activeSizes.map(s=>{
+    const oVal=fv(r,s.ok)||0;
+    const eVal=s.ek?(fv(r,s.ek)||0):0;
+    const aVal=s.ak?(pendActs[s.ak]??fv(r,s.ak)??''):'';
+    const dp=rowDelta(oVal,eVal,aVal!==''?aVal:null);
+    const inp=s.ak
+      ?`<input type="number" min="0" class="ainp" id="ainp-${id}-${s.l}" value="${aVal!==''&&aVal!==null&&aVal!==undefined?aVal:''}" placeholder="0" oninput="onInp(this,'${id}','${s.ak}','${s.ok}','${s.ek||''}','${r.id}','${g.num}')">`
+      :`<span style="color:var(--muted-lt);font-size:11px">—</span>`;
+    const fillBtn=s.ak
+      ?`<button id="fb-${id}-${s.l}" class="btn-fill${fillState[id+'-'+s.l]?' filled':''}" title="Click to fill · click again to clear" onclick="quickFill('${id}','${s.l}','${s.ak}','${s.ok}','${s.ek||''}','${r.id}','${g.num}',${oVal})">↓${oVal}</button>`
+      :'';
+    return`<tr>
+      <td class="slbl">${s.l}</td>
+      <td class="oval">${oVal}</td>
+      <td class="xval">${eVal>0?'+'+eVal:'—'}</td>
+      <td>${inp}</td>
+      <td class="dc"><div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="dr-${id}-${s.l}">${dp}</span>${fillBtn}</div></td>
+    </tr>`;
+  }).join('');
+
+  // Totals
+  const tO=activeSizes.reduce((s,z)=>s+(fv(r,z.ok)||0),0);
+  const tE=activeSizes.reduce((s,z)=>s+(z.ek?(fv(r,z.ek)||0):0),0);
+  const tActs=Object.values(pendActs);
+  const tA=tActs.length?tActs.reduce((s,v)=>s+(Number(v)||0),0):null;
+  let totDelta='—';
+  if(tA!==null){
+    const d=(tO+tE)-tA;
+    if(d===0)totDelta=`<span class="pill p-ok">✓ Match</span>`;
+    else if(d>0)totDelta=`<span class="pill p-sh">-${d} short</span>`;
+    else totDelta=`<span class="pill p-ov">+${Math.abs(d)} over</span>`;
+  }
+
+  return`<div class="li${isExp?' li-exp':''}" id="li-${id}">
+    <div class="li-row" onclick="togLI('${id}','${g.num}')">
+      <div class="li-left">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${(()=>{const t=getFirstProofThumb(r),f=getFirstProofFull(r);return t?`<img class="li-thumb" src="${t}" alt="" onclick="event.stopPropagation();expandProof('${f}')">`:'';})()}
+          <div>
+            <span class="li-ref">${esc(ref)}</span>
+            <div class="li-meta">
+          <span class="lm">PO# <strong>${esc(po)}</strong></span>
+          <span class="lm">📦 <strong>${esc(sup)}</strong></span>
+          <span class="lm${arrOvr?' overdue':''}">Arrives <strong>${arr}${arrOvr?` ⚠️`:''}</strong></span>
+          <span class="lm">Ordered <strong>${ordTotal}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="li-right">
+        ${fv(r,'misship')===true&&fv(r,'misshipResolved')!==true?(fv(r,'misshipInProgress')===true?`<span class="ms-bdg ms-prog">⏳ Replacement ordered</span>`:`<span class="ms-bdg ms-flag">⚠️ Mis-ship</span>`):''}
+        <span id="dt-${id}">${deltaTag}</span>
+        ${isExp?`<span class="li-close" onclick="event.stopPropagation();togLI('${id}','${g.num}')">✕</span>`:''}
+      </div>
+    </div>
+    <div class="li-detail">
+      ${renderImprintStrip(r)}
+      <div class="dmeta">
+        <div class="df"><span class="dl">PO #</span><span class="dv grn">${esc(po)}</span></div>
+        <div class="df"><span class="dl">Supplier</span><span class="dv">${esc(sup)}</span></div>
+        <div class="df"><span class="dl">Arrives</span><span class="dv${arrOvr?' red':''}">${arr}${arrOvr?` ⚠️ ${Math.abs(arrDays)}d late`:''}</span></div>
+        <div class="df"><span class="dl">${pdIsDue?'Customer due date':'Print date'}</span><span class="dv${pdIsDue?' amb':''}">${pd}</span></div>
+        <div class="df"><span class="dl">Ordered total</span><span class="dv">${ordTotal}${tE>0?` <span style="color:var(--muted);font-size:11px">(+${tE} extras)</span>`:''}</span></div>
+      </div>
+      ${hasExtras?`<div class="extras-note show">📋 Extras ordered for this line item are shown in the +Extra column. Delta compares actual received vs ordered + extras.</div>`:''}
+      <div class="sgwrap">
+        <table class="sgrid">
+          <thead><tr>
+            <th style="width:58px">Size</th>
+            <th>Ordered</th>
+            <th>+Extra</th>
+            <th class="grn">Actual ✏️</th>
+            <th class="ra">+/−</th>
+          </tr></thead>
+          <tbody>
+            ${sizeRows||'<tr><td colspan="5" style="color:var(--muted);padding:12px;font-style:italic">No sizes with ordered qty</td></tr>'}
+            <tr class="tot">
+              <td class="slbl">Total</td>
+              <td class="oval">${tO}</td>
+              <td class="xval">${tE>0?'+'+tE:'—'}</td>
+              <td id="ta-${id}">${tA!==null?tA:'—'}</td>
+              <td class="dc" id="td-${id}">${totDelta}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      ${(()=>{
+        const isMisship=fv(r,'misship')===true;
+        const isResolved=fv(r,'misshipResolved')===true;
+        const isInProg=fv(r,'misshipInProgress')===true;
+        const msDetails=fv(r,'misshipDetails')||'';
+        if(isMisship&&!isResolved){
+          return isInProg
+            ?`<div class="ms-box-prog"><div class="ms-box-title-prog">⏳ Replacement ordered</div><div class="ms-box-note">${esc(msDetails)||'Replacement has been ordered from supplier.'}</div></div>`
+            :`<div class="ms-box"><div class="ms-box-title">⚠️ Mis-ship flagged</div><div class="ms-box-note">${esc(msDetails)||'No details recorded.'}</div></div>`;
+        }
+        return '';
+      })()}
+      <div id="ms-form-${id}" class="ms-flag-form">
+        <div class="ms-flag-label">Describe the mis-ship issue</div>
+        <textarea class="ms-textarea" id="ms-text-${id}" placeholder="e.g. Received 5 Larges instead of 5 Mediums. Wrong color. Damaged on arrival..."></textarea>
+        <div class="ms-actions">
+          <button class="btn-ms-save" onclick="saveMisship('${id}','${g.num}')">Save mis-ship</button>
+          <button class="btn-ms-cancel" onclick="cancelMisship('${id}')">Cancel</button>
+        </div>
+      </div>
+      <div class="recv-row">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="recv-note">Enter actuals, then mark received when confirmed.</span>
+          ${fv(r,'misship')!==true?`<button class="btn-flag" onclick="toggleMisshipForm('${id}')">⚠️ Flag mis-ship</button>`:''}
+        </div>
+        <button class="btn-recv" id="rb-${id}" onclick="markRecv('${id}','${g.num}')">✓ Mark as received</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// INTERACTIONS
+function togOrd(num){
+  const el=document.getElementById(`og-${num}`);
+  const lc=document.getElementById(`lc-${num}`);
+  if(!el)return;
+  if(openOrds.has(num)){
+    openOrds.delete(num);
+    el.classList.remove('order-open');
+    if(lc)lc.style.display='none';
+  }else{
+    openOrds.add(num);
+    el.classList.add('order-open');
+    if(lc)lc.style.display='block';
+  }
+}
+function togLI(id,ordNum){
+  const el=document.getElementById(`li-${id}`);
+  if(!el)return;
+  if(openLines.has(id)){
+    openLines.delete(id);
+  }else{
+    openLines.add(id);
+  }
+  // Re-render just this order's line items to update ✕ button
+  const g=groupByOrder(allRecords).find(x=>x.num===Number(ordNum));
+  if(g){
+    const lc=document.getElementById(`lc-${ordNum}`);
+    if(lc)lc.innerHTML=g.records.map(r=>renderLI(r,g)).join('');
+  }
+}
+function onSearch(val){
+  searchTerm=val.trim().toLowerCase();
+  document.getElementById('searchClear').className='search-clear'+(searchTerm?' show':'');
+  const hint=document.getElementById('searchHint');
+  if(searchTerm)hint.textContent='Searching customer, PO #, and order #...';
+  else hint.textContent='';
+  renderAll();
+}
+function clearSearch(){
+  document.getElementById('searchInput').value='';
+  onSearch('');
+}
+
+function getOrderProgress(g){
+  const total=g.records.length;
+  // Count how many have been received (won't appear since we filter received=false,
+  // but we track partial via the original full count stored on the group)
+  return{received:g.receivedCount||0,total:g.totalCount||total};
+}
+function progressBadge(received,total){
+  if(received===0)return`<span class="prog-bdg prog-none">0 / ${total} received</span>`;
+  if(received>=total)return`<span class="prog-bdg prog-done">✓ All received</span>`;
+  return`<span class="prog-bdg prog-part">${received} / ${total} received</span>`;
+}
+function matchesSearch(r,orderNum){
+  if(!searchTerm)return true;
+  const q=searchTerm;
+  // Customer name
+  const cust=(fv(r,'customer')||'').toLowerCase();
+  if(cust.includes(q))return true;
+  // PO #
+  const po=(fv(r,'po')||'').toLowerCase();
+  if(po.includes(q))return true;
+  // Order number
+  const onum=String(orderNum||'');
+  if(onum.includes(q))return true;
+  return false;
+}
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.chip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderAll();
+}
+
+function onInp(inp,recId,ak,ok,ek,rawId,ordNum){
+  if(!pending[recId])pending[recId]={};
+  pending[recId][ak]=inp.value===''?null:Number(inp.value);
+
+  const r=allRecords.find(x=>x.id===recId);
+  if(!r)return;
+
+  const activeSizes=SIZES.filter(s=>(fv(r,s.ok)||0)>0);
+  const oVal=fv(r,ok)||0;
+  const eVal=ek?fv(r,ek)||0:0;
+  const aVal=inp.value===''?null:Number(inp.value);
+
+  // per-row delta
+  const s=activeSizes.find(s=>s.ak===ak);
+  if(s){
+    const dc=document.getElementById(`dr-${recId}-${s.l}`);
+    if(dc)dc.innerHTML=rowDelta(oVal,eVal,aVal);
+  }
+
+  // totals row
+  const tO=activeSizes.reduce((sum,sz)=>sum+(fv(r,sz.ok)||0),0);
+  const tE=activeSizes.reduce((sum,sz)=>sum+(sz.ek?(fv(r,sz.ek)||0):0),0);
+  const acts=pending[recId]||{};
+  const filled=activeSizes.filter(sz=>sz.ak&&acts[sz.ak]!==null&&acts[sz.ak]!==undefined&&acts[sz.ak]!=='');
+  const tA=activeSizes.reduce((sum,sz)=>sum+(sz.ak?Number(acts[sz.ak]||0):0),0);
+  const allFilled=activeSizes.filter(sz=>sz.ak).every(sz=>acts[sz.ak]!==null&&acts[sz.ak]!==undefined&&acts[sz.ak]!=='');
+
+  const taEl=document.getElementById(`ta-${recId}`);
+  const tdEl=document.getElementById(`td-${recId}`);
+  if(taEl)taEl.textContent=allFilled?tA:tA+'+';
+  if(tdEl&&allFilled){
+    const d=(tO+tE)-tA;
+    if(d===0)tdEl.innerHTML=`<span class="pill p-ok">✓ Match</span>`;
+    else if(d>0)tdEl.innerHTML=`<span class="pill p-sh">-${d} short</span>`;
+    else tdEl.innerHTML=`<span class="pill p-ov">+${Math.abs(d)} over</span>`;
+  }
+
+  // collapsed delta badge
+  const dtEl=document.getElementById(`dt-${recId}`);
+  if(dtEl)dtEl.innerHTML=collapsedDelta(recId,activeSizes,r);
+}
+
+async function markRecv(recId,ordNum){
+  const token=document.getElementById('tokenInput').value.trim()||getToken();
+  if(!token){toast('No token — check Connection Setup','err');return;}
+  const btn=document.getElementById(`rb-${recId}`);
+  btn.disabled=true;btn.textContent='⏳ Saving...';
+  try{
+    const updates=pending[recId]||{};
+    const fields={...updates,[F.received]:true};
+    const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recId}`,{
+      method:'PATCH',
+      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({fields})
+    });
+    if(!res.ok){const d=await res.json();throw new Error(d.error?.message||`API ${res.status}`);}
+    delete pending[recId];
+    // Track how many we've received per order this session for progress badge
+    if(!orderReceivedCount[ordNum])orderReceivedCount[ordNum]=0;
+    orderReceivedCount[Number(ordNum)]=(orderReceivedCount[Number(ordNum)]||0)+1;
+    allRecords=allRecords.filter(r=>r.id!==recId);
+    openLines.delete(recId);
+    const li=document.getElementById(`li-${recId}`);
+    if(li){
+      li.style.transition='opacity .25s,transform .25s';
+      li.style.opacity='0';li.style.transform='translateX(14px)';
+      setTimeout(()=>{
+        const grp=li.closest('.order-group');
+        const rem=grp?.querySelectorAll('.li').length||0;
+        if(rem<=1){
+          // Whole order done — fade out and re-render
+          if(grp){
+            grp.style.transition='opacity .25s';grp.style.opacity='0';
+            setTimeout(()=>{
+              openOrds.delete(Number(ordNum));
+              updateStats();renderAll();
+            },260);
+          }
+        }else{
+          // Still lines remaining — full re-render so sort updates
+          li.remove();
+          updateStats();
+          // Small delay then full re-render to re-sort queue
+          setTimeout(()=>renderAll(),50);
+        }
+      },260);
+    }
+    // Store in session received orders for reprint panel
+    const recvRec=allRecords.find?.(r=>r.id===recId)||{id:recId};
+    const grpForLabel=groupByOrder([...allRecords,{...recvRec,fields:{...recvRec.fields,[F.received]:true}}]).find(x=>x.num===Number(ordNum))||{num:Number(ordNum),customer:''};
+    const customer=grpForLabel.customer||fv({fields:{[F.customer]:''}},'customer')||'';
+    if(!receivedOrders[ordNum]){
+      // Get customer from the record we just removed
+      const justRecvd=allRecords.find(r=>r.id===recId);
+      receivedOrders[ordNum]={
+        num:Number(ordNum),
+        customer:justRecvd?fv(justRecvd,'customer'):'',
+        time:new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})
+      };
+    }
+    renderRecentPanel();
+
+    // Auto-trigger label popup
+    printLabel(Number(ordNum));
+
+    toast('Marked as received ✓','ok');
+  }catch(e){
+    toast('Error: '+e.message,'err');
+    btn.disabled=false;btn.innerHTML='✓ Mark as received';
+  }
+}
+
+
+
+
+
+
+// ── BOX LABEL ────────────────────────────────────────────────────────────────
+async function printLabel(ordNum){
+  const token=document.getElementById('tokenInput').value.trim()||getToken();
+  // Find group in pending queue, or reconstruct from receivedOrders for reprint
+  let g=groupByOrder(allRecords).find(x=>x.num===ordNum);
+  if(!g){
+    const ro=receivedOrders[ordNum]||receivedOrders[String(ordNum)];
+    if(ro)g={num:ordNum,customer:ro.customer||'—',records:[],printDate:null};
+    else{toast('Order data not available — try the Reprint search','err');return;}
+  }
+  toast('Preparing label...','ok');
+
+  // Get linked order record ID — try multiple field approaches
+  const firstRec=g.records[0];
+  let ordRecId=null;
+
+  // Approach 1: orderRef field (fld5r0tFvdpzWV5pA) — direct multipleRecordLinks
+  const orderRef=fv(firstRec,'orderRef');
+  if(orderRef&&Array.isArray(orderRef)&&orderRef[0]?.id){
+    ordRecId=orderRef[0].id;
+  }
+
+  // Approach 2: linkedOrderRecId lookup field (fldzKRiMKCRQLjUFZ)
+  if(!ordRecId){
+    const linkedOrd=fv(firstRec,'linkedOrderRecId');
+    if(linkedOrd&&typeof linkedOrd==='object'){
+      if(linkedOrd.valuesByLinkedRecordId){
+        // multipleLookupValues format
+        const vals=Object.values(linkedOrd.valuesByLinkedRecordId).flat();
+        if(vals[0])ordRecId=String(vals[0]);
+      }else if(linkedOrd.linkedRecordIds?.length){
+        ordRecId=linkedOrd.linkedRecordIds[0];
+      }
+    }
+  }
+
+  // Approach 3: orderNum lookup — use the linked record ID from valuesByLinkedRecordId keys
+  if(!ordRecId){
+    const orderNumField=fv(firstRec,'orderNum');
+    if(orderNumField&&typeof orderNumField==='object'&&orderNumField.linkedRecordIds?.length){
+      ordRecId=orderNumField.linkedRecordIds[0];
+    }
+  }
+
+  // Delivery method and due date — fetched from Order record below
+  let dlvMethod='—',dueDate='—';
+
+  // Fetch PandaDoc URL + notes + delivery + due date from Orders table
+  let pandaUrl='',orderNotes='';
+  if(ordRecId&&token){
+    try{
+      const r=await fetch(
+        `https://api.airtable.com/v0/${BASE_ID}/tbl8Tf0AeS9gnHOOS/${ordRecId}?fields[]=fldqIIPwPEJXL7Efu&fields[]=fldzzDJNF6rvTCmRq&fields[]=fldpVCwzNucLLifXD&fields[]=fldphJYdlBNS0dmAK&returnFieldsByFieldId=true`,
+        {headers:{Authorization:`Bearer ${token}`}}
+      );
+      if(r.ok){
+        const d=await r.json();
+        pandaUrl=d.fields?.fldqIIPwPEJXL7Efu||'';
+        orderNotes=d.fields?.fldzzDJNF6rvTCmRq||'';
+        // Get delivery and due date directly from Order record (most reliable source)
+        if(d.fields?.fldpVCwzNucLLifXD)dlvMethod=d.fields.fldpVCwzNucLLifXD;
+        if(d.fields?.fldphJYdlBNS0dmAK)dueDate=d.fields.fldphJYdlBNS0dmAK;
+      }
+    }catch(e){}
+  }
+
+  // Collect data
+  const printDates=[...new Set(g.records.map(r=>getPDStr(r)).filter(Boolean))];
+  const impIds=[...new Set(g.records.flatMap(r=>getImprintIds(r)))];
+  // Use PandaDoc URL for QR; fall back to Airtable record URL (scannable either way)
+  const qrTarget=pandaUrl||(ordRecId?`https://airtable.com/${BASE_ID}/tbl8Tf0AeS9gnHOOS/${ordRecId}`:`https://pineprintshop.github.io/reprint-lookup/receiving-dashboard.html`);
+
+  // Due date fallback — use dueDate lookup on line item if Order fetch didn't have it
+  if(dueDate==='—'&&g.records[0]){
+    const d=fv(g.records[0],'dueDate');
+    if(d&&typeof d==='object'&&d.valuesByLinkedRecordId){
+      const v=Object.values(d.valuesByLinkedRecordId).flat()[0];
+      if(v)dueDate=String(v).split('T')[0];
+    }
+  }
+
+  // Format date nicely
+  function fmtDate(ds){
+    if(!ds||ds==='—')return ds;
+    const pts=ds.split('/');
+    let dt=pts.length===3?new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])):new Date(ds);
+    if(isNaN(dt))return ds;
+    return dt.toLocaleDateString('en-US',{month:'long',day:'numeric'});
+  }
+  const printDateStr=printDates.map(fmtDate).join(', ')||'—';
+  const equipment=impIds.join(' · ')||'';
+
+  // Open a fresh popup window — clean print context, no page chrome
+  const win=window.open('','_blank','width=400,height=600,toolbar=0,menubar=0,location=0,status=0');
+  if(!win){toast('Allow popups to print labels','err');return;}
+
+  win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Label - ${ordNum}</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
+  html,body{width:4in;height:6in;background:#fff;overflow:hidden}
+  .lbl{width:4in;height:6in;display:flex;flex-direction:column;background:#fff}
+  .lbl-top{background:#000;color:#fff;text-align:center;padding:12px 8px 8px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .lbl-ordnum{font-size:100pt;font-weight:900;line-height:.85;letter-spacing:-4px}
+  .lbl-body{flex:1;padding:10px 12px 6px;display:flex;flex-direction:column;gap:5px;overflow:hidden}
+  .lbl-top-row{display:flex;align-items:flex-start;gap:10px}
+  .lbl-top-fields{flex:1;min-width:0}
+  .lbl-lbl{font-size:8pt;color:#000;margin-bottom:2px;line-height:1.2}
+  .lbl-pill{background:#000!important;color:#fff!important;font-size:11pt;font-weight:700;padding:5px 10px;display:block;text-align:center;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .lbl-pill.sm{font-size:9.5pt}
+  .lbl-notes-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
+  .lbl-notes-hd{background:#000!important;color:#fff!important;font-size:8pt;font-weight:700;padding:2px 8px;letter-spacing:.08em;display:inline-block;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .lbl-notes-area{border:2px solid #000;padding:5px 8px;font-size:8pt;color:#333;flex:1;min-height:24px}
+  .lbl-footer{background:#000!important;color:#fff!important;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .lbl-recv-txt{font-size:16pt;font-weight:900;letter-spacing:.06em;color:#fff!important}
+  .lbl-recv-chk{width:30px;height:30px;border:3px solid #fff;border-radius:3px;flex-shrink:0}
+  @page{size:4in 6in;margin:0}
+  @media print{
+    html,body{width:4in;height:6in}
+    .lbl-top,.lbl-pill,.lbl-notes-hd,.lbl-footer{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  }
+</style>
+</head>
+<body>
+<div class="lbl">
+  <div class="lbl-top">
+    <div class="lbl-ordnum">${ordNum}</div>
+  </div>
+  <div class="lbl-body">
+    <div class="lbl-top-row">
+      <div class="lbl-top-fields">
+        <div class="lbl-lbl">Customer:</div>
+        <div class="lbl-pill">${g.customer.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>
+      <div id="qr"></div>
+    </div>
+    <div>
+      <div class="lbl-lbl">Due Date:</div>
+      <div class="lbl-pill">${dueDate}</div>
+    </div>
+    <div>
+      <div class="lbl-lbl">Imprint Date(s):</div>
+      <div class="lbl-pill">${printDateStr}</div>
+    </div>
+    <div>
+      <div class="lbl-lbl">Method of Delivery:</div>
+      <div class="lbl-pill sm">${dlvMethod.replace(/</g,'&lt;')}</div>
+    </div>
+    <div class="lbl-notes-wrap">
+      <div class="lbl-notes-hd">Notes</div>
+      <div class="lbl-notes-area">${(orderNotes||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>
+    ${equipment?`<div><div class="lbl-pill sm">${equipment.replace(/</g,'&lt;')}</div></div>`:''}
+  </div>
+  <div class="lbl-footer">
+    <span class="lbl-recv-txt">FULLY RECEIVED</span>
+    <div class="lbl-recv-chk"></div>
+  </div>
+</div>
+<script>
+  var qrEl=document.getElementById('qr');
+  new QRCode(qrEl,{text:${JSON.stringify(qrTarget)},width:118,height:118,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+  setTimeout(function(){window.print();},400);
+<\/script>
+</body>
+</html>`);
+  win.document.close();
+}
+
+
+
+// ── RECENTLY RECEIVED PANEL ───────────────────────────────────────────────────
+function togRecentPanel(){
+  const p=document.getElementById('recentPanel');
+  p.classList.toggle('recv-panel-open');
+}
+function renderRecentPanel(){
+  const panel=document.getElementById('recentPanel');
+  const body=document.getElementById('recentBody');
+  const count=document.getElementById('recentCount');
+  const orders=Object.values(receivedOrders).sort((a,b)=>b.num-a.num);
+  if(!orders.length){panel.style.display='none';return;}
+  panel.style.display='block';
+  panel.classList.add('recv-panel-open');
+  count.textContent=orders.length;
+  body.innerHTML=orders.map(o=>`
+    <div class="recv-row-item">
+      <span class="recv-onum">${o.num}</span>
+      <span class="recv-cust">${esc(o.customer||'—')}</span>
+      <span class="recv-time">${o.time}</span>
+      <button class="btn-reprint" onclick="printLabel(${o.num})">🖨 Reprint</button>
+    </div>`).join('');
+}
+
+// ── REPRINT SEARCH ────────────────────────────────────────────────────────────
+function togReprintPanel(){
+  const p=document.getElementById('reprintPanel');
+  p.classList.toggle('reprint-panel-open');
+  const chev=document.getElementById('reprintChev');
+  if(chev)chev.style.transform=p.classList.contains('reprint-panel-open')?'rotate(180deg)':'';
+}
+async function searchReprint(){
+  const token=document.getElementById('tokenInput').value.trim()||getToken();
+  if(!token){toast('Connect to Airtable first','err');return;}
+  const inp=document.getElementById('reprintInp');
+  const ordNum=inp.value.trim();
+  if(!ordNum){toast('Enter an order number','err');return;}
+  const btn=document.getElementById('reprintBtn');
+  const result=document.getElementById('reprintResult');
+  btn.disabled=true;btn.textContent='Searching...';
+  result.innerHTML='';
+  try{
+    // Fetch line items for this order number that are received
+    const p=new URLSearchParams();
+    p.set('filterByFormula',`AND({Invoice / Order Number Lookup}=${ordNum},{Received}=TRUE())`);
+    p.append('fields[]',F.customer);
+    p.append('fields[]',F.orderNum);
+    p.append('fields[]','fldmMViJMYizJfOev'); // received timestamp
+    p.set('maxRecords','1');
+    const r=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?${p}`,{
+      headers:{Authorization:`Bearer ${token}`}
+    });
+    if(!r.ok)throw new Error(`API ${r.status}`);
+    const data=await r.json();
+    if(!data.records?.length){
+      result.innerHTML=`<div style="color:var(--muted);font-size:13px">No received orders found for order #${esc(ordNum)}</div>`;
+      return;
+    }
+    const rec=data.records[0];
+    const customer=rec.fields?.[F.customer]||'—';
+    const ts=rec.fields?.['fldmMViJMYizJfOev']||'';
+    const recvDate=ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+    result.innerHTML=`<div class="reprint-result">
+      <div class="reprint-result-info">
+        <div class="reprint-result-ord">#${esc(ordNum)}</div>
+        <div class="reprint-result-cust">${esc(customer)}</div>
+        ${recvDate?`<div class="reprint-result-date">Received ${recvDate}</div>`:''}
+      </div>
+      <button class="btn-reprint" style="background:var(--green);color:#fff;border-color:var(--green)" onclick="printLabel(${ordNum})">🖨 Print Label</button>
+    </div>`;
+    // Store in receivedOrders so printLabel can find the data
+    if(!receivedOrders[ordNum]){
+      receivedOrders[ordNum]={num:Number(ordNum),customer,time:recvDate};
+    }
+  }catch(e){
+    result.innerHTML=`<div style="color:var(--red);font-size:13px">Error: ${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false;btn.textContent='Find Order';
+  }
+}
+function getFirstProofThumb(r){
+  const v=fv(r,'proofImages');
+  if(!v||!Array.isArray(v)||!v.length)return null;
+  const p=v[0];
+  return p.thumbnails?.small?.url||p.thumbnails?.large?.url||p.url||null;
+}
+function getFirstProofFull(r){
+  const v=fv(r,'proofImages');
+  if(!v||!Array.isArray(v)||!v.length)return null;
+  // Use large thumbnail (fast) instead of full PDF (slow)
+  return v[0].thumbnails?.large?.url||v[0].thumbnails?.small?.url||v[0].url||null;
+}
+function getImprintIds(r){
+  const v=fv(r,'imprintIds');
+  if(!v)return[];
+  if(Array.isArray(v))return v.filter(Boolean);
+  if(typeof v==='string')return v.split(',').map(s=>s.trim()).filter(Boolean);
+  return[];
+}
+function getProofImages(r){
+  const v=fv(r,'proofImages');
+  if(!v)return[];
+  if(Array.isArray(v))return v.filter(x=>x&&(x.url||x.thumbnails));
+  return[];
+}
+function expandProof(url){
+  // Remove any existing overlay
+  document.querySelector('.proof-overlay')?.remove();
+  const overlay=document.createElement('div');
+  overlay.className='proof-overlay';
+  overlay.onclick=(e)=>{if(e.target===overlay)overlay.remove();};
+  const inner=document.createElement('div');
+  inner.className='proof-overlay-inner';
+  const closeBtn=document.createElement('div');
+  closeBtn.className='proof-overlay-close';
+  closeBtn.textContent='✕';
+  closeBtn.onclick=()=>overlay.remove();
+  // Use img for thumbnail URL — loads instantly vs slow PDF iframe
+  const img=document.createElement('img');
+  img.src=url;
+  img.style.cssText='max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto';
+  inner.appendChild(img);
+  inner.appendChild(closeBtn);
+  overlay.appendChild(inner);
+  document.body.appendChild(overlay);
+}
+function renderImprintStrip(r){
+  const ids=getImprintIds(r);
+  if(!ids.length)return'';
+  const idHtml=ids.map(id=>`<span class="imp-id">${esc(id)}</span>`).join('');
+  return`<div class="imp-strip">
+    <div class="imp-ids">${idHtml}</div>
+  </div>`;
+}
+function quickFill(lineId,sizeLabel,ak,ok,ek,recId,ordNum,oVal){
+  const key=lineId+'-'+sizeLabel;
+  const inp=document.getElementById('ainp-'+lineId+'-'+sizeLabel);
+  if(!inp)return;
+  // Use fillState to track toggle — not DOM class which gets wiped on re-render
+  if(fillState[key]){
+    // Already filled — clear it
+    fillState[key]=false;
+    inp.value='';
+  }else{
+    // Fill with ordered qty
+    fillState[key]=true;
+    inp.value=Number(oVal);
+  }
+  // Update button appearance
+  const btn=document.getElementById('fb-'+lineId+'-'+sizeLabel);
+  if(btn){
+    if(fillState[key])btn.classList.add('filled');
+    else btn.classList.remove('filled');
+  }
+  // Call onInp directly with correct args
+  onInp(inp,lineId,ak,ok,ek,recId,ordNum);
+}
+function toggleMisshipForm(id){
+  const form=document.getElementById('ms-form-'+id);
+  if(form)form.classList.toggle('open');
+}
+function cancelMisship(id){
+  const form=document.getElementById('ms-form-'+id);
+  if(form){form.classList.remove('open');}
+  const ta=document.getElementById('ms-text-'+id);
+  if(ta)ta.value='';
+}
+async function saveMisship(recId,ordNum){
+  const token=document.getElementById('tokenInput').value.trim()||getToken();
+  if(!token){toast('No token — check Connection Setup','err');return;}
+  const ta=document.getElementById('ms-text-'+recId);
+  const details=ta?ta.value.trim():'';
+  if(!details){toast('Please describe the mis-ship issue','err');return;}
+  const btn=document.querySelector(`#ms-form-${recId} .btn-ms-save`);
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
+  try{
+    const fields={
+      [F.misship]:true,
+      [F.misshipDetails]:details,
+      [F.misshipInProgress]:true,
+    };
+    const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recId}`,{
+      method:'PATCH',
+      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({fields})
+    });
+    if(!res.ok){const d=await res.json();throw new Error(d.error?.message||`API ${res.status}`);}
+    // Update local record so UI reflects immediately
+    const rec=allRecords.find(r=>r.id===recId);
+    if(rec){
+      if(!rec.fields)rec.fields={};
+      rec.fields[F.misship]=true;
+      rec.fields[F.misshipDetails]=details;
+      rec.fields[F.misshipInProgress]=true;
+    }
+    toast('Mis-ship flagged — order stays in queue until replacements arrive','ok');
+    // Re-render this order to show the mis-ship box
+    const g=groupByOrder(allRecords).find(x=>x.num===Number(ordNum));
+    if(g){
+      const lc=document.getElementById('lc-'+ordNum);
+      if(lc)lc.innerHTML=g.records.map(r=>renderLI(r,g)).join('');
+    }
+  }catch(e){
+    toast('Error: '+e.message,'err');
+    if(btn){btn.disabled=false;btn.textContent='Save mis-ship';}
+  }
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+let toastTimer;
+function toast(msg,type='ok'){
+  document.querySelector('.toast')?.remove();clearTimeout(toastTimer);
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;
+  document.body.appendChild(t);toastTimer=setTimeout(()=>t.remove(),3500);
+}
+</script>
+</body>
+</html>
