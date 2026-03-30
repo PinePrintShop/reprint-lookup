@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Central — Scheduler</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&family=Barlow:wght@400;500;600&display=swap');
+
+:root {
+  --bg:     #f2f2ef;
+  --s1:     #ffffff;
+  --s2:     #f8f8f5;
+  --s3:     #efefec;
+  --b1:     #e2e2de;
+  --b2:     #d2d2ce;
+  --b3:     #b8b8b4;
+  --t1:     #1a1a18;
+  --t2:     #5a5a56;
+  --t3:     #9a9a96;
+  --grn:    #3a6600;
+  --grn-bg: #eaf5c8;
+  --red:    #b83030;
+  --red-bg: rgba(184,48,48,.08);
+  --org:    #b85000;
+  --org-bg: rgba(184,80,0,.08);
+  --c-p1:   #2d6b00;
+  --c-p2:   #1a5899;
+  --c-emb:  #5a2d99;
+  --c-d3:   #994400;
+  --c-tag:  #886600;
+  --c-hat:  #774400;
+  --c-flat: #445566;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--t1);font-family:'Barlow',sans-serif;font-size:13px;display:flex;flex-direction:column}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:46px;background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0}
+.wordmark{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;color:var(--grn);white-space:nowrap}
+.wordmark span{color:var(--t3)}
+.week-ctrl{display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;padding:0 6px;height:28px}
+.week-ctrl button{background:none;border:none;color:var(--t2);cursor:pointer;font-size:15px;padding:0 3px;transition:color .15s}
+.week-ctrl button:hover{color:var(--grn)}
+#weekLabel{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.04em;min-width:155px;text-align:center}
+.sp{flex:1}
+.btn{font-family:'Barlow',sans-serif;font-weight:600;font-size:11px;letter-spacing:.04em;border:none;border-radius:4px;padding:0 12px;height:28px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap}
+.btn-grn{background:var(--grn);color:#fff}
+.btn-grn:hover{background:#2a5200;transform:translateY(-1px)}
+.btn-grn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--b1)}
+.btn-ghost:hover{color:var(--t1);border-color:var(--b2)}
+
+/* LAYOUT */
+.layout{flex:1;display:grid;grid-template-columns:260px 1fr;overflow:hidden;min-height:0}
+
+/* SIDEBAR */
+.sb{background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden}
+.sb-hdr{padding:10px 12px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sb-title{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t2)}
+.sb-count{background:var(--grn);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:10px;border-radius:10px;padding:1px 8px}
+.sb-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
+.sb-list::-webkit-scrollbar{width:3px}
+.sb-list::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.sb-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--t3);font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:center;line-height:1.6}
+
+/* JOB CARD (sidebar) */
+.jcard{background:var(--s2);border:1px solid var(--b1);border-left:3px solid var(--b2);border-radius:5px;padding:8px 10px;cursor:grab;transition:all .15s;user-select:none;position:relative}
+.jcard:hover{border-color:var(--b2);border-left-color:var(--grn);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.jcard.dragging{opacity:.4;cursor:grabbing}
+.jcard.rush{border-left-color:var(--red)}
+.jcard.asap{border-left-color:var(--org)}
+.jc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:3px}
+.jc-client{font-weight:600;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jc-badge{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:2px 5px;flex-shrink:0}
+.badge-rush{background:var(--red-bg);color:var(--red)}
+.badge-asap{background:var(--org-bg);color:var(--org)}
+.jc-design{font-size:11px;color:var(--t2);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jc-chips{display:flex;gap:3px;flex-wrap:wrap}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:9px;border-radius:3px;padding:1px 5px;border:1px solid var(--b1);color:var(--t3);background:var(--bg)}
+.chip-sc{color:var(--grn);border-color:rgba(58,102,0,.2)}
+.chip-qty{color:var(--c-p2);border-color:rgba(26,88,153,.2)}
+.chip-due{color:var(--t2)}
+.chip-due.late{color:var(--red);border-color:rgba(184,48,48,.2)}
+.chip-est{color:var(--t3)}
+.chip-pal{color:var(--t3)}
+.chip-status{color:var(--t3);font-size:8px}
+
+/* CALENDAR */
+.cal-area{display:flex;flex-direction:column;overflow:hidden}
+.cal-hdr-wrap{background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0}
+.cal-col-grid{display:grid;grid-template-columns:130px repeat(4,1fr)}
+.cal-hdr-press{padding:8px 10px;border-right:1px solid var(--b1);font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);display:flex;align-items:flex-end}
+.cal-hdr-day{padding:8px 10px;border-right:1px solid var(--b1);text-align:center}
+.cal-hdr-day:last-child{border-right:none}
+.day-name{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--t2)}
+.day-num{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1;margin-top:1px}
+.cal-hdr-day.today .day-num{color:var(--grn)}
+.cal-hdr-day.today .day-name{color:var(--grn)}
+.cap-track{height:3px;background:var(--b1);border-radius:2px;margin-top:3px;overflow:hidden}
+.cap-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+
+/* CALENDAR BODY */
+.cal-body{flex:1;overflow-y:auto}
+.cal-body::-webkit-scrollbar{width:4px}
+.cal-body::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.press-row{display:grid;grid-template-columns:130px repeat(4,1fr);border-bottom:1px solid var(--b1);min-height:80px}
+.press-row:last-child{border-bottom:none}
+.press-lbl{background:var(--s1);border-right:1px solid var(--b1);padding:10px;display:flex;flex-direction:column;justify-content:center;gap:3px;cursor:pointer;transition:background .15s;flex-shrink:0}
+.press-lbl:hover{background:var(--s2)}
+.pl-dot{width:6px;height:6px;border-radius:50%;margin-bottom:1px}
+.pl-name{font-weight:600;font-size:12px;line-height:1.2}
+.pl-mach{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.04em}
+.pl-cap{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--t3)}
+.pl-expand{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--grn);margin-top:2px;opacity:0;transition:opacity .15s}
+.press-lbl:hover .pl-expand{opacity:1}
+.day-cell{border-right:1px solid var(--b1);padding:5px;display:flex;flex-direction:column;gap:3px;min-height:80px;transition:background .12s;position:relative}
+.day-cell:last-child{border-right:none}
+.day-cell.drag-over{background:rgba(58,102,0,.05);outline:1px dashed rgba(58,102,0,.3);outline-offset:-2px}
+.insert-zone{height:4px;border-radius:3px;margin:1px 2px;transition:height .12s,background .12s}
+.insert-zone.drag-over{height:18px;background:rgba(58,102,0,.18);outline:2px dashed rgba(58,102,0,.5);border-radius:4px}
+.day-cell.over-warn{background:rgba(184,80,0,.05)}
+.day-cell.over-cap{background:rgba(184,48,48,.06)}
+
+/* SCHEDULED BLOCK */
+.sblk{border-radius:4px;padding:5px 7px;cursor:grab;user-select:none;position:relative;transition:filter .15s,transform .12s;border-width:1px;border-style:solid}
+.sblk:hover{filter:brightness(.95);transform:translateY(-1px)}
+.sblk.dragging{opacity:.4;cursor:grabbing;transform:none}
+.sblk-client{font-weight:600;font-size:11px;line-height:1.2;padding-right:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sblk-meta{font-family:'IBM Plex Mono',monospace;font-size:8px;opacity:.65;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sblk-time{font-family:'IBM Plex Mono',monospace;font-size:8px;opacity:.5;margin-top:1px}
+.sblk-warn{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--org);margin-top:2px}
+.sblk-rm{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.08);border:none;color:rgba(0,0,0,.4);font-size:10px;line-height:1;width:14px;height:14px;border-radius:2px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.sblk:hover .sblk-rm{display:flex}
+.sblk-rm:hover{background:rgba(184,48,48,.15);color:var(--red)}
+.pal-div{height:1px;margin:1px 0;background:linear-gradient(90deg,transparent,var(--org),transparent);position:relative}
+.pal-div::after{content:attr(data-label);position:absolute;left:50%;top:-8px;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--org);background:var(--bg);padding:0 3px;white-space:nowrap}
+
+/* STATUS BAR */
+.statusbar{height:26px;background:var(--s1);border-top:1px solid var(--b1);display:flex;align-items:center;padding:0 14px;gap:16px;flex-shrink:0}
+.stat{display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--t3)}
+.stat-dot{width:5px;height:5px;border-radius:50%}
+
+/* FOCUS OVERLAY */
+.focus-overlay{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .2s}
+.focus-overlay.show{opacity:1;pointer-events:all}
+.focus-hdr{display:flex;align-items:center;gap:12px;padding:0 18px;height:46px;background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0}
+.focus-dot{width:10px;height:10px;border-radius:50%}
+.focus-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.08em}
+.focus-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--t2)}
+.focus-close{background:var(--s2);border:1px solid var(--b1);color:var(--t2);font-size:16px;line-height:1;width:28px;height:28px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:auto;transition:all .15s}
+.focus-close:hover{color:var(--t1);border-color:var(--b2)}
+.focus-body{flex:1;display:grid;grid-template-columns:240px 1fr;overflow:hidden}
+.focus-sb{border-right:1px solid var(--b1);background:var(--s1);display:flex;flex-direction:column;overflow:hidden}
+.focus-sb-hdr{padding:10px 12px;border-bottom:1px solid var(--b1);font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t2);flex-shrink:0}
+.focus-sb-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
+.focus-sb-list::-webkit-scrollbar{width:3px}
+.focus-sb-list::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.focus-cal{display:flex;flex-direction:column;overflow:hidden}
+.focus-col-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.focus-cal-hdr{background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0}
+.focus-day-hdr{padding:10px 14px;border-right:1px solid var(--b1);text-align:center}
+.focus-day-hdr:last-child{border-right:none}
+.focus-day-hdr.today .focus-day-num{color:var(--grn)}
+.focus-day-name{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--t2)}
+.focus-day-num{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;margin-top:1px}
+.focus-cap-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--s2);border-bottom:1px solid var(--b1);flex-shrink:0}
+.focus-cap-cell{padding:5px 12px;border-right:1px solid var(--b1);display:flex;align-items:center;gap:8px}
+.focus-cap-cell:last-child{border-right:none}
+.focus-cap-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--t2);white-space:nowrap}
+.focus-cap-track{flex:1;height:4px;background:var(--b1);border-radius:2px;overflow:hidden}
+.focus-cap-fill{height:100%;border-radius:2px;transition:width .3s}
+.focus-cal-body{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.focus-cal-body::-webkit-scrollbar{width:4px}
+.focus-cal-body::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.focus-day-col{border-right:1px solid var(--b1);padding:7px;display:flex;flex-direction:column;gap:4px;min-height:200px;transition:background .12s}
+.focus-day-col:last-child{border-right:none}
+.focus-day-col.drag-over{background:rgba(58,102,0,.05);outline:1px dashed rgba(58,102,0,.3);outline-offset:-2px}
+.focus-day-col.over-warn{background:rgba(184,80,0,.05)}
+.focus-day-col.over-cap{background:rgba(184,48,48,.06)}
+
+/* BIGGER FOCUS BLOCKS */
+.fblk{border-radius:5px;padding:8px 10px;cursor:grab;user-select:none;position:relative;transition:filter .15s,transform .12s;border-width:1px;border-style:solid}
+.fblk:hover{filter:brightness(.95);transform:translateY(-1px)}
+.fblk.dragging{opacity:.4;cursor:grabbing;transform:none}
+.fblk-client{font-weight:700;font-size:13px;line-height:1.2;padding-right:18px}
+.fblk-design{font-size:11px;opacity:.6;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fblk-chips{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.fblk-time{font-family:'IBM Plex Mono',monospace;font-size:9px;opacity:.5;margin-top:4px}
+.fblk-rm{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.08);border:none;color:rgba(0,0,0,.4);font-size:11px;line-height:1;width:16px;height:16px;border-radius:3px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.fblk:hover .fblk-rm{display:flex}
+.fblk-rm:hover{background:rgba(184,48,48,.15);color:var(--red)}
+
+/* LOADER */
+.loader{position:fixed;inset:0;background:rgba(242,242,239,.9);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:500}
+.spin{width:30px;height:30px;border:2px solid var(--b2);border-top-color:var(--grn);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-txt{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--t2)}
+
+/* DEBUG PANEL */
+.debug-panel{position:fixed;bottom:30px;right:12px;width:340px;max-height:300px;overflow-y:auto;background:#1a1a1a;color:#eee;font-family:'IBM Plex Mono',monospace;font-size:10px;border-radius:6px;padding:10px;z-index:400;display:none}
+.debug-panel.show{display:block}
+
+/* CARD POPUP */
+.card-popup {position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .18s}
+.card-popup.show{opacity:1;pointer-events:all}
+.card-popup-box{background:var(--s1);border:1px solid var(--b1);border-radius:8px;width:540px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.15);display:flex;flex-direction:column}
+.card-popup-box::-webkit-scrollbar{width:4px}
+.card-popup-box::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.cp-hdr{padding:16px 18px 12px;border-bottom:1px solid var(--b1);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0}
+.cp-title{flex:1}
+.cp-client{font-weight:700;font-size:17px;line-height:1.2;margin-bottom:3px}
+.cp-name{font-size:12px;color:var(--t2);line-height:1.4}
+.cp-close{background:var(--s2);border:1px solid var(--b1);color:var(--t2);font-size:16px;width:28px;height:28px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.cp-close:hover{color:var(--t1);border-color:var(--b2)}
+.cp-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.cp-section{display:flex;flex-direction:column;gap:6px}
+.cp-section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.cp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cp-stat{background:var(--s2);border:1px solid var(--b1);border-radius:4px;padding:8px 10px}
+.cp-stat-val{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:16px;color:var(--t1)}
+.cp-stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--t3);margin-top:1px;text-transform:uppercase;letter-spacing:.06em}
+.cp-sizes{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t1);background:var(--s2);border:1px solid var(--b1);border-radius:4px;padding:10px 12px;line-height:1.7}
+.cp-notes{font-size:12px;color:var(--t2);background:var(--s2);border:1px solid var(--b1);border-radius:4px;padding:10px 12px;line-height:1.6}
+.cp-chips{display:flex;gap:5px;flex-wrap:wrap}
+.cp-chip{font-family:'IBM Plex Mono',monospace;font-size:9px;border-radius:3px;padding:2px 7px;border:1px solid var(--b1);color:var(--t2)}
+.cp-chip.rush{background:var(--red-bg);color:var(--red);border-color:rgba(184,48,48,.2)}
+.cp-chip.asap{background:var(--org-bg);color:var(--org);border-color:rgba(184,80,0,.2)}
+.cp-chip.grn{background:rgba(58,102,0,.08);color:var(--grn);border-color:rgba(58,102,0,.2)}
+.cp-proof{width:100%;border-radius:5px;overflow:hidden;border:1px solid var(--b1);background:var(--s2);display:flex;align-items:center;justify-content:center;min-height:180px}
+.cp-proof iframe{width:100%;height:340px;border:none}
+.cp-proof-none{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--t3);padding:40px}
+.cp-proof-link{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--grn);text-decoration:none;border-top:1px solid var(--b1)}
+.cp-proof-link:hover{background:var(--s2)}
+.cp-sched{background:var(--s2);border:1px solid var(--b1);border-radius:4px;padding:10px 12px}
+.cp-sched-row{display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px}
+.cp-sched-lbl{color:var(--t3)}
+.cp-sched-val{color:var(--t1);font-weight:600}
+
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="spin"></div>
+  <div class="loader-txt" id="loaderTxt">Connecting…</div>
+</div>
+
+<div class="hdr">
+  <div class="wordmark">Pine<span>·</span>Sched <span style="font-size:10px;letter-spacing:.04em;color:var(--t3);font-family:'IBM Plex Mono',monospace">v4</span></div>
+  <div class="week-ctrl">
+    <button id="prevWeek">‹</button>
+    <div id="weekLabel">—</div>
+    <button id="nextWeek">›</button>
+  </div>
+  <div class="sp"></div>
+  <button class="btn btn-ghost" id="todayBtn">Today</button>
+  <button class="btn btn-grn" id="autoBtn" disabled>⚡ Auto-Schedule</button>
+  <button class="btn btn-ghost" id="refreshBtn" onclick="if(!window.AT_KEY){document.getElementById('tokenScreen').style.display='flex';return;}document.getElementById('loader').style.display='flex';init()">↺ Refresh</button>
+  <button class="btn btn-ghost" id="tokenBtn" onclick="localStorage.removeItem('pine_at_key');window.AT_KEY=null;document.getElementById('tokenInput').value='';document.getElementById('tokenError').style.display='none';document.getElementById('loader').style.display='none';document.getElementById('tokenScreen').style.display='flex'">Token</button>
+  <button class="btn btn-ghost" id="debugBtn">Debug</button>
+</div>
+
+<!-- TOKEN ENTRY SCREEN -->
+<div id="tokenScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:400;align-items:center;justify-content:center">
+  <div style="background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:32px;width:380px;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.1em;color:var(--grn);margin-bottom:4px">Pine·Sched</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px">Production Scheduler</div>
+    <div style="font-size:13px;color:var(--t1);font-weight:600;margin-bottom:6px">Airtable API Token</div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Stored in your browser session only.</div>
+    <input id="tokenInput" type="password" placeholder="patXXXXXX..."
+      style="width:100%;padding:9px 11px;border:1px solid var(--b2);border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--s2);color:var(--t1);outline:none;margin-bottom:12px"
+    />
+    <button onclick="connectWithToken()"
+      style="width:100%;background:var(--grn);color:#fff;border:none;border-radius:4px;padding:10px;font-family:'Barlow',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:background .15s"
+    >Connect & Load Scheduler</button>
+    <div style="margin-top:12px;font-size:11px;color:var(--t3);text-align:center">
+      Get your token at <a href="https://airtable.com/create/tokens" target="_blank" style="color:var(--grn)">airtable.com/create/tokens</a><br>Needs read/write access to Pine Central.
+    </div>
+    <div id="tokenError" style="margin-top:10px;font-size:11px;color:var(--red);text-align:center;display:none"></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sb">
+    <div class="sb-hdr">
+      <span class="sb-title">Unscheduled</span>
+      <span class="sb-count" id="sbCount">0</span>
+    </div>
+    <div class="sb-list" id="sbList">
+      <div class="sb-empty"><div>⏳</div>Loading…</div>
+    </div>
+  </div>
+  <div class="cal-area">
+    <div class="cal-hdr-wrap">
+      <div class="cal-col-grid" id="calHdr"></div>
+    </div>
+    <div class="cal-body" id="calBody"></div>
+  </div>
+</div>
+
+<div class="statusbar">
+  <div class="stat"><div class="stat-dot" style="background:var(--grn)"></div>Drag to schedule · Drop to sidebar to unschedule · Click press to focus</div>
+  <div class="stat" id="statMsg"></div>
+</div>
+
+<!-- FOCUS OVERLAY -->
+<div class="focus-overlay" id="focusOverlay">
+  <div class="focus-hdr">
+    <div class="focus-dot" id="focusDot"></div>
+    <div>
+      <div class="focus-title" id="focusTitle"></div>
+      <div class="focus-sub" id="focusSub"></div>
+    </div>
+    <button class="focus-close" id="focusClose">×</button>
+  </div>
+  <div class="focus-body">
+    <div class="focus-sb">
+      <div class="focus-sb-hdr">Compatible unscheduled jobs</div>
+      <div class="focus-sb-list" id="focusSbList"></div>
+    </div>
+    <div class="focus-cal">
+      <div class="focus-cal-hdr">
+        <div class="focus-col-grid" id="focusCalHdr"></div>
+      </div>
+      <div class="focus-cap-row" id="focusCapRow"></div>
+      <div class="focus-cal-body" id="focusCalBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="debug-panel" id="debugPanel"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════
+const BASE  = 'appJkaLk8DykjsgHR';
+const TABLE = 'tbln9oAGvz2PNBZLV';
+
+const F = {
+  name:    'fldZtgzzQicugfXtP',
+  screens: 'fld8rgkIj1RPO97QU',
+  press:   'fldv59OGU7EkBVofo',
+  qty:     'fld6gdEkaxIsjc0hG',
+  start:   'fldfqtIgcEfIlIeQk',
+  runSecs: 'fldvAqPl6Yq3bxASW',
+  status:  'fldNROVFSsBwLUOYW',
+  priority:'fldMCyF3zHshhQLM5',
+  due:     'fldAl0uhEDCjqhHM4',
+  ink:     'fldjNCuaGOkWgzH2K',
+  client:  'fldeLMIAC0ABQAjYJ',
+  loc:     'fldKQIL0rSJBSeC8S',
+  garment: 'fldyyFoiKCgGOpsGX',
+  sizes:   'fldVwclPQMUUNqMRF',  // size breakdown string e.g. "5 S, 10 M, 12 L"
+  proof:   'fldUOIfCd22MxevRm',  // proof/sep PDF attachment
+  notes:   'fldAIj1K9H9aX6pHy',  // ink notes
+};
+
+const PRESSES = [
+  {id:'Press 1 - ROQ NEXT',        key:'p1',  color:'#2d6b00', cap:540, warn:600, label:'Press 1',     mach:'ROQ NEXT'},
+  {id:'Press 2 - ROQ YOU',         key:'p2',  color:'#1a5899', cap:480, warn:540, label:'Press 2',     mach:'ROQ YOU'},
+  {id:'Embroidery - TAJIMA 6-Head',key:'emb', color:'#5a2d99', cap:420, warn:540, label:'Embroidery',  mach:'TAJIMA'},
+  {id:'Heat press - D3',           key:'d3',  color:'#994400', cap:420, warn:540, label:'Heat Press D3',mach:'D3'},
+  {id:'Heat press - Tag Press',    key:'tag', color:'#886600', cap:420, warn:540, label:'Heat Press Tags',mach:'Tag Press'},
+  {id:'Heat press - Hat Press',    key:'hat', color:'#774400', cap:360, warn:480, label:'Heat Press Hats',mach:'Hat Press'},
+];
+
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+function dbg(...args) {
+  const p = document.getElementById('debugPanel');
+  const line = document.createElement('div');
+  line.style.borderBottom = '1px solid #333';
+  line.style.padding = '2px 0';
+  line.textContent = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+  p.appendChild(line);
+  p.scrollTop = p.scrollHeight;
+  console.log(...args);
+}
+
+function getLookupStr(val) {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (val.valuesByLinkedRecordId) {
+    const vals = Object.values(val.valuesByLinkedRecordId).flat();
+    const v = vals[0];
+    if (!v) return '';
+    if (typeof v === 'object') return v.name || '';
+    return String(v);
+  }
+  if (Array.isArray(val)) { const v = val[0]; return v ? (typeof v === 'object' ? v.name || '' : String(v)) : ''; }
+  if (typeof val === 'object') return val.name || '';
+  return '';
+}
+
+function palletOf(loc) {
+  if (!loc) return 'tee';
+  const l = loc.toLowerCase();
+  if (l.includes('bandana') || l.includes('tea towel')) return 'bandana';
+  if (l.includes('tote') || l.includes('bag') || l.includes('flatstock') || l.includes('poster')) return 'tote';
+  if (l.includes('hood')) return 'hoodie';
+  if (l.includes('sleeve')) return 'sleeve';
+  return 'tee';
+}
+
+function palletChangeCost(a, b) {
+  if (!a || a === b) return 0;
+  if (a === 'bandana' || b === 'bandana') return 20;
+  if (a === 'tote' || b === 'tote') return 20;
+  return 15; // sleeve ↔ tee ↔ hoodie
+}
+
+function withinRunPenalty(job) {
+  const p = palletOf(job.loc);
+  if (p === 'hoodie') return 20;
+  if ((p === 'tee' || p === 'sleeve') && job.qty > 300) return 15;
+  if (p === 'bandana' && job.qty > 300) return 20;
+  return 0;
+}
+
+function estimateRun(job, pressId) {
+  const sc  = job.screens || 1;
+  const qty = job.qty || 0;
+  const pid = pressId || '';
+  if (pid.includes('Embroidery')) {
+    return qty<=24?45:qty<=48?70:qty<=96?120:qty<=144?200:qty<=360?450:600;
+  }
+  if (pid.includes('Tag Press')) {
+    return qty<=48?30:qty<=96?60:qty<=144?105:qty<=216?150:330;
+  }
+  if (pid.includes('D3')) {
+    return qty<=24?30:qty<=48?40:qty<=96?75:qty<=144?120:240;
+  }
+  if (pid.includes('Hat Press')) {
+    return qty<=48?45:qty<=96?70:150;
+  }
+  // Screen print lookup
+  const tbl = {
+    1:[30,35,60,87,140,172,310],2:[30,40,50,75,115,200,315],
+    3:[45,60,60,90,145,158,0], 4:[50,50,72,100,150,0,0],
+    5:[60,65,90,90,120,0,0],   6:[60,65,92,100,0,170,240],
+    7:[0,0,100,120,0,180,0],   8:[0,0,130,120,0,210,0],
+  };
+  const bi = qty<=48?0:qty<=96?1:qty<=144?2:qty<=216?3:qty<=360?4:qty<=576?5:6;
+  const row = tbl[Math.min(Math.max(sc,1),8)] || tbl[2];
+  const v = row[bi] || Math.max(...row.filter(x=>x>0)) + 15;
+  return Math.ceil((v + withinRunPenalty(job)) / 15) * 15;
+}
+
+function autoPress(job) {
+  const g = (job.garment||'').toLowerCase();
+  const ink = (job.ink||'').toLowerCase();
+  if (g === 'embroidery') return 'Embroidery - TAJIMA 6-Head';
+  if (ink.includes('supacolor') && job.loc === 'Size Tag') return 'Heat press - Tag Press';
+  if (ink.includes('supacolor') && job.loc?.toLowerCase().includes('hat')) return 'Heat press - Hat Press';
+  if (ink.includes('supacolor') || ink.includes('decopress') || ink.includes('hem label')) return 'Heat press - D3';
+  if ((job.screens||1) >= 5) return 'Press 1 - ROQ NEXT';
+  return null;
+}
+
+function shopOpen(ds) {
+  return new Date(ds + 'T14:00:00.000Z'); // 8am MT = 14:00 UTC
+}
+function minToISO(ds, min) {
+  const d = shopOpen(ds);
+  d.setMinutes(d.getMinutes() + min);
+  return d.toISOString();
+}
+function minToTime(min) {
+  const t = 8*60 + (min||0);
+  const h = Math.floor(t/60)%24, m = t%60;
+  const ap = h>=12?'pm':'am', h12 = h>12?h-12:h===0?12:h;
+  return `${h12}:${String(m).padStart(2,'0')}${ap}`;
+}
+function fmtDate(ds) {
+  if (!ds) return '—';
+  const [,m,d] = ds.split('-');
+  return `${parseInt(m)}/${parseInt(d)}`;
+}
+function dateStr(d) { return d.toISOString().slice(0,10); }
+function hexAlpha(hex, a) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function getWeekStart(d) {
+  const day = new Date(d);
+  const dow = day.getDay();
+  day.setDate(day.getDate() + (dow===0?-6:1-dow));
+  day.setHours(0,0,0,0);
+  return day;
+}
+
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+let weekStart = getWeekStart(new Date());
+let allJobs   = [];
+let scheduled = {}; // { recId: {pressId, dateStr, startMin, runMin, penaltyMin, palletType} }
+let dragId    = null;
+let dragSrc   = null;
+let focusPress = null;
+let focusDragId = null;
+
+function weekDates() {
+  return [0,1,2,3].map(i => { const d=new Date(weekStart); d.setDate(d.getDate()+i); return d; });
+}
+
+// ══════════════════════════════════════════════════
+// SCHEDULING
+// ══════════════════════════════════════════════════
+function pressDay(pressId, ds) {
+  return allJobs
+    .filter(j => { const s=scheduled[j.id]; return s && s.pressId===pressId && s.dateStr===ds; })
+    .sort((a,b) => (scheduled[a.id].startMin||0) - (scheduled[b.id].startMin||0));
+}
+function pressLoad(pressId, ds) {
+  return pressDay(pressId, ds).reduce((s,j) => s + (scheduled[j.id].runMin||0) + (scheduled[j.id].penaltyMin||0), 0);
+}
+function lastPallet(pressId, ds, excludeId) {
+  const jobs = pressDay(pressId, ds).filter(j=>j.id!==excludeId);
+  return jobs.length ? scheduled[jobs[jobs.length-1].id]?.palletType||'tee' : null;
+}
+function nextStart(pressId, ds, excludeId) {
+  const jobs = pressDay(pressId, ds).filter(j=>j.id!==excludeId);
+  if (!jobs.length) return 0;
+  const last = jobs[jobs.length-1];
+  const s = scheduled[last.id];
+  return (s.startMin||0) + (s.runMin||0) + (s.penaltyMin||0);
+}
+// Pallet group order: tee/sleeve/hoodie first, then bandana, then others
+function palletGroupOrder(p) {
+  if (!p || p==='tee' || p==='sleeve' || p==='hoodie') return 0;
+  if (p==='bandana') return 1;
+  if (p==='tote') return 2;
+  return 3; // anything else
+}
+function sortByPalletGroup(jobs) {
+  // Stable sort: keep relative order within each group, but group together
+  const groups = {};
+  for (const job of jobs) {
+    const g = palletGroupOrder(palletOf(job.loc));
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(job);
+  }
+  return [0,1,2].flatMap(g => groups[g]||[]);
+}
+function computeSlot(job, pressId, ds, excludeId) {
+  const pallet  = palletOf(job.loc);
+  const runMin  = estimateRun(job, pressId);
+  // Find all current jobs on this press/day (excluding the one being moved)
+  const existing = pressDay(pressId, ds).filter(j => j.id !== excludeId);
+  // Insert after last job of same pallet group
+  const myGroup = palletGroupOrder(pallet);
+  // Find last job of same or earlier group to insert after
+  const sameGroup = existing.filter(j => palletGroupOrder(palletOf(j.loc)) === myGroup);
+  let insertAfter = null;
+  if (sameGroup.length) {
+    insertAfter = sameGroup[sameGroup.length - 1];
+  } else {
+    // Insert after all earlier groups
+    const earlierGroup = existing.filter(j => palletGroupOrder(palletOf(j.loc)) < myGroup);
+    if (earlierGroup.length) insertAfter = earlierGroup[earlierGroup.length - 1];
+  }
+  // Calculate startMin by simulating queue up to insertion point
+  const sorted = sortByPalletGroup(existing);
+  let cursor = 0, prevPal = null, startMin = 0;
+  let inserted = false;
+  for (const j of sorted) {
+    if (!inserted && (!insertAfter || j.id === insertAfter?.id)) {
+      // Place new job here (after insertAfter, or at start if none)
+      if (insertAfter && j.id === insertAfter.id) {
+        // Place after this job
+        const s = scheduled[j.id];
+        cursor = (s.startMin||0) + (s.runMin||0) + (s.penaltyMin||0);
+        prevPal = palletOf(j.loc);
+      }
+      if (!insertAfter) {
+        // Place at very start
+        const change = palletChangeCost(null, pallet);
+        startMin = change;
+        inserted = true;
+        break;
+      }
+    }
+    if (insertAfter && j.id === insertAfter.id) {
+      const change = palletChangeCost(prevPal, pallet);
+      startMin = cursor + change;
+      inserted = true;
+      break;
+    }
+  }
+  if (!inserted) {
+    // No earlier group found — append at end
+    const change = palletChangeCost(existing.length ? palletOf(existing[existing.length-1].loc) : null, pallet);
+    startMin = nextStart(pressId, ds, excludeId) + change;
+  }
+  const change = palletChangeCost(insertAfter ? palletOf(insertAfter.loc) : null, pallet);
+  return {startMin, runMin, penaltyMin: change, palletType: pallet};
+}
+function recomputeAll() {
+  for (const press of PRESSES) {
+    for (const d of weekDates()) {
+      const ds = dateStr(d);
+      const jobs = sortByPalletGroup(pressDay(press.id, ds));
+      let cursor = 0, prevPal = null;
+      for (const job of jobs) {
+        const pallet = palletOf(job.loc);
+        const change = palletChangeCost(prevPal, pallet);
+        const runMin = estimateRun(job, press.id);
+        scheduled[job.id] = {...scheduled[job.id], startMin:cursor+change, runMin, penaltyMin:change, palletType:pallet};
+        cursor = cursor + change + runMin;
+        prevPal = pallet;
+      }
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════
+// AIRTABLE API
+// ══════════════════════════════════════════════════
+async function atFetch(url) {
+  let records = [], offset = '';
+  while (true) {
+    const fullUrl = url + (offset ? '&offset='+encodeURIComponent(offset) : '');
+    dbg('Fetching:', fullUrl.slice(0,120));
+    const res = await fetch(fullUrl, {
+      headers: {'Authorization': `Bearer ${window.AT_KEY}`}
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      dbg('Fetch error:', res.status, t.slice(0,300));
+      throw new Error(`Airtable ${res.status}: ${t.slice(0,150)}`);
+    }
+    const data = await res.json();
+    dbg('Response keys:', Object.keys(data).join(', '), '| records:', (data.records||[]).length);
+    records = records.concat(data.records||[]);
+    if (data.offset) { offset=data.offset; setLoader(`Loading… (${records.length})`); }
+    else break;
+  }
+  return records;
+}
+
+async function atPatch(recId, fields) {
+  // PREVIEW MODE — all writes disabled
+  dbg('PREVIEW: would write to', recId, JSON.stringify(fields).slice(0,80));
+  return true;
+}
+
+const FIELDS = [F.name,F.screens,F.press,F.qty,F.start,F.runSecs,F.status,F.priority,F.due,F.ink,F.client,F.loc,F.garment,F.sizes,F.notes,F.proof];
+const FP = FIELDS.map(f=>`fields[]=${f}`).join('&');
+const BASE_URL = `https://api.airtable.com/v0/${BASE}/${TABLE}?${FP}&returnFieldsByFieldId=true&pageSize=100`;
+
+async function loadJobs() {
+  // Date window: 1 week back, 5 weeks forward
+  const mon = new Date(weekStart); mon.setDate(mon.getDate() - 7);
+  const fut = new Date(weekStart); fut.setDate(fut.getDate() + 35);
+  const monISO = mon.toISOString().slice(0, 10);
+  const futISO = fut.toISOString().slice(0, 10);
+
+  // Single fetch combining pipeline statuses + scheduled jobs in date window
+  const STATUSES = ['Ready to Order','Ordered - In Production','Scheduled, Screened','Received & Staged','Pre-press','On-Press'];
+  const sc = STATUSES.map(s => `FIND("${s}",ARRAYJOIN({${F.status}}))`).join(',');
+  const formula = encodeURIComponent(
+    `OR(${sc},AND({${F.press}}!="",IS_AFTER({${F.start}},"${monISO}"),IS_BEFORE({${F.start}},"${futISO}")))`
+  );
+
+  setLoader('Loading jobs…');
+  dbg('Combined fetch: pipeline + scheduled in window');
+  const records = await atFetch(`${BASE_URL}&filterByFormula=${formula}`);
+  dbg(`Fetched: ${records.length} records`);
+  return records;
+}
+
+function parseRecord(r) {
+  // Airtable REST API with returnFieldsByFieldId=true returns fields under 'fields' key
+  // MCP tool returns under 'cellValuesByFieldId' — handle both
+  const f = r.fields || r.cellValuesByFieldId || {};
+  // Debug first few
+  if (allJobs.length < 3) {
+    dbg('Sample record fields:', Object.keys(f).length, 'keys');
+    dbg('  client:', f[F.client], '| status:', JSON.stringify(f[F.status])?.slice(0,60));
+    dbg('  press:', JSON.stringify(f[F.press])?.slice(0,60));
+    dbg('  qty:', f[F.qty], '| screens:', f[F.screens]);
+  }
+
+  const statusStr  = getLookupStr(f[F.status]);
+  const priorityStr = getLookupStr(f[F.priority]);
+  const dueRaw     = getLookupStr(f[F.due]);
+  const pressVal   = f[F.press];
+  const pressName  = pressVal?.name || (typeof pressVal==='string'?pressVal:null);
+  const locVal     = f[F.loc];
+  const locName    = locVal?.name || (typeof locVal==='string'?locVal:'');
+  const inkVal     = f[F.ink];
+  const inkName    = inkVal?.name || (typeof inkVal==='string'?inkVal:'');
+
+  return {
+    id:      r.id,
+    name:    f[F.name] || '',
+    screens: typeof f[F.screens]==='number' ? f[F.screens] : 0,
+    qty:     typeof f[F.qty]==='number'     ? f[F.qty]     : 0,
+    client:  f[F.client] || '',
+    garment: f[F.garment] || '',
+    loc:     locName,
+    ink:     inkName,
+    due:     dueRaw ? String(dueRaw).slice(0,10) : null,
+    priority: priorityStr,
+    status:  statusStr,
+    pressName,
+    startISO: f[F.start] || null,
+    runSecs:  typeof f[F.runSecs]==='number' ? f[F.runSecs] : null,
+    sizes:   typeof f[F.sizes]==='string' ? f[F.sizes] : '',
+    notes:   getLookupStr(f[F.notes]) || '',
+    proofAtts: (() => {
+      const p = f[F.proof];
+      if (!p) return [];
+      if (Array.isArray(p)) return p.flat().filter(a => a && a.url);
+      if (p?.valuesByLinkedRecordId) return Object.values(p.valuesByLinkedRecordId).flat().filter(a => a && a.url);
+      return [];
+    })(),
+  };
+}
+
+function shouldInclude(job) {
+  // Always include if already scheduled (has press + start time) — even if order status is Completed
+  // This handles jobs that were scheduled before the order status updated
+  if (job.pressName && job.startISO) return true;
+  const s = job.status || '';
+  // Exclude only truly dead orders
+  const bad = ['Cancelled','Voided'];
+  if (bad.some(b => s.includes(b))) return false;
+  // Include anything in the active pipeline
+  const good = ['Ready to Order','Ordered - In Production','Scheduled, Screened','Received & Staged','Pre-press','On-Press'];
+  return good.some(g => s.includes(g));
+}
+
+function preloadScheduled(jobs) {
+  const sched = {};
+  for (const job of jobs) {
+    if (job.pressName && job.startISO) {
+      const startDt = new Date(job.startISO);
+      const ds = dateStr(startDt);
+      const shopOpenDt = shopOpen(ds);
+      const startMin = Math.max(Math.round((startDt - shopOpenDt) / 60000), 0);
+      const runMin = job.runSecs ? Math.round(job.runSecs/60) : estimateRun(job, job.pressName);
+      sched[job.id] = {
+        pressId: job.pressName,
+        dateStr: ds,
+        startMin,
+        runMin,
+        penaltyMin: 0,
+        palletType: palletOf(job.loc),
+      };
+    }
+  }
+  return sched;
+}
+
+// ══════════════════════════════════════════════════
+// SAVE
+// ══════════════════════════════════════════════════
+async function saveJob(recId) {
+  const s = scheduled[recId];
+  if (!s) { await atPatch(recId, {[F.press]:null,[F.start]:null}); return; }
+  const job = allJobs.find(j=>j.id===recId);
+  const startISO = minToISO(s.dateStr, s.startMin);
+  const rawRun = Math.max((s.runMin - withinRunPenalty(job||{})) * 60, 900);
+  await atPatch(recId, {[F.press]:s.pressId,[F.start]:startISO,[F.runSecs]:rawRun});
+  showMsg('👁 Preview — not saved to Airtable');
+}
+async function unscheduleJob(recId) {
+  delete scheduled[recId];
+  recomputeAll();
+  await atPatch(recId, {[F.press]:null,[F.start]:null});
+  showMsg('👁 Preview — not saved to Airtable');
+  render();
+  if (focusPress) renderFocus();
+}
+
+// ══════════════════════════════════════════════════
+// AUTO SCHEDULE
+// ══════════════════════════════════════════════════
+async function autoSchedule() {
+  const btn = document.getElementById('autoBtn');
+  btn.disabled = true; btn.textContent = '…Scheduling';
+  const unscheduled = allJobs.filter(j=>!scheduled[j.id]);
+  unscheduled.sort((a,b) => {
+    const pa=(a.priority||'').toLowerCase(), pb=(b.priority||'').toLowerCase();
+    if (pa.includes('hard')&&!pb.includes('hard')) return -1;
+    if (!pa.includes('hard')&&pb.includes('hard')) return 1;
+    if (pa.includes('asap')&&!pb.includes('asap')) return -1;
+    if (!pa.includes('asap')&&pb.includes('asap')) return 1;
+    return (a.due||'9999')<(b.due||'9999')?-1:1;
+  });
+  const dates = weekDates().map(dateStr);
+  for (const job of unscheduled) {
+    const forced = autoPress(job);
+    const candidates = forced ? PRESSES.filter(p=>p.id===forced)
+      : PRESSES.filter(p=>p.id.includes('Press 1')||p.id.includes('Press 2'));
+    let placed = false;
+    // Try to stack same pallet type first
+    for (const ds of dates) {
+      for (const p of candidates) {
+        const pallet = palletOf(job.loc);
+        const existing = pressDay(p.id, ds);
+        const hasSame = existing.some(j=>(scheduled[j.id]?.palletType||'tee')===pallet);
+        const slot = computeSlot(job, p.id, ds, null);
+        const load = pressLoad(p.id, ds) + slot.runMin + slot.penaltyMin;
+        const pr = PRESSES.find(x=>x.id===p.id);
+        if (load <= pr.cap && (hasSame||existing.length===0)) {
+          scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+          placed = true; break;
+        }
+      }
+      if (placed) break;
+    }
+    if (!placed) {
+      for (const ds of dates) {
+        for (const p of candidates) {
+          const slot = computeSlot(job, p.id, ds, null);
+          const load = pressLoad(p.id, ds) + slot.runMin + slot.penaltyMin;
+          const pr = PRESSES.find(x=>x.id===p.id);
+          if (load <= pr.cap) {
+            scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+            placed = true; break;
+          }
+        }
+        if (placed) break;
+      }
+    }
+    if (!placed && candidates.length) {
+      // Just put it somewhere
+      const ds = dates[0], p = candidates[0];
+      const slot = computeSlot(job, p.id, ds, null);
+      scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+    }
+  }
+  recomputeAll();
+  // Save all
+  for (const recId of Object.keys(scheduled)) { await saveJob(recId); }
+  btn.disabled = false; btn.textContent = '⚡ Auto-Schedule';
+  render();
+}
+
+// ══════════════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════════════
+function makeBlock(job, pressColor, big=false) {
+  const s    = scheduled[job.id];
+  const isR  = (job.priority||'').toLowerCase().includes('hard');
+  const bg   = isR ? 'rgba(184,48,48,.07)' : hexAlpha(pressColor, .1);
+  const bor  = isR ? 'rgba(184,48,48,.3)'  : hexAlpha(pressColor, .3);
+  const tc   = isR ? '#b83030' : pressColor;
+  const palLbl = {tee:'👕',sleeve:'💪',hoodie:'🧥',bandana:'🎀',tote:'🛍️'}[palletOf(job.loc)]||'';
+  const start = minToTime(s.startMin), end = minToTime(s.startMin+s.runMin);
+  if (big) {
+    return `<div class="fblk" draggable="true" data-id="${job.id}" data-src="focus-cal"
+      style="background:${bg};border-color:${bor};color:${tc}">
+      <div class="fblk-client" style="cursor:pointer" onclick="openCardPopup('${job.id}')">${job.client||'—'} ${palLbl}</div>
+      <div class="fblk-design">${job.name||''}</div>
+      <div class="fblk-chips">
+        ${job.screens?`<span class="chip chip-sc">${job.screens}sc</span>`:''}
+        <span class="chip chip-qty">${job.qty}pcs</span>
+        <span class="chip">${s.runMin}m</span>
+        ${s.penaltyMin?`<span class="chip" style="color:var(--org)">+${s.penaltyMin}m swap</span>`:''}
+      </div>
+      <div class="fblk-time">${start} → ${end}</div>
+      <button class="fblk-rm" data-id="${job.id}">×</button>
+    </div>`;
+  }
+  return `<div class="sblk" draggable="true" data-id="${job.id}" data-src="cal"
+    style="background:${bg};border-color:${bor};color:${tc}">
+    <div class="sblk-client" style="cursor:pointer" onclick="openCardPopup('${job.id}')">${job.client||'—'} ${palLbl}</div>
+    <div class="sblk-meta">${job.qty}pcs${job.screens?` · ${job.screens}sc`:''} · ${s.runMin}m</div>
+    <div class="sblk-time">${start}→${end}</div>
+    ${s.penaltyMin?`<div class="sblk-warn">+${s.penaltyMin}m swap</div>`:''}
+    <button class="sblk-rm" data-id="${job.id}">×</button>
+  </div>`;
+}
+
+function makeUCard(job, extra='') {
+  const isR = (job.priority||'').toLowerCase().includes('hard');
+  const isA = (job.priority||'').toLowerCase().includes('asap');
+  const today = dateStr(new Date());
+  const late = job.due && job.due < today;
+  const est = estimateRun(job, autoPress(job)||'Press 1 - ROQ NEXT');
+  const palLbl = {tee:'👕 Tee',sleeve:'💪 Sleeve',hoodie:'🧥 Hoodie',bandana:'🎀 Bandana',tote:'🛍️ Tote'}[palletOf(job.loc)]||'';
+  return `<div class="jcard ${isR?'rush':isA?'asap':''}" draggable="true" data-id="${job.id}" data-src="${extra||'sidebar'}">
+    <div class="jc-top">
+      <div class="jc-client" style="cursor:pointer" onclick="openCardPopup('${job.id}')">${job.client||'—'}</div>
+      ${isR?'<span class="jc-badge badge-rush">Rush</span>':isA?'<span class="jc-badge badge-asap">ASAP</span>':''}
+    </div>
+    <div class="jc-design">${job.name||''}</div>
+    <div class="jc-chips">
+      ${job.screens?`<span class="chip chip-sc">${job.screens}sc</span>`:''}
+      <span class="chip chip-qty">${job.qty}pcs</span>
+      <span class="chip chip-due ${late?'late':''}">${job.due?fmtDate(job.due):'no due'}</span>
+      <span class="chip chip-est">${est}m</span>
+      <span class="chip chip-pal">${palLbl}</span>
+      <span class="chip chip-status">${job.status?.split(' ').slice(0,2).join(' ')||''}</span>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// RENDER MAIN
+// ══════════════════════════════════════════════════
+function render() {
+  renderHeader();
+  renderSidebar();
+  renderCalendar();
+  document.getElementById('autoBtn').disabled = allJobs.filter(j=>!scheduled[j.id]).length===0;
+}
+
+function renderHeader() {
+  const dates = weekDates();
+  const fmt = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('weekLabel').textContent = `${fmt(dates[0])} – ${fmt(dates[3])} ${dates[0].getFullYear()}`;
+  const today = dateStr(new Date());
+  const hdr = document.getElementById('calHdr');
+  hdr.innerHTML = `<div class="cal-hdr-press">Press</div>` +
+    dates.map(d => {
+      const ds = dateStr(d);
+      const isT = ds===today;
+      const loads = PRESSES.map(p=>({l:pressLoad(p.id,ds),c:p.cap,w:p.warn}));
+      const maxPct = Math.max(...loads.map(x=>x.l/x.c));
+      const bc = maxPct>=1?'#b83030':maxPct>=.85?'#b85000':'#3a6600';
+      return `<div class="cal-hdr-day ${isT?'today':''}">
+        <div class="day-name">${d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</div>
+        <div class="day-num">${d.getDate()}</div>
+        <div class="cap-track"><div class="cap-fill" style="width:${Math.min(maxPct*100,100)}%;background:${bc}"></div></div>
+      </div>`;
+    }).join('');
+}
+
+function renderSidebar() {
+  const unsched = allJobs.filter(j=>!scheduled[j.id]);
+  document.getElementById('sbCount').textContent = unsched.length;
+  const list = document.getElementById('sbList');
+  if (!unsched.length) {
+    list.innerHTML = `<div class="sb-empty"><div>✅</div>All jobs scheduled!</div>`;
+    return;
+  }
+  unsched.sort((a,b)=>{
+    const pa=(a.priority||'').toLowerCase(),pb=(b.priority||'').toLowerCase();
+    if(pa.includes('hard')&&!pb.includes('hard'))return -1;
+    if(!pa.includes('hard')&&pb.includes('hard'))return 1;
+    if(pa.includes('asap')&&!pb.includes('asap'))return -1;
+    if(!pa.includes('asap')&&pb.includes('asap'))return 1;
+    return(a.due||'9999')<(b.due||'9999')?-1:1;
+  });
+  list.innerHTML = unsched.map(j=>makeUCard(j)).join('');
+  bindSidebarDrag(list, 'sidebar');
+}
+
+function renderCalendar() {
+  const dates = weekDates();
+  const body = document.getElementById('calBody');
+  body.innerHTML = PRESSES.map(press => {
+    const cells = dates.map(d => {
+      const ds = dateStr(d);
+      const jobs = pressDay(press.id, ds);
+      const load = pressLoad(press.id, ds);
+      const pct = Math.min(load/press.cap, 1);
+      const isCap = load>=press.cap, isWarn = load>=press.warn;
+      let prevPal = null;
+      // Insert zone at the top (position 0 = before all cards)
+      let blockParts = [`<div class="insert-zone" data-press="${press.id}" data-date="${ds}" data-pos="0"></div>`];
+      jobs.forEach((job,i) => {
+        const s = scheduled[job.id];
+        const pal = s.palletType||'tee';
+        const chg = i>0 && prevPal && prevPal!==pal;
+        const cm = palletChangeCost(prevPal, pal);
+        prevPal = pal;
+        if (chg) blockParts.push(`<div class="pal-div" data-label="↕ +${cm}m swap"></div>`);
+        blockParts.push(makeBlock(job, press.color));
+        // Insert zone after each card
+        blockParts.push(`<div class="insert-zone" data-press="${press.id}" data-date="${ds}" data-pos="${i+1}" data-before="${jobs[i+1]?.id||''}"></div>`);
+      });
+      const blocks = blockParts.join('');
+      return `<div class="day-cell ${isCap?'over-cap':isWarn?'over-warn':''}" data-press="${press.id}" data-date="${ds}">
+        ${blocks}
+      </div>`;
+    }).join('');
+    return `<div class="press-row">
+      <div class="press-lbl" data-press="${press.id}">
+        <div class="pl-dot" style="background:${press.color}"></div>
+        <div class="pl-name">${press.label}</div>
+        <div class="pl-mach">${press.mach}</div>
+        <div class="pl-cap">${press.cap}min cap</div>
+        <div class="pl-expand">⤢ Focus view</div>
+      </div>
+      ${cells}
+    </div>`;
+  }).join('');
+  bindCalendarEvents(body);
+}
+
+// ══════════════════════════════════════════════════
+// DRAG & DROP — MAIN CALENDAR
+// ══════════════════════════════════════════════════
+function bindSidebarDrag(container, src) {
+  container.querySelectorAll('[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragId = el.dataset.id; dragSrc = src;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+}
+
+function bindCalendarEvents(body) {
+  // Drag from calendar blocks
+  body.querySelectorAll('.sblk').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragId = el.dataset.id; dragSrc = 'cal';
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+
+  // Remove buttons
+  body.querySelectorAll('.sblk-rm').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); unscheduleJob(btn.dataset.id); });
+  });
+
+  // Insert zone drop (reorder within or across days)
+  body.querySelectorAll('.insert-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation(); zone.classList.remove('drag-over');
+      if (!dragId) return;
+      const pressId = zone.dataset.press, ds = zone.dataset.date;
+      const beforeId = zone.dataset.before || null; // insert before this job id (or end if empty)
+      const job = allJobs.find(j=>j.id===dragId);
+      if (!job) return;
+      if (pressId==='Press 2 - ROQ YOU' && (job.screens||1)>=5) {
+        showMsg('⚠ Press 2 max 4 screens — use Press 1'); return;
+      }
+      // Remove from current position
+      const runMin = estimateRun(job, pressId);
+      const pallet = palletOf(job.loc);
+      scheduled[dragId] = {pressId, dateStr:ds, startMin:0, runMin, penaltyMin:0, palletType:pallet};
+      // Reorder: get all jobs on this press/day, insert dragId before beforeId
+      const dayJobs = pressDay(pressId, ds).filter(j=>j.id!==dragId);
+      if (beforeId) {
+        const idx = dayJobs.findIndex(j=>j.id===beforeId);
+        if (idx>=0) dayJobs.splice(idx, 0, job);
+        else dayJobs.push(job);
+      } else {
+        dayJobs.push(job);
+      }
+      // Recompute just this press/day in the new order (overrides pallet group sort)
+      let cursor = 0, prevPal = null;
+      for (const j of dayJobs) {
+        const pal = palletOf(j.loc);
+        const change = palletChangeCost(prevPal, pal);
+        const rm = estimateRun(j, pressId);
+        scheduled[j.id] = {...scheduled[j.id], pressId, dateStr:ds, startMin:cursor+change, runMin:rm, penaltyMin:change, palletType:pal};
+        cursor = cursor + change + rm;
+        prevPal = pal;
+      }
+      render();
+      saveJob(dragId);
+      dragId=null; dragSrc=null;
+    });
+  });
+
+  // Drop zones (whole cell — append to end)
+  body.querySelectorAll('.day-cell').forEach(cell => {
+    cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag-over'); });
+    cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+    cell.addEventListener('drop', e => {
+      e.preventDefault(); cell.classList.remove('drag-over');
+      if (!dragId) return;
+      const pressId = cell.dataset.press, ds = cell.dataset.date;
+      const job = allJobs.find(j=>j.id===dragId);
+      if (!job) return;
+      if (pressId==='Press 2 - ROQ YOU' && (job.screens||1)>=5) {
+        showMsg('⚠ Press 2 max 4 screens — use Press 1'); return;
+      }
+      const slot = computeSlot(job, pressId, ds, dragId);
+      scheduled[dragId] = {pressId, dateStr:ds, ...slot};
+      recomputeAll(); render();
+      saveJob(dragId);
+      dragId=null; dragSrc=null;
+    });
+  });
+
+  // Press label click → focus
+  body.querySelectorAll('.press-lbl').forEach(lbl => {
+    lbl.addEventListener('click', () => openFocus(lbl.dataset.press));
+  });
+
+  // Drop to sidebar (unschedule) — handled on sidebar element
+  const sbList = document.getElementById('sbList');
+  sbList.addEventListener('dragover', e => { if(dragSrc==='cal'||dragSrc==='focus-cal') e.preventDefault(); });
+  sbList.addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragId && (dragSrc==='cal'||dragSrc==='focus-cal')) { unscheduleJob(dragId); dragId=null; dragSrc=null; }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// FOCUS VIEW
+// ══════════════════════════════════════════════════
+function openFocus(pressId) {
+  focusPress = PRESSES.find(p=>p.id===pressId);
+  if (!focusPress) return;
+  document.getElementById('focusDot').style.background = focusPress.color;
+  document.getElementById('focusTitle').textContent = focusPress.label;
+  document.getElementById('focusSub').textContent = `${focusPress.mach} · ${focusPress.cap}min/day capacity`;
+  renderFocus();
+  document.getElementById('focusOverlay').classList.add('show');
+}
+
+document.getElementById('focusClose').addEventListener('click', () => {
+  document.getElementById('focusOverlay').classList.remove('show');
+  focusPress = null;
+  render();
+});
+
+function renderFocus() {
+  if (!focusPress) return;
+  const press = focusPress;
+  const dates = weekDates();
+  const today = dateStr(new Date());
+
+  // Header
+  document.getElementById('focusCalHdr').innerHTML = dates.map(d => {
+    const isT = dateStr(d)===today;
+    return `<div class="focus-day-hdr ${isT?'today':''}">
+      <div class="focus-day-name">${d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</div>
+      <div class="focus-day-num">${d.getDate()}</div>
+    </div>`;
+  }).join('');
+
+  // Cap row
+  document.getElementById('focusCapRow').innerHTML = dates.map(d => {
+    const ds = dateStr(d);
+    const load = pressLoad(press.id, ds);
+    const pct  = Math.min(load/press.cap, 1);
+    const bc   = load>=press.cap?'#b83030':load>=press.warn?'#b85000':press.color;
+    return `<div class="focus-cap-cell">
+      <span class="focus-cap-lbl">${load}/${press.cap}m</span>
+      <div class="focus-cap-track"><div class="focus-cap-fill" style="width:${pct*100}%;background:${bc}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Calendar body
+  const body = document.getElementById('focusCalBody');
+  body.innerHTML = dates.map(d => {
+    const ds = dateStr(d);
+    const jobs = pressDay(press.id, ds);
+    const load = pressLoad(press.id, ds);
+    const isCap = load>=press.cap, isWarn = load>=press.warn;
+    let prevPal = null;
+    const blocks = jobs.map((job,i) => {
+      const s = scheduled[job.id];
+      const pal = s.palletType||'tee';
+      const chg = i>0 && prevPal && prevPal!==pal;
+      const cm = palletChangeCost(prevPal, pal);
+      prevPal = pal;
+      return (chg?`<div class="pal-div" data-label="↕ +${cm}m swap"></div>`:'') + makeBlock(job, press.color, true);
+    }).join('');
+    return `<div class="focus-day-col ${isCap?'over-cap':isWarn?'over-warn':''}" data-press="${press.id}" data-date="${ds}">${blocks}</div>`;
+  }).join('');
+
+  // Sidebar — compatible unscheduled
+  const compat = allJobs.filter(j => {
+    if (scheduled[j.id]) return false;
+    const forced = autoPress(j);
+    if (forced && forced!==press.id) return false;
+    return true;
+  });
+  const fSb = document.getElementById('focusSbList');
+  fSb.innerHTML = compat.length
+    ? compat.map(j=>makeUCard(j,'focus-sb')).join('')
+    : `<div class="sb-empty"><div>✅</div>No compatible unscheduled jobs</div>`;
+
+  // Bind drag events
+  bindFocusDrag(body, fSb, press);
+}
+
+function bindFocusDrag(body, fSb, press) {
+  // Focus calendar blocks
+  body.querySelectorAll('.fblk').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      focusDragId = el.dataset.id; dragSrc = 'focus-cal';
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+
+  body.querySelectorAll('.fblk-rm').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); unscheduleJob(btn.dataset.id); });
+  });
+
+  // Focus sidebar cards
+  fSb.querySelectorAll('[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      focusDragId = el.dataset.id; dragSrc = 'focus-sb';
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+
+  // Focus day col drop zones
+  body.querySelectorAll('.focus-day-col').forEach(col => {
+    col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', e => {
+      e.preventDefault(); col.classList.remove('drag-over');
+      const id = focusDragId; if (!id) return;
+      const ds = col.dataset.date;
+      const job = allJobs.find(j=>j.id===id);
+      if (!job) return;
+      if (press.id==='Press 2 - ROQ YOU' && (job.screens||1)>=5) {
+        showMsg('⚠ Press 2 max 4 screens'); return;
+      }
+      const slot = computeSlot(job, press.id, ds, id);
+      scheduled[id] = {pressId:press.id, dateStr:ds, ...slot};
+      recomputeAll(); renderFocus();
+      saveJob(id);
+      focusDragId=null;
+    });
+  });
+
+  // Drop to focus sidebar = unschedule
+  fSb.addEventListener('dragover', e => { if(dragSrc==='focus-cal') e.preventDefault(); });
+  fSb.addEventListener('drop', e => {
+    e.preventDefault();
+    if (focusDragId && dragSrc==='focus-cal') { unscheduleJob(focusDragId); focusDragId=null; }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// WEEK NAV
+// ══════════════════════════════════════════════════
+document.getElementById('prevWeek').addEventListener('click', () => { weekStart.setDate(weekStart.getDate()-7); render(); });
+document.getElementById('nextWeek').addEventListener('click', () => { weekStart.setDate(weekStart.getDate()+7); render(); });
+document.getElementById('todayBtn').addEventListener('click', () => { weekStart=getWeekStart(new Date()); render(); });
+// refresh handled inline
+document.getElementById('autoBtn').addEventListener('click', autoSchedule);
+document.getElementById('debugBtn').addEventListener('click', () => {
+  document.getElementById('debugPanel').classList.toggle('show');
+});
+
+// ══════════════════════════════════════════════════
+// MISC UI
+// ══════════════════════════════════════════════════
+function setLoader(txt) { document.getElementById('loaderTxt').textContent = txt; }
+function showMsg(txt) {
+  const el = document.getElementById('statMsg'); el.textContent = txt;
+  setTimeout(()=>el.textContent='', 3000);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// CARD POPUP
+// ══════════════════════════════════════════════════
+async function openCardPopup(jobId) {
+  const job = allJobs.find(j=>j.id===jobId);
+  if (!job) return;
+  const s = scheduled[job.id];
+  const press = s ? PRESSES.find(p=>p.id===s.pressId) : null;
+  const isR = (job.priority||'').toLowerCase().includes('hard');
+  const isA = (job.priority||'').toLowerCase().includes('asap');
+  const today = dateStr(new Date());
+  const late = job.due && job.due < today;
+
+  document.getElementById('cpClient').textContent = job.client || '—';
+  document.getElementById('cpName').textContent = job.name || '';
+
+  // Build body
+  const body = document.getElementById('cpBody');
+
+  // Status chips
+  let chipsHtml = `<div class="cp-section">
+    <div class="cp-chips">
+      ${isR?'<span class="cp-chip rush">🚨 Rush / Hard Deadline</span>':isA?'<span class="cp-chip asap">⚡ ASAP</span>':''}
+      <span class="cp-chip ${late?'rush':''}">${job.due?'Due '+fmtDate(job.due):'No due date'}</span>
+      <span class="cp-chip">${job.status||'—'}</span>
+      ${job.garment?`<span class="cp-chip">${job.garment}</span>`:''}
+      ${job.loc?`<span class="cp-chip">${job.loc}</span>`:''}
+    </div>
+  </div>`;
+
+  // Stats grid
+  const est = estimateRun(job, press?.id || autoPress(job) || 'Press 1 - ROQ NEXT');
+  let statsHtml = `<div class="cp-section">
+    <div class="cp-section-title">Job Details</div>
+    <div class="cp-grid">
+      <div class="cp-stat"><div class="cp-stat-val">${job.qty}</div><div class="cp-stat-lbl">Total Qty</div></div>
+      <div class="cp-stat"><div class="cp-stat-val">${job.screens||'—'}</div><div class="cp-stat-lbl">Screens</div></div>
+      <div class="cp-stat"><div class="cp-stat-val">${est}m</div><div class="cp-stat-lbl">Est. Run</div></div>
+    </div>
+  </div>`;
+
+  // Sizes
+  let sizesHtml = '';
+  if (job.sizes) {
+    sizesHtml = `<div class="cp-section">
+      <div class="cp-section-title">Size Breakdown</div>
+      <div class="cp-sizes">${job.sizes}</div>
+    </div>`;
+  }
+
+  // Schedule info
+  let schedHtml = '';
+  if (s && press) {
+    const start = minToTime(s.startMin), end = minToTime(s.startMin+s.runMin);
+    schedHtml = `<div class="cp-section">
+      <div class="cp-section-title">Scheduled</div>
+      <div class="cp-sched">
+        <div class="cp-sched-row"><span class="cp-sched-lbl">Press</span><span class="cp-sched-val" style="color:${press.color}">${press.label}</span></div>
+        <div class="cp-sched-row" style="margin-top:5px"><span class="cp-sched-lbl">Date</span><span class="cp-sched-val">${s.dateStr}</span></div>
+        <div class="cp-sched-row" style="margin-top:5px"><span class="cp-sched-lbl">Time</span><span class="cp-sched-val">${start} → ${end}</span></div>
+        <div class="cp-sched-row" style="margin-top:5px"><span class="cp-sched-lbl">Run Time</span><span class="cp-sched-val">${s.runMin}min${s.penaltyMin?` (+${s.penaltyMin}m swap)`:''}</span></div>
+      </div>
+    </div>`;
+  }
+
+  // Notes
+  let notesHtml = '';
+  if (job.notes) {
+    notesHtml = `<div class="cp-section">
+      <div class="cp-section-title">Ink / Notes</div>
+      <div class="cp-notes">${job.notes}</div>
+    </div>`;
+  }
+
+  // Proof/mockup — fetch on demand using thumbnail (not PDF)
+  let proofHtml = `<div class="cp-section">
+    <div class="cp-section-title">Proof / Mockup</div>
+    <div class="cp-proof" id="cpProofArea"><div class="cp-proof-none" style="display:flex;align-items:center;gap:8px"><div class="spin" style="width:16px;height:16px;border-width:2px"></div>Loading proof…</div></div>
+  </div>`;
+
+  body.innerHTML = chipsHtml + statsHtml + sizesHtml + schedHtml + notesHtml + proofHtml;
+
+  // Show popup immediately
+  const popup = document.getElementById('cardPopup');
+  popup.classList.add('show');
+  popup.dataset.currentJob = jobId; // track which job is open
+
+  // Use proof data already loaded in bulk fetch — no extra API call needed
+  const area = document.getElementById('cpProofArea');
+  if (area) {
+    const atts = job.proofAtts || [];
+    const first = atts[0];
+    if (first) {
+      const displayUrl = first.thumbnails?.large?.url || first.thumbnails?.small?.url;
+      const fullUrl = first.url;
+      if (displayUrl) {
+        area.innerHTML = `<img src="${displayUrl}" style="max-width:100%;max-height:360px;display:block;border-radius:4px" alt="Proof mockup">
+          ${fullUrl ? `<a href="${fullUrl}" target="_blank" class="cp-proof-link">↗ Open full PDF</a>` : ''}`;
+      } else {
+        area.innerHTML = `<div class="cp-proof-none">No proof attached</div>`;
+      }
+    } else {
+      area.innerHTML = `<div class="cp-proof-none">No proof attached</div>`;
+    }
+  }
+}
+
+function closeCardPopup() {
+  window._proofGen = (window._proofGen || 0) + 1; // invalidate any in-flight proof fetch
+  document.getElementById('cardPopup').classList.remove('show');
+}
+// Close handlers wired after DOM ready (called from startup)
+// close handlers are inline on popup HTML elements
+
+function connectWithToken() {
+  const key = document.getElementById('tokenInput').value.trim();
+  if (!key || !key.startsWith('pat')) {
+    document.getElementById('tokenError').textContent = 'Invalid token — should start with "pat"';
+    document.getElementById('tokenError').style.display = 'block';
+    return;
+  }
+  localStorage.setItem('pine_at_key', key);
+  window.AT_KEY = key;
+  document.getElementById('tokenScreen').style.display = 'none';
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('loaderTxt').textContent = 'Connecting to Airtable…';
+  init();
+}
+
+// Allow Enter key in token input
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('tokenInput');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') connectWithToken(); });
+});
+
+
+async function init() {
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('debugPanel').innerHTML = '';
+  dbg('=== init ===', new Date().toLocaleTimeString());
+
+  try {
+    // AT_KEY already set by startup() or connectWithToken()
+
+    const raw = await loadJobs();
+    dbg(`Raw records: ${raw.length}`);
+
+    const parsed = raw.map(parseRecord);
+    dbg(`Parsed: ${parsed.length}`);
+
+    allJobs = parsed.filter(shouldInclude);
+    dbg(`After filter: ${allJobs.length} jobs`);
+    if (allJobs.length > 0) {
+      dbg('Sample job:', allJobs[0].client, '|', allJobs[0].status, '| press:', allJobs[0].pressName);
+    }
+
+    scheduled = preloadScheduled(allJobs);
+    dbg(`Pre-loaded scheduled: ${Object.keys(scheduled).length}`);
+
+    document.getElementById('loader').style.display = 'none';
+    render();
+
+  } catch(e) {
+    setLoader(`Error: ${e.message} — check Debug panel`);
+    dbg('ERROR:', e.message);
+    dbg('Stack:', e.stack?.slice(0,300)||'none');
+    document.getElementById('debugPanel').classList.add('show');
+  }
+}
+
+// On page load — check token immediately, no spinner shown until needed
+(function startup() {
+  const saved = localStorage.getItem('pine_at_key');
+  if (saved) {
+    window.AT_KEY = saved;
+    document.getElementById('loader').style.display = 'flex';
+    init();
+  } else {
+    // Show token screen immediately — no spinner
+    document.getElementById('tokenScreen').style.display = 'flex';
+  }
+})();
+</script>
+
+<!-- CARD DETAIL POPUP -->
+<div class="card-popup" id="cardPopup" onclick="if(event.target===this)closeCardPopup()">
+  <div class="card-popup-box" id="cardPopupBox">
+    <div class="cp-hdr">
+      <div class="cp-title">
+        <div class="cp-client" id="cpClient"></div>
+        <div class="cp-name" id="cpName"></div>
+      </div>
+      <button class="cp-close" id="cpClose" onclick="closeCardPopup()">×</button>
+    </div>
+    <div class="cp-body" id="cpBody"></div>
+  </div>
+</div>
+
+</body>
+</html>
