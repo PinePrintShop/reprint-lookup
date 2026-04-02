@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operator View · Pine Central</title>
+<link rel="icon" type="image/svg+xml" href="pine-favicon-black.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f7f5;--surface:#ffffff;--surface2:#f2f2ef;--border:#e8e8e4;--border2:#d0cec7;
+  --text:#111110;--text2:#6b6860;--text3:#b0ada6;
+  --pine:#2d6a4f;--pine-light:#edf7f2;--pine-mid:#9fd4b8;--pine-dark:#1e4d38;
+  --amber:#8a5200;--amber-light:#fff8ee;--amber-mid:#ffd58a;
+  --red:#a32d2d;--red-light:#fff0f0;--red-mid:#ffb3b3;
+  --blue:#1a5fa8;--blue-light:#eff6ff;
+  --font-mono:'DM Mono',monospace;--font-ui:'Inter',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-ui);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.logo{width:26px;height:26px;background:var(--pine);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;flex-shrink:0;}
+.topbar-title{font-size:13px;font-weight:600;color:var(--text);}
+.topbar-sep{width:1px;height:16px;background:var(--border2);}
+.topbar-machine{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--pine-light);color:var(--pine-dark);border:1px solid var(--pine-mid);font-family:var(--font-mono);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.crew-pills{display:flex;gap:4px;}
+.cpill{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.cpill.ops{background:var(--pine-light);color:var(--pine-dark);border-color:var(--pine-mid);}
+.cpill.qc{background:var(--blue-light);color:var(--blue);border-color:#b5d4f4;}
+.topbar-clock{font-size:11px;font-family:var(--font-mono);color:var(--text2);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--pine);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.btn-back{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font-ui);}
+
+/* VIEWS */
+.view{display:none;}.view.active{display:block;}
+
+/* ── MACHINE SELECT ── */
+.select-wrap{padding:24px 16px;max-width:640px;margin:0 auto;}
+.select-heading{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;font-family:var(--font-mono);}
+.machine-list{display:flex;flex-direction:column;gap:10px;}
+.machine-select-btn{display:flex;align-items:center;gap:14px;padding:18px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all 0.15s;text-align:left;width:100%;font-family:var(--font-ui);box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.machine-select-btn:hover{border-color:var(--pine);background:var(--pine-light);}
+.msb-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--font-mono);flex-shrink:0;}
+.icon-p1{background:#e8f5ee;color:#1e4d38;}
+.icon-p2{background:#e2f4ec;color:#085041;}
+.icon-ht{background:#fff0eb;color:#712b13;}
+.icon-em{background:#f0effe;color:#3c3489;}
+.icon-fs{background:#eaf4ff;color:#0c447c;}
+.msb-info{flex:1;}
+.msb-name{font-size:14px;font-weight:600;color:var(--text);}
+.msb-sub{font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--font-mono);}
+.msb-jobs{font-size:11px;color:var(--pine);font-family:var(--font-mono);font-weight:500;}
+.msb-arrow{font-size:18px;color:var(--text3);}
+.msb-status{display:flex;align-items:center;gap:6px;}
+.status-dot{width:8px;height:8px;border-radius:50%;}
+.dot-idle{background:var(--border2);}
+.dot-running{background:var(--pine);}
+.dot-stopped{background:var(--amber);}
+
+/* ── CREW CHECKIN ── */
+.checkin-wrap{padding:24px 16px;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
+.checkin-heading{font-size:18px;font-weight:600;color:var(--text);}
+.checkin-sub{font-size:13px;color:var(--text2);margin-top:-12px;}
+.crew-section{display:flex;flex-direction:column;gap:8px;}
+.crew-role-label{font-size:10px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;}
+.crew-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.crew-chip{font-size:12px;padding:7px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:var(--font-ui);}
+.crew-chip.selected.ops{background:var(--pine);color:#fff;border-color:var(--pine);}
+.crew-chip.selected.qc{background:var(--blue);color:#fff;border-color:var(--blue);}
+.crew-chip:hover:not(.selected){border-color:var(--text2);color:var(--text);}
+.btn-checkin{padding:14px;border-radius:8px;border:none;background:var(--pine);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.03em;}
+
+/* ── PRESS VIEW ── */
+.press-wrap{padding:14px 16px;max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+
+/* job card */
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.job-card.running{border-color:var(--pine);border-width:2px;}
+.job-card.stopped{border-color:var(--amber);border-width:2px;}
+
+/* proof */
+.proof-block{background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;padding:20px;min-height:220px;cursor:pointer;position:relative;}
+.proof-img{max-width:100%;max-height:260px;border-radius:6px;object-fit:contain;}
+.proof-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.proof-rect{width:80px;height:64px;border:2px solid var(--border2);border-radius:6px;}
+.proof-hint{font-size:11px;color:var(--text3);font-family:var(--font-mono);}
+.proof-expand{position:absolute;bottom:10px;right:10px;font-size:10px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-family:var(--font-mono);}
+
+/* job info */
+.job-info{padding:14px;}
+.job-order-line{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.08em;margin-bottom:4px;}
+.job-name{font-size:17px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:8px;}
+.job-meta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.due-badge{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--amber);font-family:var(--font-mono);}
+.due-dot{width:6px;height:6px;border-radius:50%;background:var(--amber-mid);flex-shrink:0;}
+
+/* chips */
+.chips{display:flex;gap:5px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border);}
+.chip{font-size:11px;padding:3px 8px;border-radius:5px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-family:var(--font-mono);}
+.chip.hi{background:var(--pine-light);color:var(--pine-dark);border-color:var(--pine-mid);}
+.chip.warn{background:var(--amber-light);color:var(--amber);border-color:var(--amber-mid);}
+
+/* garment */
+.garment-row{padding:9px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-start;}
+.g-tag{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;width:60px;flex-shrink:0;padding-top:2px;}
+.g-val{font-size:12px;color:var(--text);line-height:1.5;}
+
+/* timer */
+.timer-section{padding:16px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.timer-left{display:flex;flex-direction:column;gap:3px;}
+.timer-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--font-mono);}
+.timer-since{font-size:10px;color:var(--text3);font-family:var(--font-mono);}
+.timer-big{font-size:38px;font-weight:500;font-family:var(--font-mono);color:var(--text);line-height:1;letter-spacing:-0.02em;}
+.timer-big.running{color:var(--pine);}
+.timer-big.stopped{color:var(--amber);}
+
+/* stop badge */
+.stop-badge{margin:0 14px 10px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:var(--font-mono);padding:5px 10px;border-radius:5px;background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-mid);}
+
+/* controls */
+.ctrl-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.btn-start{flex:1;padding:13px;border-radius:8px;border:none;background:var(--pine);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-ui);display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-start:hover{background:#245a41;}
+.btn-stop-flag{flex:1;padding:13px;border-radius:8px;border:2px solid var(--amber-mid);background:transparent;color:var(--amber);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-ui);display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-stop-flag:hover{background:var(--amber-light);}
+.btn-disabled{flex:1;padding:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);font-size:13px;font-weight:600;cursor:not-allowed;font-family:var(--font-ui);}
+
+/* section cards */
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.section-head{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--font-mono);}
+.section-action{font-size:11px;color:var(--pine);cursor:pointer;font-weight:500;}
+
+/* print notes */
+.print-notes-body{padding:12px 14px;font-size:13px;color:var(--text);line-height:1.6;}
+
+/* head settings */
+.head-form{padding:14px;display:flex;flex-direction:column;gap:12px;}
+.head-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.field-group{display:flex;flex-direction:column;gap:4px;}
+.field-label{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;}
+.field-input{font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font-ui);width:100%;}
+.field-input:focus{outline:none;border-color:var(--pine);}
+.field-select{font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font-ui);width:100%;cursor:pointer;}
+.field-select:focus{outline:none;border-color:var(--pine);}
+.head-form-actions{display:flex;gap:8px;}
+.btn-save-head{flex:1;padding:11px;border-radius:7px;border:none;background:var(--pine);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-ui);}
+.btn-add-head{padding:11px 16px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-ui);}
+
+/* saved heads table */
+.heads-table{width:100%;border-collapse:collapse;}
+.heads-table th{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--surface2);font-weight:400;}
+.heads-table td{font-size:12px;padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--font-mono);}
+.heads-table tr:last-child td{border-bottom:none;}
+.no-heads{padding:20px 14px;text-align:center;font-size:12px;color:var(--text3);font-family:var(--font-mono);}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;}
+.lightbox img{max-width:92vw;max-height:88vh;border-radius:8px;object-fit:contain;}
+.lightbox-close{position:absolute;top:18px;right:20px;font-size:14px;color:#fff;cursor:pointer;background:rgba(255,255,255,0.12);border:none;border-radius:6px;padding:7px 14px;font-family:var(--font-ui);}
+
+/* stop reason modal */
+.modal-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center;}
+.reason-sheet{background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px 32px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:12px;}
+.reason-sheet h3{font-size:15px;font-weight:600;color:var(--text);}
+.reason-sheet p{font-size:12px;color:var(--text2);margin-top:-4px;}
+.reason-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.reason-btn{padding:13px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-ui);font-size:13px;font-weight:500;cursor:pointer;text-align:center;}
+.reason-btn:hover{border-color:var(--amber-mid);background:var(--amber-light);color:var(--amber);}
+.reason-btn.full{grid-column:1/-1;}
+
+/* loading */
+.loading-wrap{display:flex;align-items:center;justify-content:center;padding:60px;gap:10px;color:var(--text3);font-size:12px;font-family:var(--font-mono);}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--pine);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar" id="topbar">
+  <div class="logo">P</div>
+  <span class="topbar-title" id="topbarTitle">Operator View</span>
+  <div class="topbar-sep hidden" id="topbarSep"></div>
+  <span class="topbar-machine hidden" id="topbarMachine"></span>
+  <div class="topbar-right">
+    <div class="crew-pills hidden" id="topbarCrew"></div>
+    <span class="topbar-clock" id="clockDisplay"></span>
+    <div class="live-dot"></div>
+    <button class="btn-back hidden" id="btnBack" onclick="goBack()">← All machines</button>
+  </div>
+</div>
+
+<!-- VIEW: LOADING -->
+<div class="view active" id="viewLoading">
+  <div class="loading-wrap"><div class="spinner"></div>loading...</div>
+</div>
+
+<!-- ERROR PANEL -->
+<div id="errorPanel" style="display:none;margin:20px;padding:16px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:10px;font-family:monospace;font-size:12px;color:#7a1a1a;white-space:pre-wrap;line-height:1.5;"></div>
+
+<!-- VIEW: MACHINE SELECT -->
+<div class="view" id="viewSelect">
+  <div class="select-wrap">
+    <div class="select-heading">Choose your machine</div>
+    <div class="machine-list" id="machineList"></div>
+  </div>
+</div>
+
+<!-- VIEW: CREW CHECK-IN -->
+<div class="view" id="viewCheckin">
+  <div class="checkin-wrap">
+    <div class="checkin-heading" id="checkinHeading">Who's on this press?</div>
+    <div class="checkin-sub">Select everyone working this machine today.</div>
+    <div id="checkinRoles"></div>
+    <button class="btn-checkin" onclick="submitCheckin()">Start on this machine →</button>
+  </div>
+</div>
+
+<!-- VIEW: PRESS -->
+<div class="view" id="viewPress">
+  <div class="press-wrap" id="pressWrap"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox hidden" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close">Close</button>
+  <img id="lightboxImg" src="" alt="Proof">
+</div>
+
+<!-- STOP REASON MODAL -->
+<div class="modal-overlay hidden" id="reasonOverlay">
+  <div class="reason-sheet">
+    <h3>Why are you stopping?</h3>
+    <p id="reasonMachineName"></p>
+    <div class="reason-grid" id="reasonGrid"></div>
+  </div>
+</div>
+
+<script>
+const BASE_ID='appJkaLk8DykjsgHR',TABLE_IMPRINTS='tbln9oAGvz2PNBZLV',TABLE_OPERATORS='tblQm9hy2WZCx9jnd';
+const F={
+  imprintId:'fldDFfwFQ9B20n2kT',orderNum:'fldhBqGtBrkI6SqAn',designNick:'fldDYBnwwV6Z4VLBc',
+  pressAssign:'fldv59OGU7EkBVofo',startTime:'fldfqtIgcEfIlIeQk',runTime:'fldvAqPl6Yq3bxASW',
+  qty:'fldFipR4ddfqMPeAX',screens:'fldkQPyY8chFb6EdE',inkType:'fldHjjQ5lzm66ox5j',
+  location:'fldyyFoiKCgGOpsGX',orderStatus:'fldNROVFSsBwLUOYW',
+  runStarted:'fldmnZof3Dce60JKv',runFinished:'fldFuDZ68QdUMt3pM',
+  printNotes:'fldNuEzGIYI8FWqXu',proofImages:'fldUOIfCd22MxevRm',
+  dueDate:'fldf57VIkt82rO1iQ',garmentNotes:'fldWOGis0z1VaGuEj',
+  headSettingsData:'fldv2Skz7LGib7UJE',
+  isToday:'fldq1VzzuxVavP7cm',
+  opName:'fldTHbsn4OOw4VzNO',opSelect:'fldv4VQ7tshYKREn0',
+};
+const STOP_REASONS=['Ink change','Screen issue','Registration off','Break','End of run','Other'];
+const MACHINES=[
+  {id:'press1',name:'ROQ NEXT',sub:'Press 1',iconClass:'icon-p1',pressKey:'Press 1 - ROQ NEXT',heads:12,crew:[{role:'Press Ops',multi:true},{role:'Quality Control',multi:false}]},
+  {id:'press2',name:'ROQ YOU',sub:'Press 2',iconClass:'icon-p2',pressKey:'Press 2 - ROQ YOU',heads:7,crew:[{role:'Press Ops',multi:true},{role:'Quality Control',multi:false}]},
+  {id:'heat',name:'HEAT PRESS',sub:'Heat transfer',iconClass:'icon-ht',pressKey:'Heat press',heads:null,crew:[{role:'Operator',multi:false}]},
+  {id:'emb',name:'TAJIMA',sub:'Embroidery',iconClass:'icon-em',pressKey:'Embroidery - TAJIMA 6-Head',heads:null,crew:[{role:'Operator',multi:false}]},
+  {id:'flatstock',name:'FLATSTOCK',sub:'Flatstock press',iconClass:'icon-fs',pressKey:'Flatstock - M&R Saturn',heads:null,crew:[{role:'Operator',multi:false}]},
+];
+const DUROMETERS=['70','65-90-65','70-90-70'];
+const OFF_CONTACTS=['.5','1','2'];
+
+// State
+let pat=null,operators=[],jobs=[],activeMachineId=null,crewAssign={},machineState={},timers={},shiftStart=null,pendingStopId=null,proofUrls={};
+
+// Init
+window.onload=async()=>{
+  pat=sessionStorage.getItem('pine_pat');
+  if(!pat){pat=prompt('Enter Airtable PAT:');if(!pat)return;sessionStorage.setItem('pine_pat',pat);}
+  shiftStart=sessionStorage.getItem('pine_shift_start')||new Date().toISOString();
+  sessionStorage.setItem('pine_shift_start',shiftStart);
+  try{machineState=JSON.parse(sessionStorage.getItem('pine_op_state')||'{}');}catch(e){}
+  try{crewAssign=JSON.parse(sessionStorage.getItem('pine_op_crew')||'{}');}catch(e){}
+  startClock();
+  await loadData();
+  showView('viewSelect');
+  renderMachineList();
+};
+
+// API
+async function atFetch(path,opts){
+  opts=opts||{};
+  const method=opts.method||'GET';
+  const headers={'Authorization':'Bearer '+pat};
+  if(method!=='GET')headers['Content-Type']='application/json';
+  const res=await fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+path,{method,headers,body:opts.body||undefined});
+  if(!res.ok){let m='Airtable '+res.status;try{const j=await res.json();m+=': '+(j.error?j.error.message:JSON.stringify(j).substring(0,100));}catch(e){}throw new Error(m);}
+  return res.json();
+}
+function buildQ(tbl,flds,formula,sort){
+  let p=flds.map(f=>'fields%5B%5D='+f);
+  if(formula)p.push('filterByFormula='+encodeURIComponent(formula));
+  if(sort){p.push('sort%5B0%5D%5Bfield%5D='+sort);p.push('sort%5B0%5D%5Bdirection%5D=asc');}
+  p.push('pageSize=100');
+  return tbl+'?'+p.join('&');
+}
+
+async function loadData(){
+  try{
+    const opData=await atFetch(TABLE_OPERATORS+'?fields%5B%5D='+F.opSelect+'&pageSize=50');
+    operators=opData.records.map(r=>({id:r.id,name:(r.fields[F.opSelect]||{}).name||'?',color:(r.fields[F.opSelect]||{}).color||''})).filter(o=>o.name!=='?');
+    console.log('Operators loaded:',operators.length,operators.map(o=>o.name));
+    const flds=[F.imprintId,F.orderNum,F.designNick,F.pressAssign,F.startTime,F.runTime,F.qty,F.screens,F.inkType,F.location,F.orderStatus,F.runStarted,F.runFinished,F.printNotes,F.proofImages,F.dueDate,F.garmentNotes,F.headSettingsData];
+    // Filter: Equipment set + Scheduled + Run NOT finished
+    const jobData=await atFetch(buildQ(TABLE_IMPRINTS,flds,"AND({Equipment}!='',{Is Today (Local)}=1)",F.startTime));
+    // ACTIVE statuses — filter re-enabled once load confirmed working
+    jobs=jobData.records.map(r=>{
+      const f=r.fields;
+      // proofImages is multipleLookupValues — may be array of attachment objects or strings
+      const proofRaw=f[F.proofImages]||[];
+      const proofs=Array.isArray(proofRaw)?proofRaw.filter(p=>p&&p.url).map(p=>({url:p.url,thumb:p.thumbnails&&p.thumbnails.large?p.thumbnails.large.url:p.url})):[];
+      // orderStatus via REST is array of strings
+      const statusArr=f[F.orderStatus]||[];
+      const status=Array.isArray(statusArr)?statusArr.join(', '):'';
+      return{id:r.id,imprintId:f[F.imprintId]||'--',orderNum:f[F.orderNum]||'--',designNick:f[F.designNick]||'',
+        press:(f[F.pressAssign]||{}).name||'',startTime:f[F.startTime]||null,runTimeSec:f[F.runTime]||0,
+        qty:f[F.qty]||0,screens:f[F.screens]||0,inkType:(f[F.inkType]||{}).name||'',
+        location:(f[F.location]||{}).name||f[F.location]||'',
+        status,runStarted:f[F.runStarted]||false,runFinished:f[F.runFinished]||false,
+        printNotes:f[F.printNotes]||'',proofs,
+        dueDate:Array.isArray(f[F.dueDate])?f[F.dueDate][0]||'':f[F.dueDate]||'',
+        garmentNotes:Array.isArray(f[F.garmentNotes])?f[F.garmentNotes].join(' '):f[F.garmentNotes]||'',
+        headSettingsData:f[F.headSettingsData]||''};
+    }); // No status filter for now — show all scheduled jobs with equipment
+    console.log('Jobs loaded:',jobs.length,'records raw:',jobData.records.length);
+    if(jobData.records.length>0)console.log('Sample raw fields:',JSON.stringify(jobData.records[0].fields).substring(0,300));
+  }catch(e){
+    console.error(e);
+    const ep=document.getElementById('errorPanel');
+    ep.style.display='block';
+    ep.textContent='LOAD ERROR:\n'+e.message+'\n\nCheck PAT and try refreshing.';
+    document.getElementById('loadingState') && (document.getElementById('loadingState').style.display='none');
+    return;
+  }
+}
+
+// Views
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // topbar state
+  const inPress=id==='viewPress';
+  const inCheckin=id==='viewCheckin';
+  document.getElementById('topbarSep').classList.toggle('hidden',!inPress);
+  document.getElementById('topbarMachine').classList.toggle('hidden',!inPress);
+  document.getElementById('topbarCrew').classList.toggle('hidden',!inPress);
+  document.getElementById('btnBack').classList.toggle('hidden',!(inPress||inCheckin));
+  document.getElementById('topbarTitle').textContent=inPress?'Operator View':(inCheckin?'Check-in':'Operator View');
+}
+
+function goBack(){
+  const inCheckin=document.getElementById('viewCheckin').classList.contains('active');
+  if(inCheckin){showView('viewSelect');return;}
+  if(timers[activeMachineId])clearInterval(timers[activeMachineId]);
+  activeMachineId=null;
+  showView('viewSelect');
+  renderMachineList();
+}
+
+// Machine select
+function getJobsFor(m){
+  if(m.id==='heat')return jobs.filter(j=>j.press.toLowerCase().includes('heat press'));
+  return jobs.filter(j=>j.press===m.pressKey);
+}
+
+function renderMachineList(){
+  const list=document.getElementById('machineList');
+  list.innerHTML='';
+  MACHINES.forEach(m=>{
+    const mJobs=getJobsFor(m);
+    const st=machineState[m.id]||{};
+    const statusText=st.status==='running'?'Running':st.status==='stopped'?'Stopped':'Idle';
+    const dotClass=st.status==='running'?'dot-running':st.status==='stopped'?'dot-stopped':'dot-idle';
+    const btn=document.createElement('button');
+    btn.className='machine-select-btn';
+    btn.onclick=()=>startCheckin(m.id);
+    btn.innerHTML=`
+      <div class="msb-icon ${m.iconClass}">${m.id==='press1'?'P1':m.id==='press2'?'P2':m.id==='heat'?'HT':m.id==='emb'?'EM':'FS'}</div>
+      <div class="msb-info">
+        <div class="msb-name">${m.name}</div>
+        <div class="msb-sub">${m.sub}</div>
+      </div>
+      <div class="msb-status">
+        ${mJobs.length>0?`<span class="msb-jobs">${mJobs.length} job${mJobs.length!==1?'s':''}</span>`:''}
+        <div class="status-dot ${dotClass}"></div>
+        <span style="font-size:11px;color:var(--text3);">${statusText}</span>
+      </div>
+      <span class="msb-arrow">›</span>`;
+    list.appendChild(btn);
+  });
+}
+
+// Crew check-in
+function startCheckin(machineId){
+  activeMachineId=machineId;
+  const machine=MACHINES.find(m=>m.id===machineId);
+  document.getElementById('checkinHeading').textContent='Who\'s on '+machine.name+'?';
+  const rolesEl=document.getElementById('checkinRoles');
+  rolesEl.innerHTML='';
+  const currentAssign=crewAssign[machineId]||{};
+  machine.crew.forEach(cd=>{
+    const label=cd.multi?(cd.role.endsWith('s')?cd.role:cd.role+'s'):cd.role;
+    const sel=currentAssign[cd.role]||(cd.multi?[]:'');
+    const selNames=cd.multi?(Array.isArray(sel)?sel:[sel].filter(Boolean)):(sel?[sel]:[]);
+    const safeRole=cd.role.replace(/\W/g,'_');
+    const section=document.createElement('div');
+    section.className='crew-section';
+    const roleClass=cd.role==='Quality Control'?'qc':'ops';
+    section.innerHTML=`<div class="crew-role-label">${label}</div>
+      <div class="crew-chips" id="cc_${machineId}_${safeRole}">
+        ${operators.map(op=>`<div class="crew-chip ${roleClass} ${selNames.includes(op.name)?'selected':''}" data-multi="${cd.multi}" data-name="${op.name}" onclick="toggleCrewChip(this,'${roleClass}')">${op.name}</div>`).join('')}
+      </div>`;
+    rolesEl.appendChild(section);
+  });
+  showView('viewCheckin');
+}
+
+function toggleCrewChip(el,roleClass){
+  if(el.dataset.multi==='true'){el.classList.toggle('selected');}
+  else{el.parentElement.querySelectorAll('.crew-chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+}
+
+function submitCheckin(){
+  const machine=MACHINES.find(m=>m.id===activeMachineId);
+  const assign={};
+  machine.crew.forEach(cd=>{
+    const safeRole=cd.role.replace(/\W/g,'_');
+    const el=document.getElementById('cc_'+activeMachineId+'_'+safeRole);
+    if(!el)return;
+    const sel=[...el.querySelectorAll('.crew-chip.selected')].map(c=>c.dataset.name);
+    assign[cd.role]=cd.multi?sel:(sel[0]||'');
+  });
+  crewAssign[activeMachineId]=assign;
+  sessionStorage.setItem('pine_op_crew',JSON.stringify(crewAssign));
+  enterPressView();
+}
+
+// Press view
+function enterPressView(){
+  const machine=MACHINES.find(m=>m.id===activeMachineId);
+  // topbar
+  document.getElementById('topbarMachine').textContent=machine.name+' · '+machine.sub;
+  renderTopbarCrew();
+  showView('viewPress');
+  renderPressView();
+  const st=machineState[activeMachineId];
+  if(st&&st.status==='running')startTimer();
+  else updateTimerDisplay();
+}
+
+function renderTopbarCrew(){
+  const machine=MACHINES.find(m=>m.id===activeMachineId);
+  const assign=crewAssign[activeMachineId]||{};
+  const crewEl=document.getElementById('topbarCrew');
+  crewEl.innerHTML='';
+  machine.crew.forEach(cd=>{
+    const val=assign[cd.role];
+    const names=Array.isArray(val)?val:(val?[val]:[]);
+    const roleClass=cd.role==='Quality Control'?'qc':'ops';
+    names.forEach(n=>{
+      const pill=document.createElement('span');
+      pill.className='cpill '+roleClass;
+      pill.textContent=n+(cd.role==='Quality Control'?' · QC':'');
+      crewEl.appendChild(pill);
+    });
+  });
+}
+
+function getActiveJob(){
+  const machine=MACHINES.find(m=>m.id===activeMachineId);
+  const st=machineState[activeMachineId];
+  const mJobs=getJobsFor(machine);
+  if(st&&st.jobId){const f=mJobs.find(j=>j.id===st.jobId);if(f)return f;}
+  return mJobs[0]||null;
+}
+
+function renderPressView(){
+  const machine=MACHINES.find(m=>m.id===activeMachineId);
+  const st=machineState[activeMachineId]||{status:'idle'};
+  const job=getActiveJob();
+  const wrap=document.getElementById('pressWrap');
+  wrap.innerHTML='';
+
+  if(!job){
+    wrap.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--text3);font-family:var(--font-mono);font-size:13px;">No jobs scheduled for '+machine.name+'</div>';
+    return;
+  }
+
+  // Format due date
+  let dueText='';
+  if(job.dueDate){
+    const d=new Date(job.dueDate+'T12:00:00');
+    dueText=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }
+
+  // Proof
+  const proofHTML=job.proofs&&job.proofs.length>0
+    ?`<img class="proof-img" src="${job.proofs[0].thumb||job.proofs[0].url}" alt="Proof" onerror="this.style.display='none'">
+       <span class="proof-expand">tap to expand</span>`
+    :`<div class="proof-placeholder"><div class="proof-rect"></div><span class="proof-hint">no proof on file</span></div>`;
+
+  // Stop badge
+  const stopBadge=(st.status==='stopped'&&st.stopReason)
+    ?`<div class="stop-badge">&#9646; ${st.stopReason}</div>`:'';
+
+  // Chips
+  let chips=`<span class="chip hi">${job.qty} pcs</span>`;
+  if(job.screens)chips+=`<span class="chip">${job.screens} screens</span>`;
+  if(job.location)chips+=`<span class="chip">${job.location}</span>`;
+  if(job.inkType)chips+=`<span class="chip warn">${job.inkType}</span>`;
+  if(job.runTimeSec)chips+=`<span class="chip">~${Math.round(job.runTimeSec/60)}m est.</span>`;
+
+  // Controls
+  let ctrlHTML='';
+  if(st.status==='running'){
+    ctrlHTML=`<button class="btn-stop-flag" onclick="triggerStop()">&#9646; Stop</button>`;
+  }else if(st.status==='stopped'){
+    ctrlHTML=`<button class="btn-start" onclick="startRun()">&#9654; Resume</button>
+              <button class="btn-stop-flag" onclick="triggerStop()">&#9646; Flag issue</button>`;
+  }else{
+    ctrlHTML=`<button class="btn-start" onclick="startRun()">&#9654; Start</button>`;
+  }
+
+  // Head settings
+  let headsHTML='<div class="no-heads">No head settings saved yet for '+job.imprintId+'.</div>';
+  if(job.headSettingsData){
+    try{
+      const heads=JSON.parse(job.headSettingsData);
+      if(heads&&heads.length>0){
+        headsHTML=`<table class="heads-table">
+          <thead><tr><th>Head</th><th>Color</th><th>PSI</th><th>Duro</th><th>Speed</th><th>Off Contact</th></tr></thead>
+          <tbody>${heads.map(h=>`<tr>
+            <td>${h.head||'--'}</td><td>${h.color||'--'}</td><td>${h.psi||'--'}</td>
+            <td>${h.durometer||'--'}</td><td>${h.speed||'--'}</td><td>${h.offContact||'--'}</td>
+          </tr>`).join('')}</tbody></table>`;
+      }
+    }catch(e){}
+  }
+
+  // Head count for dropdown
+  const headCount=machine.heads||12;
+  const headOptions=Array.from({length:headCount},(_,i)=>`<option value="${i+1}">Head ${i+1}</option>`).join('');
+
+  wrap.innerHTML=`
+    <!-- Job card -->
+    <div class="job-card ${st.status}" id="jobCard">
+      <div class="proof-block" onclick="openLightbox('${job.proofs&&job.proofs.length>0?job.proofs[0].url:''}')">
+        ${proofHTML}
+      </div>
+      <div class="job-info">
+        <div class="job-order-line">ORDER ${job.orderNum} · ${job.imprintId}</div>
+        <div class="job-name">${job.designNick||job.imprintId}</div>
+        <div class="job-meta-row">
+          ${dueText?`<div class="due-badge"><div class="due-dot"></div>Due ${dueText}</div>`:''}
+        </div>
+      </div>
+      <div class="chips">${chips}</div>
+      ${job.garmentNotes?`<div class="garment-row"><span class="g-tag">Garment</span><span class="g-val">${job.garmentNotes}</span></div>`:''}
+      <div class="timer-section">
+        <div class="timer-left">
+          <span class="timer-lbl">Run time</span>
+          <span class="timer-since" id="timerSince">${st.startedAt?'Started '+new Date(st.startedAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Denver'}):''}</span>
+        </div>
+        <div class="timer-big ${st.status}" id="timerDisplay">0:00:00</div>
+      </div>
+      ${stopBadge}
+      <div class="ctrl-row">${ctrlHTML}</div>
+    </div>
+
+    <!-- Print notes -->
+    ${job.printNotes?`<div class="section-card">
+      <div class="section-head"><span class="section-title">Print notes</span></div>
+      <div class="print-notes-body">${job.printNotes}</div>
+    </div>`:''}
+
+    <!-- Head settings -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title">Head settings · ${job.imprintId}</span>
+        <span class="section-action" onclick="toggleHeadForm()">+ Log settings</span>
+      </div>
+      <div id="savedHeads">${headsHTML}</div>
+      <div class="head-form hidden" id="headForm">
+        <div class="head-form-grid">
+          <div class="field-group">
+            <label class="field-label">Print head</label>
+            <select class="field-select" id="hf_head"><option value="">Select head</option>${headOptions}</select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Color / Pantone</label>
+            <input class="field-input" id="hf_color" type="text" placeholder="e.g. Red 186C">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Squeegee pressure (PSI)</label>
+            <input class="field-input" id="hf_psi" type="number" placeholder="e.g. 45">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Squeegee durometer</label>
+            <select class="field-select" id="hf_duro">
+              <option value="">Select</option>
+              ${DUROMETERS.map(d=>`<option value="${d}">${d}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Stroke speed (1–10)</label>
+            <input class="field-input" id="hf_speed" type="number" min="1" max="10" placeholder="e.g. 6">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Off contact</label>
+            <select class="field-select" id="hf_offcontact">
+              <option value="">Select</option>
+              ${OFF_CONTACTS.map(o=>`<option value="${o}">${o}"</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="head-form-actions">
+          <button class="btn-save-head" onclick="saveHeadRow('${job.id}','${job.imprintId}','${job.headSettingsData.replace(/'/g,"\\'")}')">Save this head</button>
+          <button class="btn-add-head" onclick="toggleHeadForm()">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+
+  updateTimerDisplay();
+}
+
+function toggleHeadForm(){
+  document.getElementById('headForm').classList.toggle('hidden');
+}
+
+async function saveHeadRow(jobId,imprintId,existingRaw){
+  const head=document.getElementById('hf_head').value;
+  const color=document.getElementById('hf_color').value.trim();
+  const psi=document.getElementById('hf_psi').value;
+  const duro=document.getElementById('hf_duro').value;
+  const speed=document.getElementById('hf_speed').value;
+  const offContact=document.getElementById('hf_offcontact').value;
+  if(!head){alert('Please select a print head.');return;}
+  let existing=[];
+  try{if(existingRaw)existing=JSON.parse(existingRaw);}catch(e){}
+  existing.push({head:parseInt(head),color,psi:psi?parseInt(psi):null,durometer:duro,speed:speed?parseInt(speed):null,offContact});
+  const newData=JSON.stringify(existing);
+  try{
+    await atFetch(TABLE_IMPRINTS+'/'+jobId,{method:'PATCH',body:JSON.stringify({fields:{[F.headSettingsData]:newData}})});
+    // Update local job
+    const j=jobs.find(j=>j.id===jobId);
+    if(j)j.headSettingsData=newData;
+    renderPressView();
+    alert('Head '+head+' saved for '+imprintId+'.');
+  }catch(e){alert('Save failed: '+e.message);}
+}
+
+// Timer
+function startRun(){
+  const job=getActiveJob();if(!job)return;
+  const st=machineState[activeMachineId]||{};
+  machineState[activeMachineId]={
+    status:'running',startedAt:Date.now(),stoppedAt:null,stopReason:null,
+    jobId:job.id,elapsed:st.elapsed||0
+  };
+  saveState();renderPressView();startTimer();
+}
+
+function triggerStop(){
+  pendingStopId=activeMachineId;
+  const machine=MACHINES.find(m=>m.id===activeMachineId);
+  document.getElementById('reasonMachineName').textContent='Flagging '+machine.name;
+  document.getElementById('reasonGrid').innerHTML=STOP_REASONS.map(r=>`<button class="reason-btn" onclick="confirmStop('${r}')">${r}</button>`).join('');
+  document.getElementById('reasonOverlay').classList.remove('hidden');
+}
+
+function confirmStop(reason){
+  document.getElementById('reasonOverlay').classList.add('hidden');
+  const id=pendingStopId,st=machineState[id]||{};
+  const elapsed=(st.elapsed||0)+(Date.now()-(st.startedAt||Date.now()));
+  machineState[id]={...st,status:'stopped',stoppedAt:Date.now(),stopReason:reason,elapsed,startedAt:null};
+  if(timers[id]){clearInterval(timers[id]);delete timers[id];}
+  saveState();renderPressView();
+}
+
+function startTimer(){
+  if(timers[activeMachineId])clearInterval(timers[activeMachineId]);
+  timers[activeMachineId]=setInterval(updateTimerDisplay,1000);
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay(){
+  const el=document.getElementById('timerDisplay');if(!el)return;
+  const st=machineState[activeMachineId];
+  if(!st||st.status==='idle'){el.textContent='0:00:00';return;}
+  const total=Math.floor(((st.elapsed||0)+(st.status==='running'?Date.now()-(st.startedAt||Date.now()):0))/1000);
+  el.textContent=Math.floor(total/3600)+':'+String(Math.floor((total%3600)/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+}
+
+// Proof lightbox
+function openLightbox(url){
+  if(!url)return;
+  document.getElementById('lightboxImg').src=url;
+  document.getElementById('lightbox').classList.remove('hidden');
+}
+function closeLightbox(){document.getElementById('lightbox').classList.add('hidden');}
+
+// Clock
+function startClock(){
+  function upd(){
+    const n=new Date();
+    document.getElementById('clockDisplay').textContent=n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Denver'});
+  }
+  upd();setInterval(upd,1000);
+}
+
+function saveState(){sessionStorage.setItem('pine_op_state',JSON.stringify(machineState));}
+</script>
+</body>
+</html>
