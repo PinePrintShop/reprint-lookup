@@ -239,7 +239,12 @@ async function loadData(){
       var orderNum='--';
       if(ov&&ov.valuesByLinkedRecordId){
         var vals=Object.values(ov.valuesByLinkedRecordId);
-        if(vals.length&&vals[0].length)orderNum=String(vals[0][0]);
+        if(vals.length&&vals[0]&&vals[0].length)orderNum=String(vals[0][0]);
+      }else if(Array.isArray(ov)&&ov.length){
+        orderNum=String(ov[0]);
+      }else if(ov&&typeof ov==='object'&&ov.linkedRecordIds){
+        // some API versions return flat
+        orderNum=ov.linkedRecordIds[0]||'--';
       }
       var rawP=f[FI.proofs]||{};
       var proofs=[];
@@ -294,6 +299,10 @@ async function loadData(){
 
     jobs.forEach(function(job){
       job.lineItems=job.liIds.map(function(id){return lineItemMap[id];}).filter(Boolean);
+      // If Total Active Impressions is 0 (t-shirt jobs), sum from line items
+      if(job.qty===0&&job.lineItems.length>0){
+        job.qty=job.lineItems.reduce(function(s,li){return s+(li.total||0);},0);
+      }
     });
 
   }catch(err){
@@ -315,7 +324,7 @@ function buildToggle(){
     btn.appendChild(document.createTextNode(m.label));
     var cnt=document.createElement('span');cnt.className='pt-count';cnt.id='ptc_'+m.id;cnt.textContent='0';
     btn.appendChild(cnt);
-    btn.onclick=function(){activeMachine=m.id;updateToggle();renderQueue();};
+    btn.onclick=function(){activeMachine=m.id;updateToggle();showView('viewQueue');renderQueue();};
     tog.appendChild(btn);
   });
 }
@@ -398,7 +407,13 @@ function renderQCView(){
   // Proof thumbnail only
   var pb=el_(wrap,'div','proof-block');
   if(job.proofs.length>0&&job.proofs[0].thumb){
-    var img=document.createElement('img');img.className='proof-img';img.src=job.proofs[0].thumb;img.alt='Proof';pb.appendChild(img);
+    var img=document.createElement('img');img.className='proof-img';img.src=job.proofs[0].thumb;img.alt='Proof';
+    img.onerror=function(){
+      pb.innerHTML='';
+      var ph=el_(pb,'div','proof-ph');el_(ph,'div','proof-ph-box');
+      el_(ph,'span','proof-hint').textContent='Proof on file (reload to refresh)';
+    };
+    pb.appendChild(img);
   }else{
     var ph=el_(pb,'div','proof-ph');el_(ph,'div','proof-ph-box');
     el_(ph,'span','proof-hint').textContent=job.proofs.length>0?'Proof on file':'No proof on file';
@@ -418,7 +433,7 @@ function renderQCView(){
   if(job.lineItems&&job.lineItems.length>0){
     job.lineItems.forEach(function(li){buildLISection(wrap,li,job,jst);});
   }else{
-    var fallback={id:'fallback_'+job.id,sizes:{OSFA:job.qty},total:job.qty};
+    var fallback={id:'fallback_'+job.id,sizes:{OSFA:job.qty||0},total:job.qty||0};
     buildLISection(wrap,fallback,job,jst);
   }
 
