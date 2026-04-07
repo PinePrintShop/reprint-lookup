@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operator View v3 · Pine Central</title>
+<link rel="icon" type="image/svg+xml" href="pine-favicon-black.svg">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f7f5;--surface:#fff;--surface2:#f2f2ef;--border:#e8e8e4;--border2:#d0cec7;
+  --text:#111110;--text2:#6b6860;--text3:#b0ada6;
+  --pine:#2d6a4f;--pine-light:#edf7f2;--pine-mid:#9fd4b8;--pine-dark:#1e4d38;
+  --amber:#8a5200;--amber-light:#fff8ee;--amber-mid:#ffd58a;
+  --red:#a32d2d;--red-light:#fff0f0;--red-mid:#ffb3b3;
+  --blue:#1a5fa8;--blue-light:#eff6ff;--blue-mid:#b5d4f4;
+  --font-mono:'DM Mono',monospace;--font-ui:'Inter',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-ui);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.logo{width:26px;height:26px;background:var(--pine);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;flex-shrink:0;}
+.topbar-title{font-size:13px;font-weight:600;}
+.topbar-sep{width:1px;height:16px;background:var(--border2);}
+.topbar-machine{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--pine-light);color:var(--pine-dark);border:1px solid var(--pine-mid);font-family:var(--font-mono);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.crew-pills{display:flex;gap:4px;}
+.cpill{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.cpill.ops{background:var(--pine-light);color:var(--pine-dark);border-color:var(--pine-mid);}
+.cpill.qc{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);}
+.topbar-clock{font-size:11px;font-family:var(--font-mono);color:var(--text2);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--pine);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.btn-back{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font-ui);}
+.btn-pat{font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;}
+
+.view{display:none;}.view.active{display:block;}
+.hidden{display:none!important;}
+
+/* MACHINE SELECT */
+.select-wrap{padding:20px 16px;max-width:640px;margin:0 auto;}
+.select-heading{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-family:var(--font-mono);}
+.machine-list{display:flex;flex-direction:column;gap:8px;}
+.msb{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color 0.15s;text-align:left;width:100%;}
+.msb:hover{border-color:var(--pine);background:var(--pine-light);}
+.msb-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:var(--font-mono);flex-shrink:0;}
+.ip1{background:#e8f5ee;color:#1e4d38;}.ip2{background:#e2f4ec;color:#085041;}
+.iht{background:#fff0eb;color:#712b13;}.iem{background:#f0effe;color:#3c3489;}.ifs{background:#eaf4ff;color:#0c447c;}
+.msb-info{flex:1;}
+.msb-name{font-size:14px;font-weight:600;}
+.msb-sub{font-size:11px;color:var(--text2);margin-top:1px;font-family:var(--font-mono);}
+.msb-right{display:flex;align-items:center;gap:8px;}
+.msb-jobs{font-size:11px;color:var(--pine);font-family:var(--font-mono);}
+.status-dot{width:8px;height:8px;border-radius:50%;}
+.sd-idle{background:var(--border2);}.sd-running{background:var(--pine);}.sd-stopped{background:var(--amber-mid);}
+.msb-arrow{font-size:18px;color:var(--text3);}
+
+/* CREW CHECKIN */
+.checkin-wrap{padding:20px 16px;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+.checkin-heading{font-size:18px;font-weight:600;}
+.checkin-sub{font-size:13px;color:var(--text2);margin-top:-10px;}
+.crew-section{display:flex;flex-direction:column;gap:8px;}
+.crew-role-label{font-size:10px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;}
+.crew-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.crew-chip{font-size:12px;padding:7px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.crew-chip.sel-ops{background:var(--pine);color:#fff;border-color:var(--pine);}
+.crew-chip.sel-qc{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn-checkin{padding:14px;border-radius:8px;border:none;background:var(--pine);color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* JOB LIST */
+.jl-wrap{padding:14px 16px;max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.jl-heading{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-family:var(--font-mono);margin-bottom:2px;}
+.job-row{background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color 0.15s;display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.job-row:hover{border-color:var(--pine);}
+.job-row.running{border-color:var(--pine);border-width:2px;}
+.job-row.setup{border-color:var(--blue);border-width:2px;}
+.jr-thumb{width:52px;height:52px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.jr-thumb img{width:100%;height:100%;object-fit:cover;}
+.jr-ph{width:26px;height:20px;border:1.5px solid var(--border2);border-radius:3px;}
+.jr-info{flex:1;min-width:0;}
+.jr-order{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.06em;margin-bottom:2px;}
+.jr-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.jr-chips{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.jr-chip{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-family:var(--font-mono);}
+.jr-chip.hi{background:var(--pine-light);color:var(--pine-dark);border-color:var(--pine-mid);}
+.jr-chip.warn{background:var(--amber-light);color:var(--amber);border-color:var(--amber-mid);}
+.jr-due{font-size:10px;color:var(--amber);font-family:var(--font-mono);margin-top:3px;}
+.jr-arrow{font-size:20px;color:var(--text3);}
+.no-jobs{text-align:center;padding:48px 20px;color:var(--text3);font-size:13px;font-family:var(--font-mono);}
+
+/* PRESS VIEW */
+.pv-wrap{padding:14px 16px;max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.job-card.setup-phase{border-color:var(--blue);border-width:2px;}
+.job-card.run-phase{border-color:var(--pine);border-width:2px;}
+.job-card.stopped{border-color:var(--amber-mid);border-width:2px;}
+.job-card.fix-needed{border-color:var(--red-mid);border-width:2px;}
+
+/* proof */
+.proof-block{background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;padding:20px;min-height:200px;cursor:pointer;position:relative;}
+.proof-img{max-width:100%;max-height:260px;border-radius:6px;object-fit:contain;}
+.proof-ph{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.proof-ph-box{width:80px;height:64px;border:2px solid var(--border2);border-radius:6px;}
+.proof-hint{font-size:11px;color:var(--text3);font-family:var(--font-mono);}
+.proof-tap{position:absolute;bottom:10px;right:10px;font-size:10px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-family:var(--font-mono);}
+
+.job-info{padding:14px;}
+.job-order-line{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.08em;margin-bottom:4px;}
+.job-name{font-size:17px;font-weight:600;line-height:1.3;margin-bottom:6px;}
+.due-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--amber);font-family:var(--font-mono);}
+.due-dot{width:6px;height:6px;border-radius:50%;background:var(--amber-mid);}
+
+.chips{display:flex;gap:5px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border);}
+.chip{font-size:11px;padding:3px 8px;border-radius:5px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-family:var(--font-mono);}
+.chip.hi{background:var(--pine-light);color:var(--pine-dark);border-color:var(--pine-mid);}
+.chip.warn{background:var(--amber-light);color:var(--amber);border-color:var(--amber-mid);}
+
+.note-row{padding:9px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-start;}
+.note-tag{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;width:60px;flex-shrink:0;padding-top:2px;}
+.note-val{font-size:12px;line-height:1.5;}
+
+/* phase indicator */
+.phase-bar{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.phase-label{font-size:10px;font-family:var(--font-mono);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;}
+.phase-label.setup{color:var(--blue);}
+.phase-label.run{color:var(--pine);}
+.phase-label.fix{color:var(--red);}
+.phase-fix-note{font-size:11px;color:var(--red);font-family:var(--font-mono);}
+
+/* timer */
+.timer-section{padding:16px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.timer-left{display:flex;flex-direction:column;gap:3px;}
+.timer-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--font-mono);}
+.timer-since{font-size:10px;color:var(--text3);font-family:var(--font-mono);}
+.timer-big{font-size:38px;font-weight:500;font-family:var(--font-mono);line-height:1;letter-spacing:-0.02em;}
+.timer-big.idle{color:var(--text3);}
+.timer-big.setup{color:var(--blue);}
+.timer-big.run{color:var(--pine);}
+.timer-big.stopped{color:var(--amber);}
+.timer-big.fix{color:var(--red);}
+
+/* controls */
+.ctrl-row{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.btn-start{flex:1;padding:13px;border-radius:8px;border:none;background:var(--pine);color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-start:hover{background:#245a41;}
+.btn-start.blue{background:var(--blue);}
+.btn-start.blue:hover{background:#1248a0;}
+.btn-stop{flex:1;padding:13px;border-radius:8px;border:2px solid var(--amber-mid);background:transparent;color:var(--amber);font-size:13px;font-weight:600;cursor:pointer;}
+.btn-stop:hover{background:var(--amber-light);}
+.ctrl-inline-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.btn-complete{flex:1;padding:13px;border-radius:8px;border:2px solid var(--pine-mid);background:transparent;color:var(--pine);font-size:13px;font-weight:600;cursor:pointer;}
+.btn-complete:hover{background:var(--pine-light);}
+
+/* section cards */
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.section-head{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--font-mono);}
+.section-action{font-size:11px;color:var(--pine);cursor:pointer;font-weight:500;}
+.section-preview{font-size:10px;color:var(--text3);font-family:var(--font-mono);}
+.print-notes-body{padding:12px 14px;font-size:13px;line-height:1.6;}
+.no-heads{padding:20px 14px;text-align:center;font-size:12px;color:var(--text3);font-family:var(--font-mono);}
+
+/* head table */
+.heads-table{width:100%;border-collapse:collapse;}
+.heads-table th{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;background:var(--surface2);font-weight:400;}
+.heads-table td{font-size:11px;padding:8px 10px;border-bottom:1px solid var(--border);font-family:var(--font-mono);}
+.heads-table tr:last-child td{border-bottom:none;}
+
+/* head form */
+.head-form{padding:14px;display:flex;flex-direction:column;gap:10px;}
+.hf-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.hf-row:last-of-type{border-bottom:none;}
+.field-group{display:flex;flex-direction:column;gap:4px;}
+.field-label{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;}
+.field-input{font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font-ui);width:100%;}
+.field-input:focus{outline:none;border-color:var(--pine);}
+.field-select{font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font-ui);width:100%;cursor:pointer;}
+.hf-actions{display:flex;gap:8px;}
+.btn-save-head{flex:1;padding:11px;border-radius:7px;border:none;background:var(--pine);color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
+.btn-add-head,.btn-cancel{padding:11px 14px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;z-index:500;background:#111;display:flex;flex-direction:column;}
+.lb-toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#1a1a1a;border-bottom:1px solid #333;flex-wrap:wrap;flex-shrink:0;}
+.lb-btn{font-size:11px;padding:5px 10px;border-radius:5px;border:1px solid #444;background:#2a2a2a;color:#ddd;cursor:pointer;white-space:nowrap;}
+.lb-btn:hover{background:#3a3a3a;}
+.lb-filename{font-size:11px;color:#999;font-family:var(--font-mono);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-nav,.lb-pages,.lb-zoom{display:flex;align-items:center;gap:4px;}
+.lb-file-count,.lb-page-count,.lb-zoom-level{font-size:11px;color:#888;font-family:var(--font-mono);min-width:40px;text-align:center;}
+.lb-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px;position:relative;touch-action:pan-x pan-y;}
+#lbCanvas{border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,0.6);}
+.lb-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.lb-spin{width:32px;height:32px;border:3px solid #333;border-top-color:#888;border-radius:50%;animation:spin 0.7s linear infinite;}
+
+/* bottom sheet modal */
+.modal-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;justify-content:center;}
+.sheet{background:var(--surface);border-radius:16px 16px 0 0;padding:24px 20px 32px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:12px;}
+.sheet h3{font-size:15px;font-weight:600;}
+.sheet p{font-size:12px;color:var(--text2);margin-top:-4px;}
+.sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sheet-btn{padding:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;text-align:center;}
+.sheet-btn:hover{border-color:var(--border2);background:var(--surface);}
+.sheet-btn.green{background:var(--pine-light);border-color:var(--pine-mid);color:var(--pine-dark);}
+.sheet-btn.green:hover{background:var(--pine);color:#fff;}
+.sheet-btn.red{background:var(--red-light);border-color:var(--red-mid);color:var(--red);}
+.sheet-btn.red:hover{background:var(--red);color:#fff;}
+.sheet-btn.amber:hover{border-color:var(--amber-mid);background:var(--amber-light);color:var(--amber);}
+.sheet-btn.full{grid-column:1/-1;}
+
+/* error */
+#errorPanel{display:none;margin:16px;padding:14px;background:var(--red-light);border:1px solid var(--red-mid);border-radius:10px;font-family:var(--font-mono);font-size:12px;color:#7a1a1a;white-space:pre-wrap;line-height:1.5;}
+
+/* misc */
+.loading-wrap{display:flex;align-items:center;justify-content:center;padding:60px;gap:10px;color:var(--text3);font-size:12px;font-family:var(--font-mono);}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--pine);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">P</div>
+  <span class="topbar-title">Operator View</span>
+  <div class="topbar-sep hidden" id="tbSep"></div>
+  <span class="topbar-machine hidden" id="tbMachine"></span>
+  <div class="topbar-right">
+    <div class="crew-pills hidden" id="tbCrew"></div>
+    <span class="topbar-clock" id="clockDisplay"></span>
+    <div class="live-dot"></div>
+    <button class="btn-back hidden" id="btnBack" onclick="goBack()">← Back</button>
+    <button class="btn-pat" onclick="resetPAT()">⚙</button>
+  </div>
+</div>
+
+<div id="errorPanel"></div>
+
+<div class="view active" id="viewLoading">
+  <div class="loading-wrap"><div class="spinner"></div>loading...</div>
+</div>
+
+<div class="view" id="viewSelect">
+  <div class="select-wrap">
+    <div class="select-heading">Choose your machine</div>
+    <div class="machine-list" id="machineList"></div>
+  </div>
+</div>
+
+<div class="view" id="viewCheckin">
+  <div class="checkin-wrap">
+    <div class="checkin-heading" id="checkinHeading">Who's on this press?</div>
+    <div class="checkin-sub">Select everyone working this machine today.</div>
+    <div id="checkinRoles"></div>
+    <button class="btn-checkin" onclick="submitCheckin()">Start on this machine →</button>
+  </div>
+</div>
+
+<div class="view" id="viewJobs">
+  <div class="jl-wrap">
+    <div class="jl-heading" id="jlHeading">Today's jobs</div>
+    <div id="jlItems"></div>
+  </div>
+</div>
+
+<div class="view" id="viewPress">
+  <div class="pv-wrap" id="pvWrap"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox hidden" id="lightbox">
+  <div class="lb-toolbar">
+    <button class="lb-btn" onclick="closeLightbox()">✕ Close</button>
+    <div class="lb-filename" id="lbFilename"></div>
+    <div class="lb-nav">
+      <button class="lb-btn" id="lbPrevFile" onclick="lbNavFile(-1)">‹</button>
+      <span class="lb-file-count" id="lbFileCount"></span>
+      <button class="lb-btn" id="lbNextFile" onclick="lbNavFile(1)">›</button>
+    </div>
+    <div class="lb-pages">
+      <button class="lb-btn" onclick="lbNavPage(-1)">↑ Pg</button>
+      <span class="lb-page-count" id="lbPageCount"></span>
+      <button class="lb-btn" onclick="lbNavPage(1)">Pg ↓</button>
+    </div>
+    <div class="lb-zoom">
+      <button class="lb-btn" onclick="lbZoom(-0.25)">−</button>
+      <span class="lb-zoom-level" id="lbZoomLevel">150%</span>
+      <button class="lb-btn" onclick="lbZoom(0.25)">+</button>
+    </div>
+  </div>
+  <div class="lb-canvas-wrap" id="lbCanvasWrap">
+    <canvas id="lbCanvas"></canvas>
+    <div class="lb-spinner hidden" id="lbSpinner"><div class="lb-spin"></div></div>
+  </div>
+</div>
+
+<!-- BOTTOM SHEETS -->
+<div class="modal-overlay hidden" id="sheetOverlay">
+  <div class="sheet" id="sheetContent"></div>
+</div>
+
+<script>
+// -- CONFIG ----------------------------------------------------------------
+const BASE='appJkaLk8DykjsgHR',TI='tbln9oAGvz2PNBZLV',TO='tblQm9hy2WZCx9jnd';
+const F={
+  imprintId:    'fldDFfwFQ9B20n2kT',
+  orderNum:     'fldZAIMnXPYF9LiXq', // Invoice/Order Lookup from Orders table
+  designNick:   'fldyGOHRKNz00MaYQ', // Imprint Nickname
+  press:        'fldv59OGU7EkBVofo', // Equipment
+  startTime:    'fldfqtIgcEfIlIeQk', // Scheduled Start Time
+  runTime:      'fldvAqPl6Yq3bxASW', // Allocated Production Time
+  qty:          'fldFipR4ddfqMPeAX', // Total Active Impressions
+  screens:      'fld8rgkIj1RPO97QU', // Screen Count
+  inkType:      'fldYByH4NIDKdqyNB', // Ink Type (multipleSelects)
+  loc:          'fldKQIL0rSJBSeC8S', // Location
+  status:       'fldNROVFSsBwLUOYW', // Order Status Lookup
+  setupStarted: 'fldsYmRn7FwmWCH97', // Setup Started (checkbox)
+  setupFinished:'flde7ZQVkoFrbLDOI', // Setup Finished (checkbox)
+  runStarted:   'fldmnZof3Dce60JKv', // Run Started (checkbox)
+  runFinished:  'fldFuDZ68QdUMt3pM', // Run Finished (checkbox)
+  notes:        'fldNuEzGIYI8FWqXu', // Print Notes
+  proofs:       'fldUOIfCd22MxevRm', // Proof Images
+  due:          'fldf57VIkt82rO1iQ', // Customer Due Date
+  garment:      'fldWOGis0z1VaGuEj', // Garment Notes Lookup
+  addlNotes:    'fldzuJIrqVIoXjTVu', // Additional Notes (fix reasons write here)
+  headData:     'fldv2Skz7LGib7UJE', // Head Settings Data
+  isToday:      'fldq1VzzuxVavP7cm', // Is Today (Local)
+  opSelect:     'fldv4VQ7tshYKREn0', // Operator (singleSelect)
+};
+
+// Machine-specific flag issue reasons
+const STOP_REASONS={
+  default:  ['Low ink','Screen issue','Registration off','Break','Other'],
+  heatpress:['Transfer not sticking','Transfer peeling','Scorched / burning','Pressure issue','Break','Other'],
+  tajima:   ['Thread break','Needle break','Thread tangle','Bobbin issue','Hoop issue','Break'],
+};
+
+function getStopReasons(){
+  const m=MACHINES.find(x=>x.id===activeMid);
+  if(!m)return STOP_REASONS.default;
+  if(m.id==='ht')return STOP_REASONS.heatpress;
+  if(m.id==='em')return STOP_REASONS.tajima;
+  return STOP_REASONS.default;
+}
+// Machine-specific fix options
+const FIX_OPTIONS={
+  default:   ['Ink Change','Burn New Screen','Tear Down & Move On'],
+  heatpress: ['Wrong design','Wrong garment','Tear Down & Move On'],
+  tajima:    ['Wrong thread color','Wrong design','Wrong garment','Tear Down & Move On'],
+};
+
+function getFixOptions(){
+  const m=MACHINES.find(x=>x.id===activeMid);
+  if(!m)return FIX_OPTIONS.default;
+  if(m.id==='ht')return FIX_OPTIONS.heatpress;
+  if(m.id==='em')return FIX_OPTIONS.tajima;
+  return FIX_OPTIONS.default;
+}
+const DUROMETERS=['70','65-90-65','70-90-70'];
+const OFF_CONTACTS=['.5','1','2'];
+const WRITES_ENABLED=false;
+
+// Machine config — crew roles and head settings per machine type
+const MACHINES=[
+  {id:'p1',name:'ROQ NEXT',sub:'Press 1',ic:'ip1',pressKey:'Press 1 - ROQ NEXT',heads:12,
+   crew:[{role:'Press Ops',multi:true},{role:'Quality Control',multi:false}],
+   headFields:['head','color','psi','durometer','flashTemp','flashDwell','speed','offContact']},
+  {id:'p2',name:'ROQ YOU',sub:'Press 2',ic:'ip2',pressKey:'Press 2 - ROQ YOU',heads:7,
+   crew:[{role:'Press Ops',multi:true},{role:'Quality Control',multi:false}],
+   headFields:['head','color','psi','durometer','flashTemp','flashDwell','speed','offContact']},
+  {id:'ht',name:'HEAT PRESS',sub:'Heat transfer',ic:'iht',pressKey:'Heat press',heads:null,
+   crew:[{role:'Operator',multi:false}],headFields:null},
+  {id:'em',name:'TAJIMA',sub:'Embroidery',ic:'iem',pressKey:'Embroidery - TAJIMA 6-Head',heads:null,
+   crew:[{role:'Operator',multi:false}],headFields:null},
+  {id:'fs',name:'FLATSTOCK',sub:'Flatstock press',ic:'ifs',pressKey:'Flatstock - M&R Saturn',heads:1,
+   crew:[{role:'Operator',multi:false}],
+   headFields:['color','durometer','speed','offContact']},
+];
+
+const HEAD_FIELD_DEFS={
+  head:      {label:'Print head',   type:'select'},
+  color:     {label:'Color / Pantone', type:'text', placeholder:'e.g. Red 186C'},
+  psi:       {label:'Squeegee PSI', type:'number', placeholder:'e.g. 45'},
+  durometer: {label:'Durometer',    type:'select-duro'},
+  flashTemp: {label:'Flash temp (°C)', type:'number', placeholder:'e.g. 165'},
+  flashDwell:{label:'Flash dwell (sec)', type:'number', placeholder:'e.g. 3'},
+  speed:     {label:'Stroke speed (1–10)', type:'number', placeholder:'e.g. 6', min:'1', max:'10'},
+  offContact:{label:'Off contact',  type:'select-oc'},
+};
+
+// -- STATE -----------------------------------------------------------------
+let pat=null,ops=[],jobs=[],activeMid=null,crewAssign={},mState={},timerId=null,shiftStart=null;
+// mState[machineId] = { phase:'idle'|'setup'|'run'|'stopped'|'fix', elapsed, startedAt, stopReason, fixReason, jobId, fixStartedAt, fixElapsed, setupElapsed }
+
+// -- INIT ------------------------------------------------------------------
+window.onload=async()=>{
+  pat=sessionStorage.getItem('pine_pat');
+  if(!pat){pat=prompt('Enter Airtable PAT:');if(!pat)return;sessionStorage.setItem('pine_pat',pat);}
+  // TESTING MODE — clear state on refresh
+  shiftStart=new Date().toISOString();
+  mState={};crewAssign={};
+  startClock();
+  await loadData();
+  showView('viewSelect');
+  renderMachineList();
+};
+
+function resetPAT(){
+  sessionStorage.removeItem('pine_pat');
+  pat=prompt('Enter Airtable PAT:');
+  if(!pat)return;
+  sessionStorage.setItem('pine_pat',pat);
+  location.reload();
+}
+
+// -- API -------------------------------------------------------------------
+async function api(path){
+  const res=await fetch('https://api.airtable.com/v0/'+BASE+'/'+path,{headers:{'Authorization':'Bearer '+pat}});
+  if(!res.ok){
+    let m='Airtable '+res.status;
+    if(res.status===401||res.status===403)m='Invalid PAT. Tap ⚙ to re-enter.';
+    else try{const j=await res.json();m+=': '+(j.error?j.error.message:JSON.stringify(j).slice(0,80));}catch(e){}
+    throw new Error(m);
+  }
+  return res.json();
+}
+async function apiPatch(recordId,fields){
+  const res=await fetch('https://api.airtable.com/v0/'+BASE+'/'+TI+'/'+recordId,{
+    method:'PATCH',
+    headers:{'Authorization':'Bearer '+pat,'Content-Type':'application/json'},
+    body:JSON.stringify({fields})
+  });
+  if(!res.ok){let m='Save failed '+res.status;try{const j=await res.json();m+=': '+JSON.stringify(j).slice(0,80);}catch(e){}throw new Error(m);}
+  return res.json();
+}
+function buildQ(flds,formula){
+  const p=flds.map(f=>'fields%5B%5D='+f);
+  p.push('filterByFormula='+encodeURIComponent(formula));
+  p.push('sort%5B0%5D%5Bfield%5D='+F.startTime,'sort%5B0%5D%5Bdirection%5D=asc');
+  p.push('pageSize=100','returnFieldsByFieldId=true');
+  return TI+'?'+p.join('&');
+}
+
+// -- LOAD ------------------------------------------------------------------
+async function loadData(){
+  try{
+    const od=await api(TO+'?fields%5B%5D='+F.opSelect+'&pageSize=50&returnFieldsByFieldId=true');
+    ops=od.records.map(r=>{
+      const v=r.fields[F.opSelect];
+      return{id:r.id,name:typeof v==='string'?v:(v&&v.name)||'?'};
+    }).filter(o=>o.name!=='?');
+
+    const flds=[F.imprintId,F.orderNum,F.designNick,F.press,F.startTime,F.runTime,
+                F.qty,F.screens,F.inkType,F.loc,F.status,
+                F.setupStarted,F.setupFinished,F.runStarted,F.runFinished,
+                F.notes,F.proofs,F.due,F.garment,F.headData];
+    const jd=await api(buildQ(flds,"AND({Equipment}!='',{Is Today (Local)}=1)"));
+
+    jobs=jd.records.map(r=>{
+      const f=r.fields;
+      const pv=f[F.press];const press=typeof pv==='string'?pv:(pv&&pv.name)||'';
+      const iv=f[F.inkType]||[];
+      const ink=Array.isArray(iv)?iv.map(x=>typeof x==='string'?x:(x&&x.name)||'').filter(Boolean).join(', '):'';
+      const lv=f[F.loc];const loc=typeof lv==='string'?lv:(lv&&lv.name)||'';
+      // Parse proofs from nested multipleLookupValues
+      const rawP=f[F.proofs]||{};
+      let proofs=[];
+      if(rawP.valuesByLinkedRecordId){
+        Object.values(rawP.valuesByLinkedRecordId).forEach(arr=>{
+          if(Array.isArray(arr))arr.forEach(a=>{
+            if(a&&a.url)proofs.push({
+              url:a.url,
+              thumb:(a.thumbnails&&a.thumbnails.large)?a.thumbnails.large.url:a.url,
+              filename:a.filename||'',
+              isPDF:a.type==='application/pdf'
+            });
+          });
+        });
+      }else if(Array.isArray(rawP)){
+        proofs=rawP.filter(p=>p&&p.url).map(p=>({
+          url:p.url,thumb:(p.thumbnails&&p.thumbnails.large)?p.thumbnails.large.url:p.url,
+          filename:p.filename||'',isPDF:p.type==='application/pdf'
+        }));
+      }
+      // Parse order number from Invoice/Order Lookup (nested multipleLookupValues)
+      const ov=f[F.orderNum];
+      let orderNum='--';
+      if(ov&&ov.valuesByLinkedRecordId){
+        const vals=Object.values(ov.valuesByLinkedRecordId);
+        if(vals.length&&vals[0].length)orderNum=String(vals[0][0]);
+      }else if(ov){orderNum=String(Array.isArray(ov)?ov[0]||'--':ov);}
+
+      const due=Array.isArray(f[F.due])?(f[F.due][0]||''):(f[F.due]||'');
+      const garment=Array.isArray(f[F.garment])?f[F.garment].join(' '):(f[F.garment]||'');
+
+      return{
+        id:r.id,imprintId:f[F.imprintId]||'--',orderNum,
+        designNick:f[F.designNick]||'',press,
+        startTime:f[F.startTime]||null,runTimeSec:f[F.runTime]||0,
+        qty:Math.round(f[F.qty]||0),screens:f[F.screens]||0,ink,loc,
+        status:Array.isArray(f[F.status])?f[F.status].join(', '):(f[F.status]||''),
+        setupStarted:f[F.setupStarted]||false,setupFinished:f[F.setupFinished]||false,
+        runStarted:f[F.runStarted]||false,runFinished:f[F.runFinished]||false,
+        notes:f[F.notes]||'',proofs,due,garment,
+        headData:f[F.headData]||''
+      };
+    }).filter(j=>!j.runFinished);
+
+  }catch(e){
+    console.error(e);
+    const ep=document.getElementById('errorPanel');
+    ep.style.display='block';ep.textContent='ERROR: '+e.message;
+    document.getElementById('viewLoading').classList.remove('active');
+  }
+}
+
+// -- VIEWS -----------------------------------------------------------------
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const inP=id==='viewPress',inJ=id==='viewJobs',inC=id==='viewCheckin';
+  $('tbSep').classList.toggle('hidden',!(inP||inJ));
+  $('tbMachine').classList.toggle('hidden',!(inP||inJ));
+  $('tbCrew').classList.toggle('hidden',!inP);
+  $('btnBack').classList.toggle('hidden',!(inP||inJ||inC));
+}
+
+function goBack(){
+  if($('viewPress').classList.contains('active')){showView('viewJobs');renderJobList();return;}
+  if($('viewJobs').classList.contains('active')){activeMid=null;showView('viewSelect');renderMachineList();return;}
+  if($('viewCheckin').classList.contains('active')){showView('viewSelect');return;}
+}
+
+// -- MACHINE SELECT --------------------------------------------------------
+function jobsFor(m){
+  if(m.id==='ht')return jobs.filter(j=>j.press.toLowerCase().includes('heat press'));
+  return jobs.filter(j=>j.press===m.pressKey);
+}
+
+function renderMachineList(){
+  const el=$('machineList');el.innerHTML='';
+  MACHINES.forEach(m=>{
+    const mj=jobsFor(m),st=mState[m.id]||{};
+    const phase=st.phase||'idle';
+    const dotCls=(phase==='run'||phase==='setup'||phase==='fix')?'sd-running':(phase==='run-paused'||phase==='setup-review')?'sd-stopped':'sd-idle';
+    const stText=phase==='run'?'Running':phase==='setup'?'Setup':phase==='setup-review'?'Setup done':phase==='approved'?'Approved':phase==='run-paused'?'Paused':phase==='fix'?'Fix needed':'Idle';
+    const btn=document.createElement('button');btn.className='msb';btn.onclick=()=>startCheckin(m.id);
+    const icon=el_(btn,'div','msb-icon '+m.ic);icon.textContent=m.id==='p1'?'P1':m.id==='p2'?'P2':m.id==='ht'?'HT':m.id==='em'?'EM':'FS';
+    const info=el_(btn,'div','msb-info');
+    el_(info,'div','msb-name').textContent=m.name;
+    el_(info,'div','msb-sub').textContent=m.sub;
+    const right=el_(btn,'div','msb-right');
+    if(mj.length>0)el_(right,'span','msb-jobs').textContent=mj.length+' job'+(mj.length!==1?'s':'');
+    el_(right,'div','status-dot '+dotCls);
+    el_(right,'span',null,{style:'font-size:11px;color:var(--text3)'}).textContent=stText;
+    el_(btn,'span','msb-arrow').textContent='›';
+    el.appendChild(btn);
+  });
+}
+
+// -- CREW CHECKIN ----------------------------------------------------------
+function startCheckin(mid){
+  activeMid=mid;
+  const m=MACHINES.find(x=>x.id===mid);
+  $('checkinHeading').textContent="Who's on "+m.name+'?';
+  const rolesEl=$('checkinRoles');rolesEl.innerHTML='';
+  const cur=crewAssign[mid]||{};
+  m.crew.forEach(cd=>{
+    const label=cd.multi?(cd.role.endsWith('s')?cd.role:cd.role+'s'):cd.role;
+    const sel=cur[cd.role]||(cd.multi?[]:'');
+    const selNames=cd.multi?(Array.isArray(sel)?sel:[sel].filter(Boolean)):(sel?[sel]:[]);
+    const rc=cd.role==='Quality Control'?'qc':'ops';
+    const safeRole=cd.role.replace(/\W/g,'_');
+    const sec=el_(rolesEl,'div','crew-section');
+    el_(sec,'div','crew-role-label').textContent=label;
+    const chips=el_(sec,'div','crew-chips');chips.id='cc_'+mid+'_'+safeRole;
+    ops.forEach(op=>{
+      const chip=el_(chips,'div','crew-chip'+(selNames.includes(op.name)?' sel-'+rc:''));
+      chip.textContent=op.name;chip.dataset.multi=cd.multi;chip.dataset.rc=rc;
+      chip.onclick=()=>{
+        if(chip.dataset.multi==='true'){chip.classList.toggle('sel-'+chip.dataset.rc);}
+        else{chips.querySelectorAll('.crew-chip').forEach(c=>{c.className='crew-chip';});chip.classList.add('sel-'+chip.dataset.rc);}
+      };
+    });
+  });
+  showView('viewCheckin');
+}
+
+function submitCheckin(){
+  const m=MACHINES.find(x=>x.id===activeMid);
+  const assign={};
+  m.crew.forEach(cd=>{
+    const safeRole=cd.role.replace(/\W/g,'_');
+    const el=document.getElementById('cc_'+activeMid+'_'+safeRole);
+    if(!el)return;
+    const rc=cd.role==='Quality Control'?'qc':'ops';
+    const sel=[...el.querySelectorAll('.sel-ops,.sel-qc')].map(c=>c.textContent.trim());
+    assign[cd.role]=cd.multi?sel:(sel[0]||'');
+  });
+  crewAssign[activeMid]=assign;
+  const m2=MACHINES.find(x=>x.id===activeMid);
+  $('tbMachine').textContent=m2.name+' · '+m2.sub;
+  showView('viewJobs');renderJobList();
+}
+
+// -- JOB LIST --------------------------------------------------------------
+function renderJobList(){
+  const m=MACHINES.find(x=>x.id===activeMid);
+  const mj=jobsFor(m);
+  $('jlHeading').textContent=m.name+' — '+mj.length+' job'+(mj.length!==1?'s':'')+' today';
+  const items=$('jlItems');items.innerHTML='';
+  if(mj.length===0){el_(items,'div','no-jobs').textContent='No jobs scheduled today.';return;}
+  const st=mState[activeMid]||{};
+  mj.forEach(job=>{
+    const isRun=st.jobId===job.id&&(st.phase==='run'||st.phase==='run-paused');
+    const isSetup=st.jobId===job.id&&(st.phase==='setup'||st.phase==='setup-review'||st.phase==='approved');
+    const row=el_(items,'div','job-row'+(isRun?' running':isSetup?' setup':''));
+    row.onclick=()=>enterJob(job.id);
+    const thumb=el_(row,'div','jr-thumb');
+    if(job.proofs.length>0){const img=document.createElement('img');img.src=job.proofs[0].thumb;img.alt='';thumb.appendChild(img);}
+    else el_(thumb,'div','jr-ph');
+    const info=el_(row,'div','jr-info');
+    el_(info,'div','jr-order').textContent='ORDER '+job.orderNum+' · '+job.imprintId;
+    el_(info,'div','jr-name').textContent=job.designNick||job.imprintId;
+    const chips=el_(info,'div','jr-chips');
+    mkchip(chips,job.qty+' pcs','hi');
+    if(job.screens)mkchip(chips,job.screens+'C');
+    if(job.loc)mkchip(chips,job.loc);
+    if(job.ink)mkchip(chips,job.ink,'warn');
+    if(job.due)el_(info,'div','jr-due').textContent='● Due '+fmtDate(job.due);
+    // Show Completed button if this job was run locally, otherwise show arrow
+    const jobSt=mState[activeMid]||{};
+    const ranLocally=jobSt.jobId===job.id&&jobSt.phase==='idle'&&(jobSt.elapsed>0||jobSt.setupElapsed>0);
+    if(ranLocally){
+      const cb=document.createElement('button');
+      cb.className='btn-complete';
+      cb.style.cssText='flex:0 0 auto;font-size:11px;padding:8px 12px;white-space:nowrap;';
+      cb.textContent='\u2713 Mark Complete';
+      cb.onclick=(e)=>{e.stopPropagation();markCompleted(null,job.id);};
+      row.appendChild(cb);
+    }else{
+      el_(row,'span','jr-arrow').textContent='\u203a';
+    }
+  });
+}
+
+// -- PRESS VIEW ------------------------------------------------------------
+function enterJob(jobId){
+  const st=mState[activeMid]||{};
+  if(st.jobId!==jobId){mState[activeMid]={phase:'idle',jobId,elapsed:0};saveState();}
+  renderTopCrew();showView('viewPress');renderPressView();
+  if(mState[activeMid]&&(mState[activeMid].phase==='run'||mState[activeMid].phase==='setup'||mState[activeMid].phase==='fix'))startTimer();
+  else updateTimer();
+}
+
+function renderTopCrew(){
+  const m=MACHINES.find(x=>x.id===activeMid),a=crewAssign[activeMid]||{};
+  const crewEl=$('tbCrew');crewEl.innerHTML='';
+  m.crew.forEach(cd=>{
+    const val=a[cd.role],names=Array.isArray(val)?val:(val?[val]:[]);
+    const rc=cd.role==='Quality Control'?'qc':'ops';
+    names.forEach(n=>{const p=el_(crewEl,'span','cpill '+rc);p.textContent=n+(cd.role==='Quality Control'?' · QC':'');});
+  });
+}
+
+function activeJob(){
+  const st=mState[activeMid],m=MACHINES.find(x=>x.id===activeMid),mj=jobsFor(m);
+  if(st&&st.jobId){const f=mj.find(j=>j.id===st.jobId);if(f)return f;}
+  return mj[0]||null;
+}
+
+function renderPressView(){
+  const st=mState[activeMid]||{phase:'idle'};
+  const m=MACHINES.find(x=>x.id===activeMid);
+  const job=activeJob();
+  const wrap=$('pvWrap');wrap.innerHTML='';
+  if(!job){el_(wrap,'div',null,{style:'text-align:center;padding:60px;color:var(--text3);font-family:var(--font-mono)'}).textContent='No jobs scheduled.';return;}
+
+  // Determine card border class
+  const phase=st.phase||'idle';
+  const cardCls='job-card '+(phase==='setup'||phase==='setup-review'?'setup-phase':phase==='run'||phase==='run-paused'?'run-phase':phase==='approved'?'run-phase':phase==='fix'?'fix-needed':'');
+  const card=el_(wrap,'div',cardCls);
+
+  // Proof
+    // Proof handled by carousel below
+
+  // Chips
+  const chips=el_(card,'div','chips');
+  mkchip(chips,job.qty+' pcs','hi');
+  if(job.screens)mkchip(chips,job.screens+' screens');
+  if(job.loc)mkchip(chips,job.loc);
+  if(job.ink)mkchip(chips,job.ink,'warn');
+  if(job.runTimeSec)mkchip(chips,'~'+Math.round(job.runTimeSec/60)+'m est.');
+
+  if(job.garment){const gr=el_(card,'div','note-row');el_(gr,'span','note-tag').textContent='Garment';el_(gr,'span','note-val').textContent=job.garment;}
+
+  // Colorway image carousel — fetch LIs with proof images
+  const cwStrip=el_(card,'div','');
+  cwStrip.style.cssText='margin:8px 0 4px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);';
+  const cwInner=el_(cwStrip,'div','');
+  cwInner.style.cssText='display:flex;align-items:stretch;min-height:80px;position:relative;';
+  // Loading placeholder
+  const cwLoad=el_(cwInner,'div','');
+  cwLoad.style.cssText='flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:var(--font-mono);color:var(--text3);padding:16px;';
+  cwLoad.textContent='Loading colorways...';
+
+  function buildCarousel(colorways){
+    cwInner.innerHTML='';
+    if(!colorways||!colorways.length){
+      const ph=el_(cwInner,'div','');ph.style.cssText='flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);padding:12px;';
+      ph.textContent='No colorway proofs';return;
+    }
+    let activeIdx=0;
+    // Image display area
+    const imgWrap=el_(cwInner,'div','');
+    imgWrap.style.cssText='flex:1;display:flex;flex-direction:column;min-width:0;';
+    // Active image
+    const imgArea=el_(imgWrap,'div','');
+    imgArea.style.cssText='flex:1;position:relative;background:var(--surface2);cursor:pointer;min-height:120px;';
+    const mainImg=document.createElement('img');
+    mainImg.style.cssText='width:100%;height:100%;object-fit:contain;display:block;max-height:220px;';
+    if(colorways[0].thumb)mainImg.src=colorways[0].thumb;
+    imgArea.appendChild(mainImg);
+    // Color label
+    const colorLabel=el_(imgArea,'div','');
+    colorLabel.style.cssText='position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;font-family:var(--font-mono);padding:4px 8px;';
+    colorLabel.textContent=colorways[0].color||'—';
+    // Click to open lightbox — fetch fresh LI proof URL and open directly
+    imgArea.onclick=async()=>{
+      const cw=colorways[activeIdx];
+      // Show lightbox immediately
+      $('lightbox').classList.remove('hidden');
+      lbJob=job;
+      $('lbFilename').textContent=cw.color||'';
+      try{
+        let proofUrl=cw.thumb;
+        let proofFilename=cw.color||'';
+        // Re-fetch fresh URL from the LI record
+        if(cw.liId){
+          const fr=await api('tblJx5UlwO7oMSk5H/'+cw.liId+'?fields%5B%5D=flddhvdkKI31tFTdX&returnFieldsByFieldId=true');
+          const pa=fr.fields&&fr.fields['flddhvdkKI31tFTdX'];
+          if(pa&&pa[0]){
+            proofUrl=pa[0].url;
+            proofFilename=pa[0].filename||cw.color||'';
+            cw.thumb=pa[0].thumbnails&&pa[0].thumbnails.large?pa[0].thumbnails.large.url:pa[0].url;
+            mainImg.src=cw.thumb;
+          }
+        }
+        lbProofs=[{url:proofUrl,thumb:proofUrl,filename:proofFilename,isPDF:true}];
+        lbFileIdx=0;lbPageNum=1;
+        $('lbFilename').textContent=proofFilename;
+        $('lbFileCount').textContent='1 / 1';
+        await lbLoadPdf(lbProofs[0]);
+      }catch(e){
+        console.warn('Carousel proof open failed:',e);
+        // Fallback to job proofs
+        if(job.proofs&&job.proofs.length){
+          lbProofs=job.proofs;lbFileIdx=0;lbPageNum=1;
+          await lbLoadPdf(lbProofs[0]);
+        }
+      }
+    };
+    // Dot nav + arrows
+    const nav=el_(imgWrap,'div','');
+    nav.style.cssText='display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 8px;background:var(--surface);border-top:1px solid var(--border);';
+    if(colorways.length>1){
+      const prevBtn=el_(nav,'button','');
+      prevBtn.textContent='‹';
+      prevBtn.style.cssText='background:none;border:none;font-size:18px;color:var(--text2);cursor:pointer;padding:0 4px;line-height:1;';
+      const dots=el_(nav,'div','');
+      dots.style.cssText='display:flex;gap:5px;align-items:center;';
+      colorways.forEach((_,i)=>{
+        const d=el_(dots,'div','');
+        d.style.cssText='width:6px;height:6px;border-radius:50%;background:'+(i===0?'var(--pine)':'var(--border2)')+';transition:background 0.2s;cursor:pointer;';
+        d.onclick=()=>goTo(i);
+      });
+      const nextBtn=el_(nav,'button','');
+      nextBtn.textContent='›';
+      nextBtn.style.cssText='background:none;border:none;font-size:18px;color:var(--text2);cursor:pointer;padding:0 4px;line-height:1;';
+      function goTo(i){
+        activeIdx=Math.max(0,Math.min(colorways.length-1,i));
+        const cw=colorways[activeIdx];
+        if(cw.thumb){mainImg.src=cw.thumb;}else{mainImg.src='';}
+        colorLabel.textContent=cw.color||'—';
+        dots.querySelectorAll('div').forEach((d,j)=>d.style.background=j===activeIdx?'var(--pine)':'var(--border2)');
+      }
+      prevBtn.onclick=()=>goTo(activeIdx-1);
+      nextBtn.onclick=()=>goTo(activeIdx+1);
+    }else{
+      // Single colorway — just show the color name
+      const lbl=el_(nav,'span','');lbl.style.cssText='font-size:11px;font-family:var(--font-mono);color:var(--text2);';lbl.textContent=colorways[0].color||'—';
+    }
+  }
+
+  if(job._cwProofs){
+    buildCarousel(job._cwProofs);
+  }else if(job.orderNum&&job.orderNum!=='--'){
+    // Filter by order number (reliable), then filter client-side by imprint ID
+    const liP='filterByFormula='+encodeURIComponent('{Invoice / Order Number Lookup}='+job.orderNum)
+      +'&fields%5B%5D=fldoXTRyLP4SshFZ0&fields%5B%5D=flddhvdkKI31tFTdX&fields%5B%5D=fldTFz4ZzfOthqkg6&returnFieldsByFieldId=true&pageSize=50';
+    api('tblJx5UlwO7oMSk5H?'+liP).then(ld=>{
+      const cwProofs=[];
+      ld.records.forEach(r=>{
+        // Client-side filter: only LIs linked to this imprint
+        const impField=r.fields['fldTFz4ZzfOthqkg6'];
+        const impIds=Array.isArray(impField)?impField.map(x=>x.id||x):(impField?[impField.id||impField]:[]);
+        if(impIds.length&&!impIds.includes(job.id))return;
+        const cv=r.fields['fldoXTRyLP4SshFZ0'];
+        let color='—';
+        if(cv&&cv.valuesByLinkedRecordId){const vals=Object.values(cv.valuesByLinkedRecordId).flat();color=vals.map(x=>typeof x==='object'?x.name:String(x)).filter(Boolean).join(' / ')||'—';}
+        else if(Array.isArray(cv)){color=cv.map(x=>typeof x==='object'?x.name:String(x)).filter(Boolean).join(' / ')||'—';}
+        else if(typeof cv==='string'&&cv)color=cv;
+        const pa=r.fields['flddhvdkKI31tFTdX'];
+        const thumb=pa&&pa[0]?(pa[0].thumbnails&&pa[0].thumbnails.large?pa[0].thumbnails.large.url:pa[0].url):null;
+        if(!cwProofs.find(c=>c.color===color))cwProofs.push({color,thumb,liId:r.id});
+      });
+      job._cwProofs=cwProofs;
+      job._colorways=cwProofs.map(c=>c.color);
+      buildCarousel(cwProofs);
+    }).catch(()=>{cwInner.innerHTML='';const ph=el_(cwInner,'div','');ph.style.cssText='padding:12px;font-size:11px;color:var(--text3);';ph.textContent='—';});
+  }else{
+    cwInner.innerHTML='';const ph=el_(cwInner,'div','');ph.style.cssText='padding:12px;font-size:11px;color:var(--text3);';ph.textContent='—';
+  }
+
+  // Phase indicator
+  if(phase!=='idle'){
+    const pb2=el_(card,'div','phase-bar');
+    const pLabels={setup:'⚙ Setup in progress',run:'▶ Run in progress',stopped:'■ Stopped',fix:'✗ Fix needed'};
+    const pCls={setup:'setup','setup-review':'setup',approved:'run',run:'run','run-paused':'stopped',fix:'fix'};
+    el_(pb2,'span','phase-label '+(pCls[phase]||'')).textContent=pLabels[phase]||phase;
+    if(phase==='stopped'&&st.stopReason)el_(pb2,'span','phase-fix-note').textContent='· '+st.stopReason;
+    if(phase==='fix'&&st.fixReason){
+      el_(pb2,'span','phase-fix-note').textContent='· '+st.fixReason;
+    }
+  }
+
+  // Timer
+  const ts=el_(card,'div','timer-section');
+  const tl=el_(ts,'div','timer-left');
+  const timerLabelMap={setup:'Setup time',run:'Run time',stopped:'Paused',idle:'',fix:'Fix time'};
+  el_(tl,'span','timer-lbl').textContent=timerLabelMap[phase]||'Time';
+  const sinceSp=el_(tl,'span','timer-since');
+  if(st.startedAt)sinceSp.textContent='Started '+fmtTime(st.startedAt);
+  el_(ts,'div','timer-big '+(phase==='run'||phase==='run-paused'?'run':phase==='setup'||phase==='setup-review'?'setup':phase==='approved'?'idle':phase==='fix'?'fix':'idle'),{id:'timerDisplay'}).textContent='0:00:00';
+
+  // Controls -- inline, no sheets
+  const ctrl=el_(card,'div','ctrl-row',{id:'ctrlWrap'});
+  buildControls(phase, st, ctrl);
+
+  // Print notes
+  if(job.notes){
+    const sc=el_(wrap,'div','section-card');
+    el_(el_(sc,'div','section-head'),'span','section-title').textContent='Print notes';
+    el_(sc,'div','print-notes-body').textContent=job.notes;
+  }
+
+  // Head settings — only for machines that have them
+  if(m.headFields){
+    const hsc=el_(wrap,'div','section-card');
+    const hsh=el_(hsc,'div','section-head');
+    el_(hsh,'span','section-title').textContent='Head settings · '+job.imprintId;
+    const hr=el_(hsh,'div',null,{style:'display:flex;align-items:center;gap:10px'});
+    el_(hr,'span','section-preview').textContent='preview · writes off';
+    const hBtn=el_(hr,'span','section-action');hBtn.textContent='+ Log settings';hBtn.onclick=()=>openHeadForm(job,m);
+    const savedDiv=el_(hsc,'div',null,{id:'savedHeads'});
+    renderSavedHeads(savedDiv,job.headData,m);
+    const hForm=el_(hsc,'div','head-form hidden',{id:'headForm'});
+    el_(hForm,'div',null,{id:'headFormRows'});
+    const hActs=el_(hForm,'div','hf-actions');
+    const sv=el_(hActs,'button','btn-save-head');sv.textContent='Save heads';sv.onclick=()=>saveHeads(job,m);
+    const add=el_(hActs,'button','btn-add-head');add.textContent='+ Add head';add.onclick=()=>addHeadRow(m);
+    const can=el_(hActs,'button','btn-cancel');can.textContent='Cancel';can.onclick=()=>$('headForm').classList.add('hidden');
+  }
+
+  updateTimer();
+}
+
+function renderSavedHeads(container,headData,m){
+  container.innerHTML='';
+  let heads=[];
+  try{if(headData)heads=JSON.parse(headData);}catch(e){}
+  if(!heads.length){el_(container,'div','no-heads').textContent='No head settings saved yet.';return;}
+  const flds=m.headFields;
+  const labels={head:'Head',color:'Color',psi:'PSI',durometer:'Duro',flashTemp:'Flash°C',flashDwell:'Dwell',speed:'Speed',offContact:'Off Contact'};
+  const tbl=el_(container,'table','heads-table');
+  const tr0=el_(el_(tbl,'thead',null),'tr',null);
+  flds.forEach(f=>el_(tr0,'th',null).textContent=labels[f]||f);
+  const tbody=el_(tbl,'tbody',null);
+  heads.forEach(h=>{const tr=el_(tbody,'tr',null);flds.forEach(f=>el_(tr,'td',null).textContent=h[f]||'--');});
+}
+
+function openHeadForm(job,m){
+  $('headFormRows').innerHTML='';
+  addHeadRow(m);
+  $('headForm').classList.remove('hidden');
+}
+
+function addHeadRow(m){
+  const idx=$('headFormRows').children.length;
+  const row=el_($('headFormRows'),'div','hf-row');
+  m.headFields.forEach(fieldKey=>{
+    const def=HEAD_FIELD_DEFS[fieldKey];if(!def)return;
+    const g=el_(row,'div','field-group');
+    const lbl=el_(g,'label','field-label');lbl.textContent=def.label;
+    const id='hf_'+fieldKey+'_'+idx;lbl.htmlFor=id;
+    if(def.type==='select'){
+      const sel=el_(g,'select','field-select',{id});
+      const o=document.createElement('option');o.value='';o.textContent='Select';sel.appendChild(o);
+      const cnt=m.heads||1;
+      for(let i=1;i<=cnt;i++){const o2=document.createElement('option');o2.value=i;o2.textContent='Head '+i;sel.appendChild(o2);}
+    }else if(def.type==='select-duro'){
+      const sel=el_(g,'select','field-select',{id});
+      const o=document.createElement('option');o.value='';o.textContent='Select';sel.appendChild(o);
+      DUROMETERS.forEach(d=>{const o2=document.createElement('option');o2.value=d;o2.textContent=d;sel.appendChild(o2);});
+    }else if(def.type==='select-oc'){
+      const sel=el_(g,'select','field-select',{id});
+      const o=document.createElement('option');o.value='';o.textContent='Select';sel.appendChild(o);
+      OFF_CONTACTS.forEach(v=>{const o2=document.createElement('option');o2.value=v;o2.textContent=v+'"';sel.appendChild(o2);});
+    }else{
+      const inp=el_(g,'input','field-input',{id,type:def.type});
+      if(def.placeholder)inp.placeholder=def.placeholder;
+      if(def.min)inp.min=def.min;if(def.max)inp.max=def.max;
+    }
+  });
+}
+
+async function saveHeads(job,m){
+  if(!WRITES_ENABLED){alert('Preview mode — writes disabled.');return;}
+  const rows=$('headFormRows').children;
+  let existing=[];try{if(job.headData)existing=JSON.parse(job.headData);}catch(e){}
+  for(let i=0;i<rows.length;i++){
+    const entry={};
+    m.headFields.forEach(f=>{const el=document.getElementById('hf_'+f+'_'+i);if(el)entry[f]=el.value||null;});
+    if(Object.values(entry).some(v=>v))existing.push(entry);
+  }
+  try{
+    await apiPatch(job.id,{[F.headData]:JSON.stringify(existing)});
+    job.headData=JSON.stringify(existing);
+    $('headForm').classList.add('hidden');
+    renderSavedHeads($('savedHeads'),job.headData,m);
+  }catch(e){alert(e.message);}
+}
+
+// -- SETUP / RUN TIMER LOGIC -----------------------------------------------
+// Central log writer — appends a structured entry to Additional Notes
+async function writeLog(jobId, entry){
+  if(!WRITES_ENABLED)return;
+  try{
+    const r=await api(TI+'/'+jobId+'?fields%5B%5D='+F.addlNotes+'&returnFieldsByFieldId=true');
+    const existing=(r.fields&&r.fields[F.addlNotes])||'';
+    await apiPatch(jobId,{[F.addlNotes]:existing?existing+'\n'+entry:entry});
+  }catch(e){console.error('Log write failed:',e);}
+}
+
+function logEntry(type, detail, durationSec){
+  const m=MACHINES.find(x=>x.id===activeMid);
+  const ts=new Date().toLocaleString('en-US',{timeZone:'America/Denver',month:'2-digit',day:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+  let entry='['+ts+' MT] '+type;
+  if(detail)entry+=' | '+detail;
+  if(durationSec!=null){const mn=Math.floor(durationSec/60),sc=durationSec%60;entry+=' | '+mn+'m '+pad(sc)+'s';}
+  entry+=' | Press: '+m.name;
+  // Append crew names from check-in
+  const a=crewAssign[activeMid]||{};
+  const crewParts=[];
+  m.crew.forEach(cd=>{
+    const val=a[cd.role];
+    const names=Array.isArray(val)?val:(val?[val]:[]);
+    if(names.length)crewParts.push(names.join(', ')+(cd.role==='Quality Control'?' (QC)':''));
+  });
+  if(crewParts.length)entry+=' | Crew: '+crewParts.join(' · ');
+  return entry;
+}
+
+function startSetup(){
+  const job=activeJob();if(!job)return;
+  const st=mState[activeMid]||{};
+  // If coming from a fix phase, close out fix timer and log it
+  let fixElapsedTotal=st.fixElapsed||0;
+  if(st.phase==='fix'&&st.fixStartedAt){
+    fixElapsedTotal+=(Date.now()-st.fixStartedAt);
+    const fixSec=Math.round(fixElapsedTotal/1000);
+    writeLog(job.id, logEntry('FIX COMPLETE',st.fixReason,fixSec));
+  }
+  mState[activeMid]={
+    phase:'setup',startedAt:Date.now(),jobId:job.id,
+    setupElapsed:st.setupElapsed||0,
+    elapsed:st.elapsed||0,
+    fixElapsed:fixElapsedTotal,
+    fixReason:st.fixReason||''
+  };
+  if(WRITES_ENABLED&&!(st.setupElapsed))apiPatch(job.id,{[F.setupStarted]:true}).catch(console.error);
+  writeLog(job.id, logEntry('SETUP START', st.fixReason?'Restart after '+st.fixReason:null, null));
+  saveState();renderPressView();startTimer();
+}
+
+// ── INLINE CONTROLS ──────────────────────────────────────────────────────
+function buildControls(phase, st, wrap){
+  wrap.innerHTML='';
+  function btn(text, cls, fn){
+    const b=document.createElement('button');b.className=cls;b.textContent=text;b.onclick=fn;return b;
+  }
+  function row(btns){
+    const r=document.createElement('div');r.style.cssText='display:flex;gap:8px;';
+    btns.forEach(b=>r.appendChild(b));wrap.appendChild(r);
+  }
+  function grid(btns){
+    const g=document.createElement('div');g.className='ctrl-inline-grid';
+    btns.forEach(b=>g.appendChild(b));wrap.appendChild(g);
+  }
+
+  if(phase==='idle'){
+    if(st.elapsed>0||st.setupElapsed>0){
+      // Post-run — only show Mark Complete
+      row([btn('\u2713 Mark Complete','btn-complete',()=>markCompleted(wrap))]);
+    }else{
+      row([btn('\u2699 Start Setup','btn-start blue',startSetup)]);
+    }
+
+  }else if(phase==='setup'){
+    row([btn('\u25a0 Stop Setup','btn-stop',stopSetup)]);
+
+  }else if(phase==='setup-review'){
+    // After stopping setup — show Approved, Fix Needed
+    row([btn('\u2713 Approved','btn-complete',approveSetup)]);
+    row([btn('\u2717 Fix Needed','btn-stop',()=>showInlineFix(wrap))]);
+
+  }else if(phase==='approved'){
+    // Setup approved, waiting to start run
+    row([btn('\u25b6 Start Run','btn-start',startRun)]);
+
+  }else if(phase==='run'){
+    row([
+      btn('\u2713 End Run','btn-complete',endRun),
+      btn('\u23f8 Pause','btn-stop',pauseRun),
+      btn('\u2717 Flag Issue','btn-stop',()=>showInlineIssues(wrap)),
+    ]);
+
+  }else if(phase==='run-paused'){
+    row([
+      btn('\u2713 End Run','btn-complete',endRun),
+      btn('\u25b6 Resume','btn-start',resumeRun),
+      btn('\u2717 Flag Issue','btn-stop',()=>showInlineIssues(wrap)),
+    ]);
+
+  }else if(phase==='fix'){
+    // Fix in progress (ink change / burn screen)
+    row([btn('\u2699 Restart Setup','btn-start blue',startSetup)]);
+  }
+}
+
+function showInlineFix(wrap){
+  wrap.innerHTML="";
+  const row=document.createElement("div");
+  row.style.cssText="display:flex;gap:6px;flex-wrap:wrap;";
+  getFixOptions().forEach(f=>{
+    const b=document.createElement("button");
+    b.className=f==="Tear Down & Move On"?"btn-stop":"btn-stop";
+    b.style.cssText="flex:1;min-width:0;font-size:11px;padding:10px 4px;";
+    b.textContent=f;b.onclick=()=>handleFix(f);row.appendChild(b);
+  });
+  const cancel=document.createElement("button");
+  cancel.className="btn-stop";
+  cancel.style.cssText="flex:0 0 auto;padding:10px 12px;font-size:14px;";
+  cancel.textContent="\u2715";
+  cancel.onclick=()=>{const st=mState[activeMid]||{};buildControls(st.phase||"idle",st,wrap);};
+  row.appendChild(cancel);
+  wrap.appendChild(row);
+}
+
+function showInlineIssues(wrap){
+  wrap.innerHTML="";
+  const row=document.createElement("div");
+  row.style.cssText="display:flex;gap:6px;flex-wrap:wrap;";
+
+  // End Run always on left
+  const endBtn=document.createElement("button");
+  endBtn.className="btn-complete";
+  endBtn.style.cssText="flex:0 0 auto;font-size:12px;";
+  endBtn.textContent="\u2713 End Run";endBtn.onclick=endRun;row.appendChild(endBtn);
+
+  // Issue reasons
+  getStopReasons().forEach(reason=>{
+    const b=document.createElement("button");
+    b.className="btn-stop";
+    b.style.cssText="flex:1;min-width:0;font-size:11px;padding:10px 4px;";
+    b.textContent=reason;b.onclick=()=>logIssueStop(reason);row.appendChild(b);
+  });
+
+  // Cancel — returns to correct phase buttons without full re-render
+  const cancel=document.createElement("button");
+  cancel.className="btn-stop";
+  cancel.style.cssText="flex:0 0 auto;padding:10px 12px;font-size:14px;";
+  cancel.textContent="\u2715";
+  cancel.onclick=()=>{const st=mState[activeMid]||{};buildControls(st.phase||"idle",st,wrap);};
+  row.appendChild(cancel);
+
+  wrap.appendChild(row);
+}
+
+// Phase transitions
+function stopSetup(){
+  const st=mState[activeMid]||{};
+  const elapsed=(st.elapsed||0)+(Date.now()-(st.startedAt||Date.now()));
+  mState[activeMid]={...st,phase:'setup-review',elapsed,startedAt:null};
+  clearTimer();saveState();renderPressView();
+}
+
+function approveSetup(){
+  const job=activeJob(),st=mState[activeMid]||{};
+  const totalSetup=(st.setupElapsed||0)+(st.elapsed||0);
+  writeLog(job.id,logEntry('SETUP COMPLETE','Approved',Math.round(totalSetup/1000)));
+  mState[activeMid]={...st,phase:'approved',setupElapsed:totalSetup,elapsed:0,startedAt:null};
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.setupFinished]:true}).catch(console.error);
+  saveState();renderPressView();
+}
+
+function startRun(){
+  const job=activeJob(),st=mState[activeMid]||{};
+  writeLog(job.id,logEntry('RUN START',null,null));
+  mState[activeMid]={...st,phase:'run',startedAt:Date.now(),elapsed:0};
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.runStarted]:true}).catch(console.error);
+  saveState();renderPressView();startTimer();
+}
+
+function pauseRun(){
+  const job=activeJob(),st=mState[activeMid]||{};
+  const elapsed=(st.elapsed||0)+(Date.now()-(st.startedAt||Date.now()));
+  writeLog(job.id,logEntry('RUN PAUSE',null,null));
+  mState[activeMid]={...st,phase:'run-paused',elapsed,startedAt:null,stopStartedAt:Date.now()};
+  clearTimer();saveState();renderPressView();
+}
+
+function resumeRun(){
+  const job=activeJob(),st=mState[activeMid]||{};
+  const stopDur=st.stopStartedAt?Math.round((Date.now()-st.stopStartedAt)/1000):null;
+  writeLog(job.id,logEntry('RUN RESUME',st.stopReason?'After: '+st.stopReason:null,stopDur));
+  mState[activeMid]={...st,phase:'run',startedAt:Date.now(),stopReason:null,stopStartedAt:null};
+  saveState();renderPressView();startTimer();
+}
+
+function logIssueStop(reason){
+  const job=activeJob(),st=mState[activeMid]||{};
+  const elapsed=(st.elapsed||0)+(Date.now()-(st.startedAt||Date.now()));
+  writeLog(job.id,logEntry('RUN STOP',reason,null));
+  mState[activeMid]={...st,phase:'run-paused',elapsed,startedAt:null,stopReason:reason,stopStartedAt:Date.now()};
+  clearTimer();saveState();renderPressView();
+}
+
+function markCompleted(wrap, jobIdOverride){
+  const job=jobIdOverride?jobs.find(j=>j.id===jobIdOverride):activeJob();
+  if(!job)return;
+  // Write Run Finished = TRUE to Airtable
+  if(WRITES_ENABLED){
+    writeLog(job.id, logEntry('COMPLETED',null,null));
+    apiPatch(job.id,{[F.runFinished]:true}).catch(console.error);
+  }
+  // Remove from local jobs array so it disappears from queue immediately
+  jobs=jobs.filter(j=>j.id!==job.id);
+  // Clear machine state for this job
+  const st=mState[activeMid]||{};
+  if(st.jobId===job.id)mState[activeMid]={phase:'idle',elapsed:0,setupElapsed:0};
+  saveState();
+  // If we're in press view go back to job list, otherwise re-render list
+  if(document.getElementById('viewPress').classList.contains('active')){
+    showView('viewJobs');renderJobList();
+  }else{
+    renderJobList();
+  }
+}
+
+function endRun(){
+  const job=activeJob(),st=mState[activeMid]||{};
+  const elapsed=(st.elapsed||0)+(Date.now()-(st.startedAt||Date.now()));
+  writeLog(job.id,logEntry('RUN COMPLETE','End of run',Math.round(elapsed/1000)));
+  mState[activeMid]={...st,phase:'idle',elapsed:0,startedAt:null};
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.runFinished]:true}).catch(console.error);
+  clearTimer();saveState();renderPressView();
+}
+
+function handleFix(f){
+  const job=activeJob(),st=mState[activeMid]||{};
+  if(f==='Tear Down & Move On'){
+    writeLog(job.id,logEntry('FIX: Tear Down & Move On',null,null));
+    mState[activeMid]={phase:'idle',jobId:job.id,elapsed:0};
+    clearTimer();saveState();renderPressView();
+  }else{
+    writeLog(job.id,logEntry('FIX START',f,null));
+    mState[activeMid]={...st,phase:'fix',fixReason:f,fixStartedAt:Date.now(),fixElapsed:0};
+    clearTimer();saveState();renderPressView();startTimer();
+  }
+}
+
+function resumeSetup(){
+  const st=mState[activeMid]||{};
+  mState[activeMid]={...st,phase:'setup',startedAt:Date.now(),stopReason:null};
+  saveState();renderPressView();startTimer();
+}
+
+
+function showSheet({title,sub,buttons}){
+  const overlay=$('sheetOverlay'),content=$('sheetContent');
+  content.innerHTML='';
+  overlay.classList.remove('hidden');
+  el_(content,'h3',null).textContent=title;
+  if(sub)el_(content,'p',null).textContent=sub;
+  const grid=el_(content,'div','sheet-grid');
+  buttons.forEach(b=>{
+    const btn=el_(grid,'button','sheet-btn '+(b.cls||''));
+    btn.textContent=b.label;
+    btn.onclick=b.action;
+  });
+}
+function hideSheet(){$('sheetOverlay').classList.add('hidden');}
+$('sheetOverlay').onclick=e=>{if(e.target===$('sheetOverlay'))hideSheet();};
+
+// -- TIMER -----------------------------------------------------------------
+function startTimer(){
+  clearTimer();timerId=setInterval(updateTimer,1000);updateTimer();
+}
+function clearTimer(){if(timerId){clearInterval(timerId);timerId=null;}}
+function updateTimer(){
+  const el=document.getElementById('timerDisplay');if(!el)return;
+  const st=mState[activeMid];
+  if(!st||st.phase==='idle'){el.textContent='0:00:00';return;}
+  const isActive=st.phase==='run'||st.phase==='setup'||st.phase==='fix';
+  const base=st.phase==='fix'?(st.fixElapsed||0):(st.elapsed||0);
+  const extra=isActive?Date.now()-(st.startedAt||st.fixStartedAt||Date.now()):0;
+  const total=Math.floor((base+extra)/1000);
+  el.textContent=Math.floor(total/3600)+':'+pad(Math.floor((total%3600)/60))+':'+pad(total%60);
+}
+
+// -- PDF LIGHTBOX ----------------------------------------------------------
+let lbProofs=[],lbFileIdx=0,lbPageNum=1,lbPageCount=1,lbScale=1.5,lbPdfDoc=null;
+let lbTouchStartX=0;
+
+async function openLightbox(job){
+  if(!job.proofs.length)return;
+  $('lightbox').classList.remove('hidden');
+  let proofs=job.proofs;
+  try{
+    // Use the list endpoint with RECORD_ID() filter — correctly returns
+    // multipleLookupValues nested structure with fresh signed URLs
+    const formula="RECORD_ID()='"+job.id+"'";
+    const fresh=await api(TI+'?fields%5B%5D='+F.proofs+'&filterByFormula='+encodeURIComponent(formula)+'&returnFieldsByFieldId=true&pageSize=1');
+    const rec=fresh.records&&fresh.records[0];
+    const raw=rec&&rec.fields&&rec.fields[F.proofs];
+    if(raw&&raw.valuesByLinkedRecordId){
+      proofs=[];
+      Object.values(raw.valuesByLinkedRecordId).forEach(arr=>{
+        if(Array.isArray(arr))arr.forEach(a=>{
+          if(a&&a.url)proofs.push({url:a.url,filename:a.filename||'',isPDF:a.type==='application/pdf'});
+        });
+      });
+    }
+  }catch(e){console.error('Fresh URL fetch failed:',e);}
+  lbProofs=proofs;lbFileIdx=0;lbPageNum=1;lbScale=1.5;
+  // Swipe support
+  const wrap=$('lbCanvasWrap');
+  wrap.ontouchstart=e=>{lbTouchStartX=e.touches[0].clientX;};
+  wrap.ontouchend=e=>{
+    const dx=e.changedTouches[0].clientX-lbTouchStartX;
+    if(Math.abs(dx)>60){lbNavFile(dx<0?1:-1);}
+  };
+  await lbLoadFile();
+}
+
+async function lbLoadFile(){
+  if(!lbProofs.length)return;
+  const proof=lbProofs[lbFileIdx];
+  $('lbFilename').textContent=proof.filename||'Proof '+(lbFileIdx+1);
+  $('lbFileCount').textContent=(lbFileIdx+1)+'/'+lbProofs.length;
+  $('lbSpinner').classList.remove('hidden');
+  try{
+    if(proof.isPDF){
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      if(lbPdfDoc){lbPdfDoc.destroy();lbPdfDoc=null;}
+      lbPdfDoc=await pdfjsLib.getDocument(proof.url).promise;
+      lbPageCount=lbPdfDoc.numPages;lbPageNum=1;
+      $('lbPageCount').textContent='1/'+lbPageCount;
+      await lbRenderPage();
+    }else{
+      lbPdfDoc=null;lbPageCount=1;$('lbPageCount').textContent='img';
+      await new Promise((res,rej)=>{
+        const canvas=$('lbCanvas'),ctx=canvas.getContext('2d'),img=new Image();
+        img.crossOrigin='anonymous';img.onload=()=>{canvas.width=img.width;canvas.height=img.height;ctx.drawImage(img,0,0);res();};
+        img.onerror=rej;img.src=proof.url;
+      });
+      $('lbSpinner').classList.add('hidden');
+    }
+  }catch(err){
+    $('lbSpinner').classList.add('hidden');
+    const canvas=$('lbCanvas');canvas.width=600;canvas.height=180;
+    const ctx=canvas.getContext('2d');
+    // Auto-refresh expired URL — re-fetch fresh signed URL and retry
+    console.warn('PDF load failed, attempting URL refresh:',err.message);
+    try{
+      const formula="RECORD_ID()='"+lbJob.id+"'";
+      const fresh=await api(TI+'?fields%5B%5D='+F.proofs+'&filterByFormula='+encodeURIComponent(formula)+'&returnFieldsByFieldId=true&pageSize=1');
+      const rec=fresh.records&&fresh.records[0];
+      const raw=rec&&rec.fields&&rec.fields[F.proofs];
+      let newProofs=[];
+      if(raw&&raw.valuesByLinkedRecordId){
+        Object.values(raw.valuesByLinkedRecordId).forEach(arr=>{
+          if(Array.isArray(arr))arr.forEach(a=>{
+            if(a&&a.url)newProofs.push({url:a.url,thumb:(a.thumbnails&&a.thumbnails.large)?a.thumbnails.large.url:a.url,filename:a.filename||'',isPDF:a.type==='application/pdf'});
+          });
+        });
+      }else if(Array.isArray(raw)){
+        newProofs=raw.filter(p=>p&&p.url).map(p=>({url:p.url,thumb:(p.thumbnails&&p.thumbnails.large)?p.thumbnails.large.url:p.url,filename:p.filename||'',isPDF:p.type==='application/pdf'}));
+      }
+      if(newProofs.length){
+        lbProofs=newProofs;
+        if(lbJob)lbJob.proofs=newProofs;
+        await lbLoadPdf(lbProofs[lbFileIdx]||lbProofs[0]);
+        return;
+      }
+    }catch(e2){console.warn('URL refresh failed:',e2);}
+    // Fallback: show message
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(0,0,600,180);
+    ctx.fillStyle='#888';ctx.font='13px monospace';ctx.textAlign='center';
+    ctx.fillText('URL expired — tap refresh or close and reopen',300,80);
+    ctx.fillStyle='#555';ctx.font='11px monospace';
+    ctx.fillText(proof.filename||'',300,110);
+    console.warn('PDF load failed after retry:',err.message);
+  }
+}
+
+async function lbNavFile(dir){lbFileIdx=Math.max(0,Math.min(lbProofs.length-1,lbFileIdx+dir));lbPageNum=1;await lbLoadFile();}
+async function lbNavPage(dir){lbPageNum=Math.max(1,Math.min(lbPageCount,lbPageNum+dir));$('lbSpinner').classList.remove('hidden');await lbRenderPage();}
+async function lbZoom(delta){lbScale=Math.max(0.5,Math.min(4,lbScale+delta));if(lbPdfDoc){$('lbSpinner').classList.remove('hidden');await lbRenderPage();}else $('lbZoomLevel').textContent=Math.round(lbScale*100)+'%';}
+function closeLightbox(){$('lightbox').classList.add('hidden');if(lbPdfDoc){lbPdfDoc.destroy();lbPdfDoc=null;}}
+
+// -- CLOCK -----------------------------------------------------------------
+function startClock(){
+  function upd(){$('clockDisplay').textContent=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Denver'});}
+  upd();setInterval(upd,1000);
+}
+
+// -- HELPERS ---------------------------------------------------------------
+function $(id){return document.getElementById(id);}
+function el_(parent,tag,cls,attrs){
+  const el=document.createElement(tag);
+  if(cls)el.className=cls;
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>{if(k==='style')el.style.cssText=v;else el.setAttribute(k,v);});
+  parent.appendChild(el);return el;
+}
+function mkchip(parent,text,cls){const c=el_(parent,'span','chip'+(cls?' '+cls:''));c.textContent=text;return c;}
+function fmtDate(d){if(!d)return'';try{return new Date((d.includes('T')?d:d+'T12:00:00')).toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch(e){return d;}}
+function fmtTime(ts){return new Date(ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Denver'});}
+function pad(n){return String(n).padStart(2,'0');}
+function saveState(){sessionStorage.setItem('pine_op_state',JSON.stringify(mState));}
+</script>
+</body>
+</html>
