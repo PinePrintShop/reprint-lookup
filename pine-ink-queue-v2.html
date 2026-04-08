@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Ink Queue v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;
+  --green:#1e6b45;--green-lt:#e8f5ee;--green-dk:#144d31;
+  --text:#0D0D0B;--muted:#888880;--muted-lt:#BBBBB5;
+  --yellow:#E8E832;--sb-bg:#0A0A08;--sb-border:#1A1A16;
+  --sans:Helvetica,Arial,sans-serif;
+  --red:#c0392b;--red-lt:#fdf0ee;
+  --amber:#b8620a;--amber-lt:#fef7ee;
+  --purple:#5b3fa0;--purple-lt:#f2eeff;
+  --cyan:#0e6b7a;--cyan-lt:#e8f7f9;
+  --orange:#c45c00;--orange-lt:#fef3e8;
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px}
+/* LAYOUT */
+.shell{display:flex;height:100vh;overflow:hidden}
+.content{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+/* TOPBAR */
+.topbar{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:10}
+.topbar h1{font-size:15px;font-weight:600;letter-spacing:-.01em;flex:1}
+.topbar .meta{font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);letter-spacing:.01em;transition:background .15s}
+.btn:hover{background:var(--bg)}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.primary:hover{background:var(--green-dk)}
+/* STATS BAR */
+.stats-bar{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.stat-cell{padding:10px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.stat-cell:last-child{border-right:none}
+.stat-num{font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat-num.green{color:var(--green)}
+.stat-num.red{color:var(--red)}
+.stat-num.amber{color:var(--amber)}
+/* DATE GROUPS */
+.day-group{margin:0}
+.day-header{padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--border);border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:53px;z-index:5}
+.day-header .date-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text)}
+.day-header .date-label.today{color:var(--green)}
+.day-header .day-count{font-size:11px;color:var(--muted)}
+.day-header .day-ready{margin-left:auto;font-size:11px;color:var(--muted)}
+.day-header .day-ready span{color:var(--green);font-weight:600}
+/* JOB CARDS */
+.job-card{border-bottom:1px solid var(--border);background:var(--surface)}
+.job-card.expanded{background:#fafaf8}
+.job-row{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;user-select:none}
+.job-row:hover{background:#f8f8f4}
+.job-card.expanded .job-row{background:#f4f4f0}
+.job-col-id{width:72px;flex-shrink:0}
+.imprint-id{font-size:12px;font-weight:700;font-family:monospace;letter-spacing:.02em;color:var(--text)}
+.order-num{font-size:10px;color:var(--muted);margin-top:1px;font-family:monospace}
+.job-col-time{width:54px;flex-shrink:0;text-align:right}
+.job-time{font-size:11px;font-family:monospace;color:var(--muted)}
+.job-col-chips{display:flex;flex-wrap:wrap;gap:4px;flex:1;align-items:center;min-width:0}
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.chip-loc{background:#f0f0ea;color:#444}
+.chip-discharge{background:#e8f5ee;color:#1e6b45}
+.chip-ow{background:var(--orange-lt);color:var(--orange)}
+.chip-ezp{background:var(--purple-lt);color:var(--purple)}
+.chip-dtf{background:var(--cyan-lt);color:var(--cyan)}
+.chip-graphics{background:#f0f0ea;color:#555}
+.chip-repeat{background:#fff8e0;color:#8a6800;border:1px solid #f0dfa0}
+.chip-noink{background:var(--red-lt);color:var(--red)}
+.chip-norecipe{background:var(--amber-lt);color:var(--amber)}
+.ink-summary{font-size:11px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.job-col-ready{width:40px;flex-shrink:0;display:flex;justify-content:flex-end}
+.ready-btn{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;flex-shrink:0}
+.ready-btn.is-ready{background:var(--green);border-color:var(--green);color:#fff}
+.ready-btn:hover:not(.is-ready){border-color:var(--green);background:var(--green-lt)}
+.job-col-expand{width:20px;flex-shrink:0;color:var(--muted-lt);font-size:12px;text-align:center;transition:transform .2s}
+.job-card.expanded .job-col-expand{transform:rotate(90deg)}
+/* EXPANDED DETAIL */
+.job-detail{display:none;padding:0 20px 16px;border-top:1px solid var(--border)}
+.job-card.expanded .job-detail{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.detail-grid.wide{grid-template-columns:1fr}
+/* PROOF VIEWER */
+.proof-section{margin-top:14px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.proof-header{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg)}
+.proof-header-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:1}
+.proof-load-btn{font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text)}
+.proof-load-btn:hover{background:var(--bg)}
+.proof-canvas-wrap{display:none;background:#1a1a1a;position:relative}
+.proof-canvas-wrap.loaded{display:block}
+.proof-canvas-wrap canvas{display:block;width:100%;height:auto}
+.proof-nav{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.6);border-radius:20px;padding:4px 12px}
+.proof-nav button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;padding:2px 4px;opacity:.8}
+.proof-nav button:hover{opacity:1}
+.proof-nav .proof-page-info{font-size:11px;color:#ccc;font-family:monospace;min-width:40px;text-align:center}
+.proof-loading{padding:24px;text-align:center;color:var(--muted);font-size:12px}
+/* INK ROWS */
+.ink-section{margin-top:14px}
+.ink-section-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ink-section-title .prev-badge{font-size:9px;background:#fff8e0;color:#8a6800;border:1px solid #f0dfa0;padding:1px 6px;border-radius:3px;letter-spacing:.04em}
+.ink-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ink-row:last-child{border-bottom:none}
+.ink-type-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ink-info{flex:1;min-width:0}
+.ink-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.3}
+.ink-meta{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:.02em}
+.ink-recipe{margin-top:6px;background:#f4f4f0;border-radius:4px;padding:7px 9px;font-size:11px;font-family:monospace;color:#444;line-height:1.7;white-space:pre-wrap;border:1px solid var(--border)}
+.ink-no-recipe{font-size:11px;color:var(--amber);font-style:italic;margin-top:4px}
+.print-notes-box{margin-top:10px;background:var(--amber-lt);border:1px solid #e8c890;border-radius:6px;padding:9px 11px}
+.print-notes-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:4px}
+.print-notes-text{font-size:12px;color:#5a3800;line-height:1.5}
+.prev-imprint-note{font-size:11px;color:var(--muted);margin-top:2px}
+.loading-ink{font-size:11px;color:var(--muted);padding:8px 0;font-style:italic}
+/* LOADING / EMPTY */
+.loading-state{padding:60px 20px;text-align:center;color:var(--muted)}
+.loading-state .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{padding:60px 20px;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:32px;margin-bottom:12px}
+/* PDF.js */
+.pdfjs-missing{padding:12px;font-size:11px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="shell">
+  <main class="content" id="mainContent">
+    <div class="topbar">
+      <h1>Ink Queue</h1>
+      <span class="meta" id="dateRange">Loading...</span>
+      <button class="btn" onclick="loadJobs()">↻ Refresh</button>
+    </div>
+    <div class="stats-bar" id="statsBar" style="display:none">
+      <div class="stat-cell"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Jobs</div></div>
+      <div class="stat-cell"><div class="stat-num green" id="statReady">0</div><div class="stat-lbl">Inks Ready</div></div>
+      <div class="stat-cell"><div class="stat-num amber" id="statPending">0</div><div class="stat-lbl">Pending</div></div>
+      <div class="stat-cell"><div class="stat-num red" id="statNoInk">0</div><div class="stat-lbl">No Inks</div></div>
+      <div class="stat-cell"><div class="stat-num" id="statRepeat">0</div><div class="stat-lbl">Reprints</div></div>
+    </div>
+    <div id="jobList"></div>
+  </main>
+</div>
+
+<!-- PDF OVERLAY -->
+<div id="pdfOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column" onclick="closePdfOverlay(event)">
+  <div style="position:relative;max-width:860px;width:95%;max-height:90vh;display:flex;flex-direction:column;background:#1a1a1a;border-radius:10px;overflow:hidden">
+    <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #333">
+      <span id="overlayTitle" style="font-size:12px;color:#ccc;flex:1;font-family:monospace"></span>
+      <button onclick="prevOverlayPage()" style="background:#333;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:14px">‹</button>
+      <span id="overlayPageInfo" style="font-size:11px;color:#aaa;font-family:monospace;min-width:50px;text-align:center"></span>
+      <button onclick="nextOverlayPage()" style="background:#333;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:14px">›</button>
+      <button onclick="closePdfOverlay()" style="background:#555;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px">✕ Close</button>
+    </div>
+    <div id="overlayCanvasWrap" style="overflow-y:auto;flex:1;display:flex;align-items:center;justify-content:center;padding:16px">
+      <canvas id="overlayCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+// CONFIG
+const PAT = '';  // Set your Airtable PAT here or use window.AIRTABLE_PAT
+const BASE = 'appJkaLk8DykjsgHR';
+const IMPRINTS = 'tbln9oAGvz2PNBZLV';
+const DAYS_AHEAD = 14;
+
+// FIELD IDs
+const F = {
+  imprintId:    'fldDFfwFQ9B20n2kT',
+  orderNum:     'fldZAIMnXPYF9LiXq',
+  startTime:    'fldfqtIgcEfIlIeQk',
+  location:     'fldKQIL0rSJBSeC8S',
+  inks:         'fldpNCCXTgHyDhvak',
+  inkNames:     'fldMM5hp8kEpo3KKT',
+  inkType:      'fldYByH4NIDKdqyNB',
+  inksReady:    'fld2a1CPcDMSD26PS',
+  isRepeat:     'flda9L7041ahNZT0b',
+  prevImprint:  'fldAEQvMAAZX9gnhl',
+  printNotes:   'fldNuEzGIYI8FWqXu',
+  proofImages:  'fldUOIfCd22MxevRm',
+  qty:          'fld6YNamWt7FLFjrh',
+};
+
+// INK TYPE COLORS
+const INK_TYPES = {
+  'Discharge':        {cls:'chip-discharge', dot:'#1e6b45'},
+  'OW':               {cls:'chip-ow',        dot:'#c45c00'},
+  'EZP':              {cls:'chip-ezp',       dot:'#5b3fa0'},
+  'Direct-to-fabric': {cls:'chip-dtf',       dot:'#0e6b7a'},
+  'Graphics':         {cls:'chip-graphics',  dot:'#888'},
+  'No Base':          {cls:'chip-graphics',  dot:'#888'},
+  'Bleed':            {cls:'chip-discharge', dot:'#1e6b45'},
+};
+
+function getInkTypeCls(t) {
+  for (const [k,v] of Object.entries(INK_TYPES)) {
+    if (t && t.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  return {cls:'chip-graphics', dot:'#aaa'};
+}
+
+// PAT helper
+function pat() {
+  return PAT || window.AIRTABLE_PAT || localStorage.getItem('pine_pat') || '';
+}
+
+function ensurePat() {
+  if (pat()) return true;
+  const p = prompt('Enter Airtable PAT:');
+  if (p) { localStorage.setItem('pine_pat', p); return true; }
+  return false;
+}
+
+async function api(path, opts={}) {
+  const r = await fetch('https://api.airtable.com/v0/' + BASE + '/' + path, {
+    ...opts,
+    headers: { 'Authorization': 'Bearer ' + pat(), 'Content-Type': 'application/json', ...(opts.headers||{}) }
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+// STATE
+let allJobs = [];
+let expandedCards = {};
+let overlayPdf = null;
+let overlayPage = 1;
+let overlayTotal = 1;
+
+// DATE HELPERS
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function toDateKey(d) {
+  return d.toLocaleDateString('en-CA', {timeZone:'America/Denver'});
+}
+
+function formatDateHeader(key) {
+  const d = new Date(key + 'T12:00:00');
+  const today = toDateKey(new Date());
+  const tom = toDateKey(addDays(new Date(), 1));
+  if (key === today) return {label:'Today — ' + d.toLocaleDateString('en-US',{month:'short',day:'numeric'}), isToday:true};
+  if (key === tom)   return {label:'Tomorrow — ' + d.toLocaleDateString('en-US',{month:'short',day:'numeric'}), isToday:false};
+  return {label:d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}), isToday:false};
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Denver'}).replace(' AM',' am').replace(' PM',' pm');
+}
+
+function getOrderNum(rec) {
+  const v = rec.fields[F.orderNum];
+  if (!v) return '';
+  const ids = v.linkedRecordIds || [];
+  if (!ids.length) return '';
+  const vals = v.valuesByLinkedRecordId[ids[0]];
+  return vals && vals[0] ? vals[0] : '';
+}
+
+function getProofUrl(rec) {
+  const v = rec.fields[F.proofImages];
+  if (!v) return null;
+  const ids = v.linkedRecordIds || [];
+  if (!ids.length) return null;
+  const attachments = v.valuesByLinkedRecordId[ids[0]];
+  if (!attachments || !attachments[0]) return null;
+  return attachments[0];
+}
+
+function getInkTypeChips(rec) {
+  const v = rec.fields[F.inkType];
+  if (!v || !v.length) return [];
+  return v;
+}
+
+// LOAD JOBS
+async function loadJobs() {
+  if (!ensurePat()) return;
+
+  const list = document.getElementById('jobList');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div>Loading ink queue...</div>';
+  document.getElementById('statsBar').style.display = 'none';
+
+  const today = new Date();
+  const end = addDays(today, DAYS_AHEAD);
+  const todayStr = toDateKey(today);
+  const endStr = toDateKey(end);
+
+  // Update header
+  document.getElementById('dateRange').textContent =
+    new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' — ' +
+    end.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  try {
+    const fields = [
+      F.imprintId, F.orderNum, F.startTime, F.location, F.inks,
+      F.inkNames, F.inkType, F.inksReady, F.isRepeat, F.prevImprint,
+      F.printNotes, F.proofImages, F.qty
+    ].map(f => 'fields%5B%5D=' + f).join('&');
+
+    const filter = encodeURIComponent(
+      `AND(IS_AFTER({fldfqtIgcEfIlIeQk}, DATEADD(TODAY(), -1, 'days')), IS_BEFORE({fldfqtIgcEfIlIeQk}, DATEADD(TODAY(), ${DAYS_AHEAD + 1}, 'days')))`
+    );
+    const sort = 'sort%5B0%5D%5Bfield%5D=fldfqtIgcEfIlIeQk&sort%5B0%5D%5Bdirection%5D=asc';
+
+    let records = [], cursor = null;
+    do {
+      const url = IMPRINTS + '?returnFieldsByFieldId=true&' + fields + '&filterByFormula=' + filter + '&' + sort + (cursor ? '&offset=' + cursor : '');
+      const data = await api(url);
+      records = records.concat(data.records || []);
+      cursor = data.offset || null;
+    } while (cursor);
+
+    allJobs = records;
+    renderJobs(records);
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><div>Error loading jobs: ' + e.message + '</div></div>';
+  }
+}
+
+function renderJobs(records) {
+  const list = document.getElementById('jobList');
+
+  if (!records.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🖋</div><div>No jobs in the next ' + DAYS_AHEAD + ' days</div></div>';
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  for (const rec of records) {
+    const st = rec.fields[F.startTime];
+    if (!st) continue;
+    const key = toDateKey(new Date(st));
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(rec);
+  }
+
+  // Stats
+  let total=0, ready=0, noink=0, repeat=0;
+  for (const rec of records) {
+    total++;
+    if (rec.fields[F.inksReady]) ready++;
+    const inks = rec.fields[F.inks];
+    if (!inks || !inks.length) noink++;
+    if (rec.fields[F.isRepeat]) repeat++;
+  }
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statReady').textContent = ready;
+  document.getElementById('statPending').textContent = total - ready;
+  document.getElementById('statNoInk').textContent = noink;
+  document.getElementById('statRepeat').textContent = repeat;
+  document.getElementById('statsBar').style.display = 'flex';
+
+  const html = [];
+  for (const [key, recs] of Object.entries(groups).sort()) {
+    const {label, isToday} = formatDateHeader(key);
+    const dayReady = recs.filter(r => r.fields[F.inksReady]).length;
+    html.push(`
+      <div class="day-group">
+        <div class="day-header">
+          <div class="date-label${isToday?' today':''}">${label}</div>
+          <div class="day-count">${recs.length} job${recs.length!==1?'s':''}</div>
+          <div class="day-ready"><span>${dayReady}</span>/${recs.length} ready</div>
+        </div>
+        ${recs.map(rec => renderCard(rec)).join('')}
+      </div>
+    `);
+  }
+  list.innerHTML = html.join('');
+}
+
+function renderCard(rec) {
+  const id = rec.id;
+  const impId = rec.fields[F.imprintId] || '—';
+  const orderNum = getOrderNum(rec);
+  const time = formatTime(rec.fields[F.startTime]);
+  const loc = rec.fields[F.location];
+  const inks = rec.fields[F.inks] || [];
+  const inkNames = rec.fields[F.inkNames] || '';
+  const inkTypes = getInkTypeChips(rec);
+  const isReady = rec.fields[F.inksReady] || false;
+  const isRepeat = rec.fields[F.isRepeat] || false;
+  const prevImprint = rec.fields[F.prevImprint] || [];
+  const expanded = expandedCards[id] || false;
+
+  // Chips
+  let chips = '';
+  if (loc) chips += `<span class="chip chip-loc">${loc.name}</span>`;
+  if (!inks.length) chips += `<span class="chip chip-noink">No Inks</span>`;
+  for (const t of inkTypes) {
+    const cfg = getInkTypeChips.cfg ? {} : getInkTypeCls(t);
+    chips += `<span class="chip ${getInkTypeCls(t).cls}">${t}</span>`;
+  }
+  if (isRepeat) {
+    const prevName = prevImprint[0] ? prevImprint[0].name : '?';
+    chips += `<span class="chip chip-repeat">↩ ${prevName}</span>`;
+  }
+
+  // Flag no-recipe warning (we don't know at card level, shown in detail)
+  const inkCount = inks.length;
+  const inkSummary = inkNames || (inkCount ? inkCount + ' ink' + (inkCount!==1?'s':'') : 'No inks assigned');
+
+  return `
+    <div class="job-card${expanded?' expanded':''}" id="card-${id}">
+      <div class="job-row" onclick="toggleCard('${id}')">
+        <div class="job-col-id">
+          <div class="imprint-id">${impId}</div>
+          <div class="order-num">#${orderNum}</div>
+        </div>
+        <div class="job-col-time"><div class="job-time">${time}</div></div>
+        <div class="job-col-chips">
+          ${chips}
+          <span class="ink-summary">${inkSummary}</span>
+        </div>
+        <div class="job-col-ready">
+          <button class="ready-btn${isReady?' is-ready':''}" onclick="toggleReady(event,'${id}')" title="${isReady?'Mark not ready':'Mark inks ready'}">
+            ${isReady?'✓':''}
+          </button>
+        </div>
+        <div class="job-col-expand">›</div>
+      </div>
+      <div class="job-detail" id="detail-${id}">
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            ${renderInkSection(rec)}
+          </div>
+          <div style="flex:1;min-width:260px">
+            ${renderProofSection(rec)}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderInkSection(rec) {
+  const inks = rec.fields[F.inks] || [];
+  const isRepeat = rec.fields[F.isRepeat] || false;
+  const prevImprint = rec.fields[F.prevImprint] || [];
+  const printNotes = rec.fields[F.printNotes] || '';
+
+  if (!inks.length && !isRepeat) {
+    return `<div class="ink-section">
+      <div class="ink-section-title">Inks</div>
+      <div style="color:var(--red);font-size:12px;padding:8px 0">No inks assigned — needs attention</div>
+    </div>`;
+  }
+
+  let html = `<div class="ink-section">`;
+  html += `<div class="ink-section-title">Inks (${inks.length})</div>`;
+
+  if (inks.length) {
+    html += `<div id="inks-${rec.id}">`;
+    for (const ink of inks) {
+      const cfg = getInkTypeCls(ink.name || '');
+      html += `<div class="ink-row">
+        <div class="ink-type-dot" style="background:${cfg.dot}"></div>
+        <div class="ink-info">
+          <div class="ink-name">${ink.name || '—'}</div>
+          <div class="ink-meta">Loading recipe...</div>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+    // Trigger lazy load of recipes
+    setTimeout(() => loadInkRecipes(rec.id, inks), 0);
+  }
+
+  if (isRepeat && prevImprint.length) {
+    const prevId = prevImprint[0].id;
+    const prevName = prevImprint[0].name;
+    html += `<div class="ink-section-title" style="margin-top:14px">
+      Previous Run <span class="prev-badge">↩ ${prevName}</span>
+    </div>`;
+    html += `<div id="prev-inks-${rec.id}"><div class="loading-ink">Loading previous inks...</div></div>`;
+    setTimeout(() => loadPrevInks(rec.id, prevId, prevName), 0);
+  }
+
+  if (printNotes) {
+    html += `<div class="print-notes-box">
+      <div class="print-notes-label">Print Notes</div>
+      <div class="print-notes-text">${printNotes}</div>
+    </div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function renderProofSection(rec) {
+  const proof = getProofUrl(rec);
+  const impId = rec.fields[F.imprintId] || '—';
+
+  if (!proof) {
+    return `<div class="proof-section">
+      <div class="proof-header">
+        <span class="proof-header-label">Mockup / Proof</span>
+      </div>
+      <div class="pdfjs-missing">No proof on file</div>
+    </div>`;
+  }
+
+  const thumb = proof.thumbnails && proof.thumbnails.large ? proof.thumbnails.large.url : null;
+  const isPdf = proof.type === 'application/pdf';
+
+  return `<div class="proof-section">
+    <div class="proof-header">
+      <span class="proof-header-label">Mockup / Proof</span>
+      <button class="proof-load-btn" onclick="openPdfOverlay('${proof.url}','${impId}')">
+        ${isPdf ? '📄 Open Full PDF' : '🖼 Open Mockup'}
+      </button>
+    </div>
+    ${thumb
+      ? `<div style="background:#1a1a1a;cursor:pointer" onclick="openPdfOverlay('${proof.url}','${impId}')">
+           <img src="${thumb}" style="width:100%;height:auto;display:block;opacity:.9" alt="proof thumbnail">
+         </div>`
+      : `<div class="proof-loading">Tap to load</div>`
+    }
+  </div>`;
+}
+
+// LOAD INK RECIPES (lazy)
+async function loadInkRecipes(recId, inks) {
+  const el = document.getElementById('inks-' + recId);
+  if (!el) return;
+
+  const inkIds = inks.map(i => i.id);
+  // Fetch from Inks table
+  const filter = 'OR(' + inkIds.map(id => `RECORD_ID()='${id}'`).join(',') + ')';
+
+  try {
+    const data = await api('tblyPBucKoDwxDisT?returnFieldsByFieldId=true' +
+      '&fields%5B%5D=fldojKv3gqT312q2R' + // Name
+      '&fields%5B%5D=fldXMM4WvS3SGsliC' + // Ink Type
+      '&fields%5B%5D=fld3M1zgk0e8stlMJ' + // Recipe
+      '&fields%5B%5D=fldQlykyAq9juCg3J' + // Manufacturer
+      '&filterByFormula=' + encodeURIComponent(filter)
+    );
+
+    const byId = {};
+    for (const r of data.records || []) byId[r.id] = r.fields;
+
+    let html = '';
+    for (const ink of inks) {
+      const d = byId[ink.id];
+      const name = ink.name || (d && d['fldojKv3gqT312q2R']) || '—';
+      const inkType = d && d['fldXMM4WvS3SGsliC'] ? d['fldXMM4WvS3SGsliC'].name : '';
+      const recipe = d && d['fld3M1zgk0e8stlMJ'] ? d['fld3M1zgk0e8stlMJ'] : '';
+      const mfr = d && d['fldQlykyAq9juCg3J'] ? d['fldQlykyAq9juCg3J'].name : '';
+      const cfg = getInkTypeCls(name);
+
+      html += `<div class="ink-row">
+        <div class="ink-type-dot" style="background:${cfg.dot}"></div>
+        <div class="ink-info">
+          <div class="ink-name">${name}</div>
+          <div class="ink-meta">${[inkType, mfr].filter(Boolean).join(' · ')}</div>
+          ${recipe
+            ? `<div class="ink-recipe">${recipe}</div>`
+            : `<div class="ink-no-recipe">No recipe on file</div>`
+          }
+        </div>
+      </div>`;
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:11px;padding:8px 0">Could not load recipes</div>`;
+  }
+}
+
+// LOAD PREVIOUS IMPRINT INKS
+async function loadPrevInks(recId, prevImprintRecId, prevName) {
+  const el = document.getElementById('prev-inks-' + recId);
+  if (!el) return;
+
+  try {
+    const data = await api(IMPRINTS + '/' + prevImprintRecId + '?returnFieldsByFieldId=true' +
+      '&fields%5B%5D=' + F.inks +
+      '&fields%5B%5D=' + F.inkNames +
+      '&fields%5B%5D=' + F.printNotes
+    );
+
+    const prevInks = data.fields[F.inks] || [];
+    const prevPrintNotes = data.fields[F.printNotes] || '';
+
+    if (!prevInks.length) {
+      el.innerHTML = `<div style="color:var(--muted);font-size:11px;padding:4px 0">No inks recorded on ${prevName}</div>`;
+      return;
+    }
+
+    // Now fetch recipes for previous inks
+    const inkIds = prevInks.map(i => i.id);
+    const filter = 'OR(' + inkIds.map(id => `RECORD_ID()='${id}'`).join(',') + ')';
+    const inkData = await api('tblyPBucKoDwxDisT?returnFieldsByFieldId=true' +
+      '&fields%5B%5D=fldojKv3gqT312q2R' +
+      '&fields%5B%5D=fldXMM4WvS3SGsliC' +
+      '&fields%5B%5D=fld3M1zgk0e8stlMJ' +
+      '&fields%5B%5D=fldQlykyAq9juCg3J' +
+      '&filterByFormula=' + encodeURIComponent(filter)
+    );
+
+    const byId = {};
+    for (const r of inkData.records || []) byId[r.id] = r.fields;
+
+    let html = '';
+    for (const ink of prevInks) {
+      const d = byId[ink.id];
+      const name = ink.name || (d && d['fldojKv3gqT312q2R']) || '—';
+      const inkType = d && d['fldXMM4WvS3SGsliC'] ? d['fldXMM4WvS3SGsliC'].name : '';
+      const recipe = d && d['fld3M1zgk0e8stlMJ'] ? d['fld3M1zgk0e8stlMJ'] : '';
+      const mfr = d && d['fldQlykyAq9juCg3J'] ? d['fldQlykyAq9juCg3J'].name : '';
+      const cfg = getInkTypeCls(name);
+
+      html += `<div class="ink-row" style="opacity:.85">
+        <div class="ink-type-dot" style="background:${cfg.dot}"></div>
+        <div class="ink-info">
+          <div class="ink-name">${name}</div>
+          <div class="ink-meta">${[inkType, mfr].filter(Boolean).join(' · ')}</div>
+          ${recipe
+            ? `<div class="ink-recipe">${recipe}</div>`
+            : `<div class="ink-no-recipe">No recipe on file for previous run</div>`
+          }
+        </div>
+      </div>`;
+    }
+
+    if (prevPrintNotes) {
+      html += `<div class="print-notes-box" style="margin-top:8px">
+        <div class="print-notes-label">Notes from ${prevName}</div>
+        <div class="print-notes-text">${prevPrintNotes}</div>
+      </div>`;
+    }
+
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:11px;padding:4px 0">Could not load previous inks</div>`;
+  }
+}
+
+// TOGGLE CARD
+function toggleCard(id) {
+  expandedCards[id] = !expandedCards[id];
+  const card = document.getElementById('card-' + id);
+  if (!card) return;
+  if (expandedCards[id]) {
+    card.classList.add('expanded');
+  } else {
+    card.classList.remove('expanded');
+  }
+}
+
+// TOGGLE INKS READY
+async function toggleReady(e, id) {
+  e.stopPropagation();
+  const rec = allJobs.find(r => r.id === id);
+  if (!rec) return;
+  const current = rec.fields[F.inksReady] || false;
+  const newVal = !current;
+
+  // Optimistic UI
+  rec.fields[F.inksReady] = newVal;
+  const btn = e.currentTarget;
+  btn.classList.toggle('is-ready', newVal);
+  btn.textContent = newVal ? '✓' : '';
+
+  // Update stats
+  const ready = allJobs.filter(r => r.fields[F.inksReady]).length;
+  document.getElementById('statReady').textContent = ready;
+  document.getElementById('statPending').textContent = allJobs.length - ready;
+
+  try {
+    await api(IMPRINTS + '/' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({fields: {[F.inksReady]: newVal}})
+    });
+  } catch(err) {
+    // Revert
+    rec.fields[F.inksReady] = current;
+    btn.classList.toggle('is-ready', current);
+    btn.textContent = current ? '✓' : '';
+    alert('Failed to save: ' + err.message);
+  }
+}
+
+// PDF OVERLAY
+let overlayPdfDoc = null;
+
+async function openPdfOverlay(url, title) {
+  const overlay = document.getElementById('pdfOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('overlayTitle').textContent = title;
+  document.getElementById('overlayPageInfo').textContent = 'Loading...';
+  document.getElementById('overlayCanvas').getContext('2d').clearRect(0,0,1,1);
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    overlayPdfDoc = await pdfjsLib.getDocument(url).promise;
+    overlayPage = 1;
+    overlayTotal = overlayPdfDoc.numPages;
+    await renderOverlayPage();
+  } catch(e) {
+    document.getElementById('overlayPageInfo').textContent = 'Error loading PDF';
+  }
+}
+
+async function renderOverlayPage() {
+  if (!overlayPdfDoc) return;
+  const page = await overlayPdfDoc.getPage(overlayPage);
+  const wrap = document.getElementById('overlayCanvasWrap');
+  const canvas = document.getElementById('overlayCanvas');
+  const scale = Math.min((wrap.clientWidth - 32) / page.getViewport({scale:1}).width, 2.5);
+  const vp = page.getViewport({scale});
+  canvas.width = vp.width;
+  canvas.height = vp.height;
+  await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
+  document.getElementById('overlayPageInfo').textContent = overlayPage + ' / ' + overlayTotal;
+}
+
+function prevOverlayPage() {
+  if (overlayPage > 1) { overlayPage--; renderOverlayPage(); }
+}
+function nextOverlayPage() {
+  if (overlayPage < overlayTotal) { overlayPage++; renderOverlayPage(); }
+}
+function closePdfOverlay(e) {
+  if (e && e.target !== document.getElementById('pdfOverlay') && e.type !== 'click') return;
+  if (e && e.currentTarget !== document.getElementById('pdfOverlay') && e.target.id !== 'pdfOverlay') {
+    if (e.target === document.getElementById('pdfOverlay')) {
+      document.getElementById('pdfOverlay').style.display = 'none';
+      overlayPdfDoc = null;
+    }
+    return;
+  }
+  document.getElementById('pdfOverlay').style.display = 'none';
+  overlayPdfDoc = null;
+}
+
+// Close overlay with ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.getElementById('pdfOverlay').style.display = 'none';
+    overlayPdfDoc = null;
+  }
+});
+
+// Boot
+loadJobs();
+</script>
+</body>
+</html>
