@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S&S API Explorer v2 — Pine Central</title>
+<style>
+:root {
+  --bg: #F2F2EE;
+  --surface: #fff;
+  --border: #E5E5E0;
+  --border-dk: #D0D0CA;
+  --green: #1e6b45;
+  --green-lt: #e8f5ee;
+  --green-dk: #144d31;
+  --text: #0D0D0B;
+  --muted: #888880;
+  --muted-lt: #BBBBB5;
+  --yellow: #E8E832;
+  --sb-bg: #0A0A08;
+  --sb-border: #1A1A16;
+  --red: #c0392b;
+  --red-bg: #fdf2f2;
+  --red-bd: #f5c6c6;
+  --amb: #b7791f;
+  --amb-bg: #fffbeb;
+  --amb-bd: #fde68a;
+  --sans: Helvetica, Arial, sans-serif;
+  --mono: 'Courier New', Courier, monospace;
+  --radius: 4px;
+  --radius-lg: 6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
+.layout { display: flex; height: 100vh; }
+
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--sb-bg); border-right: 1px solid var(--sb-border);
+  display: flex; flex-direction: column; padding: 16px 0;
+}
+.sb-logo { padding: 0 16px 16px; border-bottom: 1px solid var(--sb-border); margin-bottom: 12px; }
+.sb-logo .pine { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--yellow); }
+.sb-logo .title { font-size: 10px; color: #555550; letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+.sb-section { font-size: 8px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #3A3A36; padding: 10px 16px 4px; }
+.sb-item { display: flex; align-items: center; gap: 8px; padding: 7px 16px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #888880; cursor: pointer; transition: background .1s, color .1s; border: none; background: none; width: 100%; text-align: left; }
+.sb-item:hover { background: var(--sb-border); color: #ccc; }
+.sb-item.active { background: #141410; color: var(--yellow); }
+.sb-item .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.topbar-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.topbar-sub { font-size: 10px; color: var(--muted); letter-spacing: .04em; }
+.badge { font-size: 8px; font-weight: 700; padding: 2px 7px; border-radius: 2px; letter-spacing: .06em; text-transform: uppercase; border: 1px solid; }
+.badge.dev { background: var(--amb-bg); color: var(--amb); border-color: var(--amb-bd); }
+.badge.live { background: var(--green-lt); color: var(--green-dk); border-color: #b8dfcc; }
+.badge.proxy { background: #f0f0ff; color: #5555bb; border-color: #ccccee; }
+
+.content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.card-hdr { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card-hdr-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.card-body { padding: 14px; }
+
+.cred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.field-input { background: var(--bg); border: 1px solid var(--border-dk); border-radius: var(--radius); padding: 7px 10px; font-size: 12px; font-family: var(--mono); color: var(--text); outline: none; transition: border-color .1s; }
+.field-input:focus { border-color: var(--green); }
+.field-input::placeholder { color: var(--muted-lt); }
+
+.proxy-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius); border: 1px solid var(--border-dk); background: var(--bg); cursor: pointer; }
+.proxy-toggle input { cursor: pointer; }
+.proxy-toggle-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.proxy-toggle.on { background: #f0f0ff; border-color: #ccccee; }
+.proxy-toggle.on .proxy-toggle-label { color: #5555bb; }
+
+.endpoint-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.ep-btn { background: var(--bg); border: 1px solid var(--border-dk); border-radius: var(--radius); padding: 8px 10px; cursor: pointer; text-align: left; transition: all .1s; display: flex; flex-direction: column; gap: 3px; }
+.ep-btn:hover { border-color: var(--text); }
+.ep-btn.active { background: var(--sb-bg); border-color: var(--sb-bg); }
+.ep-btn .ep-method { font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+.ep-btn.active .ep-method { color: var(--yellow); }
+.ep-btn .ep-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text); }
+.ep-btn.active .ep-name { color: #fff; }
+.ep-btn .ep-desc { font-size: 9px; color: var(--muted); line-height: 1.3; }
+.ep-btn.active .ep-desc { color: #666; }
+
+.param-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.param-row .field-group { flex: 1; min-width: 120px; }
+
+.btn { background: var(--bg); border: 1px solid var(--border-dk); border-radius: var(--radius); color: var(--muted); font-size: 9px; padding: 6px 12px; cursor: pointer; font-family: var(--sans); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; transition: all .1s; }
+.btn:hover { border-color: var(--text); color: var(--text); }
+.btn.p { background: var(--sb-bg); border-color: var(--sb-bg); color: var(--yellow); font-size: 10px; padding: 8px 16px; }
+.btn.p:hover { background: #1A1A16; }
+.btn.p:disabled { opacity: .5; cursor: not-allowed; }
+.btn.grn { background: var(--green-lt); border-color: #b8dfcc; color: var(--green-dk); }
+
+.response-area { background: var(--sb-bg); border-radius: var(--radius); padding: 14px; min-height: 180px; max-height: 480px; overflow-y: auto; font-family: var(--mono); font-size: 11px; line-height: 1.6; color: #ccc; white-space: pre-wrap; word-break: break-all; }
+.response-area.empty { color: #3A3A36; display: flex; align-items: center; justify-content: center; font-family: var(--sans); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; min-height: 120px; white-space: normal; word-break: normal; }
+.json-key { color: #7ec8e3; }
+.json-str { color: #b8dfcc; }
+.json-num { color: var(--yellow); }
+.json-bool { color: #f5a623; }
+.json-null { color: #888; }
+
+.status-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--border); background: var(--bg); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted-lt); flex-shrink: 0; }
+.status-dot.ok { background: var(--green); }
+.status-dot.err { background: var(--red); }
+.status-dot.loading { background: var(--yellow); animation: pulse .8s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.status-text { font-size: 10px; color: var(--muted); font-family: var(--mono); flex: 1; }
+.status-time { font-size: 9px; color: var(--muted-lt); font-family: var(--mono); }
+
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.summary-card { background: var(--sb-bg); border-radius: var(--radius); padding: 10px 12px; }
+.sc-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #555550; margin-bottom: 4px; }
+.sc-val { font-size: 20px; font-weight: 700; font-family: var(--mono); color: var(--yellow); }
+.sc-sub { font-size: 9px; color: #555550; margin-top: 2px; }
+
+.spin { display: inline-block; width: 10px; height: 10px; border: 2px solid #333; border-top-color: var(--yellow); border-radius: 50%; animation: sp .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+.info-box { border-radius: var(--radius); padding: 10px 12px; font-size: 11px; line-height: 1.5; }
+.info-box.amb { background: var(--amb-bg); border: 1px solid var(--amb-bd); color: var(--amb); }
+.info-box.ok { background: var(--green-lt); border: 1px solid #b8dfcc; color: var(--green-dk); font-family: var(--mono); }
+.info-box.err { background: var(--red-bg); border: 1px solid var(--red-bd); color: var(--red); font-family: var(--mono); }
+.info-box.blue { background: #f0f0ff; border: 1px solid #ccccee; color: #4444aa; }
+
+.url-preview { font-size: 9px; color: var(--muted); font-family: var(--mono); padding: 5px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.quick-styles { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.qs-btn { background: var(--bg); border: 1px solid var(--border-dk); border-radius: var(--radius); padding: 3px 8px; font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all .1s; }
+.qs-btn:hover { border-color: var(--green); color: var(--green); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="pine">Pine Central</div>
+      <div class="title">Dev Tools</div>
+    </div>
+    <div class="sb-section">API Explorer</div>
+    <button class="sb-item active"><span class="dot"></span>S&amp;S Activewear</button>
+    <button class="sb-item" style="opacity:.4;cursor:default"><span class="dot"></span>SanMar</button>
+    <button class="sb-item" style="opacity:.4;cursor:default"><span class="dot"></span>SLC Activewear</button>
+    <div style="margin-top:auto;padding:8px 16px;font-size:9px;color:#3A3A36;line-height:1.6">
+      Explorer only.<br>Read-only — no writes.<br>Keys in session memory only.
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">S&amp;S Activewear API Explorer</div>
+        <div class="topbar-sub">api.ssactivewear.com/V2</div>
+      </div>
+      <span class="badge dev">Dev Tool</span>
+      <span id="connBadge" style="display:none" class="badge live">Connected</span>
+      <span id="proxyBadge" style="display:none" class="badge proxy">Via Proxy</span>
+    </div>
+
+    <div class="content">
+
+      <!-- Credentials -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-hdr-title">Credentials</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <div class="proxy-toggle" id="proxyToggleEl" onclick="toggleProxy()">
+              <input type="checkbox" id="useProxy" checked>
+              <span class="proxy-toggle-label">Use CORS Proxy</span>
+            </div>
+            <button class="btn grn" onclick="testConnection()">Test Connection</button>
+          </div>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+          <div class="cred-grid">
+            <div class="field-group">
+              <div class="field-label">Account Number</div>
+              <input class="field-input" id="ssAccount" type="text" placeholder="Your S&S account number" autocomplete="off">
+            </div>
+            <div class="field-group">
+              <div class="field-label">API Key</div>
+              <input class="field-input" id="ssKey" type="password" placeholder="Your S&S API key" autocomplete="off">
+            </div>
+          </div>
+          <div class="info-box blue" id="proxyNote">
+            <strong>CORS Proxy enabled</strong> — requests route through corsproxy.io for testing only.
+            Credentials are embedded in the URL (standard HTTP Basic Auth) and never stored.
+            For production, use the Cloudflare Worker instead (see worker file).
+          </div>
+          <div id="connStatus" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Endpoints -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-hdr-title">Endpoint</div>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="endpoint-grid">
+            <button class="ep-btn active" onclick="selectEndpoint('inventory')" id="ep-inventory">
+              <div class="ep-method">GET</div>
+              <div class="ep-name">Inventory</div>
+              <div class="ep-desc">Live stock qty by SKU</div>
+            </button>
+            <button class="ep-btn" onclick="selectEndpoint('products')" id="ep-products">
+              <div class="ep-method">GET</div>
+              <div class="ep-name">Products</div>
+              <div class="ep-desc">Pricing + product details</div>
+            </button>
+            <button class="ep-btn" onclick="selectEndpoint('styles')" id="ep-styles">
+              <div class="ep-method">GET</div>
+              <div class="ep-name">Styles</div>
+              <div class="ep-desc">All colorways for a style</div>
+            </button>
+            <button class="ep-btn" onclick="selectEndpoint('categories')" id="ep-categories">
+              <div class="ep-method">GET</div>
+              <div class="ep-name">Categories</div>
+              <div class="ep-desc">Browse all categories</div>
+            </button>
+          </div>
+
+          <div id="paramArea"></div>
+
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn p" id="runBtn" onclick="runQuery()">Run Query</button>
+            <button class="btn" onclick="clearResponse()">Clear</button>
+            <div class="url-preview" id="urlPreview">select an endpoint</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div id="summaryArea" style="display:none">
+        <div class="summary-grid" id="summaryCards"></div>
+      </div>
+
+      <!-- Response -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-hdr-title">Response</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn" onclick="copyResponse()">Copy JSON</button>
+            <button class="btn" id="rawBtn" onclick="toggleRaw()">Raw</button>
+          </div>
+        </div>
+        <div id="responseArea" class="response-area empty">Run a query to see the response</div>
+        <div class="status-bar">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-text" id="statusText">Ready</span>
+          <span class="status-time" id="statusTime"></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+var currentEndpoint = 'inventory';
+var lastResponse = null;
+var showRaw = false;
+
+var SS_BASE = 'https://api.ssactivewear.com/V2/';
+var PROXY_PREFIX = 'https://corsproxy.io/?url=';
+
+var endpoints = {
+  inventory: {
+    path: 'inventory/',
+    params: [
+      { id: 'style', label: 'Style #', placeholder: 'e.g. PC54', hint: 'Required' },
+      { id: 'color', label: 'Color', placeholder: 'e.g. Athletic Heather', hint: 'Optional' },
+      { id: 'size',  label: 'Size',  placeholder: 'e.g. M', hint: 'Optional' }
+    ],
+    quickStyles: ['PC54','64000','18500','BC3001','NL3600']
+  },
+  products: {
+    path: 'products/',
+    params: [
+      { id: 'style', label: 'Style #', placeholder: 'e.g. PC54', hint: 'Required' },
+      { id: 'color', label: 'Color',   placeholder: 'e.g. Athletic Heather', hint: 'Optional' }
+    ],
+    quickStyles: ['PC54','64000','18500','BC3001','NL3600']
+  },
+  styles: {
+    path: 'styles/',
+    params: [
+      { id: 'style', label: 'Style #', placeholder: 'e.g. PC54', hint: 'Required' }
+    ],
+    quickStyles: ['PC54','64000','18500']
+  },
+  categories: {
+    path: 'categories/',
+    params: [],
+    quickStyles: []
+  }
+};
+
+function toggleProxy() {
+  var cb = document.getElementById('useProxy');
+  cb.checked = !cb.checked;
+  var el = document.getElementById('proxyToggleEl');
+  var note = document.getElementById('proxyNote');
+  var badge = document.getElementById('proxyBadge');
+  if (cb.checked) {
+    el.classList.add('on');
+    note.style.display = '';
+    badge.style.display = '';
+  } else {
+    el.classList.remove('on');
+    note.style.display = 'none';
+    badge.style.display = 'none';
+  }
+}
+
+function selectEndpoint(ep) {
+  currentEndpoint = ep;
+  document.querySelectorAll('.ep-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('ep-' + ep).classList.add('active');
+  renderParams();
+  updateUrlPreview();
+  clearResponse();
+}
+
+function renderParams() {
+  var ep = endpoints[currentEndpoint];
+  var area = document.getElementById('paramArea');
+  var html = '';
+
+  if (!ep.params.length) {
+    html = '<div style="font-size:10px;color:var(--muted)">No parameters — returns all records.</div>';
+  } else {
+    html += '<div class="param-row">';
+    ep.params.forEach(function(p) {
+      html += '<div class="field-group">';
+      html += '<div class="field-label">' + p.label + ' <span style="color:var(--muted-lt);font-weight:400">' + p.hint + '</span></div>';
+      html += '<input class="field-input" id="param-' + p.id + '" placeholder="' + p.placeholder + '" oninput="updateUrlPreview()" style="width:100%">';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (ep.quickStyles && ep.quickStyles.length) {
+    html += '<div style="margin-top:8px">';
+    html += '<div class="field-label" style="margin-bottom:4px">Quick styles</div>';
+    html += '<div class="quick-styles">';
+    ep.quickStyles.forEach(function(s) {
+      html += '<button class="qs-btn" onclick="fillStyle(\'' + s + '\')">' + s + '</button>';
+    });
+    html += '</div></div>';
+  }
+
+  area.innerHTML = html;
+  updateUrlPreview();
+}
+
+function fillStyle(s) {
+  var el = document.getElementById('param-style');
+  if (el) { el.value = s; updateUrlPreview(); }
+}
+
+function getParamValues() {
+  var vals = {};
+  endpoints[currentEndpoint].params.forEach(function(p) {
+    var el = document.getElementById('param-' + p.id);
+    if (el && el.value.trim()) vals[p.id] = el.value.trim();
+  });
+  return vals;
+}
+
+function buildApiUrl() {
+  var base = SS_BASE + endpoints[currentEndpoint].path;
+  var vals = getParamValues();
+  var parts = [];
+  if (vals.style) parts.push(encodeURIComponent(vals.style));
+  if (vals.color) parts.push(encodeURIComponent(vals.color));
+  if (vals.size)  parts.push(encodeURIComponent(vals.size));
+  return base + (parts.length ? parts.join('/') + '/' : '') + '?mediaType=json';
+}
+
+function updateUrlPreview() {
+  var url = buildApiUrl();
+  document.getElementById('urlPreview').textContent = url.replace('https://api.ssactivewear.com/V2/', '/V2/').replace('?mediaType=json','');
+}
+
+function getAuth() {
+  var acct = document.getElementById('ssAccount').value.trim();
+  var key  = document.getElementById('ssKey').value.trim();
+  if (!acct || !key) return null;
+  return btoa(acct + ':' + key);
+}
+
+function buildFetchUrl(apiUrl) {
+  var useProxy = document.getElementById('useProxy').checked;
+  if (useProxy) return PROXY + encodeURIComponent(apiUrl);
+  return apiUrl;
+}
+
+function fetchWithAuth(apiUrl) {
+  var acct = document.getElementById('ssAccount').value.trim();
+  var key  = document.getElementById('ssKey').value.trim();
+  var useProxy = document.getElementById('useProxy').checked;
+
+  // Embed credentials directly in the URL — S&S supports Basic auth via URL
+  // This avoids a CORS preflight since Authorization header is not sent separately
+  var urlWithCreds = apiUrl.replace('https://', 'https://' + encodeURIComponent(acct) + ':' + encodeURIComponent(key) + '@');
+
+  if (useProxy) {
+    var proxyUrl = PROXY_PREFIX + encodeURIComponent(urlWithCreds);
+    return fetch(proxyUrl);
+  } else {
+    // Direct call with header (works from non-browser environments / Worker)
+    var auth = btoa(acct + ':' + key);
+    return fetch(apiUrl, { headers: { 'Authorization': 'Basic ' + auth } });
+  }
+}
+
+function testConnection() {
+  var auth = getAuth();
+  if (!auth) { showConnMsg('err', 'Enter account number and API key first.'); return; }
+  showConnMsg('loading', 'Testing connection...');
+  var testUrl = SS_BASE + 'categories/?mediaType=json';
+  fetchWithAuth(testUrl)
+    .then(function(r) {
+      if (r.ok) return r.json().then(function(d) {
+        showConnMsg('ok', 'Connected — ' + (Array.isArray(d) ? d.length : '?') + ' categories returned. Credentials valid.');
+        document.getElementById('connBadge').style.display = '';
+        var useProxy = document.getElementById('useProxy').checked;
+        document.getElementById('proxyBadge').style.display = useProxy ? '' : 'none';
+      });
+      return r.text().then(function(t) {
+        showConnMsg('err', 'HTTP ' + r.status + ' — ' + (r.status === 401 ? 'Invalid credentials.' : t.substring(0,120)));
+      });
+    })
+    .catch(function(e) {
+      showConnMsg('err', 'Network error: ' + e.message + (document.getElementById('useProxy').checked ? '' : ' — try enabling the CORS proxy.'));
+    });
+}
+
+function showConnMsg(type, msg) {
+  var el = document.getElementById('connStatus');
+  el.style.display = 'block';
+  var cls = type === 'loading' ? 'amb' : (type === 'ok' ? 'ok' : 'err');
+  var prefix = type === 'loading' ? '<span class="spin"></span>' : '';
+  el.innerHTML = '<div class="info-box ' + cls + '">' + prefix + msg + '</div>';
+}
+
+function runQuery() {
+  var auth = getAuth();
+  if (!auth) { alert('Enter your credentials and test connection first.'); return; }
+  var apiUrl = buildApiUrl();
+  var t0 = Date.now();
+  setStatus('loading', 'Fetching...');
+  document.getElementById('summaryArea').style.display = 'none';
+  var ra = document.getElementById('responseArea');
+  ra.className = 'response-area';
+  ra.innerHTML = '<span class="spin"></span>Loading...';
+
+  fetchWithAuth(apiUrl)
+    .then(function(r) {
+      var elapsed = Date.now() - t0;
+      if (!r.ok) {
+        setStatus('err', 'HTTP ' + r.status, elapsed + 'ms');
+        return r.text().then(function(t) {
+          ra.innerHTML = '<span style="color:var(--red)">' + escHtml(t) + '</span>';
+        });
+      }
+      return r.json().then(function(data) {
+        lastResponse = data;
+        var count = Array.isArray(data) ? data.length : 1;
+        setStatus('ok', count + ' record' + (count === 1 ? '' : 's') + ' returned', elapsed + 'ms');
+        renderResponse(data);
+        renderSummary(data);
+      });
+    })
+    .catch(function(e) {
+      setStatus('err', e.message);
+      ra.innerHTML = '<span style="color:var(--red)">Error: ' + escHtml(e.message) + '</span>';
+    });
+}
+
+function renderSummary(data) {
+  if (!Array.isArray(data) || !data.length) { document.getElementById('summaryArea').style.display = 'none'; return; }
+  var html = '';
+  html += mkCard('Records', data.length, 'in response');
+
+  if (currentEndpoint === 'inventory') {
+    var inStock = data.filter(function(i) { return (i.qty || i.quantity || 0) > 0; }).length;
+    var total = data.reduce(function(s,i) { return s + (i.qty || i.quantity || 0); }, 0);
+    var wh = [...new Set(data.map(function(i) { return i.warehouseAbbr || i.warehouse; }).filter(Boolean))];
+    html += mkCard('In-Stock SKUs', inStock, 'of ' + data.length);
+    html += mkCard('Total Units', total.toLocaleString(), 'all warehouses');
+    if (wh.length) html += mkCard('Warehouses', wh.length, wh.slice(0,4).join(', '));
+    var outStock = data.filter(function(i) { return (i.qty || i.quantity || 0) === 0; }).length;
+    if (outStock) html += mkCard('Out of Stock', outStock, 'SKUs at 0');
+  }
+
+  if (currentEndpoint === 'products') {
+    var prices = data.map(function(i) { return i.myPrice || i.ourPrice || i.price; }).filter(function(p) { return p && p > 0; });
+    if (prices.length) {
+      var minP = Math.min.apply(null, prices);
+      var maxP = Math.max.apply(null, prices);
+      html += mkCard('Your Price', '$' + minP.toFixed(2), 'min — $' + maxP.toFixed(2) + ' max');
+    }
+    var colors = [...new Set(data.map(function(i) { return i.catalogColor || i.colorName; }).filter(Boolean))];
+    if (colors.length) html += mkCard('Colors', colors.length, 'colorways');
+    var sizes = [...new Set(data.map(function(i) { return i.sizeName || i.size; }).filter(Boolean))];
+    if (sizes.length) html += mkCard('Sizes', sizes.length, sizes.slice(0,6).join(' '));
+  }
+
+  if (currentEndpoint === 'styles') {
+    var colorways = [...new Set(data.map(function(i) { return i.catalogColor || i.colorName; }).filter(Boolean))];
+    html += mkCard('Colorways', colorways.length, 'available');
+  }
+
+  document.getElementById('summaryCards').innerHTML = html;
+  document.getElementById('summaryArea').style.display = 'block';
+}
+
+function mkCard(label, val, sub) {
+  return '<div class="summary-card"><div class="sc-label">' + label + '</div><div class="sc-val">' + val + '</div><div class="sc-sub">' + sub + '</div></div>';
+}
+
+function renderResponse(data) {
+  var ra = document.getElementById('responseArea');
+  ra.className = 'response-area';
+  if (showRaw) {
+    ra.textContent = JSON.stringify(data, null, 2);
+  } else {
+    ra.innerHTML = syntaxHighlight(JSON.stringify(data, null, 2));
+  }
+}
+
+function syntaxHighlight(json) {
+  return escHtml(json).replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+    function(m) {
+      var cls = 'json-num';
+      if (/^"/.test(m)) { cls = /:$/.test(m) ? 'json-key' : 'json-str'; }
+      else if (/true|false/.test(m)) cls = 'json-bool';
+      else if (/null/.test(m)) cls = 'json-null';
+      return '<span class="' + cls + '">' + m + '</span>';
+    }
+  );
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toggleRaw() {
+  showRaw = !showRaw;
+  document.getElementById('rawBtn').textContent = showRaw ? 'Highlighted' : 'Raw';
+  if (lastResponse) renderResponse(lastResponse);
+}
+
+function copyResponse() {
+  if (!lastResponse) return;
+  navigator.clipboard.writeText(JSON.stringify(lastResponse, null, 2)).then(function() {
+    var btn = event.target;
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  });
+}
+
+function clearResponse() {
+  lastResponse = null;
+  var ra = document.getElementById('responseArea');
+  ra.className = 'response-area empty';
+  ra.textContent = 'Run a query to see the response';
+  document.getElementById('summaryArea').style.display = 'none';
+  setStatus('', 'Ready');
+}
+
+function setStatus(type, msg, time) {
+  var dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (type ? ' ' + type : '');
+  document.getElementById('statusText').textContent = msg;
+  document.getElementById('statusTime').textContent = time || '';
+}
+
+selectEndpoint('inventory');
+document.getElementById('proxyToggleEl').classList.add('on');
+document.getElementById('proxyBadge').style.display = '';
+</script>
+</body>
+</html>
