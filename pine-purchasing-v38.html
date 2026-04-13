@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Central — Purchasing v38</title>
+<style>
+:root {
+  --bg:#F2F2EE;--surf:#fff;--bd:#E5E5E0;--bd2:#D0D0CA;
+  --grn:#1e6b45;--grn-lt:#e8f5ee;--grn-dk:#144d31;
+  --txt:#0D0D0B;--mut:#888880;--mut-lt:#BBBBB5;
+  --yel:#E8E832;--yel-dim:rgba(232,232,50,.15);--yel-bd:rgba(232,232,50,.3);
+  --red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+  --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;
+  --blu:#1a5fa8;--blu-bg:#eef4fd;--blu-bd:#c5d9f5;
+  --sb:#0A0A08;--sb2:#1A1A16;
+  --mono:'Courier New',monospace;--sans:Helvetica,Arial,sans-serif;
+  --r:4px;--rl:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+.layout{display:flex;height:100vh}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--surf);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tb-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.tb-sub{font-size:10px;color:var(--mut);flex:1}
+.tag{display:inline-flex;align-items:center;font-size:8px;padding:2px 7px;border-radius:2px;white-space:nowrap;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid}
+.t-k{background:var(--sb);color:var(--yel);border-color:var(--yel-bd)}
+.t-n{background:var(--surf);color:var(--mut);border-color:var(--bd)}
+.t-g{background:var(--grn-lt);color:var(--grn-dk);border-color:#b8dfcc}
+.t-b{background:var(--blu-bg);color:var(--blu);border-color:var(--blu-bd)}
+.t-a{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.t-r{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.toolbar{background:var(--bg);border-bottom:1px solid var(--bd);padding:8px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.vtog{display:flex;border:1px solid var(--bd2);border-radius:var(--r);overflow:hidden}
+.vbtn{padding:5px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--surf);color:var(--mut);border:none;cursor:pointer;transition:all .1s}
+.qbtn{padding:5px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--surface);color:var(--mut);border:1px solid var(--bd2);border-radius:var(--r);cursor:pointer;white-space:nowrap;transition:all .1s}
+.qbtn.on{background:var(--sb);color:var(--yel);border-color:var(--sb);}
+.vbtn:hover{color:var(--txt)}
+.vbtn.on{background:var(--sb);color:var(--yel)}
+.tsep{width:1px;height:20px;background:var(--bd2)}
+.fbtn{padding:5px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--surf);color:var(--mut);border:1px solid var(--bd2);border-radius:var(--r);cursor:pointer;transition:all .1s}
+.fbtn:hover{border-color:var(--txt);color:var(--txt)}
+.fbtn.on{background:var(--sb);border-color:var(--sb);color:var(--yel)}
+.spill{font-size:9px;color:var(--mut);padding:4px 10px;border:1px solid var(--bd);border-radius:20px;background:var(--surf)}
+.spill strong{color:var(--txt)}
+.content{flex:1;overflow-y:auto;padding:14px 16px}
+.ocard{background:var(--surf);border:1px solid var(--bd);border-radius:var(--rl);margin-bottom:6px;transition:border-color .12s}
+.ocard:hover{border-color:var(--bd2)}
+.ocard.open{border-color:var(--grn);border-left:3px solid var(--grn)}
+.och{padding:12px 14px;cursor:pointer;display:flex;gap:12px;align-items:flex-start}
+.och-num{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--mut-lt);flex-shrink:0;padding-top:3px;min-width:48px}
+.och-body{flex:1;min-width:0}
+.och-cust{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.och-garm{font-size:11px;color:var(--mut);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.och-meta{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;align-items:center}
+.och-right{flex-shrink:0;text-align:right}
+.och-qty{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1}
+.och-qlbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut-lt)}
+.odet{border-top:1px solid var(--bd);background:var(--bg);padding:12px 14px 14px}
+.dcols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.panel{background:var(--surf);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden}
+.ph{padding:8px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:6px}
+.ph-t{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--mut)}
+.pb{padding:10px 12px}
+.szrow{display:flex;gap:4px;flex-wrap:wrap}
+.sz{background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);padding:4px 6px;min-width:44px;text-align:center}
+.sz-l{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.sz-q{font-size:14px;font-weight:700;font-family:var(--mono)}
+.sz.need{border-color:var(--grn);background:var(--grn-lt)}
+.sz.need .sz-q{color:var(--grn-dk)}
+.sz.ok .sz-q{color:var(--grn)}
+.sz.lo .sz-q{color:var(--red)}
+.sz.zero .sz-q{color:var(--mut-lt)}
+.hr{padding:6px 0;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.hr:last-child{border-bottom:none}
+.hr-sup{font-size:10px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hr-meta{font-size:9px;color:var(--mut-lt)}
+.hr-cost{font-size:11px;font-family:var(--mono);font-weight:700}
+.hr-use{font-size:8px;padding:3px 7px;border-radius:2px;border:1px solid var(--bd2);background:var(--bg);color:var(--mut);cursor:pointer;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;transition:all .1s}
+.hr-use:hover{border-color:var(--grn);color:var(--grn);background:var(--grn-lt)}
+.inv-t{width:100%;font-size:11px;border-collapse:collapse}
+.inv-t th{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);padding:2px 4px;text-align:right;border-bottom:1px solid var(--bd)}
+.inv-t th:first-child{text-align:left}
+.inv-t td{padding:3px 4px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--bd)}
+.inv-t td:first-child{text-align:left;font-family:var(--sans);font-size:10px;font-weight:600}
+.inv-t tr:last-child td{border-bottom:none}
+.qok{color:var(--grn);font-weight:700}.qlo{color:var(--red);font-weight:700}.qz{color:var(--mut-lt)}.myp{color:var(--grn);font-weight:700}
+.exbox{background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);padding:8px 10px;min-height:34px}
+.ex-row{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
+.ex-sz{font-size:10px;font-weight:700;color:var(--mut)}
+.ex-q{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--grn)}
+.ex-note{font-size:9px;color:var(--mut-lt);margin-top:5px;line-height:1.5}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg.full{grid-column:1/-1}
+.fl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.fi{background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);padding:6px 8px;font-size:12px;font-family:var(--mono);color:var(--txt);outline:none;transition:border-color .1s;width:100%}
+.fi:focus{border-color:var(--grn)}
+.fi::placeholder{color:var(--mut-lt)}
+select.fi{cursor:pointer;font-family:var(--sans);font-size:11px}
+.btn{background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);color:var(--mut);font-size:9px;padding:5px 10px;cursor:pointer;font-family:var(--sans);font-weight:700;letter-spacing:.06em;text-transform:uppercase;transition:all .1s;white-space:nowrap}
+.btn:hover{border-color:var(--txt);color:var(--txt)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-p{background:var(--sb);border-color:var(--sb);color:var(--yel);padding:8px 16px;font-size:10px}
+.btn-p:hover{background:#1A1A16}
+.btn-ss{background:var(--blu-bg);border-color:var(--blu-bd);color:var(--blu)}
+.btn-ss:hover{background:#d8e9fc}
+.ggroup{background:var(--surf);border:1px solid var(--bd);border-radius:var(--rl);margin-bottom:8px;overflow:hidden}
+.gg-hdr{padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.gg-body{border-top:1px solid var(--bd);background:var(--bg)}
+.gg-row{padding:8px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+.gg-row:last-child{border-bottom:none}
+.loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:32px;color:var(--mut-lt);font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.spin{width:12px;height:12px;border:2px solid var(--bd);border-top-color:var(--grn);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px;color:var(--mut-lt);font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.mok{font-size:11px;color:var(--grn)}.merr{font-size:11px;color:var(--red)}.mamb{font-size:11px;color:var(--amb)}
+.mass-form{border-top:2px solid var(--grn);background:var(--grn-lt);padding:12px 14px}
+.mass-form .fl{color:var(--grn-dk)}
+.mass-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.mass-row:last-child{border-bottom:none}
+.mr-num{font-size:10px;font-family:var(--mono);color:var(--grn-dk);flex-shrink:0;width:48px}
+.mr-cust{font-size:11px;font-weight:700;flex:1}
+.mr-szs{font-size:10px;color:var(--grn-dk);margin-top:1px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="main">
+    <div class="topbar">
+      <span class="tag t-k" style="font-size:10px;padding:5px 14px;letter-spacing:.1em;border-radius:20px">Ready For Ordering</span>
+      <div style="flex:1"></div>
+      <span class="tag t-a" id="modeTag" style="border-radius:20px">Demo</span>
+      <button class="btn" style="border-radius:20px" onclick="loadQueue()">Refresh</button>
+    </div>
+    <div class="toolbar">
+      <div class="vtog">
+        <button class="vbtn on" id="vb-order" onclick="setView('order')">By Order</button>
+        <button class="vbtn" id="vb-garment" onclick="setView('garment')">By Garment</button>
+        <button class="vbtn" id="vb-spend" onclick="setView('spend')">Spend Summary</button>
+      </div>
+      <div class="tsep"></div>
+      <button class="qbtn on" id="qb-blanks" onclick="setQueue('blanks')">Blank Goods RFO</button>
+      <button class="qbtn" id="qb-outsourced" onclick="setQueue('outsourced')">Outsourced RFO</button>
+      <button class="qbtn" id="qb-outsourced-prog" onclick="setQueue('outsourced-prog')">Outsourced In Progress</button>
+      <button class="qbtn" id="qb-flatstock" onclick="setQueue('flatstock')">Flatstock RFO</button>
+      <button class="qbtn" id="qb-reprint" onclick="setQueue('reprint')">Reprint RFO</button>
+      <div class="tsep"></div>
+      <button class="fbtn on" id="fb-all" onclick="setFilter('all')">All</button>
+      <button class="fbtn" id="fb-printed" onclick="setFilter('printed')">Printed</button>
+      <button class="fbtn" id="fb-embroidered" onclick="setFilter('embroidered')">Embroidered</button>
+      <div class="tsep"></div>
+      <div class="spill" id="statPill">—</div>
+    </div>
+    <div class="content" id="content"><div class="loading"><div class="spin"></div>Loading...</div></div>
+  </div>
+</div>
+<script>
+var AT=localStorage.getItem('pine_at_key')||'YOUR_AIRTABLE_KEY_HERE',BASE='appJkaLk8DykjsgHR',LI='tblJx5UlwO7oMSk5H';
+var SS='https://pine-workers.stephen-dab.workers.dev/proxy';
+var WRITES=false;
+var GT='tblukWGm0CIelookM';
+var FS_SS_COLOR='fldUnCYQgAx8AhsMZ'; // [S&S] Color Name on Garments table
+var ssColorCache={};  // garmentRecId -> S&S color name
+
+var F={ref:'fldU6oLyZnxhhm2kX',garment:'fldKhz9uZgXwfeIto',type:'fld8LIkrBXv8WoRRb',customer:'fldB4mKfMl2Lp9UK0',orderNum:'fldzV6PJbTRUDmaae',status:'fldpCv8bxptGJ1gty',ordered:'fldBnjGyTLLjzz97l',po:'fldIUAnkNscvEVDjU',qty:'fldFfuKAcduwWQp8g',supTx:'fldj5Oq8JVUocLzS2',xs:'fldVA9ZmYxhDxtnYZ',s:'fldCZr5lB6Jx80lfG',m:'fldzTs1qKe9IBxxSn',l:'fldnRLJxjUDa1mQTj',xl:'fldTRgdexcpBXXQPv',xxl:'fldin7j6uGO0uRTec',xxxl:'fldpltq9fdRkrvIvt',xxxxl:'fldrsci7JnToa43Zd',osfa:'fld2bgIlmPbANgLVK',c1:'fld6aEQmg93tBX18h',c2:'fldv2GCifJ5wCiCyP',c3:'fldlx8WRqPlslePyS',c4:'fldxcAIPOhFZnkKO0',ts:'fldl02e7TiLPg4v47',
+  styleNum:'fld9ifT5CjMdlLAYM',
+  screens:'fldvDlHKi0P0RD4SF',
+  screenDesc:'fldZqEOrjC4cQIzP6',
+  garmentLink:'fldZbOdGIoCk3Gan2',
+  inbound:'fldi2RmXxYgckvHfd',
+  c4:'fldxcAIPOhFZnkKO0',
+  xxxxl:'fldrsci7JnToa43Zd',
+  orderNotes:'fldF378cgWuOcWNL6'};
+var SZK=[{k:'xs',l:'XS'},{k:'s',l:'S'},{k:'m',l:'M'},{k:'l',l:'L'},{k:'xl',l:'XL'},{k:'xxl',l:'2XL'},{k:'xxxl',l:'3XL'},{k:'xxxxl',l:'4XL'},{k:'osfa',l:'OSFA'}];
+var SZO=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','OSFA'];
+var FK={XS:'xs',S:'s',M:'m',L:'l',XL:'xl','2XL':'xxl','3XL':'xxxl','4XL':'xxxxl',OSFA:'osfa'};
+
+var allRecs=[],curView='order',curFilter='all',expandedId=null,histCache={},ssCache={},ssRawProducts={};
+var curQueue='blanks'; // 'blanks' | 'outsourced' | 'outsourced-prog' | 'flatstock' | 'reprint'
+var ssStyleMap=null; // styleName -> styleID lookup, fetched once from /proxy/styles/
+var ssStyleMapLoading=false;
+var ssStyleMapCallbacks=[];
+
+// Imprints table constants (for outsourced/flatstock/reprint queues)
+var IMP = 'tbln9oAGvz2PNBZLV';
+var IF = {
+  imprintId:  'fldDFfwFQ9B20n2kT',   // Imprint ID e.g. "9798-A"
+  imprintType:'fldjNCuaGOkWgzH2K',   // singleSelect e.g. "Supacolor - Wearable"
+  productType:'fldko7pTQhSBZFtso',   // lookup e.g. "Printed Apparel"
+  orderStatus:'fldNROVFSsBwLUOYW',   // lookup e.g. "Awaiting Proof"
+  customer:   'fldeLMIAC0ABQAjYJ',   // lookup customer name
+  qty:        'fldFipR4ddfqMPeAX',   // number
+  vendor:     'fldJDBxnJ97eYSwjR',   // multipleRecordLinks [{id,name}]
+  reprintId:  'fldT8m8CCcIaTBSqS',   // formula "9798-RP"
+};
+
+// Order statuses to exclude from active queues
+var DONE_STATUSES = ['Completed','Cancelled / Voided','Partially Completed'];
+var OUTSOURCED_RFO_STATUSES = ['Awaiting Proof','Ready to Order','Sent - Awaiting Payment'];
+
+var SUPPLIERS=[],SUP_DIT={};
+
+var SUP_DIT_FALLBACK=[
+  {n:'Alphabroder - Denver',d:1},{n:'Alphabroder - Dallas',d:2},{n:'Alphabroder - Fresno',d:2},
+  {n:'Alphabroder - Atlanta',d:3},{n:'Alphabroder - Chicago',d:3},{n:'Alphabroder - Seattle',d:3},
+  {n:'Alphabroder - Harrisburg',d:3},{n:'Alphabroder - Middleboro',d:6},{n:'Alphabroder - Orlando',d:6},
+  {n:'AS Colour - CA',d:5},{n:'AS Colour - NC',d:5},
+  {n:'Bella Canvas Direct',d:4},{n:'Carolina Creative Products',d:5},
+  {n:'S&S Activewear - Olathe, KS',d:2},{n:'S&S Activewear - Ft. Worth, TX',d:2},
+  {n:'S&S Activewear - Dallas, TX',d:2},{n:'S&S Activewear - Reno, NV',d:3},
+  {n:'S&S Activewear - Lockport, IL',d:3},{n:'S&S Activewear - Bolingbrook, IL',d:4},
+  {n:'S&S Activewear - Fresno, CA',d:4},{n:'S&S Activewear - McDonough, GA',d:4},
+  {n:'S&S Activewear - Harrisburg, PA',d:5},{n:'S&S Activewear - Duluth, GA',d:5},
+  {n:'S&S Activewear - Orlando, FL',d:5},{n:'S&S Activewear - Pompano Beach, FL',d:5},
+  {n:'S&S Activewear - West Chester, OH',d:5},{n:'S&S Activewear - Robbinsville, NJ',d:4},
+  {n:'S&S Activewear - Reading, PA',d:7},{n:'S&S Activewear - Middleboro, MA',d:6},
+  {n:'Sanmar - Dallas, TX',d:2},{n:'Sanmar - Reno, NV',d:2},{n:'Sanmar - Phoenix, AZ',d:2},
+  {n:'Sanmar - Cinncinnati, OH',d:3},{n:'Sanmar - Minneapolis, MN',d:3},{n:'Sanmar - Seattle, WA',d:3},
+  {n:'Sanmar - Robbinsville, NJ',d:4},{n:'Sanmar - Jacksonville, FL',d:4},{n:'Sanmar - Richmond, VA',d:5},
+  {n:'SLC Activewear',d:2},{n:'SLC Activewear - Houston, TX',d:2},{n:'SLC Activewear - Phoenix, AZ',d:2},
+  {n:'SLC Activewear - Salt Lake City, UT',d:2},{n:'TSC Apparel - Denver',d:2},
+  {n:'TSC Apparel - Houston',d:2},{n:'TSC Apparel - Moreno Valley',d:2},{n:'TSC Apparel - Portland',d:2},
+  {n:'TSC Apparel - Cincinnati',d:3},{n:'TSC Apparel - Perry, GA',d:3},{n:'TSC Apparel - Philadelphia',d:3},
+  {n:'Original Favorites',d:2},{n:'Otto Cap',d:4},{n:'BLVNK Headwear',d:3},
+  {n:'LA Apparel',d:5},{n:'LAT Direct - GA',d:4},{n:'Augusta Sportswear',d:4},
+];
+var SUP_FALLBACK=['Alphabroder - Denver','AS Colour - CA','AS Colour - NC','Augusta Sportswear','Bayside (DS)','Bella Canvas Direct - Las Vegas, NV','Bella Canvas Direct - Northeast, MD','Carolina Creative Products','Gildan/Comfort Colors - Eden NC','Independent CA - drop ship','Independent PA - drop ship','LA Apparel','Lane Seven','LAT Direct - GA','LAT Direct - NV (DS)','Next Level DS','Pacific Headwear - Coburg, OR','Royal Apparel','S&S Activewear - Bolingbrook, IL','S&S Activewear - Dallas, TX','S&S Activewear - Duluth, GA','S&S Activewear - Fresno, CA','S&S Activewear - Ft. Worth, TX','S&S Activewear - Harrisburg, PA','S&S Activewear - Lockport, IL','S&S Activewear - McDonough, GA','S&S Activewear - Middleboro, MA','S&S Activewear - Olathe, KS','S&S Activewear - Orlando, FL','S&S Activewear - Pompano Beach, FL','S&S Activewear - Reading, PA','S&S Activewear - Reno, NV','S&S Activewear - Robbinsville, NJ','S&S Activewear - West Chester, OH','Sanmar - Cinncinnati, OH','Sanmar - Dallas, TX','Sanmar - Jacksonville, FL','Sanmar - Minneapolis, MN','Sanmar - Phoenix, AZ','Sanmar - Reno, NV','Sanmar - Richmond, VA','Sanmar - Robbinsville, NJ','Sanmar - Seattle, WA','Shadow Shifters','SLC Activewear','SLC Activewear - Houston, TX','SLC Activewear - Phoenix, AZ','SLC Activewear - Salt Lake City, UT','TSC Apparel - Cincinnati','TSC Apparel - Denver','TSC Apparel - Houston','TSC Apparel - Moreno Valley','TSC Apparel - Perry, GA','TSC Apparel - Philadelphia','TSC Apparel - Portland'];
+
+function loadSuppliers(){
+  // Pre-populate DIT from fallback immediately so autoArrival works before Airtable resolves
+  SUP_DIT_FALLBACK.forEach(function(s){SUP_DIT[s.n]=s.d;});
+  if(AT==='YOUR_AIRTABLE_KEY_HERE'){SUPPLIERS=SUP_FALLBACK;return;}
+  fetch('https://api.airtable.com/v0/'+BASE+'/tbldewW9XDeW7Yruf?returnFieldsByFieldId=true&fields%5B%5D=fldsLqqLgIySfvNNg&fields%5B%5D=fldkxReU8bOwXpQXT&pageSize=100&sort%5B0%5D%5Bfield%5D=fldsLqqLgIySfvNNg',{headers:{'Authorization':'Bearer '+AT}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var recs=d.records||[];
+      SUPPLIERS=recs.map(function(r){return r.fields['fldsLqqLgIySfvNNg']||'';}).filter(Boolean);
+      recs.forEach(function(r){var n=r.fields['fldsLqqLgIySfvNNg'],t=r.fields['fldkxReU8bOwXpQXT'];if(n&&t)SUP_DIT[n]=t;});
+      console.log('[SUP] Loaded '+Object.keys(SUP_DIT).length+' DIT values. Sample: S&S Olathe='+SUP_DIT['S&S Activewear - Olathe, KS']);
+    })
+    .catch(function(){
+      SUPPLIERS=SUP_FALLBACK;
+      // Populate DIT from hardcoded fallback for most-used suppliers
+      SUP_DIT_FALLBACK.forEach(function(s){SUP_DIT[s.n]=s.d;});
+      console.warn('[SUP] Fell back to hardcoded supplier list');
+    });
+}
+
+function loadImprintQueue(queue) {
+  var el=document.getElementById('content');
+  if(el)el.innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
+
+  var DONE=['Completed','Cancelled / Voided','Partially Completed'];
+
+  // Build Airtable formula filter based on queue type
+  var formula='';
+  if(queue==='outsourced'){
+    // Vendor not empty + status not done + not yet ordered
+    formula="AND({fldJDBxnJ97eYSwjR}!='',NOT(OR(FIND('Completed',{fldNROVFSsBwLUOYW}),FIND('Cancelled',{fldNROVFSsBwLUOYW}),FIND('Partially Completed',{fldNROVFSsBwLUOYW}))))";
+  } else if(queue==='outsourced-prog'){
+    // Vendor not empty + status is active in-progress
+    formula="AND({fldJDBxnJ97eYSwjR}!='',OR(FIND('Scheduled',{fldNROVFSsBwLUOYW}),FIND('Pre-press',{fldNROVFSsBwLUOYW}),FIND('Ready to Order',{fldNROVFSsBwLUOYW}),FIND('Received',{fldNROVFSsBwLUOYW}),FIND('Inbound',{fldNROVFSsBwLUOYW})))";
+  } else if(queue==='flatstock'){
+    formula="AND({fldjNCuaGOkWgzH2K}='Flatstock',NOT(OR(FIND('Completed',{fldNROVFSsBwLUOYW}),FIND('Cancelled',{fldNROVFSsBwLUOYW}))))";
+  } else if(queue==='reprint'){
+    formula="FIND('Delayed - Mis-Print',{fldNROVFSsBwLUOYW})";
+  }
+
+  var flds=[IF.imprintId,IF.imprintType,IF.productType,IF.orderStatus,IF.customer,IF.qty,IF.vendor,IF.reprintId].map(function(f){return 'fields%5B%5D='+f;}).join('&');
+  var url='https://api.airtable.com/v0/'+BASE+'/'+IMP+'?returnFieldsByFieldId=true&'+flds+'&pageSize=100&sort%5B0%5D%5Bfield%5D=fldc7aezBfzoVPeAY&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula='+encodeURIComponent(formula);
+
+  // Demo mode
+  if(AT==='YOUR_AIRTABLE_KEY_HERE'){
+    allRecs=demoImpRecs(queue);
+    renderImprintQueue(queue);
+    return;
+  }
+
+  fetch(url,{headers:{'Authorization':'Bearer '+AT}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.error){throw new Error(d.error.message||'Airtable error');}
+      allRecs=d.records||[];
+      renderImprintQueue(queue);
+    })
+    .catch(function(e){
+      if(el)el.innerHTML='<div class="empty">Error loading queue: '+esc(e.message)+'</div>';
+    });
+}
+
+function getImpStatus(rec){
+  var raw=rec.fields[IF.orderStatus];
+  if(!raw) return '';
+  // REST: flat array; MCP: nested object
+  if(Array.isArray(raw)) return raw[0]||'';
+  if(raw.valuesByLinkedRecordId){var vals=Object.values(raw.valuesByLinkedRecordId);return vals.length&&vals[0].length?vals[0][0]:'';}
+  return '';
+}
+
+function getImpVendor(rec){
+  var v=rec.fields[IF.vendor];
+  if(!v||!v.length)return '';
+  // REST: bare string IDs; MCP: objects with .name
+  return typeof v[0]==='object'?v[0].name||'':v[0]||'';
+}
+
+function renderImprintQueue(queue){
+  var el=document.getElementById('content');
+  if(!el)return;
+  if(!allRecs.length){
+    el.innerHTML='<div class="empty">No items in this queue right now.</div>';
+    return;
+  }
+
+  var qLabels={
+    'outsourced':'Outsourced RFO',
+    'outsourced-prog':'Outsourced In Progress',
+    'flatstock':'Flatstock RFO',
+    'reprint':'Reprint RFO'
+  };
+
+  var html='<div style="padding:0">';
+
+  // Group outsourced queues by vendor
+  if(queue==='outsourced'||queue==='outsourced-prog'){
+    var byVendor={};
+    allRecs.forEach(function(r){
+      var v=getImpVendor(r)||'Unknown Vendor';
+      if(!byVendor[v])byVendor[v]=[];
+      byVendor[v].push(r);
+    });
+    Object.keys(byVendor).sort().forEach(function(vname){
+      html+='<div style="padding:14px 0 4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--mut-lt);font-family:var(--cond);display:flex;align-items:center;justify-content:space-between">'+
+        '<span>'+esc(vname)+'</span>'+
+        '<span style="font-weight:400;color:var(--muted-lt)">'+byVendor[vname].length+' imprint'+(byVendor[vname].length===1?'':'s')+'</span>'+
+      '</div>';
+      byVendor[vname].forEach(function(r){html+=renderImpCard(r,queue);});
+    });
+  } else {
+    allRecs.forEach(function(r){html+=renderImpCard(r,queue);});
+  }
+
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function renderImpCard(rec,queue){
+  var f=rec.fields;
+  var imprintId=f[IF.imprintId]||'';
+  var impType=(f[IF.imprintType]||{}).name||'';
+  var customer=f[IF.customer]||'';
+  var qty=f[IF.qty]||0;
+  var vendor=getImpVendor(rec);
+  var status=getImpStatus(rec);
+  var open=expandedId===rec.id;
+
+  // Status tag
+  var sc='t-n';
+  if(status.indexOf('Delayed')>=0||status.indexOf('Mis-Print')>=0)sc='t-r';
+  else if(status.indexOf('Awaiting Proof')>=0||status.indexOf('Sent - Awaiting')>=0)sc='t-a';
+  else if(status.indexOf('Scheduled')>=0||status.indexOf('Inbound')>=0)sc='t-g';
+  else if(status.indexOf('Pre-press')>=0||status.indexOf('Ready')>=0)sc='t-b';
+
+  // Imprint type tag color
+  var itc='t-n';
+  if(impType.indexOf('Supacolor')>=0)itc='t-b';
+  else if(impType.indexOf('Flatstock')>=0)itc='t-g';
+
+  // Vendor shown only outside vendor-grouped views
+  var vendorTag=(vendor&&queue!=='outsourced'&&queue!=='outsourced-prog')?'<span class="tag t-n">'+esc(vendor)+'</span>':'';
+
+  return '<div class="ocard'+(open?' open':'')+'" id="oc-'+rec.id+'">'+
+    '<div class="och" onclick="toggleImpCard(\''+rec.id+'\',\''+queue+'\')">'+
+      '<div class="och-num">'+esc(imprintId)+'</div>'+
+      '<div class="och-body">'+
+        '<div class="och-cust">'+esc(customer)+'</div>'+
+        '<div class="och-garm">'+esc(impType)+(vendor&&(queue==='outsourced'||queue==='outsourced-prog')?'':'')+' </div>'+
+        '<div class="och-meta">'+
+          '<span class="tag '+itc+'">'+esc(impType)+'</span>'+
+          vendorTag+
+          (status?'<span class="tag '+sc+'">'+esc(status)+'</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div class="och-right"><div class="och-qty">'+qty+'</div><div class="och-qlbl">pcs</div></div>'+
+    '</div>'+
+    '<div id="det-'+rec.id+'" style="display:'+(open?'block':'none')+'">'+
+      (open?renderImpDetail(rec,queue):'')+
+    '</div>'+
+  '</div>';
+}
+
+function renderImpDetail(rec,queue){
+  var f=rec.fields;
+  var imprintId=f[IF.imprintId]||'';
+  var impType=(f[IF.imprintType]||{}).name||'';
+  var customer=f[IF.customer]||'';
+  var qty=f[IF.qty]||0;
+  var vendor=getImpVendor(rec);
+  var status=getImpStatus(rec);
+  var reprintId=f[IF.reprintId]||'';
+
+  var html='<div class="detail-grid">';
+
+  // Info row
+  html+='<div class="fg"><div class="fl">Imprint ID</div><div class="fv" style="font-family:var(--mono);font-weight:700">'+esc(imprintId)+'</div></div>';
+  html+='<div class="fg"><div class="fl">Customer</div><div class="fv">'+esc(customer)+'</div></div>';
+  html+='<div class="fg"><div class="fl">Imprint Type</div><div class="fv">'+esc(impType)+'</div></div>';
+  html+='<div class="fg"><div class="fl">Qty</div><div class="fv" style="font-family:var(--mono);font-weight:700">'+qty+' pcs</div></div>';
+  if(vendor)html+='<div class="fg"><div class="fl">Vendor</div><div class="fv" style="font-weight:700">'+esc(vendor)+'</div></div>';
+  html+='<div class="fg"><div class="fl">Order Status</div><div class="fv">'+esc(status)+'</div></div>';
+  if(reprintId)html+='<div class="fg"><div class="fl">Reprint ID</div><div class="fv" style="font-family:var(--mono);color:var(--mut)">'+esc(reprintId)+'</div></div>';
+
+  html+='</div>';
+
+  // Action section
+  html+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">';
+
+  if(queue==='outsourced'||queue==='flatstock'||queue==='reprint'){
+    // Mark as ordered action
+    html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<div style="font-size:10px;font-weight:700;color:var(--mut)">PO / Order Reference:</div>'+
+      '<input id="imp-po-'+rec.id+'" style="width:120px;padding:4px 8px;border:1px solid var(--bd2);border-radius:var(--r);font-size:11px;font-family:var(--mono)" placeholder="PO or ref #">'+
+      '<button class="btn btn-p" onclick="markImpOrdered(\''+rec.id+'\')">Mark Ordered</button>'+
+    '</div>';
+  } else if(queue==='outsourced-prog'){
+    html+='<div style="font-size:10px;color:var(--mut)">This imprint is in progress with <b>'+esc(vendor)+'</b>. No action needed until received.</div>';
+  }
+
+  html+='<div id="imp-msg-'+rec.id+'" style="margin-top:6px;font-size:10px;min-height:16px"></div>';
+  html+='</div>';
+
+  return html;
+}
+
+function toggleImpCard(id,queue){
+  expandedId=(expandedId===id)?null:id;
+  renderImprintQueue(queue);
+}
+
+function markImpOrdered(id){
+  var po=(document.getElementById('imp-po-'+id)||{}).value||'';
+  var msgEl=document.getElementById('imp-msg-'+id);
+  var rec=allRecs.find(function(r){return r.id===id;});
+  if(!rec){if(msgEl)msgEl.innerHTML='<span style="color:var(--red)">Record not found</span>';return;}
+  var vendor=getImpVendor(rec);
+  var imprintId=rec.fields[IF.imprintId]||'';
+
+  if(!WRITES){
+    if(msgEl)msgEl.innerHTML='<span style="color:var(--amb)">&#128065; Preview (writes off): Would mark <b>'+esc(imprintId)+'</b> ordered'+(po?' · PO: '+esc(po):'')+(vendor?' · Vendor: '+esc(vendor):'')+'</span>';
+    return;
+  }
+
+  if(msgEl)msgEl.innerHTML='<span style="color:var(--mut)">Saving...</span>';
+  // For imprints, we just note the order in the Additional Notes field or similar
+  // For now just show confirmation — this can be extended to write to Airtable Imprints
+  setTimeout(function(){
+    allRecs=allRecs.filter(function(r){return r.id!==id;});
+    renderImprintQueue(curQueue);
+  },500);
+}
+
+function loadQueue(){
+  document.getElementById('content').innerHTML='<div class="loading"><div class="spin"></div>Loading RFO queue...</div>';
+  if(AT==='YOUR_AIRTABLE_KEY_HERE'){showDemo();return;}
+  var flds=Object.values(F).filter(function(v,i,a){return a.indexOf(v)===i;});
+  var fp=flds.map(function(f){return 'fields%5B%5D='+f;}).join('&');
+  fetch('https://api.airtable.com/v0/'+BASE+'/'+LI+'?returnFieldsByFieldId=true&'+fp+'&pageSize=100&sort%5B0%5D%5Bfield%5D='+F.ts+'&sort%5B0%5D%5Bdirection%5D=desc',{headers:{'Authorization':'Bearer '+AT}})
+    .then(function(r){
+      if(!r.ok) throw new Error('Airtable '+r.status);
+      return r.json();
+    })
+    .then(function(d){
+      if(d.error){throw new Error(d.error.message||'Airtable error');}
+      console.log('[RFO] Got '+((d.records||[]).length)+' records from Airtable');
+      var rfo=(d.records||[]).filter(function(r){
+        var f=r.fields||{};
+        var st=f[F.status];
+        // REST API: multipleLookupValues returns flat array
+        var vals=Array.isArray(st)?st:[];
+        var tp=f[F.type]?(typeof f[F.type]==='object'?f[F.type].name:f[F.type]):'';
+        return !f[F.ordered]&&vals.some(function(s){return s==='Ready to Order';})&&(tp==='Printed Apparel'||tp==='Embroidered Apparel');
+      });
+      console.log('[RFO] Filtered to '+rfo.length+' Ready to Order');
+      allRecs=rfo;
+      var mt=document.getElementById('modeTag');
+      mt.className='tag t-g';mt.textContent='Live';
+      loadSSColors();
+      render();
+    }).catch(function(e){
+      document.getElementById('content').innerHTML='<div class="empty">Error loading queue: '+esc(e.message||'Network error')+'</div>';
+      var mt=document.getElementById('modeTag');mt.className='tag t-r';mt.textContent='Error';
+    });
+}
+
+function showDemo(){allRecs=demoRecs();render();}
+
+function mkImp(id,impId,customer,impType,qty,vendor,status,reprintId){
+  var f={};
+  f[IF.imprintId]=impId;
+  f[IF.imprintType]={id:'sel'+id,name:impType,color:'blueBright'};
+  f[IF.customer]=customer;
+  f[IF.qty]=qty;
+  f[IF.reprintId]=reprintId||impId.replace(/-[A-Z]$/,'')+'-RP';
+  // Order status as lookup
+  var osMap={};osMap['rec'+id]=[status];
+  f[IF.orderStatus]={linkedRecordIds:['rec'+id],valuesByLinkedRecordId:osMap};
+  // Vendor as linked record
+  if(vendor){f[IF.vendor]=[{id:'recV'+id,name:vendor}];}
+  // Product type
+  var ptMap={};ptMap['recP'+id]=['Printed Apparel'];
+  f[IF.productType]={linkedRecordIds:['recP'+id],valuesByLinkedRecordId:ptMap};
+  return {id:'recIMP'+id,fields:f};
+}
+
+function demoImpRecs(queue){
+  if(queue==='outsourced'){
+    return [
+      mkImp('OSC1','9798-A','Walker Inspection','Supacolor - Wearable',90,'Supacolor','Awaiting Proof'),
+      mkImp('OSC2','9792-A','Best Life Physical Therapy','Supacolor - Wearable',10,'Supacolor','Awaiting Proof'),
+      mkImp('OSC3','9769-B','Stout Tent','Supacolor - 1C Blocker',26,'Supacolor','Awaiting Proof'),
+      mkImp('OSC4','9679-A','TNT','Supacolor - Promotional',25,'Supacolor','Awaiting Proof'),
+      mkImp('OSC5','9421-B','Osprey Bags','Supacolor - 1C Wearable',3500,'Supacolor','Awaiting Proof'),
+      mkImp('OSC6','9794-A','CSU Fly Fishing Club','Patch/Label ONLY',0,'Dynamic Patches','Sent - Awaiting Payment'),
+    ];
+  }
+  if(queue==='outsourced-prog'){
+    return [
+      mkImp('OSP1','9790-B','Blue Shed Urban Gardens','Supacolor - Wearable',60,'Supacolor','Scheduled, Screened, & Inbound'),
+      mkImp('OSP2','9790-A','Blue Shed Urban Gardens','Supacolor - Wearable',60,'Supacolor','Scheduled, Screened, & Inbound'),
+      mkImp('OSP3','9777-A','Fort Collins Trolley','Supacolor - 1C Wearable',75,'Supacolor','Pre-press'),
+      mkImp('OSP4','9622-A','WARGAME Co.','Supacolor - 1C Wearable',397,'Supacolor','Ready to Order'),
+      mkImp('OSP5','9622-K','WARGAME Co.','Supacolor - Wearable',45,'Supacolor','Ready to Order'),
+      mkImp('OSP6','9622-L','WARGAME Co.','Supacolor - Wearable',45,'Supacolor','Ready to Order'),
+      mkImp('OSP7','9663-B','Flywater River Consulting & Construction','Patch/Label ONLY',0,'Dynamic Patches','Received & Staged'),
+      mkImp('OSP8','9663-A','Flywater River Consulting & Construction','Patch/Label ONLY',0,'Outpatch','Received & Staged'),
+    ];
+  }
+  if(queue==='flatstock'){
+    return [
+      mkImp('FST1','9813-A','The Mishawaka','Flatstock',50,'','Awaiting Proof'),
+      mkImp('FST2','9778-A','Logan Hall','Flatstock',101,'','Sent - Awaiting Payment'),
+      mkImp('FST3','9630-A','Outside Magazine','Flatstock',1000,'','Awaiting Proof'),
+      mkImp('FST4','9755-A','Anatomic outfitters','Flatstock',50,'','Received & Staged'),
+      mkImp('FST5','9707-A','Relentless Merch','Flatstock',100,'','Received & Staged'),
+    ];
+  }
+  if(queue==='reprint'){
+    return [
+      mkImp('RPT1','9613-E','PERC Coffee','Supacolor - 1C Wearable',125,'Supacolor','Delayed - Mis-Print - Needs Order'),
+      mkImp('RPT2','9613-C','PERC Coffee','Supacolor - 1C Wearable',125,'Supacolor','Delayed - Mis-Print - Needs Order'),
+    ];
+  }
+  return [];
+}
+
+function demoRecs(){
+  return [
+    mk('D1','9812','Full Expression! A Dance Collective','Bella Canvas 3001 - Black','Printed Apparel',72,{s:12,m:24,l:24,xl:12},{c1:3.89,c2:5.68,c3:6.86},7,['4 screens on Front','3 screens on Back']),
+    mk('D2','9810','Larimer County Conservation Corps','Yupoong C112 - Navy','Embroidered Apparel',48,{osfa:48},{c1:7.45}),
+    mk('D3','9808','Smokies Life','Gildan 18500 - Black','Printed Apparel',60,{s:10,m:20,l:20,xl:10},{c1:9.99,c2:11.49},4,['4 screens on Front']),
+    mk('D4','9801','City Park Farmers Market','Bella Canvas 3001 - Mustard','Printed Apparel',48,{s:8,m:16,l:16,xl:8},{c1:3.89,c2:5.68},2,['2 screens on Front']),
+    mk('D5','9805','Mountain Goat Brewing','Bella Canvas 3001 - Black','Printed Apparel',96,{xs:6,s:18,m:30,l:26,xl:16},{c1:3.89,c2:5.68,c3:6.86},6,['4 screens on Front','2 screens on Back']),
+    mk('D6','9807','Horsetooth Brewing Co.','Port & Company PC54 - Athletic Heather','Printed Apparel',60,{s:10,m:20,l:20,xl:10},{c1:3.79,c2:4.99},3,['3 screens on Front']),
+  ];
+}
+
+function mk(id,num,cust,garm,type,qty,szs,costs,screens,scrDesc){
+  var f={};
+  f[F.ref]=num+'-'+cust;f[F.customer]=cust;
+  f[F.orderNum]={linkedRecordIds:['r'+id],valuesByLinkedRecordId:{['r'+id]:[parseInt(num)]}};
+  f[F.garment]=garm;f[F.type]={name:type};f[F.qty]=qty;
+  Object.keys(szs).forEach(function(k){f[F[k]]=szs[k];});
+  if(costs.c1)f[F.c1]=costs.c1;if(costs.c2)f[F.c2]=costs.c2;if(costs.c3)f[F.c3]=costs.c3;
+  if(screens)f[F.screens]=screens;
+  if(scrDesc)f[F.screenDesc]={valuesByLinkedRecordId:{'r0':scrDesc}};
+  return {id:id,fields:f};
+}
+
+function filtered(){
+  return allRecs.filter(function(r){
+    var t=r.fields[F.type],tn=t?(typeof t==='object'?t.name:t):'';
+    if(curFilter==='printed')return tn==='Printed Apparel';
+    if(curFilter==='embroidered')return tn==='Embroidered Apparel';
+    return true;
+  });
+}
+
+function setQueue(q){
+  curQueue=q;
+  ['blanks','outsourced','outsourced-prog','flatstock','reprint'].forEach(function(k){
+    var b=document.getElementById('qb-'+k);if(b)b.className='qbtn'+(q===k?' on':'');
+  });
+  // Show/hide filter bar and view toggles — only relevant for blanks queue
+  var filterBar=document.querySelector('.vtog');
+  var filterBtns=document.querySelectorAll('.fbtn');
+  if(filterBar)filterBar.style.display=q==='blanks'?'':'none';
+  filterBtns.forEach(function(b){b.style.display=q==='blanks'?'':'none';});
+  allRecs=[];
+  expandedId=null;
+  if(q==='blanks'){
+    loadQueue();
+  } else {
+    loadImprintQueue(q);
+  }
+}
+
+function setView(v){curView=v;['order','garment','spend'].forEach(function(k){var b=document.getElementById('vb-'+k);if(b)b.className='vbtn'+(v===k?' on':'');});render();}
+function setFilter(f){curFilter=f;['all','printed','embroidered'].forEach(function(k){document.getElementById('fb-'+k).className='fbtn'+(f===k?' on':'');});render();}
+
+function render(){
+  var recs=filtered();
+  var pcs=recs.reduce(function(s,r){return s+(r.fields[F.qty]||0);},0);
+  document.getElementById('statPill').innerHTML='<strong>'+recs.length+'</strong> orders &middot; <strong>'+pcs.toLocaleString()+'</strong> pcs';
+  if(!recs.length){document.getElementById('content').innerHTML='<div class="empty">No items ready to order</div>';return;}
+  curView==='spend'?renderSpend(recs):curView==='order'?renderOrders(recs):renderGarments(recs);
+}
+
+function oNum(r){var f=r.fields[F.orderNum];return Array.isArray(f)?f[0]||'':(f&&f.valuesByLinkedRecordId?Object.values(f.valuesByLinkedRecordId).flat()[0]||'':'');}
+
+function renderOrders(recs){
+  document.getElementById('content').innerHTML=recs.map(function(r){
+    var f=r.fields,id=r.id;
+    var cust=f[F.customer]||'?',num=oNum(r),garm=f[F.garment]||'';
+    var qty=f[F.qty]||0,type=f[F.type]?(typeof f[F.type]==='object'?f[F.type].name:f[F.type]):'';
+    var style=parseStyle(garm);
+    var screens=f[F.screens]||0;
+    // Parse per-location screen descriptions e.g. "6 screens on Front", "4 screens on Back"
+    var screenLocs=[];
+    var sdRaw=f[F.screenDesc];
+    // REST: flat array; MCP: nested valuesByLinkedRecordId
+    var sdArr=Array.isArray(sdRaw)?sdRaw:(sdRaw&&sdRaw.valuesByLinkedRecordId?Object.values(sdRaw.valuesByLinkedRecordId).flat():[]);
+    sdArr.forEach(function(s){
+      var m=String(s).match(/^(\d+)\s+screens?\s+on\s+(.+)$/i);
+      if(m&&parseInt(m[1])>0)screenLocs.push({loc:m[2],ct:parseInt(m[1])});
+    });
+    var screenLabel=screenLocs.length
+      ?screenLocs.map(function(x){return x.loc+':'+x.ct;}).join(' · ')
+      :(screens?screens+' scr':'');
+    var szTags=SZK.filter(function(s){return (f[F[s.k]]||0)>0;}).slice(0,5).map(function(s){return '<span class="tag t-n">'+s.l+':'+f[F[s.k]]+'</span>';}).join('');
+    var open=expandedId===id;
+    return '<div class="ocard'+(open?' open':'')+'" id="oc-'+id+'">'+
+      '<div class="och" onclick="toggle(\''+id+'\')">'+
+        '<div class="och-num">'+(num?'#'+num:'')+'</div>'+
+        '<div class="och-body">'+
+          '<div class="och-cust">'+esc(cust)+'</div>'+
+          '<div class="och-garm">'+esc(garm)+'</div>'+
+          '<div class="och-meta"><span class="tag '+(type==='Printed Apparel'?'t-b':'t-a')+'">'+(type==='Printed Apparel'?'Print':'Emb')+'</span>'+(style?'<span class="tag t-n">'+style+'</span>':'')+(screenLabel?'<span class="tag '+(screens>=6?'t-r':'t-n')+'">'+esc(screenLabel)+'</span>':'')+szTags+'</div>'+
+        '</div>'+
+        '<div class="och-right"><div class="och-qty">'+qty+'</div><div class="och-qlbl">pcs</div></div>'+
+      '</div>'+
+      '<div id="det-'+id+'" style="display:'+(open?'block':'none')+'">'+renderDetail(r)+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderGarments(recs){
+  var groups={};
+  recs.forEach(function(r){var g=r.fields[F.garment]||'?';if(!groups[g])groups[g]=[];groups[g].push(r);});
+  var keys=Object.keys(groups).sort(function(a,b){
+    return groups[b].reduce(function(s,r){return s+(r.fields[F.qty]||0);},0)-groups[a].reduce(function(s,r){return s+(r.fields[F.qty]||0);},0);
+  });
+  document.getElementById('content').innerHTML=keys.map(function(garm){
+
+    var rs=groups[garm],total=rs.reduce(function(s,r){return s+(r.fields[F.qty]||0);},0);
+    var parts=garm.split(' - '),gid='g'+garm.replace(/[^a-z0-9]/gi,'_');
+    var style=parseStyle(garm),colorway=colorOf(garm);
+    var sampleRec=rs.find(function(r){return r.fields[F.c1];})||rs[0];
+    var sf=sampleRec?sampleRec.fields:{};
+    var recIds=rs.map(function(r){return r.id;});
+    var rows=rs.map(function(r){
+      var f=r.fields,num=oNum(r);
+      var szStr=SZK.filter(function(s){return (f[F[s.k]]||0)>0;}).map(function(s){return s.l+':'+f[F[s.k]];}).join(' \u00b7 ');
+      return '<div class="gg-row">'+
+        '<div style="font-size:10px;font-family:var(--mono);color:var(--mut-lt);flex-shrink:0;width:48px">'+(num?'#'+num:'')+'</div>'+
+        '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700">'+esc(f[F.customer]||'?')+'</div><div style="font-size:10px;color:var(--mut)">'+szStr+' &middot; '+(f[F.qty]||0)+' pcs</div></div>'+
+        '<button class="btn" style="font-size:8px;padding:3px 8px" onclick="jumpTo(\''+r.id+'\')" >View</button>'+
+      '</div>';
+    }).join('');
+    return '<div class="ggroup">'+
+      '<div class="gg-hdr" onclick="toggleGrp(\''+gid+'\')" >'+
+        '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700">'+esc(parts[0])+'</div>'+(parts[1]?'<div style="font-size:11px;color:var(--mut);margin-top:2px">'+esc(parts.slice(1).join(' - '))+'</div>':'')+
+        '<div style="display:flex;gap:4px;margin-top:4px"><span class="tag t-k">'+total+' pcs</span><span class="tag t-n">'+rs.length+' order'+(rs.length>1?'s':'')+'</span></div></div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'+
+          '<div><div style="font-size:22px;font-weight:700;font-family:var(--mono);line-height:1">'+total+'</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut-lt);text-align:right">total pcs</div></div>'+
+          (rs.length>0?'<button class="btn btn-p" style="font-size:9px;padding:5px 10px" onclick="event.stopPropagation();toggleMassForm(\''+gid+'\',\''+esc(style||'')+'\',\''+esc(colorway||'')+'\')">Order All ('+rs.length+')</button>':'')+
+        '</div>'+
+      '</div>'+
+      '<div id="'+gid+'" class="gg-body" style="display:none">'+rows+'</div>'+
+      '<div id="mf-'+gid+'" style="display:none"></div>'+
+    '</div>';
+  }).join('');
+}
+
+function toggleGrp(gid){var el=document.getElementById(gid);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+
+function jumpTo(id){
+  setView('order');
+  setTimeout(function(){
+    var el=document.getElementById('oc-'+id);
+    if(el){el.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(function(){toggle(id);},300);}
+  },50);
+}
+
+function toggle(id){
+  var det=document.getElementById('det-'+id),card=document.getElementById('oc-'+id);
+  if(!det)return;
+  var open=det.style.display!=='none';
+  if(open){det.style.display='none';card.classList.remove('open');if(expandedId===id)expandedId=null;}
+  else{
+    det.style.display='block';card.classList.add('open');expandedId=id;
+    loadHist(id);
+
+    var rec=allRecs.find(function(r){return r.id===id;});
+    if(rec){var g=rec.fields[F.garment]||'',st=rec.fields[F.styleNum]||parseStyle(g);if(st)loadSS(id,st,colorOf(g));}
+  }
+}
+
+function renderDetail(rec){
+  var f=rec.fields,id=rec.id,garm=f[F.garment]||'',style=f[F.styleNum]||parseStyle(garm);
+  var szHtml=SZK.filter(function(s){return (f[F[s.k]]||0)>0;}).map(function(s){
+    return '<div class="sz need"><div class="sz-l">'+s.l+'</div><div class="sz-q">'+f[F[s.k]]+'</div></div>';
+  }).join('');
+  var costHtml='';
+  [{k:'c1',l:'XS-XL'},{k:'c2',l:'2XL'},{k:'c3',l:'3XL'},{k:'c4',l:'4XL'}].forEach(function(c){
+    if(f[F[c.k]])costHtml+='<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--bd)"><span style="font-size:10px;color:var(--mut)">'+c.l+'</span><strong style="font-family:var(--mono);font-size:11px">$'+f[F[c.k]].toFixed(2)+'</strong></div>';
+  });
+  var supOpts=(SUPPLIERS.length?SUPPLIERS:SUP_FALLBACK).map(function(s){return '<option value="'+esc(s)+'">'+esc(s)+'</option>';}).join('');
+  return '<div class="odet">'+
+    '<div class="dcols">'+
+      '<div class="panel"><div class="ph"><span class="ph-t">Sizes needed</span></div><div class="pb">'+
+        '<div class="szrow">'+szHtml+'</div>'+
+        (costHtml?'<div style="margin-top:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-bottom:4px">Last recorded cost</div>'+costHtml:'')+
+      '</div></div>'+
+      '<div class="panel"><div class="ph"><span class="ph-t">Purchase history</span><span style="font-size:9px;color:var(--mut-lt)">Airtable</span></div>'+
+        '<div class="pb" id="hist-'+id+'"><div class="loading" style="padding:10px 0;justify-content:flex-start"><div class="spin"></div></div></div></div>'+
+      '<div class="panel"><div class="ph"><span class="ph-t">S&amp;S Live Inventory</span>'+(style?'<span class="tag t-b">'+style+'</span>':'')+'</div>'+
+        '<div class="pb" id="ss-'+id+'">'+(style?'<div class="loading" style="padding:10px 0;justify-content:flex-start"><div class="spin"></div></div>':'<span style="font-size:10px;color:var(--mut)">Style not detected</span>')+'</div></div>'+
+    '</div>'+
+    '<div style="margin-top:10px" class="panel"><div class="ph"><span class="ph-t">Place Order</span>'+(WRITES?'':'<span class="tag t-a">Writes disabled</span>')+'</div><div class="pb">'+
+      '<div class="fgrid">'+
+        '<div class="fg"><div class="fl">Supplier</div><select class="fi" id="fs-'+id+'" data-lid="'+id+'" onchange="autoArrival(this.dataset.lid)"><option value="">Select supplier...</option>'+supOpts+'</select></div>'+
+        '<div class="fg"><div class="fl">PO Number</div><input class="fi" id="fp-'+id+'" placeholder="e.g. 041526"></div>'+
+        '<div class="fg"><div class="fl">Cost XS-XL / piece</div><input class="fi" id="fc1-'+id+'" type="number" step="0.01" placeholder="0.00" value="'+(f[F.c1]||'')+'" data-lid="'+id+'" oninput="updateCostPreview(this.dataset.lid)"></div>'+
+        '<div class="fg"><div class="fl">Cost 2XL / piece</div><input class="fi" id="fc2-'+id+'" type="number" step="0.01" placeholder="0.00" value="'+(f[F.c2]||'')+'" data-lid="'+id+'" oninput="updateCostPreview(this.dataset.lid)"></div>'+
+        '<div class="fg"><div class="fl">Cost 3XL / piece</div><input class="fi" id="fc3-'+id+'" type="number" step="0.01" placeholder="0.00" value="'+(f[F.c3]||'')+'" data-lid="'+id+'" oninput="updateCostPreview(this.dataset.lid)"></div>'+
+        '<div class="fg"><div class="fl">Inbound Freight</div><input class="fi" id="fib-'+id+'" type="number" step="0.01" placeholder="0.00" value="'+(f[F.inbound]||'')+'" data-lid="'+id+'" oninput="updateCostPreview(this.dataset.lid)"><div style="font-size:9px;color:var(--mut-lt);margin-top:2px">Handling / shipping if no free ship</div></div>'+
+        '<div class="fg"><div class="fl">Expected Arrival</div><input class="fi" id="fa-'+id+'" type="date"></div>'+
+        '<div class="fg full"><div class="fl">Order Notes</div><textarea class="fi" id="fon-'+id+'" rows="2" placeholder="Receiving notes, special instructions..." style="resize:vertical;font-family:var(--mono);font-size:11px">'+(esc(f[F.orderNotes]||''))+'</textarea></div>'+
+        '<div class="fg full"><div class="fl" style="margin-bottom:5px">Extras / spoilage buffer</div><div id="ex-'+id+'">'+renderExtrasGrid(id,f)+'</div></div>'+
+        '<div class="fg full" id="cp-'+id+'"></div>'+
+        '<div class="fg full" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">'+
+          '<button class="btn btn-p" id="fsub-'+id+'" onclick="placeOrder(\''+id+'\')">Mark Ordered &amp; Save to Airtable</button>'+
+          '<button class="btn btn-ss" id="fss-'+id+'" style="display:none" onclick="placeSSOrder(\''+id+'\')">Place Order on S&amp;S Directly</button>'+
+          '<span id="fmsg-'+id+'"></span>'+
+        '</div>'+
+      '</div>'+
+    '</div></div>'+
+  '</div>';
+}
+
+// EXTRAS — manual input grid, one field per size
+function renderExtrasGrid(id,f){
+  var sizes=SZK.filter(function(s){return (f[F[s.k]]||0)>0;});
+  if(!sizes.length) return '<span style="font-size:10px;color:var(--mut-lt)">No sizes on this order</span>';
+  var inputs=sizes.map(function(s){
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px">'+
+      '<div style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)">'+s.l+'</div>'+
+      '<input type="number" min="0" step="1" value="0" id="ex-'+id+'-'+s.k+'" '+
+        'style="width:44px;text-align:center;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);padding:4px;font-size:12px;font-family:var(--mono);color:var(--txt);outline:none" '+
+        'oninput="void(0)">'+
+    '</div>';
+  }).join('');
+  return '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end">'+inputs+'</div>'+
+    '<div style="font-size:9px;color:var(--mut-lt);margin-top:5px">Enter extras per size — leave 0 if none needed</div>';
+}
+
+function getExtras(id){
+  var extras={};
+  SZK.forEach(function(s){
+    var el=document.getElementById('ex-'+id+'-'+s.k);
+    if(el){var v=parseInt(el.value)||0;if(v>0)extras[s.l]=v;}
+  });
+  return extras;
+}
+
+// HISTORY
+function loadHist(id){
+  var el=document.getElementById('hist-'+id);if(!el)return;
+  if(histCache[id]){renderHist(id,histCache[id]);return;}
+  var rec=allRecs.find(function(r){return r.id===id;});if(!rec)return;
+  var garm=rec.fields[F.garment]||'',style=parseStyle(garm);
+  if(!style){
+    histCache[id]=[];
+    el.innerHTML='<span style="font-size:10px;color:var(--mut)">No style detected</span>';
+    return;
+  }
+  if(AT==='YOUR_AIRTABLE_KEY_HERE'){histCache[id]=demoHist(garm);renderHist(id,histCache[id]);return;}
+  var flds=[F.garment,F.supTx,F.c1,F.c2,F.c3,F.qty,F.ts].map(function(f){return 'fields%5B%5D='+f;}).join('&');
+  fetch('https://api.airtable.com/v0/'+BASE+'/'+LI+'?returnFieldsByFieldId=true&'+flds+'&sort%5B0%5D%5Bfield%5D='+F.ts+'&sort%5B0%5D%5Bdirection%5D=desc&pageSize=100',{headers:{'Authorization':'Bearer '+AT}})
+    .then(function(r){
+      if(!r.ok) throw new Error('Airtable '+r.status);
+      return r.json();
+    })
+    .then(function(d){
+      if(d.error){throw new Error(d.error.message);}
+      var m=(d.records||[]).filter(function(r){var g=r.fields[F.garment]||'';return g.indexOf(style)>=0&&r.fields[F.c1];});
+      histCache[id]=m;renderHist(id,m);
+    }).catch(function(e){
+      histCache[id]=[];
+      if(el)el.innerHTML='<span style="font-size:10px;color:var(--mut)">Could not load history</span>';
+    });
+}
+function demoHist(garm){
+  var style=parseStyle(garm);
+  var map={'3001':[{sup:'SLC Activewear - Salt Lake City, UT',c1:3.89,c2:5.68,c3:6.86,qty:50,date:'2026-03-31'},{sup:'S&S Activewear - Olathe, KS',c1:3.99,c2:null,c3:null,qty:10,date:'2026-03-25'},{sup:'SLC Activewear - Phoenix, AZ',c1:3.79,c2:5.68,c3:null,qty:36,date:'2026-03-19'}],'C112':[{sup:'S&S Activewear - Olathe, KS',c1:7.45,c2:null,c3:null,qty:24,date:'2026-02-28'}],'PC54':[{sup:'SLC Activewear - Salt Lake City, UT',c1:3.79,c2:4.99,c3:null,qty:60,date:'2026-01-20'},{sup:'Carolina Creative Products',c1:3.99,c2:5.25,c3:null,qty:36,date:'2025-11-15'}],'18500':[{sup:'S&S Activewear - Reno, NV',c1:9.99,c2:11.49,c3:null,qty:48,date:'2026-02-10'}]};
+  var key=style&&map[style]?style:Object.keys(map).find(function(k){return garm.indexOf(k)>=0;});
+  return (key?map[key]:[{sup:'Carolina Creative Products',c1:7.50,c2:null,c3:null,qty:48,date:'2026-02-01'}]).map(function(d){
+    var r={fields:{}};
+    r.fields[F.supTx]='"'+d.sup+'"';r.fields[F.c1]=d.c1;
+    if(d.c2)r.fields[F.c2]=d.c2;if(d.c3)r.fields[F.c3]=d.c3;
+    r.fields[F.qty]=d.qty;r.fields[F.ts]=d.date+'T00:00:00.000Z';
+    return r;
+  });
+}
+function renderHist(id,recs){
+  var el=document.getElementById('hist-'+id);if(!el)return;
+  if(!recs||!recs.length){el.innerHTML='<span style="font-size:10px;color:var(--mut)">No history found</span>';return;}
+  var seen={},uniq=[];
+  recs.forEach(function(r){var f=r.fields,k=cleanSup(f[F.supTx]||'')+'|'+(f[F.c1]||0);if(!seen[k]){seen[k]=true;uniq.push(r);}});
+  el.innerHTML=uniq.slice(0,6).map(function(r){
+    var f=r.fields,sup=cleanSup(f[F.supTx]||'?');
+    var c1=f[F.c1],c2=f[F.c2],c3=f[F.c3],qty=f[F.qty]||0,date=(f[F.ts]||'').substring(0,10);
+    var cost=c1?'$'+c1.toFixed(2)+(c2?' / $'+c2.toFixed(2):''):'';
+    return '<div class="hr"><div style="flex:1;min-width:0"><div class="hr-sup">'+esc(sup)+'</div><div class="hr-meta">'+qty+' pcs &middot; '+date+'</div></div>'+
+      (cost?'<div class="hr-cost">'+cost+'</div>':'')+
+      '<button class="hr-use" onclick="useHist(\''+id+'\',\''+esc(sup)+'\','+c1+','+(c2||'null')+','+(c3||'null')+')">Use</button></div>';
+  }).join('');
+}
+function useHist(id,sup,c1,c2,c3){
+  var sel=document.getElementById('fs-'+id);
+  if(sel){var sl=sup.toLowerCase().split(',')[0].trim();for(var i=0;i<sel.options.length;i++){if(sel.options[i].value.toLowerCase().indexOf(sl)>=0){sel.value=sel.options[i].value;break;}}}
+  var sv=function(eid,v){var e=document.getElementById(eid);if(e&&v!=null)e.value=v.toFixed(2);};
+  sv('fc1-'+id,c1);sv('fc2-'+id,c2);sv('fc3-'+id,c3);
+  // Auto-fill arrival date based on selected supplier DIT
+  autoArrival(id);
+  // Update cost preview with filled values
+  updateCostPreview(id);
+  setMsg(id,'ok','Filled from history — confirm and submit');
+}
+
+// S&S INVENTORY
+// Two-step lookup: fetch /styles/ once to map styleName -> styleID,
+// then fetch /products/{styleID} and /inventory/{styleID}
+// Products endpoint gives: sizeName, customerPrice, myPrice, piecePrice, salePrice per SKU
+// Inventory endpoint gives: sku + warehouses[{warehouseAbbr, qty}] per SKU
+// We join them by sku to get a complete picture
+
+// S&S styleID map — styleName -> S&S internal styleID
+// Avoids slow /styles/ API fetch. Add new ones as needed.
+// To find a styleID: hit pine-workers.stephen-dab.workers.dev/proxy/styles/ and search for styleName
+var SS_STYLE_MAP = {
+  '3001':29,'3001cvc':10617,'3010':7725,'3413':69,'3501':79,'3501cvc':10656,
+  '3901':7741,'3945':10672,'3719':232,'3739':233,'3480':90,'3005':81,
+  '1717':107,'1745':11055,'1567':10996,'9018':267,'9360':11086,'3023cl':11094,
+  '6210':115,'3600':116,'1580':10993,'6010':11014,'3604':10994,
+  '2000':39,'2000l':9133,'5000':55,'5000l':9229,'18500':42,'18000':41,
+  'ind4000':156,'ss4500':7812,'ss4500z':7818,'ind5000':154,
+  '1301':1,'1301w':10601,
+  'c112':203,'7005':10691,'6006':204,'6606':205,'6606s':10693,
+  'pc54':63,'pc61':61,'pc78h':65,'pc90h':68,
+  's600':9105,'s700':9107,
+  'al2100':10841,
+  '9910':9309,'sp500':9311
+};
+
+function ensureStyleMap(cb) {
+  // Map is hardcoded — always available instantly
+  if (!ssStyleMap) {
+    ssStyleMap = SS_STYLE_MAP;
+    console.log('[S&S] Using hardcoded style map ('+Object.keys(ssStyleMap).length+' styles)');
+  }
+  cb(ssStyleMap);
+}
+
+function loadSS(id,style,colorway){
+  var el=document.getElementById('ss-'+id);if(!el)return;
+  var ck=style;
+  if(ssCache[ck]){showSSColorPicker(id,ssCache[ck],colorway);return;}
+
+  el.innerHTML='<div class="loading" style="padding:10px 0;justify-content:flex-start"><div class="spin"></div><span style="font-size:9px;color:var(--mut-lt)">Fetching '+esc(style)+'...</span></div>';
+
+  // Step 1: get the styleID from the styles map
+  ensureStyleMap(function(map) {
+    if (!map) {
+      if(el)el.innerHTML='<div style="font-size:10px;color:var(--mut)">Failed to load S&S styles list</div>';
+      return;
+    }
+    var styleID = map[style.toLowerCase().trim()];
+    if (!styleID) {
+      if(el)el.innerHTML='<div style="font-size:10px;color:var(--mut)">Style "'+esc(style)+'" not found on S&S</div>';
+      return;
+    }
+    console.log('[S&S] Resolved style "'+style+'" -> styleID '+styleID);
+
+    // Step 2: fetch products using the numeric styleID
+    // Products endpoint already includes warehouse data, no need for separate inventory call
+    console.log('[S&S] fetching styleID='+styleID+' URL='+SS+'/products/'+styleID+'/');
+    fetch(SS+'/products/'+styleID+'/').then(function(r){
+      var ct=r.headers.get('content-type')||'';
+      if(!ct.includes('json'))throw new Error('Not on S&S ('+r.status+')');
+      return r.json();
+    })
+    .then(function(products){
+      if(!Array.isArray(products)||!products.length)throw new Error('Style not found on S&S');
+      // Validate returned style matches requested
+      var retSN=(products[0].styleName||'').toString().replace(/[^a-z0-9]/gi,'').toUpperCase();
+      var reqSN=(style+'').replace(/[^a-z0-9]/gi,'').toUpperCase();
+      if(retSN&&reqSN&&retSN!==reqSN){
+        console.warn('[S&S] Style mismatch: got "'+retSN+'" expected "'+reqSN+'" (styleID='+styleID+')');
+      }
+
+      // Map products directly — warehouses are already embedded in each record
+      var merged=products.map(function(p){
+        var whs={};
+        (p.warehouses||[]).forEach(function(w){
+          var wh=w.warehouseAbbr||'?';
+          whs[wh]=(whs[wh]||0)+(parseInt(w.qty)||0);
+        });
+        // Build image URL — prefer on-model front, fall back to color front
+        var img=p.colorOnModelFrontImage||p.colorFrontImage||'';
+        if(img&&img.indexOf('http')!==0) img='https://www.ssactivewear.com/'+img;
+        // Swap _fm for _fl for large image
+        if(img) img=img.replace(/_fm\./,'_fl.');
+        return {
+          sku: p.sku||p.gtin||'',
+          gtin: p.gtin||'',
+          skuMaster: p.skuID_Master?String(p.skuID_Master):'',
+          colorName: p.colorName||'',
+          styleName: p.styleName||'',
+          sizeName: p.sizeName||'?',
+          sizeOrder: p.sizeOrder||'ZZ',
+          customerPrice: p.customerPrice||p.piecePrice||0,
+          myPrice: p.customerPrice||p.piecePrice||0,
+          piecePrice: p.piecePrice||0,
+          salePrice: p.salePrice||0,
+          warehouses: whs,
+          image: img,
+          swatchImage: p.colorSwatchImage?'https://www.ssactivewear.com/'+p.colorSwatchImage:'',
+          color1: p.color1||''
+        };
+      });
+
+      if(products.length){
+        console.log('[S&S] '+merged.length+' SKUs, '+([...new Set(merged.map(function(m){return m.colorName;}))].length)+' colors');
+      }
+      ssCache[ck]=merged;
+      showSSColorPicker(id,merged,colorway);
+    })
+    .catch(function(e){
+      if(el)el.innerHTML='<div style="font-size:10px;color:var(--mut)">Not on S&S<br><span style="font-size:9px;color:var(--mut-lt)">'+esc(e.message)+'</span></div>';
+    });
+  }); // end ensureStyleMap callback
+}
+
+function showSSColorPicker(id, data, suggestedColor) {
+  var el = document.getElementById('ss-'+id);
+  if (!el) return;
+  if (!data || !data.length) {
+    el.innerHTML = '<span style="font-size:10px;color:var(--mut)">Not found on S&S</span>';
+    return;
+  }
+  // Extract colors — try colorName first, then scan all string fields for color-like values
+  var colors = [...new Set(data.map(function(d){return d.colorName;}))].filter(Boolean).sort();
+  // If S&S returned only 1 color, the worker is probably returning a different style
+  if(colors.length < 2){
+    // If only 1 color returned but it's the right style, just render it
+    if(colors.length===1){
+      renderSS(id, data, colors[0]);
+      return;
+    }
+    var recDiag=allRecs.find(function(r){return r.id===id;});
+    var stDiag=recDiag?parseStyle(recDiag.fields[F.garment]||'')||'?':'?';
+    el.innerHTML='<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:8px;font-size:10px">'+
+      '<b>&#9888; No color data for style '+esc(stDiag)+'</b><br>'+
+      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px">'+
+        '<span style="font-size:9px;font-weight:700">Try a different style #:</span>'+
+        '<input id="ss-ov-'+id+'" style="width:70px;padding:3px 6px;border:1px solid var(--bd2);border-radius:var(--r);font-size:11px" value="'+esc(stDiag)+'">'+
+        '<button class="btn btn-p" style="font-size:9px" data-ssid="'+id+'" '+
+          'onclick="var v=document.getElementById(\'ss-ov-\'+this.dataset.ssid);if(v){var k=v.value.trim();delete ssCache[k];loadSS(this.dataset.ssid,k,\'\');}">Try</button>'+
+      '</div>'+
+    '</div>';
+    return;
+  }
+
+  // Step 1: Auto-match from garment name color (per-record, not shared)
+  var recForColor = allRecs.find(function(r){return r.id===id;});
+  var garmForColor = recForColor ? recForColor.fields[F.garment]||'' : '';
+  var style = parseStyle(garmForColor);
+  var gLinkRaw = recForColor ? recForColor.fields[F.garmentLink] : null;
+  var gRecId = gLinkRaw && gLinkRaw[0] ? (typeof gLinkRaw[0]==='string'?gLinkRaw[0]:gLinkRaw[0].id||null) : null;
+
+  if (suggestedColor) {
+    var sc = suggestedColor.toLowerCase().replace(/[^a-z0-9]/g,'');
+    var autoMatch = colors.find(function(c){
+      return c.toLowerCase().replace(/[^a-z0-9]/g,'') === sc;
+    }) || colors.find(function(c){
+      var cl = c.toLowerCase().replace(/[^a-z0-9]/g,'');
+      return cl.indexOf(sc) >= 0 || sc.indexOf(cl) >= 0;
+    });
+    if (autoMatch) {
+      console.log('[S&S] Auto-matched color "'+suggestedColor+'" -> "'+autoMatch+'"');
+      renderSS(id, data, autoMatch);
+      return;
+    }
+  }
+
+  // Step 2: Fall back to manually saved color (only set when user picks via picker)
+  var savedColor = (gRecId && ssColorCache[gRecId]) ||
+                   (style ? localStorage.getItem('pine_ss_color_'+style) : null);
+  if (savedColor && colors.indexOf(savedColor) >= 0) {
+    renderSS(id, data, savedColor);
+    return;
+  }
+
+  // Build searchable color picker
+  var opts = colors.map(function(c){
+    return '<option value="'+esc(c)+'">'+esc(c)+'</option>';
+  }).join('');
+
+  // Get style being shown for this record
+  var recForId = allRecs.find(function(r){return r.id===id;});
+  var garmForId = recForId ? recForId.fields[F.garment]||'' : '';
+  var styleForId = parseStyle(garmForId) || '?';
+
+  el.innerHTML =
+    '<div style="margin-bottom:8px">'+
+      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-bottom:4px">'+
+        'S&S Color — style <span style="color:var(--grn-dk);font-family:var(--mono)">'+esc(styleForId)+'</span> &nbsp;'+
+        '<span style="color:var(--mut-lt)">('+colors.length+' colors)</span>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
+        '<input id="ss-csearch-'+id+'" list="ss-clist-'+id+'" placeholder="Type to filter..." '+
+          'style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);padding:5px 8px;font-size:12px;color:var(--txt);outline:none" '+
+          'data-ssid="'+id+'" oninput="ssColorSearch(this.dataset.ssid)">'+
+        '<datalist id="ss-clist-'+id+'">'+opts+'</datalist>'+
+        '<button class="btn btn-p" style="font-size:9px;padding:5px 10px" data-ssid="'+id+'" onclick="ssColorConfirm(this.dataset.ssid)">Show Inventory</button>'+
+      '</div>'+
+      '<div style="font-size:9px;color:var(--mut-lt);margin-top:4px">'+colors.length+' colors available — type "black", "navy", etc.</div>'+
+    '</div>';
+}
+
+function ssColorSearch(id) {
+  var inp = document.getElementById('ss-csearch-'+id);
+  // Live feedback as user types
+}
+
+function ssColorConfirm(id) {
+  var inp = document.getElementById('ss-csearch-'+id);
+  if (!inp) return;
+  var val = inp.value.trim();
+  if (!val) { inp.style.borderColor='var(--red)'; return; }
+  inp.style.borderColor='';
+  var rec = allRecs.find(function(r){return r.id===id;});
+  var garm = rec ? rec.fields[F.garment]||'' : '';
+  var style = parseStyle(garm);
+  var data = style ? ssCache[style] : null;
+  if (!data) { inp.style.borderColor='var(--red)'; return; }
+  // 1. localStorage fallback
+  if (style) { try { localStorage.setItem('pine_ss_color_'+style, val); } catch(e) {} }
+  // 2. Write to Airtable Garments so everyone benefits permanently
+  var gLinkRaw = rec.fields[F.garmentLink];
+  var gRecId = gLinkRaw && gLinkRaw[0] ? (typeof gLinkRaw[0]==='string'?gLinkRaw[0]:gLinkRaw[0].id||null) : null;
+  if (gRecId) {
+    ssColorCache[gRecId] = val;
+    if (WRITES) {
+      var flds = {}; flds[FS_SS_COLOR] = val;
+      fetch('https://api.airtable.com/v0/'+BASE+'/'+GT+'/records',{
+        method:'PATCH',
+        headers:{'Authorization':'Bearer '+AT,'Content-Type':'application/json'},
+        body:JSON.stringify({records:[{id:gRecId,fields:flds}]})
+      }).then(function(r){return r.json();})
+        .then(function(d){
+          if(d.records) console.log('[S&S] Saved "'+val+'" -> Garment '+gRecId);
+          else console.warn('[S&S] Write failed:',JSON.stringify(d));
+        })
+        .catch(function(e){console.warn('[S&S] Write error:',e.message);});
+    }
+  }
+  renderSS(id, data, val);
+}
+
+function loadSSColors() {
+  if (!AT || AT==='YOUR_AIRTABLE_KEY_HERE') return;
+  var url='https://api.airtable.com/v0/'+BASE+'/'+GT+
+    '?fields%5B%5D='+FS_SS_COLOR+
+    '&filterByFormula=NOT%28%7B%5BS%26S%5D+Color+Name%7D%3D%22%22%29'+
+    '&returnFieldsByFieldId=true&pageSize=100';
+  fetch(url,{headers:{'Authorization':'Bearer '+AT}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      (d.records||[]).forEach(function(r){
+        var c=r.fields[FS_SS_COLOR];
+        if(c) ssColorCache[r.id]=c;
+      });
+      console.log('[S&S] Loaded '+Object.keys(ssColorCache).length+' color mappings from Garments');
+    })
+    .catch(function(e){console.warn('[S&S] loadSSColors:',e.message);});
+}
+
+function renderSS(id,data,selectedColor){
+  var el=document.getElementById('ss-'+id);if(!el)return;
+  if(!data||!data.length){el.innerHTML='<span style="font-size:10px;color:var(--mut)">Not found on S&S</span>';return;}
+
+  var colors=[...new Set(data.map(function(d){return d.colorName;}))];
+  var useColor=selectedColor;
+  // Exact match first, then case-insensitive
+  if(colors.indexOf(useColor)<0){
+    var lc=useColor.toLowerCase();
+    useColor=colors.find(function(c){return c.toLowerCase()===lc;})||
+             colors.find(function(c){return c.toLowerCase().indexOf(lc)>=0;})||
+             colors[0];
+  }
+
+  // Filter to matched color
+  var skus=data.filter(function(d){return d.colorName===useColor;});
+
+  // Size order
+  var SZ_ORDER=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','OSFA'];
+  skus.sort(function(a,b){
+    var ai=SZ_ORDER.indexOf(a.sizeName.toUpperCase()),bi=SZ_ORDER.indexOf(b.sizeName.toUpperCase());
+    if(ai<0)ai=99;if(bi<0)bi=99;
+    return ai-bi||(a.sizeOrder||'').localeCompare(b.sizeOrder||'');
+  });
+
+  var sizes=skus.map(function(s){return s.sizeName.toUpperCase();});
+
+  // needed sizes with quantities
+  var rec=allRecs.find(function(r){return r.id===id;});
+  var needed={};
+  if(rec)SZK.forEach(function(s){var q=rec.fields[F[s.k]]||0;if(q>0)needed[s.l.toUpperCase()]=q;});
+
+  // All warehouses that appear — sorted by distance (DIT days) closest first
+  // WH abbreviation -> supplier name lookup for DIT lookup
+  var WH_SUP_MAP={KS:'S&S Activewear - Olathe, KS',NV:'S&S Activewear - Reno, NV',TX:'S&S Activewear - Ft. Worth, TX',
+    IL:'S&S Activewear - Lockport, IL',GA:'S&S Activewear - McDonough, GA',OH:'S&S Activewear - West Chester, OH',
+    PA:'S&S Activewear - Harrisburg, PA',FL:'S&S Activewear - Orlando, FL',MA:'S&S Activewear - Middleboro, MA',
+    CN:'S&S Activewear',DS:'S&S Activewear',FO:'S&S Activewear',MN:'S&S Activewear',
+    NJ:'S&S Activewear - Robbinsville, NJ'};
+  var whMap={};
+  skus.forEach(function(s){Object.keys(s.warehouses).forEach(function(w){whMap[w]=true;});});
+  var whs=Object.keys(whMap).sort(function(a,b){
+    var da=SUP_DIT[WH_SUP_MAP[a]]||99,db=SUP_DIT[WH_SUP_MAP[b]]||99;
+    return da-db||a.localeCompare(b);
+  });
+
+  // Totals per size
+  var totals={};
+  sizes.forEach(function(sz,i){
+    totals[sz]=Object.values(skus[i].warehouses).reduce(function(s,q){return s+q;},0);
+  });
+
+  // Pricing — get unique price tiers
+  var prices={};
+  skus.forEach(function(s){prices[s.sizeName.toUpperCase()]={my:s.myPrice,customer:s.customerPrice,piece:s.piecePrice,sale:s.salePrice};});
+
+  // Color header with change button and garment image
+  // Prefer on-model front image, fall back to color front
+  var imgUrl='';
+  for(var si=0;si<skus.length;si++){
+    if(skus[si].image&&skus[si].image.indexOf('ModelColor')>=0){imgUrl=skus[si].image;break;}
+    if(skus[si].image&&!imgUrl)imgUrl=skus[si].image;
+  }
+  var colorHex=skus.length&&skus[0].color1?skus[0].color1:'';
+  var imgHtml=imgUrl?'<img src="'+esc(imgUrl)+'" style="width:120px;height:120px;object-fit:contain;border:1px solid var(--bd);border-radius:var(--rl);background:#fff;flex-shrink:0" onerror="this.style.display=\'none\'">':'';
+  var swatchDot=colorHex?'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+esc(colorHex)+';border:1px solid var(--bd2);vertical-align:middle;margin-right:4px"></span>':'';
+
+  // Build price tiers for display and Use button
+  var tierPrices={c1:0,c2:0,c3:0,c4:0};
+  var TIER_SZ={'XS':'c1','S':'c1','M':'c1','L':'c1','XL':'c1','2XL':'c2','3XL':'c3','4XL':'c4','5XL':'c4','OSFA':'c1'};
+  skus.forEach(function(s){
+    var tier=TIER_SZ[s.sizeName.toUpperCase()]||'c1';
+    if(s.customerPrice&&(!tierPrices[tier]||s.customerPrice>tierPrices[tier])) tierPrices[tier]=s.customerPrice;
+  });
+
+  var tierHtml='<strong style="color:var(--grn);font-family:var(--mono)">$'+(tierPrices.c1||0).toFixed(2)+'</strong> <span style="color:var(--mut-lt)">XS-XL</span>';
+  if(tierPrices.c2) tierHtml+=' &middot; <strong style="font-family:var(--mono)">$'+tierPrices.c2.toFixed(2)+'</strong> <span style="color:var(--mut-lt)">2XL</span>';
+  if(tierPrices.c3) tierHtml+=' &middot; <strong style="font-family:var(--mono)">$'+tierPrices.c3.toFixed(2)+'</strong> <span style="color:var(--mut-lt)">3XL</span>';
+  if(tierPrices.c4&&tierPrices.c4!==tierPrices.c3) tierHtml+=' &middot; <strong style="font-family:var(--mono)">$'+tierPrices.c4.toFixed(2)+'</strong> <span style="color:var(--mut-lt)">4XL+</span>';
+  if(skus[0]&&skus[0].salePrice&&skus[0].salePrice<skus[0].piecePrice) tierHtml+=' <span style="color:var(--red);font-size:9px;font-weight:700">SALE</span>';
+
+  var colorNote='<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">'+
+    imgHtml+
+    '<div style="flex:1">'+
+      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
+        swatchDot+
+        '<span class="tag t-g">'+esc(useColor)+'</span>'+
+        '<button class="btn" style="font-size:8px;padding:2px 6px" data-ssid="'+id+'" onclick="clearSSColor(this.dataset.ssid)">Change color</button>'+
+        (colors.length>1?'<span style="font-size:9px;color:var(--mut-lt)">'+colors.length+' colors on S&S</span>':'')+
+      '</div>'+
+      '<div style="margin-top:6px;font-size:10px;color:var(--mut)">'+tierHtml+'</div>'+
+      '<div style="margin-top:6px">'+
+        '<button class="btn btn-p" style="font-size:9px;padding:4px 10px" '+
+          'data-ssid="'+id+'" data-c1="'+(tierPrices.c1||0)+'" data-c2="'+(tierPrices.c2||0)+'" data-c3="'+(tierPrices.c3||0)+'" data-c4="'+(tierPrices.c4||0)+'" '+
+          'onclick="useSSPrices(this)">Use S&amp;S Prices</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+
+  // Build the warehouse x size matrix
+  // "Need" sub-header row showing how many of each size this order requires
+  var needRow=Object.keys(needed).length?
+    '<tr style="background:var(--grn-lt)"><td style="font-size:8px;font-weight:700;color:var(--grn-dk)">NEED</td>'+
+    sizes.map(function(sz){var n=needed[sz]||0;return '<td style="font-size:9px;font-weight:700;color:var(--grn-dk)">'+(n?n:'')+'</td>';}).join('')+
+    '</tr>':'';
+
+  var hdrs=sizes.map(function(sz){
+    return '<th style="min-width:38px">'+sz+'</th>';
+  }).join('');
+
+  var WH_SUP_MAP_R={KS:'S&S Activewear - Olathe, KS',NV:'S&S Activewear - Reno, NV',TX:'S&S Activewear - Ft. Worth, TX',
+    IL:'S&S Activewear - Lockport, IL',GA:'S&S Activewear - McDonough, GA',OH:'S&S Activewear - West Chester, OH',
+    PA:'S&S Activewear - Harrisburg, PA',FL:'S&S Activewear - Orlando, FL',MA:'S&S Activewear - Middleboro, MA',
+    CN:'S&S Activewear',DS:'S&S Activewear',FO:'S&S Activewear',MN:'S&S Activewear',
+    NJ:'S&S Activewear - Robbinsville, NJ'};
+
+  // Warehouse rows — click to select warehouse and auto-fill supplier
+  var SHOW_N = 5; // default: show closest 5 warehouses
+  var whRows=whs.map(function(wh,whIdx){
+    var canFill=Object.keys(needed).every(function(sz){
+      var skuForSz=skus.find(function(s){return s.sizeName.toUpperCase()===sz;});
+      return skuForSz&&(skuForSz.warehouses[wh]||0)>=needed[sz];
+    });
+    var dit=SUP_DIT[WH_SUP_MAP_R[wh]]||null;
+    var ditLabel=dit?'<span style="font-size:8px;color:var(--mut-lt);margin-left:3px">'+dit+'d</span>':'';
+    var rowStyle=canFill&&Object.keys(needed).length?'background:var(--grn-lt);cursor:pointer':'cursor:pointer';
+    var hidden=whIdx>=SHOW_N?'class="ss-wh-extra-'+id+'" style="display:none"':'';
+    var whSupMap={KS:'S&S Activewear - Olathe, KS',NV:'S&S Activewear - Reno, NV',TX:'S&S Activewear - Ft. Worth, TX',IL:'S&S Activewear - Lockport, IL',GA:'S&S Activewear - McDonough, GA',OH:'S&S Activewear - West Chester, OH',PA:'S&S Activewear - Harrisburg, PA',FL:'S&S Activewear - Orlando, FL',MA:'S&S Activewear - Middleboro, MA',CN:'S&S Activewear',DS:'S&S Activewear',FO:'S&S Activewear',MN:'S&S Activewear',NJ:'S&S Activewear - Robbinsville, NJ'};
+    var supName=whSupMap[wh]||'S&S Activewear';
+    return '<tr '+hidden+' style="'+rowStyle+'" onclick="selectWHRow(\''+id+'\',\''+wh+'\',\''+supName+'\')">'+
+      '<td style="font-weight:700;font-size:10px;white-space:nowrap">'+(canFill&&Object.keys(needed).length?'<span style="color:var(--grn)">&#10003;</span> ':'')+esc(wh)+ditLabel+'</td>'+
+      sizes.map(function(sz,i){
+        var q=skus[i].warehouses[wh]||0;
+        var need=needed[sz]||0;
+        var cls=q===0?'qz':(need&&q<need?'qlo':'qok');
+        return '<td class="'+cls+'">'+q+'</td>';
+      }).join('')+
+    '</tr>';
+  }).join('');
+
+  // Total row
+  var totRow='<tr style="border-top:2px solid var(--bd2)">'+
+    '<td style="font-size:9px;font-weight:700;color:var(--mut)">Total</td>'+
+    sizes.map(function(sz){
+      var q=totals[sz],need=needed[sz]||0;
+      var cls=q===0?'qz':(need&&q<need?'qlo':'qok');
+      return '<td class="'+cls+'">'+q+'</td>';
+    }).join('')+
+  '</tr>';
+
+  // Your price row
+  // Build price tiers: XS-XL, 2XL, 3XL, 4XL based on sizePriceCodeName
+  var priceTiers={};
+  var TIER_MAP={'XS':'c1','S':'c1','M':'c1','L':'c1','XL':'c1','2XL':'c2','3XL':'c3','4XL':'c4','5XL':'c4','OSFA':'c1'};
+  sizes.forEach(function(sz){
+    var p=prices[sz];if(!p||!p.my)return;
+    var tier=TIER_MAP[sz]||'c1';
+    if(!priceTiers[tier]||p.my>priceTiers[tier]) priceTiers[tier]=p.my;
+  });
+
+  var myP=priceTiers.c1||0;
+  var priceRow='<tr><td style="font-size:9px;color:var(--grn);font-weight:700">Your Price</td>'+
+    sizes.map(function(sz){
+      var p=prices[sz];if(!p)return '<td class="myp">-</td>';
+      return '<td class="myp">'+(p.my?'$'+p.my.toFixed(2):'-')+'</td>';
+    }).join('')+
+  '</tr>';
+
+  // Standard price row (if different from your price)
+  var hasDiff=sizes.some(function(sz){var p=prices[sz];return p&&p.piece&&p.my&&p.piece!==p.my;});
+  var stdRow=hasDiff?'<tr><td style="font-size:9px;color:var(--mut-lt)">List Price</td>'+
+    sizes.map(function(sz){
+      var p=prices[sz];
+      return '<td style="font-size:10px;color:var(--mut-lt);font-family:var(--mono)">'+(p&&p.piece?'$'+p.piece.toFixed(2):'-')+'</td>';
+    }).join('')+
+  '</tr>':'';
+
+  // Sale row
+  var hasSale=sizes.some(function(sz){var p=prices[sz];return p&&p.sale>0;});
+  var saleRow=hasSale?'<tr><td style="font-size:9px;color:var(--red)">Sale</td>'+
+    sizes.map(function(sz){
+      var p=prices[sz];
+      return '<td style="font-size:10px;color:var(--red);font-family:var(--mono)">'+(p&&p.sale?'$'+p.sale.toFixed(2):'-')+'</td>';
+    }).join('')+
+  '</tr>':'';
+
+  var moreCount = whs.length > SHOW_N ? whs.length - SHOW_N : 0;
+  var moreRow = moreCount > 0 ?
+    '<tr id="ss-wh-more-row-'+id+'"><td colspan="'+(sizes.length+1)+'" style="text-align:center;padding:4px">'+
+      '<button class="btn" style="font-size:8px;padding:2px 10px;width:100%" '+
+        'onclick="document.querySelectorAll(\'.ss-wh-extra-'+id+'\').forEach(function(r){r.style.display=\'\'});document.getElementById(\'ss-wh-more-row-'+id+'\').style.display=\'none\'">'+
+        '&#43; Show '+moreCount+' more warehouse'+(moreCount===1?'':'s')+
+      '</button>'+
+    '</td></tr>' : '';
+
+  var html=colorNote+
+    '<div style="overflow-x:auto"><table class="inv-t">'+
+      '<thead><tr><th style="text-align:left">WH'+(whs.length>1?' <span style="font-size:7px;color:var(--mut-lt);font-weight:400">closest first</span>':'')+'</th>'+hdrs+'</tr></thead>'+
+      '<tbody>'+needRow+whRows+moreRow+totRow+priceRow+stdRow+saleRow+'</tbody>'+
+    '</table></div>';
+
+  if(myP){
+    var tierLabels=[];
+    if(priceTiers.c1)tierLabels.push('XS-XL: <strong style="font-family:var(--mono)">$'+priceTiers.c1.toFixed(2)+'</strong>');
+    if(priceTiers.c2)tierLabels.push('2XL: <strong style="font-family:var(--mono)">$'+priceTiers.c2.toFixed(2)+'</strong>');
+    if(priceTiers.c3)tierLabels.push('3XL: <strong style="font-family:var(--mono)">$'+priceTiers.c3.toFixed(2)+'</strong>');
+    if(priceTiers.c4)tierLabels.push('4XL: <strong style="font-family:var(--mono)">$'+priceTiers.c4.toFixed(2)+'</strong>');
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">'+
+      '<span style="font-size:9px;color:var(--mut)">Your price:</span>'+
+      '<span style="font-size:11px;color:var(--grn)">'+tierLabels.join(' &middot; ')+'</span>'+
+      '<button class="btn" style="font-size:8px;padding:3px 8px" onclick="useSSP(\''+id+'\','+(priceTiers.c1||0)+','+(priceTiers.c2||0)+','+(priceTiers.c3||0)+','+(priceTiers.c4||0)+')">Fill all prices</button>'+
+      '<span style="font-size:9px;color:var(--mut-lt)">or click a warehouse row</span>'+
+    '</div>';
+    var ssb=document.getElementById('fss-'+id);if(ssb)ssb.style.display='';
+  }
+
+  // Debug info panel
+  html+='<details style="margin-top:8px"><summary style="font-size:9px;color:var(--mut-lt);cursor:pointer">&#9432; debug</summary>'+
+    '<div style="font-size:9px;color:var(--mut);font-family:var(--mono);margin-top:4px;word-break:break-all">'+
+    'Color: <b>'+esc(useColor)+'</b> &middot; '+data.length+' SKUs &middot; '+colors.length+' colors &middot; sizes: '+esc(sizes.join(', '))+
+    (whs.length===0?' &mdash; <b style="color:var(--red)">&#9888; No WH data &mdash; SKU join failed. Open browser console for [S&S inv] logs.</b>':' &middot; '+whs.length+' warehouses')+
+    '</div></details>';
+
+  el.innerHTML=html;
+}
+
+function selectWHRow(id, wh, supName) {
+  var ssEl=document.getElementById('ss-'+id);
+  if(ssEl){ssEl.querySelectorAll('tr[onclick]').forEach(function(r){r.style.outline='';});
+    event.currentTarget&&(event.currentTarget.style.outline='2px solid var(--grn)');}
+  // Fill supplier matching this warehouse
+  var sel=document.getElementById('fs-'+id);
+  if(sel){
+    var found=false;
+    for(var i=0;i<sel.options.length;i++){
+      if(sel.options[i].value===supName){sel.value=supName;found=true;break;}
+    }
+    if(!found){for(var i=0;i<sel.options.length;i++){if(sel.options[i].value.indexOf('S&S')>=0){sel.value=sel.options[i].value;break;}}}
+  }
+  // Auto-fill arrival date from this supplier's DIT
+  autoArrival(id);
+  // Fill all price tiers from cached S&S data
+  var rec=allRecs.find(function(r){return r.id===id;});
+  var garm=rec?rec.fields[F.garment]||'':'';
+  var style=parseStyle(garm);
+  var data=style?ssCache[style]:null;
+  if(data){
+    var TIER_MAP={'XS':'c1','S':'c1','M':'c1','L':'c1','XL':'c1','2XL':'c2','3XL':'c3','4XL':'c4','5XL':'c4','OSFA':'c1'};
+    var tiers={};
+    data.forEach(function(d){
+      var tier=TIER_MAP[d.sizeName.toUpperCase()]||'c1';
+      if(d.customerPrice&&(!tiers[tier]||d.customerPrice>tiers[tier])) tiers[tier]=d.customerPrice;
+    });
+    if(tiers.c1){var e=document.getElementById('fc1-'+id);if(e&&!e.value)e.value=tiers.c1.toFixed(2);}
+    if(tiers.c2){var e=document.getElementById('fc2-'+id);if(e&&!e.value)e.value=tiers.c2.toFixed(2);}
+    if(tiers.c3){var e=document.getElementById('fc3-'+id);if(e&&!e.value)e.value=tiers.c3.toFixed(2);}
+    updateCostPreview(id);
+  }
+  console.log('[WH select] id='+id+' wh='+wh+' sup='+supName);
+}
+
+function useSSP(id, c1, c2, c3, c4) {
+  if(c1){var e=document.getElementById('fc1-'+id);if(e)e.value=c1.toFixed(2);}
+  if(c2){var e=document.getElementById('fc2-'+id);if(e)e.value=c2.toFixed(2);}
+  if(c3){var e=document.getElementById('fc3-'+id);if(e)e.value=c3.toFixed(2);}
+  updateCostPreview(id);
+  setMsg(id,'ok','S&S prices filled — confirm supplier and submit');
+}
+
+function useSSPrices(btn) {
+  var id=btn.dataset.ssid;
+  var c1=parseFloat(btn.dataset.c1)||0;
+  var c2=parseFloat(btn.dataset.c2)||0;
+  var c3=parseFloat(btn.dataset.c3)||0;
+  var c4=parseFloat(btn.dataset.c4)||0;
+  useSSP(id, c1, c2, c3, c4);
+}
+
+function massAutoArrival(gid) {
+  var sel=document.getElementById('mf-sup-'+gid);
+  var inp=document.getElementById('mf-arr-'+gid);
+  if(!sel||!inp) return;
+  var dit=SUP_DIT[sel.value];
+  if(!dit) return;
+  var d=new Date(),remaining=dit;
+  while(remaining>0){d.setDate(d.getDate()+1);var dow=d.getDay();if(dow!==0&&dow!==6)remaining--;}
+  var yyyy=d.getFullYear(),mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+  inp.value=yyyy+'-'+mm+'-'+dd;
+}
+
+function massSupChanged(gid) {
+  massAutoArrival(gid);
+  // If an S&S supplier was selected, find and click the matching warehouse button
+  var sel=document.getElementById('mf-sup-'+gid);
+  if(!sel||!sel.value) return;
+  var supVal=sel.value;
+  if(supVal.indexOf('S&S')<0) return; // not an S&S supplier, skip
+  // Reverse lookup: supplier name -> warehouse abbreviation
+  var SUP_WH_MAP={'S&S Activewear - Olathe, KS':'KS','S&S Activewear - Reno, NV':'NV','S&S Activewear - Ft. Worth, TX':'TX',
+    'S&S Activewear - Lockport, IL':'IL','S&S Activewear - McDonough, GA':'GA','S&S Activewear - West Chester, OH':'OH',
+    'S&S Activewear - Harrisburg, PA':'PA','S&S Activewear - Orlando, FL':'FL','S&S Activewear - Middleboro, MA':'MA',
+    'S&S Activewear - Robbinsville, NJ':'NJ','S&S Activewear - Bolingbrook, IL':'IL',
+    'S&S Activewear - Dallas, TX':'TX','S&S Activewear - Duluth, GA':'GA',
+    'S&S Activewear - Fresno, CA':'NV','S&S Activewear - Pompano Beach, FL':'FL',
+    'S&S Activewear - Reading, PA':'PA'};
+  var wh=SUP_WH_MAP[supVal];
+  if(!wh) return;
+  var whBtn=document.getElementById('mf-wh-btn-'+gid+'-'+wh);
+  if(whBtn) whBtn.click();
+}
+
+function autoArrival(id) {
+  var sel=document.getElementById('fs-'+id);
+  var inp=document.getElementById('fa-'+id);
+  if(!sel||!inp) return;
+  var supName=sel.value;
+  if(!supName) return;
+  var dit=SUP_DIT[supName];
+  if(!dit) return;
+  // Add DIT business days to today (skip weekends)
+  var d=new Date();
+  var remaining=dit;
+  while(remaining>0){
+    d.setDate(d.getDate()+1);
+    var dow=d.getDay();
+    if(dow!==0&&dow!==6) remaining--; // skip Sun/Sat
+  }
+  var yyyy=d.getFullYear(),mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+  inp.value=yyyy+'-'+mm+'-'+dd;
+  inp.style.borderColor='var(--grn)';
+  setTimeout(function(){if(inp)inp.style.borderColor='';},2000);
+}
+
+// PLACE ORDER — AIRTABLE
+function placeOrder(id){
+  var sup=document.getElementById('fs-'+id).value,po=document.getElementById('fp-'+id).value.trim();
+  var c1=parseFloat(document.getElementById('fc1-'+id).value)||0;
+  var c2=parseFloat(document.getElementById('fc2-'+id).value)||0;
+  var c3=parseFloat(document.getElementById('fc3-'+id).value)||0;
+  if(!sup){setMsg(id,'err','Select a supplier');return;}
+  if(!po){setMsg(id,'err','Enter a PO number');return;}
+  if(!c1){setMsg(id,'err','Enter cost per piece');return;}
+  if(!WRITES){setMsg(id,'amb','&#128065; Preview (writes off): <b>'+esc(sup)+'</b> &nbsp;PO: '+esc(po)+' &nbsp;$'+c1.toFixed(2)+'/pc'+(inbound?' &nbsp;freight: $'+inbound.toFixed(2):'')+(arrDate?' &nbsp;arrives: '+arrDate:'')+(orderNotes?' &nbsp;notes: '+esc(orderNotes.substring(0,40)):''));return;}
+  var btn=document.getElementById('fsub-'+id);btn.disabled=true;btn.textContent='Saving...';
+  var arrDate=document.getElementById('fa-'+id)?document.getElementById('fa-'+id).value:'';
+  var inbound=parseFloat(document.getElementById('fib-'+id)?document.getElementById('fib-'+id).value:0)||0;
+  var orderNotes=(document.getElementById('fon-'+id)?document.getElementById('fon-'+id).value:'').trim();
+  var fields={};
+  fields[F.ordered]=true;
+  fields[F.po]=po;
+  fields[F.c1]=c1;
+  if(c2) fields[F.c2]=c2;
+  if(c3) fields[F.c3]=c3;
+  if(inbound) fields[F.inbound]=inbound;
+  if(orderNotes) fields[F.orderNotes]=orderNotes;
+  fetch('https://api.airtable.com/v0/'+BASE+'/'+LI+'/records',{method:'PATCH',headers:{'Authorization':'Bearer '+AT,'Content-Type':'application/json'},body:JSON.stringify({records:[{id:id,fields:fields}]})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.records){setMsg(id,'ok','Saved');document.getElementById('oc-'+id).style.opacity='0.4';setTimeout(function(){allRecs=allRecs.filter(function(r){return r.id!==id;});render();},1200);}
+      else{setMsg(id,'err','Error: '+(d.error||'?'));btn.disabled=false;btn.textContent='Mark Ordered & Save to Airtable';}
+    }).catch(function(e){setMsg(id,'err',e.message);btn.disabled=false;btn.textContent='Mark Ordered & Save to Airtable';});
+}
+
+// PLACE ORDER — S&S DIRECT
+function placeSSOrder(id){
+  var po=document.getElementById('fp-'+id).value.trim(),sup=document.getElementById('fs-'+id).value;
+  if(!po){setMsg(id,'err','Enter a PO number first');return;}
+  var rec=allRecs.find(function(r){return r.id===id;});if(!rec)return;
+  var f=rec.fields,garm=f[F.garment]||'',style=parseStyle(garm);
+  var ck=style,data=ssCache[ck];
+  if(!data||!data.length){setMsg(id,'err','Load S&S inventory first');return;}
+  var ct=colorOf(garm).toLowerCase().replace(/[^a-z0-9]/g,'');
+  var ex=getExtras(id);
+  var whMap={Olathe:'KS','Ft. Worth':'TX',Reno:'NV',Lockport:'IL',Fresno:'CA',McDonough:'GA',Bolingbrook:'IL',Robbinsville:'NJ','West Chester':'OH',Harrisburg:'PA',Orlando:'FL','Pompano Beach':'FL',Reading:'PA',Middleboro:'MA','Salt Lake':'UT',Phoenix:'AZ',Houston:'TX'};
+  var wh='KS';Object.keys(whMap).forEach(function(k){if(sup.indexOf(k)>=0)wh=whMap[k];});
+  var lines=[];
+  SZO.forEach(function(sz){
+    var need=f[F[FK[sz]||'xs']]||0,extra=ex[sz]||0,total=need+extra;
+    if(total<=0)return;
+    var item=data.find(function(d){
+      var dc=(d.catalogColor||d.colorName||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      var ds=(d.sizeName||d.size||'').toUpperCase();
+      return ds===sz&&(dc.indexOf(ct)>=0||ct.indexOf(dc)>=0||!ct);
+    });
+    if(item)lines.push({identifier:item.sku||item.gtin||item.skuID_Master,qty:total,warehouseAbbr:wh});
+  });
+  if(!lines.length){setMsg(id,'err','Could not match sizes to S&S SKUs');return;}
+  if(!WRITES){setMsg(id,'amb','Preview: S&S PO='+esc(po)+', '+lines.length+' lines, '+lines.reduce(function(s,l){return s+l.qty;},0)+' pcs to '+wh);return;}
+  var btn=document.getElementById('fss-'+id);btn.disabled=true;btn.textContent='Placing...';
+  fetch(SS+'/orders/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({poNumber:po,shippingMethod:'1',testOrder:false,autoselectWarehouse:false,shippingAddress:{customer:'Pine Central',address:'1234 Pine St',city:'Fort Collins',state:'CO',zip:'80525',residential:false},lines:lines})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var o=Array.isArray(d)?d[0]:d;
+      if(o&&o.orderNumber){setMsg(id,'ok','S&S Order #'+o.orderNumber+' placed! Now mark ordered in Airtable.');btn.style.display='none';}
+      else{setMsg(id,'err','S&S: '+(o&&o.errors?o.errors[0].message:JSON.stringify(d).substring(0,80)));btn.disabled=false;btn.textContent='Place Order on S&S Directly';}
+    }).catch(function(e){setMsg(id,'err',e.message);btn.disabled=false;btn.textContent='Place Order on S&S Directly';});
+}
+
+// UTILS
+function fmtMoney(n){return n==null?'--':'$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+
+function updateCostPreview(id) {
+  var el=document.getElementById('cp-'+id);
+  if(!el)return;
+  var rec=allRecs.find(function(r){return r.id===id;});
+  if(!rec)return;
+  var c1=parseFloat((document.getElementById('fc1-'+id)||{}).value)||parseFloat(rec.fields[F.c1])||0;
+  var c2=parseFloat((document.getElementById('fc2-'+id)||{}).value)||parseFloat(rec.fields[F.c2])||0;
+  var c3=parseFloat((document.getElementById('fc3-'+id)||{}).value)||parseFloat(rec.fields[F.c3])||0;
+  var ib=parseFloat((document.getElementById('fib-'+id)||{}).value)||parseFloat(rec.fields[F.inbound])||0;
+  if(!c1){el.innerHTML='';return;}
+  var f=rec.fields,ex=getExtras(id);
+  var t1=0,t2=0,t3=0;
+  SZK.forEach(function(s){
+    var q=(f[F[s.k]]||0)+(ex[s.l.toUpperCase()]||0);
+    if(!q)return;
+    var sz=s.l.toUpperCase();
+    if(sz==='2XL')t2+=q;else if(sz==='3XL')t3+=q;else t1+=q;
+  });
+  var total=(t1*c1)+(t2*(c2||c1))+(t3*(c3||c1))+ib;
+  var qty=t1+t2+t3;
+  el.innerHTML='<div style="display:flex;align-items:center;gap:12px;padding:8px 10px;background:var(--grn-lt);border:1px solid #b8dfcc;border-radius:var(--r);flex-wrap:wrap;margin-top:4px">'+
+    '<span style="font-size:9px;font-weight:700;color:var(--grn-dk);text-transform:uppercase;letter-spacing:.06em">Line Total</span>'+
+    '<span style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--grn-dk)">'+fmtMoney(total)+'</span>'+
+    '<span style="font-size:10px;color:var(--grn);font-family:var(--mono)">'+qty+' pcs &nbsp;|&nbsp; avg $'+(qty?(total-ib)/qty:0).toFixed(2)+'/pc</span>'+
+    (ib?'<span style="font-size:9px;color:var(--mut)">incl. $'+ib.toFixed(2)+' freight</span>':'')+
+  '</div>';
+}
+
+function parseStyle(g){if(!g)return null;var m=g.match(/\b([A-Z]{0,4}\d{2,6}[A-Z0-9]{0,4})\b/);return m?m[1]:null;}
+function colorOf(g){var p=g.split(' - ');return p.length>1?p.slice(1).join(' - '):'';}
+function cleanSup(raw){return raw.replace(/^\[?"?|"?\]?$/g,'').replace(/",\s*"/g,' + ').replace(/"/g,'').trim();}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function setMsg(id,type,txt){var el=document.getElementById('fmsg-'+id);if(el){el.className='m'+type;el.innerHTML=txt;}}
+
+loadSuppliers();
+loadQueue();
+
+function toggleMassForm(gid, style, colorway) {
+  var el = document.getElementById('mf-'+gid);
+  var body = document.getElementById(gid);
+  if (!el) return;
+  var open = el.style.display !== 'none';
+  if (open) {
+    el.style.display = 'none';
+  } else {
+    el.style.display = 'block';
+    if (body) body.style.display = 'block';
+    // Populate form if empty (first open)
+    if (!el.innerHTML.trim()) {
+      // Find the group's records
+      var recIds = [];
+      var garmentGroups = {};
+      // Reconstruct from allRecs
+      allRecs.forEach(function(r){
+        var g = r.fields[F.garment]||'?';
+        var g2 = 'g'+g.replace(/[^a-z0-9]/gi,'_');
+        if (g2===gid) recIds.push(r.id);
+      });
+      var rs2 = allRecs.filter(function(r){
+        return 'g'+(r.fields[F.garment]||'?').replace(/[^a-z0-9]/gi,'_')===gid;
+      });
+      var sf2 = (rs2.find(function(r){return r.fields[F.c1];})||rs2[0]||{}).fields||{};
+      el.innerHTML = renderMassForm(gid, recIds, rs2, sf2, style, colorway);
+    }
+  }
+}
+
+function renderMassForm(gid, recIds, rs, sf, style, colorway) {
+  // Show a summary of what orders will be updated
+  var orderList = rs.map(function(r) {
+    var f = r.fields, num = oNum(r);
+    var szStr = SZK.filter(function(s){return (f[F[s.k]]||0)>0;}).map(function(s){return s.l+':'+f[F[s.k]];}).join(' · ');
+    return '<div class="mass-row">'+
+      '<div class="mr-num">'+(num?'#'+num:'')+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="mr-cust">'+esc(f[F.customer]||'?')+'</div>'+
+      '<div class="mr-szs">'+szStr+'</div></div>'+
+      '<span style="font-size:9px;color:var(--grn-dk);font-family:var(--mono)">'+(f[F.qty]||0)+' pcs</span>'+
+    '</div>';
+  }).join('');
+
+  var supOpts = (SUPPLIERS.length?SUPPLIERS:SUP_FALLBACK).map(function(s){
+    return '<option value="'+esc(s)+'">'+esc(s)+'</option>';
+  }).join('');
+
+  return '<div class="mass-form">'+
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--grn-dk);margin-bottom:8px">'+
+      'Order All — same supplier &amp; cost for all orders below'+
+    '</div>'+
+    orderList+
+    '<div class="fgrid" style="margin-top:10px">'+
+      '<div class="fg"><div class="fl">Supplier</div>'+
+        '<select class="fi" id="mf-sup-'+gid+'" data-gid="'+gid+'" onchange="massSupChanged(this.dataset.gid)"><option value="">Select supplier...</option>'+supOpts+'</select>'+
+      '</div>'+
+      '<div class="fg"><div class="fl">PO Number</div>'+
+        '<input class="fi" id="mf-po-'+gid+'" placeholder="e.g. 041526">'+
+      '</div>'+
+      (style?'<div class="fg full">'+
+        '<div class="fl" style="margin-bottom:5px">S&S Warehouse '+(ssCache[style]?'<span class="tag t-g" style="margin-left:4px">Live</span>':'<span class="tag t-a" style="margin-left:4px">Open a card first to load</span>')+'</div>'+
+        '<div id="mf-wh-'+gid+'" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+renderMassWHPicker(gid,style,colorway,rs)+'</div>'+
+      '</div>':'<div class="fg full"><div class="fl" style="margin-bottom:5px;color:var(--mut-lt)">Supplier warehouse set per order — or use S&S direct on individual cards</div></div>')+
+      '<div class="fg"><div class="fl">Cost XS–XL / piece</div>'+
+        '<input class="fi" id="mf-c1-'+gid+'" type="number" step="0.01" placeholder="0.00" value="'+(sf[F.c1]||'')+'">'+
+      '</div>'+
+      '<div class="fg"><div class="fl">Cost 2XL / piece</div>'+
+        '<input class="fi" id="mf-c2-'+gid+'" type="number" step="0.01" placeholder="0.00" value="'+(sf[F.c2]||'')+'">'+
+      '</div>'+
+      '<div class="fg"><div class="fl">Cost 3XL / piece</div>'+
+        '<input class="fi" id="mf-c3-'+gid+'" type="number" step="0.01" placeholder="0.00" value="'+(sf[F.c3]||'')+'">'+
+      '</div>'+
+      '<div class="fg"><div class="fl">Inbound Freight</div>'+
+        '<input class="fi" id="mf-ib-'+gid+'" type="number" step="0.01" placeholder="0.00" value="'+(sf[F.inbound]||'')+'">'+
+        '<div style="font-size:9px;color:var(--mut-lt);margin-top:2px">Handling / shipping if no free ship</div>'+
+      '</div>'+
+      '<div class="fg"><div class="fl">Expected Arrival</div>'+
+        '<input class="fi" id="mf-arr-'+gid+'" type="date">'+
+      '</div>'+
+      '<div class="fg full"><div class="fl">Order Notes</div>'+
+        '<textarea class="fi" id="mf-on-'+gid+'" rows="2" placeholder="Receiving notes, special instructions..." style="resize:vertical;font-size:11px">'+(esc(sf[F.orderNotes]||''))+'</textarea>'+
+      '</div>'+
+      '<div class="fg full" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">'+
+        '<button class="btn btn-p" id="mf-sub-'+gid+'" onclick="massOrder(\''+gid+'\',this.dataset.ids)" data-ids="'+esc(JSON.stringify(recIds))+'">'+
+          'Mark All Ordered &amp; Save to Airtable'+
+        '</button>'+
+        '<span id="mf-msg-'+gid+'"></span>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderSpend(recs) {
+  var el=document.getElementById('content');
+  if(!el)return;
+  var bySupplier={},uncosted=0;
+  recs.forEach(function(r){
+    var f=r.fields;
+    var c1=parseFloat(f[F.c1])||0,c2=parseFloat(f[F.c2])||0,c3=parseFloat(f[F.c3])||0;
+    var ib=parseFloat(f[F.inbound])||0;
+    if(!c1){uncosted++;return;}
+    var sup=f[F.supTx]||'— No Supplier Yet —';
+    if(!bySupplier[sup])bySupplier[sup]={total:0,lines:0,qty:0,records:[]};
+    var t1=0,t2=0,t3=0;
+    SZK.forEach(function(s){
+      var q=f[F[s.k]]||0;if(!q)return;
+      var sz=s.l.toUpperCase();
+      if(sz==='2XL')t2+=q;else if(sz==='3XL')t3+=q;else t1+=q;
+    });
+    var lineCost=(t1*c1)+(t2*(c2||c1))+(t3*(c3||c1))+ib;
+    bySupplier[sup].total+=lineCost;bySupplier[sup].lines++;
+    bySupplier[sup].qty+=(t1+t2+t3);
+    bySupplier[sup].records.push({id:r.id,garm:f[F.garment]||'?',cust:f[F.customer]||'',cost:lineCost,qty:t1+t2+t3,c1:c1,ib:ib});
+  });
+  var sups=Object.keys(bySupplier).sort(function(a,b){return bySupplier[b].total-bySupplier[a].total;});
+  var grand=sups.reduce(function(s,k){return s+bySupplier[k].total;},0);
+  var grandQty=sups.reduce(function(s,k){return s+bySupplier[k].qty;},0);
+  var html='<div style="padding:16px;max-width:720px">';
+  // Grand total
+  html+='<div style="font-size:9px;color:var(--mut-lt);margin-bottom:10px">'+
+    '&#8505; Reflects current RFO queue. Items disappear here once marked ordered.'+
+  '</div>';
+  html+='<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--bd2)">'+
+    '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)">Total Queue Spend</span>'+
+    '<span style="font-size:28px;font-weight:700;font-family:var(--mono)">'+fmtMoney(grand)+'</span>'+
+    '<span style="font-size:11px;color:var(--mut);font-family:var(--mono)">'+grandQty+' pcs &nbsp;|&nbsp; '+recs.length+' lines</span>'+
+    (uncosted?'<span class="tag t-a" title="These lines need a cost per piece entered before they show here">'+uncosted+' lines need cost</span>':'')+
+  '</div>';
+  // Per supplier
+  sups.forEach(function(sup){
+    var s=bySupplier[sup];
+    var pct=grand?Math.round(s.total/grand*100):0;
+    html+='<div style="margin-bottom:10px;border:1px solid var(--bd);border-radius:var(--r-lg);overflow:hidden">'+
+      '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);cursor:pointer" '+
+        'onclick="var n=this.nextElementSibling;n.style.display=n.style.display===\'none\'?\'block\':\'none\'">'+
+        '<div style="flex:1">'+
+          '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:'+(sup==='— No Supplier Yet —'?'var(--amb)':'inherit')+'">'+esc(sup)+'</div>'+
+          '<div style="font-size:10px;color:var(--mut);font-family:var(--mono);margin-top:2px">'+s.lines+' line'+(s.lines===1?'':'s')+' &nbsp;·&nbsp; '+s.qty+' pcs</div>'+
+        '</div>'+
+        '<div style="text-align:right;min-width:80px">'+
+          '<div style="font-size:16px;font-weight:700;font-family:var(--mono)">'+fmtMoney(s.total)+'</div>'+
+          '<div style="font-size:9px;color:var(--mut-lt)">'+pct+'% of total</div>'+
+        '</div>'+
+        '<div style="width:50px;height:4px;background:var(--bg);border-radius:2px;flex-shrink:0">'+
+          '<div style="width:'+pct+'%;height:4px;background:var(--grn);border-radius:2px"></div>'+
+        '</div>'+
+        '<span style="color:var(--mut-lt);font-size:9px">&#9660;</span>'+
+      '</div>'+
+      '<div style="display:'+(sups.length<=2?'block':'none')+';border-top:1px solid var(--bd)">'+
+        '<table style="width:100%;border-collapse:collapse;font-size:10px">'+
+          '<thead><tr style="background:var(--bg)">'+
+            '<th style="padding:6px 14px;text-align:left;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em">Garment</th>'+
+            '<th style="padding:6px 8px;text-align:right;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em">Qty</th>'+
+            '<th style="padding:6px 8px;text-align:right;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em">$/pc</th>'+
+            '<th style="padding:6px 8px;text-align:right;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em">Freight</th>'+
+            '<th style="padding:6px 14px;text-align:right;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em">Line Total</th>'+
+          '</tr></thead><tbody>';
+    s.records.forEach(function(r,i){
+      html+='<tr style="border-top:1px solid var(--bd)'+(i%2?' background:var(--bg)':'')+'">' +
+        '<td style="padding:6px 14px">'+
+            '<div style="font-weight:600;font-size:10px">'+esc(r.garm)+'</div>'+
+            (r.cust?'<div style="font-size:9px;color:var(--mut);font-family:var(--mono)">'+esc(r.cust)+'</div>':'')+
+          '</td>'+
+        '<td style="padding:6px 8px;text-align:right;font-family:var(--mono)">'+r.qty+'</td>'+
+        '<td style="padding:6px 8px;text-align:right;font-family:var(--mono)">$'+r.c1.toFixed(2)+'</td>'+
+        '<td style="padding:6px 8px;text-align:right;font-family:var(--mono);color:var(--mut)">'+(r.ib?'$'+r.ib.toFixed(2):'--')+'</td>'+
+        '<td style="padding:6px 14px;text-align:right;font-family:var(--mono);font-weight:700">'+fmtMoney(r.cost)+'</td>'+
+      '</tr>';
+    });
+    html+='</tbody>'+
+      '<tfoot><tr style="border-top:2px solid var(--bd2);background:var(--grn-lt)">'+
+        '<td colspan="4" style="padding:7px 14px;font-weight:700;color:var(--grn-dk)">'+esc(sup)+' Subtotal</td>'+
+        '<td style="padding:7px 14px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--grn-dk)">'+fmtMoney(s.total)+'</td>'+
+      '</tr></tfoot>'+
+    '</table>'+
+    '</div></div>';
+  });
+  if(!sups.length)html+='<div class="empty">No costed orders yet — enter cost per piece on any order to see spend totals here.</div>';
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function massOrder(gid, el) {
+  var recIds = el && el.dataset && el.dataset.ids ? JSON.parse(el.dataset.ids) : [];
+  var sup = document.getElementById('mf-sup-'+gid).value;
+  var po  = document.getElementById('mf-po-'+gid).value.trim();
+  var c1  = parseFloat(document.getElementById('mf-c1-'+gid).value)||0;
+  var c2  = parseFloat(document.getElementById('mf-c2-'+gid).value)||0;
+  var c3  = parseFloat(document.getElementById('mf-c3-'+gid).value)||0;
+  var mib = parseFloat((document.getElementById('mf-ib-'+gid)||{}).value)||0;
+  var mon = ((document.getElementById('mf-on-'+gid)||{}).value||'').trim();
+  var msg = document.getElementById('mf-msg-'+gid);
+
+  if (!sup) { msg.className='merr'; msg.textContent='Select a supplier'; return; }
+  if (!po)  { msg.className='merr'; msg.textContent='Enter a PO number'; return; }
+  if (!c1)  { msg.className='merr'; msg.textContent='Enter cost per piece'; return; }
+
+  if (!WRITES) {
+    msg.className='mamb';
+    msg.className='mamb';msg.innerHTML='&#128065; Preview (writes off): <b>'+esc(sup)+'</b> &nbsp;PO: '+esc(po)+' &nbsp;$'+c1.toFixed(2)+'/pc &nbsp;&rarr; '+recIds.length+' records';
+    return;
+  }
+
+  var btn = document.getElementById('mf-sub-'+gid);
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  msg.textContent = '';
+
+  var fields = {};
+  fields[F.ordered] = true;
+  fields[F.po] = po;
+  fields[F.c1] = c1;
+  if (c2) fields[F.c2] = c2;
+  if (c3) fields[F.c3] = c3;
+  if (mib) fields[F.inbound] = mib;
+  if (mon) fields[F.orderNotes] = mon;
+
+  // Batch into groups of 10 (Airtable limit)
+  var batches = [];
+  for (var i = 0; i < recIds.length; i += 10) {
+    batches.push(recIds.slice(i, i + 10));
+  }
+
+  var completed = 0;
+  var errors = [];
+
+  function runBatch(idx) {
+    if (idx >= batches.length) {
+      // All done
+      if (errors.length) {
+        msg.className='merr';
+        msg.textContent = errors.length+' error(s): '+errors[0];
+        btn.disabled=false; btn.textContent='Retry';
+      } else {
+        msg.className='mok';
+        msg.textContent = 'Done — '+completed+' records marked ordered';
+        // Remove those records from allRecs and re-render
+        recIds.forEach(function(id){ allRecs = allRecs.filter(function(r){return r.id!==id;}); });
+        setTimeout(function(){ render(); }, 1200);
+      }
+      return;
+    }
+
+    var records = batches[idx].map(function(id){ return {id:id, fields:fields}; });
+    fetch('https://api.airtable.com/v0/'+BASE+'/'+LI+'/records', {
+      method: 'PATCH',
+      headers: {'Authorization':'Bearer '+AT, 'Content-Type':'application/json'},
+      body: JSON.stringify({records: records})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.records) {
+        completed += d.records.length;
+        msg.className='mamb';
+        msg.textContent = 'Saving... ('+completed+'/'+recIds.length+')';
+        runBatch(idx + 1);
+      } else {
+        errors.push(d.error||'Unknown error');
+        runBatch(idx + 1);
+      }
+    })
+    .catch(function(e){
+      errors.push(e.message);
+      runBatch(idx + 1);
+    });
+  }
+
+  runBatch(0);
+}
+
+
+function renderMassWHPicker(gid, style, colorway, rs) {
+  var ck = style;
+  var data = ssCache[ck];
+  if (!data || !data.length) {
+    return '<span style="font-size:10px;color:var(--amb)">Open a card and load S&S inventory first to see warehouse options</span>';
+  }
+
+  // Find the matched color
+  var colors = [...new Set(data.map(function(d){return d.colorName;}))];
+  var tc = colorway?colorway.toLowerCase().replace(/[^a-z0-9]/g,''):'';
+  var matchColor = tc?colors.find(function(c){var cl=c.toLowerCase().replace(/[^a-z0-9]/g,'');return cl.indexOf(tc)>=0||tc.indexOf(cl)>=0;}):null;
+  if (!matchColor) {
+    var CORE=['S','M','L','XL'];
+    var scored=colors.map(function(c){
+      var colorSkus=data.filter(function(d){return d.colorName===c;});
+      var sizeNames=[...new Set(colorSkus.map(function(d){return d.sizeName.toUpperCase();}))];
+      var coreCount=CORE.filter(function(s){return sizeNames.indexOf(s)>=0;}).length;
+      // Heavy penalty if missing most core sizes — avoids single-size specialty colorways
+      var score=coreCount>=3 ? coreCount*100+sizeNames.length : coreCount*5;
+      return {c:c,score:score,sizes:sizeNames};
+    });
+    console.log('[S&S color] top 3:', scored.sort(function(a,b){return b.score-a.score;}).slice(0,3).map(function(x){return x.c+'('+x.sizes.join(',')+')';}).join(' | '));
+    scored.sort(function(a,b){return b.score-a.score;});
+    scored.sort(function(a,b){return b.score-a.score;});
+    matchColor = scored[0].c;
+  }
+
+  var colorSkus = data.filter(function(d){return d.colorName===matchColor;});
+
+  // Get total needed sizes across all orders in this group
+  var totalNeeded = {};
+  rs.forEach(function(r){
+    var f = r.fields;
+    SZK.forEach(function(s){
+      var q = f[F[s.k]]||0;
+      if (q>0) totalNeeded[s.l.toUpperCase()] = (totalNeeded[s.l.toUpperCase()]||0)+q;
+    });
+  });
+
+  // Get all warehouses and their stock for needed sizes
+  var whTotals = {};
+  // Build price tiers from colorSkus
+  var massTiers = {c1:0,c2:0,c3:0,c4:0};
+  var MASS_TIER_SZ = {'XS':'c1','S':'c1','M':'c1','L':'c1','XL':'c1','2XL':'c2','3XL':'c3','4XL':'c4','5XL':'c4','OSFA':'c1'};
+  colorSkus.forEach(function(sku){
+    var sz = sku.sizeName.toUpperCase();
+    var tier = MASS_TIER_SZ[sz]||'c1';
+    if(sku.customerPrice&&(!massTiers[tier]||sku.customerPrice>massTiers[tier])) massTiers[tier]=sku.customerPrice;
+    if (!totalNeeded[sz]) return; // skip sizes we don't need for warehouse check
+    Object.keys(sku.warehouses).forEach(function(wh){
+      if (!whTotals[wh]) whTotals[wh] = {canFill:true, short:[]};
+      var stock = sku.warehouses[wh]||0;
+      var need = totalNeeded[sz]||0;
+      if (stock < need) {
+        whTotals[wh].canFill = false;
+        whTotals[wh].short.push(sz+':need '+need+',have '+stock);
+      }
+    });
+  });
+
+  var whs = Object.keys(whTotals).sort();
+  if (!whs.length) return '<span style="font-size:10px;color:var(--mut)">No warehouse data available</span>';
+
+  var priceLabel = massTiers.c1 ? ' $'+massTiers.c1.toFixed(2) : '';
+  var btns = whs.map(function(wh){
+    var info = whTotals[wh];
+    var icon = info.canFill ? '&#10003;' : '&#9888;';
+    var title = info.canFill ? 'Full stock' : 'Short: '+info.short.join(', ');
+        return '<button class="btn '+(info.canFill?'btn-g':'')+'" '+
+      'data-gid="'+gid+'" data-wh="'+wh+'" '+
+      'data-c1="'+(massTiers.c1||0)+'" data-c2="'+(massTiers.c2||0)+'" data-c3="'+(massTiers.c3||0)+'" data-c4="'+(massTiers.c4||0)+'" '+
+      'id="mf-wh-btn-'+gid+'-'+wh+'" '+
+      'title="'+esc(title)+'" '+
+      'onclick="selectMassWH(this)" '+
+      'style="font-size:9px;padding:4px 8px;'+(info.canFill?'border-color:#b8dfcc;':'border-color:var(--amb-bd);color:var(--amb);')+'">'
+      +icon+' '+wh+priceLabel+'</button>';
+  }).join('');
+
+  return btns + '<span id="mf-wh-sel-'+gid+'" style="font-size:10px;color:var(--mut-lt);margin-left:8px">click to select</span>';
+}
+
+function selectMassWH(btn) {
+  var gid = btn.dataset.gid;
+  var wh = btn.dataset.wh;
+  var c1 = parseFloat(btn.dataset.c1)||0;
+  var c2 = parseFloat(btn.dataset.c2)||0;
+  var c3 = parseFloat(btn.dataset.c3)||0;
+  // Highlight selected button
+  document.querySelectorAll('[id^="mf-wh-btn-'+gid+'-"]').forEach(function(b){
+    b.style.background='';
+    b.style.color='';
+    b.style.borderColor='';
+  });
+  btn.style.background='var(--sb)'; btn.style.color='var(--yel)'; btn.style.borderColor='var(--sb)';
+  var lbl = document.getElementById('mf-wh-sel-'+gid);
+  if (lbl) { lbl.textContent = wh+' selected'; lbl.style.color='var(--grn)'; }
+  // Store selected warehouse
+  var form = document.getElementById('mf-'+gid);
+  if (form) form.dataset.wh = wh;
+  // Always fill S&S tiered prices
+  if (c1) { var e=document.getElementById('mf-c1-'+gid); if(e) e.value=c1.toFixed(2); }
+  if (c2) { var e=document.getElementById('mf-c2-'+gid); if(e) e.value=c2.toFixed(2); }
+  if (c3) { var e=document.getElementById('mf-c3-'+gid); if(e) e.value=c3.toFixed(2); }
+  // Auto-select matching S&S supplier
+  var sel = document.getElementById('mf-sup-'+gid);
+  var whSupMap = {KS:'S&S Activewear - Olathe, KS',NV:'S&S Activewear - Reno, NV',TX:'S&S Activewear - Ft. Worth, TX',IL:'S&S Activewear - Lockport, IL',GA:'S&S Activewear - McDonough, GA',OH:'S&S Activewear - West Chester, OH',PA:'S&S Activewear - Harrisburg, PA',FL:'S&S Activewear - Orlando, FL',MA:'S&S Activewear - Middleboro, MA'};
+  var supName = whSupMap[wh]||'';
+  if (sel && supName) {
+    for (var i=0;i<sel.options.length;i++){
+      if (sel.options[i].value===supName){sel.value=supName;break;}
+    }
+  }
+  // Auto-fill arrival
+  massAutoArrival(gid);
+}
+
+
+function clearSSColor(id) {
+  var rec = allRecs.find(function(r){return r.id===id;});
+  var garm = rec ? rec.fields[F.garment]||'' : '';
+  var style = parseStyle(garm);
+  if (style) { try { localStorage.removeItem('pine_ss_color_'+style); } catch(e) {} }
+  // Clear from Airtable too
+  var gLinkRaw = rec ? rec.fields[F.garmentLink] : null;
+  var gRecId = gLinkRaw && gLinkRaw[0] ? (typeof gLinkRaw[0]==='string'?gLinkRaw[0]:gLinkRaw[0].id||null) : null;
+  if (gRecId) {
+    delete ssColorCache[gRecId];
+    if (WRITES) {
+      var flds = {}; flds[FS_SS_COLOR] = null;
+      fetch('https://api.airtable.com/v0/'+BASE+'/'+GT+'/records',{
+        method:'PATCH',
+        headers:{'Authorization':'Bearer '+AT,'Content-Type':'application/json'},
+        body:JSON.stringify({records:[{id:gRecId,fields:flds}]})
+      });
+    }
+  }
+  var data = style ? ssCache[style] : null;
+  if (data) showSSColorPicker(id, data, colorOf(garm));
+}
+
+</script>
+</body>
+</html>
