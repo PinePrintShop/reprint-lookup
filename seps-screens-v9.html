@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seps &amp; Screens v9 — Pine Central</title>
+<style>
+:root{
+  --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;
+  --green:#1e6b45;--green-lt:#e8f5ee;--green-md:#2d8a5a;--green-dk:#144d31;
+  --text:#0D0D0B;--muted:#888880;--muted-lt:#BBBBB5;
+  --yellow:#E8E832;--yellow-dim:#E8E83230;--yellow-border:#E8E83250;
+  --red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+  --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;
+  --sb-bg:#0A0A08;--sb-border:#1A1A16;--sb-active:#141410;
+  --sans:Helvetica,Arial,sans-serif;
+  --cond:Helvetica,Arial,sans-serif;
+  --mono:Helvetica,Arial,sans-serif;
+  --radius:4px;--radius-lg:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* STATS BAR — exact ink queue pattern */
+.stats-bar{display:flex;overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;gap:6px;scrollbar-width:none;flex-shrink:0;align-items:center}
+.stats-bar::-webkit-scrollbar{display:none}
+.stat-cell{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);display:flex;align-items:center;cursor:pointer;user-select:none}
+.stat-cell.active{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.stat-ct{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:rgba(0,0,0,.06);font-size:9px;padding:0 4px;margin-left:5px;color:var(--muted-lt);font-family:var(--mono)}
+.stat-cell.active .stat-ct{background:rgba(232,232,50,.15);color:var(--yellow)}
+.role-toggle{margin-left:auto;display:flex;flex-shrink:0}
+.rbtn{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);padding:5px 13px;border:1px solid var(--border-dk);background:var(--surface);color:var(--muted);cursor:pointer}
+.rbtn:first-child{border-radius:var(--radius) 0 0 var(--radius);border-right:none}
+.rbtn:last-child{border-radius:0 var(--radius) var(--radius) 0}
+.rbtn.active{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.search-lbl{font-size:9px;font-weight:700;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.08em;font-family:var(--cond);white-space:nowrap}
+#search{font-family:var(--sans);font-size:12px;padding:5px 9px;border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;flex:1;max-width:260px}
+#search:focus{border-color:var(--green)}
+.tbright{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* BUTTONS — exact ink queue .btn */
+.btn{background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);color:var(--muted);font-size:9px;padding:5px 10px;cursor:pointer;font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase;transition:all .1s;white-space:nowrap;text-decoration:none;display:inline-block;line-height:1.2}
+.btn:hover{border-color:var(--text);color:var(--text)}
+.btn.p{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.btn.p:hover{background:var(--sb-active)}
+.btn.grn{background:var(--green-lt);border-color:#b8dfcc;color:var(--green-dk)}
+.btn.grn:hover{background:#d4eddf}
+.btn.lg{font-size:11px;padding:7px 14px;}
+
+/* NO TOKEN */
+#noToken{margin:16px;padding:11px 14px;background:var(--amb-bg);border:1px solid var(--amb-bd);border-radius:var(--radius-lg);font-size:10px;color:var(--amb);font-family:var(--cond);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:none}
+
+/* MODE BANNER */
+.mode-banner{margin:10px 16px 0;padding:7px 12px;border-radius:var(--radius);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--cond);display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.mode-dot{width:6px;height:6px;border-radius:50%;background:var(--muted-lt);flex-shrink:0}
+
+/* CONTENT */
+.content{padding:16px;max-width:none}
+
+/* DATE + ORDER HEADERS */
+.date-hdr{font-size:9px;font-weight:700;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.12em;font-family:var(--cond);padding:14px 0 4px;display:flex;align-items:center;justify-content:space-between}
+.date-hdr:first-child{padding-top:0}
+.date-hdr.today{color:var(--text)}
+.date-hdr-right{font-weight:400;color:var(--muted-lt)}
+.order-hdr{font-size:9px;font-weight:700;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.1em;padding:8px 0 3px;font-family:var(--cond);display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.order-hdr:hover{color:var(--text)}
+.order-num{color:var(--green);font-family:var(--mono)}
+.order-cust{font-weight:400;color:var(--muted)}
+.order-ct{font-weight:400;color:var(--muted-lt)}
+.order-chv{font-size:9px;color:var(--muted-lt);margin-left:auto;transition:transform .2s}
+.order-group.collapsed .order-chv{transform:rotate(-90deg)}
+.order-group.collapsed .order-body{display:none}
+
+/* IMPRINT CARD — full-width split layout */
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:row;transition:border-color .12s;margin-bottom:8px;overflow:hidden;min-height:320px}
+.job-card:hover{border-color:var(--border-dk)}
+.job-card.seped{border-left:3px solid var(--green)}
+.job-card.burned{border-left:3px solid var(--green);opacity:.55}
+
+/* Proof panel — left side */
+.jc-proof{width:55%;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:12px}
+.jc-proof img{width:100%;height:auto;display:block;border-radius:var(--radius)}
+.jc-proof-ph{display:flex;align-items:center;justify-content:center;width:100%;min-height:260px;flex-direction:column;gap:8px}
+.jc-proof-ph-icon{width:32px;height:32px;opacity:.15;color:var(--muted)}
+.jc-proof-ph-lbl{font-size:9px;color:var(--muted-lt);letter-spacing:.08em;text-transform:uppercase;font-family:var(--cond)}
+.sep-badge{font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);padding:1px 4px;border-radius:2px;background:var(--sb-bg);color:var(--yellow);border:1px solid var(--yellow-border);margin-left:6px}
+.rep-badge{font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);padding:1px 4px;border-radius:2px;background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);margin-left:4px}
+
+/* Info panel — right side */
+.jc-info{flex:1;min-width:0;display:flex;flex-direction:column;padding:14px 16px;gap:8px}
+.jc-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.jc-sup{font-size:9px;color:var(--muted-lt);letter-spacing:.04em;font-family:var(--mono)}
+.jc-name{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond)}
+.jc-nick{font-size:11px;color:var(--muted)}
+.jc-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.jc-footer{margin-top:auto;display:flex;flex-direction:column;gap:6px;padding-top:8px;border-top:1px solid var(--border)}
+
+/* TAGS — exact ink queue only these three */
+.tag{font-size:8px;padding:2px 7px;border-radius:2px;white-space:nowrap;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;font-family:var(--cond)}
+.tag.n{background:var(--surface);color:var(--muted);border-color:var(--border)}
+.tag.r{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.tag.k{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-border)}
+
+/* Checkboxes */
+.ck{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;user-select:none;text-transform:uppercase;letter-spacing:.06em;font-family:var(--cond)}
+.ck.on{color:var(--green)}
+.ck.art-on{color:var(--amb)}
+.ck.disabled{opacity:.35;pointer-events:none}
+.ck-box{width:16px;height:16px;border-radius:2px;border:1.5px solid var(--border-dk);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;transition:all .1s}
+.ck.on .ck-box{background:var(--green);border-color:var(--green)}
+.ck.art-on .ck-box{background:var(--amb);border-color:var(--amb)}
+.ck-v{width:8px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);display:none}
+.ck.on .ck-v,.ck.art-on .ck-v{display:block}
+
+/* Sep link input */
+.link-row{display:flex;gap:5px;align-items:center;margin-top:5px}
+.link-input{font-size:11px;padding:4px 8px;border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:var(--mono);outline:none;flex:1;min-width:0}
+.link-input:focus{border-color:var(--green)}
+
+/* Separator select */
+.sep-select{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-family:var(--cond);padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border-dk);background:var(--bg);color:var(--muted);cursor:pointer;outline:none;width:100%;margin-top:5px}
+.sep-select:focus{border-color:var(--green)}
+.sep-select.assigned{background:var(--green-lt);border-color:#b8dfcc;color:var(--green-dk)}
+
+/* Notes */
+.inotes{font-size:10px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:4px 7px;line-height:1.5;resize:none;width:100%;height:32px;font-family:var(--sans);outline:none;transition:border-color .15s,height .2s;margin-top:5px}
+.inotes:focus{border-color:var(--green);background:var(--surface);height:58px}
+.inotes.saving{border-color:var(--amb)}
+.inotes.saved{border-color:var(--green)}
+
+/* Loading / empty */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:48px;color:var(--muted-lt);font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond)}
+.spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px 20px;color:var(--muted-lt);font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond)}
+
+/* TOAST */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);padding:6px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9999;white-space:nowrap}
+#toast.show{opacity:1}
+#toast.err{background:var(--red)}
+</style>
+</head>
+<body>
+
+<div id="noToken">No API token — enter it in the Pine Central sidebar to use this app.</div>
+
+<div class="stats-bar" id="statsBar" style="display:none">
+  <div class="stat-cell active" id="fc-all" onclick="setFilter('all')">All<span class="stat-ct" id="sAll">0</span></div>
+  <div class="stat-cell" id="fc-nofile" onclick="setFilter('nofile')">No File<span class="stat-ct" id="sNoFile">0</span></div>
+  <div class="stat-cell" id="fc-repeat" onclick="setFilter('repeat')">Repeats<span class="stat-ct" id="sRepeat">0</span></div>
+  <div class="role-toggle">
+    <button class="rbtn art active" onclick="setRole('art')">Art Dept</button>
+    <button class="rbtn screen" onclick="setRole('screen')">Screen Room</button>
+  </div>
+</div>
+
+<div class="toolbar" id="toolbar" style="display:none">
+  <span class="search-lbl">Search</span>
+  <input type="text" id="search" placeholder="Order #, customer, imprint ID..." oninput="render()">
+  <div class="tbright">
+    <button class="btn p" id="refreshBtn" onclick="loadData()">&#8635; Refresh</button>
+  </div>
+</div>
+
+<div class="mode-banner" id="modeBanner" style="display:none">
+  <div class="mode-dot"></div>
+  <span id="modeText">Art Department — assign separator, mark sep'd, link sep files.</span>
+</div>
+
+<div class="content">
+  <div id="root">
+    <div class="loading"><div class="spin"></div>Loading queue…</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var BASE = 'appJkaLk8DykjsgHR';
+var TBL  = 'tbln9oAGvz2PNBZLV';
+
+var F = {
+  imprintId:  'fldDFfwFQ9B20n2kT',
+  impType:    'fldjNCuaGOkWgzH2K',
+  proof:      'fldUOIfCd22MxevRm',
+  sepUrl:     'fldiBqdFTRMahiMeI',
+  seped:      'fldlMcHtldbifKzDN',
+  burned:     'fldEL51Nwrxuyn9Zo',
+  separator:  'fldTPKgZroX532qER',
+  schedStart: 'fldfqtIgcEfIlIeQk',
+  screens:    'fld8rgkIj1RPO97QU',
+  impressions:'fldFipR4ddfqMPeAX',
+  customer:   'fldeLMIAC0ABQAjYJ',
+  printDesc:  'fld0jStSNsRNjjeZy',
+  inkNames:   'fldMM5hp8kEpo3KKT',
+  printNotes: 'fldNuEzGIYI8FWqXu',
+  repeat:     'flda9L7041ahNZT0b',
+};
+
+var SEPARATORS = ['Whitney', 'Hannah', 'Juan', 'Outsourced'];
+
+var SKIP_TYPES = new Set([
+  'Embroidery','Patch Application','Hem Label Application','Woven Label Application',
+  'Patch/Label ONLY','Finishing - Fold & Bag','Finishing - UPC sticker',
+  'Finishing - Bandana Hanger','Hem Label','Woven Label'
+]);
+
+function isSupaType(t) { return t && (t.indexOf('Supacolor') === 0 || t.indexOf('Decopress') === 0); }
+
+var ACTIVE_STATUSES = new Set([
+  'Pre-press','Ordered - In Production','Received & Staged',
+  'Scheduled, Screened, & Inbound','On-Press',
+  'Delayed - Mis-Print','Delayed - Mis-Shipment - Needs Order',
+  'Delayed - Mis-Print - Needs Order'
+]);
+
+var ALL = [], state = {}, role = 'art', activeFilter = 'all';
+var PROOF_URLS = {};
+
+
+
+(function init() {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) {
+    document.getElementById('noToken').style.display = 'block';
+    document.getElementById('root').innerHTML = '';
+    return;
+  }
+  loadData();
+})();
+
+function loadData() {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) return;
+  document.getElementById('root').innerHTML = '<div class="loading"><div class="spin"></div>Loading queue\u2026</div>';
+  document.getElementById('statsBar').style.display = 'none';
+  document.getElementById('toolbar').style.display = 'none';
+  document.getElementById('modeBanner').style.display = 'none';
+  fetchAll(token).then(function(recs) {
+    ALL = parseRecords(recs);
+    state = {};
+    ALL.forEach(function(r) {
+      state[r.id] = { sp:r.sp, b:r.b, sepsUrl:r.sepsUrl, sep:r.sep, pn:r.pn };
+      if (r.largeUrl) PROOF_URLS[r.id] = r.largeUrl;
+    });
+    document.getElementById('statsBar').style.display = 'flex';
+    document.getElementById('toolbar').style.display = 'flex';
+    document.getElementById('modeBanner').style.display = 'flex';
+    updateStats();
+    render();
+  }).catch(function(err) {
+    document.getElementById('root').innerHTML = '<div class="empty">Load failed: ' + esc(err.message) + '</div>';
+    console.error(err);
+  });
+}
+
+function fetchAll(token) {
+  // Tight date window: scheduled start in past 14 days OR next 60 days
+  // Status + type filtering done client-side in parseRecords
+  // Note: filterByFormula on lookup fields is unreliable per reference doc
+  var past = new Date(); past.setDate(past.getDate() - 14);
+  var fut  = new Date(); fut.setDate(fut.getDate() + 60);
+  var pastStr = past.toISOString().slice(0,10);
+  var futStr  = fut.toISOString().slice(0,10);
+  var fid = 'fldfqtIgcEfIlIeQk';
+  var formula = 'OR(' +
+    'AND(IS_AFTER({' + fid + '},"' + pastStr + '"),IS_BEFORE({' + fid + '},"' + futStr + '")),' +
+    'IS_AFTER(CREATED_TIME(),"' + pastStr + '")' +
+  ')';
+  var params = new URLSearchParams();
+  params.set('filterByFormula', formula);
+  params.set('pageSize', '100');
+  params.set('returnFieldsByFieldId', 'true');
+
+  var all = [];
+  function page(offset) {
+    var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL + '?' + params + (offset ? '&offset=' + encodeURIComponent(offset) : '');
+    return fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+      .then(function(res) {
+        if (!res.ok) return res.json().then(function(e) { throw new Error((e.error && e.error.message) || 'API error ' + res.status); });
+        return res.json();
+      })
+      .then(function(d) {
+        all = all.concat(d.records || []);
+        if (d.offset) return page(d.offset);
+        return all;
+      });
+  }
+  return page(null);
+}
+
+function flatLookup(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (val.valuesByLinkedRecordId) {
+    return Object.values(val.valuesByLinkedRecordId).reduce(function(a,b){ return a.concat(b); }, []);
+  }
+  return [val];
+}
+
+function parseRecords(records) {
+  var out = [];
+  records.forEach(function(r) {
+    var f = r.fields || {};
+    var iid = f[F.imprintId] || '';
+    if (!iid || iid.indexOf('-') < 0) return;
+    var orderNum = parseInt(iid.split('-')[0], 10);
+    if (!isNaN(orderNum) && orderNum < 9400) return;
+    var typeRaw = f[F.impType]; var typeName = typeRaw ? (typeof typeRaw === 'object' ? (typeRaw.name || '') : String(typeRaw)) : '';
+    if (SKIP_TYPES.has(typeName)) return;
+
+    var statusOk = false;
+    Object.values(f).forEach(function(v) {
+      flatLookup(v).forEach(function(s) { if (ACTIVE_STATUSES.has(s)) statusOk = true; });
+    });
+    if (!statusOk) return;
+
+    var proofs = flatLookup(f[F.proof]);
+    if (!proofs.length) return;
+    var fp = proofs[0];
+    var thumbUrl = '', largeUrl = '';
+    if (fp && typeof fp === 'object' && fp.thumbnails) {
+      thumbUrl = (fp.thumbnails.large && fp.thumbnails.large.url) || (fp.thumbnails.small && fp.thumbnails.small.url) || '';
+      largeUrl = thumbUrl;
+    } else if (typeof fp === 'string' && fp.indexOf('http') === 0) {
+      thumbUrl = fp; largeUrl = fp;
+    }
+    if (!thumbUrl) return;
+
+    var cust = f[F.customer];
+    if (Array.isArray(cust)) cust = cust[0] || '';
+    cust = cust || '';
+
+    out.push({
+      id: r.id,
+      i: iid,
+      o: iid.split('-')[0],
+      n: f[F.printDesc] || '',
+      t: typeName,
+      s: f[F.screens] || null,
+      sp: f[F.seped] === true,
+      b:  f[F.burned] === true,
+      rp: f[F.repeat] === true,
+      c: cust,
+      pn: f[F.printNotes] || '',
+      sepsUrl: f[F.sepUrl] || '',
+      sep: f[F.separator] || '',
+      due: (f[F.schedStart] || '').slice(0,10),
+      qty: f[F.impressions] || null,
+      thumbUrl: thumbUrl, largeUrl: largeUrl,
+      supa: isSupaType(typeName),
+      inks: f[F.inkNames] || '',
+    });
+  });
+
+  var dated   = out.filter(function(x){return x.due;}).sort(function(a,b){return a.due.localeCompare(b.due)||a.i.localeCompare(b.i);});
+  var undated = out.filter(function(x){return !x.due;}).sort(function(a,b){return b.o.localeCompare(a.o)||a.i.localeCompare(b.i);});
+  return dated.concat(undated);
+}
+
+function setRole(r) {
+  role = r;
+  document.querySelectorAll('.rbtn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('.rbtn.' + r).classList.add('active');
+  var banner = document.getElementById('modeBanner');
+  document.getElementById('modeText').textContent = r === 'art'
+    ? "Art Department \u2014 assign separator, mark sep\u2019d, link sep files."
+    : "Screen Room \u2014 sep\u2019d imprints ready to burn. Mark burned when screen is exposed.";
+  if (ALL.length) { updateStats(); render(); }
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('.stat-cell').forEach(function(c){ c.classList.remove('active'); });
+  var el = document.getElementById('fc-' + f);
+  if (el) el.classList.add('active');
+  render();
+}
+
+function updateStats() {
+  var visible = ALL.filter(function(r) {
+    var s = state[r.id] || r;
+    return role === 'art' ? !s.sp : (s.sp && !s.b);
+  });
+  var nofile = visible.filter(function(r){ return !(state[r.id]||r).sepsUrl; }).length;
+  var rep    = visible.filter(function(r){ return r.rp; }).length;
+  document.getElementById('sAll').textContent = visible.length;
+  document.getElementById('sNoFile').textContent = nofile;
+  document.getElementById('sRepeat').textContent = rep;
+}
+
+function applyFilters(records) {
+  var q = (document.getElementById('search').value || '').toLowerCase().trim();
+  return records.filter(function(r) {
+    var s = state[r.id] || r;
+    // Base role filter — each view is its own worklist
+    if (role === 'art'    && s.sp)          return false; // Art: only unsep'd
+    if (role === 'screen' && (!s.sp || s.b)) return false; // Screen: only sep'd & not yet burned
+    // Secondary filters
+    if (activeFilter === 'nofile' && s.sepsUrl) return false;
+    if (activeFilter === 'repeat' && !r.rp)     return false;
+    if (q && !(r.i + ' ' + r.c + ' ' + r.n + ' ' + r.o).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function groupByDate(records) {
+  var map = {}, order = [];
+  records.forEach(function(r) {
+    var key = r.due || 'undated';
+    if (!map[key]) { map[key] = []; order.push(key); }
+    map[key].push(r);
+  });
+  return order.map(function(d) { return { date: d, records: map[d] }; });
+}
+
+function groupByOrder(records) {
+  var map = {}, order = [];
+  records.forEach(function(r) {
+    if (!map[r.o]) { map[r.o] = []; order.push(r.o); }
+    map[r.o].push(r);
+  });
+  return order.map(function(o) { return { orderNum: o, imprints: map[o] }; });
+}
+
+function render() {
+  var filtered = applyFilters(ALL);
+  var dateGroups = groupByDate(filtered);
+  var html = '';
+  if (!dateGroups.length) {
+    html = '<div class="empty">' + (role === 'art' ? 'No imprints need separation.' : 'No sep\u2019d imprints waiting to burn.') + '</div>';
+  } else {
+    dateGroups.forEach(function(dg) { html += buildDateGroup(dg); });
+  }
+  document.getElementById('root').innerHTML = html;
+
+  document.querySelectorAll('.inotes').forEach(function(ta) {
+    ta.addEventListener('blur', function() {
+      var id = ta.id.replace('notes-','');
+      var val = ta.value;
+      if (!state[id] || val === (state[id].pn || '')) return;
+      state[id].pn = val;
+      saveNotes(id, val);
+    });
+  });
+}
+
+function fmtDate(d) {
+  try { return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); } catch(e){ return d; }
+}
+function daysDiff(d) {
+  if (!d) return null;
+  var t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((new Date(d+'T12:00:00') - t) / 864e5);
+}
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildDateGroup(dg) {
+  var days = daysDiff(dg.date);
+  var isToday = days === 0;
+  var lbl = dg.date === 'undated' ? 'No Print Date'
+    : isToday ? 'Today'
+    : days === 1 ? 'Tomorrow'
+    : days < 0 ? fmtDate(dg.date) + ' (Past)'
+    : fmtDate(dg.date);
+  var daySuffix = (dg.date !== 'undated' && days !== null && days < 0)
+    ? ' <span class="tag r">' + Math.abs(days) + 'd ago</span>'
+    : (dg.date !== 'undated' && days !== null && days === 0)
+    ? ' <span class="tag k">Today</span>'
+    : '';
+
+  var orderGroups = groupByOrder(dg.records);
+  var html = '<div class="date-hdr' + (isToday ? ' today' : '') + '">' + esc(lbl) + daySuffix +
+    '<span class="date-hdr-right">' + dg.records.length + ' imprint' + (dg.records.length !== 1 ? 's' : '') + '</span></div>';
+  orderGroups.forEach(function(og) { html += buildOrderGroup(og); });
+  return html;
+}
+
+function buildOrderGroup(og) {
+  var gid = 'og-' + og.orderNum;
+  return '<div class="order-group" id="' + gid + '">' +
+    '<div class="order-hdr" onclick="toggleOrder(\'' + gid + '\')">' +
+      '<span class="order-num">#' + esc(og.orderNum) + '</span>' +
+      '<span class="order-cust">' + esc(og.imprints[0].c) + '</span>' +
+      '<span class="order-ct">' + og.imprints.length + ' imprint' + (og.imprints.length !== 1 ? 's' : '') + '</span>' +
+      '<span class="order-chv">&#9660;</span>' +
+    '</div>' +
+    '<div class="order-body">' + og.imprints.map(buildCard).join('') + '</div>' +
+  '</div>';
+}
+
+function toggleOrder(gid) {
+  document.getElementById(gid).classList.toggle('collapsed');
+}
+
+function h(tag, attrs, inner) {
+  var a = '';
+  for (var k in attrs) {
+    if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false) {
+      a += ' ' + k + '="' + String(attrs[k]).replace(/"/g, '&quot;') + '"';
+    }
+  }
+  return '<' + tag + a + '>' + (inner || '') + '</' + tag + '>';
+}
+function hv(tag, attrs) {
+  var a = '';
+  for (var k in attrs) a += ' ' + k + '="' + String(attrs[k] || '').replace(/"/g, '&quot;') + '"';
+  return '<' + tag + a + '>';
+}
+
+function buildCard(r) {
+  var s = state[r.id] || { sp:r.sp, b:r.b, sepsUrl:r.sepsUrl, sep:r.sep };
+  var id = r.id;
+  var sepLabel = r.supa ? 'Order placed' : "sep\u2019d";
+  var cardCls = 'job-card' + (s.b ? ' burned' : s.sp ? ' seped' : '');
+
+  // Proof
+  var proofInner = r.thumbUrl
+    ? hv('img', {src: r.thumbUrl, alt: r.i})
+    : '<div class="jc-proof-ph"><svg class="jc-proof-ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span class="jc-proof-ph-lbl">No proof</span></div>';
+
+  // Tags
+  var tags = '';
+  if (r.t)    tags += h('span', {'class':'tag n'}, esc(r.t));
+  if (r.s)    tags += h('span', {'class':'tag n'}, r.s + ' screen' + (r.s !== 1 ? 's' : ''));
+  if (r.qty)  tags += h('span', {'class':'tag n'}, 'qty ' + r.qty);
+  if (r.inks) tags += h('span', {'class':'tag n'}, esc(r.inks));
+
+  // Notes
+  var notes = '<textarea class="inotes" id="notes-' + id + '" placeholder="Print notes\u2026">' + esc(r.pn || '') + '</textarea>';
+
+  // Sep link controls — same for both roles
+  var linkBtns, lbtnId = 'lbtn-' + id;
+  if (s.sepsUrl) {
+    linkBtns = h('a', {'class':'btn grn', 'href': s.sepsUrl, 'target':'_blank'}, 'View sep &#8599;') +
+               h('button', {'class':'btn', 'onclick':'showLinkInput("' + id + '")'}, 'Replace');
+  } else {
+    linkBtns = h('button', {'class':'btn lg', 'id': lbtnId, 'onclick':'showLinkInput("' + id + '")'}, 'Link sep');
+  }
+  var linkInput =
+    '<div id="linkinput-' + id + '" style="display:none"><div class="link-row">' +
+    '<input type="text" class="link-input" id="linkurl-' + id + '" placeholder="Paste Google Drive URL\u2026" onkeydown="if(event.key===&quot;Enter&quot;)saveSepLink(&quot;' + id + '&quot;)">' +
+    h('button', {'class':'btn grn lg', 'onclick':'saveSepLink("' + id + '")'}, 'Save') +
+    h('button', {'class':'btn',     'onclick':'hideLinkInput("' + id + '")'}, '\u2715') +
+    '</div></div>';
+
+  // Footer
+  var footer = '';
+  if (role === 'art') {
+    var ckCls = 'ck' + (s.sp ? ' on art-on' : '');
+    var sepCk = '<label class="' + ckCls + '" onclick="toggleCheck(&quot;' + id + '&quot;,&quot;sep&quot;,event)">' +
+      '<div class="ck-box"><div class="ck-v"></div></div>' + sepLabel + '</label>';
+    var sepOpts = [''].concat(SEPARATORS).map(function(opt) {
+      return '<option value="' + esc(opt) + '"' + (opt === s.sep ? ' selected' : '') + '>' + (opt || 'Assign separator\u2026') + '</option>';
+    }).join('');
+    var selCls = 'sep-select' + (s.sep ? ' assigned' : '');
+    footer =
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">' + sepCk + linkBtns + '</div>' +
+      linkInput +
+      '<select class="' + selCls + '" onchange="assignSeparator(&quot;' + id + '&quot;,this)">' + sepOpts + '</select>';
+  } else {
+    var burnCls = 'ck' + (s.b ? ' on' : '');
+    var burnCk = '<label class="' + burnCls + '" onclick="toggleCheck(&quot;' + id + '&quot;,&quot;burn&quot;,event)">' +
+      '<div class="ck-box"><div class="ck-v"></div></div>Imaged</label>';
+    footer =
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">' + burnCk + linkBtns + '</div>' +
+      linkInput;
+  }
+
+  // Badges
+  var badges = (r.rp ? h('span',{'class':'rep-badge'},'Repeat') : '') + (s.sepsUrl ? h('span',{'class':'sep-badge'},'Sep') : '');
+
+  return h('div', {'class':cardCls, 'id':'ic-'+id},
+    '<div class="jc-proof">' + proofInner + '</div>' +
+    '<div class="jc-info">' +
+      '<div>' +
+        '<div class="jc-head">' +
+          h('span', {'class':'jc-sup'}, esc(r.o)) +
+          h('span', {'class':'jc-name'}, esc(r.i) + badges) +
+        '</div>' +
+        (r.n ? h('div', {'class':'jc-nick'}, esc(r.n)) : '') +
+      '</div>' +
+      '<div class="jc-meta">' + tags + '</div>' +
+      notes +
+      '<div class="jc-footer">' + footer + '</div>' +
+    '</div>'
+  );
+}
+
+function toggleCheck(id, which, e) {
+  e.preventDefault();
+  if (!state[id]) state[id] = { sp:false, b:false, sepsUrl:'', sep:'' };
+  var s = state[id];
+  var field = which === 'sep' ? 'sp' : 'b';
+  s[field] = !s[field];
+
+  var card = document.getElementById('ic-' + id);
+  if (card) {
+    var cks = card.querySelectorAll('.ck:not(.disabled)');
+    var ck = which === 'sep' ? cks[0] : (cks.length > 1 ? cks[1] : cks[0]);
+    if (ck) {
+      ck.classList.toggle('on', s[field]);
+      if (which === 'sep') ck.classList.toggle('art-on', s[field]);
+    }
+    card.classList.toggle('seped', s.sp && !s.b);
+    card.classList.toggle('burned', s.b);
+  }
+
+  if (s[field] && ((role === 'art' && which === 'sep') || (role === 'screen' && which === 'burn'))) {
+    setTimeout(function() {
+      var c = document.getElementById('ic-' + id);
+      if (c) { c.style.transition = 'opacity .4s'; c.style.opacity = '0'; }
+      setTimeout(function() {
+        var c2 = document.getElementById('ic-' + id);
+        if (c2) c2.remove();
+        document.querySelectorAll('.order-body').forEach(function(b) {
+          if (!b.querySelector('.job-card')) b.closest('.order-group').remove();
+        });
+        updateStats();
+      }, 420);
+    }, 700);
+  }
+
+  if (which === 'sep' && s.sp) {
+    var ta = document.getElementById('notes-' + id);
+    if (ta && ta.value !== (s.pn || '')) { s.pn = ta.value; saveNotes(id, ta.value); }
+  }
+
+  savePatch(id, which === 'sep' ? F.seped : F.burned, s[field]);
+}
+
+function assignSeparator(id, sel) {
+  var val = sel.value;
+  if (!state[id]) return;
+  state[id].sep = val;
+  sel.classList.toggle('assigned', !!val);
+  savePatch(id, F.separator, val || null);
+}
+
+function showLinkInput(id) {
+  var el = document.getElementById('linkinput-' + id);
+  if (el) { el.style.display = 'block'; var inp = el.querySelector('input'); if (inp) inp.focus(); }
+}
+function hideLinkInput(id) {
+  var el = document.getElementById('linkinput-' + id);
+  if (el) el.style.display = 'none';
+}
+function saveSepLink(id) {
+  var input = document.getElementById('linkurl-' + id);
+  if (!input) return;
+  var url = input.value.trim();
+  if (!url || url.indexOf('http') !== 0) { showToast('Paste a valid Drive URL first', true); return; }
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) { showToast('No token', true); return; }
+  input.disabled = true;
+  fetch('https://api.airtable.com/v0/' + BASE + '/' + TBL, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ records: [{ id: id, fields: { [F.sepUrl]: url } }] })
+  }).then(function(res) {
+    return res.json().then(function(result) {
+      if (!res.ok) throw new Error((result.error && result.error.message) || 'Airtable error ' + res.status);
+      if (state[id]) state[id].sepsUrl = url;
+      // Swap Link sep button to View sep + Replace
+      var lbtn = document.getElementById('lbtn-' + id);
+      if (lbtn) {
+        lbtn.outerHTML = '<a class="btn grn" href="' + esc(url) + '" target="_blank">View sep &#8599;</a>' +
+          '<button class="btn" onclick="showLinkInput(&quot;' + id + '&quot;)">Replace</button>';
+      }
+      // Add sep badge next to imprint ID if not already there
+      var card = document.getElementById('ic-' + id);
+      if (card) {
+        var nm = card.querySelector('.jc-name');
+        if (nm && !nm.querySelector('.sep-badge')) {
+          var badge = document.createElement('span');
+          badge.className = 'sep-badge'; badge.textContent = 'Sep';
+          nm.appendChild(badge);
+        }
+      }
+      hideLinkInput(id);
+      input.value = '';
+      showToast('\u2713 Sep linked');
+    });
+  }).catch(function(err) {
+    showToast('Failed: ' + err.message, true);
+  }).finally(function() { input.disabled = false; });
+}
+
+function saveNotes(id, val) {
+  var ta = document.getElementById('notes-' + id);
+  if (ta) ta.classList.add('saving');
+  savePatch(id, F.printNotes, val).then(function() {
+    if (ta) { ta.classList.remove('saving'); ta.classList.add('saved'); setTimeout(function(){ ta.classList.remove('saved'); }, 1500); }
+  });
+}
+
+function savePatch(id, fld, val) {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) { showToast('No token', true); return Promise.resolve(); }
+  return fetch('https://api.airtable.com/v0/' + BASE + '/' + TBL, {
+    method: 'PATCH',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+    body: JSON.stringify({ records: [{ id:id, fields:{ [fld]:val } }] })
+  }).then(function(res) {
+    if (res.ok) {
+      var lbl = fld===F.seped   ? (val?"\u2713 Marked sep\u2019d":"Unmarked sep\u2019d")
+              : fld===F.burned  ? (val?'\u2713 Marked burned':'Unmarked burned')
+              : fld===F.separator ? (val?'\u2713 Assigned: '+val:'Separator cleared')
+              : '\u2713 Saved';
+      showToast(lbl);
+    } else { showToast('Save error \u2014 check token', true); }
+  }).catch(function() { showToast('Save failed', true); });
+}
+
+
+
+function showToast(msg, err) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(t._t); t._t = setTimeout(function(){ t.className=''; }, 2400);
+}
+</script>
+</body>
+</html>
