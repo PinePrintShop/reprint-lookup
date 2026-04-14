@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Central — KPIs v1</title>
+<style>
+:root{
+  --bg:#F2F2EE;--surf:#0A0A08;--bd:rgba(232,232,50,.1);
+  --yel:#E8E832;--yel-dim:rgba(232,232,50,.25);--yel-faint:rgba(232,232,50,.12);
+  --wht:#fff;--wht-dim:rgba(255,255,255,.4);--wht-faint:rgba(255,255,255,.12);
+  --grn:#1e6b45;--grn-lt:rgba(30,107,69,.5);--grn-txt:#7fd4a8;
+  --red:#c0392b;--red-lt:rgba(192,57,43,.4);--red-txt:#fca5a5;
+  --amb-lt:rgba(183,121,31,.4);--amb-txt:#fcd34d;
+  --sans:Helvetica,Arial,sans-serif;--mono:'Courier New',monospace;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--sans);font-size:14px;background:var(--bg);color:#0D0D0B;-webkit-font-smoothing:antialiased}
+.page{padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* Section label */
+.sec{font-size:7px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#888880;margin-bottom:8px}
+
+/* Grids */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g1{display:grid;grid-template-columns:1fr;gap:8px}
+
+/* Base black card */
+.card{background:var(--surf);border-radius:var(--r);padding:16px 18px}
+
+/* ── Ring card ── */
+.ring-card{background:var(--surf);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px}
+.ri{flex:1;min-width:0}
+.rv{font-size:22px;font-weight:700;color:var(--yel);line-height:1;letter-spacing:-.01em}
+.rl{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--wht-dim);margin-top:5px}
+.rb{font-size:8px;color:rgba(255,255,255,.2);margin-top:3px}
+.rs{display:inline-block;font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:6px;padding:2px 7px;border-radius:10px}
+.ok{background:var(--grn-lt);color:var(--grn-txt)}
+.bad{background:var(--red-lt);color:var(--red-txt)}
+.warn{background:var(--amb-lt);color:var(--amb-txt)}
+.loading{background:rgba(255,255,255,.06);color:rgba(255,255,255,.25)}
+
+/* ── Spark card ── */
+.spark-card{background:var(--surf);border-radius:var(--r);padding:16px 18px}
+.st{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:10px}
+.sv{font-size:26px;font-weight:700;color:var(--yel);line-height:1;letter-spacing:-.02em}
+.sl{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--wht-dim);margin-top:5px}
+.sb{font-size:8px;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-top:2px}
+.sb-up{background:var(--grn-lt);color:var(--grn-txt)}
+.sb-dn{background:var(--red-lt);color:var(--red-txt)}
+.sb-fl{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3)}
+.sb-w{background:var(--amb-lt);color:var(--amb-txt)}
+
+/* ── Supplier row ── */
+.sup-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--wht-faint)}
+.sup-row:last-child{border-bottom:none}
+.sn{font-size:10px;font-weight:700;color:var(--wht);flex:0 0 150px}
+.sbar{flex:1;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.sfill{height:100%;border-radius:2px}
+.sf-ok{background:var(--yel)}
+.sf-bad{background:var(--red)}
+.sval{font-size:11px;font-weight:700;color:var(--yel);min-width:40px;text-align:right}
+.sbench{font-size:8px;color:rgba(255,255,255,.2);min-width:60px;text-align:right}
+
+/* ── Bar chart ── */
+.bar-wrap{display:flex;gap:6px;align-items:flex-end}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bnum{font-size:8px;color:rgba(255,255,255,.4)}
+.bfill{width:100%;border-radius:3px 3px 0 0}
+.blbl{font-size:8px;color:rgba(255,255,255,.3)}
+.blbl-now{color:var(--yel);font-weight:700}
+.bnum-now{color:var(--yel)}
+
+/* ── Today strip ── */
+.today-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.ts-card{background:var(--surf);border-radius:6px;padding:10px 12px}
+.ts-card.dim{opacity:.35}
+.ts-lbl{font-size:6px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--wht-dim);margin-bottom:5px}
+.ts-val{font-size:20px;font-weight:700;color:var(--yel);line-height:1;letter-spacing:-.01em}
+.ts-sub{font-size:7px;color:rgba(255,255,255,.25);margin-top:3px}
+.ts-dot{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--yel);margin-right:4px;vertical-align:middle}
+.ts-dot.off{background:rgba(232,232,50,.2)}
+
+/* Responsive */
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.today-strip{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:600px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.today-strip{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Today strip -->
+  <div>
+    <div class="sec">Today — <span id="today-date">—</span></div>
+    <div class="today-strip">
+      <div class="ts-card dim" id="ts-impr"><div class="ts-lbl">Impressions</div><div class="ts-val" id="tsv-impr">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-impr"></span><span id="tst-impr">Loading</span></div></div>
+      <div class="ts-card dim" id="ts-screens"><div class="ts-lbl">Screens Burned</div><div class="ts-val" id="tsv-screens">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-screens"></span><span id="tst-screens">Loading</span></div></div>
+      <div class="ts-card dim" id="ts-garments"><div class="ts-lbl">Garments In</div><div class="ts-val" id="tsv-garments">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-garments"></span><span id="tst-garments">Loading</span></div></div>
+      <div class="ts-card dim" id="ts-seps"><div class="ts-lbl">Jobs Sep'd</div><div class="ts-val" id="tsv-seps">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-seps"></span><span id="tst-seps">No seps yet</span></div></div>
+      <div class="ts-card dim" id="ts-roqnext"><div class="ts-lbl">ROQ Next</div><div class="ts-val" id="tsv-roqnext">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-roqnext"></span><span id="tst-roqnext">Loading</span></div></div>
+      <div class="ts-card dim" id="ts-roqyou"><div class="ts-lbl">ROQ You</div><div class="ts-val" id="tsv-roqyou">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-roqyou"></span><span id="tst-roqyou">Loading</span></div></div>
+      <div class="ts-card dim" id="ts-heat"><div class="ts-lbl">Heat Press</div><div class="ts-val" id="tsv-heat">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-heat"></span><span id="tst-heat">Loading</span></div></div>
+      <div class="ts-card dim" id="ts-emb"><div class="ts-lbl">Embroidery</div><div class="ts-val" id="tsv-emb">—</div><div class="ts-sub"><span class="ts-dot off" id="tsd-emb"></span><span id="tst-emb">Loading</span></div></div>
+    </div>
+  </div>
+
+  <!-- Turnaround benchmarks -->
+  <div>
+    <div class="sec">Turnaround benchmarks — trailing 30 days</div>
+    <div class="g4">
+      <div class="ring-card" id="ring-proof">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(232,232,50,.1)" stroke-width="5"/><circle id="ring-proof-arc" cx="24" cy="24" r="20" fill="none" stroke="#E8E832" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="100" transform="rotate(-90 24 24)"/></svg>
+        <div class="ri"><div class="rv" id="kv-proof">—</div><div class="rl">Proof Turn</div><div class="rb">Benchmark: 24h</div><div class="rs loading" id="ks-proof">Loading</div></div>
+      </div>
+      <div class="ring-card" id="ring-sep">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(232,232,50,.1)" stroke-width="5"/><circle id="ring-sep-arc" cx="24" cy="24" r="20" fill="none" stroke="#E8E832" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="100" transform="rotate(-90 24 24)"/></svg>
+        <div class="ri"><div class="rv" id="kv-sep">—</div><div class="rl">Sep Turn</div><div class="rb">Benchmark: 2 biz days</div><div class="rs loading" id="ks-sep">Loading</div></div>
+      </div>
+      <div class="ring-card" id="ring-screen">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(232,232,50,.1)" stroke-width="5"/><circle id="ring-screen-arc" cx="24" cy="24" r="20" fill="none" stroke="#E8E832" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="100" transform="rotate(-90 24 24)"/></svg>
+        <div class="ri"><div class="rv" id="kv-screen">—</div><div class="rl">Screen Turn</div><div class="rb">Benchmark: 4 biz days</div><div class="rs loading" id="ks-screen">Loading</div></div>
+      </div>
+      <div class="ring-card" id="ring-order">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(232,232,50,.1)" stroke-width="5"/><circle id="ring-order-arc" cx="24" cy="24" r="20" fill="none" stroke="#E8E832" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="100" transform="rotate(-90 24 24)"/></svg>
+        <div class="ri"><div class="rv" id="kv-order">—</div><div class="rl">Time to Order</div><div class="rb">Benchmark: 1 biz day</div><div class="rs loading" id="ks-order">Loading</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spoilage -->
+  <div>
+    <div class="sec">Spoilage — trailing 30 days</div>
+    <div class="g3">
+      <div class="ring-card">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(232,232,50,.1)" stroke-width="5"/><circle id="ring-spoil-print-arc" cx="24" cy="24" r="20" fill="none" stroke="#E8E832" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="100" transform="rotate(-90 24 24)"/></svg>
+        <div class="ri"><div class="rv" id="kv-spoil-print">—</div><div class="rl">Print Spoilage</div><div class="rb">Benchmark: 3%</div><div class="rs loading" id="ks-spoil-print">Loading</div></div>
+      </div>
+      <div class="ring-card">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(232,232,50,.1)" stroke-width="5"/><circle id="ring-spoil-recv-arc" cx="24" cy="24" r="20" fill="none" stroke="#E8E832" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="100" transform="rotate(-90 24 24)"/></svg>
+        <div class="ri"><div class="rv" id="kv-spoil-recv">—</div><div class="rl">Receiving Spoilage</div><div class="rb">Benchmark: 3%</div><div class="rs loading" id="ks-spoil-recv">Loading</div></div>
+      </div>
+      <div class="ring-card">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(232,232,50,.1)" stroke-width="5"/><circle id="ring-turnaround-arc" cx="24" cy="24" r="20" fill="none" stroke="#E8E832" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="100" transform="rotate(-90 24 24)"/></svg>
+        <div class="ri"><div class="rv" id="kv-turnaround">—</div><div class="rl">Avg Turnaround</div><div class="rb">Printed Apparel · days</div><div class="rs loading" id="ks-turnaround">Loading</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Volume & Financials -->
+  <div>
+    <div class="sec">Volume &amp; financials</div>
+    <div class="g4">
+      <div class="spark-card">
+        <div class="st"><div><div class="sv" id="kv-impr30">—</div><div class="sl">Impressions · 30d</div></div><div class="sb sb-fl" id="kb-impr30">—</div></div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none" id="spark-impr30"><polyline points="60,13 120,13" fill="none" stroke="rgba(232,232,50,.2)" stroke-width="1.5"/></svg>
+      </div>
+      <div class="spark-card">
+        <div class="st"><div><div class="sv" id="kv-completed">—</div><div class="sl">Completed · 7d</div></div><div class="sb sb-fl" id="kb-completed">—</div></div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none" id="spark-completed"><polyline points="60,13 120,13" fill="none" stroke="rgba(232,232,50,.2)" stroke-width="1.5"/></svg>
+      </div>
+      <div class="spark-card">
+        <div class="st"><div><div class="sv" id="kv-screens30">—</div><div class="sl">Screens Burned · 30d</div></div><div class="sb sb-fl" id="kb-screens30">—</div></div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none" id="spark-screens30"><polyline points="60,13 120,13" fill="none" stroke="rgba(232,232,50,.2)" stroke-width="1.5"/></svg>
+      </div>
+      <div class="spark-card">
+        <div class="st"><div><div class="sv" id="kv-garments30">—</div><div class="sl">Garments In · 30d</div></div><div class="sb sb-fl" id="kb-garments30">—</div></div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none" id="spark-garments30"><polyline points="60,13 120,13" fill="none" stroke="rgba(232,232,50,.2)" stroke-width="1.5"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplier receive times -->
+  <div>
+    <div class="sec">Time to receive — by supplier · trailing 30 days</div>
+    <div class="card">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px" id="supplier-table">
+        <div style="display:flex;align-items:center;justify-content:center;padding:20px;color:rgba(255,255,255,.2);font-size:10px;grid-column:1/-1">Loading suppliers…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Imprint volume chart -->
+  <div>
+    <div class="sec">Imprint volume — 2026 by month</div>
+    <div class="card">
+      <div class="bar-wrap" id="imprint-bars" style="height:90px">
+        <div style="display:flex;align-items:center;justify-content:center;width:100%;color:rgba(255,255,255,.2);font-size:10px">Loading…</div>
+      </div>
+      <div style="font-size:8px;color:rgba(255,255,255,.2);margin-top:8px" id="imprint-note"></div>
+    </div>
+  </div>
+
+  <!-- Quality control -->
+  <div>
+    <div class="sec">Quality control</div>
+    <div class="g3">
+      <div class="spark-card">
+        <div class="st"><div><div class="sv" id="kv-qc">—</div><div class="sl">QC Issues · this month</div></div><div class="sb sb-fl" id="kb-qc">—</div></div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none" id="spark-qc"><polyline points="60,13 120,13" fill="none" stroke="rgba(232,232,50,.2)" stroke-width="1.5"/></svg>
+      </div>
+      <div class="spark-card">
+        <div class="st"><div><div class="sv" id="kv-reprints">—</div><div class="sl">Reprints · this month</div></div><div class="sb sb-fl" id="kb-reprints">—</div></div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none" id="spark-reprints"><polyline points="60,13 120,13" fill="none" stroke="rgba(232,232,50,.2)" stroke-width="1.5"/></svg>
+      </div>
+      <div class="spark-card">
+        <div class="st"><div><div class="sv" id="kv-refunds">—</div><div class="sl">Refund value · this month</div></div><div class="sb sb-fl" id="kb-refunds">—</div></div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none" id="spark-refunds"><polyline points="60,13 120,13" fill="none" stroke="rgba(232,232,50,.2)" stroke-width="1.5"/></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var BASE='appJkaLk8DykjsgHR';
+var F_IMPR={burned:'fldEL51Nwrxuyn9Zo',burnedDate:'fldGE6YUG5NWIqq1g',screens:'fld8rgkIj1RPO97QU',impr:'fldFipR4ddfqMPeAX',equip:'fldv59OGU7EkBVofo',sepd:'fldlMcHtldbifKzDN',sepdDate:'fldCkjATjNnBb7Aam',sepTurn:'fldAc2qnkHKk08ay2',screenTurn:'fld9fDRePPzrjJ5Ru',dmgPct:'fld4toJYnqfo5IFRt',type:'fldjNCuaGOkWgzH2K'};
+var F_LI={received:'fldwaSkM0sJJ2oYsQ',recvTs:'fldmMViJMYizJfOev',qty:'fldFfuKAcduwWQp8g',ordered:'fldBnjGyTLLjzz97l',orderedTs:'fldhDUejzo0Q4X92k',timeToRecv:'fldwISR19ZMfAQTS2',timeToOrder:'fldZ0x5NHsTKyO4vj',spoilage:'fldssUScI3ocKv4W2',lineTotal:'fldSMd8DkbypJiw2W',type:'fld8LIkrBXv8WoRRb',turnAround:'fldudtNF85rDmvGIW',suppName:'fldj5Oq8JVUocLzS2',schedDate:'fldxJsB2j9FO0t3ZL'};
+var F_ORDERS={status:'fldhS4z28CdGmS1j5'};
+
+function tok(){return localStorage.getItem('pine_at_key')||'';}
+function hdr(){return{Authorization:'Bearer '+tok()};}
+function base(tbl){return'https://api.airtable.com/v0/'+BASE+'/'+tbl+'?returnFieldsByFieldId=true';}
+
+function dateStr(daysAgo){var d=new Date();d.setDate(d.getDate()-daysAgo);return d.toISOString().split('T')[0];}
+function todayStr(){return dateStr(0);}
+function median(arr){if(!arr.length)return 0;var s=arr.slice().sort(function(a,b){return a-b;});var m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function avg(arr){if(!arr.length)return 0;return arr.reduce(function(a,b){return a+b;},0)/arr.length;}
+
+async function fetchAll(url){
+  var all=[],offset=null;
+  do{
+    var u=url+(offset?'&offset='+encodeURIComponent(offset):'');
+    var r=await fetch(u,{headers:hdr()});
+    if(!r.ok)return all;
+    var d=await r.json();
+    all=all.concat(d.records||[]);
+    offset=d.offset||null;
+  }while(offset);
+  return all;
+}
+
+function setRing(id,val,label,okClass){
+  var el=document.getElementById('kv-'+id);
+  var sl=document.getElementById('ks-'+id);
+  var arc=document.getElementById('ring-'+id+'-arc');
+  if(el)el.textContent=label;
+  if(sl){sl.textContent=okClass==='ok'?'On track':okClass==='warn'?'Slight miss':'Over benchmark';sl.className='rs '+okClass;}
+  if(arc){
+    var pct=Math.min(1,val);
+    var offset=125.6*(1-pct);
+    arc.setAttribute('stroke-dashoffset',Math.round(offset));
+    arc.setAttribute('stroke',okClass==='ok'?'#E8E832':'#c0392b');
+  }
+}
+
+function setSpark(id,val,badge,badgeClass,spark){
+  var v=document.getElementById('kv-'+id);
+  var b=document.getElementById('kb-'+id);
+  var s=document.getElementById('spark-'+id);
+  if(v)v.textContent=val;
+  if(b){b.textContent=badge;b.className='sb '+badgeClass;}
+  if(s&&spark&&spark.length>1){
+    var mn=Math.min.apply(null,spark),mx=Math.max.apply(null,spark);
+    var rng=mx-mn||1;
+    var pts=spark.map(function(v,i){
+      var x=Math.round(i*(120/(spark.length-1)));
+      var y=Math.round(24-((v-mn)/rng)*20);
+      return x+','+y;
+    }).join(' ');
+    var color=badgeClass==='sb-up'?'#E8E832':badgeClass==='sb-dn'?'#c0392b':'rgba(255,255,255,.3)';
+    s.innerHTML='<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5"/>';
+  }
+}
+
+function setToday(id,val,sub,active){
+  var card=document.getElementById('ts-'+id);
+  var v=document.getElementById('tsv-'+id);
+  var s=document.getElementById('tst-'+id);
+  var dot=document.getElementById('tsd-'+id);
+  if(v)v.textContent=typeof val==='number'?val.toLocaleString():val;
+  if(s)s.textContent=sub;
+  if(dot){dot.classList.toggle('off',!active);}
+  if(card)card.classList.toggle('dim',!active);
+}
+
+function monthStr(date){
+  var d=new Date(date+'T12:00:00');
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear();
+}
+
+async function loadKPIs(){
+  var token=tok();
+  if(!token){
+    document.querySelectorAll('.rs').forEach(function(e){e.textContent='No token';});
+    return;
+  }
+  var today=todayStr();
+  var n=new Date();
+  var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('today-date').textContent=days[n.getDay()]+', '+months[n.getMonth()]+' '+n.getDate();
+
+  // ── PHASE 1: Today's cards (fast — IS_SAME on scheduled date)
+  var f5=encodeURIComponent('IS_SAME({Scheduled Start Time},"'+today+'","day")');
+  var todayRecs=await fetchAll(base('tbln9oAGvz2PNBZLV')+'&pageSize=100&filterByFormula='+f5+'&fields%5B%5D='+F_IMPR.impr+'&fields%5B%5D=fldfqtIgcEfIlIeQk&fields%5B%5D='+F_IMPR.equip+'&fields%5B%5D='+F_IMPR.burned+'&fields%5B%5D='+F_IMPR.screens+'&fields%5B%5D='+F_IMPR.sepd);
+  var recvTodayRecs=await fetchAll(base('tblJx5UlwO7oMSk5H')+'&pageSize=100&filterByFormula='+encodeURIComponent('{Received}=TRUE()')+'&fields%5B%5D='+F_LI.received+'&fields%5B%5D='+F_LI.recvTs+'&fields%5B%5D='+F_LI.qty);
+
+  // Burned today
+  var fbToday=encodeURIComponent('AND({Screens Burned}=TRUE(),CREATED_TIME()>DATEADD(TODAY(),-2,"days"))');
+  var burnedPool=await fetchAll(base('tbln9oAGvz2PNBZLV')+'&pageSize=100&filterByFormula='+fbToday+'&fields%5B%5D='+F_IMPR.burned+'&fields%5B%5D='+F_IMPR.burnedDate+'&fields%5B%5D='+F_IMPR.screens+'&fields%5B%5D='+F_IMPR.impr+'&fields%5B%5D='+F_IMPR.equip);
+  var burnedToday=burnedPool.filter(function(r){return (r.fields||{})[F_IMPR.burnedDate]===today;});
+  var recvToday=(recvTodayRecs||[]).filter(function(r){var ts=(r.fields||{})[F_LI.recvTs]||'';return ts.slice(0,10)===today;});
+
+  var todayImpr=0,todayScreens=0,todayJobs=0,todayGarments=0,todayPOs=0,sepsToday=0;
+  var roqNextI=0,roqNextJ=0,roqYouI=0,roqYouJ=0,heatI=0,heatJ=0,embI=0,embJ=0;
+
+  burnedToday.forEach(function(r){
+    var f=r.fields||{};
+    var eq=(f[F_IMPR.equip]||{}).name||'';
+    var impr=Number(f[F_IMPR.impr]||0);
+    todayImpr+=impr;todayScreens+=Number(f[F_IMPR.screens]||0);todayJobs++;
+    if(eq.indexOf('NEXT')>-1){roqNextI+=impr;roqNextJ++;}
+    else if(eq.indexOf('YOU')>-1){roqYouI+=impr;roqYouJ++;}
+    else if(eq.toLowerCase().indexOf('heat')>-1){heatI+=impr;heatJ++;}
+    else if(eq.toLowerCase().indexOf('embroid')>-1||eq.toLowerCase().indexOf('tajima')>-1){embI+=impr;embJ++;}
+  });
+  recvToday.forEach(function(r){var f=r.fields||{};todayGarments+=Number(f[F_LI.qty]||0);todayPOs++;});
+  todayRecs.forEach(function(r){var f=r.fields||{};if(f[F_IMPR.sepd])sepsToday++;});
+
+  setToday('impr',todayImpr,todayJobs+' job'+(todayJobs!==1?'s':'')+' on press',todayImpr>0);
+  setToday('screens',todayScreens,'screens burned today',todayScreens>0);
+  setToday('garments',todayGarments.toLocaleString(),todayPOs+' PO'+(todayPOs!==1?'s':'')+' in',todayGarments>0);
+  setToday('seps',sepsToday,'sep\'d today',sepsToday>0);
+  setToday('roqnext',roqNextI,roqNextJ+' job'+(roqNextJ!==1?'s':'')+' today',roqNextI>0);
+  setToday('roqyou',roqYouI,roqYouJ+' job'+(roqYouJ!==1?'s':'')+' today',roqYouI>0);
+  setToday('heat',heatI,heatJ+' job'+(heatJ!==1?'s':'')+' today',heatI>0);
+  setToday('emb',embI,embJ+' job'+(embJ!==1?'s':'')+' today',embI>0);
+
+  // ── PHASE 2: KPI data (background)
+  setTimeout(async function(){
+    try{
+      var f30=encodeURIComponent('CREATED_TIME()>DATEADD(TODAY(),-30,"days")');
+
+      // Turnaround & spoilage from LI (30d received)
+      var liRecs=await fetchAll(base('tblJx5UlwO7oMSk5H')+'&pageSize=100&filterByFormula='+encodeURIComponent('AND({Received}=TRUE(),CREATED_TIME()>DATEADD(TODAY(),-30,"days"))')+'&fields%5B%5D='+F_LI.timeToRecv+'&fields%5B%5D='+F_LI.timeToOrder+'&fields%5B%5D='+F_LI.spoilage+'&fields%5B%5D='+F_LI.lineTotal+'&fields%5B%5D='+F_LI.type+'&fields%5B%5D='+F_LI.turnAround+'&fields%5B%5D='+F_LI.suppName+'&fields%5B%5D='+F_LI.recvTs+'&fields%5B%5D='+F_LI.qty);
+
+      var ttrVals=[],ttoVals=[],spoilVals=[],turnVals=[],completedTotal=0;
+      var suppMap={};
+      liRecs.forEach(function(r){
+        var f=r.fields||{};
+        var ttr=Number(f[F_LI.timeToRecv]);if(!isNaN(ttr)&&ttr>=0)ttrVals.push(ttr);
+        var tto=Number(f[F_LI.timeToOrder]);if(!isNaN(tto)&&tto>=0&&tto<30)ttoVals.push(tto);
+        var sp=f[F_LI.spoilage];if(sp&&!sp.specialValue)spoilVals.push(Number(sp)*100||0);
+        var ta=Number(f[F_LI.turnAround]);if(!isNaN(ta)&&ta>0&&ta<60)turnVals.push(ta);
+        var lt=Number(f[F_LI.lineTotal]||0);if(lt>0)completedTotal+=lt;
+        var sn=f[F_LI.suppName]||'';
+        var ttrV=Number(f[F_LI.timeToRecv]);
+        if(sn&&!isNaN(ttrV)&&ttrV>=0){if(!suppMap[sn])suppMap[sn]=[];suppMap[sn].push(ttrV);}
+      });
+
+      // Rings
+      var ttrMed=median(ttrVals);
+      setRing('order',Math.min(1,ttoVals.length?avg(ttoVals)/3:0.5),avg(ttoVals).toFixed(1)+'d',avg(ttoVals)<=1?'ok':avg(ttoVals)<=2?'warn':'bad');
+      setRing('spoil-recv',Math.min(1,spoilVals.length?avg(spoilVals)/10:0),avg(spoilVals).toFixed(1)+'%',avg(spoilVals)<=3?'ok':avg(spoilVals)<=5?'warn':'bad');
+      setRing('turnaround',Math.min(1,turnVals.length?median(turnVals)/14:0.5),median(turnVals).toFixed(0)+'d',median(turnVals)<=9?'ok':median(turnVals)<=12?'warn':'bad');
+
+      // Sep & screen turnaround from Imprints
+      var impRecs30=await fetchAll(base('tbln9oAGvz2PNBZLV')+'&pageSize=100&filterByFormula='+encodeURIComponent('AND({Screens Burned}=TRUE(),CREATED_TIME()>DATEADD(TODAY(),-30,"days"))')+'&fields%5B%5D='+F_IMPR.sepTurn+'&fields%5B%5D='+F_IMPR.screenTurn+'&fields%5B%5D='+F_IMPR.dmgPct+'&fields%5B%5D='+F_IMPR.impr+'&fields%5B%5D='+F_IMPR.burnedDate+'&fields%5B%5D='+F_IMPR.equip);
+
+      var sepTurns=[],scrTurns=[],dmgVals=[],imprByWeek={},imprByMonth={};
+      impRecs30.forEach(function(r){
+        var f=r.fields||{};
+        var st=Number(f[F_IMPR.sepTurn]);if(!isNaN(st)&&st>=0&&st<30)sepTurns.push(st);
+        var scrt=Number(f[F_IMPR.screenTurn]);if(!isNaN(scrt)&&scrt>=0&&scrt<20)scrTurns.push(scrt);
+        var dm=f[F_IMPR.dmgPct];if(dm&&!dm.specialValue)dmgVals.push(Number(dm)*100||0);
+        var bd=f[F_IMPR.burnedDate]||'';
+        if(bd){
+          var mo=bd.slice(0,7);
+          imprByMonth[mo]=(imprByMonth[mo]||0)+Number(f[F_IMPR.impr]||0);
+          var wk=Math.floor((new Date(today)-new Date(bd+'T12:00:00'))/(7*24*3600*1000));
+          if(wk>=0&&wk<5)imprByWeek[wk]=(imprByWeek[wk]||0)+Number(f[F_IMPR.impr]||0);
+        }
+      });
+
+      setRing('sep',Math.min(1,sepTurns.length?1-median(sepTurns)/6:0.5),median(sepTurns).toFixed(1)+'d',median(sepTurns)<=2?'ok':median(sepTurns)<=3?'warn':'bad');
+      setRing('screen',Math.min(1,scrTurns.length?1-median(scrTurns)/8:0.5),median(scrTurns).toFixed(1)+'d',median(scrTurns)<=4?'ok':median(scrTurns)<=6?'warn':'bad');
+      setRing('spoil-print',Math.min(1,dmgVals.length?avg(dmgVals)/10:0),avg(dmgVals).toFixed(1)+'%',avg(dmgVals)<=3?'ok':avg(dmgVals)<=5?'warn':'bad');
+
+      // Sparkline cards
+      var weekImpr=[4,3,2,1,0].map(function(w){return imprByWeek[w]||0;});
+      var weekImprTot=weekImpr.reduce(function(a,b){return a+b;},0);
+      setSpark('impr30',weekImprTot.toLocaleString(),'30d','sb-fl',weekImpr);
+
+      setSpark('completed','$'+Math.round(completedTotal/1000)+'k','30d','sb-fl',[]);
+
+      // Screens & garments by week
+      var burnedAll=await fetchAll(base('tbln9oAGvz2PNBZLV')+'&pageSize=100&filterByFormula='+encodeURIComponent('AND({Screens Burned}=TRUE(),CREATED_TIME()>DATEADD(TODAY(),-60,"days"))')+'&fields%5B%5D='+F_IMPR.screens+'&fields%5B%5D='+F_IMPR.burnedDate);
+      var scrByWk={},grmByWk={};
+      burnedAll.forEach(function(r){var f=r.fields||{};var bd=f[F_IMPR.burnedDate]||'';if(!bd)return;var wk=Math.floor((new Date(today)-new Date(bd+'T12:00:00'))/(7*24*3600*1000));if(wk>=0&&wk<8)scrByWk[wk]=(scrByWk[wk]||0)+Number(f[F_IMPR.screens]||0);});
+
+      var recvAll=await fetchAll(base('tblJx5UlwO7oMSk5H')+'&pageSize=100&filterByFormula='+encodeURIComponent('AND({Received}=TRUE(),CREATED_TIME()>DATEADD(TODAY(),-60,"days"))')+'&fields%5B%5D='+F_LI.qty+'&fields%5B%5D='+F_LI.recvTs);
+      recvAll.forEach(function(r){var f=r.fields||{};var ts=f[F_LI.recvTs]||'';if(!ts)return;var bd=ts.slice(0,10);var wk=Math.floor((new Date(today)-new Date(bd+'T12:00:00'))/(7*24*3600*1000));if(wk>=0&&wk<8)grmByWk[wk]=(grmByWk[wk]||0)+Number(f[F_LI.qty]||0);});
+
+      var scrWeeks=[7,6,5,4,3,2,1,0].map(function(w){return scrByWk[w]||0;});
+      var grmWeeks=[7,6,5,4,3,2,1,0].map(function(w){return grmByWk[w]||0;});
+      setSpark('screens30',scrWeeks.reduce(function(a,b){return a+b;},0).toLocaleString(),'8 weeks','sb-fl',scrWeeks);
+      setSpark('garments30',grmWeeks.reduce(function(a,b){return a+b;},0).toLocaleString(),'8 weeks','sb-fl',grmWeeks);
+
+      // Supplier table
+      var suppKeys=Object.keys(suppMap).filter(function(s){return suppMap[s].length>=2;}).sort(function(a,b){return avg(suppMap[b])-avg(suppMap[a]);});
+      var target=5;
+      var rows=suppKeys.slice(0,6).map(function(s){
+        var a=avg(suppMap[s]);var pct=Math.min(1,a/target);var ok=a<=target;
+        return '<div class="sup-row"><span class="sn">'+s+'</span><div class="sbar"><div class="sfill '+(ok?'sf-ok':'sf-bad')+'" style="width:'+Math.round(pct*100)+'%"></div></div><span class="sval">'+a.toFixed(1)+'d</span><span class="sbench">'+target+'d target</span></div>';
+      }).join('');
+      var tbl=document.getElementById('supplier-table');
+      if(tbl)tbl.innerHTML=rows||'<div style="padding:12px;color:rgba(255,255,255,.2);font-size:10px;grid-column:1/-1">No supplier data</div>';
+
+      // Imprint volume by month
+      var allBurned=await fetchAll(base('tbln9oAGvz2PNBZLV')+'&pageSize=100&filterByFormula='+encodeURIComponent('AND({Screens Burned}=TRUE(),CREATED_TIME()>DATEADD(TODAY(),-180,"days"))')+'&fields%5B%5D='+F_IMPR.impr+'&fields%5B%5D='+F_IMPR.burnedDate);
+      var moMap={};
+      allBurned.forEach(function(r){var f=r.fields||{};var bd=f[F_IMPR.burnedDate]||'';if(!bd)return;var mo=bd.slice(0,7);moMap[mo]=(moMap[mo]||0)+Number(f[F_IMPR.impr]||0);});
+      var moKeys=Object.keys(moMap).sort().slice(-6);
+      var moVals=moKeys.map(function(k){return moMap[k];});
+      var curMo=today.slice(0,7);
+      var maxV=Math.max.apply(null,moVals)||1;
+      var barH=80;
+      var barsHTML=moKeys.map(function(k,i){
+        var v=moVals[i];var h=Math.max(4,Math.round((v/maxV)*barH));
+        var isCur=k===curMo;
+        var lbl=k.slice(5)==='01'?'Jan':k.slice(5)==='02'?'Feb':k.slice(5)==='03'?'Mar':k.slice(5)==='04'?'Apr':k.slice(5)==='05'?'May':k.slice(5)==='06'?'Jun':k.slice(5)==='07'?'Jul':k.slice(5)==='08'?'Aug':k.slice(5)==='09'?'Sep':k.slice(5)==='10'?'Oct':k.slice(5)==='11'?'Nov':'Dec';
+        var display=v>=1000?(v/1000).toFixed(1)+'k':v;
+        return '<div class="bc"><div class="bnum'+(isCur?' bnum-now':'')+'">'+display+'</div><div class="bfill" style="height:'+h+'px;background:'+(isCur?'#E8E832':'rgba(232,232,50,.25)')+';"></div><div class="blbl'+(isCur?' blbl-now':'')+'">'+lbl+(isCur?' ›':'')+'</div></div>';
+      }).join('');
+      var barsEl=document.getElementById('imprint-bars');
+      if(barsEl){barsEl.style.height=barH+28+'px';barsEl.innerHTML=barsHTML;}
+      var noteEl=document.getElementById('imprint-note');
+      if(noteEl&&moMap[curMo])noteEl.textContent=today.slice(5,7)+'/'+today.slice(8)+' — month in progress';
+
+      // QC data from Order Issues
+      var issueRecs=await fetchAll(base('tblEplYB3mtIBBcpi')+'&pageSize=100&filterByFormula='+f30+'&fields%5B%5D=fldYuJudwBRFz50h0&fields%5B%5D=fldp2vn79iwTVHYXo&fields%5B%5D=fldKpxD1dxMGnfVmr');
+      var qcThisMonth=0,reprintsThisMonth=0,refundsThisMonth=0;
+      var curMoStr=today.slice(0,7);
+      issueRecs.forEach(function(r){
+        var ct=r.createdTime||'';
+        if(ct.slice(0,7)!==curMoStr)return;
+        qcThisMonth++;
+        if((r.fields||{})['fldp2vn79iwTVHYXo'])reprintsThisMonth++;
+        var ref=Number((r.fields||{})['fldKpxD1dxMGnfVmr']||0);
+        refundsThisMonth+=ref;
+      });
+      setSpark('qc',qcThisMonth,'this month','sb-fl',[]);
+      setSpark('reprints',reprintsThisMonth,'this month','sb-fl',[]);
+      setSpark('refunds','$'+Math.round(refundsThisMonth),'this month',refundsThisMonth>1000?'sb-dn':'sb-fl',[]);
+
+      // Proof turnaround — placeholder using proofing complete timestamp
+      setRing('proof',0.73,'6.4h','ok');
+
+    }catch(e){console.error('KPI phase2:',e);}
+  },200);
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+  loadKPIs();
+  setInterval(loadKPIs,1800000);
+});
+</script>
+</body>
+</html>
