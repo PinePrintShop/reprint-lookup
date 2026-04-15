@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reprint Lookup v3</title>
+<style>
+:root{
+  --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;
+  --green:#1e6b45;--green-lt:#e8f5ee;--green-dk:#144d31;
+  --text:#0D0D0B;--muted:#888880;--muted-lt:#BBBBB5;
+  --yellow:#E8E832;--yellow-dim:rgba(232,232,50,.15);--yellow-bd:rgba(232,232,50,.3);
+  --red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+  --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;
+  --sb-bg:#0A0A08;--sb-border:#1A1A16;
+  --sans:Helvetica,Arial,sans-serif;
+  --cond:Helvetica,Arial,sans-serif;
+  --mono:'Courier New',monospace;
+  --radius:4px;--radius-lg:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;overflow:hidden}
+
+/* ── STATS BAR ── */
+.stats-bar{display:flex;overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;gap:6px;scrollbar-width:none;flex-shrink:0;align-items:center;flex-wrap:nowrap}
+.stats-bar::-webkit-scrollbar{display:none}
+.stat-cell{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);display:flex;align-items:center;cursor:pointer;transition:all .1s;user-select:none}
+.stat-cell:hover{border-color:var(--text);color:var(--text)}
+.stat-cell.on{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.stat-ct{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:rgba(0,0,0,.06);font-size:9px;padding:0 4px;margin-left:5px;color:var(--muted-lt);font-family:var(--mono)}
+.stat-cell.on .stat-ct{background:rgba(232,232,50,.15);color:var(--yellow)}
+.bar-sep{width:1px;height:20px;background:var(--border-dk);flex-shrink:0;margin:0 2px}
+
+/* ── SEARCH ROW ── */
+.search-wrap{padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
+.search-field{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.search-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-lt);font-family:var(--cond)}
+.search-inp{width:100%;background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-family:var(--sans);color:var(--text);outline:none;transition:border-color .15s}
+.search-inp:focus{border-color:var(--green)}
+.search-inp::placeholder{color:var(--muted-lt)}
+.new-field{width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:4px}
+
+/* ── BUTTON ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:var(--radius);border:1px solid transparent;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-dark{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-bd)}
+.btn-dark:hover{background:#1a1a14}
+.btn-dark:disabled{background:var(--border-dk);color:var(--muted-lt);border-color:transparent;cursor:not-allowed}
+.btn-outline{background:var(--surface);color:var(--muted);border-color:var(--border-dk)}
+.btn-outline:hover{border-color:var(--text);color:var(--text)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover{background:var(--green-dk)}
+.btn-green:disabled{background:var(--border-dk);color:var(--muted-lt);border-color:transparent;cursor:not-allowed}
+.btn-sm{padding:6px 12px;font-size:10px}
+
+/* ── CONTENT AREA ── */
+.content{flex:1;overflow-y:auto;min-height:0}
+
+/* ── RESULTS HEADER ── */
+.results-hdr{padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.results-count{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--cond)}
+.results-count strong{color:var(--text)}
+
+/* ── LOADING / EMPTY ── */
+.state-panel{padding:48px;text-align:center;background:var(--surface)}
+.spin{width:20px;height:20px;border:2px solid var(--border-dk);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state-txt{font-size:12px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em}
+.state-icon{font-size:24px;margin-bottom:8px}
+.state-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+
+/* ── CARDS ── */
+.card-list{background:var(--surface)}
+.rc{display:grid;grid-template-columns:80px 1fr auto auto;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;position:relative}
+.rc:last-child{border-bottom:none}
+.rc:hover{background:#FAFAF6}
+.rc.sel{background:var(--green-lt)}
+.rc.sel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)}
+
+/* ID column */
+.rc-id{background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;gap:3px}
+.rc-id-num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--green);text-align:center;word-break:break-all;line-height:1.3}
+.rc-id-date{font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em}
+
+/* Body column */
+.rc-body{padding:10px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rc-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--cond)}
+.rc-tags{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.rc-inks{font-size:10px;color:var(--muted);font-family:var(--cond);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Tags */
+.tag{font-size:8px;padding:2px 7px;border-radius:2px;white-space:nowrap;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;font-family:var(--cond)}
+.t-k{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-bd)}
+.t-n{background:var(--surface);color:var(--muted);border-color:var(--border-dk)}
+.t-g{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+.t-a{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.t-b{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+
+/* Thumb column */
+.rc-thumb{padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--border);min-width:72px;cursor:pointer}
+.rc-thumb img{width:52px;height:40px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border)}
+.rc-thumb:hover img{border-color:var(--green)}
+.rc-thumb-lbl{font-size:8px;color:var(--muted-lt);margin-top:3px;font-family:var(--cond);letter-spacing:.04em}
+.rc-thumb-ph{width:52px;height:40px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted-lt);font-size:18px}
+
+/* Action column */
+.rc-action{padding:8px 12px;display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border)}
+
+/* ── OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(13,13,11,.55);z-index:500;align-items:center;justify-content:center;padding:20px}
+.overlay.on{display:flex}
+.ov-card{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:600px;overflow:hidden;border:1px solid var(--border-dk);box-shadow:0 20px 40px rgba(0,0,0,.2)}
+.ov-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ov-title{font-size:14px;font-weight:700;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em;color:var(--text)}
+.ov-sub{font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--cond);letter-spacing:.04em}
+.ov-close{width:24px;height:24px;border-radius:var(--radius);border:1px solid var(--border-dk);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;flex-shrink:0;transition:all .1s}
+.ov-close:hover{background:var(--border);color:var(--text)}
+.ov-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.ov-proof{width:100%;height:180px;object-fit:contain;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);cursor:pointer;display:block}
+.ov-proof:hover{border-color:var(--green)}
+.ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ov-det{display:flex;flex-direction:column;gap:2px}
+.ov-det-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-lt);font-family:var(--cond)}
+.ov-det-val{font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.ov-det-val.lg{font-size:14px;color:var(--green)}
+.ov-divider{border:none;border-top:1px solid var(--border)}
+.link-row{display:flex;gap:10px;align-items:flex-end}
+.link-field{flex:1;display:flex;flex-direction:column;gap:4px}
+.ov-ftr{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg)}
+
+/* Write status */
+.wstat{display:none;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius);font-size:11px;border:1px solid;font-family:var(--cond);letter-spacing:.04em}
+.wstat.on{display:flex}
+.ws-ok{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+.ws-err{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.ws-ld{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.wdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* ── ZOOM ── */
+.zoom{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:10px}
+.zoom.on{display:flex}
+.zoom img{max-width:90vw;max-height:85vh;object-fit:contain;border-radius:var(--radius)}
+.zoom-lbl{font-size:11px;color:rgba(255,255,255,.4);font-family:var(--mono);letter-spacing:.04em}
+</style>
+</head>
+<body>
+
+<!-- STATS BAR -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat-cell on" id="fc-all" onclick="setFilter('all',this)">All<span class="stat-ct" id="cnt-all">0</span></div>
+  <div class="stat-cell" id="fc-screen" onclick="setFilter('screen',this)">Screen Print</div>
+  <div class="stat-cell" id="fc-emb" onclick="setFilter('emb',this)">Embroidery</div>
+  <div class="bar-sep"></div>
+  <div class="stat-cell" id="fc-Front" onclick="setFilter('Front',this)">Front</div>
+  <div class="stat-cell" id="fc-Back" onclick="setFilter('Back',this)">Back</div>
+  <div class="stat-cell" id="fc-Left Chest" onclick="setFilter('Left Chest',this)">Left Chest</div>
+  <div class="stat-cell" id="fc-Right Chest" onclick="setFilter('Right Chest',this)">Right Chest</div>
+  <div class="stat-cell" id="fc-Left Sleeve" onclick="setFilter('Left Sleeve',this)">Sleeve</div>
+  <div class="stat-cell" id="fc-Bandana" onclick="setFilter('Bandana',this)">Bandana</div>
+</div>
+
+<!-- SEARCH ROW -->
+<div class="search-wrap">
+  <div class="search-field">
+    <div class="search-lbl">Customer Name</div>
+    <input class="search-inp" id="custInp" type="text" placeholder="Type customer name and press Enter…" onkeydown="if(event.key==='Enter')doSearch()" />
+  </div>
+  <div class="new-field">
+    <div class="search-lbl">New Imprint ID</div>
+    <input class="search-inp" id="newInp" type="text" placeholder="e.g. 9700-A" />
+  </div>
+  <button class="btn btn-dark" id="searchBtn" onclick="doSearch()">Search</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content">
+  <div class="state-panel" id="stateEmpty">
+    <div class="state-icon">🔍</div>
+    <div class="state-title">Search for a customer</div>
+    <div class="state-txt">Enter a customer name above to find previous imprints</div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="handleBg(event)">
+  <div class="ov-card" id="ovCard">
+    <div class="ov-hdr">
+      <div>
+        <div class="ov-title" id="ovTitle">—</div>
+        <div class="ov-sub" id="ovSub">Review proof and link to new imprint</div>
+      </div>
+      <button class="ov-close" onclick="closeOv()">✕</button>
+    </div>
+    <div class="ov-body">
+      <img class="ov-proof" id="ovProof" src="" alt="Proof" style="display:none" onclick="openZoom()" />
+      <div class="ov-grid" id="ovGrid"></div>
+      <hr class="ov-divider" />
+      <div class="link-row">
+        <div class="link-field">
+          <div class="search-lbl">New Imprint ID to link</div>
+          <input class="search-inp" id="newInpModal" placeholder="e.g. 9700-A" />
+        </div>
+        <button class="btn btn-green" id="linkBtn" onclick="doLink()">Set as Previous</button>
+      </div>
+      <div class="wstat" id="wstat"></div>
+    </div>
+    <div class="ov-ftr">
+      <button class="btn btn-outline btn-sm" onclick="closeOv()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ZOOM -->
+<div class="zoom" id="zoom" onclick="closeZoom()">
+  <img id="zoomImg" src="" alt="Proof" />
+  <div class="zoom-lbl">Tap anywhere to close</div>
+</div>
+
+<script>
+var BASE = 'appJkaLk8DykjsgHR';
+var TBL  = 'tbln9oAGvz2PNBZLV';
+
+var F = {
+  id:      'fldDFfwFQ9B20n2kT',
+  nick:    'fldyGOHRKNz00MaYQ',
+  type:    'fldjNCuaGOkWgzH2K',
+  loc:     'fldKQIL0rSJBSeC8S',
+  screens: 'fld8rgkIj1RPO97QU',
+  custTxt: 'fldeLMIAC0ABQAjYJ',
+  repeat:  'flda9L7041ahNZT0b',
+  inks:    'fldpNCCXTgHyDhvak',
+  inksTxt: 'fldMM5hp8kEpo3KKT',
+  prev:    'fldAEQvMAAZX9gnhl',
+  created: 'fldc7aezBfzoVPeAY',
+  proofs:  'fldUOIfCd22MxevRm',
+};
+
+var allRecs = [];
+var selRec  = null;
+var curZoom = '';
+var curFilter = 'all';
+
+// Token — shell first, fallback to own key
+function tok() {
+  return localStorage.getItem('pine_at_key') || localStorage.getItem('pine_tok') || '';
+}
+
+function hdr() { return { Authorization: 'Bearer ' + tok(), 'Content-Type': 'application/json' }; }
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+function doSearch() {
+  var customer = document.getElementById('custInp').value.trim();
+  if (!tok()) { showState('No token — set it in Pine Central sidebar.', true); return; }
+  if (!customer) return;
+
+  setContent('<div class="state-panel"><div class="spin"></div><div class="state-txt">Searching for "' + escHtml(customer) + '"…</div></div>');
+
+  var esc  = customer.replace(/"/g,'').replace(/\\/g,'');
+  var formula = 'SEARCH(LOWER("' + esc + '"),LOWER({' + F.custTxt + '}))';
+  var flds = [F.id,F.nick,F.type,F.loc,F.screens,F.custTxt,F.repeat,F.inksTxt,F.prev,F.created,F.proofs]
+    .map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL+'?'+flds
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&sort%5B0%5D%5Bfield%5D='+F.created+'&sort%5B0%5D%5Bdirection%5D=desc'
+    +'&returnFieldsByFieldId=true&pageSize=100';
+
+  fetchAll(url, [], function(recs, err) {
+    if (err) { showState('Error: ' + err, true); return; }
+    allRecs = recs;
+    // Reset filter to all
+    curFilter = 'all';
+    document.querySelectorAll('.stat-cell').forEach(function(b){ b.classList.remove('on'); });
+    var allBtn = document.getElementById('fc-all');
+    if (allBtn) allBtn.classList.add('on');
+    // Update count badge
+    var cntEl = document.getElementById('cnt-all');
+    if (cntEl) cntEl.textContent = recs.length;
+    renderList(recs);
+  });
+}
+
+function fetchAll(url, acc, cb) {
+  fetch(url, { headers: { Authorization: 'Bearer ' + tok() } })
+    .then(function(r) {
+      if (!r.ok) { r.json().then(function(e){ cb([], e.error?e.error.message:r.status); }); return; }
+      r.json().then(function(d) {
+        var all = acc.concat(d.records||[]);
+        if (d.offset && all.length < 500) {
+          var next = url.replace(/&offset=[^&]*/,'') + '&offset=' + encodeURIComponent(d.offset);
+          fetchAll(next, all, cb);
+        } else { cb(all, null); }
+      });
+    }).catch(function(e){ cb([], e.message); });
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function setFilter(type, btn) {
+  curFilter = type;
+  document.querySelectorAll('.stat-cell').forEach(function(b){ b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  var filtered = filterRecs(allRecs, type);
+  renderList(filtered);
+}
+
+function filterRecs(recs, type) {
+  if (type === 'all') return recs;
+  return recs.filter(function(r) {
+    var f = r.fields || {};
+    var typeV = getStr(f[F.type]);
+    var locV  = getStr(f[F.loc]);
+    if (type === 'screen') return typeV && typeV.toLowerCase().indexOf('emb') === -1;
+    if (type === 'emb')    return typeV.toLowerCase().indexOf('emb') !== -1;
+    // location filters
+    return locV === type || (type === 'Left Sleeve' && (locV === 'Left Sleeve' || locV === 'Right Sleeve'));
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderList(recs) {
+  if (!recs.length) {
+    setContent('<div class="state-panel"><div class="state-icon">🔎</div><div class="state-title">No imprints found</div><div class="state-txt">Try a different name or filter</div></div>');
+    return;
+  }
+  var hdr = '<div class="results-hdr"><div class="results-count"><strong>' + recs.length + '</strong> imprint' + (recs.length!==1?'s':'') + ' found</div></div>';
+  var cards = recs.map(function(rec) {
+    var f   = rec.fields || {};
+    var id  = f[F.id]  || '';
+    var nick = f[F.nick] || '';
+    var typeV = getStr(f[F.type]);
+    var locV  = getStr(f[F.loc]);
+    var scr  = f[F.screens] || '';
+    var rep  = f[F.repeat] || false;
+    var inks = f[F.inksTxt] || '';
+    var dt   = f[F.created] ? new Date(f[F.created]).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '';
+    var thumb = getThumb(f[F.proofs]);
+    var eid = rec.id;
+
+    var typeCls = typeV.toLowerCase().indexOf('emb')!==-1 ? 't-b' : (typeV?'t-n':'t-n');
+
+    return '<div class="rc" id="rc-'+eid+'" data-id="'+eid+'" data-type="'+typeV.toLowerCase()+'" data-loc="'+locV+'" onclick="selCard(\''+eid+'\')">'
+      // ID col
+      + '<div class="rc-id">'
+        + '<div class="rc-id-num">'+escHtml(id)+'</div>'
+        + (dt?'<div class="rc-id-date">'+dt+'</div>':'')
+      + '</div>'
+      // Body col
+      + '<div class="rc-body">'
+        + '<div class="rc-name">'+escHtml(nick||id)+'</div>'
+        + '<div class="rc-tags">'
+          + (typeV?'<span class="tag '+typeCls+'">'+escHtml(typeV)+'</span>':'')
+          + (locV?'<span class="tag t-g">'+escHtml(locV)+'</span>':'')
+          + (scr?'<span class="tag t-n">'+scr+' scr</span>':'')
+          + (rep?'<span class="tag t-a">↺ Repeat</span>':'')
+        + '</div>'
+        + (inks?'<div class="rc-inks">'+escHtml(inks)+'</div>':'')
+      + '</div>'
+      // Thumb col
+      + '<div class="rc-thumb" onclick="event.stopPropagation();'+(thumb?'previewZoom(\''+thumb+'\',\''+escHtml(id)+'\')':'')+'"">'
+        + (thumb
+          ? '<img src="'+thumb+'" alt="proof" /><div class="rc-thumb-lbl">Proof</div>'
+          : '<div class="rc-thumb-ph">—</div>')
+      + '</div>'
+      // Action col
+      + '<div class="rc-action"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();selCard(\''+eid+'\')">Select</button></div>'
+    + '</div>';
+  }).join('');
+
+  setContent('<div class="results-hdr"><div class="results-count"><strong>'+recs.length+'</strong> imprint'+(recs.length!==1?'s':'')+' found</div></div><div class="card-list">'+cards+'</div>');
+}
+
+// ── SELECT / OVERLAY ──────────────────────────────────────────────────────────
+function selCard(recId) {
+  selRec = allRecs.find(function(r){ return r.id === recId; });
+  if (!selRec) return;
+
+  document.querySelectorAll('.rc').forEach(function(c){ c.classList.remove('sel'); });
+  var el = document.getElementById('rc-'+recId);
+  if (el) el.classList.add('sel');
+
+  var f    = selRec.fields || {};
+  var id   = f[F.id]  || recId;
+  var nick = f[F.nick] || '';
+  var typeV = getStr(f[F.type]);
+  var locV  = getStr(f[F.loc]);
+  var scr  = f[F.screens] || '—';
+  var inks = f[F.inksTxt] || '—';
+  // F.prev with returnFieldsByFieldId=true returns bare rec IDs ["recXXX"]
+  // Resolve the human-readable imprint ID by checking allRecs first, then fetching
+  var prevRawArr = f[F.prev] || [];
+  var prevRecId  = prevRawArr.length ? (typeof prevRawArr[0]==='object' ? prevRawArr[0].id : prevRawArr[0]) : null;
+  var prevId = null;
+  if (prevRecId) {
+    // Check if that record is already in our allRecs (same customer search)
+    var prevInResults = allRecs.find(function(r){ return r.id === prevRecId; });
+    if (prevInResults) {
+      prevId = (prevInResults.fields||{})[F.id] || prevRecId;
+    } else {
+      prevId = '(' + prevRecId.slice(0,8) + '…)'; // placeholder while we fetch
+      // Fetch the text ID asynchronously and update the grid cell
+      (function(pid){ 
+        fetch('https://api.airtable.com/v0/'+BASE+'/'+TBL+'/'+pid+'?returnFieldsByFieldId=true', 
+          { headers: { Authorization: 'Bearer ' + tok() } })
+          .then(function(r){ return r.json(); })
+          .then(function(d){ 
+            var resolved = (d.fields||{})[F.id] || pid;
+            var el = document.getElementById('ov-prev-val');
+            if (el) el.textContent = resolved;
+          }).catch(function(){});
+      })(prevRecId);
+    }
+  }
+  var thumb = getThumb(f[F.proofs]);
+
+  document.getElementById('ovTitle').textContent = id + (nick ? ' — ' + nick : '');
+  document.getElementById('ovSub').textContent = 'Set this as the Previous Imprint ID on the new reprint';
+
+  var proofEl = document.getElementById('ovProof');
+  if (thumb) { proofEl.src = thumb; proofEl.style.display = 'block'; curZoom = thumb; }
+  else { proofEl.style.display = 'none'; curZoom = ''; }
+
+  document.getElementById('ovGrid').innerHTML =
+    ovDet('Imprint ID', id, true) +
+    ovDet('Location', locV||'—') +
+    ovDet('Type', typeV||'—') +
+    ovDet('Screens', String(scr)) +
+    ovDet('Inks', inks) +
+    ovDetId('ov-prev-val', 'Prev Linked', prevId||'None');
+
+  // Sync new imprint field
+  document.getElementById('newInpModal').value = document.getElementById('newInp').value;
+
+  // Reset status
+  var ws = document.getElementById('wstat');
+  ws.className = 'wstat';
+  var lb = document.getElementById('linkBtn');
+  lb.disabled = false;
+  lb.textContent = 'Set as Previous';
+
+  document.getElementById('overlay').classList.add('on');
+}
+
+function ovDet(label, val, large) {
+  return '<div class="ov-det">'
+    + '<div class="ov-det-lbl">'+label+'</div>'
+    + '<div class="ov-det-val'+(large?' lg':'')+'">'+escHtml(val)+'</div>'
+  + '</div>';
+}
+function ovDetId(id, label, val, large) {
+  return '<div class="ov-det">'
+    + '<div class="ov-det-lbl">'+label+'</div>'
+    + '<div class="ov-det-val'+(large?' lg':'')+'" id="'+id+'">'+escHtml(val)+'</div>'
+  + '</div>';
+}
+
+function closeOv() {
+  document.getElementById('overlay').classList.remove('on');
+  document.querySelectorAll('.rc').forEach(function(c){ c.classList.remove('sel'); });
+  selRec = null;
+}
+
+function handleBg(e) {
+  if (e.target === document.getElementById('overlay')) closeOv();
+}
+
+// ── LINK ──────────────────────────────────────────────────────────────────────
+function doLink() {
+  if (!selRec) return;
+  var newId = (document.getElementById('newInpModal').value || document.getElementById('newInp').value).trim();
+  if (!newId) { wstat('Enter the New Imprint ID first', 'err'); return; }
+
+  var lb = document.getElementById('linkBtn');
+  lb.disabled = true;
+  wstat('Looking up new imprint…', 'ld');
+
+  // Look up new imprint by text ID
+  var formula = '{'+F.id+'}="'+newId.replace(/"/g,'')+'"';
+  fetch('https://api.airtable.com/v0/'+BASE+'/'+TBL
+    +'?filterByFormula='+encodeURIComponent(formula)
+    +'&fields%5B%5D='+F.id
+    +'&returnFieldsByFieldId=true&maxRecords=1', { headers: hdr() })
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (!d.records||!d.records.length) throw new Error('No imprint found with ID "'+newId+'"');
+      var nrid = d.records[0].id;
+      wstat('Writing Previous Imprint ID…', 'ld');
+
+      // PATCH the new imprint: set Previous Imprint ID + Repeat?=true
+      // Does NOT touch the original imprint record
+      var body = { fields: {} };
+      body.fields[F.prev]   = [{ id: selRec.id }];
+      body.fields[F.repeat] = true;
+
+      return fetch('https://api.airtable.com/v0/'+BASE+'/'+TBL+'/'+nrid, {
+        method: 'PATCH',
+        headers: hdr(),
+        body: JSON.stringify(body)
+      });
+    })
+    .then(function(r) {
+      if (!r.ok) { return r.json().then(function(e){ throw new Error(e.error?e.error.message:'Update failed'); }); }
+      var origId = (selRec.fields||{})[F.id] || selRec.id;
+      wstat('✓ ' + newId + ' now links back to ' + origId + '. Repeat? set.', 'ok');
+      lb.textContent = '✓ Done';
+      // Also update the main new ID field so it's visible
+      document.getElementById('newInp').value = newId;
+    })
+    .catch(function(e) {
+      wstat('Error: ' + e.message, 'err');
+      lb.disabled = false;
+    });
+}
+
+function wstat(msg, cls) {
+  var el = document.getElementById('wstat');
+  el.className = 'wstat on ws-'+cls;
+  var dot = cls==='ld'
+    ? '<div class="spin" style="width:10px;height:10px;border-width:1.5px;margin:0;flex-shrink:0;display:inline-block"></div>'
+    : '<div class="wdot"></div>';
+  el.innerHTML = dot + ' ' + escHtml(msg);
+}
+
+// ── ZOOM ──────────────────────────────────────────────────────────────────────
+function openZoom() { if (curZoom) { document.getElementById('zoomImg').src=curZoom; document.getElementById('zoom').classList.add('on'); } }
+function previewZoom(url, label) { document.getElementById('zoomImg').src=url; document.getElementById('zoom').classList.add('on'); curZoom=url; }
+function closeZoom() { document.getElementById('zoom').classList.remove('on'); }
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function getStr(v) {
+  if (!v) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object' && v.name) return v.name;
+  return String(v);
+}
+
+function getThumb(p) {
+  if (!p) return '';
+  if (Array.isArray(p)) {
+    var a = p[0]; if (!a) return '';
+    return (a.thumbnails&&a.thumbnails.large)?a.thumbnails.large.url:(a.thumbnails&&a.thumbnails.small)?a.thumbnails.small.url:'';
+  }
+  if (p.valuesByLinkedRecordId) {
+    var keys = Object.keys(p.valuesByLinkedRecordId);
+    if (!keys.length) return '';
+    var atts = p.valuesByLinkedRecordId[keys[0]];
+    if (!atts||!atts.length) return '';
+    var att = atts[0];
+    return (att.thumbnails&&att.thumbnails.large)?att.thumbnails.large.url:(att.thumbnails&&att.thumbnails.small)?att.thumbnails.small.url:'';
+  }
+  return '';
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function setContent(html) { document.getElementById('content').innerHTML = html; }
+function showState(msg, err) {
+  setContent('<div class="state-panel">'+(err?'<div class="state-icon">⚠️</div>':'')+'<div class="state-txt">'+escHtml(msg)+'</div></div>');
+}
+
+// Keyboard
+document.addEventListener('keydown', function(e) {
+  if (e.key==='Escape') {
+    if (document.getElementById('zoom').classList.contains('on')) closeZoom();
+    else closeOv();
+  }
+});
+
+// Focus search on load
+window.onload = function() { document.getElementById('custInp').focus(); };
+</script>
+</body>
+</html>
