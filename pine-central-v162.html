@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Central v162 — Pine Print Shop</title>
+<style>
+:root{
+  --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;
+  --green:#1e6b45;--green-lt:#e8f5ee;--green-md:#2d8a5a;--green-dk:#144d31;
+  --text:#0D0D0B;--muted:#888880;--muted-lt:#BBBBB5;
+  --yellow:#E8E832;--yellow-dim:#E8E83230;--yellow-border:#E8E83250;
+  --red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+  --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;
+  --sb-bg:#0A0A08;--sb-border:#1A1A16;--sb-active:#141410;
+  --sans:Helvetica,Arial,sans-serif;
+  --cond:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --mono:'Courier New',monospace;
+  --radius:4px;--radius-lg:6px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* LAYOUT */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;background:var(--sb-bg);color:var(--surface);display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid var(--sb-border)}
+.content{flex:1;overflow-y:auto;padding:20px;min-width:0;display:flex;flex-direction:column}
+
+/* LOGO */
+.logo{padding:20px;text-align:center;border-bottom:1px solid var(--sb-border)}
+.logo svg{width:60px;height:auto;fill:currentColor}
+
+/* NAV */
+.nav{flex:1;overflow-y:auto;padding:16px 0}
+.nav-section{margin-bottom:24px}
+.nav-title{font-size:10px;font-weight:700;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.08em;font-family:var(--cond);padding:0 16px 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;color:var(--muted-lt);text-decoration:none;cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:var(--sans);font-size:13px}
+.nav-item:hover{background:var(--sb-active);color:var(--surface)}
+.nav-item.active{background:var(--yellow);color:var(--sb-bg);font-weight:600}
+.nav-item.wip{color:var(--amb)}
+.wip-badge{background:var(--amb);color:var(--sb-bg);font-size:8px;font-weight:700;padding:2px 5px;border-radius:8px;text-transform:uppercase;letter-spacing:.05em;margin-left:auto}
+
+/* MACHINE BAR */
+.mbar{display:flex;align-items:center;background:var(--yellow);color:var(--sb-bg);padding:8px 16px;border-bottom:1px solid var(--yellow-border);font-weight:700;font-family:var(--cond);letter-spacing:.05em;text-transform:uppercase;font-size:11px;flex-shrink:0}
+.mbar-left{display:flex;gap:16px}
+.mbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.machine{padding:4px 8px;border-radius:var(--radius);background:rgba(0,0,0,.1);cursor:pointer;transition:background .15s}
+.machine:hover{background:rgba(0,0,0,.2)}
+.view-as{font-size:10px;color:rgba(0,0,0,.6)}
+.fact{font-size:10px;color:rgba(0,0,0,.6);font-weight:400}
+
+/* STATS TICKER */
+.ybar{background:var(--yellow-dim);padding:8px 16px;border-bottom:1px solid var(--yellow-border);display:flex;gap:16px;font-size:11px;font-family:var(--mono);color:var(--text);flex-shrink:0}
+.ybar.loading{justify-content:center;color:var(--muted)}
+
+/* VIEWS */
+.view{display:none}
+.view.on{display:block}
+.view.on:not(.iframe-view){display:block}
+.view.iframe-view{padding:0;flex:1;display:none;flex-direction:column}
+.view.iframe-view.on{display:flex}
+.view.iframe-view.on{padding:0;overflow:hidden}
+
+/* IFRAME */
+.app-frame{width:100%;height:100%;border:none;background:var(--bg)}
+
+/* HOME */
+.home{text-align:center;padding:60px 20px}
+.home h1{font-size:28px;font-weight:700;margin-bottom:8px;font-family:var(--cond)}
+.home p{color:var(--muted);margin-bottom:32px;line-height:1.5}
+
+/* TOKEN */
+.token{padding:16px;border-top:1px solid var(--sb-border);margin-top:auto}
+.token-label{font-size:9px;font-weight:700;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;font-family:var(--cond)}
+.token-row{display:flex;gap:6px;align-items:center}
+.token-input{flex:1;padding:6px 8px;background:var(--sb-active);border:1px solid var(--sb-border);border-radius:var(--radius);color:var(--surface);font-size:11px;font-family:var(--mono)}
+.token-input::placeholder{color:var(--muted-lt)}
+.token-btn{padding:6px 8px;background:var(--green);border:none;color:white;border-radius:var(--radius);font-size:9px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;font-family:var(--cond)}
+.token-btn:hover{background:var(--green-dk)}
+.token-clear{background:var(--red);font-size:10px;padding:4px 6px}
+.token-clear:hover{background:#a0342a}
+
+/* TOAST */
+.toast{position:fixed;top:20px;right:20px;background:var(--green);color:white;padding:12px 16px;border-radius:var(--radius);font-size:12px;font-weight:700;z-index:2000;transform:translateY(-100px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* MOBILE */
+@media(max-width:900px){
+  .mbar-right{display:none}
+}
+
+@media(max-width:600px){
+  .sidebar{width:200px}
+  .ybar{font-size:10px;gap:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <!-- LOGO -->
+    <div class="logo">
+      <svg viewBox="0 0 115 220" fill="currentColor">
+        <path d="M57.5,0C25.7,0,0,25.7,0,57.5S25.7,115,57.5,115S115,89.3,115,57.5S89.3,0,57.5,0z M57.5,95c-20.7,0-37.5-16.8-37.5-37.5S36.8,20,57.5,20S95,36.8,95,57.5S78.2,95,57.5,95z"/>
+        <path d="M30,140h55c8.3,0,15,6.7,15,15v50c0,8.3-6.7,15-15,15H30c-8.3,0-15-6.7-15-15v-50C15,146.7,21.7,140,30,140z"/>
+      </svg>
+    </div>
+
+    <!-- NAV -->
+    <div class="nav">
+      <div class="nav-section">
+        <button class="nav-item active" onclick="showView('home')">
+          <span>🏠</span> Home
+        </button>
+        <button class="nav-item wip" onclick="return false">
+          <span>📋</span> Production Scheduler
+          <span class="wip-badge">WIP</span>
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Production</div>
+        <button class="nav-item" onclick="showView('seps')">
+          <span>✂️</span> Seps
+        </button>
+        <button class="nav-item" onclick="showView('screens')">
+          <span>🖼️</span> Screens
+        </button>
+        <button class="nav-item" onclick="showView('ink')">
+          <span>🎨</span> Ink Queue
+        </button>
+        <button class="nav-item" onclick="showView('receiving')">
+          <span>📦</span> Receiving
+        </button>
+        <button class="nav-item" onclick="showView('operator')">
+          <span>⚙️</span> Operator
+        </button>
+        <button class="nav-item" onclick="showView('catching')">
+          <span>🔍</span> Catching
+        </button>
+        <button class="nav-item" onclick="showView('reprint')">
+          <span>🔄</span> Reprints
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Admin</div>
+        <button class="nav-item" onclick="showView('purchasing')">
+          <span>🛒</span> Purchasing
+        </button>
+        <button class="nav-item wip" onclick="return false">
+          <span>📊</span> KPIs
+          <span class="wip-badge">WIP</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TOKEN -->
+    <div class="token">
+      <div class="token-label">API Token</div>
+      <div class="token-row">
+        <input type="password" class="token-input" id="tokenInput" placeholder="Enter Airtable token...">
+        <button class="token-btn" onclick="saveToken()">Save</button>
+        <button class="token-btn token-clear" onclick="clearToken()" title="Clear">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- MACHINE BAR -->
+    <div class="mbar">
+      <div class="mbar-left">
+        <div class="machine">ROQ NEXT (p1)</div>
+        <div class="machine">ROQ YOU (p2)</div>
+        <div class="machine">Heat Press (ht)</div>
+        <div class="machine">Embroidery (em)</div>
+        <div class="machine">Finishing (fs)</div>
+      </div>
+      <div class="mbar-right">
+        <span class="view-as">View As: Production</span>
+        <span class="fact" id="funFact">Loading...</span>
+      </div>
+    </div>
+
+    <!-- STATS TICKER -->
+    <div class="ybar loading" id="statsBar">Loading yesterday's stats...</div>
+
+    <!-- HOME VIEW -->
+    <div class="view on" id="home">
+      <div class="home">
+        <h1 id="greeting">Good morning</h1>
+        <p>Production workflow management for Pine Print Shop</p>
+        
+        <div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:32px;">
+          <button class="nav-item" onclick="showView('seps')" style="background:var(--surface);border:1px solid var(--border);padding:16px 20px;border-radius:var(--radius-lg);color:var(--text);">
+            <span>✂️</span> Seps v4
+          </button>
+          <button class="nav-item" onclick="showView('screens')" style="background:var(--surface);border:1px solid var(--border);padding:16px 20px;border-radius:var(--radius-lg);color:var(--text);">
+            <span>🖼️</span> Screens v5
+          </button>
+          <button class="nav-item" onclick="showView('ink')" style="background:var(--surface);border:1px solid var(--border);padding:16px 20px;border-radius:var(--radius-lg);color:var(--text);">
+            <span>🎨</span> Ink Queue v66
+          </button>
+          <button class="nav-item" onclick="showView('purchasing')" style="background:var(--surface);border:1px solid var(--border);padding:16px 20px;border-radius:var(--radius-lg);color:var(--text);">
+            <span>🛒</span> Purchasing v67
+          </button>
+          <button class="nav-item" onclick="showView('operator')" style="background:var(--surface);border:1px solid var(--border);padding:16px 20px;border-radius:var(--radius-lg);color:var(--text);">
+            <span>⚙️</span> Operator v24
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IFRAME VIEWS -->
+    <div class="view iframe-view" id="seps">
+      <iframe class="app-frame" src="seps-v4.html"></iframe>
+    </div>
+    <div class="view iframe-view" id="screens">
+      <iframe class="app-frame" src="screens-v5.html"></iframe>
+    </div>
+    <div class="view iframe-view" id="ink">
+      <iframe class="app-frame" src="pine-ink-queue-v66.html"></iframe>
+    </div>
+    <div class="view iframe-view" id="receiving">
+      <iframe class="app-frame" src="receiving-dashboard-v10.html"></iframe>
+    </div>
+    <div class="view iframe-view" id="operator">
+      <iframe class="app-frame" src="pine-operator-v24.html"></iframe>
+    </div>
+    <div class="view iframe-view" id="catching">
+      <iframe class="app-frame" src="pine-catching-v97.html"></iframe>
+    </div>
+    <div class="view iframe-view" id="reprint">
+      <iframe class="app-frame" src="reprint-lookup.html"></iframe>
+    </div>
+    <div class="view iframe-view" id="purchasing">
+      <iframe class="app-frame" src="pine-purchasing-v67.html"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var currentView = 'home';
+
+var FACTS = {
+  morning: [
+    "First screen burn of the day hits different ☀️",
+    "ROQ NEXT is warmed up and ready to roll",
+    "Fresh ink smell means a productive day ahead",
+    "Whitney's already got 3 seps done before 9am",
+    "Coffee + screen burning = perfect morning combo"
+  ],
+  afternoon: [
+    "Lunch break screen burns are the most satisfying",
+    "p2 is running like a dream today",
+    "The receiving team is crushing those deliveries",
+    "Afternoon light makes color matching easier",
+    "Hannah's separator skills are unmatched"
+  ],
+  evening: [
+    "End of shift screen count looking strong",
+    "Time to clean those squeegees properly",
+    "Tomorrow's job queue is already prepped",
+    "Another productive day in the books",
+    "ROQ YOU earned its rest tonight"
+  ]
+};
+
+function getTimeOfDay() {
+  var hour = new Date().getHours();
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return 'evening';
+}
+
+function updateGreeting() {
+  var timeOfDay = getTimeOfDay();
+  var greetings = {
+    morning: 'Good morning',
+    afternoon: 'Good afternoon', 
+    evening: 'End of shift'
+  };
+  
+  document.getElementById('greeting').textContent = greetings[timeOfDay];
+  
+  // Random fact
+  var facts = FACTS[timeOfDay];
+  var randomFact = facts[Math.floor(Math.random() * facts.length)];
+  document.getElementById('funFact').textContent = randomFact;
+}
+
+function showToast(message) {
+  var toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function showView(viewName) {
+  // Hide all views
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  // Show selected view
+  document.getElementById(viewName).classList.add('on');
+  document.querySelector(`[onclick="showView('${viewName}')"]`).classList.add('active');
+  
+  currentView = viewName;
+  
+  // Hide/show stats bar based on view
+  var statsBar = document.getElementById('statsBar');
+  if (viewName === 'home') {
+    statsBar.style.display = 'flex';
+  } else {
+    statsBar.style.display = 'none';
+  }
+}
+
+function saveToken() {
+  var input = document.getElementById('tokenInput');
+  var token = input.value.trim();
+  
+  if (!token) {
+    showToast('Please enter a token');
+    return;
+  }
+  
+  localStorage.setItem('pine_at_key', token);
+  input.value = '';
+  input.type = 'password';
+  showToast('Token saved successfully');
+  
+  // Load stats if on home
+  if (currentView === 'home') {
+    loadStats();
+  }
+}
+
+function clearToken() {
+  localStorage.removeItem('pine_at_key');
+  showToast('Token cleared');
+  
+  var statsBar = document.getElementById('statsBar');
+  statsBar.className = 'ybar loading';
+  statsBar.textContent = 'Token cleared - enter token to load stats';
+}
+
+async function loadStats() {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) return;
+  
+  var statsBar = document.getElementById('statsBar');
+  statsBar.className = 'ybar loading';
+  statsBar.textContent = 'Loading yesterday\'s stats...';
+  
+  try {
+    // Yesterday's date
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    var dateStr = yesterday.toISOString().split('T')[0];
+    
+    // Fetch screens burned (burned date = yesterday)
+    var screenRes = await fetch(`https://api.airtable.com/v0/appJkaLk8DykjsgHR/tbln9oAGvz2PNBZLV?filterByFormula=IS_SAME({Screens Burned Date},'${dateStr}','day')&returnFieldsByFieldId=true`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!screenRes.ok) throw new Error('Failed to fetch screens data');
+    var screenData = await screenRes.json();
+    var screensBurned = screenData.records.length;
+    
+    // Fetch seps completed (sep'd date = yesterday) 
+    var sepRes = await fetch(`https://api.airtable.com/v0/appJkaLk8DykjsgHR/tbln9oAGvz2PNBZLV?filterByFormula=IS_SAME({Sep'd Date},'${dateStr}','day')&returnFieldsByFieldId=true`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!sepRes.ok) throw new Error('Failed to fetch seps data');
+    var sepData = await sepRes.json();
+    var sepsCompleted = sepData.records.length;
+    
+    // Fetch garments received (received timestamp = yesterday)
+    var receiveRes = await fetch(`https://api.airtable.com/v0/appJkaLk8DykjsgHR/tblJx5UlwO7oMSk5H?filterByFormula=IS_SAME({Received Timestamp},'${dateStr}','day')&fields%5B%5D=fldFfuKAcduwWQp8g&returnFieldsByFieldId=true`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!receiveRes.ok) throw new Error('Failed to fetch receiving data');
+    var receiveData = await receiveRes.json();
+    var totalGarments = receiveData.records.reduce((sum, r) => {
+      return sum + (r.fields.fldFfuKAcduwWQp8g || 0);
+    }, 0);
+    
+    // Update stats bar
+    statsBar.className = 'ybar';
+    statsBar.innerHTML = `
+      <span>📺 ${screensBurned} screens burned</span>
+      <span>✂️ ${sepsCompleted} seps completed</span>
+      <span>📦 ${totalGarments.toLocaleString()} garments received</span>
+      <span>📅 ${yesterday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+    `;
+    
+  } catch (err) {
+    console.error('Stats load error:', err);
+    statsBar.className = 'ybar';
+    statsBar.textContent = 'Stats unavailable - check token permissions';
+  }
+}
+
+// Initialize
+updateGreeting();
+
+// Load token if exists
+var savedToken = localStorage.getItem('pine_at_key');
+if (savedToken) {
+  var input = document.getElementById('tokenInput');
+  input.placeholder = '••••••••••••••••••••';
+  loadStats();
+} else {
+  var statsBar = document.getElementById('statsBar');
+  statsBar.className = 'ybar';
+  statsBar.textContent = 'Enter API token to load yesterday\'s stats';
+}
+</script>
+</body>
+</html>
