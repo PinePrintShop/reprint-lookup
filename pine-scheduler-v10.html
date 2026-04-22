@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Central — Scheduler v10</title>
+<link rel="stylesheet" href="pine-design-v1.css">
+<style>
+/* Pine Central Scheduler — uses pine-design-v1.css for shared tokens.
+   Press color vars (--press-p1 etc.) are defined in the shared stylesheet.
+   Scheduler-local overrides only below. */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;display:flex;flex-direction:column}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:46px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.week-ctrl{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:0 6px;height:28px}
+.week-ctrl button:not(.btn-view){background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 3px;transition:color .15s}
+.week-ctrl button:not(.btn-view):hover{color:var(--green)}
+#weekLabel{font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.02em;min-width:155px;text-align:center;color:var(--text)}
+.btn-view{
+  font-family:var(--cond);
+  font-weight:700;
+  font-size:9px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:0 9px;
+  height:20px;
+  background:var(--surface);
+  border:1px solid var(--border-dk);
+  border-radius:20px;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .12s;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+}
+.btn-view:hover:not(.active){border-color:var(--text);color:var(--text)}
+.btn-view.active{
+  background:var(--sb-bg);
+  border-color:var(--sb-bg);
+  color:var(--yellow);
+}
+.sp{flex:1}
+
+/* Scheduler-local: danger variant of btn-primary pattern (used for Clear button).
+   Mirrors .btn-primary shape but with red tint instead of dark/yellow. */
+.btn-danger{
+  background:var(--red-bg);
+  border:1px solid var(--red-bd);
+  border-radius:var(--radius);
+  color:var(--red);
+  font-size:9px;
+  padding:5px 10px;
+  cursor:pointer;
+  font-family:var(--cond);
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  transition:all .1s;
+  white-space:nowrap;
+  display:inline-block;
+  line-height:1.2;
+}
+.btn-danger:hover{background:#fce4e4;border-color:var(--red)}
+.btn-danger:disabled{opacity:.4;cursor:not-allowed}
+
+/* Click-feedback flash for buttons (e.g. Today button when already on current week) */
+.btn-secondary.flash,
+.btn-secondary.flash-strong{
+  animation:btnFlash .4s ease-out;
+}
+.btn-secondary.flash-strong{
+  animation:btnFlashStrong .4s ease-out;
+}
+@keyframes btnFlash{
+  0%  {background:var(--bg);border-color:var(--border-dk)}
+  30% {background:var(--green-lt);border-color:var(--green);color:var(--green-dk)}
+  100%{background:var(--bg);border-color:var(--border-dk)}
+}
+@keyframes btnFlashStrong{
+  0%  {background:var(--bg);border-color:var(--border-dk)}
+  30% {background:var(--yellow);border-color:var(--sb-bg);color:var(--sb-bg)}
+  100%{background:var(--bg);border-color:var(--border-dk)}
+}
+
+/* LAYOUT */
+.layout{flex:1;display:grid;grid-template-columns:260px 1fr;overflow:hidden;min-height:0}
+
+/* SIDEBAR */
+.sb{background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-hdr{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sb-title{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sb-count{background:var(--green);color:#fff;font-family:var(--mono);font-size:10px;border-radius:10px;padding:1px 8px}
+.sb-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
+.sb-list::-webkit-scrollbar{width:3px}
+.sb-list::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:2px}
+.sb-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--muted-lt);font-family:var(--mono);font-size:10px;text-align:center;line-height:1.6}
+
+/* JOB CARD (sidebar) */
+.jcard{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border-dk);border-radius:5px;padding:10px 12px;cursor:grab;transition:all .15s;user-select:none;position:relative}
+.jcard:hover{border-color:var(--border-dk);border-left-color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.jcard.dragging{opacity:.4;cursor:grabbing}
+/* Hard Deadline = critical priority tier (must ship by X). Amber by default,
+   red when also overdue (see .hard-deadline.overdue). ASAP = default, no treatment. */
+.jcard.hard-deadline{border-left-color:var(--amb);border-left-width:5px}
+.jcard.hard-deadline.overdue{border-left-color:var(--red)}
+.jcard.overdue:not(.hard-deadline){border-left-color:var(--amb)}
+.jc-top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}
+.jc-client{font-weight:700;font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.jc-urg{font-size:15px;flex-shrink:0;line-height:1}
+.jc-imprint{font-family:var(--mono);font-size:10px;color:var(--muted-lt);font-weight:500;margin-bottom:2px}
+.jc-badge{font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:2px 6px;flex-shrink:0}
+.badge-hard{background:var(--amb-bg);color:var(--amb);border:1px solid var(--amb-bd)}
+.badge-hard-critical{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.jc-design{font-size:12px;color:var(--muted);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jc-chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:9px;border-radius:3px;padding:1px 5px;border:1px solid var(--border);color:var(--muted-lt);background:var(--surface)}
+.chip-sc{color:var(--green);border-color:rgba(58,102,0,.2)}
+.chip-qty{color:var(--press-p2);border-color:rgba(26,88,153,.2)}
+.chip-due{color:var(--muted)}
+.chip-due.late{color:var(--red);border-color:rgba(184,48,48,.2)}
+.chip-est{color:var(--muted-lt)}
+.chip-pal{color:var(--muted-lt)}
+.chip-status{color:var(--muted-lt);font-size:8px}
+
+/* CALENDAR */
+.cal-area{display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+.cal-scroll-wrap{flex:1;overflow-y:auto;overflow-x:hidden}
+.cal-scroll-wrap::-webkit-scrollbar{width:4px}
+.cal-scroll-wrap::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:2px}
+.cal-hdr-wrap{background:var(--bg-soft);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.cal-col-grid{display:grid;grid-template-columns:120px repeat(var(--cal-cols,5),minmax(0,1fr))}
+.cal-hdr-press{padding:8px 10px;border-right:1px solid var(--border);font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-lt);display:flex;align-items:flex-end}
+.cal-hdr-day{padding:6px 8px;border-right:1px solid var(--border);text-align:center}
+.cal-hdr-day:last-child{border-right:none}
+.day-name{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.day-num{font-family:var(--cond);font-weight:700;font-size:22px;line-height:1;margin-top:2px;color:var(--text)}
+.cal-hdr-day.today{position:relative}
+.cal-hdr-day.today .day-num{color:var(--green);font-size:26px}
+.cal-hdr-day.today .day-name{color:var(--green);font-weight:700}
+.cal-hdr-day.today::after{content:'';position:absolute;left:10%;right:10%;bottom:0;height:3px;background:var(--green);border-radius:2px}
+.cap-track{height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden}
+.cap-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+
+/* CALENDAR BODY */
+.cal-body{width:100%}
+.press-row{display:grid;grid-template-columns:120px repeat(var(--cal-cols,5),minmax(0,1fr));border-bottom:2px solid var(--border-dk);min-height:60px}
+.press-row:last-child{border-bottom:none}
+.two-week-divider{height:6px;background:var(--border)}
+.month-view{display:flex;flex-direction:column}
+.month-week-block{border-bottom:2px solid var(--border)}
+.month-week-hdr{display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));background:var(--bg-soft);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.month-day-hdr{padding:5px 8px;border-right:1px solid var(--border);text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--muted)}
+.month-daynum-row{display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));background:var(--bg);border-bottom:1px solid var(--border)}
+.month-daynum-cell{padding:3px 8px;border-right:1px solid var(--border);text-align:right;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.month-daynum-cell.today{color:var(--green);font-weight:700}
+.month-daynum-cell.month-out-of-month{color:var(--border-dk)}
+.month-week-row{display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));border-bottom:1px solid var(--border)}
+.month-press-cell{border-right:1px solid var(--border);padding:5px 7px;min-height:44px}
+.month-press-cell.month-out-of-month{background:var(--bg);opacity:.3}
+.month-press-cell.month-past{opacity:.5}
+.month-press-label{font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;border-right:1px solid var(--border);padding:5px 8px;display:flex;align-items:center}
+.month-cap-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:2px}
+.month-cap-fill{height:100%;border-radius:3px}
+.month-job-count{font-family:var(--mono);font-size:8px;color:var(--muted-lt)}
+.two-week-row-hdr{display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));background:var(--bg-soft);border-bottom:1px solid var(--border);border-top:1px solid var(--border)}
+.two-week-row-lbl{border-right:1px solid var(--border)}
+.two-week-day-lbl{padding:6px 10px;border-right:1px solid var(--border);text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--muted)}
+.two-week-day-lbl:last-child{border-right:none}
+.two-week-day-lbl.today div:last-child{color:var(--green)}
+.press-lbl{background:var(--bg-soft);border-right:1px solid var(--border);padding:8px 10px;display:flex;flex-direction:column;justify-content:center;gap:2px;cursor:pointer;transition:background .15s;flex-shrink:0;width:120px}
+.press-lbl:hover{background:var(--bg)}
+.pl-dot{width:6px;height:6px;border-radius:50%;margin-bottom:1px}
+.pl-name{font-weight:600;font-size:12px;line-height:1.2}
+.pl-mach{font-family:var(--mono);font-size:8px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.04em}
+.pl-cap{font-family:var(--mono);font-size:8px;color:var(--muted-lt)}
+.pl-expand{font-family:var(--mono);font-size:8px;color:var(--green);margin-top:2px;opacity:0;transition:opacity .15s}
+.press-lbl:hover .pl-expand{opacity:1}
+.day-cell{border-right:1px solid var(--border);padding:4px;display:flex;flex-direction:column;gap:2px;min-height:60px;transition:background .12s;position:relative}
+.day-cell:last-child{border-right:none}
+.day-cell.drag-over{background:rgba(58,102,0,.05);outline:1px dashed rgba(58,102,0,.3);outline-offset:-2px}
+.day-cell.over-warn{background:rgba(184,80,0,.05)}
+.day-cell.over-cap{background:rgba(184,48,48,.06)}
+
+/* COMPACT CALENDAR CARD */
+.sblk{border-radius:3px;padding:5px 22px 5px 8px;position:relative;cursor:grab;user-select:none;border-left:4px solid currentColor;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.sblk:hover{filter:brightness(.95)}
+.sblk.dragging{opacity:.3;cursor:grabbing}
+.sblk-row1{display:flex;align-items:center;gap:5px;overflow:hidden;line-height:1.3}
+.sblk-client2{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:0;color:var(--text)}
+.sblk-loc2{font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
+.sblk-row2{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.4;white-space:nowrap;margin-top:2px}
+.sblk-warn{font-family:var(--mono);font-size:9px;color:var(--amb)}
+.sblk-id{font-family:var(--mono);font-size:10px;color:var(--muted-lt);flex-shrink:0;font-weight:500}
+.sblk-urg{font-size:13px;flex-shrink:0;line-height:1}
+.fblk-top{display:flex;align-items:baseline;gap:6px;cursor:pointer;padding-right:18px}
+.fblk-id{font-family:var(--mono);font-size:11px;color:var(--muted-lt);flex-shrink:0;font-weight:500}
+.fblk-client{font-weight:700;font-size:14px;line-height:1.2;color:var(--text)}
+.fblk-loc{font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--muted);margin-bottom:2px;text-transform:uppercase}
+.fblk-urg{font-size:14px;flex-shrink:0;line-height:1}
+.sblk-rm{position:absolute;top:3px;right:4px;background:none;border:none;color:var(--muted-lt);font-size:14px;line-height:1;width:16px;height:16px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.sblk:hover .sblk-rm{display:flex}
+.sblk-rm:hover{color:var(--red)}
+.pal-div{height:1px;margin:2px 0;background:linear-gradient(90deg,transparent,var(--amb),transparent);position:relative;opacity:.6}
+.pal-div::after{content:attr(data-label);position:absolute;left:50%;top:-8px;transform:translateX(-50%);font-family:var(--mono);font-size:7px;color:var(--amb);background:var(--bg);padding:0 3px;white-space:nowrap}
+
+/* STATUS BAR */
+.clear-menu-item{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--text);white-space:nowrap}
+.clear-menu-item:hover{background:var(--bg);color:var(--red)}
+.statusbar{height:26px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:16px;flex-shrink:0}
+.stat{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted-lt)}
+.stat-dot{width:5px;height:5px;border-radius:50%}
+
+/* FOCUS OVERLAY */
+.focus-overlay{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .2s}
+.focus-overlay.show{opacity:1;pointer-events:all}
+.focus-hdr{display:flex;align-items:center;gap:12px;padding:0 18px;height:46px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.focus-dot{width:10px;height:10px;border-radius:50%}
+.focus-title{font-family:var(--cond);font-weight:700;font-size:22px;letter-spacing:.08em}
+.focus-sub{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.focus-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:16px;line-height:1;width:28px;height:28px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:auto;transition:all .15s}
+.focus-close:hover{color:var(--text);border-color:var(--border-dk)}
+.focus-body{flex:1;display:grid;grid-template-columns:240px 1fr;overflow:hidden}
+.focus-sb{border-right:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.focus-sb-hdr{padding:10px 12px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex-shrink:0}
+.focus-sb-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
+.focus-sb-list::-webkit-scrollbar{width:3px}
+.focus-sb-list::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:2px}
+.focus-cal{display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+/* Single scroll container — header sticky inside, no separate scrollbars */
+.focus-cal-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.focus-cal-scroll::-webkit-scrollbar{width:6px}
+.focus-cal-scroll::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:3px}
+/* All rows use the same grid — guaranteed alignment */
+.focus-hdr-row,.focus-cap-row,.focus-cal-body{
+  display:grid;
+  grid-template-columns:repeat(var(--focus-cols,5),1fr);
+  width:100%;
+}
+.focus-hdr-row{background:var(--bg-soft);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.focus-cap-row{background:var(--bg-soft);border-bottom:1px solid var(--border);position:sticky;top:42px;z-index:9}
+
+.focus-day-hdr{padding:6px 10px;border-right:1px solid var(--border);text-align:center}
+.focus-day-hdr:last-child{border-right:none}
+.focus-day-hdr.today{position:relative}
+.focus-day-hdr.today .focus-day-num{color:var(--green);font-size:26px}
+.focus-day-hdr.today .focus-day-name{color:var(--green);font-weight:700}
+.focus-day-hdr.today::after{content:'';position:absolute;left:10%;right:10%;bottom:0;height:3px;background:var(--green);border-radius:2px}
+.focus-day-name{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.focus-day-num{font-family:var(--cond);font-weight:700;font-size:22px;line-height:1;margin-top:2px;color:var(--text)}
+.focus-cap-cell{padding:5px 12px;border-right:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.focus-cap-cell:last-child{border-right:none}
+.focus-cap-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);white-space:nowrap}
+.focus-cap-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.focus-cap-fill{height:100%;border-radius:2px;transition:width .3s}
+.focus-day-col{border-right:1px solid var(--border);padding:5px;display:flex;flex-direction:column;gap:3px;min-height:300px;transition:background .12s}
+.focus-day-col:last-child{border-right:none}
+.focus-day-col.drag-over{background:rgba(58,102,0,.05);outline:1px dashed rgba(58,102,0,.3);outline-offset:-2px}
+.focus-day-col.over-warn{background:rgba(184,80,0,.05)}
+.focus-day-col.over-cap{background:rgba(184,48,48,.06)}
+
+/* FOCUS BLOCKS */
+.fblk{border-radius:3px;padding:5px 6px 5px 8px;cursor:grab;user-select:none;position:relative;border-left:3px solid currentColor;border-top:1px solid;border-right:1px solid;border-bottom:1px solid;transition:filter .15s}
+.fblk:hover{filter:brightness(.95)}
+.fblk.dragging{opacity:.35;cursor:grabbing}
+.fblk-client{font-weight:700;font-size:12px;line-height:1.2;padding-right:16px;cursor:pointer}
+.fblk-design{font-size:10px;opacity:.55;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fblk-chips{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
+.fblk-time{font-family:var(--mono);font-size:9px;opacity:.55;margin-top:2px}
+.fblk-rm{position:absolute;top:3px;right:3px;background:none;border:none;color:currentColor;font-size:12px;line-height:1;width:16px;height:16px;cursor:pointer;display:none;align-items:center;justify-content:center;opacity:.4}
+.fblk:hover .fblk-rm{display:flex}
+.fblk-rm:hover{opacity:1}
+
+/* LOADER */
+.loader{position:fixed;inset:0;background:rgba(242,242,239,.9);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:500}
+.spin{width:30px;height:30px;border:2px solid var(--border-dk);border-top-color:var(--green);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-txt{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted)}
+
+/* DEBUG PANEL */
+.debug-panel{position:fixed;bottom:30px;right:12px;width:340px;max-height:300px;overflow-y:auto;background:#1a1a1a;color:#eee;font-family:var(--mono);font-size:10px;border-radius:6px;padding:10px;z-index:400;display:none}
+.debug-panel.show{display:block}
+
+/* CARD POPUP */
+.card-popup {position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .18s}
+.card-popup.show{opacity:1;pointer-events:all}
+.card-popup-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;width:540px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.15);display:flex;flex-direction:column}
+.card-popup-box::-webkit-scrollbar{width:4px}
+.card-popup-box::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:2px}
+.cp-hdr{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0}
+.cp-title{flex:1}
+.cp-client{font-weight:700;font-size:17px;line-height:1.2;margin-bottom:3px}
+.cp-name{font-size:12px;color:var(--muted);line-height:1.4}
+.cp-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:16px;width:28px;height:28px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.cp-close:hover{color:var(--text);border-color:var(--border-dk)}
+.cp-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.cp-section{display:flex;flex-direction:column;gap:6px}
+.cp-section-title{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-lt)}
+.cp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cp-stat{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px}
+.cp-stat-val{font-family:var(--mono);font-weight:600;font-size:16px;color:var(--text)}
+.cp-stat-lbl{font-family:var(--mono);font-size:9px;color:var(--muted-lt);margin-top:1px;text-transform:uppercase;letter-spacing:.06em}
+.cp-sizes{font-family:var(--mono);font-size:11px;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 12px;line-height:1.7}
+.cp-notes{font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 12px;line-height:1.6}
+.cp-notes-edit{width:100%;box-sizing:border-box;font-size:12px;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 12px;line-height:1.6;font-family:inherit;resize:vertical;min-height:60px}
+.cp-notes-edit:focus{outline:none;border-color:var(--green)}
+.cp-notes-save{font-family:var(--mono);font-size:9px;background:var(--green);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.cp-notes-save:hover{opacity:.85}
+.cp-chips{display:flex;gap:5px;flex-wrap:wrap}
+.cp-chip{font-family:var(--mono);font-size:9px;border-radius:3px;padding:2px 7px;border:1px solid var(--border);color:var(--muted)}
+.cp-chip.rush{background:var(--red-bg);color:var(--red);border-color:rgba(184,48,48,.2)}
+.cp-chip.asap{background:var(--amb-bg);color:var(--amb);border-color:rgba(184,80,0,.2)}
+.cp-chip.grn{background:rgba(58,102,0,.08);color:var(--green);border-color:rgba(58,102,0,.2)}
+.cp-proof{width:100%;border-radius:5px;overflow:hidden;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;min-height:180px}
+.cp-proof iframe{width:100%;height:340px;border:none}
+.cp-proof-none{font-family:var(--mono);font-size:10px;color:var(--muted-lt);padding:40px}
+.cp-proof-link{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;font-family:var(--mono);font-size:10px;color:var(--green);text-decoration:none;border-top:1px solid var(--border)}
+.cp-proof-link:hover{background:var(--bg)}
+.cp-sched{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
+.cp-sched-row{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px}
+.cp-sched-lbl{color:var(--muted-lt)}
+.cp-sched-val{color:var(--text);font-weight:600}
+
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="spin"></div>
+  <div class="loader-txt" id="loaderTxt">Connecting…</div>
+</div>
+
+<div class="hdr">
+  <div class="week-ctrl">
+    <button id="prevWeek">‹</button>
+    <div id="weekLabel">—</div>
+    <button id="nextWeek">›</button>
+    <div style="display:flex;gap:2px;margin-left:6px">
+      <button id="btnViewWeek"  class="btn-view active" data-view="week">1W</button>
+      <button id="btnView2Week" class="btn-view"        data-view="twoweek">2W</button>
+      <button id="btnViewMonth" class="btn-view"        data-view="month">4W</button>
+    </div>
+  </div>
+  <div class="sp"></div>
+  <button class="btn-secondary" id="todayBtn">Today</button>
+  <div style="position:relative;display:inline-block">
+    <button class="btn-primary" id="autoBtn" disabled>⚡ Auto-Schedule ▾</button>
+    <div id="autoMenu" style="display:none;position:absolute;top:100%;left:0;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:210px;padding:4px 0;margin-top:2px"></div>
+  </div>
+  <div style="position:relative;display:inline-block">
+    <button class="btn-danger" id="clearWeekBtn">✕ Clear ▾</button>
+    <div id="clearMenu" style="display:none;position:absolute;top:100%;right:0;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:200px;padding:4px 0;margin-top:2px"></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sb">
+    <div class="sb-hdr">
+      <span class="sb-title">Unscheduled</span>
+      <span class="sb-count" id="sbCount">0</span>
+    </div>
+    <div class="sb-list" id="sbList">
+      <div class="sb-empty"><div>⏳</div>Loading…</div>
+    </div>
+  </div>
+  <div class="cal-area">
+    <div class="cal-scroll-wrap">
+      <div class="cal-hdr-wrap">
+        <div class="cal-col-grid" id="calHdr"></div>
+      </div>
+      <div class="cal-body" id="calBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="statusbar">
+  <div class="stat"><div class="stat-dot" style="background:var(--green)"></div>Drag to schedule · Drop to sidebar to unschedule · Click press to focus</div>
+  <div class="stat" id="statMsg"></div>
+  <div class="stat" id="previewBadge" style="margin-left:auto;display:none;background:var(--amb-bg);color:var(--amb);padding:2px 10px;border-radius:10px;border:1px solid var(--amb-bd);font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:10px">👁 Preview mode — writes disabled</div>
+</div>
+
+<!-- FOCUS OVERLAY -->
+<div class="focus-overlay" id="focusOverlay">
+  <div class="focus-hdr">
+    <div class="focus-dot" id="focusDot"></div>
+    <div>
+      <div class="focus-title" id="focusTitle"></div>
+      <div class="focus-sub" id="focusSub"></div>
+    </div>
+    <button class="btn-primary" id="focusAutoBtn" style="margin-left:auto;margin-right:8px">⚡ Auto-Schedule</button>
+    <button class="focus-close" id="focusClose">×</button>
+  </div>
+  <div class="focus-body">
+    <div class="focus-sb">
+      <div class="focus-sb-hdr">Compatible unscheduled jobs</div>
+      <div class="focus-sb-list" id="focusSbList"></div>
+    </div>
+    <div class="focus-cal">
+      <div class="focus-cal-scroll" id="focusCalScroll">
+        <div class="focus-hdr-row" id="focusCalHdr"></div>
+        <div class="focus-cap-row" id="focusCapRow"></div>
+        <div class="focus-cal-body" id="focusCalBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="debug-panel" id="debugPanel"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════
+const BASE  = 'appJkaLk8DykjsgHR';
+const TABLE = 'tbln9oAGvz2PNBZLV';
+
+const F = {
+  name:    'fldZtgzzQicugfXtP',
+  screens: 'fld8rgkIj1RPO97QU',
+  press:   'fldv59OGU7EkBVofo',
+  qty:     'fld6gdEkaxIsjc0hG',
+  start:   'fldfqtIgcEfIlIeQk',
+  runSecs: 'fldvAqPl6Yq3bxASW',
+  status:  'fldNROVFSsBwLUOYW',
+  priority:'fldMCyF3zHshhQLM5',
+  due:     'fldAl0uhEDCjqhHM4',
+  ink:     'fldjNCuaGOkWgzH2K',
+  client:  'fldeLMIAC0ABQAjYJ',
+  loc:     'fldKQIL0rSJBSeC8S',
+  garment: 'fldyyFoiKCgGOpsGX',
+  sizes:   'fldVwclPQMUUNqMRF',  // size breakdown string e.g. "5 S, 10 M, 12 L"
+  proof:   'fldUOIfCd22MxevRm',  // proof/sep PDF attachment
+  notes:   'fldAIj1K9H9aX6pHy',  // ink notes
+  schedNotes:   'fldjlfaH3dOBCtuTM', // scheduling notes (sales-level notes for production)
+  imprintId:   'fldHjjQ5lzm66ox5j', // imprint ID e.g. 9697-A
+  remainQty:   'fld8U0P6Ibq2Oiv1j', // remaining qty for split runs
+  lineItems:   'fldJhVigW5WAVRg8X', // line item IDs e.g. '9812, 9813'
+  ready:       'fldzVhAgy4FnzQX2a', // readiness: 👍 ready, 🛑 not ready
+};
+
+// ══════════════════════════════════════════════════
+// WRITE GUARD — match other Pine Central apps
+// ══════════════════════════════════════════════════
+// When false, atPatch() is a no-op that only logs to the debug panel.
+// Flip to true ONLY when the logic is tested and ready to persist to Airtable.
+const WRITES_ENABLED = false;
+
+const PRESSES = [
+  {id:'Press 1 - ROQ NEXT',        key:'p1',  color:'#2d6b00', cap:495, warn:420, label:'Press 1',     mach:'ROQ NEXT'},  // 8am-6pm=600min, -90min breaks/lunch/downtime=510min productive, cap=495, warn=420
+  {id:'Press 2 - ROQ YOU',         key:'p2',  color:'#1a5899', cap:480, warn:405, label:'Press 2',     mach:'ROQ YOU'},   // slightly conservative for P2
+  {id:'Embroidery - TAJIMA 6-Head',key:'emb', color:'#5a2d99', cap:420, warn:540, label:'Embroidery',  mach:'TAJIMA'},
+  {id:'Heat press - D3',           key:'d3',  color:'#994400', cap:420, warn:540, label:'Heat Press D3',mach:'D3'},
+  {id:'Heat press - Tag Press',    key:'tag', color:'#886600', cap:420, warn:540, label:'Heat Press Tags',mach:'Tag Press'},
+  {id:'Heat press - Hat Press',    key:'hat', color:'#774400', cap:360, warn:480, label:'Heat Press Hats',mach:'Hat Press'},
+];
+
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+function dbg(...args) {
+  const p = document.getElementById('debugPanel');
+  const line = document.createElement('div');
+  line.style.borderBottom = '1px solid #333';
+  line.style.padding = '2px 0';
+  line.textContent = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+  p.appendChild(line);
+  p.scrollTop = p.scrollHeight;
+  console.log(...args);
+}
+
+function getLookupStr(val) {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (val.valuesByLinkedRecordId) {
+    const vals = Object.values(val.valuesByLinkedRecordId).flat();
+    const v = vals[0];
+    if (!v) return '';
+    if (typeof v === 'object') return v.name || '';
+    return String(v);
+  }
+  if (Array.isArray(val)) { const v = val[0]; return v ? (typeof v === 'object' ? v.name || '' : String(v)) : ''; }
+  if (typeof val === 'object') return val.name || '';
+  return '';
+}
+
+function palletOf(loc, ink) {
+  if (!loc) return 'tee';
+  const l = loc.toLowerCase();
+  const i = (ink||'').toLowerCase();
+  if (l.includes('bandana') || l.includes('tea towel')) return 'bandana';
+  if (l.includes('tote') || l.includes('bag') || l.includes('flatstock') || l.includes('poster')) return 'tote';
+  if (l.includes('hood')) return 'hoodie';
+  if (l.includes('sleeve')) return 'sleeve';
+  // Headwear detected from ink type (supacolor headwear, embroidery on hats)
+  if (i.includes('headwear') || i.includes('supacolor - hat') || i.includes('1c headwear')) return 'hat';
+  return 'tee';
+}
+function isPatchOnly(job) {
+  // Patch/Label ONLY and similar procurement-only line items don't run on a press
+  const ink = (job.ink||'').toLowerCase();
+  const name = (job.name||'').toLowerCase();
+  // Explicit patch/label only ink types
+  if (ink.includes('patch/label only') || ink.includes('patch/label')) return true;
+  // Name contains patch/label only
+  if (name.includes('patch/label only')) return true;
+  // Garment type is None Found with no press assigned — pure procurement record
+  if ((job.garment||'').toLowerCase() === 'none found' && !job.pressName) return true;
+  return false;
+}
+
+function palletChangeCost(a, b) {
+  if (!a || a === b) return 0;
+  if (a === 'bandana' || b === 'bandana') return 20;
+  if (a === 'tote' || b === 'tote') return 20;
+  return 15; // sleeve ↔ tee ↔ hoodie
+}
+
+function withinRunPenalty(job) {
+  const p = palletOf(job.loc, job.ink);
+  if (p === 'hoodie') return 20;
+  if ((p === 'tee' || p === 'sleeve') && job.qty > 300) return 15;
+  if (p === 'bandana' && job.qty > 300) return 20;
+  return 0;
+}
+
+function jobRunMin(job, pressId) {
+  // If remaining qty is set (split run), recalculate from remaining qty
+  if (job.remainQty && job.remainQty > 0) {
+    const origQty = job.qty || 1;
+    const ratio = job.remainQty / origQty;
+    const baseRun = (job.runSecs && job.runSecs > 0) ? Math.round(job.runSecs / 60) : estimateRun(job, pressId);
+    return Math.max(Math.ceil(baseRun * ratio / 15) * 15, 15);
+  }
+  // Use Airtable's stored run time if available, otherwise estimate
+  if (job.runSecs && job.runSecs > 0) return Math.round(job.runSecs / 60);
+  return estimateRun(job, pressId);
+}
+function estimateRun(job, pressId) {
+  const sc  = job.screens || 1;
+  const qty = job.qty || 0;
+  const pid = pressId || '';
+  if (pid.includes('Embroidery')) {
+    return qty<=24?45:qty<=48?70:qty<=96?120:qty<=144?200:qty<=360?450:600;
+  }
+  if (pid.includes('Tag Press')) {
+    return qty<=48?30:qty<=96?60:qty<=144?105:qty<=216?150:330;
+  }
+  if (pid.includes('D3')) {
+    return qty<=24?30:qty<=48?40:qty<=96?75:qty<=144?120:240;
+  }
+  if (pid.includes('Hat Press')) {
+    return qty<=48?45:qty<=96?70:150;
+  }
+  // Screen print lookup — calibrated from 168 real jobs, Mar 2026, ~15% bumper
+  // Baseline P1: tee=230pph, bandana=225pph
+  // Setup: 1sc=12m, 2sc=18m, 3sc=22m, 4sc=27m, 5sc=40m, 6sc=42m, 7sc=60m, 8sc=120m
+  const tbl = {
+    1:[30,  45,  45,  60,  90, 150, 195],
+    2:[30,  45,  60,  75, 105, 150, 210],
+    3:[45,  45,  60,  75, 105, 150, 210],
+    4:[45,  60,  60,  75, 105, 165, 210],
+    5:[60,  60,  75,  90, 120, 165, 225],
+    6:[60,  75,  75,  90, 120, 180, 225],
+    7:[75,  90, 105, 120, 135, 195, 255],
+    8:[135, 150, 165, 180, 195, 255, 315],
+  };
+  const bi = qty<=48?0:qty<=96?1:qty<=144?2:qty<=216?3:qty<=360?4:qty<=576?5:6;
+  const row = tbl[Math.min(Math.max(sc,1),8)] || tbl[2];
+  let v = row[bi] || Math.max(...row.filter(x=>x>0)) + 15;
+  // Press 2 is slower — scale up run time (keep setup same, only scale run portion)
+  const isP2 = pid.includes('Press 2') || pid.includes('ROQ YOU');
+  const isBandana = palletOf(job.loc, job.ink) === 'bandana';
+  if (isP2) {
+    // P2 tee = 185pph (0.8x P1), P2 bandana = 150pph (0.67x P1)
+    // Approximate: add 25% to run time for tee, 50% for bandana on P2
+    const setupPortion = {1:12,2:18,3:22,4:27,5:40,6:42,7:60,8:120}[Math.min(sc,8)] || 15;
+    const runPortion = Math.max(v - setupPortion, 0);
+    const scaledRun = isBandana ? runPortion * 1.5 : runPortion * 1.25;
+    v = setupPortion + scaledRun;
+  }
+  return Math.ceil((v + withinRunPenalty(job)) / 15) * 15;
+}
+
+function autoPress(job) {
+  const g = (job.garment||'').toLowerCase();
+  const ink = (job.ink||'').toLowerCase();
+  if (isPatchOnly(job)) return null; // patch/label only — no press
+  // Hard-forced presses (non-negotiable)
+  if (g === 'embroidery' || ink.includes('patch application')) return 'Embroidery - TAJIMA 6-Head';
+  if (ink.includes('supacolor') && job.loc === 'Size Tag') return 'Heat press - Tag Press';
+  if (ink.includes('supacolor') && (job.loc?.toLowerCase().includes('hat') || ink.includes('headwear'))) return 'Heat press - Hat Press';
+  if (ink.includes('supacolor') || ink.includes('decopress') || ink.includes('hem label')) return 'Heat press - D3';
+  // Screen print preference based on qty + screen count
+  // Press 1 (ROQ NEXT) is faster — prefer for larger/more complex jobs
+  const qty = job.remainQty || job.qty || 0;
+  const screens = job.screens || 1;
+  if (screens >= 5) return 'Press 1 - ROQ NEXT'; // high screen count — P1 speed matters
+  if (qty >= 144) return 'Press 1 - ROQ NEXT';   // full gross+ — P1 speed advantage shows
+  if (qty < 72 && screens <= 2) return 'Press 2 - ROQ YOU'; // small simple runs — P2 is fine
+  return null; // mid-range: let capacity decide
+}
+
+function shopOpen(ds) {
+  return new Date(ds + 'T14:00:00.000Z'); // 8am MT = 14:00 UTC (shop runs Mon-Thu 8am-6pm)
+}
+function minToISO(ds, min) {
+  const d = shopOpen(ds);
+  d.setMinutes(d.getMinutes() + min);
+  return d.toISOString();
+}
+function minToTime(min) {
+  const t = 8*60 + (min||0);
+  const h = Math.floor(t/60)%24, m = t%60;
+  const ap = h>=12?'pm':'am', h12 = h>12?h-12:h===0?12:h;
+  return `${h12}:${String(m).padStart(2,'0')}${ap}`;
+}
+function fmtDate(ds) {
+  if (!ds) return '—';
+  const [,m,d] = ds.split('-');
+  return `${parseInt(m)}/${parseInt(d)}`;
+}
+function dateStr(d) { return d.toISOString().slice(0,10); }
+function hexAlpha(hex, a) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function getWeekStart(d) {
+  const day = new Date(d);
+  const dow = day.getDay();
+  day.setDate(day.getDate() + (dow===0?-6:1-dow));
+  day.setHours(0,0,0,0);
+  return day;
+}
+
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+let weekStart = getWeekStart(new Date());
+let allJobs   = [];
+let scheduled = {}; // { recId: {pressId, dateStr, startMin, runMin, penaltyMin, palletType} }
+let dragId    = null;
+let dragSrc   = null;
+let focusPress = null;
+let focusDragId = null;
+
+let viewMode = 'week'; // 'week' | 'twoweek' | 'month'
+let twoWeekMode = false; // kept for compatibility
+function weekDates() {
+  const week = (offset) => [0,1,2,3,4].map(i => { const d=new Date(weekStart); d.setDate(d.getDate()+offset*7+i); return d; });
+  if (viewMode === 'twoweek') return [...week(0),...week(1)];
+  return week(0); // week and month views use weekStart for navigation only
+}
+
+// ══════════════════════════════════════════════════
+// SCHEDULING
+// ══════════════════════════════════════════════════
+function pressDay(pressId, ds) {
+  return allJobs
+    .filter(j => { const s=scheduled[j.id]; return s && s.pressId===pressId && s.dateStr===ds; })
+    .sort((a,b) => (scheduled[a.id].startMin||0) - (scheduled[b.id].startMin||0));
+}
+function pressLoad(pressId, ds) {
+  return pressDay(pressId, ds).reduce((s,j) => s + (scheduled[j.id].runMin||0) + (scheduled[j.id].penaltyMin||0), 0);
+}
+function lastPallet(pressId, ds, excludeId) {
+  const jobs = pressDay(pressId, ds).filter(j=>j.id!==excludeId);
+  return jobs.length ? scheduled[jobs[jobs.length-1].id]?.palletType||'tee' : null;
+}
+function nextStart(pressId, ds, excludeId) {
+  const jobs = pressDay(pressId, ds).filter(j=>j.id!==excludeId);
+  if (!jobs.length) return 0;
+  const last = jobs[jobs.length-1];
+  const s = scheduled[last.id];
+  return (s.startMin||0) + (s.runMin||0) + (s.penaltyMin||0);
+}
+// Pallet group order: tee/sleeve/hoodie first, then bandana, then others
+function palletGroupOrder(p) {
+  if (!p || p==='tee' || p==='sleeve' || p==='hoodie') return 0;
+  if (p==='bandana') return 1;
+  if (p==='tote') return 2;
+  return 3; // anything else
+}
+function sortByPalletGroup(jobs) {
+  // Stable sort: keep relative order within each group, but group together
+  const groups = {};
+  for (const job of jobs) {
+    const g = palletGroupOrder(palletOf(job.loc, job.ink));
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(job);
+  }
+  return [0,1,2].flatMap(g => groups[g]||[]);
+}
+function computeSlot(job, pressId, ds, excludeId) {
+  const pallet  = palletOf(job.loc, job.ink);
+  const runMin  = estimateRun(job, pressId);
+  // Find all current jobs on this press/day (excluding the one being moved)
+  const existing = pressDay(pressId, ds).filter(j => j.id !== excludeId);
+  // Insert after last job of same pallet group
+  const myGroup = palletGroupOrder(pallet);
+  // Find last job of same or earlier group to insert after
+  const sameGroup = existing.filter(j => palletGroupOrder(palletOf(j.loc, j.ink)) === myGroup);
+  let insertAfter = null;
+  if (sameGroup.length) {
+    insertAfter = sameGroup[sameGroup.length - 1];
+  } else {
+    // Insert after all earlier groups
+    const earlierGroup = existing.filter(j => palletGroupOrder(palletOf(j.loc, j.ink)) < myGroup);
+    if (earlierGroup.length) insertAfter = earlierGroup[earlierGroup.length - 1];
+  }
+  // Calculate startMin by simulating queue up to insertion point
+  const sorted = sortByPalletGroup(existing);
+  let cursor = 0, prevPal = null, startMin = 0;
+  let inserted = false;
+  for (const j of sorted) {
+    if (!inserted && (!insertAfter || j.id === insertAfter?.id)) {
+      // Place new job here (after insertAfter, or at start if none)
+      if (insertAfter && j.id === insertAfter.id) {
+        // Place after this job
+        const s = scheduled[j.id];
+        cursor = (s.startMin||0) + (s.runMin||0) + (s.penaltyMin||0);
+        prevPal = palletOf(j.loc, j.ink);
+      }
+      if (!insertAfter) {
+        // Place at very start
+        const change = palletChangeCost(null, pallet);
+        startMin = change;
+        inserted = true;
+        break;
+      }
+    }
+    if (insertAfter && j.id === insertAfter.id) {
+      const change = palletChangeCost(prevPal, pallet);
+      startMin = cursor + change;
+      inserted = true;
+      break;
+    }
+  }
+  if (!inserted) {
+    // No earlier group found — append at end
+    const change = palletChangeCost(existing.length ? palletOf(existing[existing.length-1].loc, existing[existing.length-1].ink) : null, pallet);
+    startMin = nextStart(pressId, ds, excludeId) + change;
+  }
+  const change = palletChangeCost(insertAfter ? palletOf(insertAfter.loc, insertAfter.ink) : null, pallet);
+  return {startMin, runMin, penaltyMin: change, palletType: pallet};
+}
+function lastPalletOfDay(pressId, ds) {
+  // Returns the pallet type of the last job on a given press/day, or null
+  const jobs = pressDay(pressId, ds);
+  if (!jobs.length) return null;
+  return scheduled[jobs[jobs.length - 1].id]?.palletType || null;
+}
+function locPrintOrder(loc) {
+  // Back first, then LC/sleeve, then Front, then Pocket (needs pallet change like sleeve)
+  const l = (loc||'').toLowerCase();
+  if (l.includes('back')) return 0;
+  if (l.includes('sleeve') || l.includes('left chest') || l.includes('lc')) return 1;
+  if (l.includes('front')) return 2;
+  if (l.includes('pocket')) return 3; // after front, triggers pallet change
+  return 4;
+}
+function lineItemGroup(job) {
+  // Group by first line item ID — imprints on the same line item run together
+  // e.g. lineItems "9812, 9813" → group key "9812"
+  if (job.lineItems) {
+    const first = job.lineItems.split(',')[0].trim();
+    if (first) return first;
+  }
+  // Fall back to order number from imprintId
+  const m = (job.imprintId||'').match(/^(\d+)/);
+  return m ? m[1] : '99999';
+}
+function orderNum(job) {
+  // Extract numeric order number from imprintId e.g. "9621-A" → 9621
+  const m = (job.imprintId||'').match(/^(\d+)/);
+  return m ? parseInt(m[1]) : 99999;
+}
+function sortByPalletGroupWithCarryOver(jobs, prevDayPallet) {
+  // Group jobs by pallet type
+  const groups = {};
+  for (const job of jobs) {
+    const g = palletGroupOrder(palletOf(job.loc, job.ink));
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(job);
+  }
+  // Within each pallet group: Hard Deadline first, then ASAP, then by due date, then order number, then location
+  for (const g of Object.keys(groups)) {
+    groups[g].sort((a, b) => {
+      // Priority tier
+      const pa = (a.priority||'').toLowerCase(), pb = (b.priority||'').toLowerCase();
+      const ra = pa.includes('hard') ? 0 : pa.includes('asap') ? 1 : 2;
+      const rb = pb.includes('hard') ? 0 : pb.includes('asap') ? 1 : 2;
+      if (ra !== rb) return ra - rb;
+      // Due date within same priority tier
+      const da = a.due||'9999', db = b.due||'9999';
+      if (da !== db) return da < db ? -1 : 1;
+      // Keep same line item jobs together (same garment batch)
+      const la = lineItemGroup(a), lb = lineItemGroup(b);
+      if (la !== lb) return la < lb ? -1 : 1;
+      // Back before Front within same line item
+      return locPrintOrder(a.loc) - locPrintOrder(b.loc);
+    });
+  }
+  // Carry-over: start with yesterday's ending pallet type if we have those jobs today
+  if (prevDayPallet === 'bandana' && groups[1]?.length) {
+    return [1,0,2,3].flatMap(g => groups[g]||[]);
+  }
+  if (prevDayPallet === 'tote' && groups[2]?.length) {
+    return [2,0,1,3].flatMap(g => groups[g]||[]);
+  }
+  // Default: apparel → bandana → tote
+  return [0,1,2,3].flatMap(g => groups[g]||[]);
+}
+function recomputeAll() {
+  // Get ALL unique scheduled dates across all jobs, not just visible week
+  const allDates = [...new Set(
+    Object.values(scheduled).map(s => s.dateStr).filter(Boolean)
+  )].sort();
+
+  for (const press of PRESSES) {
+    let prevDayPallet = null;
+    let prevDs = null;
+    for (const ds of allDates) {
+      const jobs = pressDay(press.id, ds);
+      if (!jobs.length) { prevDayPallet = null; prevDs = ds; continue; }
+      // Carry over from previous day ONLY if consecutive calendar days
+      // (don't carry over across weekend gaps)
+      if (prevDs) {
+        const prev = new Date(prevDs + 'T12:00:00Z');
+        const curr = new Date(ds + 'T12:00:00Z');
+        const diffDays = Math.round((curr - prev) / 86400000);
+        if (diffDays > 3) prevDayPallet = null; // gap too large (weekend etc)
+      }
+      const sorted = sortByPalletGroupWithCarryOver(jobs, prevDayPallet);
+      let prevPal = prevDayPallet;
+      let cursor = 0;
+      for (const job of sorted) {
+        const pallet = palletOf(job.loc, job.ink);
+        const change = palletChangeCost(prevPal, pallet);
+        const runMin = jobRunMin(job, press.id);
+        scheduled[job.id] = {...scheduled[job.id], startMin:cursor+change, runMin, penaltyMin:change, palletType:pallet};
+        cursor = cursor + change + runMin;
+        prevPal = pallet;
+      }
+      prevDayPallet = prevPal;
+      prevDs = ds;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════
+// AIRTABLE API
+// ══════════════════════════════════════════════════
+async function atFetch(url) {
+  let records = [], offset = '';
+  while (true) {
+    const fullUrl = url + (offset ? '&offset='+encodeURIComponent(offset) : '');
+    dbg('Fetching:', fullUrl.slice(0,120));
+    const res = await fetch(fullUrl, {
+      headers: {'Authorization': `Bearer ${window.AT_KEY}`}
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      dbg('Fetch error:', res.status, t.slice(0,300));
+      throw new Error(`Airtable ${res.status}: ${t.slice(0,150)}`);
+    }
+    const data = await res.json();
+    dbg('Response keys:', Object.keys(data).join(', '), '| records:', (data.records||[]).length);
+    records = records.concat(data.records||[]);
+    if (data.offset) { offset=data.offset; setLoader(`Loading… (${records.length})`); }
+    else break;
+  }
+  return records;
+}
+
+async function atPatch(recId, fields) {
+  if (!WRITES_ENABLED) {
+    dbg('PREVIEW (writes disabled): would patch', recId, JSON.stringify(fields).slice(0,80));
+    return true;
+  }
+  // When writes are enabled, PATCH to Airtable v0 REST API.
+  // NOTE: this code path has not been used in production yet — test thoroughly before flipping the flag.
+  const url = `https://api.airtable.com/v0/${BASE}/${TABLE}/${recId}`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${window.AT_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ fields, typecast: true }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    dbg('PATCH error:', res.status, t.slice(0,200));
+    throw new Error(`Airtable PATCH ${res.status}: ${t.slice(0,150)}`);
+  }
+  dbg('PATCH ok:', recId, JSON.stringify(fields).slice(0,80));
+  return true;
+}
+
+const FIELDS = [F.name,F.screens,F.press,F.qty,F.start,F.runSecs,F.status,F.priority,F.due,F.ink,F.client,F.loc,F.garment,F.sizes,F.notes,F.proof,F.schedNotes,F.imprintId,F.remainQty,F.lineItems,F.ready];
+const FP = FIELDS.map(f=>`fields[]=${f}`).join('&');
+const BASE_URL = `https://api.airtable.com/v0/${BASE}/${TABLE}?${FP}&returnFieldsByFieldId=true&pageSize=100`;
+
+async function loadJobs() {
+  // Date window: 1 week back, 5 weeks forward
+  const mon = new Date(weekStart); mon.setDate(mon.getDate() - 7);
+  const fut = new Date(weekStart); fut.setDate(fut.getDate() + 35);
+  const monISO = mon.toISOString().slice(0, 10);
+  const futISO = fut.toISOString().slice(0, 10);
+
+  // Single fetch combining pipeline statuses + scheduled jobs in date window
+  const STATUSES = ['Ready to Order','Ordered - In Production','Scheduled, Screened','Received & Staged','Pre-press','On-Press'];
+  const sc = STATUSES.map(s => `FIND("${s}",ARRAYJOIN({${F.status}}))`).join(',');
+  const formula = encodeURIComponent(
+    `OR(${sc},AND({${F.press}}!="",IS_AFTER({${F.start}},"${monISO}"),IS_BEFORE({${F.start}},"${futISO}")))`
+  );
+
+  setLoader('Loading jobs…');
+  dbg('Combined fetch: pipeline + scheduled in window');
+  const records = await atFetch(`${BASE_URL}&filterByFormula=${formula}`);
+  dbg(`Fetched: ${records.length} records`);
+  return records;
+}
+
+function parseRecord(r) {
+  // Airtable REST API with returnFieldsByFieldId=true returns fields under 'fields' key
+  // MCP tool returns under 'cellValuesByFieldId' — handle both
+  const f = r.fields || r.cellValuesByFieldId || {};
+  // Debug first few
+  if (allJobs.length < 3) {
+    dbg('Sample record fields:', Object.keys(f).length, 'keys');
+    dbg('  client:', f[F.client], '| status:', JSON.stringify(f[F.status])?.slice(0,60));
+    dbg('  press:', JSON.stringify(f[F.press])?.slice(0,60));
+    dbg('  qty:', f[F.qty], '| screens:', f[F.screens]);
+  }
+
+  const statusStr  = getLookupStr(f[F.status]);
+  const priorityStr = getLookupStr(f[F.priority]);
+  const dueRaw     = getLookupStr(f[F.due]);
+  const pressVal   = f[F.press];
+  const pressName  = pressVal?.name || (typeof pressVal==='string'?pressVal:null);
+  const locVal     = f[F.loc];
+  const locName    = locVal?.name || (typeof locVal==='string'?locVal:'');
+  const inkVal     = f[F.ink];
+  const inkName    = inkVal?.name || (typeof inkVal==='string'?inkVal:'');
+
+  return {
+    id:      r.id,
+    name:    f[F.name] || '',
+    screens: typeof f[F.screens]==='number' ? f[F.screens] : 0,
+    qty:     typeof f[F.qty]==='number'     ? f[F.qty]     : 0,
+    client:  f[F.client] || '',
+    garment: f[F.garment] || '',
+    loc:     locName,
+    ink:     inkName,
+    due:     dueRaw ? String(dueRaw).slice(0,10) : null,
+    priority: priorityStr,
+    status:  statusStr,
+    pressName,
+    startISO: f[F.start] || null,
+    runSecs:  typeof f[F.runSecs]==='number' ? f[F.runSecs] : null,
+    sizes:   typeof f[F.sizes]==='string' ? f[F.sizes] : '',
+    notes:   getLookupStr(f[F.notes]) || '',
+    schedNotes: f[F.pressNotes] || '',
+    imprintId:  f[F.imprintId] || '',
+    remainQty:  typeof f[F.remainQty]==='number' ? f[F.remainQty] : null,
+    lineItems:  typeof f[F.lineItems]==='string' ? f[F.lineItems] : '',
+    ready:      typeof f[F.ready]==='string' ? f[F.ready] : '',
+    proofAtts: (() => {
+      const p = f[F.proof];
+      if (!p) return [];
+      if (Array.isArray(p)) return p.flat().filter(a => a && a.url);
+      if (p?.valuesByLinkedRecordId) return Object.values(p.valuesByLinkedRecordId).flat().filter(a => a && a.url);
+      return [];
+    })(),
+  };
+}
+
+function shouldInclude(job) {
+  // Exclude patch/label only — they don't run on a press
+  if (isPatchOnly(job)) return false;
+  // Always include if already scheduled (has press + start time) — even if order status is Completed
+  if (job.pressName && job.startISO) return true;
+  const s = job.status || '';
+  const bad = ['Cancelled','Voided'];
+  if (bad.some(b => s.includes(b))) return false;
+  // Include anything in the active pipeline
+  const good = ['Ready to Order','Ordered - In Production','Scheduled, Screened','Received & Staged','Pre-press','On-Press'];
+  return good.some(g => s.includes(g));
+}
+
+function preloadScheduled(jobs) {
+  const sched = {};
+  for (const job of jobs) {
+    if (job.pressName && job.startISO) {
+      const startDt = new Date(job.startISO);
+      const ds = dateStr(startDt);
+      const shopOpenDt = shopOpen(ds);
+      const startMin = Math.max(Math.round((startDt - shopOpenDt) / 60000), 0);
+      const runMin = job.runSecs ? Math.round(job.runSecs/60) : estimateRun(job, job.pressName);
+      sched[job.id] = {
+        pressId: job.pressName,
+        dateStr: ds,
+        startMin,
+        runMin,
+        penaltyMin: 0,
+        palletType: palletOf(job.loc, job.ink),
+      };
+    }
+  }
+  return sched;
+}
+
+// ══════════════════════════════════════════════════
+// SAVE
+// ══════════════════════════════════════════════════
+async function saveJob(recId) {
+  const s = scheduled[recId];
+  if (!s) { await atPatch(recId, {[F.press]:null,[F.start]:null}); return; }
+  const job = allJobs.find(j=>j.id===recId);
+  const startISO = minToISO(s.dateStr, s.startMin);
+  const rawRun = Math.max((s.runMin - withinRunPenalty(job||{})) * 60, 900);
+  await atPatch(recId, {[F.press]:s.pressId,[F.start]:startISO,[F.runSecs]:rawRun});
+  showMsg(WRITES_ENABLED ? '✓ Saved to Airtable' : '👁 Preview — not saved to Airtable');
+}
+async function unscheduleJob(recId) {
+  delete scheduled[recId];
+  recomputeAll();
+  await atPatch(recId, {[F.press]:null,[F.start]:null});
+  showMsg(WRITES_ENABLED ? '✓ Saved to Airtable' : '👁 Preview — not saved to Airtable');
+  render();
+  if (focusPress) renderFocus();
+}
+
+// ══════════════════════════════════════════════════
+// AUTO SCHEDULE
+// ══════════════════════════════════════════════════
+async function autoSchedule() {
+  return autoSchedulePress('');
+}
+async function autoSchedule_old() {
+  const btn = document.getElementById('autoBtn');
+  btn.disabled = true; btn.textContent = '…Scheduling';
+  const unscheduled = allJobs.filter(j=>!scheduled[j.id]);
+
+  // Sort: Hard Deadline first, then ASAP, then by due date, then by pallet group
+  // (so same pallet types get sorted together and placed together)
+  unscheduled.sort((a,b) => {
+    const pa=(a.priority||'').toLowerCase(), pb=(b.priority||'').toLowerCase();
+    if (pa.includes('hard')&&!pb.includes('hard')) return -1;
+    if (!pa.includes('hard')&&pb.includes('hard')) return 1;
+    if (pa.includes('asap')&&!pb.includes('asap')) return -1;
+    if (!pa.includes('asap')&&pb.includes('asap')) return 1;
+    const dueCmp = (a.due||'9999') < (b.due||'9999') ? -1 : (a.due||'9999') > (b.due||'9999') ? 1 : 0;
+    if (dueCmp !== 0) return dueCmp;
+    return palletGroupOrder(palletOf(a.loc, a.ink)) - palletGroupOrder(palletOf(b.loc, b.ink));
+  });
+
+  // Use full 2-week window if in 2-week mode, otherwise current week
+  const dates = weekDates().map(dateStr);
+
+  for (const job of unscheduled) {
+    const forced = autoPress(job);
+    const candidates = forced ? PRESSES.filter(p=>p.id===forced)
+      : PRESSES.filter(p=>p.id.includes('Press 1')||p.id.includes('Press 2'));
+    const pallet = palletOf(job.loc, job.ink);
+    const myGroup = palletGroupOrder(pallet);
+    let placed = false;
+
+    // Pass 1: find a day that already has the same pallet group and has capacity
+    for (const ds of dates) {
+      for (const p of candidates) {
+        const existing = pressDay(p.id, ds);
+        const hasSameGroup = existing.some(j => palletGroupOrder(palletOf(j.loc, j.ink)) === myGroup);
+        if (!hasSameGroup && existing.length > 0) continue; // skip days with wrong pallet group only
+        const rm = jobRunMin(job, p.id);
+        // Estimate swap penalty: what's the last pallet of same group?
+        const sameGroupJobs = existing.filter(j => palletGroupOrder(palletOf(j.loc, j.ink)) === myGroup);
+        const prevPal = sameGroupJobs.length ? palletOf(sameGroupJobs[sameGroupJobs.length-1].loc, sameGroupJobs[sameGroupJobs.length-1].ink) : lastPalletOfDay(p.id, ds);
+        const penalty = palletChangeCost(prevPal, pallet);
+        const load = pressLoad(p.id, ds) + rm + penalty;
+        const pr = PRESSES.find(x=>x.id===p.id);
+        if (load <= pr.cap) {
+          // Place it — computeSlot handles exact position within pallet group
+          const slot = computeSlot(job, p.id, ds, null);
+          scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+          recomputeAll(); // recalc so next job sees updated state
+          placed = true; break;
+        }
+      }
+      if (placed) break;
+    }
+
+    // Pass 2: any day with capacity (different pallet group ok)
+    if (!placed) {
+      for (const ds of dates) {
+        for (const p of candidates) {
+          const rm = jobRunMin(job, p.id);
+          const penalty = palletChangeCost(lastPalletOfDay(p.id, ds), pallet);
+          const load = pressLoad(p.id, ds) + rm + penalty;
+          const pr = PRESSES.find(x=>x.id===p.id);
+          if (load <= pr.cap) {
+            const slot = computeSlot(job, p.id, ds, null);
+            scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+            recomputeAll();
+            placed = true; break;
+          }
+        }
+        if (placed) break;
+      }
+    }
+
+    if (!placed && candidates.length) {
+      // Just put it somewhere
+      const ds = dates[0], p = candidates[0];
+      const slot = computeSlot(job, p.id, ds, null);
+      scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+    }
+  }
+  recomputeAll();
+  // Save all
+  for (const recId of Object.keys(scheduled)) { await saveJob(recId); }
+  btn.disabled = false; btn.textContent = '⚡ Auto-Schedule';
+  render();
+}
+
+// ══════════════════════════════════════════════════
+// MONTH VIEW RENDER
+// ══════════════════════════════════════════════════
+function renderMonth() {
+  // Show actual calendar month — Mon-Fri columns, all weeks of the month
+  const today = dateStr(new Date());
+  const year = weekStart.getFullYear();
+  const month = weekStart.getMonth(); // 0-indexed
+
+  // Get first Monday on or before the 1st of the month
+  const firstDay = new Date(year, month, 1);
+  const firstMon = new Date(firstDay);
+  firstMon.setDate(firstDay.getDate() - ((firstDay.getDay()+6)%7));
+
+  // Get all Mon-Fri weeks that overlap this month
+  const weeks = [];
+  let wkStart = new Date(firstMon);
+  while (wkStart.getMonth() <= month || wkStart.getFullYear() < year) {
+    const wkDays = [0,1,2,3,4].map(i => { const d=new Date(wkStart); d.setDate(d.getDate()+i); return d; });
+    weeks.push(wkDays);
+    wkStart.setDate(wkStart.getDate()+7);
+    // Stop after the week containing the last day of the month
+    const lastDay = new Date(year, month+1, 0);
+    if (wkStart > lastDay && wkStart.getMonth() !== month) break;
+  }
+
+  const screenPresses = PRESSES.filter(p=>p.id.includes('Press 1')||p.id.includes('Press 2'));
+  const allMonthPresses = PRESSES;
+
+  // Update weekLabel to show month name
+  const monthName = firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  document.getElementById('weekLabel').textContent = monthName;
+
+  // Day headers
+  const dayNames = ['MON','TUE','WED','THU','FRI'];
+  const hdrHtml = `<div class="month-week-hdr">
+    <div style="border-right:1px solid var(--border);padding:6px 8px"></div>
+    ${dayNames.map(d=>`<div class="month-day-hdr">${d}</div>`).join('')}
+  </div>`;
+
+  // Build week rows
+  let bodyHtml = hdrHtml;
+  for (const wkDays of weeks) {
+    // Week label (date of Monday)
+    const wkLbl = wkDays[0].toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+    // One row per press
+    let pressRows = '';
+    for (const press of allMonthPresses) {
+      const cells = wkDays.map(d => {
+        const ds = dateStr(d);
+        const inMonth = d.getMonth() === month;
+        const isPast = ds < today;
+        const load = pressLoad(press.id, ds);
+        const jobs = pressDay(press.id, ds);
+        const pct = Math.min(load / press.cap, 1);
+        const color = load >= press.cap ? 'var(--red)' : load >= press.warn ? 'var(--amb)' : press.color;
+        const dayNum = d.getDate();
+        const isToday = ds === today;
+        return `<div class="month-press-cell${!inMonth?' month-out-of-month':''}${isPast?' month-past':''}">
+          ${inMonth ? `
+            <div class="month-cap-bar"><div class="month-cap-fill" style="width:${Math.round(pct*100)}%;background:${color}"></div></div>
+            ${jobs.length ? `<div class="month-job-count">${jobs.length} job${jobs.length!==1?'s':''}</div>` : ''}
+          ` : ''}
+        </div>`;
+      }).join('');
+
+      // Day number row — shown once per week above press rows
+      const dayNums = wkDays.map(d => {
+        const inMonth = d.getMonth() === month;
+        const isToday = dateStr(d) === today;
+        return `<div class="month-daynum-cell${isToday?' today':''}${!inMonth?' month-out-of-month':''}">${inMonth?d.getDate():''}</div>`;
+      }).join('');
+
+      pressRows += `<div class="month-week-row">
+        <div class="month-press-label" style="color:${press.color}">${press.label}</div>
+        ${cells}
+      </div>`;
+    }
+
+    // Day numbers header row for this week
+    const dayNumRow = `<div class="month-daynum-row">
+      <div style="border-right:1px solid var(--border);padding:3px 8px;font-family:var(--mono);font-size:8px;color:var(--muted-lt)">${wkLbl}</div>
+      ${wkDays.map(d => {
+        const inMonth = d.getMonth() === month;
+        const isToday = dateStr(d) === today;
+        return `<div class="month-daynum-cell${isToday?' today':''}${!inMonth?' month-out-of-month':''}">${inMonth?d.getDate():''}</div>`;
+      }).join('')}
+    </div>`;
+
+    bodyHtml += `<div class="month-week-block">${dayNumRow}${pressRows}</div>`;
+  }
+
+  document.getElementById('calHdr').innerHTML = '';
+  document.getElementById('calBody').innerHTML = `<div class="month-view">${bodyHtml}</div>`;
+}
+
+// ══════════════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════════════
+function makeBlock(job, pressColor, big=false) {
+  const s    = scheduled[job.id];
+  // Hard Deadline = "must ship by this date" (the critical priority tier).
+  // ASAP = regular/default order — no visual treatment needed.
+  const isHardDeadline = (job.priority||'').toLowerCase().includes('hard');
+  // Overdue = scheduled print date is AFTER the customer due date
+  const isOverdue = !!(job.due && s && s.dateStr > job.due);
+  // Press color removed from blocks — press identity is conveyed by the row label.
+  // All blocks are white. State determines left bar color, border tint, text color,
+  // and an urgency icon placed top-right.
+  // Precedence:
+  //   1. Hard Deadline + Overdue → CRITICAL (red) with 🔥
+  //   2. Hard Deadline (on-track) → amber with 🚨
+  //   3. Overdue (ASAP past due) → amber with ⏰
+  //   4. Normal (ASAP on-track) → neutral grey
+  const bg = 'var(--surface)';
+  let bor, tc, icon = '';
+  if (isHardDeadline && isOverdue) {
+    bor = 'var(--red-bd)';
+    tc  = 'var(--red)';
+    icon = '🔥';
+  } else if (isHardDeadline) {
+    bor = 'var(--amb-bd)';
+    tc  = 'var(--amb)';
+    icon = '🚨';
+  } else if (isOverdue) {
+    bor = 'var(--amb-bd)';
+    tc  = 'var(--amb)';
+    icon = '⏰';
+  } else {
+    bor = 'var(--border)';
+    tc  = 'var(--text)';
+  }
+  const palLbl = (() => {
+    const p = palletOf(job.loc, job.ink);
+    const n = (job.name||'').toLowerCase();
+    const i = (job.ink||'').toLowerCase();
+    const press = job.pressName || '';
+    // Press-based icons take priority
+    if (press.includes('Embroidery') || i.includes('embroidery') || i.includes('patch application')) return '🪡';
+    if (press.includes('Hat') || i.includes('headwear') || n.includes('emb-hat') || n.includes('-hat-')) return '🧢';
+    if (press.includes('Tag')) return '🏷️';
+    // Garment-based icons
+    if (p === 'bandana') return '🎀';
+    if (p === 'tote') return '🛍️';
+    if (p === 'hoodie') return '🧥';
+    if (p === 'sleeve') return '💪';
+    return '👕';
+  })();
+  const start = minToTime(s.startMin), end = minToTime(s.startMin+s.runMin);
+  if (big) {
+    return `<div class="fblk" draggable="true" data-id="${job.id}" data-src="focus-cal"
+      style="background:${bg};border-color:${bor};color:${tc}">
+      <div class="fblk-top" onclick="openCardPopup('${job.id}')">
+        ${icon?`<span class="fblk-urg" title="${isHardDeadline&&isOverdue?'Critical — hard deadline past due':isHardDeadline?'Hard deadline':'Overdue'}">${icon}</span>`:''}
+        ${job.imprintId?`<span class="fblk-id">#${job.imprintId}</span>`:''}
+        <span class="fblk-client">${job.client||'—'} ${palLbl}</span>
+        ${job.ready&&job.ready!=='👍'?`<span title="Not ready" style="font-size:11px;margin-left:2px">🛑</span>`:''}
+      </div>
+      ${job.loc?`<div class="fblk-loc" style="color:${tc}">${job.loc}</div>`:''}
+      <div class="fblk-chips">
+        ${job.screens?`<span class="chip chip-sc">${job.screens}sc</span>`:''}
+        <span class="chip chip-qty">${job.qty}pcs</span>
+        <span class="chip">${s.runMin}m</span>
+        ${s.penaltyMin?`<span class="chip" style="color:var(--amb)">+${s.penaltyMin}m</span>`:''}
+      </div>
+      <div class="fblk-time">${start} → ${end}</div>
+      <button class="fblk-rm" data-id="${job.id}">×</button>
+    </div>`;
+  }
+  return `<div class="sblk" draggable="true" data-id="${job.id}" data-src="cal"
+    ondragstart="dragId=this.dataset.id;dragSrc='cal';this.classList.add('dragging');event.dataTransfer.effectAllowed='move'"
+    ondragend="this.classList.remove('dragging');document.querySelectorAll('.sblk').forEach(b=>{b.style.borderTop='';b.style.borderBottom=''})"
+    ondragover="event.preventDefault();if(dragId&&this.dataset.id!==dragId){const r=this.getBoundingClientRect();const t=event.clientY<r.top+r.height/2;this.style.borderTop=t?'2px solid var(--green)':'';this.style.borderBottom=t?'':'2px solid var(--green)'}"
+    ondragleave="this.style.borderTop='';this.style.borderBottom=''"
+    style="background:${bg};border-color:${bor};color:${tc}">
+    <div class="sblk-row1" onclick="openCardPopup('${job.id}')" style="cursor:pointer">
+      ${icon?`<span class="sblk-urg" title="${isHardDeadline&&isOverdue?'Critical — hard deadline past due':isHardDeadline?'Hard deadline':'Overdue'}">${icon}</span>`:''}
+      ${job.imprintId?`<span class="sblk-id">#${job.imprintId}</span>`:''}
+      <span class="sblk-client2">${job.client||'—'}</span>
+      <span class="sblk-loc2">${job.loc||''} ${palLbl}${job.ready&&job.ready!=='👍'?` <span title="Not ready" style="font-size:9px">🛑</span>`:''}</span>
+    </div>
+    <div class="sblk-row2">${start}→${end} · ${s.runMin}m${s.penaltyMin?` +${s.penaltyMin}sw`:''}</div>
+    <button class="sblk-rm" data-id="${job.id}">×</button>
+  </div>`;
+}
+
+function makeUCard(job, extra='') {
+  const isHardDeadline = (job.priority||'').toLowerCase().includes('hard');
+  const today = dateStr(new Date());
+  const late = !!(job.due && job.due < today);
+  const est = estimateRun(job, autoPress(job)||'Press 1 - ROQ NEXT');
+  // Urgency icon + state class precedence (mirrors makeBlock):
+  //   Hard Deadline + late → 🔥 critical (red)
+  //   Hard Deadline        → 🚨 (amber)
+  //   late (ASAP past due) → ⏰ (amber)
+  //   Normal               → no icon
+  let urgIcon = '', urgTitle = '', stateClass = '';
+  if (isHardDeadline && late) {
+    urgIcon = '🔥'; urgTitle = 'Critical — hard deadline past due';
+    stateClass = 'hard-deadline overdue';
+  } else if (isHardDeadline) {
+    urgIcon = '🚨'; urgTitle = 'Hard deadline';
+    stateClass = 'hard-deadline';
+  } else if (late) {
+    urgIcon = '⏰'; urgTitle = 'Overdue';
+    stateClass = 'overdue';
+  }
+  const palLbl = (() => {
+    const p = palletOf(job.loc, job.ink);
+    const n = (job.name||'').toLowerCase();
+    const i = (job.ink||'').toLowerCase();
+    if (i.includes('embroidery') || i.includes('patch application')) return '🪡 Embroidery';
+    if (i.includes('headwear') || n.includes('emb-hat') || n.includes('-hat-')) return '🧢 Hat';
+    if (i.includes('supacolor') && !i.includes('headwear')) return '🌡️ Supacolor';
+    if (p === 'bandana') return '🎀 Bandana';
+    if (p === 'tote') return '🛍️ Tote';
+    if (p === 'hoodie') return '🧥 Hoodie';
+    if (p === 'sleeve') return '💪 Sleeve';
+    return '👕 Tee';
+  })();
+  return `<div class="jcard ${stateClass}" draggable="true" data-id="${job.id}" data-src="${extra||'sidebar'}">
+    ${job.imprintId?`<div class="jc-imprint">#${job.imprintId}</div>`:''}
+    <div class="jc-top">
+      <div class="jc-client" style="cursor:pointer" onclick="openCardPopup('${job.id}')">${urgIcon?`<span class="jc-urg" title="${urgTitle}">${urgIcon}</span> `:''}${job.client||'—'}</div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        ${job.ready?`<span title="${job.ready==='👍'?'Ready to print':'Not ready'}" style="font-size:13px;line-height:1">${job.ready}</span>`:''}
+        ${isHardDeadline&&late?'<span class="jc-badge badge-hard-critical">Critical</span>':isHardDeadline?'<span class="jc-badge badge-hard">Hard</span>':''}
+      </div>
+    </div>
+    <div class="jc-loc" style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em">${job.loc||''} ${palLbl}</div>
+    <div class="jc-chips">
+      ${job.screens?`<span class="chip chip-sc">${job.screens}sc</span>`:''}
+      <span class="chip chip-qty">${job.qty}pcs</span>
+      <span class="chip chip-due ${late?'late':''}">${late?'⏰ ':''}${job.due?fmtDate(job.due):'no due'}</span>
+      <span class="chip chip-est">${est}m</span>
+      <span class="chip chip-pal">${palLbl}</span>
+      <span class="chip chip-status">${job.status?.split(' ').slice(0,2).join(' ')||''}</span>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// RENDER MAIN
+// ══════════════════════════════════════════════════
+function render() {
+  renderHeader();
+  renderSidebar();
+  if (viewMode === 'month') {
+    // Month view: hide cal-hdr (month has its own header), render month grid
+    document.getElementById('calHdr').innerHTML = '';
+    renderMonth();
+  } else {
+    renderCalendar();
+  }
+  // Auto-schedule button: disable if no unscheduled jobs OR viewing current week
+  const currentMon = (() => { const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%7)); return dateStr(d); })();
+  const onCurrentWeek = dateStr(weekStart) === currentMon;
+  const hasUnscheduled = allJobs.filter(j=>!scheduled[j.id]).length > 0;
+  document.getElementById('autoBtn').disabled = !hasUnscheduled || onCurrentWeek;
+}
+
+function renderHeader() {
+  // Column count is always 4 (Mon-Thu)
+  const dates = weekDates();
+  const fmt = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const label = viewMode === 'month'
+    ? `${fmt(dates[0])} – ${fmt(dates[dates.length-1])} ${dates[0].getFullYear()}`
+    : viewMode === 'twoweek'
+      ? `${fmt(dates[0])} – ${fmt(dates[9])} ${dates[0].getFullYear()}`
+      : `${fmt(dates[0])} – ${fmt(dates[4])} ${dates[0].getFullYear()}`;
+  document.getElementById('weekLabel').textContent = label;
+  // Update view toggle active state
+  ['Week','2Week','Month'].forEach(v => {
+    const btn = document.getElementById('btnView'+v);
+    const mode = v==='Week'?'week':v==='2Week'?'twoweek':'month';
+    if (btn) btn.classList.toggle('active', viewMode===mode);
+  });
+  // Auto-schedule: disable if viewing current week
+  const currentMon = (() => { const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%7)); return dateStr(d); })();
+  const viewingCurrentWeek = dateStr(weekStart) === currentMon;
+  const autoBtn = document.getElementById('autoBtn');
+  if (autoBtn) {
+    autoBtn.disabled = viewingCurrentWeek;
+    autoBtn.title = viewingCurrentWeek ? 'Navigate to a future week to auto-schedule' : '';
+    autoBtn.style.opacity = viewingCurrentWeek ? '0.4' : '1';
+  }
+  const today = dateStr(new Date());
+  const hdr = document.getElementById('calHdr');
+  const hdrDates = viewMode==='week' ? dates : dates.slice(0,5);
+  hdr.innerHTML = `<div class="cal-hdr-press">Press</div>` +
+    hdrDates.map(d => {
+      const ds = dateStr(d);
+      const isT = ds===today;
+      const loads = PRESSES.map(p=>({l:pressLoad(p.id,ds),c:p.cap,w:p.warn}));
+      const maxPct = Math.max(...loads.map(x=>x.l/x.c));
+      const bc = maxPct>=1?'var(--red)':maxPct>=.85?'var(--amb)':'var(--green)';
+      return `<div class="cal-hdr-day ${isT?'today':''}">
+        <div class="day-name">${d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</div>
+        <div class="day-num">${d.getDate()}</div>
+        <div class="cap-track"><div class="cap-fill" style="width:${Math.min(maxPct*100,100)}%;background:${bc}"></div></div>
+      </div>`;
+    }).join('');
+}
+
+function renderSidebar() {
+  const unsched = allJobs.filter(j=>!scheduled[j.id]);
+  document.getElementById('sbCount').textContent = unsched.length;
+  const list = document.getElementById('sbList');
+  if (!unsched.length) {
+    list.innerHTML = `<div class="sb-empty"><div>✅</div>All jobs scheduled!</div>`;
+    return;
+  }
+  unsched.sort((a,b)=>{
+    const pa=(a.priority||'').toLowerCase(),pb=(b.priority||'').toLowerCase();
+    if(pa.includes('hard')&&!pb.includes('hard'))return -1;
+    if(!pa.includes('hard')&&pb.includes('hard'))return 1;
+    if(pa.includes('asap')&&!pb.includes('asap'))return -1;
+    if(!pa.includes('asap')&&pb.includes('asap'))return 1;
+    return(a.due||'9999')<(b.due||'9999')?-1:1;
+  });
+  list.innerHTML = unsched.map(j=>makeUCard(j)).join('');
+  bindSidebarDrag(list, 'sidebar');
+}
+
+function renderWeekBlock(dates) {
+  // Renders one week's worth of press rows
+  return PRESSES.map(press => {
+    const cells = dates.map(d => {
+      const ds = dateStr(d);
+      const jobs = pressDay(press.id, ds);
+      const load = pressLoad(press.id, ds);
+      const pct = Math.min(load/press.cap, 1);
+      const isCap = load>=press.cap, isWarn = load>=press.warn;
+      let prevPal = null;
+      const blocks = jobs.map((job,i) => {
+        const s = scheduled[job.id];
+        const pal = palletOf(job.loc, job.ink); // live calc — don't trust stored palletType
+        const chg = i>0 && prevPal && prevPal!==pal;
+        const cm = palletChangeCost(prevPal, pal);
+        prevPal = pal;
+        return (chg?`<div class="pal-div" data-label="↕ +${cm}m swap"></div>`:'') + makeBlock(job, press.color);
+      }).join('');
+      return `<div class="day-cell ${isCap?'over-cap':isWarn?'over-warn':''}" data-press="${press.id}" data-date="${ds}"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="if(!this.contains(event.relatedTarget))this.classList.remove('drag-over')"
+        ondrop="handleCalDrop(event,this)">
+        ${blocks}
+      </div>`;
+    }).join('');
+    return `<div class="press-row">
+      <div class="press-lbl" data-press="${press.id}">
+        <div class="pl-dot" style="background:${press.color}"></div>
+        <div class="pl-name">${press.label}</div>
+        <div class="pl-mach">${press.mach}</div>
+        <div class="pl-cap">${press.cap}min cap</div>
+        <div class="pl-expand">⤢ Focus view</div>
+      </div>
+      ${cells}
+    </div>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const allDates = weekDates();
+  const body = document.getElementById('calBody');
+  // Always use 4-column grid (Mon-Thu) — set on scroll wrap so header+body both inherit
+  const scrollWrap = document.querySelector('.cal-scroll-wrap');
+  if (scrollWrap) scrollWrap.style.setProperty('--cal-cols', 5); // Mon-Fri visible (Fri manual only)
+
+  if (twoWeekMode) {
+    const week1 = allDates.slice(0,5);
+    const week2 = allDates.slice(5,10);
+    const fmt2 = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const mkWeekHdr = (ds) => `<div class="two-week-row-hdr">
+      <div class="two-week-row-lbl"></div>` +
+      ds.map(d => {
+        const isT = dateStr(d)===dateStr(new Date());
+        return `<div class="two-week-day-lbl ${isT?'today':''}">
+          <div>${d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</div>
+          <div style="font-size:13px;font-weight:600">${d.getDate()}</div>
+        </div>`;
+      }).join('') + `</div>`;
+    body.innerHTML =
+      mkWeekHdr(week1) +
+      renderWeekBlock(week1) +
+      `<div class="two-week-divider"></div>` +
+      mkWeekHdr(week2) +
+      renderWeekBlock(week2);
+  } else {
+    body.innerHTML = renderWeekBlock(allDates);
+  }
+  bindCalendarEvents(body);
+}
+
+// ══════════════════════════════════════════════════
+// DRAG & DROP — MAIN CALENDAR
+// ══════════════════════════════════════════════════
+function bindSidebarDrag(container, src) {
+  container.querySelectorAll('[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragId = el.dataset.id; dragSrc = src;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+}
+
+function bindCalendarEvents(body) {
+  // Use innerHTML-based approach: bind dragstart/dragend via HTML attributes
+  // and use a SINGLE delegated listener on calBody for all drag events
+  // This avoids listener accumulation on re-render
+
+  body.querySelectorAll('.sblk-rm').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); unscheduleJob(btn.dataset.id); });
+  });
+
+
+
+  // Press label click → focus
+  body.querySelectorAll('.press-lbl').forEach(lbl => {
+    lbl.addEventListener('click', () => openFocus(lbl.dataset.press));
+  });
+
+  // Drop to sidebar (unschedule) — handled on sidebar element
+  const sbList = document.getElementById('sbList');
+  sbList.addEventListener('dragover', e => { if(dragSrc==='cal'||dragSrc==='focus-cal') e.preventDefault(); });
+  sbList.addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragId && (dragSrc==='cal'||dragSrc==='focus-cal')) { unscheduleJob(dragId); dragId=null; dragSrc=null; }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// FOCUS VIEW
+// ══════════════════════════════════════════════════
+function openFocus(pressId) {
+  focusPress = PRESSES.find(p=>p.id===pressId);
+  if (!focusPress) return;
+  document.getElementById('focusDot').style.background = focusPress.color;
+  document.getElementById('focusTitle').textContent = focusPress.label;
+  document.getElementById('focusSub').textContent = `${focusPress.mach} · ${focusPress.cap}min/day capacity`;
+  renderFocus();
+  document.getElementById('focusOverlay').classList.add('show');
+}
+
+document.getElementById('focusAutoBtn').addEventListener('click', () => {
+  if (!focusPress) return;
+  autoSchedulePress(focusPress.id).then(() => renderFocus());
+});
+document.getElementById('focusClose').addEventListener('click', () => {
+  document.getElementById('focusOverlay').classList.remove('show');
+  focusPress = null;
+  render();
+});
+
+function renderFocus() {
+  if (!focusPress) return;
+  const press = focusPress;
+  const dates = weekDates();
+  const today = dateStr(new Date());
+
+  // Header
+  // Set CSS variable on the scroll container — parent of hdr, cap, body
+  const focusScroll = document.getElementById('focusCalScroll');
+  if (focusScroll) focusScroll.style.setProperty('--focus-cols', dates.length);
+  document.getElementById('focusCalHdr').innerHTML = dates.map(d => {
+    const isT = dateStr(d)===today;
+    return `<div class="focus-day-hdr ${isT?'today':''}">
+      <div class="focus-day-name">${d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</div>
+      <div class="focus-day-num">${d.getDate()}</div>
+    </div>`;
+  }).join('');
+
+  // Cap row
+  document.getElementById('focusCapRow').innerHTML = dates.map(d => {
+    const ds = dateStr(d);
+    const load = pressLoad(press.id, ds);
+    const pct  = Math.min(load/press.cap, 1);
+    const bc   = load>=press.cap?'var(--red)':load>=press.warn?'var(--amb)':press.color;
+    return `<div class="focus-cap-cell">
+      <span class="focus-cap-lbl">${load}/${press.cap}m</span>
+      <div class="focus-cap-track"><div class="focus-cap-fill" style="width:${pct*100}%;background:${bc}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Calendar body
+  const body = document.getElementById('focusCalBody');
+  body.innerHTML = dates.map(d => {
+    const ds = dateStr(d);
+    const jobs = pressDay(press.id, ds);
+    const load = pressLoad(press.id, ds);
+    const isCap = load>=press.cap, isWarn = load>=press.warn;
+    let prevPal = null;
+    const blocks = jobs.map((job,i) => {
+      const s = scheduled[job.id];
+      const pal = palletOf(job.loc, job.ink); // live calc
+      const chg = i>0 && prevPal && prevPal!==pal;
+      const cm = palletChangeCost(prevPal, pal);
+      prevPal = pal;
+      return (chg?`<div class="pal-div" data-label="↕ +${cm}m swap"></div>`:'') + makeBlock(job, press.color, true);
+    }).join('');
+    return `<div class="focus-day-col ${isCap?'over-cap':isWarn?'over-warn':''}" data-press="${press.id}" data-date="${ds}">${blocks}</div>`;
+  }).join('');
+
+  // Sidebar — compatible unscheduled
+  const compat = allJobs.filter(j => {
+    if (scheduled[j.id]) return false;
+    const forced = autoPress(j);
+    if (forced && forced!==press.id) return false;
+    return true;
+  });
+  const fSb = document.getElementById('focusSbList');
+  fSb.innerHTML = compat.length
+    ? compat.map(j=>makeUCard(j,'focus-sb')).join('')
+    : `<div class="sb-empty"><div>✅</div>No compatible unscheduled jobs</div>`;
+
+  // Bind drag events
+  bindFocusDrag(body, fSb, press);
+}
+
+function bindFocusDrag(body, fSb, press) {
+  // Focus calendar blocks
+  body.querySelectorAll('.fblk').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      focusDragId = el.dataset.id; dragSrc = 'focus-cal';
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+
+  body.querySelectorAll('.fblk-rm').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); unscheduleJob(btn.dataset.id); });
+  });
+
+  // Focus sidebar cards
+  fSb.querySelectorAll('[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      focusDragId = el.dataset.id; dragSrc = 'focus-sb';
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+
+  // Focus day col drop zones
+  body.querySelectorAll('.focus-day-col').forEach(col => {
+    col.addEventListener('dragover', e => {
+      e.preventDefault(); col.classList.add('drag-over');
+      // Show insert indicator
+      body.querySelectorAll('.fblk').forEach(b => { b.style.borderTop=''; b.style.borderBottom=''; });
+      const blk = e.target.closest('.fblk');
+      if (blk && blk.dataset.id !== focusDragId) {
+        const rect = blk.getBoundingClientRect();
+        const isTop = e.clientY < rect.top + rect.height / 2;
+        blk.style.borderTop = isTop ? '2px solid var(--green)' : '';
+        blk.style.borderBottom = isTop ? '' : '2px solid var(--green)';
+      }
+    });
+    col.addEventListener('dragleave', e => {
+      if (!col.contains(e.relatedTarget)) {
+        col.classList.remove('drag-over');
+        body.querySelectorAll('.fblk').forEach(b => { b.style.borderTop=''; b.style.borderBottom=''; });
+      }
+    });
+    col.addEventListener('drop', e => {
+      e.preventDefault(); col.classList.remove('drag-over');
+      body.querySelectorAll('.fblk').forEach(b => { b.style.borderTop=''; b.style.borderBottom=''; });
+      const id = focusDragId; if (!id) return;
+      const ds = col.dataset.date;
+      const job = allJobs.find(j=>j.id===id);
+      if (!job) return;
+      if (press.id==='Press 2 - ROQ YOU' && (job.screens||1)>=5) {
+        showMsg('⚠ Press 2 max 4 screens'); return;
+      }
+      // Find insert position from Y at drop
+      const blocks = [...col.querySelectorAll('.fblk')].filter(b => b.dataset.id !== id);
+      let beforeId = null;
+      for (const blk of blocks) {
+        const rect = blk.getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) { beforeId = blk.dataset.id; break; }
+      }
+      // Build new ordered list and recompute
+      const dayJobs = pressDay(press.id, ds).filter(j=>j.id!==id);
+      if (beforeId) {
+        const idx = dayJobs.findIndex(j=>j.id===beforeId);
+        if (idx>=0) dayJobs.splice(idx, 0, job); else dayJobs.push(job);
+      } else {
+        dayJobs.push(job);
+      }
+      let cursor=0, prevPal=null;
+      for (const j of dayJobs) {
+        const pal=palletOf(j.loc,j.ink), change=palletChangeCost(prevPal,pal), rm=jobRunMin(j,press.id);
+        scheduled[j.id]={...scheduled[j.id],pressId:press.id,dateStr:ds,startMin:cursor+change,runMin:rm,penaltyMin:change,palletType:pal};
+        cursor+=change+rm; prevPal=pal;
+      }
+      renderFocus();
+      saveJob(id);
+      focusDragId=null;
+    });
+  });
+
+  // Drop to focus sidebar = unschedule
+  fSb.addEventListener('dragover', e => { if(dragSrc==='focus-cal') e.preventDefault(); });
+  fSb.addEventListener('drop', e => {
+    e.preventDefault();
+    if (focusDragId && dragSrc==='focus-cal') { unscheduleJob(focusDragId); focusDragId=null; }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// WEEK NAV
+// ══════════════════════════════════════════════════
+document.getElementById('prevWeek').addEventListener('click', () => {
+  if (viewMode === 'month') {
+    weekStart = new Date(weekStart.getFullYear(), weekStart.getMonth()-1, 1);
+  } else {
+    weekStart.setDate(weekStart.getDate()-7);
+    weekStart = getWeekStart(weekStart);
+  }
+  render();
+});
+document.getElementById('nextWeek').addEventListener('click', () => {
+  if (viewMode === 'month') {
+    weekStart = new Date(weekStart.getFullYear(), weekStart.getMonth()+1, 1);
+  } else {
+    weekStart.setDate(weekStart.getDate()+7);
+    weekStart = getWeekStart(weekStart);
+  }
+  render();
+});
+['week','twoweek','month'].forEach(v => {
+  const id = 'btnView'+(v==='week'?'Week':v==='twoweek'?'2Week':'Month');
+  document.getElementById(id).addEventListener('click', () => {
+    viewMode = v;
+    twoWeekMode = (v === 'twoweek'); // keep compatibility
+    render();
+  });
+});
+document.getElementById('todayBtn').addEventListener('click', () => {
+  const btn = document.getElementById('todayBtn');
+  const today = new Date();
+  const targetWeekStart = getWeekStart(today);
+  const alreadyHere = viewMode === 'month'
+    ? (weekStart.getFullYear() === today.getFullYear() && weekStart.getMonth() === today.getMonth())
+    : (dateStr(weekStart) === dateStr(targetWeekStart));
+  if (viewMode === 'month') {
+    weekStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  } else {
+    weekStart = targetWeekStart;
+  }
+  render();
+  // Always flash to confirm the click registered — stronger flash if we were already here
+  btn.classList.add(alreadyHere ? 'flash-strong' : 'flash');
+  setTimeout(() => btn.classList.remove('flash', 'flash-strong'), 400);
+});
+// refresh handled inline
+async function autoSchedulePress(pressId) {
+  // Same logic as autoSchedule but only for a specific press (or all if null)
+  const btn = document.getElementById('autoBtn');
+  btn.disabled = true;
+  const label = pressId ? PRESSES.find(p=>p.id===pressId)?.label : 'All';
+  btn.textContent = `…Scheduling ${label}`;
+
+  const unscheduled = allJobs.filter(j => {
+    if (scheduled[j.id]) return false;
+    if (!pressId) return true; // All mode — include everything
+    const forced = autoPress(j);
+    const isHard = forced && !forced.includes('Press 1') && !forced.includes('Press 2');
+    if (isHard) return forced === pressId; // specialty press — must match exactly
+    // Screen print jobs: include if pressId is P1 or P2, or if preferred press matches
+    if (pressId.includes('Press 1') || pressId.includes('Press 2')) return true;
+    return false;
+  });
+
+  unscheduled.sort((a,b) => {
+    const pa=(a.priority||'').toLowerCase(), pb=(b.priority||'').toLowerCase();
+    if (pa.includes('hard')&&!pb.includes('hard')) return -1;
+    if (!pa.includes('hard')&&pb.includes('hard')) return 1;
+    if (pa.includes('asap')&&!pb.includes('asap')) return -1;
+    if (!pa.includes('asap')&&pb.includes('asap')) return 1;
+    const dc = (a.due||'9999')<(b.due||'9999')?-1:(a.due||'9999')>(b.due||'9999')?1:0;
+    if (dc!==0) return dc;
+    return palletGroupOrder(palletOf(a.loc, a.ink)) - palletGroupOrder(palletOf(b.loc, b.ink));
+  });
+
+  // Auto-schedule uses Mon-Thu of all FUTURE weeks in the current view
+  // Never schedules into the current week — that's managed manually
+  const today = dateStr(new Date());
+  const currentMon = (() => { const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%7)); return dateStr(d); })();
+  const allDates = weekDates().map(dateStr);
+  // Get unique week Mondays from viewed dates, filter out current week
+  // For month view, generate all Mon-Thu dates in the viewed month that are future
+  // For week/2week view, use the viewed week(s) Mon-Thu
+  const futureWeekDates = [];
+  const generateDates = viewMode === 'month'
+    ? (() => {
+        const yr = weekStart.getFullYear(), mo = weekStart.getMonth();
+        const dates = [];
+        const firstDay = new Date(yr, mo, 1);
+        const firstMon = new Date(firstDay);
+        firstMon.setDate(firstDay.getDate()-((firstDay.getDay()+6)%7));
+        let d = new Date(firstMon);
+        while (d.getMonth() <= mo || d.getFullYear() < yr) {
+          const ds = dateStr(d);
+          const dow = d.getDay();
+          if (d.getMonth() === mo && dow >= 1 && dow <= 4) dates.push(ds);
+          d.setDate(d.getDate()+1);
+          const lastDay = new Date(yr, mo+1, 0);
+          if (d > lastDay && d.getMonth() !== mo) break;
+        }
+        return dates;
+      })()
+    : allDates.filter(ds => {
+        const [y,m,d] = ds.split('-').map(Number);
+        const jsDate = new Date(y,m-1,d);
+        return jsDate.getDay() >= 1 && jsDate.getDay() <= 4;
+      });
+
+  for (const ds of generateDates) {
+    const [y,m,d] = ds.split('-').map(Number);
+    const wkMon = new Date(y,m-1,d); wkMon.setDate(wkMon.getDate()-((wkMon.getDay()+6)%7));
+    const wkMonStr = dateStr(wkMon);
+    if (wkMonStr > currentMon) futureWeekDates.push(ds);
+  }
+  const primaryDates = futureWeekDates;
+  const fridayDate = []; // Friday always excluded from auto-schedule
+  for (const job of unscheduled) {
+    const forced = autoPress(job);
+    // Priority order for "all" mode: forced → Embroidery → Heat → Press 2 → Press 1
+    const ALL_ORDER = [
+      'Embroidery - TAJIMA 6-Head',
+      'Heat press - D3',
+      'Heat press - Tag Press',
+      'Heat press - Hat Press',
+      'Press 2 - ROQ YOU',
+      'Press 1 - ROQ NEXT',
+    ];
+    // Build candidate list:
+    // - Specialty presses (Embroidery, Heat) are hard-forced — no fallback
+    // - Screen print preference (P1/P2) is soft — try preferred first, fall back to other
+    const isHardForced = forced && !forced.includes('Press 1') && !forced.includes('Press 2');
+    const screenPresses = ['Press 1 - ROQ NEXT', 'Press 2 - ROQ YOU']
+      .map(id => PRESSES.find(p=>p.id===id)).filter(Boolean);
+    const candidates = isHardForced
+      ? PRESSES.filter(p=>p.id===forced)  // specialty press — locked
+      : pressId
+        ? PRESSES.filter(p=>p.id===pressId) // per-press mode
+        : forced
+          ? [PRESSES.find(p=>p.id===forced), ...screenPresses.filter(p=>p.id!==forced)].filter(Boolean) // preferred first, other as fallback
+          : screenPresses; // no preference — try P1 then P2
+    const pallet = palletOf(job.loc, job.ink);
+    const myGroup = palletGroupOrder(pallet);
+    let placed = false;
+
+    // Pass 1: Mon-Thu, same pallet group preferred
+    for (const ds of primaryDates) {
+      for (const p of candidates) {
+        const existing = pressDay(p.id, ds);
+        const hasSameGroup = existing.some(j => palletGroupOrder(palletOf(j.loc, j.ink)) === myGroup);
+        if (!hasSameGroup && existing.length > 0) continue;
+        const rm = jobRunMin(job, p.id);
+        const prevPal = lastPalletOfDay(p.id, ds);
+        const penalty = palletChangeCost(prevPal, pallet);
+        const load = pressLoad(p.id, ds) + rm + penalty;
+        const pr = PRESSES.find(x=>x.id===p.id);
+        if (load <= pr.cap) {
+          const slot = computeSlot(job, p.id, ds, null);
+          scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+          recomputeAll(); placed = true; break;
+        }
+      }
+      if (placed) break;
+    }
+    // Pass 2: Mon-Thu, any available slot
+    if (!placed) {
+      for (const ds of primaryDates) {
+        for (const p of candidates) {
+          const rm = jobRunMin(job, p.id);
+          const penalty = palletChangeCost(lastPalletOfDay(p.id, ds), pallet);
+          const load = pressLoad(p.id, ds) + rm + penalty;
+          const pr = PRESSES.find(x=>x.id===p.id);
+          if (load <= pr.cap) {
+            const slot = computeSlot(job, p.id, ds, null);
+            scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+            recomputeAll(); placed = true; break;
+          }
+        }
+        if (placed) break;
+      }
+    }
+    // Pass 3: Friday as last resort for current week
+    if (!placed) {
+      for (const ds of fridayDate) {
+        for (const p of candidates) {
+          const rm = jobRunMin(job, p.id);
+          const penalty = palletChangeCost(lastPalletOfDay(p.id, ds), pallet);
+          const load = pressLoad(p.id, ds) + rm + penalty;
+          const pr = PRESSES.find(x=>x.id===p.id);
+          if (load <= pr.cap) {
+            const slot = computeSlot(job, p.id, ds, null);
+            scheduled[job.id] = {pressId:p.id, dateStr:ds, ...slot};
+            recomputeAll(); placed = true; break;
+          }
+        }
+        if (placed) break;
+      }
+    }
+    if (!placed && candidates.length) {
+      const slot = computeSlot(job, candidates[0].id, allDates[0], null);
+      scheduled[job.id] = {pressId:candidates[0].id, dateStr:allDates[0], ...slot};
+      recomputeAll();
+    }
+  }
+  recomputeAll();
+  btn.disabled = false; btn.textContent = '⚡ Auto-Schedule ▾';
+  render();
+  showMsg(`Scheduled ${unscheduled.length} jobs${pressId?' for '+label:''}`);
+}
+
+document.getElementById('autoBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('autoMenu');
+  if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+  const items = [
+    {label: '⚡ All Unscheduled', id: null},
+    ...PRESSES.map(p => ({label: `⚡ ${p.label} only`, id: p.id, color: p.color}))
+  ];
+  menu.innerHTML = items.map(item =>
+    `<div class="clear-menu-item" style="${item.color?`border-left:3px solid ${item.color};padding-left:9px`:''}"
+      onclick="document.getElementById('autoMenu').style.display='none';autoSchedulePress('${item.id||''}')">
+      ${item.label}
+    </div>`
+  ).join('');
+  menu.style.display = 'block';
+});
+document.addEventListener('click', () => {
+  const m = document.getElementById('autoMenu'); if (m) m.style.display='none';
+});
+function clearPress(pressId) {
+  const dates = weekDates().map(dateStr);
+  const label = pressId === 'ALL' ? 'all equipment' : pressId;
+  const toClear = allJobs.filter(j => {
+    const s = scheduled[j.id];
+    if (!s || !dates.includes(s.dateStr)) return false;
+    return pressId === 'ALL' || s.pressId === pressId;
+  });
+  if (!toClear.length) { showMsg('Nothing to clear'); return; }
+  if (!confirm(`Unschedule ${toClear.length} jobs from ${label} this week?`)) return;
+  toClear.forEach(j => { delete scheduled[j.id]; });
+  recomputeAll();
+  render();
+  showMsg(`Cleared ${toClear.length} jobs from ${pressId === 'ALL' ? 'all equipment' : pressId}`);
+}
+
+document.getElementById('clearWeekBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('clearMenu');
+  if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+  // Build menu items
+  const items = [
+    {label: '✕ All Equipment', id: 'ALL'},
+    ...PRESSES.map(p => ({label: `✕ ${p.label}`, id: p.id, color: p.color}))
+  ];
+  menu.innerHTML = items.map(item => 
+    `<div class="clear-menu-item" onclick="clearPress('${item.id}');document.getElementById('clearMenu').style.display='none'"
+      style="${item.color ? `border-left:3px solid ${item.color};padding-left:9px` : ''}">
+      ${item.label}
+    </div>`
+  ).join('');
+  menu.style.display = 'block';
+});
+// Close menu on outside click
+document.addEventListener('click', () => {
+  const menu = document.getElementById('clearMenu');
+  if (menu) menu.style.display = 'none';
+});
+// Debug panel toggle via Ctrl+Shift+D (no visible button in iframed mode)
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+    e.preventDefault();
+    document.getElementById('debugPanel').classList.toggle('show');
+  }
+});
+
+// ══════════════════════════════════════════════════
+// MISC UI
+// ══════════════════════════════════════════════════
+function setLoader(txt) { document.getElementById('loaderTxt').textContent = txt; }
+function handleCalDrop(e, cell) {
+  e.preventDefault();
+  document.querySelectorAll('.day-cell').forEach(c=>c.classList.remove('drag-over'));
+  document.querySelectorAll('.sblk').forEach(b=>{b.style.borderTop='';b.style.borderBottom='';});
+  showMsg('drop: dragId='+(dragId||'NULL')+' cell='+(cell?cell.dataset.date:'NONE'));
+  if (!dragId) return;
+  const pressId = cell.dataset.press, ds = cell.dataset.date;
+  const job = allJobs.find(j=>j.id===dragId);
+  if (!job) return;
+  if (pressId==='Press 2 - ROQ YOU' && (job.screens||1)>=5) {
+    showMsg('⚠ Press 2 max 4 screens — use Press 1'); return;
+  }
+  // Find insert position from Y at drop
+  const blocks = [...cell.querySelectorAll('.sblk')].filter(b=>b.dataset.id!==dragId);
+  let beforeId = null;
+  for (const blk of blocks) {
+    const rect = blk.getBoundingClientRect();
+    if (e.clientY < rect.top + rect.height/2) { beforeId = blk.dataset.id; break; }
+  }
+  // Build new ordered list and recompute
+  const dayJobs = pressDay(pressId, ds).filter(j=>j.id!==dragId);
+  if (beforeId) {
+    const idx = dayJobs.findIndex(j=>j.id===beforeId);
+    if (idx>=0) dayJobs.splice(idx, 0, job); else dayJobs.push(job);
+  } else {
+    dayJobs.push(job);
+  }
+  let cursor=0, prevPal=null;
+  for (const j of dayJobs) {
+    const pal=palletOf(j.loc,j.ink), change=palletChangeCost(prevPal,pal), rm=jobRunMin(j,pressId);
+    scheduled[j.id]={...scheduled[j.id],pressId,dateStr:ds,startMin:cursor+change,runMin:rm,penaltyMin:change,palletType:pal};
+    cursor+=change+rm; prevPal=pal;
+  }
+  render();
+  saveJob(dragId);
+  dragId=null; dragSrc=null;
+}
+
+async function saveRemainQty(jobId) {
+  const input = document.getElementById('cpRemainQty');
+  const saveBtn = document.getElementById('cpRemainSave');
+  if (!input) return;
+  const val = input.value ? parseInt(input.value) : null;
+  const job = allJobs.find(j=>j.id===jobId);
+  if (job) {
+    job.remainQty = val;
+    // Recompute run time for this job's scheduled slot
+    if (scheduled[jobId]) recomputeAll();
+    render();
+  }
+  if (F.remainQty) {
+    saveBtn.textContent = '…Saving';
+    saveBtn.disabled = true;
+    await atPatch(jobId, {[F.remainQty]: val});
+    saveBtn.textContent = '✓ Saved';
+    setTimeout(() => { saveBtn.style.display='none'; saveBtn.textContent='💾 Save'; saveBtn.disabled=false; }, 1500);
+  } else {
+    saveBtn.style.display='none';
+  }
+}
+
+async function saveSchedulingNotes(jobId) {
+  const textarea = document.getElementById('cpNotesEdit');
+  const saveBtn = document.getElementById('cpNotesSave');
+  if (!textarea) return;
+  const newText = textarea.value;
+  // Update in-memory job
+  const job = allJobs.find(j=>j.id===jobId);
+  if (job) job.schedNotes = newText;
+  // Write to Airtable
+  saveBtn.textContent = '…Saving';
+  saveBtn.disabled = true;
+  await atPatch(jobId, {[F.pressNotes]: newText});
+  saveBtn.textContent = '✓ Saved';
+  setTimeout(() => { saveBtn.style.display='none'; saveBtn.textContent='💾 Save'; saveBtn.disabled=false; }, 1500);
+}
+
+function showMsg(txt) {
+  const el = document.getElementById('statMsg'); el.textContent = txt;
+  setTimeout(()=>el.textContent='', 3000);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// CARD POPUP
+// ══════════════════════════════════════════════════
+async function openCardPopup(jobId) {
+  const job = allJobs.find(j=>j.id===jobId);
+  if (!job) return;
+  const s = scheduled[job.id];
+  const press = s ? PRESSES.find(p=>p.id===s.pressId) : null;
+  const isR = (job.priority||'').toLowerCase().includes('hard');
+  const isA = (job.priority||'').toLowerCase().includes('asap');
+  const today = dateStr(new Date());
+  const late = job.due && job.due < today;
+
+  document.getElementById('cpClient').textContent = job.client || '—';
+  document.getElementById('cpName').textContent = job.name || '';
+
+  // Build body
+  const body = document.getElementById('cpBody');
+
+  // Status chips
+  let chipsHtml = `<div class="cp-section">
+    <div class="cp-chips">
+      ${isR?'<span class="cp-chip rush">🚨 Rush / Hard Deadline</span>':isA?'<span class="cp-chip asap">⚡ ASAP</span>':''}
+      <span class="cp-chip ${late?'rush':''}">${job.due?'Due '+fmtDate(job.due):'No due date'}</span>
+      <span class="cp-chip">${job.status||'—'}</span>
+      ${job.garment?`<span class="cp-chip">${job.garment}</span>`:''}
+      ${job.loc?`<span class="cp-chip">${job.loc}</span>`:''}
+    </div>
+  </div>`;
+
+  // Stats grid
+  const est = estimateRun(job, press?.id || autoPress(job) || 'Press 1 - ROQ NEXT');
+  let statsHtml = `<div class="cp-section">
+    <div class="cp-section-title">Job Details</div>
+    <div class="cp-grid">
+      <div class="cp-stat"><div class="cp-stat-val">${job.qty}</div><div class="cp-stat-lbl">Total Qty</div></div>
+      <div class="cp-stat"><div class="cp-stat-val">${job.screens||'—'}</div><div class="cp-stat-lbl">Screens</div></div>
+      <div class="cp-stat"><div class="cp-stat-val">${est}m</div><div class="cp-stat-lbl">Est. Run</div></div>
+    </div>
+    <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+      <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase">Remaining Qty</label>
+      <input type="number" id="cpRemainQty" value="${job.remainQty||''}" placeholder="${job.qty}"
+        style="width:80px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:12px;font-family:inherit"
+        oninput="document.getElementById('cpRemainSave').style.display='inline-flex'"
+        min="1" max="${job.qty}">
+      <button id="cpRemainSave" onclick="saveRemainQty('${job.id}')"
+        style="display:none;font-family:var(--mono);font-size:9px;background:var(--green);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer">
+        💾 Save
+      </button>
+      ${job.remainQty ? `<span style="font-size:10px;color:var(--amb)">⚠ Split run</span>` : ''}
+    </div>
+  </div>`;
+
+  // Sizes
+  let sizesHtml = '';
+  if (job.sizes) {
+    sizesHtml = `<div class="cp-section">
+      <div class="cp-section-title">Size Breakdown</div>
+      <div class="cp-sizes">${job.sizes}</div>
+    </div>`;
+  }
+
+  // Schedule info
+  let schedHtml = '';
+  if (s && press) {
+    const start = minToTime(s.startMin), end = minToTime(s.startMin+s.runMin);
+    schedHtml = `<div class="cp-section">
+      <div class="cp-section-title">Scheduled</div>
+      <div class="cp-sched">
+        <div class="cp-sched-row"><span class="cp-sched-lbl">Press</span><span class="cp-sched-val" style="color:${press.color}">${press.label}</span></div>
+        <div class="cp-sched-row" style="margin-top:5px"><span class="cp-sched-lbl">Date</span><span class="cp-sched-val">${s.dateStr}</span></div>
+        <div class="cp-sched-row" style="margin-top:5px"><span class="cp-sched-lbl">Time</span><span class="cp-sched-val">${start} → ${end}</span></div>
+        <div class="cp-sched-row" style="margin-top:5px"><span class="cp-sched-lbl">Run Time</span><span class="cp-sched-val">${s.runMin}min${s.penaltyMin?` (+${s.penaltyMin}m swap)`:''}</span></div>
+      </div>
+    </div>`;
+  }
+
+  // Scheduling / prepress notes (primary) + ink notes (secondary)
+  let notesHtml = `<div class="cp-section">
+    <div class="cp-section-title" style="display:flex;align-items:center;justify-content:space-between">
+      Scheduling Notes
+      <button class="cp-notes-save" id="cpNotesSave" onclick="saveSchedulingNotes('${job.id}')" style="display:none">💾 Save</button>
+    </div>
+    <textarea class="cp-notes-edit" id="cpNotesEdit" rows="3" placeholder="Add scheduling notes…"
+      oninput="document.getElementById('cpNotesSave').style.display='inline-flex'"
+    >${job.schedNotes||''}</textarea>
+  </div>`;
+
+  // Proof/mockup — fetch on demand using thumbnail (not PDF)
+  let proofHtml = `<div class="cp-section">
+    <div class="cp-section-title">Proof / Mockup</div>
+    <div class="cp-proof" id="cpProofArea"><div class="cp-proof-none" style="display:flex;align-items:center;gap:8px"><div class="spin" style="width:16px;height:16px;border-width:2px"></div>Loading proof…</div></div>
+  </div>`;
+
+  body.innerHTML = chipsHtml + statsHtml + sizesHtml + schedHtml + notesHtml + proofHtml;
+
+  // Show popup immediately
+  const popup = document.getElementById('cardPopup');
+  popup.classList.add('show');
+  popup.dataset.currentJob = jobId; // track which job is open
+
+  // Use proof data already loaded in bulk fetch — no extra API call needed
+  const area = document.getElementById('cpProofArea');
+  if (area) {
+    const atts = job.proofAtts || [];
+    const first = atts[0];
+    if (first) {
+      const displayUrl = first.thumbnails?.large?.url || first.thumbnails?.small?.url;
+      const fullUrl = first.url;
+      if (displayUrl) {
+        area.innerHTML = `<img src="${displayUrl}" style="max-width:100%;max-height:360px;display:block;border-radius:4px" alt="Proof mockup">
+          ${fullUrl ? `<a href="${fullUrl}" target="_blank" class="cp-proof-link">↗ Open full PDF</a>` : ''}`;
+      } else {
+        area.innerHTML = `<div class="cp-proof-none">No proof attached</div>`;
+      }
+    } else {
+      area.innerHTML = `<div class="cp-proof-none">No proof attached</div>`;
+    }
+  }
+}
+
+function closeCardPopup() {
+  window._proofGen = (window._proofGen || 0) + 1; // invalidate any in-flight proof fetch
+  document.getElementById('cardPopup').classList.remove('show');
+}
+// Close handlers wired after DOM ready (called from startup)
+// close handlers are inline on popup HTML elements
+
+async function init() {
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('debugPanel').innerHTML = '';
+  dbg('=== init ===', new Date().toLocaleTimeString());
+
+  try {
+    // AT_KEY already set by startup() from localStorage
+
+    const raw = await loadJobs();
+    dbg(`Raw records: ${raw.length}`);
+
+    const parsed = raw.map(parseRecord);
+    dbg(`Parsed: ${parsed.length}`);
+
+    allJobs = parsed.filter(shouldInclude);
+    dbg(`After filter: ${allJobs.length} jobs`);
+    if (allJobs.length > 0) {
+      dbg('Sample job:', allJobs[0].client, '|', allJobs[0].status, '| press:', allJobs[0].pressName);
+    }
+
+    scheduled = preloadScheduled(allJobs);
+    dbg(`Pre-loaded scheduled: ${Object.keys(scheduled).length}`);
+    recomputeAll(); // enforce pallet grouping order on loaded jobs
+
+    document.getElementById('loader').style.display = 'none';
+    render();
+
+  } catch(e) {
+    setLoader(`Error: ${e.message} — check Debug panel`);
+    dbg('ERROR:', e.message);
+    dbg('Stack:', e.stack?.slice(0,300)||'none');
+    document.getElementById('debugPanel').classList.add('show');
+  }
+}
+
+// On page load — iframed under Pine Central shell which manages token entry.
+// If token is present in localStorage, start init immediately.
+// If not, show loader with a "waiting for token" message; shell will set localStorage and reload.
+(function startup() {
+  // Show the preview badge in the statusbar whenever writes are disabled
+  const previewBadge = document.getElementById('previewBadge');
+  if (previewBadge) previewBadge.style.display = WRITES_ENABLED ? 'none' : 'flex';
+
+  const saved = localStorage.getItem('pine_at_key');
+  if (saved) {
+    window.AT_KEY = saved;
+    document.getElementById('loader').style.display = 'flex';
+    init();
+  } else {
+    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('loaderTxt').textContent = 'Waiting for Airtable token…';
+  }
+})();
+</script>
+
+<!-- CARD DETAIL POPUP -->
+<div class="card-popup" id="cardPopup" onclick="if(event.target===this)closeCardPopup()">
+  <div class="card-popup-box" id="cardPopupBox">
+    <div class="cp-hdr">
+      <div class="cp-title">
+        <div class="cp-client" id="cpClient"></div>
+        <div class="cp-name" id="cpName"></div>
+      </div>
+      <button class="cp-close" id="cpClose" onclick="closeCardPopup()">×</button>
+    </div>
+    <div class="cp-body" id="cpBody"></div>
+  </div>
+</div>
+
+</body>
+</html>
