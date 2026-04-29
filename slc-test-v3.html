@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLC Test v3</title>
+<link rel="stylesheet" href="pine-design-v1.css">
+<style>
+:root {
+  --bg:#F2F2EE; --bg-soft:#F8F8F5; --surface:#fff;
+  --border:#E5E5E0; --border-dk:#D0D0CA;
+  --green:#1e6b45; --green-lt:#e8f5ee; --green-dk:#144d31;
+  --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+  --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83250;
+  --red:#c0392b; --red-bg:#fdf2f2; --red-bd:#f5c6c6;
+  --amb:#b7791f; --amb-bg:#fffbeb; --amb-bd:#fde68a;
+  --sans:Helvetica,Arial,sans-serif;
+  --mono:'Courier New',monospace;
+  --radius:4px; --radius-lg:6px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.bar h1 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.bar .spacer { flex: 1; }
+.bar input, .bar button {
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-dk);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.bar input.token {
+  width: 220px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.bar input.pid {
+  width: 110px;
+  font-family: var(--mono);
+  font-weight: bold;
+  text-align: center;
+}
+.bar button {
+  cursor: pointer;
+  font-weight: bold;
+  background: var(--text);
+  color: var(--yellow);
+  border-color: var(--text);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.bar button:hover { background: #1a1a16; }
+.bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+.bar button.secondary {
+  background: var(--surface);
+  color: var(--text);
+}
+.bar .status {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0 8px;
+}
+.bar .status.ok    { color: var(--green); }
+.bar .status.err   { color: var(--red); }
+.bar .status.work  { color: var(--amb); }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.card h2 {
+  font-size: 13px;
+  font-weight: bold;
+  margin: 0 0 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.product-info {
+  display: flex;
+  gap: 16px;
+}
+.product-info img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+.product-info .meta { flex: 1; min-width: 0; }
+.product-info .name {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.product-info .brand {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.product-info .desc {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+.kv .k {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+}
+.kv .v {
+  font-family: var(--mono);
+  word-break: break-all;
+}
+
+table.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+table.matrix th {
+  background: var(--bg-soft);
+  border-bottom: 2px solid var(--border-dk);
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+}
+table.matrix th.size {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  width: 56px;
+}
+table.matrix td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+table.matrix td.color {
+  font-weight: bold;
+}
+table.matrix td.qty {
+  font-family: var(--mono);
+  text-align: center;
+  font-size: 13px;
+}
+table.matrix td.qty.zero { color: var(--muted-lt); }
+table.matrix td.qty.low { color: var(--amb); font-weight: bold; }
+table.matrix td.qty.ok { color: var(--green); font-weight: bold; }
+table.matrix td.totals {
+  background: var(--bg-soft);
+  font-weight: bold;
+  font-family: var(--mono);
+  text-align: center;
+  border-left: 1px solid var(--border-dk);
+}
+table.matrix tr.totals-row td {
+  background: var(--bg-soft);
+  border-top: 2px solid var(--border-dk);
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+table.matrix tr.totals-row td.qty {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.scroll {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.warehouses {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.warehouses .wh {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.warehouses .wh strong {
+  color: var(--text);
+  margin-right: 6px;
+}
+.warehouses .wh span { color: var(--muted); }
+
+.empty {
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+.empty .big {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.preview-banner {
+  background: var(--yellow-dim);
+  border: 1px solid var(--yellow-border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="preview-banner">
+    SLC TEST V1 — DIAGNOSTIC TOOL — READS-ONLY
+  </div>
+
+  <div class="bar">
+    <h1>SLC Test</h1>
+    <span class="spacer"></span>
+    <input type="text" class="token" id="token" placeholder="pine_at_key (optional)" title="Airtable token — not required for SLC, but kept for parity with Pine Central">
+    <button class="secondary" id="saveTok">Save Token</button>
+    <span style="width:1px;height:28px;background:var(--border-dk);"></span>
+    <input type="text" class="pid" id="pid" value="31225" placeholder="productId">
+    <button id="loadBtn">Load</button>
+    <span class="status" id="status">Idle</span>
+  </div>
+
+  <div class="bar" style="background:var(--bg-soft);">
+    <span style="font-weight:bold;letter-spacing:0.5px;text-transform:uppercase;font-size:12px;color:var(--muted);">v9 Probes</span>
+    <button class="secondary" id="probePricingBtn" title="getConfigurationAndPricing on the productId in the box above">Test Pricing</button>
+    <span style="width:1px;height:28px;background:var(--border-dk);"></span>
+    <button class="secondary" id="probeSellableBtn" title="getProductSellable with isSellable=true only — returns SLC's full sellable catalog (per doc lines 198-216)">Get Full Catalog</button>
+    <span class="spacer"></span>
+    <span class="status" id="probeStatus">Idle</span>
+  </div>
+
+  <div id="content">
+    <div class="empty">
+      <div class="big">Enter an SLC productId and click Load.</div>
+      <div>Default 31225 = Gildan 5000B Youth Heavy Cotton Tee.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Configuration
+// ─────────────────────────────────────────────────────────────────────────────
+var WORKER_BASE = 'https://pine-workers.stephen-dab.workers.dev/proxy/slc';
+
+// PromoStandards SharedObjects namespaces — different per service.
+var NS_PRODUCT_SHARED   = 'http://www.promostandards.org/WSDL/ProductDataService/2.0.0/SharedObjects/';
+var NS_INVENTORY_SHARED = 'http://www.promostandards.org/WSDL/Inventory/2.0.0/SharedObjects/';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Token handling — parity with Pine Central convention
+// ─────────────────────────────────────────────────────────────────────────────
+function loadToken() {
+  var t = localStorage.getItem('pine_at_key') || '';
+  document.getElementById('token').value = t;
+}
+function saveToken() {
+  var t = document.getElementById('token').value.trim();
+  if (t) {
+    localStorage.setItem('pine_at_key', t);
+    setStatus('Token saved', 'ok');
+  } else {
+    localStorage.removeItem('pine_at_key');
+    setStatus('Token cleared', 'ok');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Status bar
+// ─────────────────────────────────────────────────────────────────────────────
+function setStatus(msg, kind) {
+  var el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + (kind || '');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Worker calls
+// ─────────────────────────────────────────────────────────────────────────────
+async function callSlc(service, payload) {
+  var url = WORKER_BASE + '/' + service;
+  var resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  var text = await resp.text();
+  return { status: resp.status, text: text };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// XML parsing helpers
+//
+// SLC's responses use a hybrid namespace pattern: root response element is
+// prefixed (<ns4:GetProductResponse>), but children are bare-named under a
+// default xmlns set on a parent. We use getElementsByTagNameNS(NS, '*') and
+// then filter by localName, OR — since the local names are unambiguous in
+// SLC's responses — just use querySelectorAll with the local name. The
+// namespace check is more robust though.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Get the first child element matching a localName, anywhere in the descendants.
+// Ignores namespace; SLC sometimes prefixes children, sometimes uses default xmlns.
+function findFirst(root, localName) {
+  if (!root) return null;
+  var all = root.getElementsByTagNameNS('*', localName);
+  return all.length ? all[0] : null;
+}
+
+function findAll(root, localName) {
+  if (!root) return [];
+  return Array.from(root.getElementsByTagNameNS('*', localName));
+}
+
+function textOf(el) {
+  return el ? (el.textContent || '').trim() : '';
+}
+
+// SLC returns "null" as a literal string for missing values (not <hex/> or empty).
+// Normalize.
+function nullIfNull(s) {
+  if (!s) return null;
+  if (s === 'null' || s === 'NULL') return null;
+  return s;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Parse getProduct response
+// ─────────────────────────────────────────────────────────────────────────────
+function parseProductResponse(xmlText) {
+  var doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+
+  // Check for SOAP fault first
+  var fault = doc.getElementsByTagNameNS('*', 'Fault')[0];
+  if (fault) {
+    var fs = findFirst(fault, 'faultstring');
+    return { error: 'SOAP Fault: ' + (textOf(fs) || 'unknown'), parts: [] };
+  }
+
+  // Check for ServiceMessage error (handler-level error, not transport-level)
+  var msgs = doc.getElementsByTagNameNS('*', 'ServiceMessage');
+  if (msgs.length) {
+    var firstMsg = msgs[0];
+    var sev = textOf(findFirst(firstMsg, 'severity'));
+    if (sev === 'Error') {
+      var code = textOf(findFirst(firstMsg, 'code'));
+      var desc = textOf(findFirst(firstMsg, 'description'));
+      return { error: 'SLC error code ' + code + ': ' + desc, parts: [] };
+    }
+  }
+
+  var product = findFirst(doc, 'Product');
+  if (!product) {
+    return { error: 'No <Product> element in response', parts: [] };
+  }
+
+  // Top-level product fields
+  var productName  = textOf(findFirst(product, 'productName'));
+  var productBrand = textOf(findFirst(product, 'productBrand'));
+  // First <description> inside Product is the overall fabric/composition description
+  var firstDesc = '';
+  var descs = findAll(product, 'description');
+  for (var i = 0; i < descs.length; i++) {
+    if (descs[i].parentNode === product) {
+      firstDesc = textOf(descs[i]);
+      break;
+    }
+  }
+  var primaryImage = textOf(findFirst(product, 'primaryImageUrl'));
+
+  // Iterate ProductPart entries (each is one color × size combo)
+  var partEls = findAll(product, 'ProductPart');
+  var parts = [];
+  for (var p = 0; p < partEls.length; p++) {
+    var pe = partEls[p];
+    var partId   = textOf(findFirst(pe, 'partId'));
+    var partDesc = textOf(findFirst(pe, 'description'));
+    var color = findFirst(pe, 'Color');
+    var colorName    = color ? textOf(findFirst(color, 'standardColorName')) : '';
+    var hexRaw       = color ? textOf(findFirst(color, 'hex')) : '';
+    var hex          = nullIfNull(hexRaw);
+    var apparelSize = findFirst(pe, 'ApparelSize');
+    var labelSize   = apparelSize ? textOf(findFirst(apparelSize, 'labelSize')) : '';
+    var apparelStyle = apparelSize ? textOf(findFirst(apparelSize, 'apparelStyle')) : '';
+    var customSize  = apparelSize ? textOf(findFirst(apparelSize, 'customSize')) : '';
+    var isCloseout  = textOf(findFirst(pe, 'isCloseout')) === 'true';
+
+    parts.push({
+      partId: partId,
+      desc: partDesc,
+      color: colorName,
+      hex: hex,
+      size: labelSize,
+      apparelStyle: apparelStyle,
+      customSize: customSize,
+      isCloseout: isCloseout,
+    });
+  }
+
+  return {
+    productName: productName,
+    productBrand: productBrand,
+    description: firstDesc,
+    primaryImage: primaryImage,
+    parts: parts,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Parse getInventoryLevels response
+// ─────────────────────────────────────────────────────────────────────────────
+function parseInventoryResponse(xmlText) {
+  var doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+
+  var fault = doc.getElementsByTagNameNS('*', 'Fault')[0];
+  if (fault) {
+    return { error: 'SOAP Fault: ' + textOf(findFirst(fault, 'faultstring')), byPartId: {}, warehouses: {} };
+  }
+
+  var partEls = findAll(doc, 'PartInventory');
+  var byPartId = {};
+  var warehouses = {};
+
+  for (var i = 0; i < partEls.length; i++) {
+    var pe = partEls[i];
+    var partId = textOf(findFirst(pe, 'partId'));
+    if (!partId) continue;
+
+    // Sum across all locations (SLC has one warehouse, but spec allows many)
+    var totalQty = 0;
+    var locs = findAll(pe, 'InventoryLocation');
+    var locDetail = [];
+    for (var j = 0; j < locs.length; j++) {
+      var loc = locs[j];
+      var locId   = textOf(findFirst(loc, 'inventoryLocationId'));
+      var locName = textOf(findFirst(loc, 'inventoryLocationName'));
+      var locPostal = textOf(findFirst(loc, 'postalCode'));
+      var locQtyEl = findFirst(loc, 'inventoryLocationQuantity');
+      var qtyVal = locQtyEl ? parseInt(textOf(findFirst(locQtyEl, 'value')) || '0', 10) : 0;
+      totalQty += qtyVal;
+      locDetail.push({ id: locId, name: locName, postal: locPostal, qty: qtyVal });
+      if (!warehouses[locId]) {
+        warehouses[locId] = { id: locId, name: locName, postal: locPostal, total: 0 };
+      }
+      warehouses[locId].total += qtyVal;
+    }
+
+    byPartId[partId] = {
+      qty: totalQty,
+      locs: locDetail,
+    };
+  }
+
+  return { byPartId: byPartId, warehouses: warehouses };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────────────────────────────────────
+function renderEmpty(message) {
+  document.getElementById('content').innerHTML =
+    '<div class="empty"><div class="big">' + escapeHtml(message) + '</div></div>';
+}
+
+function renderError(message) {
+  document.getElementById('content').innerHTML =
+    '<div class="card" style="background:var(--red-bg);border-color:var(--red-bd);">' +
+    '<h2 style="color:var(--red);">Error</h2>' +
+    '<div style="font-family:var(--mono);font-size:13px;color:var(--text);">' +
+    escapeHtml(message) +
+    '</div></div>';
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function render(product, inventory) {
+  // Build size order — preserve order encountered in the product data.
+  // Common Gildan sizes: XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL.
+  var sizes = [];
+  var seenSizes = {};
+  for (var i = 0; i < product.parts.length; i++) {
+    var s = product.parts[i].size;
+    if (!seenSizes[s]) {
+      seenSizes[s] = true;
+      sizes.push(s);
+    }
+  }
+
+  // Group by color
+  var colorOrder = [];
+  var byColor = {};
+  for (var j = 0; j < product.parts.length; j++) {
+    var part = product.parts[j];
+    if (!byColor[part.color]) {
+      byColor[part.color] = {
+        color: part.color,
+        hex: part.hex,
+        bySize: {},
+        anyCloseout: false,
+      };
+      colorOrder.push(part.color);
+    }
+    byColor[part.color].bySize[part.size] = part;
+    if (part.isCloseout) byColor[part.color].anyCloseout = true;
+  }
+
+  // Lookup inventory totals per color and per size
+  function qtyFor(part) {
+    if (!part) return null;
+    var inv = inventory.byPartId[part.partId];
+    return inv ? inv.qty : 0;
+  }
+
+  // Totals
+  var grandTotal = 0;
+  var totalsBySize = {};
+  for (var k = 0; k < sizes.length; k++) totalsBySize[sizes[k]] = 0;
+  var totalsByColor = {};
+  for (var c = 0; c < colorOrder.length; c++) {
+    var cn = colorOrder[c];
+    totalsByColor[cn] = 0;
+    var ent = byColor[cn];
+    for (var sz in ent.bySize) {
+      var pq = qtyFor(ent.bySize[sz]);
+      totalsByColor[cn] += pq;
+      totalsBySize[sz] = (totalsBySize[sz] || 0) + pq;
+      grandTotal += pq;
+    }
+  }
+
+  // Warehouses summary
+  var warehouseLines = [];
+  for (var wid in inventory.warehouses) {
+    var wh = inventory.warehouses[wid];
+    warehouseLines.push(
+      '<div class="wh"><strong>' + escapeHtml(wh.name) + '</strong>' +
+      '<span>postal ' + escapeHtml(wh.postal) + '</span>' +
+      '<span style="color:var(--text);margin-left:8px;">' + wh.total.toLocaleString() + ' ea</span>' +
+      '</div>'
+    );
+  }
+
+  // Render product info card
+  var imgSrc = product.primaryImage || '';
+  var prodCard =
+    '<div class="card">' +
+      '<h2>Product</h2>' +
+      '<div class="product-info">' +
+        (imgSrc ? '<img src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(product.productName) + '" onerror="this.style.display=\'none\'"/>' : '') +
+        '<div class="meta">' +
+          '<div class="brand">' + escapeHtml(product.productBrand) + '</div>' +
+          '<div class="name">' + escapeHtml(product.productName) + '</div>' +
+          '<div class="desc">' + escapeHtml(product.description) + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Stats card
+  var statsCard =
+    '<div class="card">' +
+      '<h2>Inventory Summary</h2>' +
+      '<div class="warehouses">' + warehouseLines.join('') + '</div>' +
+      '<div class="kv">' +
+        '<div class="k">Total Parts</div><div class="v">' + product.parts.length + '</div>' +
+        '<div class="k">Unique Colors</div><div class="v">' + colorOrder.length + '</div>' +
+        '<div class="k">Sizes</div><div class="v">' + sizes.join(' / ') + '</div>' +
+        '<div class="k">Total Stock</div><div class="v">' + grandTotal.toLocaleString() + ' ea</div>' +
+        '<div class="k">In-stock Parts</div><div class="v">' + Object.keys(inventory.byPartId).filter(function(pid){ return inventory.byPartId[pid].qty > 0; }).length + ' / ' + product.parts.length + '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Render matrix
+  var hdrCells = sizes.map(function(s){ return '<th class="size">' + escapeHtml(s) + '</th>'; }).join('');
+  var rows = colorOrder.map(function(cn){
+    var ent = byColor[cn];
+    var sizeCells = sizes.map(function(sz){
+      var part = ent.bySize[sz];
+      var qty = qtyFor(part);
+      var cls = 'qty';
+      if (qty === null) cls += ' zero';
+      else if (qty === 0) cls += ' zero';
+      else if (qty < 24) cls += ' low';
+      else cls += ' ok';
+      var display = (qty === null) ? '—' : (qty === 0 ? '0' : qty.toLocaleString());
+      var title = part ? ('partId ' + part.partId + (part.isCloseout ? ' (CLOSEOUT)' : '')) : 'No part';
+      return '<td class="' + cls + '" title="' + escapeHtml(title) + '">' + display + '</td>';
+    }).join('');
+    var closeoutMark = ent.anyCloseout ? ' <span style="color:var(--red);font-size:10px;font-weight:bold;">CLOSEOUT</span>' : '';
+    var rowTotal = totalsByColor[cn];
+    return '<tr>' +
+      '<td class="color">' + escapeHtml(cn) + closeoutMark + '</td>' +
+      sizeCells +
+      '<td class="totals">' + rowTotal.toLocaleString() + '</td>' +
+    '</tr>';
+  }).join('');
+
+  var totalsRowCells = sizes.map(function(sz){
+    return '<td class="qty">' + (totalsBySize[sz] || 0).toLocaleString() + '</td>';
+  }).join('');
+  var totalsRow =
+    '<tr class="totals-row">' +
+      '<td>Totals</td>' + totalsRowCells +
+      '<td class="totals">' + grandTotal.toLocaleString() + '</td>' +
+    '</tr>';
+
+  var matrixCard =
+    '<div class="card" style="grid-column: 1/-1;">' +
+      '<h2>Stock Matrix — ' + colorOrder.length + ' colors × ' + sizes.length + ' sizes = ' + product.parts.length + ' parts</h2>' +
+      '<div class="scroll">' +
+        '<table class="matrix">' +
+          '<thead><tr><th>Color</th>' + hdrCells + '<th class="size" style="background:var(--bg-soft);">Total</th></tr></thead>' +
+          '<tbody>' + rows + totalsRow + '</tbody>' +
+        '</table>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('content').innerHTML =
+    '<div class="row">' + prodCard + statsCard + '</div>' +
+    matrixCard;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main load function
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadProduct() {
+  var pid = document.getElementById('pid').value.trim();
+  if (!pid) { setStatus('productId required', 'err'); return; }
+
+  document.getElementById('loadBtn').disabled = true;
+  setStatus('Loading product...', 'work');
+
+  try {
+    var prodResp = await callSlc('productdata', { operation: 'getProduct', productId: pid });
+    if (prodResp.status !== 200) {
+      throw new Error('Product call returned HTTP ' + prodResp.status);
+    }
+
+    var product = parseProductResponse(prodResp.text);
+    if (product.error) {
+      throw new Error(product.error);
+    }
+    if (!product.parts.length) {
+      throw new Error('Product loaded but has no ProductPart entries');
+    }
+
+    setStatus('Loading inventory...', 'work');
+    var invResp = await callSlc('inventory', { operation: 'getInventoryLevels', productId: pid });
+    if (invResp.status !== 200) {
+      throw new Error('Inventory call returned HTTP ' + invResp.status);
+    }
+
+    var inventory = parseInventoryResponse(invResp.text);
+    if (inventory.error) {
+      throw new Error(inventory.error);
+    }
+
+    render(product, inventory);
+    setStatus(
+      'Loaded ' + product.parts.length + ' parts, ' +
+      Object.keys(inventory.byPartId).length + ' inventory entries',
+      'ok'
+    );
+  } catch (e) {
+    renderError(e.message || String(e));
+    setStatus('Error', 'err');
+  } finally {
+    document.getElementById('loadBtn').disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v8 PROBES — raw XML dump for pricing + getProductSellable
+//
+// These hit the new/restored worker v8 endpoints and dump the raw response so
+// we can inspect what SLC actually returns BEFORE writing parsers. Same
+// pattern as the test-page philosophy: show the truth, then build on it.
+// ─────────────────────────────────────────────────────────────────────────────
+function setProbeStatus(msg, kind) {
+  var el = document.getElementById('probeStatus');
+  el.textContent = msg;
+  el.className = 'status ' + (kind || '');
+}
+
+// Pretty-print XML by adding a newline after every closing > and trimming runs
+// of whitespace. Best-effort; useful for inspecting unfamiliar response shapes.
+function prettyXml(xml) {
+  if (!xml) return '';
+  // Add line breaks between adjacent tags
+  var s = xml.replace(/></g, '>\n<');
+  // Indent crudely based on tag nesting — naive but readable enough for diagnostics
+  var indent = 0;
+  var out = [];
+  var lines = s.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    var isClosing = /^<\/[^>]+>/.test(line);
+    var isSelfClosing = /\/>\s*$/.test(line) || /^<\?/.test(line) || /^<!/.test(line);
+    var isOpenAndClose = /^<[^!?][^>]*>[^<]*<\/[^>]+>$/.test(line);
+    if (isClosing) indent = Math.max(0, indent - 1);
+    out.push(new Array(indent + 1).join('  ') + line);
+    if (!isClosing && !isSelfClosing && !isOpenAndClose) indent++;
+  }
+  return out.join('\n');
+}
+
+function renderRawXml(label, status, xmlText) {
+  var content = document.getElementById('content');
+  var statusColor = (status >= 200 && status < 300) ? 'var(--green)' : 'var(--red)';
+  var bytes = (xmlText && xmlText.length) || 0;
+
+  // Detect SOAP Fault and ServiceMessage in response so the user sees the verdict instantly
+  var verdict = '';
+  if (/<soapenv:Fault|<soap:Fault|<faultcode/i.test(xmlText)) {
+    verdict = '<div style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;font-weight:bold;">SOAP FAULT — request rejected at routing/parser layer</div>';
+  } else if (/severity[^>]*>Error</i.test(xmlText)) {
+    verdict = '<div style="background:var(--amb-bg);color:var(--amb);border:1px solid var(--amb-bd);padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;font-weight:bold;">ServiceMessage Error — handler ran but returned an error code</div>';
+  } else if (/<[^>]*ErrorMessage[^>]*>/i.test(xmlText)) {
+    // Pricing-style structured error (different element name from ServiceMessage but same idea)
+    verdict = '<div style="background:var(--amb-bg);color:var(--amb);border:1px solid var(--amb-bd);padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;font-weight:bold;">ErrorMessage — handler ran but returned a structured error</div>';
+  } else if (status >= 200 && status < 300 && bytes > 1000) {
+    verdict = '<div style="background:var(--green-lt);color:var(--green-dk);border:1px solid var(--green);padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;font-weight:bold;">Response looks substantial — likely real data. Review below to confirm shape.</div>';
+  } else if (status >= 200 && status < 300) {
+    verdict = '<div style="background:var(--bg-soft);color:var(--muted);border:1px solid var(--border-dk);padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;">Response is small (' + bytes + ' bytes). May be empty or a short error.</div>';
+  }
+
+  // Truncate at 200KB before pretty-printing — anything bigger locks the browser.
+  // Full raw response is always available via the Download button below.
+  var TRUNCATE_AT = 200 * 1024;
+  var displayText = xmlText;
+  var truncated = false;
+  if (bytes > TRUNCATE_AT) {
+    displayText = xmlText.substr(0, TRUNCATE_AT);
+    truncated = true;
+  }
+  var pretty = prettyXml(displayText);
+  if (truncated) {
+    pretty += '\n\n[truncated for display — full response is ' + bytes.toLocaleString() + ' bytes; use Download button below for full XML]';
+  }
+
+  // Build a data URL for the full raw response so the user can save the XML file
+  // for parser development. Encoding via Blob is safer than data: URL for big payloads.
+  var blob = new Blob([xmlText], { type: 'text/xml' });
+  var blobUrl = URL.createObjectURL(blob);
+  var safeName = label.replace(/[^a-z0-9]+/gi, '_').toLowerCase().replace(/^_|_$/g, '') + '.xml';
+
+  content.innerHTML =
+    '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;">' +
+    '  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;">' +
+    '    <div style="font-weight:bold;font-size:15px;">' + label + '</div>' +
+    '    <div style="font-family:var(--mono);color:' + statusColor + ';font-weight:bold;">HTTP ' + status + '</div>' +
+    '    <div style="color:var(--muted);font-size:12px;">' + bytes.toLocaleString() + ' bytes</div>' +
+    '    <span style="flex:1;"></span>' +
+    '    <a href="' + blobUrl + '" download="' + safeName + '" style="text-decoration:none;background:#0D0D0B;color:#fff;padding:6px 12px;border-radius:var(--radius);font-size:12px;font-weight:bold;letter-spacing:0.3px;">Download XML</a>' +
+    '  </div>' +
+    verdict +
+    '  <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow:auto;max-height:600px;font-family:var(--mono);font-size:11px;line-height:1.4;white-space:pre;">' +
+        pretty.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') +
+    '  </pre>' +
+    '</div>';
+}
+
+async function probePricing() {
+  var pid = document.getElementById('pid').value.trim();
+  if (!pid) { setProbeStatus('productId required', 'err'); return; }
+  document.getElementById('probePricingBtn').disabled = true;
+  setProbeStatus('Calling pricing...', 'work');
+  try {
+    var resp = await callSlc('pricing', {
+      operation: 'getConfigurationAndPricing',
+      productId: pid,
+    });
+    renderRawXml('getConfigurationAndPricing — productId ' + pid, resp.status, resp.text);
+    setProbeStatus('Pricing call complete', resp.status === 200 ? 'ok' : 'err');
+  } catch (e) {
+    renderError('Pricing probe failed: ' + (e.message || String(e)));
+    setProbeStatus('Error', 'err');
+  } finally {
+    document.getElementById('probePricingBtn').disabled = false;
+  }
+}
+
+async function probeSellable() {
+  document.getElementById('probeSellableBtn').disabled = true;
+  setProbeStatus('Calling getProductSellable (catalog dump)...', 'work');
+  try {
+    var resp = await callSlc('productdata', {
+      operation: 'getProductSellable',
+    });
+    renderRawXml('getProductSellable — full sellable catalog (no filter)', resp.status, resp.text);
+    setProbeStatus('Catalog call complete', resp.status === 200 ? 'ok' : 'err');
+  } catch (e) {
+    renderError('Sellable probe failed: ' + (e.message || String(e)));
+    setProbeStatus('Error', 'err');
+  } finally {
+    document.getElementById('probeSellableBtn').disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Wire up
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById('loadBtn').addEventListener('click', loadProduct);
+document.getElementById('saveTok').addEventListener('click', saveToken);
+document.getElementById('pid').addEventListener('keypress', function(e){
+  if (e.key === 'Enter') loadProduct();
+});
+document.getElementById('probePricingBtn').addEventListener('click', probePricing);
+document.getElementById('probeSellableBtn').addEventListener('click', probeSellable);
+loadToken();
+</script>
+</body>
+</html>
