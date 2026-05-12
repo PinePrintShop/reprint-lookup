@@ -1,0 +1,5132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pine Color Counter v20</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* ===== PINE CENTRAL DESIGN SYSTEM ===== */
+:root{
+  --bg:#F2F2EE; --surface:#fff; --border:#E5E5E0; --border-dk:#D0D0CA;
+  --green:#1e6b45; --green-lt:#e8f5ee; --green-dk:#144d31;
+  --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+  --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83250;
+  --red:#c0392b; --red-bg:#fdf2f2; --red-bd:#f5c6c6;
+  --amb:#b7791f; --amb-bg:#fffbeb; --amb-bd:#fde68a;
+  --sb-bg:#0A0A08; --sb-border:#1A1A16; --sb-active:#141410;
+  --sans:Helvetica,Arial,sans-serif; --mono:'Courier New',monospace;
+  --radius:4px; --radius-lg:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.4;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  background:var(--sb-bg);
+  color:#fff;
+  padding:12px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--sb-border);
+  flex-shrink:0;
+}
+.tb-left{display:flex;align-items:center;gap:14px}
+.tb-logo{
+  width:28px;height:28px;
+  background:var(--yellow);
+  color:var(--sb-bg);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:16px;
+  border-radius:var(--radius);
+}
+.tb-title{
+  font-size:12px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  font-weight:700;
+}
+.tb-version{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--muted-lt);
+  padding:3px 8px;
+  background:var(--sb-active);
+  border-radius:var(--radius);
+}
+.tb-right{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted-lt)}
+
+/* ===== MAIN LAYOUT ===== */
+.main{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:0;
+  overflow:hidden;
+  min-height:0;
+}
+.canvas-area{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--bg);
+  min-width:0;
+}
+.controls-area{
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===== DROP ZONE ===== */
+.drop-zone{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:20px;
+  border:2px dashed var(--border-dk);
+  border-radius:var(--radius-lg);
+  background:var(--surface);
+  cursor:pointer;
+  transition:all .15s;
+  position:relative;
+}
+.drop-zone:hover,.drop-zone.drag{
+  border-color:var(--text);
+  background:#fff;
+}
+.drop-zone.drag{
+  border-color:var(--yellow);
+  box-shadow:0 0 0 4px var(--yellow-dim);
+}
+.drop-inner{text-align:center;padding:40px;max-width:480px}
+.drop-icon{
+  width:64px;height:64px;
+  margin:0 auto 20px;
+  background:var(--sb-bg);
+  color:var(--yellow);
+  display:flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-lg);
+  font-size:32px;
+}
+.drop-title{
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.drop-sub{color:var(--muted);margin-bottom:20px;font-size:13px}
+.drop-formats{
+  display:flex;gap:6px;justify-content:center;flex-wrap:wrap;
+}
+.drop-formats span{
+  font-family:var(--mono);
+  font-size:10px;
+  padding:4px 8px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  letter-spacing:1px;
+}
+
+/* ===== PREVIEW AREA ===== */
+.preview-wrap{
+  flex:1;
+  display:none;
+  flex-direction:column;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:20px;
+  gap:16px;
+  min-height:0;
+}
+.preview-wrap.on{display:flex}
+.preview-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.preview-filename{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--muted);
+  max-width:400px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.preview-grid{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  min-height:420px;
+  overflow:hidden;
+}
+
+/* ===== CLICK MODE BAR ===== */
+.click-mode-bar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:8px 12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  flex-shrink:0;
+  flex-wrap:wrap;
+}
+.click-mode-label{
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+}
+.click-mode-buttons{
+  display:flex;
+  gap:4px;
+  background:var(--bg);
+  border-radius:var(--radius);
+  padding:2px;
+}
+.cmb-separator{
+  width:1px;
+  height:24px;
+  background:var(--border-dk);
+  flex-shrink:0;
+}
+.click-mode-btn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  background:transparent;
+  border:none;
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-family:var(--sans);
+  transition:all .1s;
+}
+.click-mode-btn:hover{color:var(--text)}
+.click-mode-btn.active{
+  background:var(--sb-bg);
+  color:var(--yellow);
+}
+.cmb-icon{
+  font-size:14px;
+  font-weight:900;
+  line-height:1;
+}
+.click-mode-hint{
+  font-size:10px;
+  color:var(--muted);
+  font-style:italic;
+  margin-left:auto;
+}
+.undo-remove-btn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 14px;
+  background:var(--sb-bg);
+  color:#fff;
+  border:1px solid var(--sb-bg);
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  font-family:var(--sans);
+  transition:all .1s;
+}
+.undo-remove-btn:hover:not(:disabled){
+  background:var(--sb-active);
+  border-color:var(--yellow);
+  color:var(--yellow);
+}
+.undo-remove-btn:disabled{
+  opacity:.3;
+  cursor:not-allowed;
+  background:var(--bg);
+  color:var(--muted);
+  border-color:var(--border-dk);
+}
+.urb-icon{
+  font-size:14px;
+  font-weight:900;
+  line-height:1;
+}
+.urb-label{
+  white-space:nowrap;
+}
+.preview-cell{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  min-height:0;
+}
+.preview-label{
+  padding:8px 14px;
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.preview-label .count{
+  font-family:var(--mono);
+  color:var(--text);
+  background:var(--bg);
+  padding:2px 8px;
+  border-radius:var(--radius);
+  letter-spacing:1px;
+}
+.preview-canvas-wrap{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  padding:12px;
+  position:relative;
+  background:
+    linear-gradient(45deg,#f8f8f4 25%,transparent 25%),
+    linear-gradient(-45deg,#f8f8f4 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#f8f8f4 75%),
+    linear-gradient(-45deg,transparent 75%,#f8f8f4 75%);
+  background-size:16px 16px;
+  background-position:0 0,0 8px,8px -8px,-8px 0;
+  background-color:#fff;
+  transition:background-color .15s;
+}
+/* When mockup is active (tee color picked AND not in transparent-tee mode),
+   both preview wraps get a solid tee-colored background. Tee color is supplied
+   via inline style (--tee-bg custom property). The checkerboard is suppressed. */
+.preview-canvas-wrap.tee-bg{
+  background:var(--tee-bg, #0D0D0B);
+}
+.preview-canvas-wrap canvas{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  border-radius:var(--radius);
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  transform-origin:center center;
+  transition:none;
+  will-change:transform;
+}
+.preview-canvas-wrap.zoomed{
+  cursor:grab;
+  overflow:hidden;
+}
+.preview-canvas-wrap.zoomed.dragging{
+  cursor:grabbing;
+}
+
+/* Zoom controls in preview header */
+.zoom-controls{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin-left:8px;
+}
+.zoom-btn{
+  width:24px;
+  height:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+  line-height:1;
+  padding:0;
+  font-family:var(--sans);
+  transition:all .1s;
+}
+.zoom-btn:hover{
+  background:var(--surface);
+  border-color:var(--text);
+}
+.zoom-btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+.zoom-level{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+  min-width:40px;
+  text-align:center;
+  letter-spacing:.5px;
+}
+
+/* ===== CONTROLS PANEL ===== */
+.ctrl-section{
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+}
+.ctrl-section:last-child{border-bottom:none}
+.ctrl-title{
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.ctrl-title .badge{
+  font-family:var(--mono);
+  background:var(--sb-bg);
+  color:var(--yellow);
+  padding:2px 7px;
+  border-radius:var(--radius);
+  letter-spacing:1px;
+}
+
+/* K slider */
+.k-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:10px;
+}
+.k-display{
+  font-family:var(--mono);
+  font-size:28px;
+  font-weight:700;
+  min-width:36px;
+  text-align:center;
+  color:var(--text);
+  line-height:1;
+}
+.k-slider{
+  flex:1;
+  -webkit-appearance:none;
+  appearance:none;
+  height:4px;
+  background:var(--border);
+  border-radius:2px;
+  outline:none;
+}
+.k-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:18px;height:18px;
+  background:var(--sb-bg);
+  border:2px solid var(--yellow);
+  border-radius:50%;
+  cursor:pointer;
+}
+.k-slider::-moz-range-thumb{
+  width:18px;height:18px;
+  background:var(--sb-bg);
+  border:2px solid var(--yellow);
+  border-radius:50%;
+  cursor:pointer;
+  border:none;
+}
+.btn-auto{
+  flex-shrink:0;
+  padding:6px 12px;
+  background:var(--yellow);
+  color:var(--sb-bg);
+  border:none;
+  border-radius:var(--radius);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:filter .1s;
+}
+.btn-auto:hover{filter:brightness(1.08)}
+.btn-auto.dim{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.elbow-note{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:6px;
+  font-family:var(--mono);
+}
+
+/* Toggles */
+.toggle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 0;
+  cursor:pointer;
+  user-select:none;
+}
+.toggle-row:not(:last-child){border-bottom:1px solid var(--border)}
+.toggle-label{font-size:12px}
+.toggle-label .sub{display:block;font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:.5px}
+.toggle-switch{
+  width:36px;height:20px;
+  background:var(--border-dk);
+  border-radius:10px;
+  position:relative;
+  transition:background .15s;
+  flex-shrink:0;
+}
+.toggle-switch::after{
+  content:'';
+  position:absolute;
+  top:2px;left:2px;
+  width:16px;height:16px;
+  background:#fff;
+  border-radius:50%;
+  transition:left .15s;
+  box-shadow:0 1px 2px rgba(0,0,0,.2);
+}
+.toggle-row.on .toggle-switch{background:var(--green)}
+.toggle-row.on .toggle-switch::after{left:18px}
+
+/* ===== BG REMOVAL SECTION ===== */
+.bg-pick-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:8px;
+}
+.bg-color-swatch{
+  width:28px;height:28px;
+  border-radius:var(--radius);
+  border:1px solid var(--border-dk);
+  cursor:pointer;
+  flex-shrink:0;
+  position:relative;
+  overflow:hidden;
+}
+.bg-color-swatch input{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  width:100%;height:100%;
+}
+.bg-color-hex{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text);
+  flex:1;
+}
+.bg-tolerance-wrap{
+  margin-top:6px;
+}
+.bg-tolerance-label{
+  display:flex;
+  justify-content:space-between;
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:6px;
+  font-weight:700;
+}
+.bg-tolerance-label .val{
+  font-family:var(--mono);
+  color:var(--text);
+  letter-spacing:0;
+}
+.bg-tolerance-slider{
+  width:100%;
+  -webkit-appearance:none;
+  appearance:none;
+  height:4px;
+  background:var(--border);
+  border-radius:2px;
+  outline:none;
+}
+.bg-tolerance-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:16px;height:16px;
+  background:var(--sb-bg);
+  border:2px solid var(--yellow);
+  border-radius:50%;
+  cursor:pointer;
+}
+.bg-tolerance-slider::-moz-range-thumb{
+  width:16px;height:16px;
+  background:var(--sb-bg);
+  border:2px solid var(--yellow);
+  border-radius:50%;
+  cursor:pointer;
+  border:none;
+}
+.bg-method-note{
+  font-size:10px;
+  color:var(--muted);
+  font-style:italic;
+  margin-top:8px;
+  line-height:1.4;
+}
+
+/* ===== REMOVE BACKGROUND (prominent) ===== */
+.remove-bg-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 14px;
+  background:var(--sb-bg);
+  color:var(--muted-lt);
+  border:2px solid var(--sb-border);
+  border-radius:var(--radius-lg);
+  cursor:pointer;
+  text-align:left;
+  font-family:var(--sans);
+  transition:all .15s;
+  margin-bottom:10px;
+}
+.remove-bg-btn:hover{
+  background:var(--sb-active);
+  border-color:var(--yellow-dim);
+}
+.remove-bg-btn.on{
+  background:var(--sb-bg);
+  border-color:var(--yellow);
+  color:#fff;
+}
+.remove-bg-icon{
+  font-size:22px;
+  line-height:1;
+  flex-shrink:0;
+  color:var(--muted-lt);
+}
+.remove-bg-btn.on .remove-bg-icon{
+  color:var(--yellow);
+}
+.remove-bg-label{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.remove-bg-title{
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#fff;
+}
+.remove-bg-sub{
+  font-size:10px;
+  color:var(--muted-lt);
+  letter-spacing:.5px;
+}
+.remove-bg-state{
+  font-family:var(--mono);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  padding:3px 8px;
+  border-radius:var(--radius);
+  background:var(--sb-active);
+  color:var(--muted-lt);
+  flex-shrink:0;
+}
+.remove-bg-btn.on .remove-bg-state{
+  background:var(--yellow);
+  color:var(--sb-bg);
+}
+
+/* ===== PRE-UPSCALE SLIDER (v20) ===== */
+.upscale-row{
+  margin:6px 0 2px;
+}
+.upscale-slider{
+  width:100%;
+  -webkit-appearance:none;
+  appearance:none;
+  height:4px;
+  background:var(--border);
+  border-radius:2px;
+  outline:none;
+  cursor:pointer;
+}
+.upscale-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:18px;height:18px;
+  background:var(--sb-bg);
+  border:2px solid var(--yellow);
+  border-radius:50%;
+  cursor:pointer;
+}
+.upscale-slider::-moz-range-thumb{
+  width:18px;height:18px;
+  background:var(--sb-bg);
+  border:2px solid var(--yellow);
+  border-radius:50%;
+  cursor:pointer;
+  border:none;
+}
+.upscale-ticks{
+  display:flex;
+  justify-content:space-between;
+  font-family:var(--mono);
+  font-size:9px;
+  color:var(--muted);
+  letter-spacing:.5px;
+  margin-bottom:8px;
+  padding:0 2px;
+}
+.upscale-spec{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+  padding:6px 8px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  letter-spacing:.3px;
+}
+.upscale-spec.on{
+  color:var(--text);
+  background:var(--surface);
+  border-color:var(--text);
+}
+.upscale-help{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:6px;
+  letter-spacing:.3px;
+  line-height:1.4;
+}
+
+/* ===== CLEANUP MODE BUTTONS (v19) — stacked option list ===== */
+.cleanup-modes{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.cleanup-mode-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+  width:100%;
+  padding:10px 12px;
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-left:3px solid var(--border-dk);
+  border-radius:var(--radius);
+  cursor:pointer;
+  text-align:left;
+  font-family:var(--sans);
+  transition:all .12s;
+}
+.cleanup-mode-btn:hover{
+  background:var(--bg);
+  border-color:var(--text);
+}
+.cleanup-mode-btn.active{
+  background:var(--sb-bg);
+  color:#fff;
+  border-color:var(--sb-bg);
+  border-left-color:var(--yellow);
+}
+.cleanup-mode-btn.active .cm-desc{color:var(--muted-lt)}
+.cm-name{
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.cm-desc{
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:.3px;
+  line-height:1.3;
+}
+.ctrl-title .badge.on{
+  background:var(--yellow);
+  color:var(--sb-bg);
+}
+
+/* Detected color row — bigger swatch, clearer layout */
+.bg-detected-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:10px;
+}
+.bg-detected-label{
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+  flex-shrink:0;
+}
+.bg-color-swatch-lg{
+  width:36px;height:36px;
+  border-radius:var(--radius);
+  border:2px solid var(--border-dk);
+  cursor:pointer;
+  flex-shrink:0;
+  position:relative;
+  overflow:hidden;
+}
+.bg-color-swatch-lg input{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  width:100%;height:100%;
+}
+.bg-detected-hint{
+  font-size:9px;
+  color:var(--muted);
+  font-style:italic;
+  letter-spacing:.5px;
+  margin-left:auto;
+}
+
+/* ===== MOCKUP PREVIEW ===== */
+.mockup-disabled{
+  font-size:11px;
+  color:var(--muted);
+  font-style:italic;
+  padding:6px 0;
+  line-height:1.5;
+}
+.tee-presets{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:4px;
+  margin:8px 0;
+}
+.tee-preset{
+  aspect-ratio:1;
+  border-radius:var(--radius);
+  cursor:pointer;
+  border:2px solid var(--border);
+  position:relative;
+  transition:all .1s;
+  overflow:hidden;
+}
+.tee-preset:hover{transform:translateY(-1px);border-color:var(--text)}
+.tee-preset.active{
+  border-color:var(--yellow);
+  box-shadow:0 0 0 2px var(--yellow-dim);
+}
+.tee-preset-label{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  font-size:8px;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  text-align:center;
+  padding:1px 0;
+  background:rgba(0,0,0,.6);
+  color:#fff;
+  font-weight:700;
+}
+.mockup-divider{
+  height:1px;
+  background:var(--border);
+  margin:12px 0;
+}
+.mockup-ink-label{
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.mockup-ink-label .reset-inks{
+  font-family:var(--sans);
+  font-size:9px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  padding:3px 7px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.mockup-ink-label .reset-inks:hover{color:var(--text);border-color:var(--text)}
+
+/* Mockup palette row — second palette showing recolorable inks */
+.mockup-palette-wrap{
+  flex-shrink:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:14px;
+  display:none;
+  margin-top:10px;
+}
+.mockup-palette-wrap.on{display:block}
+.mockup-palette-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:8px;
+  max-height:156px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.mockup-palette-grid::-webkit-scrollbar{width:6px}
+.mockup-palette-grid::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:3px}
+.mockup-palette-grid::-webkit-scrollbar-track{background:transparent}
+.mockup-swatch{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:8px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  position:relative;
+}
+.mockup-swatch.modified{
+  border-color:var(--amb);
+  background:var(--amb-bg);
+}
+.mockup-swatch-chip{
+  width:40px;height:40px;
+  border-radius:var(--radius);
+  flex-shrink:0;
+  border:1px solid rgba(0,0,0,.1);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+.mockup-swatch-chip input[type=color]{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  width:100%;height:100%;
+}
+.mockup-swatch-info{flex:1;min-width:0}
+.mockup-swatch-name{
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:700;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.mockup-swatch-hex{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+  margin-top:2px;
+}
+.mockup-swatch-from{
+  font-size:9px;
+  color:var(--muted);
+  font-style:italic;
+  margin-top:2px;
+}
+.mockup-swatch-reset{
+  font-size:14px;
+  color:var(--muted);
+  cursor:pointer;
+  padding:4px 6px;
+  line-height:1;
+  border-radius:var(--radius);
+  transition:all .1s;
+}
+.mockup-swatch-reset:hover{background:var(--bg);color:var(--text)}
+
+/* Eye toggle for hiding ink in mockup */
+.mockup-swatch-eye{
+  width:26px;
+  height:26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  border-radius:var(--radius);
+  transition:all .1s;
+  color:var(--muted);
+  flex-shrink:0;
+}
+.mockup-swatch-eye:hover{
+  background:var(--surface);
+  color:var(--text);
+}
+.mockup-swatch-eye svg{
+  width:16px;
+  height:16px;
+  display:block;
+}
+.mockup-swatch.hidden-ink{
+  background:repeating-linear-gradient(
+    45deg,
+    var(--bg),
+    var(--bg) 4px,
+    var(--border) 4px,
+    var(--border) 5px
+  );
+  border-color:var(--border-dk);
+}
+.mockup-swatch.hidden-ink .mockup-swatch-chip{
+  opacity:.35;
+}
+.mockup-swatch.hidden-ink .mockup-swatch-name,
+.mockup-swatch.hidden-ink .mockup-swatch-hex,
+.mockup-swatch.hidden-ink .mockup-swatch-from{
+  opacity:.5;
+  text-decoration:line-through;
+}
+.mockup-swatch.hidden-ink .mockup-swatch-eye{
+  color:var(--amb);
+  background:var(--amb-bg);
+}
+
+/* ===== HSL COLOR POPOVER ===== */
+.hsl-popover{
+  position:absolute;
+  z-index:1000;
+  background:var(--surface);
+  border:1px solid var(--border-dk);
+  border-radius:var(--radius-lg);
+  padding:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+  width:260px;
+  display:none;
+}
+.hsl-popover.on{display:block}
+.hsl-pop-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.hsl-pop-title{
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+}
+.hsl-pop-close{
+  width:22px;
+  height:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:16px;
+  color:var(--muted);
+  border-radius:var(--radius);
+  padding:0;
+  line-height:1;
+}
+.hsl-pop-close:hover{
+  background:var(--bg);
+  color:var(--text);
+}
+.hsl-preview{
+  width:100%;
+  height:40px;
+  border-radius:var(--radius);
+  border:1px solid var(--border-dk);
+  margin-bottom:14px;
+  background:#000;
+}
+.hsl-slider-row{
+  margin-bottom:10px;
+}
+.hsl-slider-label{
+  display:flex;
+  justify-content:space-between;
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+.hsl-slider-label .val{
+  font-family:var(--mono);
+  color:var(--text);
+  letter-spacing:0;
+}
+.hsl-slider{
+  width:100%;
+  height:16px;
+  appearance:none;
+  -webkit-appearance:none;
+  border-radius:8px;
+  outline:none;
+  cursor:pointer;
+  border:1px solid var(--border);
+}
+.hsl-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:18px;
+  height:18px;
+  background:#fff;
+  border:2px solid var(--sb-bg);
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.hsl-slider::-moz-range-thumb{
+  width:18px;
+  height:18px;
+  background:#fff;
+  border:2px solid var(--sb-bg);
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+/* Hue slider — full rainbow */
+.hsl-slider.hue{
+  background:linear-gradient(to right,
+    hsl(0 100% 50%),hsl(60 100% 50%),hsl(120 100% 50%),
+    hsl(180 100% 50%),hsl(240 100% 50%),hsl(300 100% 50%),hsl(360 100% 50%));
+}
+/* Saturation/Lightness gradients get set inline via JS based on hue */
+.hsl-hex-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.hsl-hex-label{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.hsl-hex-input{
+  flex:1;
+  padding:5px 8px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text);
+  outline:none;
+  text-transform:uppercase;
+}
+.hsl-hex-input:focus{
+  border-color:var(--text);
+}
+
+/* Buttons */
+.btn{
+  padding:10px 14px;
+  border-radius:var(--radius);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  transition:all .1s;
+  font-family:var(--sans);
+}
+.btn:hover{background:var(--bg)}
+.btn-primary{
+  background:var(--sb-bg);
+  color:var(--yellow);
+  border-color:var(--sb-bg);
+}
+.btn-primary:hover{background:var(--sb-active)}
+.btn-block{width:100%;display:block}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1}
+
+/* ===== PRINT-READY PNG EXPORT (v17) ===== */
+.export-png-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 14px;
+  background:var(--sb-bg);
+  color:#fff;
+  border:2px solid var(--sb-border);
+  border-radius:var(--radius-lg);
+  cursor:pointer;
+  text-align:left;
+  font-family:var(--sans);
+  transition:all .15s;
+  margin-bottom:10px;
+}
+.export-png-btn:hover{
+  background:var(--sb-active);
+  border-color:var(--yellow-dim);
+}
+.export-png-btn.open{
+  border-color:var(--yellow);
+}
+.export-png-icon{
+  font-size:22px;
+  font-weight:900;
+  line-height:1;
+  flex-shrink:0;
+  color:var(--yellow);
+}
+.export-png-label{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.export-png-title{
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#fff;
+}
+.export-png-sub{
+  font-size:10px;
+  color:var(--muted-lt);
+  letter-spacing:.5px;
+}
+.export-png-chev{
+  font-size:14px;
+  color:var(--muted-lt);
+  transition:transform .15s;
+  flex-shrink:0;
+}
+.export-png-btn.open .export-png-chev{transform:rotate(180deg)}
+.export-panel{
+  display:none;
+  padding:12px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+}
+.export-panel.on{display:block}
+.export-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+.export-label{
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+  flex:0 0 64px;
+}
+.export-select{
+  flex:1;
+  padding:6px 8px;
+  border:1px solid var(--border-dk);
+  border-radius:var(--radius);
+  background:var(--surface);
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text);
+  cursor:pointer;
+}
+.export-select:focus{outline:none;border-color:var(--text)}
+.export-spec{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text);
+  padding:8px 10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-top:6px;
+  letter-spacing:.5px;
+}
+.export-scale{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+  padding:4px 10px 0;
+  letter-spacing:.5px;
+}
+.export-scale.warn{color:var(--amb)}
+.export-progress{
+  margin-top:10px;
+}
+.export-progress-bar{
+  width:100%;
+  height:4px;
+  background:var(--border);
+  border-radius:2px;
+  overflow:hidden;
+}
+.export-progress-fill{
+  height:100%;
+  background:var(--yellow);
+  width:0%;
+  transition:width .2s;
+}
+.export-progress-text{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+  margin-top:6px;
+  letter-spacing:.5px;
+  text-align:center;
+}
+.export-secondary-label{
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+  margin-top:6px;
+  margin-bottom:8px;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+}
+
+/* ===== PALETTE ===== */
+.palette-wrap{
+  flex-shrink:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:14px;
+  display:none;
+}
+.palette-wrap.on{display:block}
+.palette-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+.palette-label{
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--muted);
+}
+.palette-hint{
+  font-size:10px;
+  color:var(--muted);
+  font-style:italic;
+}
+.palette-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:8px;
+  max-height:156px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.palette-grid::-webkit-scrollbar{width:6px}
+.palette-grid::-webkit-scrollbar-thumb{background:var(--border-dk);border-radius:3px}
+.palette-grid::-webkit-scrollbar-track{background:transparent}
+.swatch{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:8px;
+  cursor:pointer;
+  transition:all .1s;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  position:relative;
+}
+.swatch:hover{border-color:var(--text)}
+.swatch.selected{
+  border-color:var(--yellow);
+  box-shadow:0 0 0 2px var(--yellow-dim);
+}
+.swatch.merge-ready{
+  border-color:var(--amb);
+  box-shadow:0 0 0 2px var(--amb-bd);
+}
+.swatch.modified{
+  border-color:var(--sb-bg);
+  box-shadow:0 0 0 1px var(--sb-bg) inset;
+}
+.swatch.hidden-ink{
+  opacity:.55;
+  background:repeating-linear-gradient(
+    45deg,
+    var(--bg),
+    var(--bg) 6px,
+    var(--border) 6px,
+    var(--border) 7px
+  );
+}
+.swatch.hidden-ink .swatch-pantone,
+.swatch.hidden-ink .swatch-hex,
+.swatch.hidden-ink .swatch-from{
+  text-decoration:line-through;
+}
+.swatch.hidden-ink .swatch-chip{
+  cursor:default;
+  opacity:.5;
+}
+.swatch.hidden-ink .swatch-eye{
+  opacity:1;
+  color:var(--red);
+}
+.swatch-chip{
+  width:40px;height:40px;
+  border-radius:var(--radius);
+  flex-shrink:0;
+  border:1px solid rgba(0,0,0,.1);
+  cursor:pointer;
+  position:relative;
+}
+.swatch-chip:hover::after{
+  content:'';
+  position:absolute;
+  inset:-3px;
+  border-radius:var(--radius);
+  border:1.5px solid var(--text);
+  pointer-events:none;
+}
+.swatch-info{flex:1;min-width:0}
+.swatch-pantone{
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:700;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.swatch-hex{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+  margin-top:2px;
+}
+.swatch-pct{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+}
+.swatch-from{
+  font-family:var(--mono);
+  font-size:9px;
+  color:var(--muted-lt);
+  margin-top:1px;
+  font-style:italic;
+}
+.swatch-delta{
+  position:absolute;
+  top:4px;right:4px;
+  font-family:var(--mono);
+  font-size:9px;
+  padding:1px 4px;
+  border-radius:2px;
+  background:var(--bg);
+  color:var(--muted);
+}
+.swatch-delta.close{background:var(--green-lt);color:var(--green-dk)}
+.swatch-delta.far{background:var(--amb-bg);color:var(--amb)}
+.swatch-eye{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:26px;height:26px;
+  flex-shrink:0;
+  border-radius:var(--radius);
+  cursor:pointer;
+  color:var(--muted);
+  transition:all .1s;
+}
+.swatch-eye:hover{
+  background:var(--surface);
+  color:var(--text);
+}
+.swatch-eye svg{
+  width:16px;height:16px;
+}
+.swatch-reset{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:18px;height:18px;
+  flex-shrink:0;
+  border-radius:var(--radius);
+  cursor:pointer;
+  color:var(--muted);
+  font-size:16px;
+  line-height:1;
+  font-weight:700;
+  transition:all .1s;
+}
+.swatch-reset:hover{
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* Palette header: label on left, controls (hint + reset button) on right */
+.palette-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.palette-controls .reset-inks{
+  background:transparent;
+  border:1px solid var(--border-dk);
+  color:var(--muted);
+  padding:4px 10px;
+  border-radius:var(--radius);
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  font-weight:700;
+  cursor:pointer;
+  font-family:var(--sans);
+  transition:all .1s;
+}
+.palette-controls .reset-inks:hover{
+  color:var(--text);
+  border-color:var(--text);
+}
+
+/* ===== LOADING / STATUS ===== */
+.status{
+  position:absolute;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.95);
+  z-index:10;
+  flex-direction:column;
+  gap:14px;
+  border-radius:var(--radius-lg);
+}
+.status.on{display:flex}
+.spinner{
+  width:32px;height:32px;
+  border:3px solid var(--border);
+  border-top-color:var(--yellow);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+.status-text{
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:700;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Screen/ink estimate */
+.estimate{
+  background:var(--sb-bg);
+  color:#fff;
+  padding:14px 16px;
+  border-radius:var(--radius-lg);
+  margin-top:10px;
+  display:none;
+}
+.estimate.on{display:block}
+.est-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:4px 0;
+}
+.est-row:not(:last-child){border-bottom:1px solid var(--sb-border)}
+.est-label{
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted-lt);
+}
+.est-value{
+  font-family:var(--mono);
+  font-size:16px;
+  font-weight:700;
+  color:var(--yellow);
+}
+
+/* Hidden file input */
+#fileInput{display:none}
+
+/* Toast */
+.toast{
+  position:fixed;
+  bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--sb-bg);
+  color:var(--yellow);
+  padding:10px 18px;
+  border-radius:var(--radius);
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:700;
+  opacity:0;
+  transition:all .2s;
+  z-index:100;
+  pointer-events:none;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Mobile/narrow */
+@media (max-width:900px){
+  .main{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .controls-area{border-left:none;border-top:1px solid var(--border);max-height:50vh}
+  .preview-grid{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="tb-left">
+    <div class="tb-logo">P</div>
+    <div class="tb-title">Color Counter</div>
+    <div class="tb-version">v20</div>
+  </div>
+  <div class="tb-right" id="tbRight">Drop an image or PDF to begin</div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- CANVAS AREA -->
+  <div class="canvas-area">
+
+    <!-- Drop zone (shown when no file) -->
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-inner">
+        <div class="drop-icon">⬢</div>
+        <div class="drop-title">Drop Art Here</div>
+        <div class="drop-sub">Count colors, match Pantones, estimate screen count from any design. Great for quick pricing or sep prep.</div>
+        <div class="drop-formats">
+          <span>PNG</span><span>JPG</span><span>PDF</span><span>WEBP</span>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,application/pdf">
+    </div>
+
+    <!-- Preview (shown after file loaded) -->
+    <div class="preview-wrap" id="previewWrap">
+      <div class="preview-header">
+        <div class="preview-filename" id="previewFilename"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="zoom-controls">
+            <button class="zoom-btn" id="zoomOutBtn" onclick="zoomStep(-1)" title="Zoom out">−</button>
+            <span class="zoom-level" id="zoomLevel">100%</span>
+            <button class="zoom-btn" id="zoomInBtn" onclick="zoomStep(1)" title="Zoom in">+</button>
+            <button class="zoom-btn" id="zoomResetBtn" onclick="zoomReset()" title="Reset zoom" style="width:auto;padding:0 8px;font-size:10px;letter-spacing:1px">FIT</button>
+          </div>
+          <button class="btn" onclick="resetAll()">New File</button>
+        </div>
+      </div>
+      <!-- Click-mode toggle — shown only when Remove Background is active -->
+      <div class="click-mode-bar" id="clickModeBar" style="display:none">
+        <span class="click-mode-label">Click on Quantized preview to:</span>
+        <div class="click-mode-buttons">
+          <button class="click-mode-btn active" data-mode="restore" onclick="setClickMode('restore')">
+            <span class="cmb-icon">＋</span>
+            <span class="cmb-text">Restore Background</span>
+          </button>
+          <button class="click-mode-btn" data-mode="remove" onclick="setClickMode('remove')">
+            <span class="cmb-icon">−</span>
+            <span class="cmb-text">Remove Ink Patch</span>
+          </button>
+        </div>
+        <div class="cmb-separator"></div>
+        <button class="undo-remove-btn" id="undoRemoveBtn" onclick="undoLastRemove()" disabled title="Undo last remove action">
+          <span class="urb-icon">↶</span>
+          <span class="urb-label">Undo Remove<span class="urb-count"></span></span>
+        </button>
+        <span class="click-mode-hint" id="clickModeHint">Click on removed (checkerboard) areas to bring them back</span>
+      </div>
+      <div class="preview-grid">
+        <div class="preview-cell">
+          <div class="preview-label">
+            <span>Original</span>
+            <span class="count" id="origDim">— × —</span>
+          </div>
+          <div class="preview-canvas-wrap" id="origWrap">
+            <canvas id="origCanvas"></canvas>
+            <div class="status" id="origStatus">
+              <div class="spinner"></div>
+              <div class="status-text" id="origStatusText">Loading</div>
+            </div>
+          </div>
+        </div>
+        <div class="preview-cell">
+          <div class="preview-label">
+            <span>Quantized</span>
+            <span class="count" id="quantCount">—</span>
+          </div>
+          <div class="preview-canvas-wrap" id="quantWrap">
+            <canvas id="quantCanvas"></canvas>
+            <div class="status" id="quantStatus">
+              <div class="spinner"></div>
+              <div class="status-text" id="quantStatusText">Clustering</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Palette — unified: merge, recolor, hide -->
+      <div class="palette-wrap" id="paletteWrap">
+        <div class="palette-header">
+          <div class="palette-label">Palette</div>
+          <div class="palette-controls">
+            <span class="palette-hint" id="paletteHint">Click chip to recolor · Eye to hide · Swatch to merge</span>
+            <button class="reset-inks" id="resetInksBtn" onclick="resetMockupInks()">Reset Inks</button>
+          </div>
+        </div>
+        <div class="palette-grid" id="paletteGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-area">
+
+    <div class="ctrl-section">
+      <div class="ctrl-title"><span>Color Count</span><span class="badge" id="kBadge">AUTO</span></div>
+      <div class="k-row">
+        <div class="k-display" id="kDisplay">—</div>
+        <input type="range" min="2" max="12" value="6" class="k-slider" id="kSlider" disabled>
+        <button class="btn-auto" id="btnAuto">Auto</button>
+      </div>
+      <div class="elbow-note" id="elbowNote">Drop a file to detect optimal color count</div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-title"><span>Pre-Upscale</span><span class="badge" id="upscaleVal">2000px</span></div>
+      <div class="upscale-row">
+        <input type="range" min="0" max="4" step="1" value="2" class="upscale-slider" id="upscaleSlider" oninput="onUpscaleSliderInput()">
+      </div>
+      <div class="upscale-ticks">
+        <span>Off</span>
+        <span>1500</span>
+        <span>2000</span>
+        <span>3000</span>
+        <span>4000</span>
+      </div>
+      <div class="upscale-spec" id="upscaleSpec">Drop a file to see upscale info</div>
+      <div class="upscale-help">Bicubic-upscales small AI art before clustering so thin features survive. Higher = sharper, slower.</div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-title"><span>Cleanup Mode</span><span class="badge" id="cleanupModeBadge">OFF</span></div>
+      <div class="cleanup-modes">
+        <button class="cleanup-mode-btn active" data-mode="off" onclick="setCleanupMode('off')">
+          <span class="cm-name">Off</span>
+          <span class="cm-desc">No cleanup — raw clustering result</span>
+        </button>
+        <button class="cleanup-mode-btn" data-mode="lineart" onclick="setCleanupMode('lineart')">
+          <span class="cm-name">Line Art</span>
+          <span class="cm-desc">B&amp;W illustrations, logos, comics — kills halos, no closing</span>
+        </button>
+        <button class="cleanup-mode-btn" data-mode="solidfills" onclick="setCleanupMode('solidfills')">
+          <span class="cm-name">Solid Fills</span>
+          <span class="cm-desc">AI art with solid color regions — fills fragmented edges</span>
+        </button>
+        <button class="cleanup-mode-btn" data-mode="photo" onclick="setCleanupMode('photo')">
+          <span class="cm-name">Photo</span>
+          <span class="cm-desc">Photos &amp; photo-realistic AI — gentle smoothing only</span>
+        </button>
+      </div>
+      <!-- Hidden select for programmatic state (used by setCleanupMode) -->
+      <select id="cleanupModeSelect" style="display:none">
+        <option value="off">Off</option>
+        <option value="lineart">Line Art</option>
+        <option value="solidfills">Solid Fills</option>
+        <option value="photo">Photo</option>
+      </select>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-title"><span>Mockup Preview</span><span class="badge" id="mockupBadge">—</span></div>
+      <div id="mockupDisabled" class="mockup-disabled">Drop a file to start previewing the art on different tee colors.</div>
+      <div id="mockupControls" style="display:none">
+
+        <!-- REMOVE BACKGROUND — big prominent toggle -->
+        <button class="remove-bg-btn" id="removeBgBtn" onclick="toggleBgRemoval()">
+          <span class="remove-bg-icon" id="removeBgIcon">⊘</span>
+          <span class="remove-bg-label">
+            <span class="remove-bg-title">Remove Background</span>
+            <span class="remove-bg-sub" id="removeBgSub">Auto-detects tee color from image corners</span>
+          </span>
+          <span class="remove-bg-state" id="removeBgState">OFF</span>
+        </button>
+
+        <div id="bgControls" style="display:none">
+          <div class="bg-detected-row">
+            <div class="bg-detected-label">Detected Color</div>
+            <label class="bg-color-swatch-lg" id="bgColorSwatch" style="background:#0D0D0B">
+              <input type="color" id="bgColorInput" value="#0D0D0B">
+            </label>
+            <span class="bg-color-hex" id="bgColorHex">#0D0D0B</span>
+            <span class="bg-detected-hint">Click swatch to change</span>
+          </div>
+          <div class="bg-tolerance-wrap">
+            <div class="bg-tolerance-label">
+              <span>Tolerance</span>
+              <span class="val" id="bgToleranceVal">ΔE 8</span>
+            </div>
+            <input type="range" min="2" max="20" value="8" class="bg-tolerance-slider" id="bgToleranceSlider">
+          </div>
+        </div>
+
+        <div class="mockup-divider"></div>
+
+        <!-- TEE COLOR -->
+        <div style="font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">Tee Color</div>
+        <div class="tee-presets" id="teePresets"></div>
+        <div class="bg-pick-row">
+          <label class="bg-color-swatch" id="teeColorSwatch" style="background:#0D0D0B">
+            <input type="color" id="teeColorInput" value="#0D0D0B">
+          </label>
+          <span class="bg-color-hex" id="teeColorHex">#0D0D0B</span>
+        </div>
+
+        <!-- TRANSPARENT TEE toggle -->
+        <div class="toggle-row" id="transparentTeeRow" onclick="toggleTransparentTee()" style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+          <div class="toggle-label">
+            Preview with Transparent Background
+            <span class="sub">Show the art isolated on a checkerboard (no tee color)</span>
+          </div>
+          <div class="toggle-switch"></div>
+        </div>
+
+        <div class="bg-method-note" style="margin-top:10px">Hide or recolor inks in the Mockup Inks row (below the main palette) to fine-tune.</div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-title">Screen Estimate</div>
+      <div class="estimate on" id="estimate" style="display:block">
+        <div class="est-row">
+          <span class="est-label">Print Colors</span>
+          <span class="est-value" id="estColors">—</span>
+        </div>
+        <div class="est-row">
+          <span class="est-label">Screens Needed</span>
+          <span class="est-value" id="estScreens">—</span>
+        </div>
+        <div class="est-row">
+          <span class="est-label">Plus White Base</span>
+          <span class="est-value" id="estWithBase">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-title">Export</div>
+
+      <!-- Print-Ready PNG — primary export -->
+      <button class="export-png-btn" id="exportPngBtn" onclick="toggleExportPanel()">
+        <span class="export-png-icon">↓</span>
+        <span class="export-png-label">
+          <span class="export-png-title">Print-Ready PNG</span>
+          <span class="export-png-sub">Hard-edge spot colors, transparent bg</span>
+        </span>
+        <span class="export-png-chev" id="exportPngChev">▾</span>
+      </button>
+
+      <div class="export-panel" id="exportPanel">
+        <div class="export-row">
+          <label class="export-label">Print Size</label>
+          <select class="export-select" id="exportSize">
+            <option value="4">4" (chest / sleeve)</option>
+            <option value="8">8" (small front)</option>
+            <option value="10">10" (medium)</option>
+            <option value="12" selected>12" (standard front/back)</option>
+            <option value="14">14" (oversized)</option>
+            <option value="16">16" (jumbo)</option>
+            <option value="20">20" (bandana / max)</option>
+          </select>
+        </div>
+        <div class="export-row">
+          <label class="export-label">DPI</label>
+          <select class="export-select" id="exportDpi">
+            <option value="300" selected>300 (print quality)</option>
+            <option value="200">200 (reduced)</option>
+            <option value="150">150 (web / proof)</option>
+          </select>
+        </div>
+        <div class="export-spec" id="exportSpec">—</div>
+        <div class="export-scale" id="exportScale">—</div>
+        <button class="btn btn-primary btn-block" id="exportGenerateBtn" onclick="generatePrintReadyPng()" style="margin-top:10px">Generate PNG</button>
+        <div class="export-progress" id="exportProgress" style="display:none">
+          <div class="export-progress-bar"><div class="export-progress-fill" id="exportProgressFill"></div></div>
+          <div class="export-progress-text" id="exportProgressText">Preparing…</div>
+        </div>
+      </div>
+
+      <!-- Palette copy buttons — secondary -->
+      <div class="export-secondary-label">Palette text</div>
+      <div class="btn-row" style="margin-bottom:8px">
+        <button class="btn" onclick="copyPalette('pantone')">Copy Pantones</button>
+        <button class="btn" onclick="copyPalette('hex')">Copy Hex</button>
+      </div>
+      <button class="btn btn-block" onclick="copyPalette('full')">Copy Full Report</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- HSL Color Popover (reused for mockup ink recoloring) -->
+<div class="hsl-popover" id="hslPopover">
+  <div class="hsl-pop-header">
+    <div class="hsl-pop-title">Recolor Ink</div>
+    <button class="hsl-pop-close" onclick="closeHslPopover()" title="Close">×</button>
+  </div>
+  <div class="hsl-preview" id="hslPreview"></div>
+  <div class="hsl-slider-row">
+    <div class="hsl-slider-label"><span>Hue</span><span class="val" id="hslHueVal">0°</span></div>
+    <input type="range" min="0" max="360" value="0" class="hsl-slider hue" id="hslHue">
+  </div>
+  <div class="hsl-slider-row">
+    <div class="hsl-slider-label"><span>Saturation</span><span class="val" id="hslSatVal">0%</span></div>
+    <input type="range" min="0" max="100" value="0" class="hsl-slider sat" id="hslSat">
+  </div>
+  <div class="hsl-slider-row">
+    <div class="hsl-slider-label"><span>Lightness</span><span class="val" id="hslLightVal">0%</span></div>
+    <input type="range" min="0" max="100" value="0" class="hsl-slider light" id="hslLight">
+  </div>
+  <div class="hsl-hex-row">
+    <span class="hsl-hex-label">HEX</span>
+    <input type="text" class="hsl-hex-input" id="hslHex" value="#000000" maxlength="7">
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   PINE COLOR COUNTER v1
+   Standalone tool. Read-only (no Airtable writes in v1).
+   ========================================================================== */
+
+// ---------- CONFIG ----------
+const MAX_DIM = 800;            // Downscale any image larger than this for speed
+const MIN_K = 2, MAX_K = 12;
+const SAMPLE_MAX_PIXELS = 50000; // Cap pixels for k-means perf
+const NEAR_BLACK = 25;           // RGB threshold for "near black" (0-255)
+const NEAR_WHITE = 235;          // RGB threshold for "near white"
+const BG_DOMINANCE = 0.25;       // A cluster >25% that's near-black/white gets dropped as bg
+
+// Common tee colors (hex + display name). Ordered by usage.
+const TEE_PRESETS = [
+  { name: 'Black',    hex: '#0D0D0B' },
+  { name: 'White',    hex: '#F5F5F0' },
+  { name: 'Sand',     hex: '#D4C5A9' },
+  { name: 'Navy',     hex: '#1A2238' },
+  { name: 'Heather',  hex: '#9B9B95' },
+  { name: 'Forest',   hex: '#1E4D2B' },
+  { name: 'Burgundy', hex: '#67213C' },
+  { name: 'Ash',      hex: '#C5C4BF' },
+];
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ---------- PANTONE DATA (compact subset) ----------
+// ~400 common Pantone C colors. For production, swap in the 1,402-entry map from Ink Queue v66.
+// Format: { "185": "#e4002b", "Black": "#2d2926", ... }
+const PANTONE_HEX = {
+  "Black":"#2d2926","Black C":"#2d2926","White":"#ffffff",
+  "100":"#f5e1a4","101":"#f7e017","102":"#fce300","103":"#caa800","104":"#af9800","105":"#897630",
+  "106":"#f9e547","107":"#fbdd40","108":"#fedd00","109":"#ffd100","110":"#daaa00","111":"#aa8a00",
+  "113":"#fadf63","114":"#fad962","115":"#fad55a","116":"#ffcd00","117":"#c99700","118":"#ac8400",
+  "120":"#f8d568","121":"#f7d272","122":"#fed141","123":"#ffc72c","124":"#eaaa00","125":"#b58500",
+  "127":"#f3dd6d","128":"#edcc66","129":"#edbf35","130":"#f2a900","131":"#cc8a00","132":"#a07400",
+  "134":"#fbce4b","135":"#fdc05e","136":"#fdbb30","137":"#ed9b00","138":"#dc8633","139":"#a76a19",
+  "141":"#edc150","142":"#edb458","143":"#eaaa00","144":"#e38e00","145":"#c9842a","146":"#8f6f36",
+  "148":"#f0cd9c","149":"#fec89a","150":"#ffb25b","151":"#ff8200","152":"#dd7500","153":"#b06b23",
+  "155":"#e7c498","156":"#ebbc8b","157":"#ea9b5f","158":"#e87722","159":"#cf5c00","160":"#963f13",
+  "162":"#f6c8b0","163":"#f4a28c","164":"#f28f6a","165":"#ff671f","166":"#e35205","167":"#be531c",
+  "169":"#fbbaa5","170":"#f58674","171":"#ff5a36","172":"#fa4616","173":"#cf4520","174":"#963821",
+  "176":"#f9acb7","177":"#fc94ad","178":"#f57584","179":"#e03c31","180":"#be3a34","181":"#7c2529",
+  "182":"#f7b2bc","183":"#f598a1","184":"#ec6f84","185":"#e4002b","186":"#c8102e","187":"#a6192e",
+  "188":"#76232f","189":"#f4a4b5","190":"#ee8aa0","191":"#e8556e","192":"#ea0029","193":"#bf0d3e",
+  "194":"#8a1538","195":"#6a2c3e","196":"#efbdca","197":"#e8a1b4","198":"#e0004d","199":"#d50032",
+  "200":"#ba0c2f","201":"#9d2235","202":"#862633","203":"#efbbcc","204":"#eaa7b9","205":"#e07698",
+  "206":"#ce0f69","207":"#9b2743","208":"#851346","209":"#6f263d","210":"#f8a3bc","211":"#f48ab0",
+  "212":"#ed6397","213":"#ea1179","214":"#ce0072","215":"#a50f4b","216":"#851f3d","217":"#ebb5ca",
+  "218":"#e977b0","219":"#da1884","220":"#981e97","221":"#a8115b","222":"#78184a","223":"#ed9bd3",
+  "224":"#e86ab9","225":"#d62598","226":"#d0006f","227":"#a50050","228":"#85004b","229":"#67143a",
+  "230":"#f1a7dc","231":"#ec79c8","232":"#e15cb3","233":"#c6007e","234":"#a50062","235":"#861f41",
+  "236":"#e6a8d7","237":"#e07cbf","238":"#d55d9b","239":"#c6198c","240":"#a51e76","241":"#901b80",
+  "242":"#6d1a3e","243":"#daa6dc","244":"#d698d1","245":"#c771b7","246":"#b529a3","247":"#9e007e",
+  "248":"#8a1a9b","249":"#682d73","250":"#e0b8d9","251":"#d497ca","252":"#b368b5","253":"#862896",
+  "254":"#7b1e7a","255":"#582c83","256":"#c4b0c9","257":"#b79fc7","258":"#7c579f","259":"#6a1a80",
+  "260":"#5f1675","261":"#551d70","262":"#4b2768","263":"#c9bbd9","264":"#b19cd9","265":"#7251b0",
+  "266":"#6639b7","267":"#5f249f","268":"#582d90","269":"#3f2a56","270":"#b3b5dc","271":"#9695c5",
+  "272":"#7474c1","273":"#1f2c5b","274":"#1e1a42","275":"#201747","276":"#201547","277":"#9bcbeb",
+  "278":"#85b3d1","279":"#418fde","280":"#012169","281":"#00205b","282":"#041e42","283":"#92c1e9",
+  "284":"#6cace4","285":"#0072ce","286":"#0033a0","287":"#003087","288":"#002d72","289":"#0c2340",
+  "290":"#bad9ec","291":"#9ac7e3","292":"#6cace4","293":"#002f87","294":"#002868","295":"#002554",
+  "296":"#041e42","297":"#71c5e8","298":"#41b6e6","299":"#00a3e0","300":"#005eb8","301":"#004b87",
+  "302":"#003a70","303":"#002b49","304":"#a3daea","305":"#63b5e5","306":"#00a0d6","307":"#007db8",
+  "308":"#00629b","309":"#003c57","310":"#63cdd1","311":"#0cb8b6","312":"#00aec7","313":"#0098b4",
+  "314":"#008094","315":"#00617f","316":"#0d3b4a","317":"#baeaea","318":"#88dbdf","319":"#2dccd3",
+  "320":"#009ca6","321":"#008689","322":"#006a6f","323":"#005759","324":"#a6dfd8","325":"#5dbcad",
+  "326":"#00a499","327":"#00876c","328":"#00685e","329":"#00534c","330":"#00433a","331":"#b8e7d0",
+  "332":"#89d5ba","333":"#3eb489","334":"#009a66","335":"#00704a","336":"#00573f","337":"#85d1b4",
+  "338":"#6cbf91","339":"#00a776","340":"#00945e","341":"#007749","342":"#006341","343":"#00573f",
+  "344":"#b6dfb6","345":"#9bc8a0","346":"#71b788","347":"#009a44","348":"#007a33","349":"#00622d",
+  "350":"#264a2b","351":"#bbdfae","352":"#a4d49c","353":"#8ccb78","354":"#00b140","355":"#009639",
+  "356":"#007a33","357":"#215732","358":"#addc91","359":"#9dca7d","360":"#6cc24a","361":"#43b02a",
+  "362":"#509e2f","363":"#4a7729","364":"#3f6c28","365":"#d9ed91","366":"#c7e085","367":"#addc6f",
+  "368":"#78be20","369":"#64a70b","370":"#658d1b","371":"#506f10","372":"#dce290","373":"#cfd880",
+  "374":"#bccf67","375":"#97d700","376":"#85b00d","377":"#74902d","378":"#556229","379":"#e0e271",
+  "380":"#d5d755","381":"#c4ce3c","382":"#a9c23f","383":"#8d9a16","384":"#7a8712","385":"#626e11",
+  "386":"#eaee44","387":"#e4e83b","388":"#d4dd27","389":"#c7d322","390":"#a9bf00","391":"#8e9400",
+  "392":"#6f7b10","393":"#f4eb93","394":"#f0e882","395":"#e8e375","396":"#dcdb2e","397":"#c7c223",
+  "398":"#aa9f00","399":"#9c8412","400":"#c7c9c7","401":"#b2b4b2","402":"#a0a1a0","403":"#919190",
+  "404":"#7a7a78","405":"#5f5f5d","406":"#cbc4bc","407":"#b6aea4","408":"#a39891","409":"#8a8279",
+  "410":"#766c66","411":"#5d5149","412":"#332f21","413":"#bcbcb0","414":"#a9aa9d","415":"#95968a",
+  "416":"#7f8172","417":"#6a6e5c","418":"#555849","419":"#212721","420":"#c6c8c1","421":"#b2b4a9",
+  "422":"#9ea59a","423":"#888b8d","424":"#707372","425":"#54585a","426":"#2a2d2f","427":"#d0d3d4",
+  "428":"#c1c6c8","429":"#a2aaad","430":"#7c878e","431":"#5b6770","432":"#333f48","433":"#1d252d",
+  "434":"#dbcac1","435":"#c1a4a4","436":"#ae8d91","437":"#7b4a4a","438":"#512f31","439":"#3e2d2b",
+  "440":"#372627","441":"#d4dad0","442":"#b6bfb6","443":"#8e9a94","444":"#707b74","445":"#4e5755",
+  "446":"#3c3e34","447":"#2a2c22","448":"#4a412a","449":"#534931","450":"#605b36","451":"#acac8d",
+  "452":"#c0c09c","453":"#d4d4b3","454":"#dcdcb8","455":"#6e5f2f","456":"#b58500","457":"#b28e41",
+  "458":"#dfbc5a","459":"#e5c96f","460":"#eed888","461":"#f3e5a9","462":"#5c4730","463":"#754719",
+  "464":"#8c5c1c","465":"#c4a673","466":"#d4b97a","467":"#dcc38d","468":"#e4d1a3","469":"#693f23",
+  "470":"#9c4a1b","471":"#b75121","472":"#e0a17d","473":"#f0bc9a","474":"#f2c6a5","475":"#f3d4b5",
+  "476":"#4a2f27","477":"#573021","478":"#6b3328","479":"#b2886f","480":"#c49a80","481":"#d1ae94",
+  "482":"#dabfa5","483":"#712414","484":"#9a3324","485":"#da291c","486":"#e8927c","487":"#f4aa8e",
+  "488":"#f7b9a1","489":"#f5c6b0","490":"#6a171a","491":"#8e2434","492":"#a5334f","493":"#d295a0",
+  "494":"#e2a8b4","495":"#ecbbc6","496":"#f0c6cf","497":"#572022","498":"#6e2835","499":"#82323c",
+  "500":"#c88fa1","501":"#dba7b6","502":"#e8bec9","503":"#eccbd3","504":"#672a3b","505":"#6e1e37",
+  "506":"#7c2139","507":"#db7f9e","508":"#e699b4","509":"#ecafc3","510":"#efbccb","511":"#5d1e56",
+  "512":"#7b2c88","513":"#9f3c9f","514":"#c78ac3","515":"#d4a0cc","516":"#dcb4d3","517":"#e3c5d8",
+  "518":"#4a3c57","519":"#5d3f6a","520":"#6f407e","521":"#af9ebd","522":"#bbabc6","523":"#c8bcd1",
+  "524":"#d2c8d8","525":"#422b58","526":"#522d80","527":"#611d8a","528":"#a290c1","529":"#b2a4ca",
+  "530":"#bdb2d1","531":"#c8bfd8","532":"#1a2238","533":"#1e2b4a","534":"#1f3668","535":"#9facc7",
+  "536":"#a8b5cd","537":"#b8c2d4","538":"#c6cedb","539":"#00283a","540":"#003057","541":"#003a70",
+  "542":"#7ea7c3","543":"#8ab6d0","544":"#9fc7dc","545":"#b8d6e2","546":"#09404d","547":"#0a4861",
+  "548":"#0a5275","549":"#6a9fa9","550":"#87b0bc","551":"#9cbdc7","552":"#b5ccd4","553":"#11443b",
+  "554":"#115740","555":"#1b7143","556":"#8fad99","557":"#a2bba9","558":"#b3c7b8","559":"#c2d1c5",
+  "560":"#0c3d2e","561":"#0a4b39","562":"#0a5940","563":"#94d4c7","564":"#a3dac9","565":"#b4e0cb",
+  "566":"#c5e8d6","567":"#13463a","568":"#0f5d4e","569":"#007a5e","570":"#89ccc0","571":"#a0d5c6",
+  "572":"#b4decb","573":"#c5e6d3","574":"#4a5225","575":"#58631e","576":"#6f7519","577":"#c2cb97",
+  "578":"#c8d09e","579":"#cdd4a7","580":"#d3dbaf","581":"#564d1d","582":"#6b621e","583":"#b5bd00",
+  "584":"#c7c843","585":"#cfd06a","586":"#d8d984","587":"#dce0a2","Cool Gray 1":"#d9d9d6",
+  "Cool Gray 2":"#d0d0ce","Cool Gray 3":"#c8c9c7","Cool Gray 4":"#bbbcbc","Cool Gray 5":"#b1b3b3",
+  "Cool Gray 6":"#a7a8aa","Cool Gray 7":"#97999b","Cool Gray 8":"#888b8d","Cool Gray 9":"#75787b",
+  "Cool Gray 10":"#63666a","Cool Gray 11":"#53565a","Warm Gray 1":"#d7d2cb","Warm Gray 2":"#cbc4bc",
+  "Warm Gray 3":"#bfb8af","Warm Gray 4":"#b6ada5","Warm Gray 5":"#ada298","Warm Gray 6":"#a39791",
+  "Warm Gray 7":"#968c83","Warm Gray 8":"#8b8178","Warm Gray 9":"#83786f","Warm Gray 10":"#796e65",
+  "Warm Gray 11":"#6a5f55","Process Blue":"#0085ca","Process Blue C":"#0085ca",
+  "Reflex Blue":"#001489","Reflex Blue C":"#001489","Rhodamine Red":"#e10098",
+  "Rubine Red":"#ce0058","Purple":"#bb29bb","Violet":"#440099","Orange 021":"#fe5000",
+  "Red 032":"#ef3340","Yellow 012":"#ffd700","Green":"#00ab84","Blue 072":"#10069f",
+};
+
+// ---------- STATE ----------
+const state = {
+  rawSourceCanvas: null,   // v20: untouched decoded file (PNG/JPG/PDF raster). Pre-upscale source.
+  sourceCanvas: null,      // Working source (may be bicubic-upscaled from rawSourceCanvas)
+  workCanvas: null,        // Downscaled working copy for clustering (filtered when cleanup is on)
+  workCanvasUnfiltered: null, // v18: original unfiltered downscale, used as base when cleanup toggles
+  filename: '',
+  clusters: [],            // [{r,g,b,hex,pct,pantone,deltaE,pixelCount}]
+  pixelAssignments: null,  // Uint8Array: cluster index per pixel in workCanvas
+  k: null,                 // Current k
+  autoK: null,             // Detected elbow k
+  elbowData: null,         // { wcss: [...], k: elbowK }
+  isAuto: true,
+  filters: { bg:false, black:false, white:false },  // kept for compat, all disabled
+  bgRemoval: {
+    enabled: false,
+    pickedColor: [13,13,11], // RGB for user-picked bg
+    tolerance: 8,            // Delta-E threshold for flood-fill match
+    protectedRegions: {},    // { regionId: true } — bg regions user has clicked to preserve
+    regionMask: null,        // Int32Array per pixel: 0 = non-bg, N = region ID (1-indexed)
+    clickMode: 'restore',    // 'restore' | 'remove' — what a click does on the quantized canvas
+    removedPatches: null,    // Uint8Array mask: 1 = pixel explicitly removed by user click
+    removeHistory: [],       // Stack of arrays of pixel indices — each entry = one remove action
+  },
+  mockup: {
+    teeActive: false,        // True once user picks a tee preset or tee color
+    teeColor: [13,13,11],    // RGB for tee color in mockup
+    teeHex: '#0D0D0B',
+    transparentTee: false,   // Override: show bg as transparent checkerboard instead of tee color
+    inkRemap: {},            // { clusterId: [r,g,b] } — overrides cluster color in preview only
+    hiddenInks: {},          // { clusterId: true } — hidden inks treated as bg in mockup
+  },
+  mergePickFirst: null,    // Index of first swatch clicked for merge
+  cleanup: {
+    // v19: mode-based cleanup. 'off' | 'lineart' | 'solidfills' | 'photo'.
+    // Each mode runs a different combination of cleanup steps.
+    mode: 'off',
+    // Pipeline params — same for all modes that use them.
+    medianKernel: 3,        // Pre-cluster median filter kernel
+    edgeAaDeltaE: 8,        // Edge AA suppression: snap to majority if centroid ΔE > this
+    closeRadius: 2,         // Morph closing radius (Solid Fills only)
+    despeckleMinPct: 0.0005,
+    despeckleMinPx: 8,
+  },
+  // v20: adaptive pre-upscale config. Source images smaller than `target` (long side)
+  // get bicubic-upscaled to `target` before clustering. Helps thin features survive
+  // k-means and downstream cleanup. Larger sources are untouched. 0 = off.
+  upscale: {
+    target: 2000,           // 0 (off) | 1500 | 2000 | 3000 | 4000
+  },
+  // v19: cached source-resolution preview assignments (Int16Array per source pixel).
+  // Rebuilt when clusters or cleanup mode change. Used to paint preview at source res.
+  sourceAssignments: null,
+};
+
+// ---------- COLOR UTILS ----------
+function rgbToHex(r,g,b){
+  const h = n => n.toString(16).padStart(2,'0');
+  return '#'+h(Math.round(r))+h(Math.round(g))+h(Math.round(b));
+}
+function hexToRgb(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+}
+
+// Mockup is "active" (render tee color as bg) if either:
+//   - User has engaged with tee selection (picked a preset or custom color), OR
+//   - Garment Color flood-fill is on (advanced mode)
+function isMockupActive(){
+  return state.mockup.teeActive || state.bgRemoval.enabled;
+}
+
+// Apply the tee color as the CSS background of BOTH preview canvas wraps, so
+// transparent areas of the Original canvas show the same tee color the Quantized
+// canvas paints internally. Lets users eyeball match while adjusting inks.
+// Checkerboard returns when mockup is inactive or transparent-tee mode is on.
+function applyPreviewBg(){
+  const origWrap = document.getElementById('origWrap');
+  const quantWrap = document.getElementById('quantWrap');
+  if(!origWrap || !quantWrap) return;
+  const showTeeBg = isMockupActive() && !state.mockup.transparentTee;
+  if(showTeeBg){
+    const teeHex = state.mockup.teeHex || '#0D0D0B';
+    origWrap.style.setProperty('--tee-bg', teeHex);
+    quantWrap.style.setProperty('--tee-bg', teeHex);
+    origWrap.classList.add('tee-bg');
+    quantWrap.classList.add('tee-bg');
+  } else {
+    origWrap.classList.remove('tee-bg');
+    quantWrap.classList.remove('tee-bg');
+  }
+}
+// sRGB -> linear
+function srgbToLin(c){ c/=255; return c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
+// sRGB -> XYZ (D65)
+function rgbToXyz(r,g,b){
+  r=srgbToLin(r); g=srgbToLin(g); b=srgbToLin(b);
+  return [
+    (r*0.4124564 + g*0.3575761 + b*0.1804375)*100,
+    (r*0.2126729 + g*0.7151522 + b*0.0721750)*100,
+    (r*0.0193339 + g*0.1191920 + b*0.9503041)*100,
+  ];
+}
+// XYZ -> Lab (D65)
+function xyzToLab(x,y,z){
+  const Xn=95.047, Yn=100, Zn=108.883;
+  const f = t => t>0.008856 ? Math.cbrt(t) : (7.787*t + 16/116);
+  const fx=f(x/Xn), fy=f(y/Yn), fz=f(z/Zn);
+  return [116*fy-16, 500*(fx-fy), 200*(fy-fz)];
+}
+function rgbToLab(r,g,b){
+  const [x,y,z]=rgbToXyz(r,g,b);
+  return xyzToLab(x,y,z);
+}
+// Delta-E 2000 — proper perceptual color distance
+function deltaE2000(lab1, lab2){
+  const [L1,a1,b1]=lab1, [L2,a2,b2]=lab2;
+  const C1=Math.hypot(a1,b1), C2=Math.hypot(a2,b2);
+  const Cb=(C1+C2)/2;
+  const G=0.5*(1-Math.sqrt(Math.pow(Cb,7)/(Math.pow(Cb,7)+Math.pow(25,7))));
+  const a1p=a1*(1+G), a2p=a2*(1+G);
+  const C1p=Math.hypot(a1p,b1), C2p=Math.hypot(a2p,b2);
+  const h1p=Math.atan2(b1,a1p)*180/Math.PI; const h1 = h1p<0?h1p+360:h1p;
+  const h2p=Math.atan2(b2,a2p)*180/Math.PI; const h2 = h2p<0?h2p+360:h2p;
+  const dLp=L2-L1, dCp=C2p-C1p;
+  let dhp;
+  if(C1p*C2p===0) dhp=0;
+  else{
+    const diff=h2-h1;
+    if(Math.abs(diff)<=180) dhp=diff;
+    else if(diff>180) dhp=diff-360;
+    else dhp=diff+360;
+  }
+  const dHp=2*Math.sqrt(C1p*C2p)*Math.sin(dhp*Math.PI/360);
+  const Lbp=(L1+L2)/2, Cbp=(C1p+C2p)/2;
+  let hbp;
+  if(C1p*C2p===0) hbp=h1+h2;
+  else if(Math.abs(h1-h2)<=180) hbp=(h1+h2)/2;
+  else if(h1+h2<360) hbp=(h1+h2+360)/2;
+  else hbp=(h1+h2-360)/2;
+  const T=1 - 0.17*Math.cos((hbp-30)*Math.PI/180) + 0.24*Math.cos(2*hbp*Math.PI/180)
+        + 0.32*Math.cos((3*hbp+6)*Math.PI/180) - 0.20*Math.cos((4*hbp-63)*Math.PI/180);
+  const dTheta=30*Math.exp(-Math.pow((hbp-275)/25,2));
+  const Rc=2*Math.sqrt(Math.pow(Cbp,7)/(Math.pow(Cbp,7)+Math.pow(25,7)));
+  const Sl=1 + (0.015*Math.pow(Lbp-50,2))/Math.sqrt(20+Math.pow(Lbp-50,2));
+  const Sc=1 + 0.045*Cbp, Sh=1 + 0.015*Cbp*T;
+  const Rt=-Math.sin(2*dTheta*Math.PI/180)*Rc;
+  return Math.sqrt(
+    Math.pow(dLp/Sl,2) + Math.pow(dCp/Sc,2) + Math.pow(dHp/Sh,2) + Rt*(dCp/Sc)*(dHp/Sh)
+  );
+}
+
+// Precompute Pantone LAB values once
+const PANTONE_LAB = {};
+for(const [name, hex] of Object.entries(PANTONE_HEX)){
+  const [r,g,b]=hexToRgb(hex);
+  PANTONE_LAB[name] = { hex, lab: rgbToLab(r,g,b) };
+}
+
+function findNearestPantone(r,g,b){
+  const lab = rgbToLab(r,g,b);
+  let best = null, bestD = Infinity;
+  for(const [name, data] of Object.entries(PANTONE_LAB)){
+    const d = deltaE2000(lab, data.lab);
+    if(d < bestD){ bestD = d; best = { name, hex: data.hex, deltaE: d }; }
+  }
+  return best;
+}
+
+// ---------- K-MEANS ----------
+// Flood-fill background removal
+// imageData: Uint8ClampedArray (RGBA), width, height
+// targetRgb: [r,g,b] of expected bg color
+// tolerance: Delta-E 2000 threshold (pixel matches if within this distance)
+// Returns Uint8Array mask: 1 = background (to remove), 0 = keep
+function floodFillBg(imageData, width, height, targetRgb, tolerance){
+  const totalPx = width * height;
+  const mask = new Uint8Array(totalPx); // 0 = keep, 1 = bg
+
+  const targetLab = rgbToLab(targetRgb[0], targetRgb[1], targetRgb[2]);
+
+  // Quick check: does a pixel match the target color?
+  // We use a squared RGB distance as a fast pre-filter, then verify with Delta-E.
+  // Tolerance ΔE 8 ~ RGB dist ~ 30-40 — use generous RGB prefilter.
+  const rgbDistSq = tolerance * tolerance * 36; // heuristic: ΔE 8 => ~rgb dist 48
+  function matches(px){
+    const r = imageData[px*4], g = imageData[px*4+1], b = imageData[px*4+2], a = imageData[px*4+3];
+    if(a < 128) return true; // transparent is always bg
+    const dr = r - targetRgb[0], dg = g - targetRgb[1], db = b - targetRgb[2];
+    const rd = dr*dr + dg*dg + db*db;
+    if(rd > rgbDistSq * 4) return false; // clear miss
+    // Accurate Delta-E check for borderline cases
+    const lab = rgbToLab(r,g,b);
+    return deltaE2000(lab, targetLab) <= tolerance;
+  }
+
+  // BFS queue. Use a typed array as a ring buffer for speed.
+  const queue = new Int32Array(totalPx);
+  let qHead = 0, qTail = 0;
+
+  // Seed with every edge pixel that matches
+  // Top + bottom rows
+  for(let x = 0; x < width; x++){
+    const top = x;
+    const bot = (height - 1) * width + x;
+    if(matches(top) && !mask[top]){ mask[top] = 1; queue[qTail++] = top; }
+    if(matches(bot) && !mask[bot]){ mask[bot] = 1; queue[qTail++] = bot; }
+  }
+  // Left + right cols (skip corners already handled)
+  for(let y = 1; y < height - 1; y++){
+    const left = y * width;
+    const right = y * width + (width - 1);
+    if(matches(left) && !mask[left]){ mask[left] = 1; queue[qTail++] = left; }
+    if(matches(right) && !mask[right]){ mask[right] = 1; queue[qTail++] = right; }
+  }
+
+  // 4-connected flood fill
+  while(qHead < qTail){
+    const p = queue[qHead++];
+    const x = p % width;
+    const y = (p - x) / width;
+
+    // N, S, E, W
+    if(y > 0){
+      const n = p - width;
+      if(!mask[n] && matches(n)){ mask[n] = 1; queue[qTail++] = n; }
+    }
+    if(y < height - 1){
+      const s = p + width;
+      if(!mask[s] && matches(s)){ mask[s] = 1; queue[qTail++] = s; }
+    }
+    if(x < width - 1){
+      const e = p + 1;
+      if(!mask[e] && matches(e)){ mask[e] = 1; queue[qTail++] = e; }
+    }
+    if(x > 0){
+      const w = p - 1;
+      if(!mask[w] && matches(w)){ mask[w] = 1; queue[qTail++] = w; }
+    }
+  }
+
+  return mask;
+}
+
+// Sample corner pixels to guess background color (for Auto mode)
+function sampleCornerBg(imageData, width, height){
+  const samples = [];
+  const cornerSize = Math.min(10, Math.floor(Math.min(width,height) / 20));
+  // 4 corners, cornerSize x cornerSize each
+  const addRegion = (sx, sy) => {
+    for(let y = sy; y < sy + cornerSize; y++){
+      for(let x = sx; x < sx + cornerSize; x++){
+        const i = (y * width + x) * 4;
+        if(imageData[i+3] >= 128){ // skip transparent
+          samples.push([imageData[i], imageData[i+1], imageData[i+2]]);
+        }
+      }
+    }
+  };
+  addRegion(0, 0);
+  addRegion(width - cornerSize, 0);
+  addRegion(0, height - cornerSize);
+  addRegion(width - cornerSize, height - cornerSize);
+  if(samples.length === 0) return null;
+  // Use median (more robust to noise than mean)
+  const r = samples.map(s=>s[0]).sort((a,b)=>a-b);
+  const g = samples.map(s=>s[1]).sort((a,b)=>a-b);
+  const b = samples.map(s=>s[2]).sort((a,b)=>a-b);
+  const mid = Math.floor(samples.length / 2);
+  return [r[mid], g[mid], b[mid]];
+}
+
+// Connected component labeling — assigns each connected island of bg pixels a unique region ID.
+// bgMask: Uint8Array with 1 = bg, 0 = not-bg
+// Returns Int32Array of same length: 0 = not-bg, N >= 1 = region ID
+function labelRegions(bgMask, width, height){
+  const total = width * height;
+  const regions = new Int32Array(total);
+  let nextId = 1;
+  const queue = new Int32Array(total);
+  for(let start = 0; start < total; start++){
+    if(!bgMask[start] || regions[start] !== 0) continue;
+    // New region — BFS
+    const id = nextId++;
+    let qHead = 0, qTail = 0;
+    queue[qTail++] = start;
+    regions[start] = id;
+    while(qHead < qTail){
+      const p = queue[qHead++];
+      const x = p % width;
+      const y = (p - x) / width;
+      if(y > 0){
+        const n = p - width;
+        if(bgMask[n] && regions[n] === 0){ regions[n] = id; queue[qTail++] = n; }
+      }
+      if(y < height - 1){
+        const n = p + width;
+        if(bgMask[n] && regions[n] === 0){ regions[n] = id; queue[qTail++] = n; }
+      }
+      if(x > 0){
+        const n = p - 1;
+        if(bgMask[n] && regions[n] === 0){ regions[n] = id; queue[qTail++] = n; }
+      }
+      if(x < width - 1){
+        const n = p + 1;
+        if(bgMask[n] && regions[n] === 0){ regions[n] = id; queue[qTail++] = n; }
+      }
+    }
+  }
+  return regions;
+}
+
+// ---------- K-MEANS (original) ----------
+// pixels: Float64Array of length n*3 (r,g,b)
+// k: number of clusters
+// Returns { centroids: Array of [r,g,b], assignments: Uint8Array of length n, wcss: number }
+function kmeans(pixels, k, maxIter=20){
+  const n = pixels.length / 3;
+  if(n === 0) return { centroids:[], assignments:new Uint8Array(0), wcss:0 };
+
+  // Init: k-means++ seeding for stable results
+  const centroids = [];
+  const firstIdx = Math.floor(Math.random() * n);
+  centroids.push([pixels[firstIdx*3], pixels[firstIdx*3+1], pixels[firstIdx*3+2]]);
+
+  for(let c = 1; c < k; c++){
+    // Pick next centroid weighted by distance² to nearest existing centroid
+    const dists = new Float64Array(n);
+    let total = 0;
+    for(let i = 0; i < n; i++){
+      let minD = Infinity;
+      const pr=pixels[i*3], pg=pixels[i*3+1], pb=pixels[i*3+2];
+      for(const [cr,cg,cb] of centroids){
+        const dr=pr-cr, dg=pg-cg, db=pb-cb;
+        const d = dr*dr+dg*dg+db*db;
+        if(d < minD) minD = d;
+      }
+      dists[i] = minD;
+      total += minD;
+    }
+    if(total === 0){
+      // All pixels identical — just duplicate
+      centroids.push([...centroids[0]]);
+      continue;
+    }
+    let target = Math.random() * total;
+    let picked = 0;
+    for(let i = 0; i < n; i++){
+      target -= dists[i];
+      if(target <= 0){ picked = i; break; }
+    }
+    centroids.push([pixels[picked*3], pixels[picked*3+1], pixels[picked*3+2]]);
+  }
+
+  const assignments = new Uint8Array(n);
+
+  for(let iter = 0; iter < maxIter; iter++){
+    // Assign
+    let changed = 0;
+    for(let i = 0; i < n; i++){
+      const pr=pixels[i*3], pg=pixels[i*3+1], pb=pixels[i*3+2];
+      let best = 0, bestD = Infinity;
+      for(let c = 0; c < k; c++){
+        const [cr,cg,cb] = centroids[c];
+        const dr=pr-cr, dg=pg-cg, db=pb-cb;
+        const d = dr*dr+dg*dg+db*db;
+        if(d < bestD){ bestD = d; best = c; }
+      }
+      if(assignments[i] !== best){ assignments[i] = best; changed++; }
+    }
+
+    // Update centroids
+    const sums = Array(k).fill(0).map(()=>[0,0,0,0]);
+    for(let i = 0; i < n; i++){
+      const c = assignments[i];
+      sums[c][0] += pixels[i*3];
+      sums[c][1] += pixels[i*3+1];
+      sums[c][2] += pixels[i*3+2];
+      sums[c][3]++;
+    }
+    for(let c = 0; c < k; c++){
+      if(sums[c][3] > 0){
+        centroids[c] = [sums[c][0]/sums[c][3], sums[c][1]/sums[c][3], sums[c][2]/sums[c][3]];
+      }
+    }
+    if(changed === 0) break;
+  }
+
+  // WCSS
+  let wcss = 0;
+  for(let i = 0; i < n; i++){
+    const c = assignments[i];
+    const [cr,cg,cb] = centroids[c];
+    const dr=pixels[i*3]-cr, dg=pixels[i*3+1]-cg, db=pixels[i*3+2]-cb;
+    wcss += dr*dr + dg*dg + db*db;
+  }
+
+  return { centroids, assignments, wcss };
+}
+
+// Elbow detection — find k where second derivative is max (most "bend")
+function detectElbow(wcssByK){
+  // wcssByK is indexed by k (so index 2 is k=2, etc). Find k from MIN_K to MAX_K.
+  const ks = [];
+  for(let k = MIN_K; k <= MAX_K; k++) ks.push({ k, wcss: wcssByK[k] });
+
+  // Normalize (WCSS monotonically decreases; find point of diminishing returns)
+  const maxW = ks[0].wcss, minW = ks[ks.length-1].wcss;
+  const norm = ks.map(({k,wcss}) => ({ k, wcss: (wcss - minW) / (maxW - minW || 1) }));
+
+  // Find point with max distance to line from first to last
+  const x1 = norm[0].k, y1 = norm[0].wcss;
+  const x2 = norm[norm.length-1].k, y2 = norm[norm.length-1].wcss;
+  let bestK = norm[0].k, bestDist = -1;
+  for(const {k,wcss} of norm){
+    // Distance from point (k,wcss) to line (x1,y1)-(x2,y2)
+    const num = Math.abs((y2-y1)*k - (x2-x1)*wcss + x2*y1 - y2*x1);
+    const den = Math.hypot(y2-y1, x2-x1);
+    const dist = num / (den || 1);
+    if(dist > bestDist){ bestDist = dist; bestK = k; }
+  }
+  return bestK;
+}
+
+// ---------- FILE HANDLING ----------
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => {
+  if(e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+['dragenter','dragover'].forEach(ev => {
+  dropZone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.add('drag');
+  });
+});
+['dragleave','drop'].forEach(ev => {
+  dropZone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.remove('drag');
+  });
+});
+dropZone.addEventListener('drop', e => {
+  const file = e.dataTransfer.files[0];
+  if(file) handleFile(file);
+});
+
+// Also accept drop anywhere on the preview area
+document.body.addEventListener('dragover', e => e.preventDefault());
+document.body.addEventListener('drop', e => {
+  e.preventDefault();
+  if(!state.sourceCanvas) return;
+  const file = e.dataTransfer.files[0];
+  if(file) handleFile(file);
+});
+
+async function handleFile(file){
+  state.filename = file.name;
+  document.getElementById('previewFilename').textContent = file.name;
+
+  // Reset zoom when a new file loads
+  zoomReset();
+  // Close HSL popover if it was open
+  if(typeof closeHslPopover === 'function') closeHslPopover();
+  // Clear any protected regions from the previous file (region IDs won't match new file)
+  state.bgRemoval.protectedRegions = {};
+  state.bgRemoval.regionMask = null;
+  state.bgRemoval.removedPatches = null;
+  state.bgRemoval.removeHistory = [];
+  if(typeof updateUndoButton === 'function') updateUndoButton();
+
+  // Swap UI
+  document.getElementById('dropZone').style.display = 'none';
+  document.getElementById('previewWrap').classList.add('on');
+  showStatus('orig', 'Loading');
+
+  try {
+    if(file.type === 'application/pdf'){
+      await loadPdf(file);
+    } else {
+      await loadImage(file);
+    }
+    hideStatus('orig');
+    runClustering();
+  } catch(err){
+    console.error(err);
+    hideStatus('orig');
+    toast('ERROR: ' + (err.message || 'Failed to load file'));
+  }
+}
+
+async function loadImage(file){
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = makeCanvasFromImage(img);
+        // v20: keep raw decoded version; sourceCanvas is the working (possibly upscaled) version
+        state.rawSourceCanvas = canvas;
+        state.sourceCanvas = buildWorkingSourceCanvas(canvas);
+        state.workCanvasUnfiltered = makeWorkCanvas(state.sourceCanvas);
+        state.workCanvas = state.workCanvasUnfiltered; // baseline; cleanup may replace this in runClustering
+        drawCanvasTo('origCanvas', state.rawSourceCanvas); // Show the RAW source in the preview
+        document.getElementById('origDim').textContent =
+          `${img.naturalWidth} × ${img.naturalHeight}`;
+        updateUpscaleSpec();
+        res();
+      };
+      img.onerror = () => rej(new Error('Image decode failed'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => rej(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loadPdf(file){
+  showStatus('orig', 'Rasterizing PDF');
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const page = await pdf.getPage(1); // First page only in v1
+  const viewport = page.getViewport({ scale: 2 });
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext('2d');
+  // PDFs often have transparent bg; fill white so rasterized result is predictable
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  // v20: same raw-vs-working separation as image load
+  state.rawSourceCanvas = canvas;
+  state.sourceCanvas = buildWorkingSourceCanvas(canvas);
+  state.workCanvasUnfiltered = makeWorkCanvas(state.sourceCanvas);
+  state.workCanvas = state.workCanvasUnfiltered;
+  drawCanvasTo('origCanvas', state.rawSourceCanvas);
+  document.getElementById('origDim').textContent =
+    `${canvas.width} × ${canvas.height}`;
+  updateUpscaleSpec();
+}
+
+function makeCanvasFromImage(img){
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return canvas;
+}
+
+// v20: Adaptive pre-upscale. Returns a canvas that is either:
+//   - Same as raw (if target=0 or raw long-side >= target)
+//   - Bicubic-upscaled to target on long side (if raw long-side < target)
+// Preserves aspect ratio. Browser's native bicubic via imageSmoothing*=high.
+function buildWorkingSourceCanvas(rawCanvas){
+  const target = state.upscale.target;
+  const rawW = rawCanvas.width, rawH = rawCanvas.height;
+  const longSide = Math.max(rawW, rawH);
+  // No upscale needed
+  if(target === 0 || longSide >= target){
+    return rawCanvas;
+  }
+  // Upscale to target on long side, aspect-preserved
+  const scale = target / longSide;
+  const newW = Math.round(rawW * scale);
+  const newH = Math.round(rawH * scale);
+  const c = document.createElement('canvas');
+  c.width = newW;
+  c.height = newH;
+  const ctx = c.getContext('2d');
+  // Browser bicubic — best quality smoothing the canvas API offers
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(rawCanvas, 0, 0, newW, newH);
+  return c;
+}
+
+// v20: Update the spec readout for the upscale control. Called on file load
+// and on upscale-target change. Shows source dims, working dims, factor.
+function updateUpscaleSpec(){
+  const specEl = document.getElementById('upscaleSpec');
+  if(!specEl) return;
+  if(!state.rawSourceCanvas){
+    specEl.textContent = '—';
+    return;
+  }
+  const rW = state.rawSourceCanvas.width, rH = state.rawSourceCanvas.height;
+  const wW = state.sourceCanvas.width, wH = state.sourceCanvas.height;
+  if(rW === wW && rH === wH){
+    specEl.textContent = `Source: ${rW} × ${rH} — no upscale needed`;
+    specEl.classList.remove('on');
+  } else {
+    const factor = (wW / rW).toFixed(2);
+    specEl.textContent = `Source: ${rW} × ${rH} → Working: ${wW} × ${wH} (${factor}× bicubic)`;
+    specEl.classList.add('on');
+  }
+}
+
+function makeWorkCanvas(src){
+  // Downscale to MAX_DIM for clustering speed, preserve transparency
+  const srcW = src.width, srcH = src.height;
+  const scale = Math.min(1, MAX_DIM / Math.max(srcW, srcH));
+  const w = Math.round(srcW * scale), h = Math.round(srcH * scale);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(src, 0, 0, w, h);
+  return c;
+}
+
+function drawCanvasTo(targetId, src){
+  const target = document.getElementById(targetId);
+  target.width = src.width;
+  target.height = src.height;
+  const ctx = target.getContext('2d');
+  ctx.clearRect(0, 0, target.width, target.height);
+  ctx.drawImage(src, 0, 0);
+}
+
+// ---------- HARD-EDGE CLEANUP PIPELINE (v18) ----------
+// Pipeline order matters:
+//   1. Median pre-filter (applied to work canvas pixels BEFORE clustering)
+//   2. Cluster as normal
+//   3. Edge re-assignment (give bg-edge pixels to adjacent ink)
+//   4. Morphological closing (dilate then erode per cluster, fills gaps)
+//   5. Despeckle (drop tiny connected components)
+// Same algorithms run at source resolution during export.
+
+// Channel-by-channel median filter on ImageData. Preserves edges. 3x3 default.
+// Skips fully-transparent pixels (alpha < 128).
+function medianFilterImageData(imgData, kernel){
+  const w = imgData.width, h = imgData.height;
+  const src = imgData.data;
+  const out = new Uint8ClampedArray(src.length);
+  out.set(src);
+  const half = Math.floor(kernel / 2);
+  const wins = kernel * kernel;
+  const rBuf = new Uint8Array(wins);
+  const gBuf = new Uint8Array(wins);
+  const bBuf = new Uint8Array(wins);
+  // Quick median via sort — fine for 9-element windows
+  for(let y = half; y < h - half; y++){
+    for(let x = half; x < w - half; x++){
+      const ci = (y * w + x) * 4;
+      if(src[ci+3] < 128){ continue; } // transparent stays transparent
+      let n = 0;
+      for(let dy = -half; dy <= half; dy++){
+        for(let dx = -half; dx <= half; dx++){
+          const ni = ((y + dy) * w + (x + dx)) * 4;
+          rBuf[n] = src[ni];
+          gBuf[n] = src[ni+1];
+          bBuf[n] = src[ni+2];
+          n++;
+        }
+      }
+      // Sort and pick middle (small arrays — sort is fine)
+      // Use typed-array sort via Array.from for proper numeric sort
+      const rs = Array.from(rBuf).sort((a,b) => a - b);
+      const gs = Array.from(gBuf).sort((a,b) => a - b);
+      const bs = Array.from(bBuf).sort((a,b) => a - b);
+      const mid = Math.floor(wins / 2);
+      out[ci] = rs[mid];
+      out[ci+1] = gs[mid];
+      out[ci+2] = bs[mid];
+      // alpha unchanged
+    }
+  }
+  return new ImageData(out, w, h);
+}
+
+// Build a median-filtered work canvas (when cleanup is enabled).
+function buildFilteredWorkCanvas(originalWorkCanvas){
+  const w = originalWorkCanvas.width, h = originalWorkCanvas.height;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(originalWorkCanvas, 0, 0);
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const filtered = medianFilterImageData(imgData, state.cleanup.medianKernel);
+  ctx.putImageData(filtered, 0, 0);
+  return c;
+}
+
+// Edge re-assignment: for each pixel currently assigned -1 (bg),
+// check 8-neighbors. If any neighbor is an ink cluster, re-assign this
+// pixel to the *nearest centroid by color distance*, weighted only among
+// the inks present in the neighborhood. Prevents leaves getting "eaten"
+// at boundaries when bg removal is aggressive.
+// Operates on Int16Array assignments and the source RGB data.
+function edgeReassignAssignments(assignments, rgbData, w, h, clusters){
+  // First pass: identify candidate bg pixels (those with any ink neighbor)
+  const total = w * h;
+  const candidates = []; // indices to potentially flip
+  for(let y = 0; y < h; y++){
+    for(let x = 0; x < w; x++){
+      const i = y * w + x;
+      if(assignments[i] !== -1) continue;
+      // Skip pixels that came from alpha<128 (truly transparent)
+      const a = rgbData[i*4+3];
+      if(a < 128) continue;
+      // Check if any 8-neighbor is an ink pixel
+      let hasInkNeighbor = false;
+      for(let dy = -1; dy <= 1 && !hasInkNeighbor; dy++){
+        const ny = y + dy;
+        if(ny < 0 || ny >= h) continue;
+        for(let dx = -1; dx <= 1; dx++){
+          if(dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          if(nx < 0 || nx >= w) continue;
+          const ni = ny * w + nx;
+          const na = assignments[ni];
+          if(na >= 0){
+            // Confirm the neighbor's cluster isn't isBackground
+            const nc = clusters.find(c => c.id === na);
+            if(nc && !nc.isBackground){
+              hasInkNeighbor = true;
+              break;
+            }
+          }
+        }
+      }
+      if(hasInkNeighbor) candidates.push(i);
+    }
+  }
+  // Second pass: for each candidate, assign to nearest non-bg centroid by color distance
+  const nonBgClusters = clusters.filter(c => !c.isBackground);
+  if(nonBgClusters.length === 0) return assignments;
+  for(const i of candidates){
+    const r = rgbData[i*4], g = rgbData[i*4+1], b = rgbData[i*4+2];
+    let best = nonBgClusters[0];
+    let bestD = Infinity;
+    for(const c of nonBgClusters){
+      const dr = r - c.r, dg = g - c.g, db = b - c.b;
+      const d = dr*dr + dg*dg + db*db;
+      if(d < bestD){ bestD = d; best = c; }
+    }
+    assignments[i] = best.id;
+  }
+  return assignments;
+}
+
+// Build a binary mask of "is this pixel in cluster X?" — used for morph ops.
+// Returns Uint8Array(w*h): 1 if assigned to clusterId, else 0.
+function clusterMask(assignments, clusterId, w, h){
+  const mask = new Uint8Array(w * h);
+  for(let i = 0; i < w * h; i++){
+    if(assignments[i] === clusterId) mask[i] = 1;
+  }
+  return mask;
+}
+
+// Morphological dilate: any 0 pixel adjacent to a 1 pixel becomes 1.
+// 4-connectivity for speed and to limit overgrowth. radius=1 = one pixel.
+function dilateMask(mask, w, h, radius){
+  let cur = mask;
+  for(let r = 0; r < radius; r++){
+    const next = new Uint8Array(w * h);
+    for(let y = 0; y < h; y++){
+      for(let x = 0; x < w; x++){
+        const i = y * w + x;
+        if(cur[i]){ next[i] = 1; continue; }
+        // 4-neighborhood
+        if(x > 0   && cur[i - 1])   { next[i] = 1; continue; }
+        if(x < w-1 && cur[i + 1])   { next[i] = 1; continue; }
+        if(y > 0   && cur[i - w])   { next[i] = 1; continue; }
+        if(y < h-1 && cur[i + w])   { next[i] = 1; continue; }
+      }
+    }
+    cur = next;
+  }
+  return cur;
+}
+
+// Morphological erode: any 1 pixel with a 0 neighbor becomes 0.
+function erodeMask(mask, w, h, radius){
+  let cur = mask;
+  for(let r = 0; r < radius; r++){
+    const next = new Uint8Array(w * h);
+    for(let y = 0; y < h; y++){
+      for(let x = 0; x < w; x++){
+        const i = y * w + x;
+        if(!cur[i]){ continue; }
+        // Pixel survives only if all 4 neighbors are 1 (or out of bounds)
+        if(x > 0   && !cur[i - 1])   continue;
+        if(x < w-1 && !cur[i + 1])   continue;
+        if(y > 0   && !cur[i - w])   continue;
+        if(y < h-1 && !cur[i + w])   continue;
+        next[i] = 1;
+      }
+    }
+    cur = next;
+  }
+  return cur;
+}
+
+// Morphological close on one cluster: dilate then erode.
+// Fills small gaps inside the cluster without overgrowing its outer boundary.
+// Modifies assignments in place: pixels added by the close become this cluster;
+// pixels removed (none in close) untouched.
+function morphCloseCluster(assignments, w, h, clusterId, radius){
+  const before = clusterMask(assignments, clusterId, w, h);
+  const dilated = dilateMask(before, w, h, radius);
+  const closed = erodeMask(dilated, w, h, radius);
+  // Pixels that are NOW in the closed mask but weren't before — adopt them.
+  // BUT only if they're currently -1 (bg) — don't steal from other clusters.
+  for(let i = 0; i < w * h; i++){
+    if(closed[i] && !before[i] && assignments[i] === -1){
+      assignments[i] = clusterId;
+    }
+  }
+}
+
+// Connected-component labeling on a binary mask using 4-connectivity.
+// Returns { labels: Int32Array, sizes: Map<labelId, pixelCount> }.
+// Uses iterative flood-fill (queue) to avoid stack overflow on big regions.
+function labelConnectedComponents(mask, w, h){
+  const labels = new Int32Array(w * h);
+  const sizes = new Map();
+  let nextLabel = 1;
+  const queue = []; // reusable
+  for(let y = 0; y < h; y++){
+    for(let x = 0; x < w; x++){
+      const i = y * w + x;
+      if(!mask[i] || labels[i]) continue;
+      // New component — flood
+      const id = nextLabel++;
+      let count = 0;
+      queue.length = 0;
+      queue.push(i);
+      labels[i] = id;
+      while(queue.length){
+        const p = queue.pop();
+        count++;
+        const py = Math.floor(p / w), px = p - py * w;
+        // 4-neighborhood
+        if(px > 0){
+          const n = p - 1;
+          if(mask[n] && !labels[n]){ labels[n] = id; queue.push(n); }
+        }
+        if(px < w - 1){
+          const n = p + 1;
+          if(mask[n] && !labels[n]){ labels[n] = id; queue.push(n); }
+        }
+        if(py > 0){
+          const n = p - w;
+          if(mask[n] && !labels[n]){ labels[n] = id; queue.push(n); }
+        }
+        if(py < h - 1){
+          const n = p + w;
+          if(mask[n] && !labels[n]){ labels[n] = id; queue.push(n); }
+        }
+      }
+      sizes.set(id, count);
+    }
+  }
+  return { labels, sizes };
+}
+
+// Despeckle: for each cluster, drop connected components smaller than minSize.
+// Dropped pixels become -1 (background). Modifies assignments in place.
+function despeckleAssignments(assignments, w, h, clusters, minSize){
+  for(const c of clusters){
+    if(c.isBackground) continue;
+    const mask = clusterMask(assignments, c.id, w, h);
+    const { labels, sizes } = labelConnectedComponents(mask, w, h);
+    // Drop labels with size < minSize
+    for(const [labelId, size] of sizes){
+      if(size < minSize){
+        // Walk through and flip these pixels to -1
+        for(let i = 0; i < w * h; i++){
+          if(labels[i] === labelId) assignments[i] = -1;
+        }
+      }
+    }
+  }
+}
+
+// ===== v19: Edge AA suppression =====
+// For each pixel, look at its 8 neighbors. If majority of neighbors are a different
+// cluster AND that cluster is meaningfully different in color (ΔE > threshold from
+// current centroid), snap this pixel to the majority cluster.
+// Two-pass: compute all snaps first against the original assignments, apply at end.
+// This prevents cascade effects where snapping one pixel changes its neighbors' votes.
+function edgeAaSuppress(assignments, w, h, clusters, deltaEThreshold){
+  const total = w * h;
+  const byId = {};
+  for(const c of clusters) byId[c.id] = c;
+  // Precompute Lab coords for each centroid for ΔE comparison
+  const labCache = {};
+  for(const c of clusters){
+    if(!c.isBackground) labCache[c.id] = rgbToLab(c.r, c.g, c.b);
+  }
+  // Collect snaps: array of {idx, newCluster}
+  const snaps = [];
+  // Skip 1px border (no full 8-neighborhood)
+  for(let y = 1; y < h - 1; y++){
+    for(let x = 1; x < w - 1; x++){
+      const i = y * w + x;
+      const mine = assignments[i];
+      if(mine < 0) continue; // bg pixel — skip
+      // Tally 8-neighbor cluster votes
+      const votes = {};
+      // Inline 8-neighbor walk
+      const offsets = [-w-1, -w, -w+1, -1, 1, w-1, w, w+1];
+      let mineVotes = 0;
+      for(const off of offsets){
+        const na = assignments[i + off];
+        if(na < 0){ // bg neighbor counts as a "not me" vote but no majority target
+          continue;
+        }
+        votes[na] = (votes[na] || 0) + 1;
+        if(na === mine) mineVotes++;
+      }
+      // If I have 3+ votes I'm not an edge minority — leave alone
+      if(mineVotes >= 3) continue;
+      // Find majority neighbor cluster (not me)
+      let majority = -1, majorityVotes = 0;
+      for(const k in votes){
+        const kid = parseInt(k);
+        if(kid === mine) continue;
+        if(votes[k] > majorityVotes){ majority = kid; majorityVotes = votes[k]; }
+      }
+      if(majority < 0 || majorityVotes < 3) continue;
+      // Check color distance — only snap if meaningfully different
+      const myCluster = byId[mine];
+      const majCluster = byId[majority];
+      if(!myCluster || !majCluster || myCluster.isBackground || majCluster.isBackground) continue;
+      const myLab = labCache[mine];
+      const majLab = labCache[majority];
+      if(!myLab || !majLab) continue;
+      const de = deltaE2000(myLab, majLab);
+      if(de < deltaEThreshold) continue;
+      // Snap
+      snaps.push([i, majority]);
+    }
+  }
+  // Apply all snaps at once
+  for(const [i, newCluster] of snaps){
+    assignments[i] = newCluster;
+  }
+  return snaps.length;
+}
+
+// ===== v19: mode helpers =====
+// Each mode is a recipe of which pipeline steps to run.
+function modeRunsMedian(mode){ return mode === 'solidfills' || mode === 'photo'; }
+function modeRunsEdgeReassign(mode){ return mode === 'solidfills'; }
+function modeRunsEdgeAa(mode){ return mode !== 'off'; }
+function modeRunsClosing(mode){ return mode === 'solidfills'; }
+function modeRunsDespeckle(mode){ return mode !== 'off'; }
+
+// Orchestrator: apply post-clustering cleanup steps to an assignments buffer
+// according to the current cleanup mode.
+// scaleFactor scales kernel radii for source-resolution operation (1.0 = work canvas).
+function applyCleanupToAssignments(assignments, rgbData, w, h, clusters, scaleFactor){
+  const mode = state.cleanup.mode;
+  if(mode === 'off') return assignments;
+  const cleanup = state.cleanup;
+  const closeRadius = Math.max(1, Math.min(4, Math.round(cleanup.closeRadius * scaleFactor)));
+  const totalPx = w * h;
+  // 1. Edge re-assignment (Solid Fills only — for getting back anti-aliased borders)
+  if(modeRunsEdgeReassign(mode)){
+    edgeReassignAssignments(assignments, rgbData, w, h, clusters);
+  }
+  // 2. Edge AA suppression (all modes except Off)
+  if(modeRunsEdgeAa(mode)){
+    edgeAaSuppress(assignments, w, h, clusters, cleanup.edgeAaDeltaE);
+  }
+  // 3. Morphological close per cluster (Solid Fills only)
+  if(modeRunsClosing(mode)){
+    for(const c of clusters){
+      if(c.isBackground) continue;
+      morphCloseCluster(assignments, w, h, c.id, closeRadius);
+    }
+  }
+  // 4. Despeckle (all modes except Off)
+  if(modeRunsDespeckle(mode)){
+    const minSize = Math.max(cleanup.despeckleMinPx, Math.round(totalPx * cleanup.despeckleMinPct));
+    despeckleAssignments(assignments, w, h, clusters, minSize);
+  }
+  // 5. Recount cluster sizes (some pixels moved or got dropped)
+  const counts = {};
+  let totalKept = 0;
+  for(let i = 0; i < totalPx; i++){
+    const a = assignments[i];
+    if(a >= 0){ counts[a] = (counts[a] || 0) + 1; totalKept++; }
+  }
+  for(const c of clusters){
+    c.pixelCount = counts[c.id] || 0;
+    c.pct = totalKept > 0 ? c.pixelCount / totalKept : 0;
+  }
+  return assignments;
+}
+
+// ===== v19: Source-resolution preview render =====
+// After work-canvas clustering finishes, we re-assign source-canvas pixels to
+// the centroids and paint the preview at source resolution. This makes the
+// Quantized panel show what the export will actually look like, instead of
+// the 800px downsampled approximation.
+//
+// Caching: state.sourceAssignments holds the Int16Array of cluster IDs per
+// source pixel. Rebuilt only when clusters or cleanup mode change.
+// Cancellation: _renderToken bumps on each runClustering; source-res
+// render bails out if its captured token doesn't match current.
+
+let _renderToken = 0;
+function _bumpRenderToken(){ _renderToken++; return _renderToken; }
+function _checkRenderToken(captured){ return captured === _renderToken; }
+
+// Walk source canvas, assign each pixel to nearest centroid. Yields periodically.
+// Returns Int16Array(srcW*srcH) of cluster IDs, or null if cancelled.
+async function buildSourceAssignments(token){
+  if(!state.sourceCanvas || !state.clusters.length) return null;
+  const srcCanvas = state.sourceCanvas;
+  const srcW = srcCanvas.width, srcH = srcCanvas.height;
+  const total = srcW * srcH;
+  const ctx = srcCanvas.getContext('2d');
+  const srcImgData = ctx.getImageData(0, 0, srcW, srcH);
+  const data = srcImgData.data;
+  // Pre-extract centroids for tight inner loop
+  const clusters = state.clusters;
+  const k = clusters.length;
+  const centR = new Float64Array(k);
+  const centG = new Float64Array(k);
+  const centB = new Float64Array(k);
+  const centId = new Int16Array(k);
+  for(let c = 0; c < k; c++){
+    centR[c] = clusters[c].r;
+    centG[c] = clusters[c].g;
+    centB[c] = clusters[c].b;
+    centId[c] = clusters[c].id;
+  }
+  // Background mask at source resolution (re-flood-filled if bg removal is on)
+  let bgMask = null;
+  if(state.bgRemoval.enabled){
+    bgMask = buildSourceBgMask(srcImgData, srcW, srcH);
+  }
+  const assignments = new Int16Array(total);
+  const ROWS_PER_YIELD = 200;
+  for(let y = 0; y < srcH; y++){
+    for(let x = 0; x < srcW; x++){
+      const i = y * srcW + x;
+      const pi = i * 4;
+      const a = data[pi+3];
+      if(a < 128){ assignments[i] = -1; continue; }
+      if(bgMask && bgMask[i]){ assignments[i] = -1; continue; }
+      const r = data[pi], g = data[pi+1], b = data[pi+2];
+      let best = 0, bestD = Infinity;
+      for(let c = 0; c < k; c++){
+        const dr = r - centR[c], dg = g - centG[c], db = b - centB[c];
+        const d = dr*dr + dg*dg + db*db;
+        if(d < bestD){ bestD = d; best = c; }
+      }
+      assignments[i] = centId[best];
+    }
+    if(y % ROWS_PER_YIELD === 0 && y > 0){
+      if(!_checkRenderToken(token)) return null; // cancelled
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+  // Apply cleanup at source resolution if mode != 'off'
+  if(state.cleanup.mode !== 'off'){
+    if(!_checkRenderToken(token)) return null;
+    const scaleFactor = srcW / state.workCanvas.width;
+    applyCleanupToAssignments(
+      assignments, data, srcW, srcH, state.clusters, scaleFactor
+    );
+  }
+  return assignments;
+}
+
+// Async source-res preview render. Called after work-canvas render gives the
+// user immediate feedback. Resolves when render is done (or cancelled).
+async function renderQuantizedAtSourceResolution(){
+  const token = _bumpRenderToken();
+  showStatus('quant', 'Sharpening preview at source resolution…');
+  const assignments = await buildSourceAssignments(token);
+  if(!_checkRenderToken(token) || !assignments){
+    // Cancelled by a newer render — leave the work-canvas render in place
+    return;
+  }
+  // Cache for re-renders (mockup toggle, hidden inks, etc.)
+  state.sourceAssignments = assignments;
+  // Now paint to the quant canvas at source resolution
+  paintQuantizedFromAssignments(assignments, state.sourceCanvas.width, state.sourceCanvas.height);
+  hideStatus('quant');
+}
+
+// Paint the quant canvas at given resolution using the supplied assignments.
+// Respects mockup state (hidden inks, ink remap, tee color, transparent tee).
+function paintQuantizedFromAssignments(assignments, w, h){
+  const target = document.getElementById('quantCanvas');
+  target.width = w;
+  target.height = h;
+  const ctx = target.getContext('2d');
+  const imgData = ctx.createImageData(w, h);
+  const data = imgData.data;
+  const clusters = state.clusters;
+  const byId = {};
+  clusters.forEach(c => byId[c.id] = c);
+  const hiddenInks = state.mockup.hiddenInks;
+  const mockupActive = isMockupActive();
+  const transparentTee = state.mockup.transparentTee;
+  const teeR = state.mockup.teeColor[0];
+  const teeG = state.mockup.teeColor[1];
+  const teeB = state.mockup.teeColor[2];
+  const inkRemap = state.mockup.inkRemap;
+  const writeBgPixel = (pi) => {
+    if(mockupActive && !transparentTee){
+      data[pi] = teeR; data[pi+1] = teeG; data[pi+2] = teeB; data[pi+3] = 255;
+    } else {
+      data[pi] = 255; data[pi+1] = 255; data[pi+2] = 255; data[pi+3] = 0;
+    }
+  };
+  const total = assignments.length;
+  for(let i = 0; i < total; i++){
+    const pi = i * 4;
+    const a = assignments[i];
+    if(a < 0){ writeBgPixel(pi); continue; }
+    const cluster = byId[a];
+    if(!cluster || cluster.isBackground){ writeBgPixel(pi); continue; }
+    if(mockupActive && hiddenInks[a]){ writeBgPixel(pi); continue; }
+    const remap = inkRemap[a];
+    if(remap){
+      data[pi] = remap[0]; data[pi+1] = remap[1]; data[pi+2] = remap[2]; data[pi+3] = 255;
+    } else {
+      data[pi] = Math.round(cluster.r);
+      data[pi+1] = Math.round(cluster.g);
+      data[pi+2] = Math.round(cluster.b);
+      data[pi+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+  // Update count label
+  const visibleInks = clusters.filter(c =>
+    !c.isBackground && !(mockupActive && hiddenInks[c.id])
+  );
+  document.getElementById('quantCount').textContent = `${visibleInks.length} COLOR${visibleInks.length === 1 ? '' : 'S'}`;
+}
+
+// v20: upscale target change handler. Rebuilds working sourceCanvas from raw, then re-clusters.
+function setUpscaleTarget(newTarget){
+  if(!state.rawSourceCanvas){
+    // No file loaded yet — just store the preference for next load
+    state.upscale.target = newTarget;
+    updateUpscaleSliderUI();
+    return;
+  }
+  if(newTarget === state.upscale.target) return;
+  state.upscale.target = newTarget;
+  updateUpscaleSliderUI();
+  // Rebuild working sourceCanvas and downstream
+  state.sourceCanvas = buildWorkingSourceCanvas(state.rawSourceCanvas);
+  state.workCanvasUnfiltered = makeWorkCanvas(state.sourceCanvas);
+  state.workCanvas = state.workCanvasUnfiltered;
+  updateUpscaleSpec();
+  // Clear stale source-res preview cache (source dims may have changed)
+  state.sourceAssignments = null;
+  // Trigger re-cluster (will repaint preview at new resolution)
+  runClustering();
+}
+
+function updateUpscaleSliderUI(){
+  const slider = document.getElementById('upscaleSlider');
+  const valEl = document.getElementById('upscaleVal');
+  if(!slider || !valEl) return;
+  // Slider positions: 0=Off, 1=1500, 2=2000, 3=3000, 4=4000
+  const targetToPos = { 0: 0, 1500: 1, 2000: 2, 3000: 3, 4000: 4 };
+  const labels = { 0: 'OFF', 1500: '1500px', 2000: '2000px', 3000: '3000px', 4000: '4000px' };
+  const pos = targetToPos[state.upscale.target] !== undefined ? targetToPos[state.upscale.target] : 2;
+  if(parseInt(slider.value) !== pos) slider.value = pos;
+  valEl.textContent = labels[state.upscale.target] || `${state.upscale.target}px`;
+}
+
+function onUpscaleSliderInput(){
+  const slider = document.getElementById('upscaleSlider');
+  const posToTarget = { 0: 0, 1: 1500, 2: 2000, 3: 3000, 4: 4000 };
+  const newTarget = posToTarget[parseInt(slider.value)];
+  setUpscaleTarget(newTarget);
+}
+
+// v19: cleanup mode change handler
+function setCleanupMode(newMode){
+  if(!state.sourceCanvas){ toast('DROP AN IMAGE FIRST'); return; }
+  if(newMode === state.cleanup.mode) return;
+  state.cleanup.mode = newMode;
+  // Update visual state of mode buttons (active highlight)
+  document.querySelectorAll('.cleanup-mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === newMode);
+  });
+  // Hidden select for programmatic state (and for resetAll convenience)
+  const select = document.getElementById('cleanupModeSelect');
+  if(select && select.value !== newMode) select.value = newMode;
+  // Update the badge
+  const badge = document.getElementById('cleanupModeBadge');
+  if(badge){
+    const labels = { off:'OFF', lineart:'LINE ART', solidfills:'SOLID FILLS', photo:'PHOTO' };
+    badge.textContent = labels[newMode] || newMode;
+    badge.classList.toggle('on', newMode !== 'off');
+  }
+  // Re-cluster (which will pick up the new filtered work canvas if mode requires median)
+  runClustering();
+}
+
+// ---------- CLUSTERING PIPELINE ----------
+async function runClustering(){
+  if(!state.workCanvasUnfiltered){ return; }
+  showStatus('quant', 'Analyzing pixels');
+
+  // Yield to UI
+  await new Promise(r => setTimeout(r, 20));
+
+  // v19: rebuild workCanvas from unfiltered baseline based on cleanup mode
+  if(modeRunsMedian(state.cleanup.mode)){
+    showStatus('quant', 'Pre-filter (median)…');
+    await new Promise(r => setTimeout(r, 20));
+    state.workCanvas = buildFilteredWorkCanvas(state.workCanvasUnfiltered);
+  } else {
+    state.workCanvas = state.workCanvasUnfiltered;
+  }
+
+  const ctx = state.workCanvas.getContext('2d');
+  const imgData = ctx.getImageData(0, 0, state.workCanvas.width, state.workCanvas.height);
+  const rawPixels = imgData.data;
+  const totalPx = rawPixels.length / 4;
+  const width = state.workCanvas.width, height = state.workCanvas.height;
+
+  // ---- BG REMOVAL via flood-fill ----
+  let bgMask = null; // 1 = pixel is bg, skip from clustering
+  if(state.bgRemoval.enabled){
+    bgMask = floodFillBg(rawPixels, width, height, state.bgRemoval.pickedColor, state.bgRemoval.tolerance);
+    // Label connected components in the bgMask — each disjoint bg island gets its own region ID.
+    // Used for click-to-restore protection UX.
+    const regionMask = labelRegions(bgMask, width, height);
+    state.bgRemoval.regionMask = regionMask;
+    // Remove protected regions from bgMask so those pixels get clustered as normal ink.
+    const protectedRegions = state.bgRemoval.protectedRegions;
+    if(Object.keys(protectedRegions).length > 0){
+      for(let i = 0; i < totalPx; i++){
+        if(bgMask[i] && protectedRegions[regionMask[i]]){
+          bgMask[i] = 0;
+        }
+      }
+    }
+    // OR in user-explicitly-removed ink patches (click-to-remove UX)
+    const removedPatches = state.bgRemoval.removedPatches;
+    if(removedPatches && removedPatches.length === totalPx){
+      for(let i = 0; i < totalPx; i++){
+        if(removedPatches[i]) bgMask[i] = 1;
+      }
+    }
+  } else {
+    state.bgRemoval.regionMask = null;
+  }
+
+  // Build filtered pixel array
+  const keepMask = new Uint8Array(totalPx);  // 1 = keep, 0 = filter out
+  let kept = 0;
+  for(let i = 0; i < totalPx; i++){
+    const r = rawPixels[i*4], g = rawPixels[i*4+1], b = rawPixels[i*4+2], a = rawPixels[i*4+3];
+    let keep = true;
+    // Drop transparent always
+    if(a < 128) keep = false;
+    // Flood-filled background
+    if(keep && bgMask && bgMask[i]) keep = false;
+    // Near-black filter
+    if(keep && state.filters.black && r < NEAR_BLACK && g < NEAR_BLACK && b < NEAR_BLACK) keep = false;
+    // Near-white filter
+    if(keep && state.filters.white && r > NEAR_WHITE && g > NEAR_WHITE && b > NEAR_WHITE) keep = false;
+    keepMask[i] = keep ? 1 : 0;
+    if(keep) kept++;
+  }
+
+  if(kept === 0){
+    hideStatus('quant');
+    toast('NO PIXELS TO CLUSTER — ADJUST FILTERS');
+    return;
+  }
+
+  // Sample — cap at SAMPLE_MAX_PIXELS for performance
+  const sampleStride = Math.max(1, Math.floor(kept / SAMPLE_MAX_PIXELS));
+  const sampled = [];
+  let skipCount = 0;
+  for(let i = 0; i < totalPx; i++){
+    if(keepMask[i]){
+      if(skipCount % sampleStride === 0){
+        sampled.push(rawPixels[i*4], rawPixels[i*4+1], rawPixels[i*4+2]);
+      }
+      skipCount++;
+    }
+  }
+  const sampledArr = Float64Array.from(sampled);
+
+  // Run k-means for all k values if auto, else just current k
+  let kToUse;
+  if(state.isAuto){
+    showStatus('quant', 'Detecting optimal K');
+    await new Promise(r => setTimeout(r, 20));
+    const wcssByK = {};
+    const runsByK = {};
+    for(let k = MIN_K; k <= MAX_K; k++){
+      // Best of 3 runs for stability
+      let best = null;
+      for(let t = 0; t < 3; t++){
+        const r = kmeans(sampledArr, k);
+        if(!best || r.wcss < best.wcss) best = r;
+      }
+      wcssByK[k] = best.wcss;
+      runsByK[k] = best;
+    }
+    kToUse = detectElbow(wcssByK);
+    state.autoK = kToUse;
+    state.elbowData = { wcss: wcssByK };
+    state.k = kToUse;
+    // Update slider to reflect
+    document.getElementById('kSlider').value = kToUse;
+    document.getElementById('kDisplay').textContent = kToUse;
+    document.getElementById('elbowNote').textContent = `Auto-detected ${kToUse} colors`;
+    document.getElementById('kBadge').textContent = 'AUTO';
+    // Use the pre-computed run
+    finalizeClusters(sampledArr, runsByK[kToUse], rawPixels, totalPx, keepMask);
+  } else {
+    kToUse = state.k;
+    showStatus('quant', `Clustering K=${kToUse}`);
+    await new Promise(r => setTimeout(r, 20));
+    let best = null;
+    for(let t = 0; t < 3; t++){
+      const r = kmeans(sampledArr, kToUse);
+      if(!best || r.wcss < best.wcss) best = r;
+    }
+    finalizeClusters(sampledArr, best, rawPixels, totalPx, keepMask);
+  }
+}
+
+function finalizeClusters(sampledArr, result, rawPixels, totalPx, keepMask){
+  const { centroids } = result;
+  const k = centroids.length;
+
+  // Re-assign EVERY pixel (not just sampled) to nearest centroid for coverage counting and preview
+  const fullAssignments = new Int16Array(totalPx);  // -1 for filtered-out pixels
+  const clusterCounts = new Array(k).fill(0);
+  let totalKept = 0;
+
+  for(let i = 0; i < totalPx; i++){
+    if(!keepMask[i]){ fullAssignments[i] = -1; continue; }
+    const r = rawPixels[i*4], g = rawPixels[i*4+1], b = rawPixels[i*4+2];
+    let best = 0, bestD = Infinity;
+    for(let c = 0; c < k; c++){
+      const [cr,cg,cb] = centroids[c];
+      const dr=r-cr, dg=g-cg, db=b-cb;
+      const d = dr*dr+dg*dg+db*db;
+      if(d < bestD){ bestD = d; best = c; }
+    }
+    fullAssignments[i] = best;
+    clusterCounts[best]++;
+    totalKept++;
+  }
+
+  // Build cluster list with pantone match
+  let clusters = centroids.map((c, i) => {
+    const [r,g,b] = c;
+    const hex = rgbToHex(r,g,b);
+    const pct = clusterCounts[i] / totalKept;
+    const pantone = findNearestPantone(r,g,b);
+    return {
+      id: i,
+      r, g, b, hex,
+      pct,
+      pixelCount: clusterCounts[i],
+      pantone: pantone.name,
+      pantoneHex: pantone.hex,
+      deltaE: pantone.deltaE,
+    };
+  });
+
+  // Drop background if filter on & the largest cluster is near-black or near-white and dominant
+  if(state.filters.bg){
+    clusters.sort((a,b) => b.pct - a.pct);
+    const top = clusters[0];
+    const isNearBlack = top.r < NEAR_BLACK && top.g < NEAR_BLACK && top.b < NEAR_BLACK;
+    const isNearWhite = top.r > NEAR_WHITE && top.g > NEAR_WHITE && top.b > NEAR_WHITE;
+    if(top.pct > BG_DOMINANCE && (isNearBlack || isNearWhite)){
+      top.isBackground = true;
+    }
+  }
+
+  // Sort by descending pct (stable display order), with background last if flagged
+  clusters.sort((a,b) => {
+    if(a.isBackground && !b.isBackground) return 1;
+    if(b.isBackground && !a.isBackground) return -1;
+    return b.pct - a.pct;
+  });
+
+  state.clusters = clusters;
+  state.pixelAssignments = fullAssignments;
+
+  // Clear any stale ink remaps (cluster IDs don't persist across runs)
+  state.mockup.inkRemap = {};
+  state.mockup.hiddenInks = {};
+
+  // v19: cleanup at work-canvas resolution. Runs only if mode != 'off'.
+  // Source-resolution cleanup is done separately during export and preview render.
+  if(state.cleanup.mode !== 'off'){
+    showStatus('quant', 'Cleanup…');
+    applyCleanupToAssignments(
+      state.pixelAssignments,
+      rawPixels,
+      state.workCanvas.width,
+      state.workCanvas.height,
+      state.clusters,
+      1.0
+    );
+  }
+
+  // v19: clear the source-res cache — clusters just changed, cache is stale
+  state.sourceAssignments = null;
+
+  renderQuantized();
+  renderPalette();
+  refreshMockupVisibility();
+  updateEstimate();
+  hideStatus('quant');
+  document.getElementById('paletteWrap').classList.add('on');
+  document.getElementById('kSlider').disabled = false;
+  // v17: refresh export spec if export panel is open
+  if(exportState && exportState.panelOpen) updateExportSpec();
+  // v19: kick off async source-resolution preview render. Doesn't await — user
+  // sees the work-canvas (fast) render first; sharp render arrives ~1-2s later.
+  renderQuantizedAtSourceResolution();
+}
+
+function renderQuantized(){
+  // v19: if source-res cache exists, render from it. Otherwise fall back to
+  // work-canvas-resolution rendering. The work-canvas path stays for fast
+  // initial paint and when source-res render is still in flight.
+  if(state.sourceAssignments && state.sourceCanvas){
+    paintQuantizedFromAssignments(
+      state.sourceAssignments,
+      state.sourceCanvas.width,
+      state.sourceCanvas.height
+    );
+    return;
+  }
+  // Fallback: work-canvas-resolution render
+  const src = state.workCanvas;
+  const target = document.getElementById('quantCanvas');
+  target.width = src.width;
+  target.height = src.height;
+  const ctx = target.getContext('2d');
+  const imgData = ctx.createImageData(src.width, src.height);
+  const data = imgData.data;
+  const assignments = state.pixelAssignments;
+  const clusters = state.clusters;
+  // Map id -> cluster (clusters array is sorted now, so need lookup by original id)
+  const byId = {};
+  clusters.forEach(c => byId[c.id] = c);
+
+  const hiddenInks = state.mockup.hiddenInks;
+  const mockupActiveForCount = isMockupActive();
+  const visibleInks = clusters.filter(c =>
+    !c.isBackground && !(mockupActiveForCount && hiddenInks[c.id])
+  );
+  const showCount = visibleInks.length;
+  document.getElementById('quantCount').textContent = `${showCount} COLOR${showCount === 1 ? '' : 'S'}`;
+
+  // Mockup mode: paint bg pixels with tee color instead of transparent when mockup is active.
+  const mockupActive = isMockupActive();
+  const transparentTee = state.mockup.transparentTee;
+  const teeR = state.mockup.teeColor[0];
+  const teeG = state.mockup.teeColor[1];
+  const teeB = state.mockup.teeColor[2];
+  const inkRemap = state.mockup.inkRemap;
+
+  // Helper: write bg pixel at index i (either tee color or transparent)
+  const writeBgPixel = (i) => {
+    if(mockupActive && !transparentTee){
+      data[i*4] = teeR; data[i*4+1] = teeG; data[i*4+2] = teeB; data[i*4+3] = 255;
+    } else {
+      data[i*4] = 255; data[i*4+1] = 255; data[i*4+2] = 255; data[i*4+3] = 0;
+    }
+  };
+
+  for(let i = 0; i < assignments.length; i++){
+    const a = assignments[i];
+    if(a < 0){
+      // Filtered out (bg-removed pixel OR transparent source pixel)
+      writeBgPixel(i);
+      continue;
+    }
+    const cluster = byId[a];
+    if(cluster.isBackground){
+      writeBgPixel(i);
+      continue;
+    }
+    // Hidden ink — treat as background in mockup view
+    if(mockupActive && hiddenInks[a]){
+      writeBgPixel(i);
+      continue;
+    }
+    // Ink pixel — check remap first, fall back to cluster color
+    const remap = inkRemap[a];
+    if(remap){
+      data[i*4] = remap[0]; data[i*4+1] = remap[1]; data[i*4+2] = remap[2]; data[i*4+3] = 255;
+    } else {
+      data[i*4] = Math.round(cluster.r);
+      data[i*4+1] = Math.round(cluster.g);
+      data[i*4+2] = Math.round(cluster.b);
+      data[i*4+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function renderPalette(){
+  const grid = document.getElementById('paletteGrid');
+  grid.innerHTML = '';
+  const inks = state.clusters.filter(c => !c.isBackground);
+  // Eye icons (inline SVG for consistent styling)
+  const eyeOpen = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const eyeClosed = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+  inks.forEach((c) => {
+    const remap = state.mockup.inkRemap[c.id];
+    const currentHex = remap ? rgbToHex(remap[0], remap[1], remap[2]) : c.hex;
+    const modified = !!remap;
+    const hidden = !!state.mockup.hiddenInks[c.id];
+
+    // Delta-E label
+    let dECls = 'far';
+    if(c.deltaE < 2) dECls = 'close';
+    else if(c.deltaE < 5) dECls = '';
+
+    const el = document.createElement('div');
+    el.className = 'swatch' + (modified ? ' modified' : '') + (hidden ? ' hidden-ink' : '');
+    el.dataset.id = c.id;
+    // Clicking the main body area (not the chip, eye, or reset) triggers MERGE
+    el.onclick = (ev) => {
+      // Ignore clicks on inner interactive elements
+      if(ev.target.closest('.swatch-chip, [data-eye], [data-reset]')) return;
+      onSwatchClick(c.id);
+    };
+
+    el.innerHTML = `
+      <div class="swatch-chip" style="background:${currentHex}" title="Click to recolor"></div>
+      <div class="swatch-info">
+        <div class="swatch-pantone">${hidden ? 'Hidden' : (modified ? 'Custom' : c.pantone)}</div>
+        <div class="swatch-hex">${currentHex.toUpperCase()}</div>
+        ${modified && !hidden ? `<div class="swatch-from">from ${c.hex.toUpperCase()}</div>` : ''}
+      </div>
+      <div class="swatch-delta ${dECls}">ΔE ${c.deltaE.toFixed(1)}</div>
+      ${modified && !hidden ? `<span class="swatch-reset" data-reset="${c.id}" title="Reset color">×</span>` : ''}
+      <span class="swatch-eye" data-eye="${c.id}" title="${hidden ? 'Show as ink' : 'Hide as background'}">${hidden ? eyeClosed : eyeOpen}</span>
+    `;
+
+    // Wire chip → HSL popover (recolor)
+    const chip = el.querySelector('.swatch-chip');
+    if(hidden){
+      chip.style.pointerEvents = 'none';
+    } else {
+      chip.onclick = (ev) => {
+        ev.stopPropagation();
+        openHslPopover(chip, currentHex, (newHex) => {
+          state.mockup.inkRemap[c.id] = hexToRgb(newHex);
+          renderPalette();
+          renderQuantized();
+        });
+      };
+    }
+
+    // Wire reset X
+    const resetBtn = el.querySelector('[data-reset]');
+    if(resetBtn){
+      resetBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        delete state.mockup.inkRemap[c.id];
+        renderPalette();
+        renderQuantized();
+      };
+    }
+
+    // Wire eye toggle (hide from mockup, drop from screen count)
+    const eyeBtn = el.querySelector('[data-eye]');
+    eyeBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      if(state.mockup.hiddenInks[c.id]){
+        delete state.mockup.hiddenInks[c.id];
+      } else {
+        state.mockup.hiddenInks[c.id] = true;
+        // If no tee picked yet, activate mockup so the hide has visible effect
+        if(!isMockupActive()){
+          state.mockup.teeActive = true;
+          updateTeePresetActive();
+          document.getElementById('mockupBadge').textContent =
+            TEE_PRESETS.find(p => p.hex.toLowerCase() === state.mockup.teeHex.toLowerCase())?.name.toUpperCase() || 'CUSTOM';
+        }
+      }
+      applyPreviewBg();
+      renderPalette();
+      renderQuantized();
+      updateEstimate();
+    };
+
+    grid.appendChild(el);
+  });
+}
+
+function updateEstimate(){
+  const mockupActive = isMockupActive();
+  const hiddenInks = state.mockup.hiddenInks;
+  const printColors = state.clusters.filter(c =>
+    !c.isBackground && !(mockupActive && hiddenInks[c.id])
+  ).length;
+  document.getElementById('estColors').textContent = printColors;
+  document.getElementById('estScreens').textContent = printColors;
+  document.getElementById('estWithBase').textContent = printColors + 1;
+  document.getElementById('estimate').classList.add('on');
+  document.getElementById('estimate').style.display = 'block';
+  // Update topbar summary
+  document.getElementById('tbRight').textContent =
+    `${printColors} PRINT COLOR${printColors === 1 ? '' : 'S'} DETECTED`;
+}
+
+// ---------- SWATCH MERGE ----------
+function onSwatchClick(clusterId){
+  if(state.mergePickFirst === null){
+    state.mergePickFirst = clusterId;
+    document.querySelectorAll('.swatch').forEach(el => {
+      el.classList.toggle('selected', parseInt(el.dataset.id) === clusterId);
+    });
+    document.getElementById('paletteHint').textContent = 'Click another swatch to merge';
+    return;
+  }
+  if(state.mergePickFirst === clusterId){
+    // Clicked same — deselect
+    state.mergePickFirst = null;
+    document.querySelectorAll('.swatch').forEach(el => el.classList.remove('selected'));
+    document.getElementById('paletteHint').textContent = 'Click two swatches to merge them';
+    return;
+  }
+  // Merge clusterId INTO mergePickFirst
+  mergeClusters(state.mergePickFirst, clusterId);
+  state.mergePickFirst = null;
+}
+
+function mergeClusters(keepId, dropId){
+  // Weighted average of the two centroids
+  const keep = state.clusters.find(c => c.id === keepId);
+  const drop = state.clusters.find(c => c.id === dropId);
+  if(!keep || !drop) return;
+  const total = keep.pixelCount + drop.pixelCount;
+  keep.r = (keep.r * keep.pixelCount + drop.r * drop.pixelCount) / total;
+  keep.g = (keep.g * keep.pixelCount + drop.g * drop.pixelCount) / total;
+  keep.b = (keep.b * keep.pixelCount + drop.b * drop.pixelCount) / total;
+  keep.hex = rgbToHex(keep.r, keep.g, keep.b);
+  keep.pixelCount = total;
+  keep.pct = keep.pct + drop.pct;
+  const p = findNearestPantone(keep.r, keep.g, keep.b);
+  keep.pantone = p.name;
+  keep.pantoneHex = p.hex;
+  keep.deltaE = p.deltaE;
+
+  // Reassign all pixels that pointed at dropId to keepId
+  for(let i = 0; i < state.pixelAssignments.length; i++){
+    if(state.pixelAssignments[i] === dropId){
+      state.pixelAssignments[i] = keepId;
+    }
+  }
+  // Remove dropped cluster
+  state.clusters = state.clusters.filter(c => c.id !== dropId);
+  // Drop any ink remap for the merged-out cluster
+  if(state.mockup.inkRemap[dropId]) delete state.mockup.inkRemap[dropId];
+  if(state.mockup.hiddenInks[dropId]) delete state.mockup.hiddenInks[dropId];
+
+  renderQuantized();
+  renderPalette();
+  updateEstimate();
+  document.getElementById('paletteHint').textContent = 'Merged — click two swatches to merge again';
+  toast('MERGED');
+}
+
+// ---------- ZOOM / PAN ----------
+// Linked zoom: both canvases share the same zoom+pan state.
+// Using CSS transforms on the canvas elements, NOT ctx transforms.
+// Canvas pixels render 1:1 at natural size; visual scaling is pure CSS.
+const zoomState = {
+  scale: 1,        // 1 = fit-to-container (default)
+  panX: 0,         // px offset in canvas pixel space
+  panY: 0,
+  isDragging: false,
+  dragStartX: 0,
+  dragStartY: 0,
+  panStartX: 0,
+  panStartY: 0,
+  // Click vs drag detection (independent of zoom scale — works at 1x too)
+  mouseDownX: null,
+  mouseDownY: null,
+  mouseMoved: false,
+};
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 16;
+const ZOOM_STEP = 1.4;
+
+function applyZoom(){
+  const s = zoomState.scale;
+  const tx = zoomState.panX;
+  const ty = zoomState.panY;
+  const transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+  const origCanvas = document.getElementById('origCanvas');
+  const quantCanvas = document.getElementById('quantCanvas');
+  if(origCanvas) origCanvas.style.transform = transform;
+  if(quantCanvas) quantCanvas.style.transform = transform;
+  document.getElementById('zoomLevel').textContent = Math.round(s * 100) + '%';
+  // Toggle zoomed class for pan cursor + overflow hidden
+  const zoomed = s > 1;
+  document.getElementById('origWrap').classList.toggle('zoomed', zoomed);
+  document.getElementById('quantWrap').classList.toggle('zoomed', zoomed);
+  document.getElementById('zoomOutBtn').disabled = s <= ZOOM_MIN;
+  document.getElementById('zoomInBtn').disabled = s >= ZOOM_MAX;
+  // Update quantized-canvas cursor (crosshair only at 1x without dragging)
+  if(typeof updateQuantCursor === 'function') updateQuantCursor();
+}
+
+function zoomStep(dir){
+  // dir +1 = in, -1 = out
+  const newScale = dir > 0
+    ? Math.min(ZOOM_MAX, zoomState.scale * ZOOM_STEP)
+    : Math.max(ZOOM_MIN, zoomState.scale / ZOOM_STEP);
+  zoomState.scale = newScale;
+  if(newScale <= 1){
+    zoomState.panX = 0;
+    zoomState.panY = 0;
+  }
+  applyZoom();
+}
+
+function zoomReset(){
+  zoomState.scale = 1;
+  zoomState.panX = 0;
+  zoomState.panY = 0;
+  applyZoom();
+}
+
+// Scroll-wheel zoom — focuses zoom on cursor position
+function wheelZoom(e, wrapEl){
+  e.preventDefault();
+  const rect = wrapEl.getBoundingClientRect();
+  const cx = e.clientX - rect.left - rect.width / 2;  // cursor in wrap coords, centered
+  const cy = e.clientY - rect.top - rect.height / 2;
+  const oldScale = zoomState.scale;
+  const dir = e.deltaY < 0 ? 1 : -1;
+  const factor = dir > 0 ? ZOOM_STEP : (1 / ZOOM_STEP);
+  const newScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, oldScale * factor));
+  if(newScale === oldScale) return;
+  // Adjust pan so the point under cursor stays under cursor.
+  // point_in_canvas = (cursor - pan) / scale
+  // after: point should render at cursor again.
+  // pan_new = cursor - point_in_canvas * scale_new
+  // = cursor - ((cursor - pan_old) / scale_old) * scale_new
+  const ratio = newScale / oldScale;
+  zoomState.panX = cx - (cx - zoomState.panX) * ratio;
+  zoomState.panY = cy - (cy - zoomState.panY) * ratio;
+  zoomState.scale = newScale;
+  if(newScale <= 1){
+    zoomState.panX = 0;
+    zoomState.panY = 0;
+  }
+  applyZoom();
+}
+
+// Drag pan — bind on both wraps, shared state
+function bindPan(wrapEl){
+  wrapEl.addEventListener('mousedown', e => {
+    if(e.button !== 0) return;
+    // Record down position on EVERY left-click on a preview wrap, even at 1x zoom —
+    // we use this to distinguish a real click from a small drag that shouldn't trigger
+    // the canvas click handler (click-to-restore / click-to-remove).
+    zoomState.mouseDownX = e.clientX;
+    zoomState.mouseDownY = e.clientY;
+    zoomState.mouseMoved = false;
+    if(zoomState.scale <= 1) return;
+    // Only engage pan drag when zoomed
+    zoomState.isDragging = true;
+    zoomState.dragStartX = e.clientX;
+    zoomState.dragStartY = e.clientY;
+    zoomState.panStartX = zoomState.panX;
+    zoomState.panStartY = zoomState.panY;
+    wrapEl.classList.add('dragging');
+    document.getElementById('origWrap').classList.add('dragging');
+    document.getElementById('quantWrap').classList.add('dragging');
+    e.preventDefault();
+  });
+  wrapEl.addEventListener('wheel', e => wheelZoom(e, wrapEl), { passive: false });
+}
+document.addEventListener('mousemove', e => {
+  // Always check cumulative movement since mousedown (for click vs drag detection)
+  if(zoomState.mouseDownX !== null){
+    const dx = Math.abs(e.clientX - zoomState.mouseDownX);
+    const dy = Math.abs(e.clientY - zoomState.mouseDownY);
+    if(dx > 4 || dy > 4) zoomState.mouseMoved = true;
+  }
+  if(!zoomState.isDragging) return;
+  const dx = e.clientX - zoomState.dragStartX;
+  const dy = e.clientY - zoomState.dragStartY;
+  zoomState.panX = zoomState.panStartX + dx;
+  zoomState.panY = zoomState.panStartY + dy;
+  applyZoom();
+});
+document.addEventListener('mouseup', () => {
+  // Clear pan state. Leave mouseMoved flag alone — the click handler reads it
+  // and clears it after it runs.
+  if(zoomState.isDragging){
+    zoomState.isDragging = false;
+    document.getElementById('origWrap').classList.remove('dragging');
+    document.getElementById('quantWrap').classList.remove('dragging');
+  }
+});
+// Bind after DOM is ready (script runs after body by placement, elements exist)
+bindPan(document.getElementById('origWrap'));
+bindPan(document.getElementById('quantWrap'));
+
+// ---------- CANVAS CLICK: restore or remove based on mode ----------
+document.getElementById('quantCanvas').addEventListener('click', e => {
+  if(!state.bgRemoval.enabled) return;
+  // Drag-vs-click detection: if the mouse moved more than 4px between down and up,
+  // treat this click event as the tail end of a drag and ignore it.
+  const wasDrag = zoomState.mouseMoved;
+  zoomState.mouseDownX = null;
+  zoomState.mouseDownY = null;
+  zoomState.mouseMoved = false;
+  if(wasDrag) return;
+  if(zoomState.isDragging) return;
+
+  const canvas = e.currentTarget;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const px = Math.floor((e.clientX - rect.left) * scaleX);
+  const py = Math.floor((e.clientY - rect.top) * scaleY);
+  if(px < 0 || py < 0 || px >= canvas.width || py >= canvas.height) return;
+  const idx = py * canvas.width + px;
+
+  const mode = state.bgRemoval.clickMode;
+
+  if(mode === 'restore'){
+    // Restore a bg region: requires a regionMask, click must be on a bg pixel.
+    if(!state.bgRemoval.regionMask){
+      toast('TURN ON REMOVE BACKGROUND FIRST');
+      return;
+    }
+    const regionId = state.bgRemoval.regionMask[idx];
+    if(regionId === 0){
+      toast('CLICK ON A REMOVED AREA TO RESTORE');
+      return;
+    }
+    if(state.bgRemoval.protectedRegions[regionId]){
+      delete state.bgRemoval.protectedRegions[regionId];
+      toast('REGION UNPROTECTED');
+    } else {
+      state.bgRemoval.protectedRegions[regionId] = true;
+      toast('REGION RESTORED');
+    }
+    runClustering();
+    return;
+  }
+
+  // mode === 'remove' — flood-fill same-cluster pixels starting from click, mark as removed.
+  if(!state.pixelAssignments){
+    toast('NO CLUSTER DATA YET');
+    return;
+  }
+  const assignments = state.pixelAssignments;
+  const targetCluster = assignments[idx];
+  if(targetCluster < 0){
+    // Already bg — nothing to remove
+    toast('CLICK ON AN INK AREA TO REMOVE');
+    return;
+  }
+  // Allocate removedPatches if not yet
+  const total = canvas.width * canvas.height;
+  if(!state.bgRemoval.removedPatches || state.bgRemoval.removedPatches.length !== total){
+    state.bgRemoval.removedPatches = new Uint8Array(total);
+  }
+  // If the clicked pixel is ALREADY marked as removed (e.g. user clicked same patch
+  // twice and somehow it didn't re-cluster), just toast.
+  if(state.bgRemoval.removedPatches[idx]){
+    toast('ALREADY REMOVED');
+    return;
+  }
+  // Flood-fill: 4-connected, same cluster ID. Collect pixels into a list first so
+  // we can push them onto the undo stack as a single action.
+  const w = canvas.width, h = canvas.height;
+  const queue = new Int32Array(total);
+  const visited = new Uint8Array(total);
+  let qHead = 0, qTail = 0;
+  queue[qTail++] = idx;
+  visited[idx] = 1;
+  const patchPixels = [];
+  while(qHead < qTail){
+    const p = queue[qHead++];
+    if(assignments[p] !== targetCluster) continue;
+    // Only count pixels not already marked removed (avoid double-accounting on undo)
+    if(!state.bgRemoval.removedPatches[p]){
+      patchPixels.push(p);
+    }
+    const x = p % w;
+    const y = (p - x) / w;
+    if(y > 0){
+      const n = p - w;
+      if(!visited[n] && assignments[n] === targetCluster){ visited[n] = 1; queue[qTail++] = n; }
+    }
+    if(y < h - 1){
+      const n = p + w;
+      if(!visited[n] && assignments[n] === targetCluster){ visited[n] = 1; queue[qTail++] = n; }
+    }
+    if(x > 0){
+      const n = p - 1;
+      if(!visited[n] && assignments[n] === targetCluster){ visited[n] = 1; queue[qTail++] = n; }
+    }
+    if(x < w - 1){
+      const n = p + 1;
+      if(!visited[n] && assignments[n] === targetCluster){ visited[n] = 1; queue[qTail++] = n; }
+    }
+  }
+  if(patchPixels.length === 0){
+    toast('NOTHING TO REMOVE');
+    return;
+  }
+  // Apply removal + push onto undo stack.
+  // Use a typed array for memory efficiency — 32-bit int per pixel index.
+  const patchArr = new Int32Array(patchPixels);
+  for(let k = 0; k < patchArr.length; k++){
+    state.bgRemoval.removedPatches[patchArr[k]] = 1;
+  }
+  state.bgRemoval.removeHistory.push(patchArr);
+  updateUndoButton();
+  toast(`PATCH REMOVED (${patchArr.length.toLocaleString()} px)`);
+  runClustering();
+});
+
+// ---------- UNDO LAST REMOVE ----------
+function undoLastRemove(){
+  const history = state.bgRemoval.removeHistory;
+  if(history.length === 0) return;
+  const lastPatch = history.pop();
+  if(!lastPatch || !state.bgRemoval.removedPatches){
+    updateUndoButton();
+    return;
+  }
+  // Clear those pixel indices from removedPatches
+  for(let k = 0; k < lastPatch.length; k++){
+    state.bgRemoval.removedPatches[lastPatch[k]] = 0;
+  }
+  updateUndoButton();
+  toast(`UNDONE (${lastPatch.length.toLocaleString()} px)`);
+  runClustering();
+}
+
+function updateUndoButton(){
+  const btn = document.getElementById('undoRemoveBtn');
+  if(!btn) return;
+  const depth = state.bgRemoval.removeHistory.length;
+  btn.disabled = depth === 0;
+  // Show count when > 0, just "Undo Remove" when 0
+  btn.querySelector('.urb-count').textContent = depth > 0 ? ` (${depth})` : '';
+}
+
+// Visual cue: cursor becomes a crosshair over the quantized canvas when bg removal is on
+function updateQuantCursor(){
+  const canvas = document.getElementById('quantCanvas');
+  if(state.bgRemoval.enabled && !zoomState.isDragging && zoomState.scale <= 1){
+    canvas.style.cursor = 'crosshair';
+  } else {
+    canvas.style.cursor = '';
+  }
+}
+
+// ---------- CONTROLS ----------
+const kSlider = document.getElementById('kSlider');
+const kDisplay = document.getElementById('kDisplay');
+const btnAuto = document.getElementById('btnAuto');
+const kBadge = document.getElementById('kBadge');
+
+kSlider.addEventListener('input', e => {
+  const v = parseInt(e.target.value);
+  kDisplay.textContent = v;
+  state.k = v;
+  state.isAuto = false;
+  kBadge.textContent = 'MANUAL';
+  btnAuto.classList.remove('dim');
+});
+kSlider.addEventListener('change', () => {
+  if(state.workCanvas) runClustering();
+});
+
+btnAuto.addEventListener('click', () => {
+  state.isAuto = true;
+  kBadge.textContent = 'AUTO';
+  if(state.workCanvas) runClustering();
+});
+
+function toggleFilter(key){
+  state.filters[key] = !state.filters[key];
+  document.querySelector(`[data-filter="${key}"]`).classList.toggle('on', state.filters[key]);
+  if(state.workCanvas) runClustering();
+}
+
+// ---------- BG REMOVAL CONTROLS ----------
+function toggleBgRemoval(){
+  state.bgRemoval.enabled = !state.bgRemoval.enabled;
+  const on = state.bgRemoval.enabled;
+  const btn = document.getElementById('removeBgBtn');
+  btn.classList.toggle('on', on);
+  document.getElementById('removeBgState').textContent = on ? 'ON' : 'OFF';
+  document.getElementById('bgControls').style.display = on ? 'block' : 'none';
+  document.getElementById('clickModeBar').style.display = on ? 'flex' : 'none';
+  // Auto-sample corner pixels on first enable. If we get a result and user hasn't
+  // manually changed the pickedColor yet, use the sampled color.
+  if(on && state.workCanvas){
+    const wCtx = state.workCanvas.getContext('2d');
+    const wImg = wCtx.getImageData(0, 0, state.workCanvas.width, state.workCanvas.height);
+    const sampled = sampleCornerBg(wImg.data, state.workCanvas.width, state.workCanvas.height);
+    if(sampled){
+      state.bgRemoval.pickedColor = sampled;
+      const hex = rgbToHex(sampled[0], sampled[1], sampled[2]);
+      document.getElementById('bgColorInput').value = hex;
+      document.getElementById('bgColorSwatch').style.background = hex;
+      document.getElementById('bgColorHex').textContent = hex.toUpperCase();
+      document.getElementById('removeBgSub').textContent = `Auto-detected: ${hex.toUpperCase()}`;
+    }
+  } else if(!on){
+    document.getElementById('removeBgSub').textContent = 'Auto-detects tee color from image corners';
+  }
+  refreshMockupVisibility();
+  updateQuantCursor();
+  applyPreviewBg();
+  if(state.workCanvas) runClustering();
+}
+
+function setClickMode(mode){
+  state.bgRemoval.clickMode = mode;
+  document.querySelectorAll('.click-mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  const hint = document.getElementById('clickModeHint');
+  if(mode === 'restore'){
+    hint.textContent = 'Click on removed (checkerboard) areas to bring them back';
+  } else {
+    hint.textContent = 'Click on ink to remove that connected patch only';
+  }
+}
+
+function toggleTransparentTee(){
+  state.mockup.transparentTee = !state.mockup.transparentTee;
+  const on = state.mockup.transparentTee;
+  document.getElementById('transparentTeeRow').classList.toggle('on', on);
+  // If user enables this without having picked a tee, activate mockup mode so the
+  // render pipeline treats bg as mockup bg (which we'll then render as checkerboard).
+  if(on && !isMockupActive()){
+    state.mockup.teeActive = true;
+  }
+  applyPreviewBg();
+  if(state.workCanvas){
+    renderQuantized();
+  }
+}
+
+const bgColorInput = document.getElementById('bgColorInput');
+const bgColorSwatch = document.getElementById('bgColorSwatch');
+const bgColorHex = document.getElementById('bgColorHex');
+bgColorInput.addEventListener('input', e => {
+  const hex = e.target.value;
+  state.bgRemoval.pickedColor = hexToRgb(hex);
+  bgColorSwatch.style.background = hex;
+  bgColorHex.textContent = hex.toUpperCase();
+});
+bgColorInput.addEventListener('change', e => {
+  if(state.workCanvas && state.bgRemoval.enabled) runClustering();
+});
+
+const bgToleranceSlider = document.getElementById('bgToleranceSlider');
+const bgToleranceVal = document.getElementById('bgToleranceVal');
+bgToleranceSlider.addEventListener('input', e => {
+  const v = parseInt(e.target.value);
+  state.bgRemoval.tolerance = v;
+  bgToleranceVal.textContent = 'ΔE ' + v;
+});
+bgToleranceSlider.addEventListener('change', () => {
+  if(state.workCanvas && state.bgRemoval.enabled) runClustering();
+});
+
+// ---------- MOCKUP PREVIEW CONTROLS ----------
+// Build tee preset swatches on load
+function buildTeePresets(){
+  const container = document.getElementById('teePresets');
+  container.innerHTML = '';
+  TEE_PRESETS.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'tee-preset';
+    el.style.background = p.hex;
+    el.dataset.hex = p.hex;
+    el.title = p.name;
+    // Use dark label on light tees, light label on dark tees
+    const [r,g,b] = hexToRgb(p.hex);
+    const luma = (r*0.299 + g*0.587 + b*0.114) / 255;
+    const labelBg = luma > 0.6 ? 'rgba(0,0,0,.55)' : 'rgba(0,0,0,.6)';
+    el.innerHTML = `<div class="tee-preset-label" style="background:${labelBg}">${p.name}</div>`;
+    el.onclick = () => setTeeColor(p.hex);
+    container.appendChild(el);
+  });
+  updateTeePresetActive();
+}
+function updateTeePresetActive(){
+  const currentHex = state.mockup.teeHex.toLowerCase();
+  document.querySelectorAll('.tee-preset').forEach(el => {
+    el.classList.toggle('active', el.dataset.hex.toLowerCase() === currentHex);
+  });
+}
+
+function setTeeColor(hex){
+  state.mockup.teeColor = hexToRgb(hex);
+  state.mockup.teeHex = hex;
+  state.mockup.teeActive = true;  // Picking a tee color activates mockup mode
+  document.getElementById('teeColorInput').value = hex;
+  document.getElementById('teeColorSwatch').style.background = hex;
+  document.getElementById('teeColorHex').textContent = hex.toUpperCase();
+  document.getElementById('mockupBadge').textContent =
+    TEE_PRESETS.find(p => p.hex.toLowerCase() === hex.toLowerCase())?.name.toUpperCase() || 'CUSTOM';
+  updateTeePresetActive();
+  applyPreviewBg();
+  // Re-render with new tee color visible as bg. Also refresh estimate (hidden inks
+  // now count out because mockup is active).
+  if(state.workCanvas){
+    renderQuantized();
+    updateEstimate();
+  }
+}
+
+document.getElementById('teeColorInput').addEventListener('input', e => {
+  setTeeColor(e.target.value);
+});
+
+function refreshMockupVisibility(){
+  // Mockup controls + inks palette visible as soon as we have clusters.
+  // Previously gated on bg removal; now independent.
+  const hasClusters = state.clusters.length > 0;
+  document.getElementById('mockupDisabled').style.display = hasClusters ? 'none' : 'block';
+  document.getElementById('mockupControls').style.display = hasClusters ? 'block' : 'none';
+  // Badge: show tee name when mockup is active, otherwise dash
+  const mockupOn = isMockupActive();
+  document.getElementById('mockupBadge').textContent = mockupOn
+    ? (TEE_PRESETS.find(p => p.hex.toLowerCase() === state.mockup.teeHex.toLowerCase())?.name.toUpperCase() || 'CUSTOM')
+    : '—';
+}
+
+function resetMockupInks(){
+  state.mockup.inkRemap = {};
+  state.mockup.hiddenInks = {};
+  renderPalette();
+  renderQuantized();
+  updateEstimate();
+}
+
+// ---------- EXPORT ----------
+
+// ===== Print-Ready PNG Export (v17) =====
+// Re-clusters at source resolution against existing centroids, then nearest-neighbor
+// upscales to target pixel dimensions computed from user-selected inches × DPI.
+// Embeds pHYs chunk so Photoshop reads correct DPI on open.
+
+const exportState = {
+  panelOpen: false,
+};
+
+function toggleExportPanel(){
+  if(!state.clusters.length){
+    toast('DROP AN IMAGE FIRST');
+    return;
+  }
+  exportState.panelOpen = !exportState.panelOpen;
+  const btn = document.getElementById('exportPngBtn');
+  const panel = document.getElementById('exportPanel');
+  btn.classList.toggle('open', exportState.panelOpen);
+  panel.classList.toggle('on', exportState.panelOpen);
+  if(exportState.panelOpen){
+    updateExportSpec();
+  }
+}
+
+function updateExportSpec(){
+  if(!state.sourceCanvas){
+    document.getElementById('exportSpec').textContent = '—';
+    document.getElementById('exportScale').textContent = '—';
+    return;
+  }
+  const inches = parseFloat(document.getElementById('exportSize').value);
+  const dpi = parseInt(document.getElementById('exportDpi').value);
+  const srcW = state.sourceCanvas.width;
+  const srcH = state.sourceCanvas.height;
+  const aspect = srcW / srcH;
+  // Long side = target inches. Shorter side scales proportionally.
+  let targetLongPx = Math.round(inches * dpi);
+  let outW, outH;
+  if(aspect >= 1){
+    outW = targetLongPx;
+    outH = Math.round(targetLongPx / aspect);
+  } else {
+    outH = targetLongPx;
+    outW = Math.round(targetLongPx * aspect);
+  }
+  // Scale factor relative to source
+  const scaleW = outW / srcW;
+  const scaleH = outH / srcH;
+  const scale = Math.max(scaleW, scaleH);
+  document.getElementById('exportSpec').textContent =
+    `${outW} × ${outH} px @ ${dpi} DPI`;
+  const scaleEl = document.getElementById('exportScale');
+  // v20: if pre-upscale is in play, the "source" the export sees is the upscaled version.
+  // Surface that fact in the readout so user knows where the pixels came from.
+  const rawC = state.rawSourceCanvas;
+  const upscaled = rawC && (rawC.width !== srcW || rawC.height !== srcH);
+  const sourceTag = upscaled
+    ? `upscaled source (${srcW}×${srcH} from raw ${rawC.width}×${rawC.height})`
+    : `source (${srcW}×${srcH})`;
+  if(scale > 1){
+    scaleEl.textContent = `Upscaling ${scale.toFixed(2)}× from ${sourceTag} — nearest-neighbor`;
+    scaleEl.classList.toggle('warn', scale > 4);
+  } else if(scale < 1){
+    scaleEl.textContent = `Downscaling ${(1/scale).toFixed(2)}× from ${sourceTag}`;
+    scaleEl.classList.remove('warn');
+  } else {
+    scaleEl.textContent = `1:1 with ${sourceTag}`;
+    scaleEl.classList.remove('warn');
+  }
+}
+
+// Wire dropdown change events (idempotent — bound at script-end)
+function _wireExportDropdowns(){
+  const sizeEl = document.getElementById('exportSize');
+  const dpiEl = document.getElementById('exportDpi');
+  if(sizeEl) sizeEl.addEventListener('change', updateExportSpec);
+  if(dpiEl) dpiEl.addEventListener('change', updateExportSpec);
+}
+
+function setExportProgress(pct, text){
+  const wrap = document.getElementById('exportProgress');
+  wrap.style.display = 'block';
+  document.getElementById('exportProgressFill').style.width = pct + '%';
+  document.getElementById('exportProgressText').textContent = text;
+}
+function hideExportProgress(){
+  document.getElementById('exportProgress').style.display = 'none';
+  document.getElementById('exportProgressFill').style.width = '0%';
+}
+
+// Re-flood-fill at source resolution if bg removal is enabled.
+// Returns Uint8Array(sourcePx): 1 = pixel is bg, 0 = keep.
+// Honors protected regions and remove patches by scaling work-canvas masks up to source res.
+function buildSourceBgMask(srcImgData, srcW, srcH){
+  if(!state.bgRemoval.enabled) return null;
+  // Fresh flood-fill at source resolution
+  const bgMask = floodFillBg(
+    srcImgData.data, srcW, srcH,
+    state.bgRemoval.pickedColor,
+    state.bgRemoval.tolerance
+  );
+  // Label connected components for protected-region lookup
+  const srcRegionMask = labelRegions(bgMask, srcW, srcH);
+  // Protected regions: scale work-canvas region IDs up to source res
+  // Strategy: for each work-canvas pixel that's in a protected region, find the
+  // corresponding source pixel(s) and look up THEIR region ID, then mark those
+  // source region IDs as protected too.
+  const workRegionMask = state.bgRemoval.regionMask;
+  const protectedRegions = state.bgRemoval.protectedRegions;
+  if(workRegionMask && Object.keys(protectedRegions).length > 0){
+    const workCanvas = state.workCanvas;
+    const workW = workCanvas.width, workH = workCanvas.height;
+    const protectedSrcRegions = {};
+    // Sample center of each work pixel; map to source pixel
+    for(let wy = 0; wy < workH; wy++){
+      const sy = Math.min(srcH - 1, Math.floor((wy + 0.5) * srcH / workH));
+      for(let wx = 0; wx < workW; wx++){
+        const wIdx = wy * workW + wx;
+        const wRegId = workRegionMask[wIdx];
+        if(wRegId && protectedRegions[wRegId]){
+          const sx = Math.min(srcW - 1, Math.floor((wx + 0.5) * srcW / workW));
+          const sIdx = sy * srcW + sx;
+          const srcRegId = srcRegionMask[sIdx];
+          if(srcRegId) protectedSrcRegions[srcRegId] = true;
+        }
+      }
+    }
+    // Now unmask any source pixel that's in a protected source region
+    const total = srcW * srcH;
+    for(let i = 0; i < total; i++){
+      if(bgMask[i] && protectedSrcRegions[srcRegionMask[i]]){
+        bgMask[i] = 0;
+      }
+    }
+  }
+  // Remove patches: scale work-canvas removedPatches up to source res via nearest-neighbor
+  const removedPatches = state.bgRemoval.removedPatches;
+  if(removedPatches){
+    const workCanvas = state.workCanvas;
+    const workW = workCanvas.width, workH = workCanvas.height;
+    for(let sy = 0; sy < srcH; sy++){
+      const wy = Math.min(workH - 1, Math.floor(sy * workH / srcH));
+      for(let sx = 0; sx < srcW; sx++){
+        const wx = Math.min(workW - 1, Math.floor(sx * workW / srcW));
+        const wIdx = wy * workW + wx;
+        if(removedPatches[wIdx]){
+          bgMask[sy * srcW + sx] = 1;
+        }
+      }
+    }
+  }
+  return bgMask;
+}
+
+// Assign every source pixel to its nearest cluster centroid.
+// Returns Int16Array(sourcePx): -1 = skip (bg or transparent), >=0 = cluster.id
+async function assignSourcePixels(srcImgData, srcW, srcH, bgMask, progressBase){
+  const data = srcImgData.data;
+  const total = srcW * srcH;
+  const assignments = new Int16Array(total);
+  const clusters = state.clusters;
+  const k = clusters.length;
+  // Pre-extract centroid arrays for tight inner loop
+  const centR = new Float64Array(k);
+  const centG = new Float64Array(k);
+  const centB = new Float64Array(k);
+  const centId = new Int16Array(k);
+  for(let c = 0; c < k; c++){
+    centR[c] = clusters[c].r;
+    centG[c] = clusters[c].g;
+    centB[c] = clusters[c].b;
+    centId[c] = clusters[c].id;
+  }
+  // Yield periodically for UI responsiveness
+  const ROWS_PER_YIELD = 256;
+  for(let y = 0; y < srcH; y++){
+    for(let x = 0; x < srcW; x++){
+      const i = y * srcW + x;
+      const pi = i * 4;
+      const a = data[pi+3];
+      if(a < 128){ assignments[i] = -1; continue; }
+      if(bgMask && bgMask[i]){ assignments[i] = -1; continue; }
+      const r = data[pi], g = data[pi+1], b = data[pi+2];
+      let best = 0, bestD = Infinity;
+      for(let c = 0; c < k; c++){
+        const dr = r - centR[c], dg = g - centG[c], db = b - centB[c];
+        const d = dr*dr + dg*dg + db*db;
+        if(d < bestD){ bestD = d; best = c; }
+      }
+      assignments[i] = centId[best];
+    }
+    if(y % ROWS_PER_YIELD === 0 && y > 0){
+      const rowPct = y / srcH;
+      setExportProgress(progressBase + rowPct * 30, 'Re-clustering at source resolution…');
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+  return assignments;
+}
+
+// Paint source assignments into a canvas at source resolution, respecting
+// isBackground / hiddenInks / inkRemap. Background pixels stay transparent.
+function paintSourceQuantized(srcW, srcH, assignments){
+  const canvas = document.createElement('canvas');
+  canvas.width = srcW;
+  canvas.height = srcH;
+  const ctx = canvas.getContext('2d');
+  const imgData = ctx.createImageData(srcW, srcH);
+  const data = imgData.data;
+  const clusters = state.clusters;
+  const byId = {};
+  clusters.forEach(c => byId[c.id] = c);
+  const inkRemap = state.mockup.inkRemap || {};
+  const hiddenInks = state.mockup.hiddenInks || {};
+  const mockupActive = isMockupActive();
+  const total = srcW * srcH;
+  for(let i = 0; i < total; i++){
+    const a = assignments[i];
+    if(a < 0){
+      data[i*4+3] = 0; // transparent
+      continue;
+    }
+    const cluster = byId[a];
+    if(!cluster || cluster.isBackground){
+      data[i*4+3] = 0;
+      continue;
+    }
+    if(mockupActive && hiddenInks[a]){
+      data[i*4+3] = 0;
+      continue;
+    }
+    const remap = inkRemap[a];
+    if(remap){
+      data[i*4] = remap[0];
+      data[i*4+1] = remap[1];
+      data[i*4+2] = remap[2];
+    } else {
+      data[i*4] = Math.round(cluster.r);
+      data[i*4+1] = Math.round(cluster.g);
+      data[i*4+2] = Math.round(cluster.b);
+    }
+    data[i*4+3] = 255;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return canvas;
+}
+
+// Nearest-neighbor scale a canvas to target dimensions. Preserves hard edges
+// (no smoothing) — critical for spot-color separation art.
+function nearestNeighborScale(srcCanvas, targetW, targetH){
+  const srcW = srcCanvas.width, srcH = srcCanvas.height;
+  if(srcW === targetW && srcH === targetH) return srcCanvas;
+  const dst = document.createElement('canvas');
+  dst.width = targetW;
+  dst.height = targetH;
+  const dctx = dst.getContext('2d');
+  const sctx = srcCanvas.getContext('2d');
+  const srcData = sctx.getImageData(0, 0, srcW, srcH).data;
+  const dstData = dctx.createImageData(targetW, targetH);
+  const out = dstData.data;
+  // Inverse mapping: for each dst pixel, find the source pixel it samples from
+  for(let y = 0; y < targetH; y++){
+    const sy = Math.min(srcH - 1, Math.floor(y * srcH / targetH));
+    for(let x = 0; x < targetW; x++){
+      const sx = Math.min(srcW - 1, Math.floor(x * srcW / targetW));
+      const si = (sy * srcW + sx) * 4;
+      const di = (y * targetW + x) * 4;
+      out[di]   = srcData[si];
+      out[di+1] = srcData[si+1];
+      out[di+2] = srcData[si+2];
+      out[di+3] = srcData[si+3];
+    }
+  }
+  dctx.putImageData(dstData, 0, 0);
+  return dst;
+}
+
+// ===== PNG metadata injection =====
+// Browser's canvas.toBlob produces a clean PNG but with no pHYs chunk (so all PNGs
+// open as 72 DPI in Photoshop). We inject a pHYs chunk after the IHDR chunk so the
+// file reports correct physical dimensions. Format:
+//   pHYs = 9 bytes data: pixelsPerUnitX (4), pixelsPerUnitY (4), unitSpecifier (1)
+//   For DPI: pixelsPerMeter = DPI * 39.3701 (inches/meter), unit = 1 (meter)
+
+function crc32(bytes){
+  // Standard PNG CRC over chunk type + data
+  let crc = 0xFFFFFFFF;
+  for(let i = 0; i < bytes.length; i++){
+    crc ^= bytes[i];
+    for(let b = 0; b < 8; b++){
+      crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function writeUint32BE(buf, offset, val){
+  buf[offset]   = (val >>> 24) & 0xFF;
+  buf[offset+1] = (val >>> 16) & 0xFF;
+  buf[offset+2] = (val >>> 8)  & 0xFF;
+  buf[offset+3] = val & 0xFF;
+}
+
+function buildPhysChunk(dpi){
+  const ppm = Math.round(dpi * 39.3701);
+  // Chunk: 4 length + 4 type + 9 data + 4 crc = 21 bytes total
+  const chunk = new Uint8Array(21);
+  writeUint32BE(chunk, 0, 9); // data length = 9
+  chunk[4] = 0x70; chunk[5] = 0x48; chunk[6] = 0x59; chunk[7] = 0x73; // "pHYs"
+  writeUint32BE(chunk, 8, ppm);   // X ppm
+  writeUint32BE(chunk, 12, ppm);  // Y ppm
+  chunk[16] = 1; // unit = meter
+  // CRC over type (4) + data (9) = 13 bytes starting at offset 4
+  const crc = crc32(chunk.slice(4, 17));
+  writeUint32BE(chunk, 17, crc);
+  return chunk;
+}
+
+function buildTextChunk(keyword, text){
+  // tEXt chunk: keyword \0 text
+  const enc = new TextEncoder();
+  const kw = enc.encode(keyword);
+  const txt = enc.encode(text);
+  const dataLen = kw.length + 1 + txt.length;
+  const chunk = new Uint8Array(12 + dataLen);
+  writeUint32BE(chunk, 0, dataLen);
+  chunk[4] = 0x74; chunk[5] = 0x45; chunk[6] = 0x58; chunk[7] = 0x74; // "tEXt"
+  chunk.set(kw, 8);
+  chunk[8 + kw.length] = 0;
+  chunk.set(txt, 8 + kw.length + 1);
+  // CRC over type + data
+  const crc = crc32(chunk.slice(4, 8 + dataLen));
+  writeUint32BE(chunk, 8 + dataLen, crc);
+  return chunk;
+}
+
+// Inject pHYs (and optional tEXt chunks) into PNG byte stream just after IHDR.
+// PNG format: 8-byte signature + sequence of chunks.
+// Each chunk: 4-byte length + 4-byte type + data + 4-byte CRC.
+// IHDR is always the first chunk after signature.
+function injectPngChunks(pngBytes, extraChunks){
+  // Validate signature
+  if(pngBytes.length < 8) throw new Error('Not a PNG');
+  // IHDR starts at byte 8. Length is bytes 8-11 (big-endian).
+  const ihdrLen = (pngBytes[8]<<24) | (pngBytes[9]<<16) | (pngBytes[10]<<8) | pngBytes[11];
+  const ihdrEnd = 8 + 4 + 4 + ihdrLen + 4; // length + type + data + crc
+  // Total injected size
+  let extraSize = 0;
+  for(const c of extraChunks) extraSize += c.length;
+  const out = new Uint8Array(pngBytes.length + extraSize);
+  // Copy: signature + IHDR
+  out.set(pngBytes.subarray(0, ihdrEnd), 0);
+  // Insert extra chunks
+  let offset = ihdrEnd;
+  for(const c of extraChunks){
+    out.set(c, offset);
+    offset += c.length;
+  }
+  // Copy rest of original PNG (IDAT, IEND, etc.)
+  out.set(pngBytes.subarray(ihdrEnd), offset);
+  return out;
+}
+
+async function canvasToPngWithDpi(canvas, dpi, metadata){
+  // Get clean PNG blob from canvas
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/png');
+  });
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  const chunks = [buildPhysChunk(dpi)];
+  if(metadata){
+    for(const [key, value] of Object.entries(metadata)){
+      if(value) chunks.push(buildTextChunk(key, String(value)));
+    }
+  }
+  const out = injectPngChunks(buf, chunks);
+  return new Blob([out], { type: 'image/png' });
+}
+
+function sanitizeFilenameStem(name){
+  // Strip extension and unsafe chars
+  return (name || 'artwork')
+    .replace(/\.[^.]+$/, '')
+    .replace(/[^a-zA-Z0-9_\-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '') || 'artwork';
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function generatePrintReadyPng(){
+  if(!state.clusters.length || !state.sourceCanvas){
+    toast('NO ARTWORK LOADED');
+    return;
+  }
+  const inches = parseFloat(document.getElementById('exportSize').value);
+  const dpi = parseInt(document.getElementById('exportDpi').value);
+  const generateBtn = document.getElementById('exportGenerateBtn');
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Generating…';
+
+  try {
+    const srcCanvas = state.sourceCanvas;
+    const srcW = srcCanvas.width, srcH = srcCanvas.height;
+
+    setExportProgress(5, 'Reading source image…');
+    await new Promise(r => setTimeout(r, 20));
+    const srcCtx = srcCanvas.getContext('2d');
+    const srcImgData = srcCtx.getImageData(0, 0, srcW, srcH);
+
+    setExportProgress(15, 'Building background mask…');
+    await new Promise(r => setTimeout(r, 20));
+    const bgMask = buildSourceBgMask(srcImgData, srcW, srcH);
+
+    setExportProgress(25, 'Re-clustering at source resolution…');
+    await new Promise(r => setTimeout(r, 20));
+    const assignments = await assignSourcePixels(srcImgData, srcW, srcH, bgMask, 25);
+
+    // v19: source-resolution cleanup (skipping median; centroids already reflect filtered colors)
+    if(state.cleanup.mode !== 'off'){
+      setExportProgress(55, 'Cleanup at source resolution…');
+      await new Promise(r => setTimeout(r, 20));
+      // Scale factor: closing radius grows with source resolution but capped in applyCleanupToAssignments
+      const scaleFactor = srcW / state.workCanvas.width;
+      applyCleanupToAssignments(
+        assignments,
+        srcImgData.data,
+        srcW, srcH,
+        state.clusters,
+        scaleFactor
+      );
+    }
+
+    setExportProgress(60, 'Painting quantized canvas…');
+    await new Promise(r => setTimeout(r, 20));
+    const srcQuantCanvas = paintSourceQuantized(srcW, srcH, assignments);
+
+    // Compute target dims (long-side scaling)
+    const aspect = srcW / srcH;
+    const targetLongPx = Math.round(inches * dpi);
+    let outW, outH;
+    if(aspect >= 1){
+      outW = targetLongPx;
+      outH = Math.round(targetLongPx / aspect);
+    } else {
+      outH = targetLongPx;
+      outW = Math.round(targetLongPx * aspect);
+    }
+
+    setExportProgress(75, `Scaling to ${outW}×${outH}…`);
+    await new Promise(r => setTimeout(r, 20));
+    const finalCanvas = nearestNeighborScale(srcQuantCanvas, outW, outH);
+
+    setExportProgress(90, 'Embedding metadata…');
+    await new Promise(r => setTimeout(r, 20));
+
+    // Build metadata
+    const activeInks = state.clusters.filter(c =>
+      !c.isBackground && !(isMockupActive() && state.mockup.hiddenInks[c.id])
+    );
+    const palette = activeInks.map((c, i) => {
+      const remap = state.mockup.inkRemap[c.id];
+      const hex = remap ? rgbToHex(remap[0], remap[1], remap[2]).toUpperCase() : c.hex.toUpperCase();
+      return `${i+1}. PANTONE ${c.pantone} (${hex})`;
+    }).join('; ');
+    const metadata = {
+      'Software': 'Pine Color Counter v17',
+      'Title': state.filename || 'Untitled',
+      'Description': `Print size: ${inches}" @ ${dpi} DPI. ${activeInks.length} screen${activeInks.length===1?'':'s'}. Palette: ${palette}`,
+    };
+
+    const blob = await canvasToPngWithDpi(finalCanvas, dpi, metadata);
+
+    setExportProgress(100, 'Downloading…');
+
+    const stem = sanitizeFilenameStem(state.filename);
+    const filename = `${stem}_cleaned_${outW}x${outH}_${dpi}dpi.png`;
+    downloadBlob(blob, filename);
+
+    // Also download sidecar palette report .txt for seps
+    const reportLines = [
+      `Pine Color Counter v17 — Print-Ready Export`,
+      `Source: ${state.filename || 'Untitled'}`,
+      `Generated: ${new Date().toLocaleString()}`,
+      ``,
+      `# OUTPUT`,
+      `File: ${filename}`,
+      `Dimensions: ${outW} × ${outH} px`,
+      `Print size: ${inches}" (long side) @ ${dpi} DPI`,
+      `Source size: ${srcW} × ${srcH} px`,
+      `Scale factor: ${(outW/srcW).toFixed(3)}× (nearest-neighbor)`,
+      ``,
+      `# SEPARATIONS — ${activeInks.length} SCREEN${activeInks.length===1?'':'S'}`,
+    ];
+    activeInks.forEach((c, i) => {
+      const remap = state.mockup.inkRemap[c.id];
+      const hex = remap ? rgbToHex(remap[0], remap[1], remap[2]).toUpperCase() : c.hex.toUpperCase();
+      reportLines.push(`${i+1}. PANTONE ${c.pantone} — ${hex} — ${(c.pct*100).toFixed(1)}% coverage — ΔE ${c.deltaE.toFixed(1)}`);
+    });
+    if(state.bgRemoval.enabled){
+      reportLines.push(``);
+      reportLines.push(`# BACKGROUND REMOVAL`);
+      const [br,bg,bb] = state.bgRemoval.pickedColor;
+      reportLines.push(`Bg color: ${rgbToHex(br,bg,bb).toUpperCase()}`);
+      reportLines.push(`Tolerance: ΔE ${state.bgRemoval.tolerance}`);
+    }
+    const reportBlob = new Blob([reportLines.join('\n')], { type: 'text/plain' });
+    downloadBlob(reportBlob, `${stem}_separations_${dpi}dpi.txt`);
+
+    setTimeout(() => {
+      hideExportProgress();
+      toast('PNG EXPORTED');
+    }, 800);
+
+  } catch(err) {
+    console.error('Export failed:', err);
+    toast('EXPORT FAILED — SEE CONSOLE');
+    hideExportProgress();
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generate PNG';
+  }
+}
+
+function copyPalette(mode){
+  if(!state.clusters.length){ toast('NO PALETTE YET'); return; }
+  const active = state.clusters.filter(c => !c.isBackground);
+  let out = '';
+  if(mode === 'pantone'){
+    out = active.map(c => `PANTONE ${c.pantone}`).join('\n');
+  } else if(mode === 'hex'){
+    out = active.map(c => c.hex.toUpperCase()).join('\n');
+  } else {
+    // Full report
+    const lines = [
+      `Pine Color Counter — ${state.filename || 'Untitled'}`,
+      `Generated: ${new Date().toLocaleString()}`,
+      `Print Colors: ${active.length}`,
+      `Screens Needed: ${active.length}`,
+      ``,
+      `# PALETTE`,
+    ];
+    active.forEach((c, i) => {
+      lines.push(`${i+1}. PANTONE ${c.pantone} — ${c.hex.toUpperCase()} — ${(c.pct*100).toFixed(1)}% — ΔE ${c.deltaE.toFixed(1)}`);
+    });
+    out = lines.join('\n');
+  }
+  navigator.clipboard.writeText(out).then(() => toast('COPIED')).catch(() => toast('COPY FAILED'));
+}
+
+// ---------- STATUS / TOAST ----------
+function showStatus(which, text){
+  const el = document.getElementById(which + 'Status');
+  const textEl = document.getElementById(which + 'StatusText');
+  if(textEl) textEl.textContent = text;
+  if(el) el.classList.add('on');
+}
+function hideStatus(which){
+  const el = document.getElementById(which + 'Status');
+  if(el) el.classList.remove('on');
+}
+
+let toastTimeout = null;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('on'), 1800);
+}
+
+// ---------- RESET ----------
+function resetAll(){
+  state.rawSourceCanvas = null;
+  state.sourceCanvas = null;
+  state.workCanvas = null;
+  state.workCanvasUnfiltered = null;
+  state.clusters = [];
+  state.pixelAssignments = null;
+  state.k = null;
+  state.autoK = null;
+  state.elbowData = null;
+  state.isAuto = true;
+  state.mergePickFirst = null;
+  state.filename = '';
+  state.bgRemoval.enabled = false;
+  state.bgRemoval.pickedColor = [13,13,11];
+  state.bgRemoval.tolerance = 8;
+  state.bgRemoval.protectedRegions = {};
+  state.bgRemoval.regionMask = null;
+  state.bgRemoval.clickMode = 'restore';
+  state.bgRemoval.removedPatches = null;
+  state.bgRemoval.removeHistory = [];
+  state.mockup.teeColor = [13,13,11];
+  state.mockup.teeHex = '#0D0D0B';
+  state.mockup.teeActive = false;
+  state.mockup.transparentTee = false;
+  state.mockup.inkRemap = {};
+  state.mockup.hiddenInks = {};
+  state.cleanup.mode = 'off';
+  state.sourceAssignments = null;
+
+  document.getElementById('previewWrap').classList.remove('on');
+  document.getElementById('paletteWrap').classList.remove('on');
+  document.getElementById('dropZone').style.display = '';
+  document.getElementById('kSlider').value = 6;
+  document.getElementById('kSlider').disabled = true;
+  document.getElementById('kDisplay').textContent = '—';
+  document.getElementById('kBadge').textContent = 'AUTO';
+  document.getElementById('elbowNote').textContent = 'Drop a file to detect optimal color count';
+  document.getElementById('tbRight').textContent = 'Drop an image or PDF to begin';
+  document.getElementById('estColors').textContent = '—';
+  document.getElementById('estScreens').textContent = '—';
+  document.getElementById('estWithBase').textContent = '—';
+  // Reset Remove Background UI
+  document.getElementById('removeBgBtn').classList.remove('on');
+  document.getElementById('removeBgState').textContent = 'OFF';
+  document.getElementById('removeBgSub').textContent = 'Auto-detects tee color from image corners';
+  document.getElementById('bgControls').style.display = 'none';
+  document.getElementById('bgToleranceSlider').value = 8;
+  document.getElementById('bgToleranceVal').textContent = 'ΔE 8';
+  document.getElementById('bgColorInput').value = '#0D0D0B';
+  document.getElementById('bgColorSwatch').style.background = '#0D0D0B';
+  document.getElementById('bgColorHex').textContent = '#0D0D0B';
+  // Reset click-mode bar
+  document.getElementById('clickModeBar').style.display = 'none';
+  document.querySelectorAll('.click-mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === 'restore');
+  });
+  document.getElementById('clickModeHint').textContent = 'Click on removed (checkerboard) areas to bring them back';
+  updateUndoButton();
+  // Reset Mockup UI
+  document.getElementById('mockupDisabled').style.display = 'block';
+  document.getElementById('mockupControls').style.display = 'none';
+  document.getElementById('mockupBadge').textContent = '—';
+  document.getElementById('teeColorInput').value = '#0D0D0B';
+  document.getElementById('teeColorSwatch').style.background = '#0D0D0B';
+  document.getElementById('teeColorHex').textContent = '#0D0D0B';
+  document.getElementById('paletteGrid').innerHTML = '';
+  document.getElementById('transparentTeeRow').classList.remove('on');
+  updateTeePresetActive();
+  applyPreviewBg();
+  zoomReset();
+  // Reset Export panel (v17)
+  exportState.panelOpen = false;
+  document.getElementById('exportPngBtn').classList.remove('open');
+  document.getElementById('exportPanel').classList.remove('on');
+  hideExportProgress();
+  document.getElementById('exportSpec').textContent = '—';
+  document.getElementById('exportScale').textContent = '—';
+  document.getElementById('exportScale').classList.remove('warn');
+  // v19: reset Cleanup Mode UI (set Off as active, clear badge)
+  document.querySelectorAll('.cleanup-mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === 'off');
+  });
+  const cmBadge = document.getElementById('cleanupModeBadge');
+  if(cmBadge){ cmBadge.textContent = 'OFF'; cmBadge.classList.remove('on'); }
+  const cmSelect = document.getElementById('cleanupModeSelect');
+  if(cmSelect) cmSelect.value = 'off';
+  // v20: reset Pre-Upscale UI back to default (2000px)
+  state.upscale.target = 2000;
+  updateUpscaleSliderUI();
+  const upscaleSpecEl = document.getElementById('upscaleSpec');
+  if(upscaleSpecEl){ upscaleSpecEl.textContent = 'Drop a file to see upscale info'; upscaleSpecEl.classList.remove('on'); }
+  fileInput.value = '';
+}
+
+// ---------- HSL COLOR POPOVER ----------
+// Reusable color picker that stays open during interaction (unlike native OS picker).
+// Usage: openHslPopover(anchorEl, startHex, (newHex) => { ... });
+
+const hslState = {
+  h: 0, s: 0, l: 0,     // current HSL values
+  onChange: null,       // callback fn(hex)
+  anchorClusterId: null,// which cluster's chip is the anchor (DOM recreates on re-render)
+  open: false,
+};
+
+// RGB <-> HSL conversions. All values 0-1 internally except HSL we display as H 0-360, S/L 0-100.
+function rgbToHsl(r, g, b){
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s;
+  const l = (max + min) / 2;
+  if(max === min){
+    h = 0; s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch(max){
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+}
+
+function hslToRgb(h, s, l){
+  h /= 360; s /= 100; l /= 100;
+  if(s === 0){
+    const v = Math.round(l * 255);
+    return [v, v, v];
+  }
+  const hue2rgb = (p, q, t) => {
+    if(t < 0) t += 1;
+    if(t > 1) t -= 1;
+    if(t < 1/6) return p + (q - p) * 6 * t;
+    if(t < 1/2) return q;
+    if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return [
+    Math.round(hue2rgb(p, q, h + 1/3) * 255),
+    Math.round(hue2rgb(p, q, h) * 255),
+    Math.round(hue2rgb(p, q, h - 1/3) * 255),
+  ];
+}
+
+function updateHslSliderBackgrounds(){
+  // Hue stays as full rainbow (CSS-defined, untouched).
+  // Saturation slider: gradient from gray (S=0) to full saturation at current H/L
+  const h = hslState.h, l = hslState.l;
+  const satLeft  = `hsl(${h} 0% ${l}%)`;
+  const satRight = `hsl(${h} 100% ${l}%)`;
+  document.getElementById('hslSat').style.background =
+    `linear-gradient(to right, ${satLeft}, ${satRight})`;
+  // Lightness slider: black → current hue at mid → white
+  const lightMid = `hsl(${h} ${hslState.s}% 50%)`;
+  document.getElementById('hslLight').style.background =
+    `linear-gradient(to right, #000, ${lightMid}, #fff)`;
+}
+
+function syncHslUi(){
+  document.getElementById('hslHue').value = hslState.h;
+  document.getElementById('hslSat').value = hslState.s;
+  document.getElementById('hslLight').value = hslState.l;
+  document.getElementById('hslHueVal').textContent = hslState.h + '°';
+  document.getElementById('hslSatVal').textContent = hslState.s + '%';
+  document.getElementById('hslLightVal').textContent = hslState.l + '%';
+  const [r,g,b] = hslToRgb(hslState.h, hslState.s, hslState.l);
+  const hex = rgbToHex(r, g, b).toUpperCase();
+  document.getElementById('hslHex').value = hex;
+  document.getElementById('hslPreview').style.background = hex;
+  updateHslSliderBackgrounds();
+  return hex;
+}
+
+function fireHslChange(){
+  const hex = syncHslUi();
+  if(hslState.onChange) hslState.onChange(hex);
+}
+
+function openHslPopover(anchorEl, startHex, onChange){
+  const popover = document.getElementById('hslPopover');
+  const [r,g,b] = hexToRgb(startHex);
+  const [h,s,l] = rgbToHsl(r, g, b);
+  hslState.h = h;
+  hslState.s = s;
+  hslState.l = l;
+  hslState.onChange = onChange;
+  hslState.anchorClusterId = anchorEl.dataset.chipId || null;
+  hslState.open = true;
+  syncHslUi();
+  // Position popover near anchor. Place it to the LEFT of the chip
+  // (chips are on the left edge of each mockup row, so popover to the right tends to overflow).
+  const rect = anchorEl.getBoundingClientRect();
+  popover.classList.add('on');
+  // After display, we can measure
+  const popRect = popover.getBoundingClientRect();
+  let left = rect.right + 8;
+  let top = rect.top;
+  // If it would overflow right edge of viewport, flip to the left
+  if(left + popRect.width > window.innerWidth - 12){
+    left = rect.left - popRect.width - 8;
+  }
+  // If it would overflow bottom, shift up
+  if(top + popRect.height > window.innerHeight - 12){
+    top = Math.max(12, window.innerHeight - popRect.height - 12);
+  }
+  // If still off-screen on the left, just clamp
+  if(left < 12) left = 12;
+  popover.style.left = left + 'px';
+  popover.style.top = top + 'px';
+}
+
+function closeHslPopover(){
+  document.getElementById('hslPopover').classList.remove('on');
+  hslState.open = false;
+  hslState.onChange = null;
+  hslState.anchorClusterId = null;
+}
+
+// Wire popover controls (only bind once — popover lives in DOM from page load)
+document.getElementById('hslHue').addEventListener('input', e => {
+  hslState.h = parseInt(e.target.value);
+  fireHslChange();
+});
+document.getElementById('hslSat').addEventListener('input', e => {
+  hslState.s = parseInt(e.target.value);
+  fireHslChange();
+});
+document.getElementById('hslLight').addEventListener('input', e => {
+  hslState.l = parseInt(e.target.value);
+  fireHslChange();
+});
+document.getElementById('hslHex').addEventListener('input', e => {
+  let v = e.target.value.trim();
+  if(!v.startsWith('#')) v = '#' + v;
+  // Validate 7-char hex
+  if(!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+  const [r,g,b] = hexToRgb(v);
+  const [h,s,l] = rgbToHsl(r, g, b);
+  hslState.h = h;
+  hslState.s = s;
+  hslState.l = l;
+  fireHslChange();
+});
+
+// Close popover on outside click or Escape
+document.addEventListener('mousedown', e => {
+  if(!hslState.open) return;
+  const popover = document.getElementById('hslPopover');
+  if(popover.contains(e.target)) return;
+  // Is the click on the currently-anchored chip (or its descendants)?
+  if(hslState.anchorClusterId){
+    const anchorChip = document.querySelector(`[data-chip-id="${hslState.anchorClusterId}"]`);
+    if(anchorChip && anchorChip.contains(e.target)) return;
+  }
+  closeHslPopover();
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && hslState.open) closeHslPopover();
+});
+
+// Make available globally for inline handlers
+window.copyPalette = copyPalette;
+window.resetAll = resetAll;
+window.toggleBgRemoval = toggleBgRemoval;
+window.toggleTransparentTee = toggleTransparentTee;
+window.resetMockupInks = resetMockupInks;
+window.zoomStep = zoomStep;
+window.zoomReset = zoomReset;
+window.closeHslPopover = closeHslPopover;
+window.setClickMode = setClickMode;
+window.undoLastRemove = undoLastRemove;
+window.toggleExportPanel = toggleExportPanel;
+window.generatePrintReadyPng = generatePrintReadyPng;
+window.setCleanupMode = setCleanupMode;
+window.onUpscaleSliderInput = onUpscaleSliderInput;
+window.setUpscaleTarget = setUpscaleTarget;
+
+// Init tee preset swatches
+buildTeePresets();
+// Wire export dropdowns (live spec updates)
+_wireExportDropdowns();
+// v20: init upscale slider UI to reflect default state
+updateUpscaleSliderUI();
+
+</script>
+
+</body>
+</html>
