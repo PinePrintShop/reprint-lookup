@@ -1,0 +1,3767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Sales Entry v23</title>
+<style>
+:root{
+  --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;
+  --green:#1e6b45;--green-lt:#e8f5ee;--green-dk:#144d31;
+  --text:#0D0D0B;--muted:#888880;--muted-lt:#BBBBB5;
+  --yellow:#E8E832;--yellow-dim:rgba(232,232,50,.15);--yellow-bd:rgba(232,232,50,.3);
+  --red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+  --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;
+  --sb-bg:#0A0A08;--sb-border:#1A1A16;
+  --sans:Helvetica,Arial,sans-serif;
+  --cond:Helvetica,Arial,sans-serif;
+  --mono:'Courier New',monospace;
+  --radius:4px;--radius-lg:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;overflow:hidden}
+
+/* ── PREVIEW BADGE ── */
+.preview-badge{position:fixed;top:8px;right:8px;z-index:1000;background:var(--yellow);color:var(--text);padding:3px 8px;border-radius:var(--radius);font-size:9px;font-weight:700;letter-spacing:.08em;font-family:var(--cond);text-transform:uppercase;border:1px solid rgba(0,0,0,.1)}
+
+/* ── HOME: TOP BAR ── */
+.home-top{padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.home-title{font-size:18px;font-weight:700;font-family:var(--cond);letter-spacing:.02em;margin-bottom:2px}
+.home-sub{font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em}
+
+/* ── SEARCH ROW ── */
+.search-wrap{padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0}
+.search-inp{flex:1;background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);padding:8px 12px;font-size:14px;font-family:var(--sans);color:var(--text);outline:none;transition:border-color .15s}
+.search-inp:focus{border-color:var(--green)}
+.search-inp::placeholder{color:var(--muted-lt)}
+
+/* ── STATS BAR (filter pills) ── */
+.stats-bar{display:flex;overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;gap:6px;scrollbar-width:none;flex-shrink:0;align-items:center;flex-wrap:nowrap}
+.stats-bar::-webkit-scrollbar{display:none}
+.stats-bar-lbl{font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.08em;text-transform:uppercase;margin-right:2px}
+.stats-bar-count{font-size:11px;color:var(--text);font-family:var(--cond);letter-spacing:.04em;margin-right:6px}
+.stats-bar-count #inboxCount{font-family:var(--mono);font-weight:700}
+.stat-cell{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);display:flex;align-items:center;cursor:pointer;transition:all .1s;user-select:none}
+.stat-cell:hover{border-color:var(--text);color:var(--text)}
+.stat-cell.on{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.stat-ct{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:rgba(0,0,0,.06);font-size:9px;padding:0 4px;margin-left:5px;color:var(--muted-lt);font-family:var(--mono)}
+.stat-cell.on .stat-ct{background:rgba(232,232,50,.15);color:var(--yellow)}
+.bar-sep{width:1px;height:20px;background:var(--border-dk);flex-shrink:0;margin:0 2px}
+
+/* ── BUTTON (Pine .btn pattern: 10px condensed uppercase, .06em tracked) ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:var(--radius);border:1px solid transparent;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-dark{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-bd)}
+.btn-dark:hover{background:#1a1a14}
+.btn-dark:disabled{background:var(--border-dk);color:var(--muted-lt);border-color:transparent;cursor:not-allowed}
+.btn-outline{background:var(--surface);color:var(--muted);border-color:var(--border-dk)}
+.btn-outline:hover{border-color:var(--text);color:var(--text)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover{background:var(--green-dk)}
+.btn-green:disabled{background:var(--border-dk);color:var(--muted-lt);border-color:transparent;cursor:not-allowed}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-dashed{background:transparent;color:var(--muted);border:1px dashed var(--border-dk)}
+.btn-dashed:hover{color:var(--text);border-color:var(--text)}
+
+/* ── LOADING / EMPTY ── */
+.state-panel{padding:48px;text-align:center;background:var(--surface)}
+.spin{width:20px;height:20px;border:2px solid var(--border-dk);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state-txt{font-size:12px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em}
+.state-icon{font-size:24px;margin-bottom:8px}
+.state-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+
+/* ── ORDER LIST (job-card stack) ── */
+.card-list{padding:8px}
+.oc{display:grid;grid-template-columns:90px 1fr auto auto auto;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;position:relative;align-items:stretch}
+.oc:last-child{border-bottom:none}
+.oc:hover{background:#FAFAF6}
+.oc-num{background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;gap:3px}
+.oc-num-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);line-height:1}
+.oc-num-lbl{font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase}
+.oc-body{padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0;justify-content:center}
+.oc-cust{font-size:14px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oc-meta{font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.02em}
+.oc-status{padding:0 14px;display:flex;align-items:center;gap:6px;border-left:1px solid var(--border)}
+.oc-arrow{padding:0 14px;display:flex;align-items:center;color:var(--muted-lt);font-size:18px;border-left:1px solid var(--border)}
+.oc-arrow:hover,.oc:hover .oc-arrow{color:var(--text)}
+.oc-reorder{padding:0 12px;display:flex;align-items:center;border-left:1px solid var(--border);opacity:0;transition:opacity .12s}
+.oc:hover .oc-reorder{opacity:1}
+.oc-reorder-btn{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);padding:5px 10px;border:1px solid var(--border-dk);background:var(--surface);color:var(--muted);border-radius:var(--radius);cursor:pointer;white-space:nowrap}
+.oc-reorder-btn:hover{background:var(--sb-bg);color:var(--yellow);border-color:var(--sb-bg)}
+.oc.done{opacity:.7}
+.oc.done:hover{opacity:1}
+
+/* ── JOB CARD v2 (matches catching v122) ── */
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;gap:16px;padding:16px 18px;cursor:pointer;transition:border-color .12s,box-shadow .12s;margin-bottom:8px}
+.job-card:hover{border-color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.job-card.done{opacity:.7}
+.job-card.done:hover{opacity:1}
+.jc-thumb{width:80px;height:80px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted-lt)}
+.jc-thumb img{width:100%;height:100%;object-fit:cover}
+.jc-thumb-ph{width:24px;height:24px;opacity:.5}
+.jc-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.jc-name{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--cond);color:var(--text)}
+.jc-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.jc-meta .tag{font-size:10px;padding:3px 9px}
+.jc-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;min-width:90px}
+.jc-order{font-size:36px;font-weight:700;letter-spacing:-0.02em;color:var(--text);font-family:var(--cond);line-height:1}
+.jc-status{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:var(--cond);color:var(--muted-lt)}
+.jc-status.done{color:var(--green)}
+.jc-reorder{display:flex;align-items:center;padding-left:8px;border-left:1px solid var(--border);margin-left:8px;opacity:0;transition:opacity .12s}
+.job-card:hover .jc-reorder{opacity:1}
+.jc-reorder-btn{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);padding:5px 10px;border:1px solid var(--border-dk);background:var(--surface);color:var(--muted);border-radius:var(--radius);cursor:pointer;white-space:nowrap}
+.jc-reorder-btn:hover{background:var(--sb-bg);color:var(--yellow);border-color:var(--sb-bg)}
+
+/* ── TAGS ── */
+.tag{font-size:8px;padding:2px 7px;border-radius:2px;white-space:nowrap;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;font-family:var(--cond)}
+.t-k{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-bd)}
+.t-n{background:var(--surface);color:var(--muted);border-color:var(--border-dk)}
+.t-g{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+.t-a{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.t-r{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.t-b{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+
+/* ── FOOTER (list pagination hint) ── */
+.list-ftr{padding:12px 16px;text-align:center;font-size:10px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;background:var(--bg)}
+
+/* ── ORDER DETAIL: STICKY COCKPIT STRIP (matches catching v122 .cp-order-strip) ── */
+.od-head{position:sticky;top:0;z-index:50;background:var(--surface);color:var(--text);padding:8px 14px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);flex-shrink:0;min-height:50px}
+.od-back{padding:5px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;font-family:var(--cond);flex-shrink:0;transition:border-color .12s,color .12s}
+.od-back:hover{border-color:var(--text);color:var(--text)}
+.od-id{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.od-kicker{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.12em;font-weight:700;font-family:var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.od-cust{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;font-family:var(--cond)}
+.od-chips{display:flex;gap:4px;flex-shrink:0;flex-wrap:nowrap;align-items:center}
+.od-chips .tag{font-size:10px;padding:3px 9px}
+.od-submit{background:var(--green);color:#fff;border:1px solid var(--green);padding:7px 14px;font-size:10px;font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:var(--radius);cursor:pointer;flex-shrink:0;transition:background .12s}
+.od-submit:hover{background:var(--green-dk)}
+.od-submit:disabled{background:var(--border-dk);color:var(--muted-lt);border-color:transparent;cursor:not-allowed}
+
+/* ── DRAFT REORDER BANNER (v5) ── */
+.draft-banner{background:var(--yellow);color:var(--text);padding:8px 16px;border-bottom:1px solid #c8c82c;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.draft-banner-left{display:flex;align-items:center;gap:10px;font-family:var(--cond);letter-spacing:.04em;font-size:12px;font-weight:700}
+.draft-banner-tag{background:var(--text);color:var(--yellow);padding:3px 8px;border-radius:var(--radius);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.draft-banner-info{font-family:var(--cond);font-size:11px;color:#555}
+.draft-banner-info strong{color:var(--text);font-family:var(--mono)}
+
+/* ── ORDER DETAIL: CONTENT AREA ── */
+.content{flex:1;overflow-y:auto;min-height:0}
+#orderContent{padding:10px}
+
+/* ── ORDER DETAIL: SECTION CARD (Pine .card pattern) ── */
+.od-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:visible}
+.od-section-head{padding:9px 14px;border-bottom:1px solid var(--bg);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.od-section-title{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-family:var(--cond)}
+.od-section-sub{font-size:11px;color:var(--muted);letter-spacing:.02em;margin-top:2px}
+.od-section-body{padding:12px 14px}
+
+/* ── WORKING SET (chips row — Pine tag pattern) ── */
+.ws-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-height:26px}
+.ws-row:empty::before{content:'No imprints yet · use the buttons above to add';font-size:11px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-weight:700;letter-spacing:.06em}
+.ws-chip{font-size:10px;padding:4px 9px;border-radius:2px;display:inline-flex;align-items:center;gap:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--cond);border:1px solid;white-space:nowrap}
+.ws-chip-g{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+.ws-chip-a{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.ws-chip-b{background:var(--surface);color:var(--muted);border-color:var(--border-dk)}
+.ws-chip-mono{font-family:var(--mono);opacity:.65;font-weight:400;font-size:9px;letter-spacing:0}
+.ws-chip-x{cursor:pointer;opacity:.55;font-size:11px;line-height:1;letter-spacing:0;font-family:var(--sans)}
+.ws-chip-x:hover{opacity:1}
+
+/* ── LIBRARY (collapsible card) ── */
+.lib-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden}
+.lib-head{padding:9px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;border-bottom:1px solid var(--bg)}
+.lib-head:hover{background:#FAFAF6}
+.lib-section.collapsed .lib-head{border-bottom:none}
+.lib-head-left{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}
+.lib-head-chev{font-size:10px;color:var(--muted);transition:transform .15s;margin-top:2px;font-family:var(--mono)}
+.lib-section.collapsed .lib-head-chev{transform:rotate(-90deg)}
+.lib-head-title{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-family:var(--cond)}
+.lib-head-sub{font-size:11px;color:var(--muted);letter-spacing:.02em;margin-top:2px}
+.lib-head-hint{font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;font-weight:700;flex-shrink:0;margin-top:2px}
+.lib-body{padding:12px 14px;background:var(--surface)}
+.lib-section.collapsed .lib-body{display:none}
+.lib-filters{display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.lib-filter-lbl{font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;margin-left:4px;font-weight:700}
+.lib-filter-lbl:first-child{margin-left:0}
+.lib-select{height:24px;font-size:11px;padding:0 6px;border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:var(--sans);outline:none}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.lib-card{border:1px solid var(--border-dk);border-radius:var(--radius);overflow:hidden;background:var(--surface);cursor:pointer;transition:border-color .12s;position:relative}
+.lib-card:hover{border-color:var(--text)}
+.lib-card.added{border:2px solid var(--green)}
+.lib-card-thumb{aspect-ratio:1;background:var(--bg);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.lib-card-thumb img{width:100%;height:100%;object-fit:cover}
+.lib-card-thumb-ph{font-size:30px;color:var(--muted-lt)}
+.lib-card-added-badge{position:absolute;top:4px;right:4px;background:var(--green);color:#fff;font-size:9px;padding:2px 6px;border-radius:2px;font-weight:700;font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase}
+.lib-card-body{padding:6px 8px;border-top:1px solid var(--bg)}
+.lib-card-name{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em}
+.lib-card-meta{font-size:9px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;margin-top:1px;display:flex;justify-content:space-between;gap:4px;text-transform:uppercase;font-weight:700}
+.lib-empty{padding:30px;text-align:center;color:var(--muted-lt);font-size:11px;font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+
+/* ── LINE ITEMS PLACEHOLDER (Phase 3) ── */
+.li-placeholder{padding:24px;text-align:center;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;font-size:12px;background:var(--surface);border:1px dashed var(--border-dk);border-radius:var(--radius);margin:0 16px 14px}
+
+/* ── SUBMIT FOOTER (sticky bottom) ── */
+.submit-ftr{padding:10px 14px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:12px}
+.submit-summary{font-size:11px;color:var(--muted);letter-spacing:.02em}
+.submit-summary strong{color:var(--text);font-weight:700}
+
+/* ── TOKEN ENTRY ── */
+.tok-overlay{display:none;position:fixed;inset:0;background:rgba(13,13,11,.55);z-index:500;align-items:center;justify-content:center;padding:20px}
+.tok-overlay.on{display:flex}
+.tok-card{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:480px;padding:20px;border:1px solid var(--border-dk);box-shadow:0 20px 40px rgba(0,0,0,.2)}
+.tok-title{font-size:14px;font-weight:700;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.tok-sub{font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;margin-bottom:14px;line-height:1.5}
+.tok-row{display:flex;gap:8px;align-items:flex-end}
+.tok-row .search-inp{flex:1}
+
+/* ── HIDDEN ── */
+.hide{display:none !important}
+
+/* ── ZOOM PREVIEW (Phase 2) ── */
+.zoom{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:14px;padding:30px}
+.zoom.on{display:flex}
+.zoom > img{max-width:90vw;max-height:65vh;object-fit:contain;border-radius:var(--radius);background:#fff;display:block}
+.zoom > img.hide{display:none}
+.zoom-empty,.zoom-spinner{display:flex;align-items:center;justify-content:center}
+.zoom-empty.hide,.zoom-spinner.hide{display:none}
+.zoom-card{background:var(--surface);color:var(--text);padding:14px 18px;border-radius:var(--radius-lg);max-width:520px;width:90vw;cursor:default}
+.zoom-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.zoom-card-title{font-size:18px;font-weight:700;letter-spacing:.01em;line-height:1.3;word-break:break-word;overflow-wrap:break-word}
+.zoom-card-id{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px}
+.zoom-card-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.zoom-card-meta{font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.02em;margin-bottom:12px}
+.zoom-card-actions{display:flex;gap:8px;justify-content:flex-end}
+.zoom-close{font-size:11px;color:rgba(255,255,255,.5);font-family:var(--mono);letter-spacing:.04em;cursor:pointer}
+
+/* ── PREVIEW ICON OVERLAY ON LIB CARDS ── */
+.lib-card-preview-btn{position:absolute;top:4px;left:4px;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;opacity:0;transition:opacity .12s;z-index:2;border:none}
+.lib-card:hover .lib-card-preview-btn{opacity:1}
+.lib-card-preview-btn:hover{background:rgba(0,0,0,.85)}
+
+/* ── SLIDE-IN PANEL (right) — Pine cockpit pattern ── */
+.panel-bg{display:none;position:fixed;inset:0;background:rgba(13,13,11,.45);z-index:600}
+.panel-bg.on{display:block}
+.panel{position:fixed;top:0;right:-460px;width:440px;max-width:100vw;height:100%;background:var(--surface);z-index:601;transition:right .2s;display:flex;flex-direction:column;border-left:1px solid var(--border-dk);box-shadow:-8px 0 24px rgba(0,0,0,.1)}
+.panel.on{right:0}
+.panel-head{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;min-height:50px;background:var(--surface)}
+.panel-back{padding:5px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;font-family:var(--cond);flex-shrink:0;transition:border-color .12s,color .12s}
+.panel-back:hover{border-color:var(--text);color:var(--text)}
+.panel-id{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.panel-kicker{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.12em;font-weight:700;font-family:var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--text);line-height:1.1;font-family:var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.panel-ftr{padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;gap:8px;background:var(--surface);flex-shrink:0}
+.panel-field{display:flex;flex-direction:column;gap:4px}
+.panel-lbl{font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted-lt);font-family:var(--cond)}
+.panel-lbl-req::after{content:' *';color:var(--red)}
+.panel-inp,.panel-sel,.panel-area{background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);padding:7px 10px;font-size:14px;font-family:var(--sans);color:var(--text);outline:none;transition:border-color .15s;width:100%;box-sizing:border-box}
+.panel-inp:focus,.panel-sel:focus,.panel-area:focus{border-color:var(--green)}
+.panel-area{min-height:60px;resize:vertical}
+.panel-hint{font-size:11px;color:var(--muted-lt);letter-spacing:.02em;margin-top:1px}
+.panel-status{font-size:10px;padding:6px 10px;border-radius:2px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;font-family:var(--cond);display:none;align-self:flex-start}
+.panel-status.on{display:inline-flex;align-items:center;gap:6px}
+.panel-status.ok{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+.panel-status.err{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+
+/* ── PULL FROM PAST ORDER POPOVER ── */
+.pop-bg{display:none;position:fixed;inset:0;background:rgba(13,13,11,.35);z-index:550;align-items:center;justify-content:center;padding:20px}
+.pop-bg.on{display:flex}
+.pop-card{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:420px;border:1px solid var(--border-dk);box-shadow:0 20px 40px rgba(0,0,0,.2);overflow:hidden}
+.pop-head{padding:14px 18px;border-bottom:1px solid var(--border)}
+.pop-title{font-size:14px;font-weight:700;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em}
+.pop-sub{font-size:10px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;margin-top:2px}
+.pop-body{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.pop-ftr{padding:12px 18px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:flex-end;gap:8px}
+.pop-results{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);display:none}
+.pop-results.on{display:block}
+.pop-result-row{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;font-family:var(--cond);letter-spacing:.02em}
+.pop-result-row:last-child{border-bottom:none}
+.pop-result-row strong{font-family:var(--mono)}
+
+/* ── LINE ITEM CARDS (Pine card-h + card-b pattern) ── */
+.li-list{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.li-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);position:relative;overflow:visible;min-width:0}
+.li-card.invalid{border-color:var(--red-bd)}
+.li-card.invalid .li-card-head{background:#fffafa}
+.li-card-head{padding:9px 14px;border-bottom:1px solid var(--bg);display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.li-card-body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.li-num{font-family:var(--cond);font-size:10px;background:var(--bg);padding:4px 9px;border-radius:var(--radius);font-weight:700;color:var(--text);flex-shrink:0;border:1px solid var(--border-dk);text-transform:uppercase;letter-spacing:.06em}
+.li-card-remove{margin-left:auto;width:26px;height:26px;border-radius:var(--radius);border:1px solid var(--border-dk);background:var(--surface);cursor:pointer;color:var(--muted);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0}
+.li-card-remove:hover{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.li-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.li-row.split-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.li-field{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.li-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-lt);font-family:var(--cond)}
+.li-lbl-req::after{content:' *';color:var(--red)}
+.li-inp,.li-sel,.li-area{background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);padding:7px 10px;font-size:14px;font-family:var(--sans);color:var(--text);outline:none;transition:border-color .15s;width:100%}
+.li-inp:focus,.li-sel:focus,.li-area:focus{border-color:var(--green)}
+.li-area{min-height:42px;resize:vertical;font-family:var(--sans)}
+.li-area-grow{min-height:34px;resize:vertical;overflow:auto;transition:height .1s}
+.li-sel-sm{height:30px;font-size:12px;padding:0 8px}
+.li-inp-sm{height:30px;padding:5px 9px;font-size:12px}
+
+/* Garment typeahead */
+.li-garment-wrap{position:relative;flex:1;min-width:0}
+.li-garment-input{width:100%}
+.li-garment-results{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border-dk);border-top:none;border-radius:0 0 var(--radius) var(--radius);max-height:240px;overflow-y:auto;z-index:30;display:none;box-shadow:0 8px 16px rgba(0,0,0,.08)}
+.li-garment-results.on{display:block}
+.li-garment-result{padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border);font-family:var(--cond);letter-spacing:.01em}
+.li-garment-result:last-child{border-bottom:none}
+.li-garment-result:hover,.li-garment-result.kbd{background:var(--green-lt)}
+.li-garment-result strong{font-family:var(--sans)}
+.li-garment-result mark{background:var(--yellow);color:var(--text);padding:0 1px;border-radius:2px;font-weight:700}
+.li-garment-result-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.li-garment-loading{padding:10px;font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;text-align:center}
+.li-garment-empty{padding:14px;font-size:11px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;text-align:center}
+.li-garment-selected{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--green-lt);border:1px solid #b8dfcc;border-radius:var(--radius);font-size:12px;color:var(--green-dk)}
+.li-garment-selected-name{flex:1;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-garment-selected-clear{cursor:pointer;color:var(--green-dk);opacity:.5;font-size:13px}
+.li-garment-selected-clear:hover{opacity:1}
+
+/* Imprint picker (chips within a line item) */
+.li-imp-row{display:flex;gap:5px;flex-wrap:wrap;min-height:28px;align-items:flex-start;padding:6px;background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);min-width:0}
+.li-imp-row:focus-within{border-color:var(--green)}
+.li-imp-chip{font-size:11px;background:var(--green-lt);color:var(--green-dk);padding:3px 8px;border-radius:var(--radius);display:flex;align-items:center;gap:5px;font-weight:700;letter-spacing:.01em;border:1px solid #b8dfcc;font-family:var(--cond)}
+.li-imp-chip-x{cursor:pointer;opacity:.6;font-size:10px}
+.li-imp-chip-x:hover{opacity:1}
+.li-imp-add{font-size:10px;padding:3px 8px;border-style:dashed;background:transparent;color:var(--muted);border:1px dashed var(--border-dk);border-radius:var(--radius);font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-weight:700;cursor:pointer}
+.li-imp-add:hover{color:var(--text);border-color:var(--text)}
+.li-imp-empty{font-size:11px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;padding:2px 4px}
+
+/* Mini popover for picking from working set */
+.li-imp-pop{position:absolute;background:var(--surface);border:1px solid var(--border-dk);border-radius:var(--radius);box-shadow:0 8px 16px rgba(0,0,0,.1);z-index:40;display:none;min-width:240px;max-width:340px;padding:6px;max-height:280px;overflow-y:auto}
+.li-imp-pop.on{display:block}
+.li-imp-pop-row{padding:6px 10px;cursor:pointer;border-radius:var(--radius);font-size:12px;display:flex;align-items:center;gap:8px;font-family:var(--cond);letter-spacing:.02em}
+.li-imp-pop-row:hover{background:var(--bg)}
+.li-imp-pop-row.added{opacity:.5}
+.li-imp-pop-row strong{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.li-imp-pop-empty{padding:10px;font-size:11px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;text-align:center}
+
+/* Size grid */
+.li-sizes{display:grid;grid-template-columns:repeat(11,minmax(0,1fr)) minmax(56px,64px);gap:4px;align-items:end;min-width:0}
+.li-sz-lbl{font-size:9px;color:var(--muted-lt);text-align:center;font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;min-width:0}
+.li-sz-inp{height:32px;font-size:12px;text-align:center;padding:0;background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--mono);outline:none;font-weight:700;min-width:0;width:100%;box-sizing:border-box}
+.li-sz-inp:focus{border-color:var(--green)}
+.li-sz-inp:not(:placeholder-shown){background:var(--surface)}
+.li-sz-total{height:32px;font-size:14px;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--mono);background:var(--green-lt);color:var(--green-dk);border:1px solid #b8dfcc;border-radius:var(--radius)}
+.li-sz-total.zero{background:var(--bg);color:var(--muted-lt);border-color:var(--border-dk)}
+
+/* Quick fields row (price, nickname, checkboxes, total) */
+.li-quick{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.li-quick-grp{display:flex;align-items:center;gap:6px}
+.li-quick label{font-size:10px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.li-quick-cb{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text);font-family:var(--cond);letter-spacing:.02em;cursor:pointer;user-select:none}
+.li-quick-cb input{margin:0;cursor:pointer}
+.li-line-total{margin-left:auto;font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.li-line-total strong{color:var(--text);font-family:var(--mono);font-size:14px;margin-left:6px}
+
+/* More fields disclosure */
+.li-more{border-top:1px solid var(--border);margin-top:12px;padding-top:10px}
+.li-more-summary{font-size:11px;color:var(--green);cursor:pointer;user-select:none;list-style:none;display:inline-block;font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.li-more-summary::-webkit-details-marker{display:none}
+.li-more-summary::before{content:'▸ ';display:inline-block;transition:transform .15s}
+details[open] > .li-more-summary::before{transform:rotate(90deg)}
+.li-more-body{margin-top:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.li-more-field-wide{grid-column:span 1}
+.li-more-proof{padding:10px;border:1px dashed var(--border-dk);border-radius:var(--radius);background:var(--bg);text-align:center;font-size:10px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;cursor:pointer}
+.li-more-proof:hover{border-color:var(--text);color:var(--text)}
+
+/* Patches/Stickers/Promo variant fields */
+.li-variant-section{padding-top:8px;border-top:1px dashed var(--border);margin-top:8px}
+.li-variant-section-lbl{font-size:9px;color:var(--muted);font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+
+/* Add line item button */
+.li-add-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;border:1px dashed var(--border-dk);background:transparent;border-radius:var(--radius);font-size:10px;color:var(--muted);font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:all .12s}
+.li-add-btn:hover{border-color:var(--text);color:var(--text);background:var(--surface)}
+
+/* Submit preview modal */
+.submit-preview-bg{display:none;position:fixed;inset:0;background:rgba(13,13,11,.55);z-index:700;align-items:center;justify-content:center;padding:30px}
+.submit-preview-bg.on{display:flex}
+.submit-preview-card{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border-dk);box-shadow:0 20px 40px rgba(0,0,0,.2);overflow:hidden}
+.submit-preview-head{padding:14px 18px;border-bottom:1px solid var(--border)}
+.submit-preview-title{font-size:14px;font-weight:700;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em}
+.submit-preview-sub{font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.02em;margin-top:2px}
+.submit-preview-body{flex:1;overflow-y:auto;padding:14px 18px;background:#0A0A08;color:#c4d4be;font-family:var(--mono);font-size:11px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.submit-preview-ftr{padding:12px 18px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:flex-end;gap:8px}
+
+/* Reorder picker row (v6) */
+.reorder-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.reorder-row:last-child{border-bottom:none}
+.reorder-row:hover{background:var(--bg)}
+.reorder-row-thumb{width:48px;height:48px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border-dk);overflow:hidden;flex-shrink:0;cursor:zoom-in;position:relative;display:flex;align-items:center;justify-content:center}
+.reorder-row-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.reorder-row-thumb-ph{font-size:18px;color:var(--muted-lt)}
+.reorder-row-thumb.no-img{cursor:default}
+.reorder-row-thumb.no-img::after{content:'⌗';color:var(--muted-lt);font-size:18px}
+.reorder-row-body{flex:1;min-width:0}
+.reorder-row-line1{font-size:14px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reorder-row-line1 strong{font-family:var(--mono)}
+.reorder-row-line2{font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.02em;margin-top:2px}
+
+/* Diagnostic panel (v8) */
+.diag-btn{position:fixed;bottom:14px;right:14px;width:36px;height:36px;border-radius:50%;background:var(--sb-bg);color:var(--yellow);border:1px solid var(--yellow-bd);cursor:pointer;font-size:14px;z-index:800;box-shadow:0 4px 12px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;transition:transform .12s}
+.diag-btn:hover{transform:scale(1.05)}
+.diag-btn-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1px solid var(--surface);display:none}
+.diag-btn.has-errors .diag-btn-dot{display:block}
+.diag-bg{display:none;position:fixed;inset:0;background:rgba(13,13,11,.55);z-index:801;align-items:center;justify-content:center;padding:24px}
+.diag-bg.on{display:flex}
+.diag-card{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:760px;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border-dk);box-shadow:0 20px 40px rgba(0,0,0,.2);overflow:hidden}
+.diag-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;justify-content:space-between}
+.diag-title{font-size:14px;font-weight:700;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em}
+.diag-sub{font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.02em;margin-top:2px}
+.diag-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.diag-tab{padding:8px 14px;font-size:10px;font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--muted);cursor:pointer;border-right:1px solid var(--border);background:transparent;border-top:none;border-bottom:none;border-left:none}
+.diag-tab.on{background:var(--surface);color:var(--text);border-bottom:2px solid var(--green);padding-bottom:6px}
+.diag-tab:hover:not(.on){color:var(--text)}
+.diag-body{flex:1;overflow-y:auto;background:#0A0A08;color:#c4d4be;font-family:var(--mono);font-size:11px;line-height:1.5;padding:14px 18px;white-space:pre-wrap;word-break:break-word}
+.diag-body .diag-warn{color:#facc15}
+.diag-body .diag-err{color:#f87171}
+.diag-body .diag-ok{color:#a3e635}
+.diag-body .diag-dim{color:#6b7280}
+.diag-ftr{padding:10px 18px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.diag-counts{font-size:10px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em}
+.diag-counts strong{color:var(--text);font-family:var(--mono)}
+/* —— Garment Info Button (v12, made more noticeable in v14) —— */
+.garm-info-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--text);background:var(--yellow);color:var(--text);font-family:Georgia,serif;font-weight:700;font-size:12px;font-style:italic;cursor:pointer;flex-shrink:0;line-height:1;padding:0;box-shadow:0 1px 2px rgba(0,0,0,.08);transition:transform .08s ease}
+.garm-info-btn:hover{background:var(--text);color:var(--yellow);transform:scale(1.08)}
+.garm-info-btn:active{transform:scale(.96)}
+.garm-info-btn-inline{margin-left:6px;vertical-align:middle}
+/* Empty-state placeholder used in garment detail when a field has no data */
+.garm-empty{font-size:12px;color:var(--muted-lt);font-style:italic}
+/* In the search results dropdown — float right */
+.li-garment-result-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.li-garment-result-row-text{flex:1;min-width:0}
+
+/* —— Garment Detail Modal (v12) —— */
+.garm-overlay{position:fixed;inset:0;background:rgba(13,13,11,.55);display:none;align-items:center;justify-content:center;z-index:9000;padding:24px}
+.garm-overlay.on{display:flex}
+.garm-modal{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border-dk);width:100%;max-width:640px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.24)}
+.garm-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;background:var(--bg-soft)}
+.garm-hdr-left{flex:1;min-width:0}
+.garm-hdr-name{font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.garm-hdr-nick{font-size:14px;color:var(--muted);margin-top:2px;font-style:italic}
+.garm-hdr-meta{font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase}
+.garm-hdr-close{background:transparent;border:none;font-size:16px;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:var(--radius);line-height:1}
+.garm-hdr-close:hover{background:var(--border);color:var(--text)}
+.garm-body-scroll{flex:1;overflow-y:auto;padding:16px 20px 20px}
+.garm-imgs{display:flex;gap:12px;margin-bottom:14px}
+.garm-img-wrap{flex:1;text-align:center}
+.garm-img-wrap img{width:100%;max-height:200px;object-fit:contain;background:var(--bg-soft);border-radius:var(--radius);border:1px solid var(--border)}
+.garm-img-cap{font-size:10px;color:var(--muted);margin-top:4px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em}
+.garm-block{padding:10px 0;border-top:1px solid var(--border)}
+.garm-block:first-child{border-top:none;padding-top:0}
+.garm-block-lbl{font-size:10px;color:var(--muted);font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;font-weight:700}
+.garm-block-val{font-size:14px;line-height:1.45}
+.garm-block-val strong{font-weight:700}
+.garm-block-notes .garm-block-val{font-style:italic;color:var(--text);background:var(--yellow-dim);padding:8px 10px;border-left:3px solid var(--yellow-border);border-radius:0 var(--radius) var(--radius) 0}
+.garm-row{display:flex;align-items:center;gap:10px;padding:3px 0;font-size:14px;flex-wrap:wrap}
+.garm-row-k{font-family:var(--cond);text-transform:uppercase;font-size:10px;letter-spacing:.06em;color:var(--muted);min-width:64px;flex-shrink:0}
+.garm-row-v{font-family:var(--mono);font-size:12px}
+.garm-sizes{display:flex;flex-wrap:wrap;gap:4px}
+.garm-size-chip{display:inline-flex;align-items:center;justify-content:center;min-width:32px;padding:3px 8px;background:var(--green-lt);color:var(--green-dk);border:1px solid #b8dfcc;border-radius:var(--radius);font-family:var(--mono);font-size:11px;font-weight:700}
+.garm-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius);font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border:1px solid}
+.garm-pill-good{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+.garm-pill-ok{background:#fff8e0;color:var(--amb);border-color:var(--amb-bd)}
+.garm-pill-warn{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.garm-pill-neutral{background:var(--bg);color:var(--text);border-color:var(--border-dk)}
+.garm-pill-cool{background:#e6f1fb;color:#042c53;border-color:#bae6fd}
+.garm-pill-warm{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+
+</style>
+</head>
+<body>
+
+<!-- PREVIEW BADGE -->
+<div class="preview-badge">Preview · writes disabled</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- HOME VIEW                                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div id="homeView" style="display:flex;flex-direction:column;height:100%">
+
+  <div class="home-top">
+    <div class="home-title">Pine Sales Entry</div>
+    <div class="home-sub">Recent orders · pick one to add imprints and line items</div>
+  </div>
+
+  <div class="search-wrap">
+    <input class="search-inp" id="orderSearch" type="text" placeholder="Search by order #, customer, or salesperson…" oninput="onSearchInput()" />
+    <button class="btn btn-dark" onclick="openReorderPicker()">+ New Reorder</button>
+    <button class="btn btn-outline" onclick="loadOrders()">Refresh</button>
+  </div>
+
+  <div class="stats-bar" id="filterBar">
+    <div class="stats-bar-lbl">Inbox:</div>
+    <div class="stats-bar-count"><span id="inboxCount">0</span> order<span id="inboxCountPlural">s</span> awaiting line items</div>
+    <div class="bar-sep"></div>
+    <div class="stats-bar-lbl">Sales:</div>
+    <div class="stat-cell on" id="sp-all" onclick="setSalespersonFilter('All',this)">All</div>
+    <div class="stat-cell" id="sp-chris" onclick="setSalespersonFilter('Chris',this)">Chris<span class="stat-ct" id="cnt-sp-chris">0</span></div>
+    <div class="stat-cell" id="sp-patrick" onclick="setSalespersonFilter('Patrick',this)">Patrick<span class="stat-ct" id="cnt-sp-patrick">0</span></div>
+  </div>
+
+  <div class="content" id="homeContent">
+    <div class="state-panel"><div class="spin"></div><div class="state-txt">Loading recent orders…</div></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- ORDER DETAIL VIEW                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div id="orderView" class="hide" style="display:flex;flex-direction:column;height:100%">
+
+  <div class="od-head" id="odHead">
+    <button class="od-back" onclick="goHome()">← All orders</button>
+    <div class="od-id">
+      <div class="od-kicker" id="odKicker">—</div>
+      <div class="od-cust" id="odCust">—</div>
+    </div>
+    <div class="od-chips" id="odChips"></div>
+    <button class="od-submit" id="odSubmit" onclick="onSubmitOrder()" disabled>Submit order</button>
+  </div>
+
+  <div class="draft-banner hide" id="draftBanner">
+    <div class="draft-banner-left">
+      <span class="draft-banner-tag">Draft Reorder</span>
+      <span>This is a new draft — no record created yet</span>
+    </div>
+    <div class="draft-banner-info" id="draftBannerInfo">Cloned from <strong>—</strong></div>
+  </div>
+
+  <div class="content" id="orderContent">
+    <div class="state-panel"><div class="spin"></div><div class="state-txt">Loading order…</div></div>
+  </div>
+
+  <div class="submit-ftr">
+    <div class="submit-summary" id="submitSummary">—</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="onSaveDraft()">Save draft</button>
+      <button class="btn btn-green" id="submitBtnFooter" onclick="onSubmitOrder()" disabled>Submit order</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- TOKEN ENTRY OVERLAY                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="tok-overlay" id="tokOverlay">
+  <div class="tok-card">
+    <div class="tok-title">Airtable Token</div>
+    <div class="tok-sub">Paste your Pine Airtable Personal Access Token to get started. Stored locally on this device only (localStorage key: <code>pine_at_key</code>).</div>
+    <div class="tok-row">
+      <input class="search-inp" id="tokInp" type="password" placeholder="pat..." onkeydown="if(event.key==='Enter')saveToken()" />
+      <button class="btn btn-dark" onclick="saveToken()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- ZOOM PREVIEW OVERLAY (Phase 2)                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="zoom" id="zoom" onclick="closeZoom(event)">
+  <img id="zoomImg" class="hide" alt="Proof" onclick="event.stopPropagation()" onerror="onProofImgError()" />
+  <div class="zoom-empty hide" id="zoomEmpty" onclick="event.stopPropagation()">
+    <div style="color:rgba(255,255,255,.6);font-family:var(--cond);letter-spacing:.04em;font-size:12px;text-align:center;padding:40px;background:rgba(255,255,255,.04);border-radius:var(--radius);border:1px dashed rgba(255,255,255,.15);min-width:300px">
+      No proof image on file<br>
+      <span style="font-size:10px;color:rgba(255,255,255,.4);margin-top:6px;display:inline-block">Proofs come from linked Line Items</span>
+    </div>
+  </div>
+  <div class="zoom-spinner hide" id="zoomSpinner" onclick="event.stopPropagation()">
+    <div style="color:rgba(255,255,255,.6);font-family:var(--cond);letter-spacing:.04em;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px">
+      <div class="spin"></div>Loading proof…
+    </div>
+  </div>
+  <div class="zoom-card" id="zoomCard" onclick="event.stopPropagation()"></div>
+  <div class="zoom-close">Click anywhere outside, or press Esc to close</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- NEW IMPRINT SLIDE-IN PANEL (Phase 2)                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="panel-bg" id="newImpBg" onclick="closeNewImprint()"></div>
+<div class="panel" id="newImpPanel">
+  <div class="panel-head">
+    <button class="panel-back" onclick="closeNewImprint()">← Close</button>
+    <div class="panel-id">
+      <div class="panel-kicker">New imprint · for</div>
+      <div class="panel-title" id="newImpSub">—</div>
+    </div>
+  </div>
+  <div class="panel-body">
+
+    <div class="panel-field">
+      <div class="panel-lbl panel-lbl-req">Location</div>
+      <select class="panel-sel" id="niLoc">
+        <option value="">Select…</option>
+        <option>Front</option>
+        <option>Back</option>
+        <option>Left Chest</option>
+        <option>Right Chest</option>
+        <option>Left Sleeve</option>
+        <option>Right Sleeve</option>
+        <option>Back Hem</option>
+        <option>Front Hem</option>
+        <option>Hood</option>
+        <option>Size Tag</option>
+        <option>Pocket</option>
+        <option>Tea Towel</option>
+        <option>Bandana</option>
+        <option>Flatstock</option>
+        <option>Multiple Locations</option>
+      </select>
+    </div>
+
+    <div class="panel-field">
+      <div class="panel-lbl panel-lbl-req">Imprint Type</div>
+      <select class="panel-sel" id="niType">
+        <option value="">Select…</option>
+        <optgroup label="Screen Print">
+          <option>Discharge</option>
+          <option>No Base W/B</option>
+          <option>EZP Base + W/B</option>
+          <option>Bleed Blocker + W/B</option>
+          <option>Flatstock</option>
+        </optgroup>
+        <optgroup label="Supacolor">
+          <option>Supacolor - Wearable</option>
+          <option>Supacolor - 1C Wearable</option>
+          <option>Supacolor - Blocker</option>
+          <option>Supacolor - 1C Blocker</option>
+          <option>Supacolor - Headwear</option>
+          <option>Supacolor - 1C Headwear</option>
+          <option>Supacolor - Promotional</option>
+          <option>Supacolor - 1C Promotional</option>
+          <option>Supacolor - Reflective</option>
+        </optgroup>
+        <optgroup label="Embroidery / Patch / Label">
+          <option>Embroidery</option>
+          <option>Patch Application</option>
+          <option>Hem Label Application</option>
+          <option>Woven Label Application</option>
+          <option>Patch/Label ONLY</option>
+        </optgroup>
+        <optgroup label="Decopress">
+          <option>Decopress - Woven / Twill</option>
+          <option>Decopress - Leather</option>
+          <option>Decopress - Metallic</option>
+          <option>Decopress - Reflective</option>
+        </optgroup>
+        <optgroup label="Finishing">
+          <option>Finishing - Fold &amp; Bag</option>
+          <option>Finishing - UPC sticker</option>
+          <option>Finishing - Bandana Hanger</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="panel-field">
+      <div class="panel-lbl">Imprint Nickname</div>
+      <input class="panel-inp" id="niNick" placeholder="e.g. Bear mascot, Hop wordmark" />
+      <div class="panel-hint">Helps you find it later in the gallery. Customer + design + location works well.</div>
+    </div>
+
+    <div class="panel-field">
+      <div class="panel-lbl">Imprint Notes / Special Instructions</div>
+      <textarea class="panel-area" id="niNotes" placeholder="Anything separator or operator should know"></textarea>
+    </div>
+
+    <div class="panel-status" id="niStatus"></div>
+
+  </div>
+  <div class="panel-ftr">
+    <button class="btn btn-green" id="niCreate" onclick="createNewImprint()">Create + add to order</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- (Legacy "Pull from Past Order" popover removed in v10 — replaced by the   -->
+<!--  unified order picker, which the "+ Add imprints from past order" button   -->
+<!--  now invokes via openOrderPicker('pull').)                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SUBMIT PREVIEW MODAL (v4)                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="submit-preview-bg" id="submitPreviewBg" onclick="if(event.target.id==='submitPreviewBg')closeSubmitPreview()">
+  <div class="submit-preview-card">
+    <div class="submit-preview-head">
+      <div class="submit-preview-title">Submit Preview · writes disabled</div>
+      <div class="submit-preview-sub">This is the exact payload that would be sent to Airtable when writes are enabled. Nothing has been written.</div>
+    </div>
+    <div class="submit-preview-body" id="submitPreviewBody"></div>
+    <div class="submit-preview-ftr">
+      <button class="btn btn-outline" onclick="closeSubmitPreview()">Close</button>
+      <button class="btn btn-dark" onclick="copySubmitPreview()">Copy JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- REORDER PICKER MODAL (v5)                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="pop-bg" id="reorderPickerBg" onclick="if(event.target.id==='reorderPickerBg')closeReorderPicker()">
+  <div class="pop-card" onclick="event.stopPropagation()" style="max-width:560px">
+    <div class="pop-head">
+      <div class="pop-title">Start a Reorder</div>
+      <div class="pop-sub">Pick a past order to use as the template. Imprints and line items will be cloned forward.</div>
+    </div>
+    <div class="pop-body">
+      <div class="panel-field">
+        <div class="panel-lbl">Search by order # or customer</div>
+        <input class="panel-inp" id="reorderSearchInp" placeholder="Order number, customer name…" oninput="onReorderSearchInput()" />
+      </div>
+      <div class="pop-results" id="reorderResults" style="max-height:320px"></div>
+      <div class="panel-status" id="reorderStatus"></div>
+    </div>
+    <div class="pop-ftr">
+      <button class="btn btn-outline" onclick="closeReorderPicker()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- DIAGNOSTICS (v8)                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<button class="diag-btn" id="diagBtn" onclick="openDiag()" title="Open diagnostics">
+  🔧
+  <div class="diag-btn-dot"></div>
+</button>
+
+<div class="diag-bg" id="diagBg" onclick="if(event.target.id==='diagBg')closeDiag()">
+  <div class="diag-card">
+    <div class="diag-head">
+      <div>
+        <div class="diag-title">Diagnostics</div>
+        <div class="diag-sub">What the app is fetching, parsing, and rendering. Copy + paste back if something looks off.</div>
+      </div>
+      <button class="panel-close" onclick="closeDiag()">✕</button>
+    </div>
+    <div class="diag-tabs">
+      <button class="diag-tab on" id="diagTabLog" onclick="setDiagTab('log')">Event log</button>
+      <button class="diag-tab" id="diagTabState" onclick="setDiagTab('state')">App state</button>
+      <button class="diag-tab" id="diagTabApi" onclick="setDiagTab('api')">Last API calls</button>
+    </div>
+    <div class="diag-body" id="diagBody">Loading…</div>
+    <div class="diag-ftr">
+      <div class="diag-counts" id="diagCounts">—</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="diagClear()">Clear log</button>
+        <button class="btn btn-dark btn-sm" onclick="diagCopy()">Copy to clipboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Garment Detail Modal (v12) -->
+<div class="garm-overlay" id="garmDetail" onclick="if(event.target.id==='garmDetail')closeGarmentDetail()">
+  <div class="garm-modal">
+    <div id="garmDetailBody"></div>
+  </div>
+</div>
+
+<script>
+// ═════════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═════════════════════════════════════════════════════════════════════════════
+
+var BASE = 'appJkaLk8DykjsgHR';
+var TBL_ORDERS    = 'tbl8Tf0AeS9gnHOOS';
+var TBL_LINES     = 'tblJx5UlwO7oMSk5H';
+var TBL_IMPRINTS  = 'tbln9oAGvz2PNBZLV';
+var TBL_GARMENTS  = 'tblukWGm0CIelookM';
+var TBL_CUSTOMERS = 'tblXToEJONa3VELp2';
+
+// Order fields
+var O = {
+  num:        'fld4S3B5yJANKlE7l',  // Invoice / Order Number (formula, autonumber+2040)
+  customer:   'fldjj1X0WYQOuqHYQ',  // Customer (link)
+  custName:   'fldoRraeYHsgfeWhj',  // [TEXT] Customer Name (formula)
+  status:     'fldhS4z28CdGmS1j5',  // Order Status (singleSelect)
+  dueDate:    'fldphJYdlBNS0dmAK',  // Customer Due Date
+  salesperson:'fldSPnWlnzz48ZZDD',  // Sales Person (singleSelect)
+  created:    'fldXUjQHSeRaW5per',  // Creation Date (createdTime)
+  imprints:   'fldShbb1tOR0zwGIt',  // Imprints (multipleRecordLinks)
+  lineItems:  'fldU6fgrz6sU3wyIZ',  // Line Items (multipleRecordLinks)
+  notes:      'fldzzDJNF6rvTCmRq',  // Order Notes
+  pandaDoc:   'fldqIIPwPEJXL7Efu',  // PandaDoc URL
+  shipMethod: 'fldrjFuIBn45ewFU5',  // Shipping Method
+  source:     'fldE1muKiijQchB0h',  // Order Source
+  proofLook:  'fldzdj6DTD2TrACCf'   // Proof Image Lookup (multipleLookupValues from Line Items → Imprints)
+};
+
+// Imprint fields (from Reprint Lookup, extended)
+var I = {
+  id:        'fldDFfwFQ9B20n2kT',  // Imprint ID (multilineText)
+  nick:      'fldyGOHRKNz00MaYQ',  // Imprint Nickname
+  type:      'fldjNCuaGOkWgzH2K',  // Imprint Type
+  loc:       'fldKQIL0rSJBSeC8S',  // Location
+  screens:   'fld8rgkIj1RPO97QU',  // Screen Count
+  custTxt:   'fldeLMIAC0ABQAjYJ',  // Customer Name Search (formula)
+  repeat:    'flda9L7041ahNZT0b',  // Repeat?
+  inks:      'fldpNCCXTgHyDhvak',  // Inks
+  inksTxt:   'fldMM5hp8kEpo3KKT',  // Ink Names Search
+  prev:      'fldAEQvMAAZX9gnhl',  // Previous Imprint ID
+  created:   'fldc7aezBfzoVPeAY',  // Created Timestamp
+  proofs:    'fldUOIfCd22MxevRm',  // Proof Images (from Line Items)
+  linkedOrd: 'flds9F80ZDkTH1M1t',  // Linked Orders
+  customer:  'fldxbgaefdQ0qXSD8'   // Customer rollup
+};
+
+// Garment fields (v12 — extended for garment detail popup)
+var G = {
+  name:      'fldT4jfh2XV9lERef',  // Garment Name (formula — primary)
+  product:   'fldJlvS5vcBkzx3hG',  // Product Number
+  colorway:  'flduMprMvRlAHAiCh',  // Colorway
+  mfr:       'fldtL6paVNlfMRDj4',  // Manufacturer (multipleSelects)
+  cost:      'fldRmgDAByrOWcHLO',  // Cost
+  // — extended detail fields —
+  nickname:    'fld96y3pTLVCSCmXd',  // Nickname
+  fabric:      'fldZeVkyGk2vFDIo5',  // Fabric Content
+  weightOz:    'fld4SKX3MB9HVUmxX',  // Fabric Weight (oz)
+  fleece:      'fldi7NqFcF7S2p4mj',  // Fleece? (checkbox)
+  style:       'fldkqIcOOLfBBVv8N',  // Style (singleSelect)
+  notes:       'fldXUVshHJomdRoDm',  // Garment Notes (field wisdom)
+  discharge:   'fldxEqfxW5OKWytOZ',  // Discharge Rating (singleSelect)
+  printMethod: 'flducE453lknHiAz1',  // Print Method (multipleSelects)
+  frontImg:    'fld8EBpE20bnCZtQj',  // Front Image (attachment)
+  backImg:     'fld8sJrbNfnQGcb9p',  // Back Image (attachment)
+  // — size availability checkboxes —
+  szXS:   'fldqtCiqDEcvbp5NY',
+  szS:    'fldDnig5xvHwBEp47',
+  szM:    'fldFfI2Bz6Zd901fV',
+  szL:    'fldxddv4SOBQ79jLU',
+  szXL:   'flduZZd9EqXf5Ntxf',
+  sz2XL:  'fldZpjXegFmPwGExL',
+  sz3XL:  'fldaVCBI9azZ2fzCk',
+  sz4XL:  'fldEm0sh0qVbR8qqw',
+  sz5XL:  'fld221OWblbVqYZeY',
+  sz6XL:  'fldmHuYBdqOdaXTmv',
+  szOSFA: 'fldsBR0uVhjpEHyJh',
+  // — plus-size upcharges —
+  uc2XL: 'fldHakcDllb8SFCwz',
+  uc3XL: 'fldEXqJi6mii9bpoJ',
+  uc4XL: 'fldBWmLGzqtjXM0zm',
+  uc5XL: 'fldlF7ZOqCNYr8hi2',
+  uc6XL: 'fldy1xKWETybI1DQT',
+  // — usage signals —
+  sold2025: 'fldxs9itVysRWi2iS'  // 2025 Sold (rollup)
+};
+
+// Line Item fields (v4)
+var L = {
+  productType: 'fld8LIkrBXv8WoRRb', // Product Type (singleSelect)
+  garment:     'fldZbOdGIoCk3Gan2', // Garment Type (multipleRecordLinks)
+  imprints:    'fldTFz4ZzfOthqkg6', // Imprints (multipleRecordLinks)
+  proofNotes:  'fldWdnT83KLEvBrg4', // Proofing Notes (multilineText)
+  liNotes:     'fldF378cgWuOcWNL6', // Order Notes (on Line Items — for production)
+  ship:        'fld7rY74m37acM2Ik', // Shipping Notes
+  prod:        'fld4FjoCQ5bXdwjJj', // Production Notes
+  fin:         'fldqsj7nZgHrtRbEn', // Finishing Notes
+  desc:        'fldBGLb39lznbSibX', // Product Description
+  patch:       'fldDPldCW28Ts5CSt', // [PATCHES] Patch Size (singleSelect)
+  sticker:     'fldg7mDtQwtesvv6U', // [STICKERS] Size (singleSelect)
+  promoDesc:   'fldrkl4UNBYf9QmNQ', // Promo Product Description
+  // supplier (fldoboa9QhrHbEe8A) intentionally not surfaced — purchasing assigns at sourcing time
+  nickname:    'fldKb7r8o7uvj1iEd', // Line Item Nickname
+  womens:      'fld65C13J5BbKIWoI', // Women's Garment (checkbox)
+  youth:       'fldLHtzJ3peAtr4X1', // Youth Garment (checkbox)
+  ready2nd:    'fldycrq3VJYSFd8Gi', // Ready for 2nd Eyes (checkbox)
+  price:       'fldtMZWzA4dfPxEXx', // Price Input (currency)
+  order:       'fldckT7oPYh1rrBCI', // Orders (multipleRecordLinks)
+  // sizes
+  szXS:        'fldVA9ZmYxhDxtnYZ',
+  szS:         'fldCZr5lB6Jx80lfG',
+  szM:         'fldzTs1qKe9IBxxSn',
+  szL:         'fldnRLJxjUDa1mQTj',
+  szXL:        'fldTRgdexcpBXXQPv',
+  sz2XL:       'fldin7j6uGO0uRTec',
+  sz3XL:       'fldpltq9fdRkrvIvt',
+  sz4XL:       'fldrsci7JnToa43Zd',
+  sz5XL:       'fldchnRSKFukouW6N',
+  sz6XL:       'fldI8gTtsEJwg33BI',
+  szOSFA:      'fld2bgIlmPbANgLVK'
+};
+
+var PRODUCT_TYPES = [
+  'Printed Apparel',
+  'Embroidered Apparel',
+  'Flatstock',
+  'Patches',
+  'Stickers',
+  'Promo',
+  'Fees',
+  'Artwork Fees'
+];
+
+var SIZE_KEYS = ['OSFA','XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+
+// ═════════════════════════════════════════════════════════════════════════════
+// DIAGNOSTICS (v8) — ring-buffer log and API call tracker.
+// All major events (clones, library loads, preview clicks, errors) get logged here.
+// Open the 🔧 button bottom-right to view.
+// ═════════════════════════════════════════════════════════════════════════════
+
+var diag = {
+  log: [],            // {ts, level, msg}
+  api: [],            // {ts, method, url, status, ms, summary}
+  maxEntries: 200,
+  currentTab: 'log',
+  errorCount: 0
+};
+
+function dlog(level, msg) {
+  // level: info | warn | err | ok
+  var entry = { ts: new Date(), level: level, msg: msg };
+  diag.log.push(entry);
+  if (diag.log.length > diag.maxEntries) diag.log.shift();
+  if (level === 'err') {
+    diag.errorCount++;
+    var btn = document.getElementById('diagBtn');
+    if (btn) btn.classList.add('has-errors');
+  }
+  // Also mirror to console for power users
+  var prefix = '[Pine SE]';
+  if (level === 'err') console.error(prefix, msg);
+  else if (level === 'warn') console.warn(prefix, msg);
+  else console.log(prefix, msg);
+  // If diag panel is open, refresh
+  refreshDiagIfOpen();
+}
+
+function dapi(method, url, status, ms, summary) {
+  var entry = { ts: new Date(), method: method, url: url, status: status, ms: ms, summary: summary };
+  diag.api.push(entry);
+  if (diag.api.length > diag.maxEntries) diag.api.shift();
+  refreshDiagIfOpen();
+}
+
+// Wraps fetch() to track every API call automatically.
+function dfetch(url, opts) {
+  var start = Date.now();
+  var method = (opts && opts.method) || 'GET';
+  return fetch(url, opts).then(function(r) {
+    var ms = Date.now() - start;
+    dapi(method, url, r.status, ms, r.ok ? 'OK' : 'HTTP '+r.status);
+    return r;
+  }, function(e) {
+    var ms = Date.now() - start;
+    dapi(method, url, 'ERR', ms, e.message);
+    throw e;
+  });
+}
+
+function openDiag() {
+  document.getElementById('diagBg').classList.add('on');
+  refreshDiag();
+}
+function closeDiag() { document.getElementById('diagBg').classList.remove('on'); }
+function setDiagTab(tab) {
+  diag.currentTab = tab;
+  ['log','state','api'].forEach(function(t){
+    var el = document.getElementById('diagTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (el) el.classList.toggle('on', t === tab);
+  });
+  refreshDiag();
+}
+function refreshDiagIfOpen() {
+  if (document.getElementById('diagBg') && document.getElementById('diagBg').classList.contains('on')) {
+    refreshDiag();
+  }
+}
+function refreshDiag() {
+  var body = document.getElementById('diagBody');
+  var counts = document.getElementById('diagCounts');
+  if (!body) return;
+  if (diag.currentTab === 'log') {
+    body.innerHTML = renderDiagLog();
+  } else if (diag.currentTab === 'state') {
+    body.innerHTML = renderDiagState();
+  } else if (diag.currentTab === 'api') {
+    body.innerHTML = renderDiagApi();
+  }
+  if (counts) {
+    counts.innerHTML = '<strong>'+diag.log.length+'</strong> log · <strong>'+diag.api.length+'</strong> api · <strong>'+diag.errorCount+'</strong> err';
+  }
+  body.scrollTop = body.scrollHeight;
+}
+function renderDiagLog() {
+  if (!diag.log.length) return '<span class="diag-dim">(no events yet — start using the app)</span>';
+  return diag.log.map(function(e) {
+    var cls = e.level === 'err' ? 'diag-err' : e.level === 'warn' ? 'diag-warn' : e.level === 'ok' ? 'diag-ok' : 'diag-dim';
+    var t = e.ts.toTimeString().slice(0,8) + '.' + String(e.ts.getMilliseconds()).padStart(3,'0');
+    return '<span class="diag-dim">'+t+'</span> <span class="'+cls+'">['+e.level.toUpperCase().padEnd(4,' ')+']</span> '+escHtml(e.msg);
+  }).join('\n');
+}
+function renderDiagApi() {
+  if (!diag.api.length) return '<span class="diag-dim">(no API calls yet)</span>';
+  return diag.api.slice().reverse().map(function(e) {
+    var cls = e.status === 'ERR' ? 'diag-err' : (typeof e.status === 'number' && e.status >= 400) ? 'diag-err' : 'diag-ok';
+    var t = e.ts.toTimeString().slice(0,8);
+    return '<span class="diag-dim">'+t+'</span> '+e.method+' <span class="'+cls+'">'+e.status+'</span> ('+e.ms+'ms) — '+escHtml(e.summary || '')+'\n<span class="diag-dim">  '+escHtml(e.url)+'</span>';
+  }).join('\n\n');
+}
+function renderDiagState() {
+  var s = state;
+  var lines = [];
+  lines.push('<span class="diag-ok">// View mode</span>');
+  lines.push('isDraftReorder:    ' + (s.isDraftReorder ? '<span class="diag-warn">true</span>' : 'false'));
+  lines.push('draftSourceOrder:  ' + (s.draftSourceOrder ? JSON.stringify(s.draftSourceOrder) : 'null'));
+  lines.push('currentOrder.id:   ' + (s.currentOrder && s.currentOrder.id ? s.currentOrder.id : '(none)'));
+  lines.push('');
+  lines.push('<span class="diag-ok">// Working set & library</span>');
+  lines.push('workingSet:        ' + s.workingSet.length + ' imprint id(s)');
+  if (s.workingSet.length) {
+    lines.push('                     ' + s.workingSet.slice(0,5).join(', ') + (s.workingSet.length > 5 ? ' …' : ''));
+  }
+  lines.push('libraryImprints:   ' + (s.libraryImprints||[]).length + ' record(s)');
+  lines.push('libraryCustLabel:  ' + (s.libraryCustLabel || '(none)'));
+  lines.push('');
+  lines.push('<span class="diag-ok">// Line items</span>');
+  lines.push('lineItems:         ' + s.lineItems.length);
+  s.lineItems.forEach(function(li, i){
+    lines.push('  #'+(i+1)+' '+li.id+':');
+    lines.push('     productType: '+JSON.stringify(li.productType));
+    lines.push('     garment:     '+(li.garment ? li.garment.name + ' (' + li.garment.recId + ')' : 'null'));
+    lines.push('     imprintIds:  ['+li.imprintIds.join(', ')+']');
+    var qty = lineItemQty(li);
+    lines.push('     totalQty:    '+qty+'  price: '+(li.price||'(none)')+'  ready2nd: '+!!li.ready2nd);
+  });
+  lines.push('');
+  lines.push('<span class="diag-ok">// UI filters</span>');
+  lines.push('orderSalesperson:  '+s.orderSalesperson);
+  lines.push('orderSearch:       '+JSON.stringify(s.orderSearch));
+  return lines.join('\n');
+}
+function diagClear() {
+  diag.log = [];
+  diag.api = [];
+  diag.errorCount = 0;
+  var btn = document.getElementById('diagBtn');
+  if (btn) btn.classList.remove('has-errors');
+  refreshDiag();
+}
+function diagCopy() {
+  var lines = [];
+  lines.push('=== Pine Sales Entry v23 Diagnostics ===');
+  lines.push('Captured: '+new Date().toISOString());
+  lines.push('');
+  lines.push('--- APP STATE ---');
+  var stateBody = renderDiagState().replace(/<[^>]+>/g,'');
+  lines.push(stateBody);
+  lines.push('');
+  lines.push('--- EVENT LOG ('+diag.log.length+' entries) ---');
+  diag.log.forEach(function(e){
+    var t = e.ts.toISOString();
+    lines.push(t+' ['+e.level.toUpperCase()+'] '+e.msg);
+  });
+  lines.push('');
+  lines.push('--- API CALLS ('+diag.api.length+' entries) ---');
+  diag.api.forEach(function(e){
+    lines.push(e.ts.toISOString()+' '+e.method+' '+e.status+' ('+e.ms+'ms) '+e.summary);
+    lines.push('  '+e.url);
+  });
+  var text = lines.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){
+      alert('Diagnostics copied to clipboard');
+    }, function(e){
+      alert('Copy failed: '+e.message+'\n\nUse the browser to select all and copy manually.');
+    });
+  } else {
+    alert(text);
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// STATE
+// ═════════════════════════════════════════════════════════════════════════════
+
+var state = {
+  orders: [],              // raw order records from latest fetch (Pre-press only)
+  orderSearch: '',
+  orderSalesperson: 'All', // salesperson filter axis
+  currentOrder: null,      // selected order record
+  libraryImprints: [],     // imprints in the customer library
+  workingSet: [],          // imprint records added to current order (rec IDs)
+  libCollapsed: false,
+  // Phase 2: library filter state
+  libLoc: 'All',
+  libType: 'All',
+  libDate: 'Last 6 months',
+  libSearch: '',
+  // Phase 2: order picker mode (set when picker opens)
+  pickerMode: 'reorder',   // 'reorder' (new draft) or 'pull' (into current order)
+  // Phase 3 (v4): line item state
+  lineItems: [],           // [{ id, productType, garment: {recId, name}, imprintIds:[], proofingNotes, sizes:{XS,S,...}, price, nickname, womens, youth, ready2nd, shippingNotes, productionNotes, finishingNotes, productDesc, liNotes, patchSize, stickerSize, promoDesc }]
+  liNextId: 1,             // incrementing local ID for line items
+  garmentSearchCache: {},  // query lowercased → [{id, name, type, productNum, color}]
+  garmentSearchTimer: null,
+  garmentDetailCache: {},  // recId → full garment detail record (v12)
+  impPopForLi: null,       // line item id currently showing the imprint picker popover
+  // v5: reorder draft
+  isDraftReorder: false,   // true when current view is a not-yet-created reorder
+  draftSourceOrder: null   // {recId, number, customer} of the order being reordered from
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+// TOKEN
+// ═════════════════════════════════════════════════════════════════════════════
+
+function tok() {
+  return localStorage.getItem('pine_at_key') || localStorage.getItem('pine_tok') || '';
+}
+
+function hdr() {
+  return { Authorization: 'Bearer ' + tok(), 'Content-Type': 'application/json' };
+}
+
+function ensureToken() {
+  if (tok()) return true;
+  document.getElementById('tokOverlay').classList.add('on');
+  return false;
+}
+
+function saveToken() {
+  var v = document.getElementById('tokInp').value.trim();
+  if (!v) return;
+  localStorage.setItem('pine_at_key', v);
+  document.getElementById('tokOverlay').classList.remove('on');
+  route();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HASH ROUTER
+// ═════════════════════════════════════════════════════════════════════════════
+
+function route() {
+  if (!ensureToken()) return;
+  var h = window.location.hash || '';
+  var mOrder = h.match(/^#order\/(rec[A-Za-z0-9]+)$/);
+  var mReorder = h.match(/^#reorder\/(rec[A-Za-z0-9]+)$/);
+  if (mReorder) {
+    showReorderDraftView(mReorder[1]);
+  } else if (mOrder) {
+    showOrderView(mOrder[1]);
+  } else {
+    showHomeView();
+  }
+}
+
+function goHome() { window.location.hash = ''; }
+function goOrder(recId) { window.location.hash = '#order/' + recId; }
+function goReorder(recId) { window.location.hash = '#reorder/' + recId; }
+
+window.addEventListener('hashchange', route);
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HOME VIEW
+// ═════════════════════════════════════════════════════════════════════════════
+
+function showHomeView() {
+  document.getElementById('homeView').classList.remove('hide');
+  document.getElementById('orderView').classList.add('hide');
+  document.getElementById('homeView').style.display = 'flex';
+  document.getElementById('orderView').style.display = 'none';
+  if (!state.orders.length) loadOrders();
+  else renderOrderList();
+}
+
+function loadOrders() {
+  setHomeContent('<div class="state-panel"><div class="spin"></div><div class="state-txt">Loading inbox…</div></div>');
+
+  // Filter at the Airtable level: only Pre-press orders.
+  // This is sales' active queue — orders that need line items built. Once a line
+  // item is created, Airtable automation flips the status to Awaiting Proof and
+  // the order disappears from this app's view (it then lives in the Line Item
+  // Review interface for the 3-button approval gauntlet).
+  var formula = "{"+O.status+"}='Pre-press'";
+
+  var flds = [O.num, O.customer, O.custName, O.status, O.dueDate, O.salesperson,
+              O.created, O.imprints, O.lineItems, O.pandaDoc]
+    .map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_ORDERS+'?'+flds
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&sort%5B0%5D%5Bfield%5D='+O.created+'&sort%5B0%5D%5Bdirection%5D=desc'
+    +'&returnFieldsByFieldId=true&pageSize=100';
+
+  dlog('info', 'loadOrders: querying Pre-press inbox');
+  fetchAll(url, [], 100, function(recs, err) {
+    if (err) {
+      dlog('err', 'loadOrders failed: '+err);
+      setHomeContent('<div class="state-panel"><div class="state-icon">⚠️</div><div class="state-title">Couldn\'t load orders</div><div class="state-txt">'+escHtml(err)+'</div></div>');
+      return;
+    }
+    dlog('ok', 'inbox loaded: '+recs.length+' Pre-press order(s)');
+    state.orders = recs;
+    renderOrderList();
+  });
+}
+
+function setSalespersonFilter(name, btn) {
+  state.orderSalesperson = name;
+  // Only toggle within the Sales group
+  document.querySelectorAll('#filterBar .stat-cell').forEach(function(b){
+    if (b.id.indexOf('sp-') === 0) b.classList.remove('on');
+  });
+  if (btn) btn.classList.add('on');
+  renderOrderList();
+}
+
+function onSearchInput() {
+  state.orderSearch = document.getElementById('orderSearch').value.trim().toLowerCase();
+  renderOrderList();
+}
+
+function filterOrders() {
+  var recs = state.orders.slice();
+  // Apply Sales axis
+  if (state.orderSalesperson !== 'All') {
+    recs = recs.filter(function(r){
+      var sp = getStr((r.fields||{})[O.salesperson]);
+      return sp === state.orderSalesperson || sp.split(' ')[0] === state.orderSalesperson;
+    });
+  }
+  // Apply search box (matches order #, customer, salesperson)
+  if (state.orderSearch) {
+    var q = state.orderSearch;
+    recs = recs.filter(function(r) {
+      var f = r.fields || {};
+      var num = String(f[O.num] || '');
+      var cust = getStr(f[O.custName] || '').toLowerCase();
+      var sp = getStr(f[O.salesperson]).toLowerCase();
+      return num.indexOf(q) !== -1 || cust.indexOf(q) !== -1 || sp.indexOf(q) !== -1;
+    });
+  }
+  return recs;
+}
+
+function renderOrderList() {
+  // Update inbox count
+  setText('inboxCount', state.orders.length);
+  setText('inboxCountPlural', state.orders.length === 1 ? '' : 's');
+
+  // Salesperson counts within the full inbox
+  var chrisCt = state.orders.filter(function(r){
+    var sp = getStr((r.fields||{})[O.salesperson]);
+    return sp === 'Chris' || sp.split(' ')[0] === 'Chris';
+  }).length;
+  var patrickCt = state.orders.filter(function(r){
+    var sp = getStr((r.fields||{})[O.salesperson]);
+    return sp === 'Patrick' || sp.split(' ')[0] === 'Patrick';
+  }).length;
+  setText('cnt-sp-chris', chrisCt);
+  setText('cnt-sp-patrick', patrickCt);
+
+  var recs = filterOrders();
+
+  if (!recs.length) {
+    if (state.orderSearch || state.orderSalesperson !== 'All') {
+      setHomeContent('<div class="state-panel"><div class="state-icon">🔍</div><div class="state-title">No orders match</div><div class="state-txt">Try clearing the filter or search</div></div>');
+    } else {
+      setHomeContent('<div class="state-panel"><div class="state-icon">✓</div><div class="state-title">Inbox empty</div><div class="state-txt">No Pre-press orders need line items right now</div></div>');
+    }
+    return;
+  }
+
+  var cards = recs.map(function(rec) {
+    var f = rec.fields || {};
+    var num = f[O.num] || '';
+    var cust = getStr(f[O.custName]) || '—';
+    var sp = getStr(f[O.salesperson]) || '—';
+    var due = f[O.dueDate] ? formatDate(f[O.dueDate]) : '';
+    var created = f[O.created] ? timeAgo(f[O.created]) : '';
+    var impCt = (f[O.imprints]||[]).length;
+    var liCt = (f[O.lineItems]||[]).length;
+    var done = impCt > 0 && liCt > 0;
+
+    // Tag row — counts + salesperson + sync time
+    var tags = '';
+    tags += impCt > 0
+      ? '<span class="tag t-g">'+impCt+' imprint'+(impCt!==1?'s':'')+'</span>'
+      : '<span class="tag t-a">No imprints</span>';
+    tags += liCt > 0
+      ? '<span class="tag t-g">'+liCt+' line item'+(liCt!==1?'s':'')+'</span>'
+      : '<span class="tag t-a">No line items</span>';
+    if (sp && sp !== '—') tags += '<span class="tag t-n">'+escHtml(sp)+'</span>';
+    if (created) tags += '<span class="tag t-n">Synced '+escHtml(created)+'</span>';
+
+    // Right-column status (date if known, "Ready" if both imprints + line items)
+    var statusLine = done
+      ? '<div class="jc-status done">Ready</div>'
+      : (due ? '<div class="jc-status">Due '+escHtml(due)+'</div>' : '<div class="jc-status">In progress</div>');
+
+    return '<div class="job-card'+(done?' done':'')+'" onclick="goOrder(\''+rec.id+'\')">'
+      + '<div class="jc-info">'
+      +   '<div class="jc-name" title="'+escAttr(cust)+'">'+escHtml(cust)+'</div>'
+      +   '<div class="jc-meta">'+tags+'</div>'
+      + '</div>'
+      + '<div class="jc-right">'
+      +   '<div class="jc-order">'+escHtml(num)+'</div>'
+      +   statusLine
+      + '</div>'
+      + '<div class="jc-reorder"><button class="jc-reorder-btn" onclick="event.stopPropagation();startReorderFromOrder(\''+rec.id+'\')" title="Start a reorder using this order as the template">↺ Reorder</button></div>'
+    + '</div>';
+  }).join('');
+
+  setHomeContent('<div class="card-list">'+cards+'</div>'
+    + '<div class="list-ftr">Showing '+recs.length+' of '+state.orders.length+'</div>');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ORDER DETAIL VIEW
+// ═════════════════════════════════════════════════════════════════════════════
+
+function showOrderView(recId) {
+  document.getElementById('homeView').classList.add('hide');
+  document.getElementById('orderView').classList.remove('hide');
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('orderView').style.display = 'flex';
+
+  // Reset state — including draft reorder flags
+  state.workingSet = [];
+  state.libraryImprints = [];
+  state.lineItems = [];
+  state.liNextId = 1;
+  state.isDraftReorder = false;
+  state.draftSourceOrder = null;
+  document.getElementById('draftBanner').classList.add('hide');
+  document.getElementById('odSubmit').textContent = 'Submit order';
+  document.getElementById('submitBtnFooter').textContent = 'Submit order';
+  setText('odKicker', '—');
+  setText('odCust', '—');
+  document.getElementById('odChips').innerHTML = '';
+
+  setOrderContent('<div class="state-panel"><div class="spin"></div><div class="state-txt">Loading order…</div></div>');
+
+  dlog('info', '=== ORDER VIEW === '+recId);
+
+  // Fetch the order record
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_ORDERS+'/'+recId+'?returnFieldsByFieldId=true';
+  dfetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(rec) {
+      state.currentOrder = rec;
+      var f = rec.fields || {};
+      // Pre-populate working set with existing linked imprints
+      var existing = normalizeRecLinks(f[O.imprints]);
+      state.workingSet = existing;
+      dlog('ok', 'order loaded, '+state.workingSet.length+' imprint(s) on order');
+
+      renderOrderHeader();
+      renderOrderBody();
+
+      // Load the customer's library
+      var custIds = normalizeRecLinks(f[O.customer]);
+      var custId = custIds[0] || null;
+      if (custId) loadCustomerLibrary(custId);
+    })
+    .catch(function(e) {
+      setOrderContent('<div class="state-panel"><div class="state-icon">⚠️</div><div class="state-title">Couldn\'t load order</div><div class="state-txt">'+escHtml(e.message)+'</div></div>');
+    });
+}
+
+function renderOrderHeader() {
+  var rec = state.currentOrder;
+  var f = rec.fields || {};
+  var num = f[O.num] || '—';
+  var cust = getStr(f[O.custName]) || '—';
+  var due = f[O.dueDate] ? 'Due ' + formatDate(f[O.dueDate]) : '';
+  var sp = getStr(f[O.salesperson]) || '';
+
+  // Kicker: order # + due + sales rep, condensed into one operational line
+  var kickerBits = ['Order ' + num];
+  if (due) kickerBits.push(due);
+  if (sp) kickerBits.push(sp);
+  setText('odKicker', kickerBits.join(' · '));
+  setText('odCust', cust);
+
+  updateTotals();
+}
+
+function updateTotals() {
+  var imps = state.workingSet.length;
+  var lis = state.lineItems.length;
+
+  // Render counts as Pine-style tag chips. Green when present, amber when zero.
+  var chips = '';
+  chips += '<span class="tag '+(imps>0?'t-g':'t-a')+'">'+imps+' imprint'+(imps!==1?'s':'')+'</span>';
+  chips += '<span class="tag '+(lis>0?'t-g':'t-a')+'">'+lis+' line item'+(lis!==1?'s':'')+'</span>';
+  var chipEl = document.getElementById('odChips');
+  if (chipEl) chipEl.innerHTML = chips;
+
+  // Order grand total = sum of line item totals
+  var grandTotal = state.lineItems.reduce(function(sum, li) {
+    return sum + lineItemTotal(li);
+  }, 0);
+  var grandQty = state.lineItems.reduce(function(sum, li) {
+    return sum + lineItemQty(li);
+  }, 0);
+
+  var summary = '<strong>'+imps+'</strong> imprint'+(imps!==1?'s':'')
+    +' · <strong>'+lis+'</strong> line item'+(lis!==1?'s':'')
+    +(lis ? ' · <strong>'+grandQty+'</strong> pcs · <strong>'+formatCurrency(grandTotal)+'</strong>' : '');
+  setText('submitSummary', summary);
+
+  // Enable submit when at least one valid line item exists
+  var canSubmit = state.lineItems.some(isLineItemValid);
+  document.getElementById('odSubmit').disabled = !canSubmit;
+  document.getElementById('submitBtnFooter').disabled = !canSubmit;
+}
+
+function lineItemQty(li) {
+  return SIZE_KEYS.reduce(function(sum, k) {
+    var v = parseInt(li.sizes[k], 10);
+    return sum + (isNaN(v) ? 0 : v);
+  }, 0);
+}
+
+function lineItemTotal(li) {
+  var qty = lineItemQty(li);
+  var price = parseFloat(li.price);
+  if (isNaN(price)) return 0;
+  return qty * price;
+}
+
+function isLineItemValid(li) {
+  if (!li.productType) return false;
+  // For apparel-like types, garment + sizes are required
+  if (li.productType === 'Printed Apparel' || li.productType === 'Embroidered Apparel' || li.productType === 'Flatstock') {
+    if (!li.garment) return false;
+    if (!li.imprintIds.length) return false;
+    if (lineItemQty(li) === 0) return false;
+  } else {
+    // Patches/Stickers/Promo/Fees — at least a description and qty
+    if (lineItemQty(li) === 0) return false;
+  }
+  return true;
+}
+
+function formatCurrency(n) {
+  if (isNaN(n)) n = 0;
+  return '$'+n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Auto-grow a textarea to fit its content. Capped at 400px to keep cards reasonable;
+// user can drag the resize handle in the bottom-right corner for taller views if needed.
+function autoGrowTextarea(ta) {
+  if (!ta) return;
+  // Reset to a single line so scrollHeight measures actual content, not previous height
+  ta.style.height = 'auto';
+  var newHeight = Math.min(ta.scrollHeight + 2, 400); // +2 padding for descender clipping
+  ta.style.height = newHeight + 'px';
+}
+
+function renderOrderBody() {
+  var html = ''
+    // ── Working set section ──────────────────────────────────────────────────
+    + '<div class="od-section">'
+    +   '<div class="od-section-head">'
+    +     '<div>'
+    +       '<div class="od-section-title">Imprints on this order</div>'
+    +       '<div class="od-section-sub">Tap library cards below to add. These become available to assign to line items.</div>'
+    +     '</div>'
+    +     '<div style="display:flex;gap:6px">'
+    +       '<button class="btn btn-dashed btn-sm" onclick="openNewImprint()">+ New imprint</button>'
+    +       '<button class="btn btn-dashed btn-sm" onclick="openOrderPicker(\'pull\')">+ Add imprints from past order</button>'
+    +     '</div>'
+    +   '</div>'
+    +   '<div class="od-section-body">'
+    +     '<div class="ws-row" id="wsRow">'+renderWorkingSet()+'</div>'
+    +   '</div>'
+    + '</div>'
+
+    // ── Library section ──────────────────────────────────────────────────────
+    + '<div class="lib-section'+(state.libCollapsed?' collapsed':'')+'" id="libSection">'
+    +   '<div class="lib-head" onclick="toggleLibrary()">'
+    +     '<div class="lib-head-left">'
+    +       '<div class="lib-head-chev">▼</div>'
+    +       '<div>'
+    +         '<div class="lib-head-title" id="libTitle">Customer library</div>'
+    +         '<div class="lib-head-sub" id="libSub">Loading…</div>'
+    +       '</div>'
+    +     '</div>'
+    +     '<div class="lib-head-hint">Click to '+(state.libCollapsed?'expand':'collapse')+'</div>'
+    +   '</div>'
+    +   '<div class="lib-body" id="libBody">'
+    +     '<div class="state-panel" style="padding:24px"><div class="spin"></div><div class="state-txt">Loading imprint library…</div></div>'
+    +   '</div>'
+    + '</div>'
+
+    // ── Line items section (v4) ─────────────────────────────────────────────
+    + '<div class="od-section">'
+    +   '<div class="od-section-head">'
+    +     '<div>'
+    +       '<div class="od-section-title">Line items</div>'
+    +       '<div class="od-section-sub" id="liSubtitle">Add a line item to start building this order</div>'
+    +     '</div>'
+    +   '</div>'
+    +   '<div class="od-section-body">'
+    +     '<div class="li-list" id="liList"></div>'
+    +     '<button class="li-add-btn" onclick="addLineItem()">+ Add line item</button>'
+    +   '</div>'
+    + '</div>';
+
+  setOrderContent(html);
+}
+
+function renderWorkingSet() {
+  if (!state.workingSet.length) {
+    return '<div style="font-size:11px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em">No imprints added yet — tap library cards below</div>';
+  }
+  // For each recId in workingSet, look up the imprint in libraryImprints or in the order's pre-loaded data
+  return state.workingSet.map(function(recId) {
+    var imp = state.libraryImprints.find(function(r){ return r.id === recId; });
+    if (!imp) {
+      // Not yet loaded — placeholder. Will re-render once library loads.
+      return '<span class="ws-chip ws-chip-b">'
+        + '<span class="ws-chip-mono">'+recId.slice(0,10)+'…</span>'
+        + '<span class="ws-chip-x" onclick="removeFromWorkingSet(\''+recId+'\')">✕</span>'
+      + '</span>';
+    }
+    var f = imp.fields || {};
+    var nick = f[I.nick] || '';
+    var id = f[I.id] || '';
+    var loc = getStr(f[I.loc]);
+    var label = nick || id || 'Imprint';
+    return '<span class="ws-chip ws-chip-g">'
+      + escHtml(label)+(loc?' · '+escHtml(loc):'')
+      + ' <span class="ws-chip-mono">'+escHtml(id)+'</span>'
+      + '<span class="ws-chip-x" onclick="removeFromWorkingSet(\''+recId+'\')">✕</span>'
+    + '</span>';
+  }).join('');
+}
+
+function refreshWorkingSet() {
+  var el = document.getElementById('wsRow');
+  if (el) el.innerHTML = renderWorkingSet();
+  updateTotals();
+}
+
+function toggleLibrary() {
+  state.libCollapsed = !state.libCollapsed;
+  var sec = document.getElementById('libSection');
+  if (sec) sec.classList.toggle('collapsed');
+}
+
+function loadCustomerLibrary(custRecId) {
+  // For v1 with no `Imprint Customer` direct link field yet, we use the Customer Name Search
+  // (formula derived from Customer rollup). Resolve to customer's name first.
+  dlog('info', 'loadCustomerLibrary('+custRecId+')');
+  dfetch('https://api.airtable.com/v0/'+BASE+'/'+TBL_CUSTOMERS+'/'+custRecId+'?returnFieldsByFieldId=true',
+    { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('Customer fetch HTTP '+r.status); return r.json(); })
+    .then(function(custRec) {
+      var custName = (custRec.fields || {})['fld47twOIwW053ihT']; // Company Name
+      if (!custName) {
+        dlog('warn', 'customer record has no Company Name');
+        renderLibrary([], 'No customer name');
+        return;
+      }
+      dlog('info', 'customer name resolved: '+custName);
+      var esc = String(custName).replace(/"/g,'').replace(/\\/g,'');
+      var formula = 'SEARCH(LOWER("'+esc+'"),LOWER({'+I.custTxt+'}))';
+      var flds = [I.id, I.nick, I.type, I.loc, I.screens, I.custTxt, I.repeat, I.inksTxt,
+                  I.prev, I.created, I.proofs, I.linkedOrd]
+        .map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+      var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_IMPRINTS+'?'+flds
+        +'&filterByFormula='+encodeURIComponent(formula)
+        +'&sort%5B0%5D%5Bfield%5D='+I.created+'&sort%5B0%5D%5Bdirection%5D=desc'
+        +'&returnFieldsByFieldId=true&pageSize=100';
+
+      fetchAll(url, [], 200, function(recs, err) {
+        if (err) {
+          dlog('err', 'library load failed: '+err);
+          renderLibrary([], 'Error: '+err);
+          return;
+        }
+        dlog('ok', 'library loaded '+recs.length+' imprint(s) for '+custName);
+
+        // MERGE with existing libraryImprints (don't blow away working-set imprints that were
+        // fetched directly during reorder clone — they may be from a different customer or
+        // not present in this customer's library at all).
+        var existingById = {};
+        (state.libraryImprints || []).forEach(function(r){ existingById[r.id] = r; });
+        recs.forEach(function(r){ existingById[r.id] = r; }); // library entries overwrite our seeds
+        state.libraryImprints = Object.keys(existingById).map(function(k){ return existingById[k]; });
+
+        renderLibrary(recs, custName);
+        refreshWorkingSet();
+        renderLineItems(); // re-render LIs so their imprint chips get labels
+      });
+    })
+    .catch(function(e) {
+      dlog('err', 'loadCustomerLibrary error: '+e.message);
+      renderLibrary([], 'Error: '+e.message);
+    });
+}
+
+function renderLibrary(recs, custLabel) {
+  state.libraryAllRecs = recs; // remember the unfiltered set
+  state.libraryCustLabel = custLabel;
+
+  var titleEl = document.getElementById('libTitle');
+  var subEl = document.getElementById('libSub');
+  if (titleEl) titleEl.textContent = custLabel ? custLabel+' imprint library' : 'Customer library';
+
+  var bodyEl = document.getElementById('libBody');
+  if (!bodyEl) return;
+
+  if (!recs.length) {
+    if (subEl) subEl.textContent = '0 imprints';
+    bodyEl.innerHTML = '<div class="lib-empty">No imprints yet for this customer. Use "+ New imprint" above to create the first one.</div>';
+    return;
+  }
+
+  // Apply filters
+  var filtered = applyLibraryFilters(recs);
+
+  if (subEl) {
+    var totalTxt = recs.length+' imprint'+(recs.length!==1?'s':'');
+    var showTxt = filtered.length === recs.length
+      ? totalTxt+' · sorted most recent'
+      : 'Showing '+filtered.length+' of '+recs.length+' · sorted most recent';
+    subEl.textContent = showTxt;
+  }
+
+  var filters = '<div class="lib-filters">'
+    + '<input class="search-inp" id="libSearch" type="text" placeholder="Search by nickname or ID…" value="'+escHtml(state.libSearch)+'" oninput="onLibSearchInput()" style="flex:0 0 240px;height:28px;padding:5px 10px;font-size:12px" />'
+    + '<div class="lib-filter-lbl">Location:</div>'
+    + '<select class="lib-select" id="libLoc" onchange="onLibFilterChange()">'
+    +   filterOpts(['All','Front','Back','Left Chest','Right Chest','Left Sleeve','Right Sleeve','Bandana','Flatstock','Other'], state.libLoc)
+    + '</select>'
+    + '<div class="lib-filter-lbl">Type:</div>'
+    + '<select class="lib-select" id="libType" onchange="onLibFilterChange()">'
+    +   filterOpts(['All','Screen Print','Supacolor','Embroidery / Patch / Label','Decopress','Finishing'], state.libType)
+    + '</select>'
+    + '<div class="lib-filter-lbl">Last linked:</div>'
+    + '<select class="lib-select" id="libDate" onchange="onLibFilterChange()">'
+    +   filterOpts(['Last 30 days','Last 90 days','Last 6 months','Last year','All time'], state.libDate)
+    + '</select>'
+    + '</div>';
+
+  if (!filtered.length) {
+    bodyEl.innerHTML = filters
+      + '<div class="lib-empty">No imprints match these filters. Try "All time" or clear the search.</div>';
+    return;
+  }
+
+  var cards = filtered.map(function(rec) {
+    var f = rec.fields || {};
+    var nick = f[I.nick] || '';
+    var id = f[I.id] || '';
+    var loc = getStr(f[I.loc]) || '';
+    var thumb = getThumb(f[I.proofs]);
+    var added = state.workingSet.indexOf(rec.id) !== -1;
+    var when = f[I.created] ? timeAgo(f[I.created]) : '';
+
+    return '<div class="lib-card'+(added?' added':'')+'" onclick="toggleWorkingSet(\''+rec.id+'\')">'
+      + '<div class="lib-card-thumb">'
+        + (thumb
+          ? '<img src="'+thumb+'" alt="proof" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'lib-card-thumb-ph\',textContent:\'⌗\'}))" />'
+          : '<div class="lib-card-thumb-ph">⌗</div>')
+        + (added ? '<div class="lib-card-added-badge">✓</div>' : '')
+        + '<button class="lib-card-preview-btn" title="Preview" onclick="event.stopPropagation();openZoomForImprint(\''+rec.id+'\')">⚲</button>'
+      + '</div>'
+      + '<div class="lib-card-body">'
+        + '<div class="lib-card-name" title="'+escAttr(nick || id || 'Untitled')+'">'+escHtml(nick || id || 'Untitled')+'</div>'
+        + '<div class="lib-card-meta"><span>'+escHtml(loc || '—')+'</span><span>'+escHtml(when)+'</span></div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+
+  bodyEl.innerHTML = filters + '<div class="lib-grid">'+cards+'</div>';
+}
+
+function filterOpts(opts, sel) {
+  return opts.map(function(o){
+    return '<option'+(o===sel?' selected':'')+'>'+escHtml(o)+'</option>';
+  }).join('');
+}
+
+// Categorical type match for the imprint library filter (v12).
+// Maps a granular Airtable Imprint Type onto one of the 5 dropdown categories.
+function matchesTypeCategory(actualType, categoryLabel) {
+  if (!actualType) return false;
+  var t = String(actualType);
+  switch (categoryLabel) {
+    case 'Screen Print':
+      return t === 'Discharge'
+          || t === 'No Base W/B'
+          || t === 'Bleed Blocker + W/B'
+          || t === 'EZP Base + W/B'
+          || t === 'Flatstock';
+    case 'Supacolor':
+      return t.indexOf('Supacolor') === 0;
+    case 'Embroidery / Patch / Label':
+      return t === 'Embroidery'
+          || t === 'Patch Application'
+          || t === 'Hem Label Application'
+          || t === 'Woven Label Application'
+          || t === 'Patch/Label ONLY';
+    case 'Decopress':
+      return t.indexOf('Decopress') === 0;
+    case 'Finishing':
+      return t.indexOf('Finishing') === 0;
+    default:
+      // Unknown category — fall back to exact match
+      return t === categoryLabel;
+  }
+}
+
+function applyLibraryFilters(recs) {
+  var q = state.libSearch.trim().toLowerCase();
+  var loc = state.libLoc;
+  var typ = state.libType;
+  var dateWin = libDateWindowDays(state.libDate); // null = all time
+
+  return recs.filter(function(rec) {
+    var f = rec.fields || {};
+    // Text search
+    if (q) {
+      var nick = String(f[I.nick] || '').toLowerCase();
+      var id = String(f[I.id] || '').toLowerCase();
+      if (nick.indexOf(q) === -1 && id.indexOf(q) === -1) return false;
+    }
+    // Location filter
+    if (loc !== 'All') {
+      var l = getStr(f[I.loc]);
+      // Treat "Other" as anything not in the main location list
+      if (loc === 'Other') {
+        var main = ['Front','Back','Left Chest','Right Chest','Left Sleeve','Right Sleeve','Bandana','Flatstock'];
+        if (main.indexOf(l) !== -1) return false;
+      } else if (l !== loc) {
+        return false;
+      }
+    }
+    // Type filter — categorical match
+    if (typ !== 'All') {
+      var t = getStr(f[I.type]);
+      if (!matchesTypeCategory(t, typ)) return false;
+    }
+    // Date filter — uses Created Timestamp as a proxy.
+    // Note: ideally this is "Last linked to any order" — but that's a rollup we don't have a clean
+    // single date field for. Created is a reasonable proxy: when the imprint first entered the system.
+    // Worth revisiting in a later phase if "linked recency" is materially different.
+    if (dateWin !== null) {
+      var created = f[I.created];
+      if (!created) return false;
+      var ageMs = Date.now() - new Date(created).getTime();
+      if (ageMs > dateWin * 86400000) return false;
+    }
+    return true;
+  });
+}
+
+function libDateWindowDays(label) {
+  switch (label) {
+    case 'Last 30 days': return 30;
+    case 'Last 90 days': return 90;
+    case 'Last 6 months': return 183;
+    case 'Last year': return 365;
+    case 'All time': return null;
+    default: return 183;
+  }
+}
+
+function onLibFilterChange() {
+  var locEl = document.getElementById('libLoc');
+  var typEl = document.getElementById('libType');
+  var datEl = document.getElementById('libDate');
+  if (locEl) state.libLoc = locEl.value;
+  if (typEl) state.libType = typEl.value;
+  if (datEl) state.libDate = datEl.value;
+  renderLibrary(state.libraryAllRecs || [], state.libraryCustLabel);
+}
+
+function onLibSearchInput() {
+  var el = document.getElementById('libSearch');
+  if (!el) return;
+  state.libSearch = el.value;
+  // Re-render but preserve the focused input
+  renderLibrary(state.libraryAllRecs || [], state.libraryCustLabel);
+  // Restore focus + caret position to the search box
+  var refocus = document.getElementById('libSearch');
+  if (refocus) {
+    refocus.focus();
+    var len = refocus.value.length;
+    refocus.setSelectionRange(len, len);
+  }
+}
+
+function toggleWorkingSet(recId) {
+  var idx = state.workingSet.indexOf(recId);
+  if (idx === -1) {
+    state.workingSet.push(recId);
+    dlog('info', 'added '+recId+' to working set (now '+state.workingSet.length+')');
+  } else {
+    state.workingSet.splice(idx, 1);
+    dlog('info', 'removed '+recId+' from working set (now '+state.workingSet.length+')');
+  }
+  refreshWorkingSet();
+  renderLibrary(state.libraryAllRecs || state.libraryImprints, state.libraryCustLabel);
+  renderLineItems(); // imprint picker rows depend on workingSet — re-render so they update
+}
+
+function removeFromWorkingSet(recId) {
+  var idx = state.workingSet.indexOf(recId);
+  if (idx !== -1) {
+    state.workingSet.splice(idx, 1);
+    refreshWorkingSet();
+    renderLibrary(state.libraryAllRecs || state.libraryImprints, state.libraryCustLabel);
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// LINE ITEM BUILDER (Phase 3 / v4)
+// ═════════════════════════════════════════════════════════════════════════════
+
+function emptyLineItem() {
+  var sizes = {};
+  SIZE_KEYS.forEach(function(k){ sizes[k] = ''; });
+  return {
+    id: 'li-'+(state.liNextId++),
+    productType: '',
+    garment: null,        // {recId, name, product, color}
+    garmentQuery: '',     // current text in the typeahead input
+    imprintIds: [],
+    proofingNotes: '',
+    sizes: sizes,
+    price: '',
+    nickname: '',
+    womens: false,
+    youth: false,
+    ready2nd: false,
+    shippingNotes: '',
+    productionNotes: '',
+    finishingNotes: '',
+    productDesc: '',
+    liNotes: '',
+    patchSize: '',
+    stickerSize: '',
+    promoDesc: '',
+    moreOpen: false
+  };
+}
+
+function addLineItem() {
+  state.lineItems.push(emptyLineItem());
+  renderLineItems();
+  updateTotals();
+  // Focus the new card's product type select
+  var last = state.lineItems[state.lineItems.length-1];
+  setTimeout(function(){
+    var el = document.getElementById('liPT-'+last.id);
+    if (el) el.focus();
+  }, 50);
+}
+
+function removeLineItem(liId) {
+  state.lineItems = state.lineItems.filter(function(li){ return li.id !== liId; });
+  renderLineItems();
+  updateTotals();
+}
+
+function renderLineItems() {
+  var listEl = document.getElementById('liList');
+  var subEl = document.getElementById('liSubtitle');
+  if (!listEl) return;
+
+  if (!state.lineItems.length) {
+    listEl.innerHTML = '';
+    if (subEl) subEl.textContent = 'Add a line item to start building this order';
+    return;
+  }
+
+  if (subEl) {
+    subEl.textContent = state.lineItems.length+' line item'+(state.lineItems.length!==1?'s':'')+' · imprints pull from the working set above';
+  }
+
+  listEl.innerHTML = state.lineItems.map(renderLineItemCard).join('');
+
+  // Size auto-grow textareas to fit their pre-populated content (e.g. cloned reorder notes).
+  // Without this, a long proofing-note on a reorder would render at min-height and require
+  // the user to drag-resize to see it.
+  listEl.querySelectorAll('.li-area-grow').forEach(autoGrowTextarea);
+}
+
+function renderLineItemCard(li, idx) {
+  var liNum = idx + 1;
+  var isApparel = li.productType === 'Printed Apparel' || li.productType === 'Embroidered Apparel' || li.productType === 'Flatstock';
+  var isPatch = li.productType === 'Patches';
+  var isSticker = li.productType === 'Stickers';
+  var isPromo = li.productType === 'Promo' || li.productType === 'Fees' || li.productType === 'Artwork Fees';
+
+  return '<div class="li-card" data-li-id="'+li.id+'">'
+    + '<div class="li-card-head">'
+      + '<span class="li-num">LI #'+liNum+'</span>'
+      + renderProductTypeSelect(li)
+      + (isApparel ? renderGarmentField(li) : '')
+      + '<button class="li-card-remove" onclick="removeLineItem(\''+li.id+'\')" title="Remove line item">✕</button>'
+    + '</div>'
+
+    + '<div class="li-card-body">'
+    +   (li.productType ? renderLineItemBody(li, isApparel, isPatch, isSticker, isPromo) : renderLineItemEmptyHint())
+    + '</div>'
+
+  + '</div>';
+}
+
+function renderProductTypeSelect(li) {
+  var opts = '<option value="">Product type…</option>'
+    + PRODUCT_TYPES.map(function(t){
+        return '<option value="'+escAttr(t)+'"'+(li.productType===t?' selected':'')+'>'+escHtml(t)+'</option>';
+      }).join('');
+  return '<select class="li-sel li-sel-sm" id="liPT-'+li.id+'" style="flex:0 0 180px" onchange="onLiFieldChange(\''+li.id+'\',\'productType\',this.value)">'+opts+'</select>';
+}
+
+function renderGarmentField(li) {
+  if (li.garment) {
+    return '<div class="li-garment-selected" style="flex:1;min-width:0">'
+      + '<i style="font-size:13px;color:var(--green)">●</i>'
+      + '<div class="li-garment-selected-name" title="'+escAttr(li.garment.name)+'">'+escHtml(li.garment.name)+'</div>'
+      + '<button class="garm-info-btn" onclick="openGarmentDetail(\''+li.garment.recId+'\')" title="View garment details">i</button>'
+      + '<div class="li-garment-selected-clear" onclick="onLiFieldChange(\''+li.id+'\',\'garment\',null)" title="Change garment">✕</div>'
+    + '</div>';
+  }
+  return '<div class="li-garment-wrap" style="flex:1;min-width:0">'
+    + '<input class="li-inp li-inp-sm li-garment-input" id="liGarmInp-'+li.id+'" type="text" placeholder="Search garment…" value="'+escAttr(li.garmentQuery||'')+'" oninput="onGarmentSearchInput(\''+li.id+'\',this.value)" onfocus="onGarmentSearchInput(\''+li.id+'\',this.value)" onblur="setTimeout(function(){closeGarmentResults(\''+li.id+'\')},150)" />'
+    + '<div class="li-garment-results" id="liGarmRes-'+li.id+'"></div>'
+  + '</div>';
+}
+
+function renderLineItemEmptyHint() {
+  return '<div style="padding:14px;text-align:center;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;font-size:12px;background:var(--bg);border:1px dashed var(--border-dk);border-radius:var(--radius);margin-top:4px">Pick a product type to start</div>';
+}
+
+function renderLineItemBody(li, isApparel, isPatch, isSticker, isPromo) {
+  return ''
+    // Imprints + Proofing Notes (apparel/flatstock)
+    + (isApparel ? ''
+        + '<div class="li-row split-2">'
+        +   '<div class="li-field">'
+        +     '<div class="li-lbl li-lbl-req">Imprints on this line</div>'
+        +     renderImprintPicker(li)
+        +   '</div>'
+        +   '<div class="li-field">'
+        +     '<div class="li-lbl li-lbl-req">Proofing notes — which imprints go where?</div>'
+        +     '<textarea class="li-area li-area-grow" oninput="onLiFieldChange(\''+li.id+'\',\'proofingNotes\',this.value)" placeholder="e.g. Bear mascot centered on front, Hop wordmark across upper back">'+escHtml(li.proofingNotes)+'</textarea>'
+        +   '</div>'
+        + '</div>'
+      : '')
+
+    // Patches/Stickers variant fields
+    + (isPatch ? renderPatchFields(li) : '')
+    + (isSticker ? renderStickerFields(li) : '')
+    + (isPromo ? renderPromoFields(li) : '')
+
+    // Size grid
+    + '<div class="li-row">'
+    +   '<div class="li-field" style="flex:1">'
+    +     '<div class="li-lbl li-lbl-req">Sizes & quantity</div>'
+    +     renderSizeGrid(li)
+    +   '</div>'
+    + '</div>'
+
+    // Quick row: price, nickname, checkboxes
+    + '<div class="li-quick">'
+    +   '<div class="li-quick-grp">'
+    +     '<label>Price / pc</label>'
+    +     '<input class="li-inp li-inp-sm" style="width:90px" type="text" inputmode="decimal" value="'+escAttr(li.price)+'" oninput="onLiFieldChange(\''+li.id+'\',\'price\',this.value)" placeholder="0.00" />'
+    +   '</div>'
+    +   '<div class="li-quick-grp">'
+    +     '<label>Nickname</label>'
+    +     '<input class="li-inp li-inp-sm" style="width:160px" type="text" value="'+escAttr(li.nickname)+'" oninput="onLiFieldChange(\''+li.id+'\',\'nickname\',this.value)" placeholder="Optional" />'
+    +   '</div>'
+    +   '<label class="li-quick-cb"><input type="checkbox"'+(li.womens?' checked':'')+' onchange="onLiFieldChange(\''+li.id+'\',\'womens\',this.checked)" /> Women\'s</label>'
+    +   '<label class="li-quick-cb"><input type="checkbox"'+(li.youth?' checked':'')+' onchange="onLiFieldChange(\''+li.id+'\',\'youth\',this.checked)" /> Youth</label>'
+    +   '<label class="li-quick-cb"><input type="checkbox"'+(li.ready2nd?' checked':'')+' onchange="onLiFieldChange(\''+li.id+'\',\'ready2nd\',this.checked)" /> Ready for 2nd eyes</label>'
+    +   '<div class="li-line-total">Line total<strong>'+formatCurrency(lineItemTotal(li))+'</strong></div>'
+    + '</div>'
+
+    // More fields disclosure
+    + '<details class="li-more"'+(li.moreOpen?' open':'')+' ontoggle="onLiMoreToggle(\''+li.id+'\',this.open)">'
+    +   '<summary class="li-more-summary">More fields — notes, proof upload, descriptions</summary>'
+    +   '<div class="li-more-body">'
+    +     liNotesField(li, 'shippingNotes', 'Shipping notes')
+    +     liNotesField(li, 'productionNotes', 'Production notes')
+    +     liNotesField(li, 'finishingNotes', 'Finishing notes')
+    +     liNotesField(li, 'liNotes', 'Line item notes / special instructions')
+    +     '<div class="li-field">'
+    +       '<div class="li-lbl">Product description</div>'
+    +       '<input class="li-inp li-inp-sm" type="text" value="'+escAttr(li.productDesc)+'" oninput="onLiFieldChange(\''+li.id+'\',\'productDesc\',this.value)" placeholder="Optional"/>'
+    +     '</div>'
+    +     '<div class="li-field">'
+    +       '<div class="li-lbl">Proof upload</div>'
+    +       '<div class="li-more-proof" onclick="alert(\'Proof upload wires in once writes are enabled. For now, upload via Airtable directly.\')">Drop files or click to browse<br><span style="font-size:9px;color:var(--muted-lt);margin-top:4px;display:inline-block">Wires in when writes flip on</span></div>'
+    +     '</div>'
+    +   '</div>'
+    + '</details>'
+  ;
+}
+
+function liNotesField(li, key, label) {
+  return '<div class="li-field">'
+    + '<div class="li-lbl">'+escHtml(label)+'</div>'
+    + '<textarea class="li-area" style="min-height:38px" oninput="onLiFieldChange(\''+li.id+'\',\''+key+'\',this.value)">'+escHtml(li[key]||'')+'</textarea>'
+  + '</div>';
+}
+
+function renderImprintPicker(li) {
+  var workingHas = state.workingSet.length;
+  if (!workingHas) {
+    return '<div class="li-imp-row"><div class="li-imp-empty">No imprints added to this order yet — add some from the library above</div></div>';
+  }
+  var chips = li.imprintIds.map(function(impRecId) {
+    var imp = (state.libraryImprints || []).find(function(r){ return r.id === impRecId; });
+    var label = imp ? (imp.fields[I.nick] || imp.fields[I.id] || '—') : impRecId.slice(0,8);
+    var loc = imp ? getStr(imp.fields[I.loc]) : '';
+    return '<span class="li-imp-chip" title="'+escAttr(label)+'">'
+      + escHtml(label) + (loc ? ' · '+escHtml(loc) : '')
+      + '<span class="li-imp-chip-x" onclick="removeImprintFromLi(\''+li.id+'\',\''+impRecId+'\')">✕</span>'
+    + '</span>';
+  }).join('');
+  return '<div class="li-imp-row" style="position:relative">'
+    + chips
+    + '<button class="li-imp-add" onclick="openImpPicker(\''+li.id+'\',event)">+ Pick</button>'
+    + '<div class="li-imp-pop" id="liImpPop-'+li.id+'"></div>'
+  + '</div>';
+}
+
+function openImpPicker(liId, ev) {
+  if (ev) ev.stopPropagation();
+  // Always remove any prior outside-click listener before installing a new one
+  document.removeEventListener('click', closeImpPickerOnce);
+  // Close any other open popovers
+  document.querySelectorAll('.li-imp-pop.on').forEach(function(p){ p.classList.remove('on'); });
+  state.impPopForLi = liId;
+  var pop = document.getElementById('liImpPop-'+liId);
+  if (!pop) {
+    console.warn('[Pine SE] imp picker popover element not found for', liId);
+    return;
+  }
+
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+
+  console.log('[Pine SE] opening imp picker for li='+liId+', workingSet='+state.workingSet.length+', libraryImprints='+(state.libraryImprints||[]).length);
+
+  // Build list of working-set imprints
+  var rows = state.workingSet.map(function(impRecId) {
+    var imp = (state.libraryImprints || []).find(function(r){ return r.id === impRecId; });
+    var label = imp ? (imp.fields[I.nick] || imp.fields[I.id] || '—') : impRecId.slice(0,8)+'…';
+    var idStr = imp ? (imp.fields[I.id] || '') : impRecId.slice(0,8)+'…';
+    var loc = imp ? getStr(imp.fields[I.loc]) : '';
+    var added = li.imprintIds.indexOf(impRecId) !== -1;
+    return '<div class="li-imp-pop-row'+(added?' added':'')+'" onclick="toggleImprintOnLi(\''+li.id+'\',\''+impRecId+'\')">'
+      + (added ? '✓' : '+')+' '
+      + (idStr ? '<strong>'+escHtml(idStr)+'</strong> ' : '')
+      + escHtml(label)
+      + (loc ? ' <span style="color:var(--muted-lt)">'+escHtml(loc)+'</span>' : '')
+    + '</div>';
+  }).join('');
+
+  pop.innerHTML = rows || '<div class="li-imp-pop-empty">No imprints in the working set yet — add some from the library above</div>';
+  pop.style.top = '32px';
+  pop.style.right = '0';
+  pop.classList.add('on');
+
+  // Install fresh outside-click listener
+  setTimeout(function(){
+    document.addEventListener('click', closeImpPickerOnce);
+  }, 10);
+}
+
+function closeImpPickerOnce(e) {
+  // If click is inside any .li-imp-pop or .li-imp-add, don't close
+  if (e.target.closest && (e.target.closest('.li-imp-pop') || e.target.closest('.li-imp-add'))) return;
+  document.querySelectorAll('.li-imp-pop.on').forEach(function(p){ p.classList.remove('on'); });
+  state.impPopForLi = null;
+  document.removeEventListener('click', closeImpPickerOnce);
+}
+
+function toggleImprintOnLi(liId, impRecId) {
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (!li) { dlog('err', 'toggleImprintOnLi: line item not found: '+liId); return; }
+  var idx = li.imprintIds.indexOf(impRecId);
+  if (idx === -1) {
+    li.imprintIds.push(impRecId);
+    dlog('info', 'added imprint '+impRecId+' to LI '+liId+' (now '+li.imprintIds.length+')');
+  } else {
+    li.imprintIds.splice(idx, 1);
+    dlog('info', 'removed imprint '+impRecId+' from LI '+liId+' (now '+li.imprintIds.length+')');
+  }
+  renderLineItems();
+  updateTotals();
+  // Re-open the popover so user can add multiple
+  setTimeout(function(){ openImpPicker(liId); }, 50);
+}
+
+function removeImprintFromLi(liId, impRecId) {
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  li.imprintIds = li.imprintIds.filter(function(x){ return x !== impRecId; });
+  renderLineItems();
+  updateTotals();
+}
+
+function renderSizeGrid(li) {
+  var headerCells = SIZE_KEYS.map(function(k){
+    return '<div class="li-sz-lbl">'+k+'</div>';
+  }).join('') + '<div class="li-sz-lbl">Total</div>';
+  var inputCells = SIZE_KEYS.map(function(k){
+    return '<input class="li-sz-inp" type="text" inputmode="numeric" value="'+escAttr(li.sizes[k]||'')+'" placeholder="" oninput="onSizeChange(\''+li.id+'\',\''+k+'\',this.value)" />';
+  }).join('');
+  var total = lineItemQty(li);
+  var totalCell = '<div class="li-sz-total'+(total===0?' zero':'')+'">'+total+'</div>';
+  return '<div class="li-sizes">'+headerCells+inputCells+totalCell+'</div>';
+}
+
+function onSizeChange(liId, sizeKey, val) {
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  // Allow only digits; treat empty as ''
+  var clean = val.replace(/[^0-9]/g, '');
+  li.sizes[sizeKey] = clean;
+  // Update just the total cell + line total without re-rendering everything (avoid losing focus)
+  var card = document.querySelector('[data-li-id="'+liId+'"]');
+  if (card) {
+    var totalCell = card.querySelector('.li-sz-total');
+    var qty = lineItemQty(li);
+    if (totalCell) {
+      totalCell.textContent = qty;
+      totalCell.classList.toggle('zero', qty === 0);
+    }
+    var lineTotal = card.querySelector('.li-line-total strong');
+    if (lineTotal) lineTotal.textContent = formatCurrency(lineItemTotal(li));
+  }
+  updateTotals();
+}
+
+function onLiFieldChange(liId, key, val) {
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  // Special-case garment clear
+  if (key === 'garment' && val === null) {
+    li.garment = null;
+    li.garmentQuery = '';
+    renderLineItems();
+    updateTotals();
+    setTimeout(function(){ var el = document.getElementById('liGarmInp-'+liId); if (el) el.focus(); }, 50);
+    return;
+  }
+  // Product type change re-renders the card (because conditional fields change)
+  var needsFullRerender = (key === 'productType');
+  li[key] = val;
+  if (needsFullRerender) {
+    renderLineItems();
+  } else if (key === 'price') {
+    // Just update the line total + grand total
+    var card = document.querySelector('[data-li-id="'+liId+'"]');
+    if (card) {
+      var lineTotal = card.querySelector('.li-line-total strong');
+      if (lineTotal) lineTotal.textContent = formatCurrency(lineItemTotal(li));
+    }
+  }
+  updateTotals();
+}
+
+function onLiMoreToggle(liId, isOpen) {
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (li) li.moreOpen = !!isOpen;
+}
+
+// ─── Patch/Sticker/Promo variant fields ─────────────────────────────────────
+function renderPatchFields(li) {
+  return '<div class="li-variant-section">'
+    + '<div class="li-variant-section-lbl">Patch details</div>'
+    + '<div class="li-row">'
+    +   '<div class="li-field"><div class="li-lbl">Patch size</div>'
+    +     '<select class="li-sel li-sel-sm" style="max-width:200px" onchange="onLiFieldChange(\''+li.id+'\',\'patchSize\',this.value)">'
+    +       ['','2"','2.5"','3"','3.5"','4"','4.5"','5"'].map(function(s){
+              return '<option value="'+escAttr(s)+'"'+(li.patchSize===s?' selected':'')+'>'+(s||'Size…')+'</option>';
+            }).join('')
+    +     '</select>'
+    +   '</div>'
+    + '</div>'
+  + '</div>';
+}
+
+function renderStickerFields(li) {
+  return '<div class="li-variant-section">'
+    + '<div class="li-variant-section-lbl">Sticker details</div>'
+    + '<div class="li-row">'
+    +   '<div class="li-field"><div class="li-lbl">Sticker size</div>'
+    +     '<select class="li-sel li-sel-sm" style="max-width:200px" onchange="onLiFieldChange(\''+li.id+'\',\'stickerSize\',this.value)">'
+    +       ['','2"','3"','4"','5"'].map(function(s){
+              return '<option value="'+escAttr(s)+'"'+(li.stickerSize===s?' selected':'')+'>'+(s||'Size…')+'</option>';
+            }).join('')
+    +     '</select>'
+    +   '</div>'
+    + '</div>'
+  + '</div>';
+}
+
+function renderPromoFields(li) {
+  return '<div class="li-variant-section">'
+    + '<div class="li-variant-section-lbl">Item details</div>'
+    + '<div class="li-row">'
+    +   '<div class="li-field"><div class="li-lbl li-lbl-req">Description</div>'
+    +     '<input class="li-inp li-inp-sm" type="text" value="'+escAttr(li.promoDesc)+'" oninput="onLiFieldChange(\''+li.id+'\',\'promoDesc\',this.value)" placeholder="Include product # and color" />'
+    +   '</div>'
+    + '</div>'
+  + '</div>';
+}
+
+// ─── Garment typeahead ───────────────────────────────────────────────────────
+function onGarmentSearchInput(liId, q) {
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  li.garmentQuery = q;
+
+  var resEl = document.getElementById('liGarmRes-'+liId);
+  if (!resEl) return;
+
+  if (q.trim().length < 2) {
+    resEl.classList.remove('on');
+    resEl.innerHTML = '';
+    return;
+  }
+
+  // Debounce
+  if (state.garmentSearchTimer) clearTimeout(state.garmentSearchTimer);
+  state.garmentSearchTimer = setTimeout(function(){
+    runGarmentSearch(liId, q.trim());
+  }, 250);
+
+  // Show loading immediately
+  resEl.classList.add('on');
+  resEl.innerHTML = '<div class="li-garment-loading">Searching…</div>';
+}
+
+function runGarmentSearch(liId, q) {
+  var resEl = document.getElementById('liGarmRes-'+liId);
+  if (!resEl) return;
+
+  var cacheKey = q.toLowerCase();
+  if (state.garmentSearchCache[cacheKey]) {
+    renderGarmentResults(liId, state.garmentSearchCache[cacheKey], q);
+    return;
+  }
+
+  // Build formula: split query into whitespace tokens, each must match somewhere
+  // in the garment name. So "5000 blue" finds "Gildan 5000 - Royal Blue" because
+  // both "5000" and "blue" appear in the name (in any order).
+  var tokens = q.split(/\s+/).filter(function(t){ return t.length > 0; });
+  var parts = tokens.map(function(t){
+    var esc = t.replace(/"/g,'').replace(/\\/g,'');
+    return 'SEARCH(LOWER("'+esc+'"),LOWER({'+G.name+'}))';
+  });
+  var formula = parts.length === 1 ? parts[0] : 'AND('+parts.join(',')+')';
+  var flds = [G.name, G.product, G.colorway, G.mfr]
+    .map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_GARMENTS+'?'+flds
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&returnFieldsByFieldId=true&pageSize=20&maxRecords=20';
+
+  fetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(d) {
+      var recs = (d.records || []).map(function(r) {
+        var f = r.fields || {};
+        return {
+          recId: r.id,
+          name: f[G.name] || '',
+          product: f[G.product] || '',
+          color: f[G.colorway] || '',
+          mfr: getStr(f[G.mfr]) || ''
+        };
+      });
+      state.garmentSearchCache[cacheKey] = recs;
+      renderGarmentResults(liId, recs, q);
+    })
+    .catch(function(e) {
+      resEl.innerHTML = '<div class="li-garment-empty">Error: '+escHtml(e.message)+'</div>';
+    });
+}
+
+function renderGarmentResults(liId, recs, q) {
+  var resEl = document.getElementById('liGarmRes-'+liId);
+  if (!resEl) return;
+  if (!recs.length) {
+    resEl.innerHTML = '<div class="li-garment-empty">No matches for "'+escHtml(q)+'"</div>';
+    return;
+  }
+  // Tokens to bold in each result name
+  var tokens = q.split(/\s+/).filter(function(t){ return t.length > 0; });
+  var html = recs.slice(0, 20).map(function(r, i) {
+    var meta = [r.mfr, r.product, r.color].filter(Boolean).join(' · ');
+    return '<div class="li-garment-result" onmousedown="event.preventDefault();pickGarment(\''+liId+'\',\''+r.recId+'\')">'
+      + '<div class="li-garment-result-row">'
+      +   '<div class="li-garment-result-row-text">'
+      +     '<strong>'+highlightTokens(r.name, tokens)+'</strong>'
+      +     (meta ? '<div class="li-garment-result-meta">'+escHtml(meta)+'</div>' : '')
+      +   '</div>'
+      +   '<button class="garm-info-btn" onmousedown="event.preventDefault();event.stopPropagation();openGarmentDetail(\''+r.recId+'\')" title="View garment details">i</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+  resEl.innerHTML = html;
+  resEl.classList.add('on');
+}
+
+// Wrap each token's case-insensitive matches in <mark>...</mark>.
+// Escapes the source first so we don't expose HTML from garment names.
+function highlightTokens(text, tokens) {
+  var safe = escHtml(text || '');
+  if (!tokens || !tokens.length) return safe;
+  // Sort tokens longest-first so longer tokens get matched before substring tokens
+  var sorted = tokens.slice().sort(function(a,b){ return b.length - a.length; });
+  sorted.forEach(function(t){
+    if (!t) return;
+    var escT = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // regex-escape
+    var re = new RegExp('('+escT+')', 'gi');
+    safe = safe.replace(re, '<mark>$1</mark>');
+  });
+  return safe;
+}
+
+function pickGarment(liId, garmRecId) {
+  var li = state.lineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  // Find from cache
+  var found = null;
+  Object.keys(state.garmentSearchCache).some(function(k){
+    var match = state.garmentSearchCache[k].find(function(r){ return r.recId === garmRecId; });
+    if (match) { found = match; return true; }
+    return false;
+  });
+  if (!found) return;
+  li.garment = {
+    recId: found.recId,
+    name: found.name,
+    product: found.product,
+    color: found.color
+  };
+  li.garmentQuery = '';
+  renderLineItems();
+  updateTotals();
+}
+
+function closeGarmentResults(liId) {
+  var resEl = document.getElementById('liGarmRes-'+liId);
+  if (resEl) resEl.classList.remove('on');
+}
+
+function onSaveDraft() {
+  console.log('[Pine Sales Entry] Save draft (no-op — drafts persist in this session only)', {
+    orderId: state.currentOrder && state.currentOrder.id,
+    workingSet: state.workingSet,
+    lineItems: state.lineItems
+  });
+  alert('Draft state is in-memory only for this session. Real drafts wire when writes flip on.');
+}
+
+function onSubmitOrder() {
+  var payload = buildSubmitPayload();
+  console.log('[Pine Sales Entry] PREVIEW PAYLOAD — would write to Airtable:', payload);
+  showSubmitPreview(payload);
+}
+
+function buildSubmitPayload() {
+  var order = state.currentOrder;
+  var of = (order && order.fields) || {};
+
+  // Branch: reorder draft vs. enrich existing
+  if (state.isDraftReorder) {
+    return buildReorderSubmitPayload();
+  }
+
+  // Working set delta — what's currently in the order's Imprints link vs what we want
+  var existingImpRecIds = (of[O.imprints] || []).map(function(x){ return typeof x === 'string' ? x : x.id; });
+  var wsSet = state.workingSet.slice();
+  var addedImps = wsSet.filter(function(x){ return existingImpRecIds.indexOf(x) === -1; });
+  var removedImps = existingImpRecIds.filter(function(x){ return wsSet.indexOf(x) === -1; });
+
+  // Line items — convert state.lineItems into Airtable-shaped records
+  var lis = state.lineItems.filter(isLineItemValid).map(function(li) {
+    return lineItemToAirtablePayload(li, order.id);
+  });
+
+  return {
+    mode: 'PREVIEW — Enrich existing order (writes disabled)',
+    timestamp: new Date().toISOString(),
+    order: {
+      recordId: order && order.id,
+      number: of[O.num],
+      customer: getStr(of[O.custName]),
+      salesperson: getStr(of[O.salesperson])
+    },
+    imprintLinkUpdate: {
+      table: 'Orders',
+      tableId: TBL_ORDERS,
+      recordId: order && order.id,
+      fieldId: O.imprints,
+      newValue: wsSet,
+      delta: { added: addedImps, removed: removedImps }
+    },
+    lineItemsToCreate: lis,
+    skippedInvalid: state.lineItems.filter(function(li){ return !isLineItemValid(li); })
+      .map(function(li){ return { localId: li.id, reason: liInvalidReason(li) }; })
+  };
+}
+
+function buildReorderSubmitPayload() {
+  var src = state.draftSourceOrder;
+  var faux = (state.currentOrder && state.currentOrder.fields) || {};
+
+  // Step 1 payload: create a new Order record in Airtable.
+  // The order number is generated by an Airtable formula (Autonumber + 2040), so we don't
+  // write it ourselves. We write Customer link and any sales-set fields, then read back
+  // the resulting recordId to attach Line Items in step 2.
+  var newOrderFields = {};
+  if (faux[O.customer]) newOrderFields[O.customer] = faux[O.customer];
+  if (faux[O.salesperson]) newOrderFields[O.salesperson] = getStr(faux[O.salesperson]);
+  if (state.workingSet.length) newOrderFields[O.imprints] = state.workingSet.slice();
+
+  var validLis = state.lineItems.filter(isLineItemValid);
+  // For the preview, we use a placeholder __NEW_ORDER_ID__ to indicate the Line Items
+  // would attach to whatever ID Airtable returns from the order-create step.
+  var lis = validLis.map(function(li){
+    return lineItemToAirtablePayload(li, '__NEW_ORDER_ID__');
+  });
+
+  return {
+    mode: 'PREVIEW — Reorder (writes disabled)',
+    architecture: 'Airtable-first: create new Order → autonumber + 2040 generates order #, Zap syncs to PipeDrive downstream',
+    timestamp: new Date().toISOString(),
+    sourceOrder: {
+      recordId: src.recId,
+      number: src.number,
+      customer: src.customer
+    },
+    step1_createOrder: {
+      table: 'Orders',
+      tableId: TBL_ORDERS,
+      fields: newOrderFields,
+      note: 'Airtable will assign a new order # via the existing Autonumber + 2040 formula'
+    },
+    step2_createLineItems: {
+      table: 'Line Items',
+      tableId: TBL_LINES,
+      attachTo: '__NEW_ORDER_ID__ (from step 1 response)',
+      records: lis
+    },
+    skippedInvalid: state.lineItems.filter(function(li){ return !isLineItemValid(li); })
+      .map(function(li){ return { localId: li.id, reason: liInvalidReason(li) }; })
+  };
+}
+
+function lineItemToAirtablePayload(li, orderId) {
+  var fields = {};
+  fields[L.productType] = li.productType;
+  if (li.garment) fields[L.garment] = [li.garment.recId];
+  if (li.imprintIds.length) fields[L.imprints] = li.imprintIds.slice();
+  if (li.proofingNotes) fields[L.proofNotes] = li.proofingNotes;
+  if (li.liNotes) fields[L.liNotes] = li.liNotes;
+  if (li.shippingNotes) fields[L.ship] = li.shippingNotes;
+  if (li.productionNotes) fields[L.prod] = li.productionNotes;
+  if (li.finishingNotes) fields[L.fin] = li.finishingNotes;
+  if (li.productDesc) fields[L.desc] = li.productDesc;
+  if (li.nickname) fields[L.nickname] = li.nickname;
+  if (li.womens) fields[L.womens] = true;
+  if (li.youth) fields[L.youth] = true;
+  if (li.ready2nd) fields[L.ready2nd] = true;
+  if (li.price !== '' && !isNaN(parseFloat(li.price))) fields[L.price] = parseFloat(li.price);
+  if (li.patchSize) fields[L.patch] = li.patchSize;
+  if (li.stickerSize) fields[L.sticker] = li.stickerSize;
+  if (li.promoDesc) fields[L.promoDesc] = li.promoDesc;
+  var sizeMap = {
+    'XS': L.szXS, 'S': L.szS, 'M': L.szM, 'L': L.szL, 'XL': L.szXL,
+    '2XL': L.sz2XL, '3XL': L.sz3XL, '4XL': L.sz4XL, '5XL': L.sz5XL, '6XL': L.sz6XL,
+    'OSFA': L.szOSFA
+  };
+  SIZE_KEYS.forEach(function(k){
+    var v = parseInt(li.sizes[k], 10);
+    if (!isNaN(v) && v > 0) fields[sizeMap[k]] = v;
+  });
+  if (orderId) fields[L.order] = [orderId];
+  return {
+    localId: li.id,
+    table: 'Line Items',
+    tableId: TBL_LINES,
+    fields: fields,
+    summary: liSummary(li)
+  };
+}
+
+function liSummary(li) {
+  var qty = lineItemQty(li);
+  var total = lineItemTotal(li);
+  var garment = li.garment ? li.garment.name : '(no garment)';
+  var imps = li.imprintIds.length+' imprint'+(li.imprintIds.length!==1?'s':'');
+  return li.productType+' · '+garment+' · '+qty+' pcs · '+imps+' · '+formatCurrency(total);
+}
+
+function liInvalidReason(li) {
+  if (!li.productType) return 'No product type';
+  var isApparel = li.productType === 'Printed Apparel' || li.productType === 'Embroidered Apparel' || li.productType === 'Flatstock';
+  if (isApparel && !li.garment) return 'No garment';
+  if (isApparel && !li.imprintIds.length) return 'No imprints assigned';
+  if (lineItemQty(li) === 0) return 'No quantity';
+  return 'Unknown';
+}
+
+function showSubmitPreview(payload) {
+  document.getElementById('submitPreviewBody').textContent = JSON.stringify(payload, null, 2);
+  document.getElementById('submitPreviewBg').classList.add('on');
+}
+
+function closeSubmitPreview() {
+  document.getElementById('submitPreviewBg').classList.remove('on');
+}
+
+function copySubmitPreview() {
+  var text = document.getElementById('submitPreviewBody').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){
+      alert('JSON copied to clipboard');
+    }, function(e){
+      alert('Copy failed: '+e.message);
+    });
+  } else {
+    // Fallback: select text
+    var pre = document.getElementById('submitPreviewBody');
+    var range = document.createRange();
+    range.selectNode(pre);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    alert('JSON selected — Cmd+C / Ctrl+C to copy');
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// REORDER FLOW (v5)
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// Two entry points:
+//   1. Per-order "↺ Reorder" button on the home list → calls startReorderFromOrder directly
+//   2. Home page "+ New Reorder" button → opens picker → user searches → picks → startReorderFromOrder
+//
+// Architecture decision (locked):
+// - Reorder writes go Airtable-first (autonumber + 2040 formula generates the new order #)
+// - Existing Airtable → PipeDrive Zap fires on Order creation, syncing downstream
+// - Reorder clones: customer link, imprints (same canonical IDs reused), line items with sizes/price/imprints/notes as defaults
+// - Reorder does NOT clone: order number (new one generated), due date, shipping method, order notes
+
+var reorderSearchTimer = null;
+
+// The picker (search modal) supports two modes:
+//   'reorder' — clicking a result starts a draft reorder (new order #, full clone)
+//   'pull'    — clicking a result adds imprints from that order to the CURRENT order
+function openOrderPicker(mode) {
+  state.pickerMode = mode || 'reorder';
+  document.getElementById('reorderSearchInp').value = '';
+  document.getElementById('reorderResults').innerHTML = '';
+  document.getElementById('reorderResults').classList.remove('on');
+  setPanelStatus('reorderStatus', '', '');
+
+  // Set title and subtitle based on mode
+  var titleEl = document.querySelector('#reorderPickerBg .pop-title');
+  var subEl = document.querySelector('#reorderPickerBg .pop-sub');
+  if (state.pickerMode === 'reorder') {
+    if (titleEl) titleEl.textContent = 'Start a Reorder';
+    if (subEl) subEl.textContent = 'Pick a past order to use as the template. Imprints and line items will be cloned forward into a new order.';
+  } else {
+    // pull mode
+    var custName = state.currentOrder ? getStr((state.currentOrder.fields||{})[O.custName]) : '';
+    if (titleEl) titleEl.textContent = 'Add Imprints from Past Order';
+    if (subEl) subEl.textContent = (custName ? 'Searching '+custName+'\'s past orders. ' : '') + 'Pick one — its imprints will be added to this order\'s working set.';
+  }
+
+  document.getElementById('reorderPickerBg').classList.add('on');
+  setTimeout(function(){ document.getElementById('reorderSearchInp').focus(); }, 100);
+}
+
+// Back-compat wrapper for the existing "+ New Reorder" button on the home page
+function openReorderPicker() { openOrderPicker('reorder'); }
+
+function closeReorderPicker() {
+  document.getElementById('reorderPickerBg').classList.remove('on');
+}
+
+function onReorderSearchInput() {
+  var q = document.getElementById('reorderSearchInp').value.trim();
+  if (reorderSearchTimer) clearTimeout(reorderSearchTimer);
+
+  if (q.length < 2) {
+    document.getElementById('reorderResults').innerHTML = '';
+    document.getElementById('reorderResults').classList.remove('on');
+    setPanelStatus('reorderStatus', '', '');
+    return;
+  }
+
+  setPanelStatus('reorderStatus', 'Searching…', '');
+  reorderSearchTimer = setTimeout(function(){ doOrderPickerSearch(q); }, 300);
+}
+
+function doOrderPickerSearch(q) {
+  // Build filter formula. Numeric query → exact match on Invoice/Order Number.
+  // Text query → search customer name.
+  // PLUS: in 'pull' mode, scope to the current order's customer (auto-scope).
+  var formula;
+  if (/^\d+$/.test(q)) {
+    formula = '{'+O.num+'}='+q;
+  } else {
+    var esc = q.replace(/"/g,'').replace(/\\/g,'');
+    formula = 'SEARCH(LOWER("'+esc+'"),LOWER({'+O.custName+'}))';
+  }
+
+  // In pull mode, AND-constrain to the current order's customer to avoid cross-customer pulls
+  if (state.pickerMode === 'pull' && state.currentOrder) {
+    var curCust = getStr((state.currentOrder.fields||{})[O.custName]);
+    if (curCust) {
+      var escCust = curCust.replace(/"/g,'').replace(/\\/g,'');
+      formula = 'AND('+formula+', LOWER({'+O.custName+'})=LOWER("'+escCust+'"))';
+    }
+  }
+
+  var flds = [O.num, O.customer, O.custName, O.salesperson, O.imprints, O.lineItems, O.created, O.proofLook]
+    .map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_ORDERS+'?'+flds
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&sort%5B0%5D%5Bfield%5D='+O.created+'&sort%5B0%5D%5Bdirection%5D=desc'
+    +'&returnFieldsByFieldId=true&maxRecords=25';
+
+  dfetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(d) {
+      var recs = d.records || [];
+      // In pull mode, also exclude the current order itself from results
+      if (state.pickerMode === 'pull' && state.currentOrder && state.currentOrder.id) {
+        recs = recs.filter(function(r){ return r.id !== state.currentOrder.id; });
+      }
+      if (!recs.length) {
+        var emptyMsg = state.pickerMode === 'pull'
+          ? 'No past orders for this customer match "'+q+'"'
+          : 'No orders match "'+q+'"';
+        setPanelStatus('reorderStatus', emptyMsg, 'err');
+        document.getElementById('reorderResults').innerHTML = '';
+        document.getElementById('reorderResults').classList.remove('on');
+        return;
+      }
+
+      var statusMsg = state.pickerMode === 'reorder'
+        ? recs.length+' match'+(recs.length!==1?'es':'')+' — pick one to reorder'
+        : recs.length+' past order'+(recs.length!==1?'s':'')+' for this customer — pick one to copy imprints from';
+      setPanelStatus('reorderStatus', statusMsg, 'ok');
+
+      var actionLbl = state.pickerMode === 'reorder' ? 'Use →' : 'Copy imprints →';
+      var actionFn = state.pickerMode === 'reorder'
+        ? 'startReorderFromOrder'
+        : 'pullImprintsFromOrder';
+
+      var html = recs.map(function(rec) {
+        var f = rec.fields || {};
+        var num = f[O.num] || '—';
+        var cust = getStr(f[O.custName]) || '—';
+        var sp = getStr(f[O.salesperson]) || '—';
+        var impCt = normalizeRecLinks(f[O.imprints]).length;
+        var liCt = normalizeRecLinks(f[O.lineItems]).length;
+        var when = f[O.created] ? timeAgo(f[O.created]) : '';
+        var thumb = getThumb(f[O.proofLook]);
+
+        // Show imprint count prominently in pull mode (that's what they're picking based on)
+        var line2 = state.pickerMode === 'pull'
+          ? '<strong style="color:var(--green-dk)">'+impCt+' imprint'+(impCt!==1?'s':'')+'</strong> · '+escHtml(sp)+' · '+escHtml(when)
+          : escHtml(sp)+' · '+impCt+' imp · '+liCt+' LI · '+escHtml(when);
+
+        return '<div class="reorder-row" onclick="'+actionFn+'(\''+rec.id+'\');closeReorderPicker()">'
+          + '<div class="reorder-row-thumb"'+(thumb?' onclick="event.stopPropagation();openReorderThumbZoom(\''+escAttr(thumb)+'\')"':'')+'>'
+          +   (thumb
+              ? '<img src="'+escAttr(thumb)+'" alt="proof" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'no-img\')" />'
+              : '<div class="reorder-row-thumb-ph">⌗</div>')
+          + '</div>'
+          + '<div class="reorder-row-body">'
+          +   '<div class="reorder-row-line1"><strong>'+escHtml(num)+'</strong> · '+escHtml(cust)+'</div>'
+          +   '<div class="reorder-row-line2">'+line2+'</div>'
+          + '</div>'
+          + '<button class="btn btn-dark btn-sm" onclick="event.stopPropagation();'+actionFn+'(\''+rec.id+'\');closeReorderPicker()">'+actionLbl+'</button>'
+        + '</div>';
+      }).join('');
+      document.getElementById('reorderResults').innerHTML = html;
+      document.getElementById('reorderResults').classList.add('on');
+    })
+    .catch(function(e) {
+      setPanelStatus('reorderStatus', 'Error: '+e.message, 'err');
+    });
+}
+
+// Back-compat wrapper (in case anything else still calls the old name)
+function doReorderSearch(q) { return doOrderPickerSearch(q); }
+
+// Pull: copy the source order's imprints into the current order's working set.
+// Uses the same explicit imprint fetch pattern as the reorder flow so chips render
+// with proper labels regardless of whether the customer library has loaded.
+function pullImprintsFromOrder(sourceOrderId) {
+  if (!state.currentOrder) {
+    dlog('err', 'pullImprintsFromOrder called with no current order');
+    return;
+  }
+  dlog('info', '=== PULL FROM ORDER === source: '+sourceOrderId+' → current: '+state.currentOrder.id);
+
+  var orderUrl = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_ORDERS+'/'+sourceOrderId+'?returnFieldsByFieldId=true';
+  dfetch(orderUrl, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('Source order HTTP '+r.status); return r.json(); })
+    .then(function(srcOrder) {
+      var sf = srcOrder.fields || {};
+      var srcImprintIds = normalizeRecLinks(sf[O.imprints]);
+      dlog('info', 'source order #'+sf[O.num]+' has '+srcImprintIds.length+' imprint(s)');
+
+      if (!srcImprintIds.length) {
+        // Source order has no imprints — also check its line items for referenced imprints
+        var liIds = normalizeRecLinks(sf[O.lineItems]);
+        if (!liIds.length) {
+          alert('Order #'+sf[O.num]+' has no imprints to copy.');
+          return;
+        }
+        // Fetch line items to see if they reference imprints
+        return fetchSourceLineItemImprintIds(liIds).then(function(impIds){
+          if (!impIds.length) {
+            alert('Order #'+sf[O.num]+' has no imprints to copy (also checked its line items).');
+            return;
+          }
+          dlog('info', 'found '+impIds.length+' imprint(s) referenced from line items');
+          return addImprintsToCurrentOrder(impIds);
+        });
+      }
+
+      return addImprintsToCurrentOrder(srcImprintIds);
+    })
+    .catch(function(e) {
+      dlog('err', 'pull failed: '+e.message);
+      alert('Couldn\'t copy imprints: '+e.message);
+    });
+}
+
+function fetchSourceLineItemImprintIds(liIds) {
+  var orParts = liIds.map(function(id){ return "RECORD_ID()='"+id+"'"; }).join(',');
+  var formula = 'OR('+orParts+')';
+  var flds = ['fields%5B%5D='+L.imprints].join('&');
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_LINES+'?'+flds
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&returnFieldsByFieldId=true&pageSize=100';
+
+  return dfetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('LI fetch HTTP '+r.status); return r.json(); })
+    .then(function(d) {
+      var ids = [];
+      (d.records || []).forEach(function(rec){
+        var liImps = normalizeRecLinks((rec.fields||{})[L.imprints]);
+        liImps.forEach(function(id){ if (ids.indexOf(id) === -1) ids.push(id); });
+      });
+      return ids;
+    });
+}
+
+// Add the given imprint IDs to the current order's working set (deduplicated),
+// and fetch the imprint records so their chips render with proper labels.
+function addImprintsToCurrentOrder(impIds) {
+  var added = 0;
+  var skipped = 0;
+  impIds.forEach(function(id){
+    if (state.workingSet.indexOf(id) === -1) {
+      state.workingSet.push(id);
+      added++;
+    } else {
+      skipped++;
+    }
+  });
+  dlog('ok', 'pulled '+added+' imprint(s) into working set'+(skipped?' (skipped '+skipped+' duplicate(s))':''));
+
+  // Fetch any new imprint records that aren't already in libraryImprints
+  var needFetch = impIds.filter(function(id){
+    return !(state.libraryImprints||[]).find(function(r){ return r.id === id; });
+  });
+
+  refreshWorkingSet();
+  renderLineItems();
+  updateTotals();
+
+  if (needFetch.length) {
+    fetchImprintsByIds(needFetch).then(function(imps){
+      imps.forEach(function(rec){
+        var idx = (state.libraryImprints || []).findIndex(function(r){ return r.id === rec.id; });
+        if (idx === -1) state.libraryImprints.push(rec);
+        else state.libraryImprints[idx] = rec;
+      });
+      // Re-render library and chips so new imprints show up with full labels
+      renderLibrary(state.libraryAllRecs || state.libraryImprints, state.libraryCustLabel);
+      refreshWorkingSet();
+      renderLineItems();
+    });
+  }
+}
+
+function openReorderThumbZoom(thumbUrl) {
+  // Quick zoom on a single proof URL — no record context, just the image
+  var imgEl = document.getElementById('zoomImg');
+  var spin = document.getElementById('zoomSpinner');
+  var empt = document.getElementById('zoomEmpty');
+  var card = document.getElementById('zoomCard');
+  if (imgEl) { imgEl.src = thumbUrl; imgEl.classList.remove('hide'); }
+  if (spin) spin.classList.add('hide');
+  if (empt) empt.classList.add('hide');
+  if (card) {
+    card.innerHTML = '<div style="font-size:11px;color:var(--muted);font-family:var(--cond);letter-spacing:.04em;text-align:center">Order proof preview</div>';
+  }
+  document.getElementById('zoom').classList.add('on');
+}
+
+function startReorderFromOrder(sourceOrderId) {
+  // Route to draft view; the actual fetch happens in showReorderDraftView
+  goReorder(sourceOrderId);
+}
+
+function showReorderDraftView(sourceOrderId) {
+  document.getElementById('homeView').classList.add('hide');
+  document.getElementById('orderView').classList.remove('hide');
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('orderView').style.display = 'flex';
+
+  // Reset state — fresh draft
+  state.workingSet = [];
+  state.libraryImprints = [];
+  state.lineItems = [];
+  state.liNextId = 1;
+  state.isDraftReorder = true;
+  state.draftSourceOrder = { recId: sourceOrderId, number: null, customer: null };
+  state.currentOrder = null;
+
+  setText('odKicker', 'DRAFT REORDER · Loading template…');
+  setText('odCust', '—');
+  document.getElementById('odChips').innerHTML = '';
+  document.getElementById('odSubmit').textContent = 'Create reorder';
+  document.getElementById('submitBtnFooter').textContent = 'Create reorder';
+  document.getElementById('odSubmit').disabled = true;
+  document.getElementById('submitBtnFooter').disabled = true;
+
+  var banner = document.getElementById('draftBanner');
+  banner.classList.remove('hide');
+  document.getElementById('draftBannerInfo').innerHTML = 'Cloning template…';
+
+  setOrderContent('<div class="state-panel"><div class="spin"></div><div class="state-txt">Cloning source order…</div></div>');
+
+  dlog('info', '=== REORDER CLONE START === source order: '+sourceOrderId);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Step 1: fetch source order
+  // ───────────────────────────────────────────────────────────────────────────
+  var orderUrl = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_ORDERS+'/'+sourceOrderId+'?returnFieldsByFieldId=true';
+
+  dfetch(orderUrl, { headers: hdr() })
+    .then(function(r){
+      if (!r.ok) throw new Error('Source order fetch failed: HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(srcOrder) {
+      var sf = srcOrder.fields || {};
+      var sNum = sf[O.num];
+      var sCust = getStr(sf[O.custName]);
+      state.draftSourceOrder.number = sNum;
+      state.draftSourceOrder.customer = sCust;
+
+      dlog('ok', 'source order loaded: #'+sNum+' · '+sCust);
+
+      // Extract & normalize imprint links
+      var rawImprints = sf[O.imprints];
+      var imprintIds = normalizeRecLinks(rawImprints);
+      dlog('info', 'source order imprints field: '+describeField(rawImprints)+' → '+imprintIds.length+' id(s)');
+      if (imprintIds.length) {
+        dlog('info', '  imprint ids: '+imprintIds.slice(0,5).join(', ')+(imprintIds.length>5?' …':''));
+      } else {
+        dlog('warn', 'source order has ZERO linked imprints — working set will be empty');
+      }
+
+      // Extract & normalize LI links
+      var rawLis = sf[O.lineItems];
+      var liIds = normalizeRecLinks(rawLis);
+      dlog('info', 'source order line items field: '+describeField(rawLis)+' → '+liIds.length+' id(s)');
+
+      // Extract customer ID for library load
+      var custIds = normalizeRecLinks(sf[O.customer]);
+      var custRecId = custIds[0] || null;
+      dlog('info', 'source order customer rec: '+(custRecId || '(none)'));
+
+      // Set up faux currentOrder so header / library / save paths work
+      state.currentOrder = {
+        id: null,
+        fields: (function(){
+          var f = {};
+          f[O.num] = 'DRAFT';
+          f[O.custName] = sf[O.custName];
+          f[O.customer] = sf[O.customer];
+          f[O.salesperson] = sf[O.salesperson];
+          f[O.imprints] = [];
+          f[O.lineItems] = [];
+          return f;
+        })()
+      };
+
+      // Pre-populate working set from source order
+      state.workingSet = imprintIds.slice();
+      dlog('ok', 'working set initialized with '+state.workingSet.length+' imprint(s)');
+
+      // Update banner + header
+      document.getElementById('draftBannerInfo').innerHTML =
+        'Cloned from <strong>'+escHtml(sNum || '—')+'</strong> · '+escHtml(sCust || '—')
+        + ' · '+state.workingSet.length+' imprint'+(state.workingSet.length!==1?'s':'')
+        + (state.workingSet.length === 0 ? ' <span style="color:var(--red);font-weight:700">(source order has no imprints linked)</span>' : '');
+      renderOrderHeader();
+
+      // Render the body shell so we have a place to put line items
+      renderOrderBody();
+
+      // ──────────────────────────────────────────────────────────────────────
+      // Step 2: in parallel, fetch line items + working-set imprints + customer library
+      // ──────────────────────────────────────────────────────────────────────
+      var promises = [];
+
+      // 2a: Fetch source line items
+      if (liIds.length) {
+        promises.push(fetchSourceLineItems(liIds));
+      } else {
+        dlog('warn', 'no line items to clone');
+      }
+
+      // 2b: Fetch the working-set imprints directly so chips render even before library load
+      // This is the critical fix — we cannot rely on customer library load to contain these
+      // imprints (different customer, deleted records, etc). Fetching them explicitly guarantees
+      // state.libraryImprints has the records we need.
+      if (state.workingSet.length) {
+        promises.push(fetchImprintsByIds(state.workingSet).then(function(imps){
+          dlog('ok', 'fetched '+imps.length+' of '+state.workingSet.length+' working-set imprints directly');
+          // Merge into libraryImprints (dedupe by id)
+          imps.forEach(function(rec){
+            var idx = (state.libraryImprints || []).findIndex(function(r){ return r.id === rec.id; });
+            if (idx === -1) state.libraryImprints.push(rec);
+            else state.libraryImprints[idx] = rec;
+          });
+          refreshWorkingSet();
+          renderLineItems();
+        }));
+      }
+
+      // 2c: Load the customer library (also adds to libraryImprints; safe to merge with 2b)
+      if (custRecId) {
+        loadCustomerLibrary(custRecId);
+      } else {
+        dlog('warn', 'no customer rec id — library will not load');
+      }
+
+      return Promise.all(promises);
+    })
+    .then(function() {
+      dlog('ok', '=== REORDER CLONE COMPLETE ===');
+      updateTotals();
+    })
+    .catch(function(e) {
+      dlog('err', 'REORDER CLONE FAILED: '+e.message);
+      setOrderContent('<div class="state-panel"><div class="state-icon">⚠️</div><div class="state-title">Couldn\'t clone source order</div><div class="state-txt">'+escHtml(e.message)+'</div><div style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="openDiag()">Open diagnostics</button></div></div>');
+      document.getElementById('draftBannerInfo').innerHTML = '<span style="color:var(--red)">Error loading source order — see diagnostics</span>';
+    });
+}
+
+// Normalize a multipleRecordLinks field value to an array of record IDs.
+// v0 REST returns bare arrays of ID strings. MCP/lookup variants can return
+// arrays of {id, name} objects. Handle both shapes safely.
+function normalizeRecLinks(val) {
+  if (!val) return [];
+  if (!Array.isArray(val)) return [];
+  return val.map(function(x){
+    if (typeof x === 'string') return x;
+    if (x && typeof x === 'object' && x.id) return x.id;
+    return '';
+  }).filter(Boolean);
+}
+
+function describeField(val) {
+  if (val === undefined) return 'undefined';
+  if (val === null) return 'null';
+  if (Array.isArray(val)) return 'Array['+val.length+']';
+  if (typeof val === 'object') return 'Object(keys: '+Object.keys(val).join(',')+')';
+  return typeof val + '(' + JSON.stringify(val).slice(0,40) + ')';
+}
+
+// Fetch source line items by ID list and clone into state.lineItems.
+function fetchSourceLineItems(liIds) {
+  var orParts = liIds.map(function(id){ return "RECORD_ID()='"+id+"'"; }).join(',');
+  var liFormula = 'OR('+orParts+')';
+  var liFlds = [
+    L.productType, L.garment, L.imprints, L.proofNotes, L.liNotes,
+    L.ship, L.prod, L.fin, L.desc, L.nickname,
+    L.womens, L.youth, L.ready2nd, L.price,
+    L.patch, L.sticker, L.promoDesc,
+    L.szOSFA, L.szXS, L.szS, L.szM, L.szL, L.szXL,
+    L.sz2XL, L.sz3XL, L.sz4XL, L.sz5XL, L.sz6XL
+  ].map(function(f){return 'fields%5B%5D='+f;}).join('&');
+  var liUrl = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_LINES+'?'+liFlds
+    +'&filterByFormula='+encodeURIComponent(liFormula)
+    +'&returnFieldsByFieldId=true&pageSize=100';
+
+  return dfetch(liUrl, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('Line items fetch failed: HTTP '+r.status); return r.json(); })
+    .then(function(d) {
+      var liRecs = d.records || [];
+      dlog('ok', 'cloned '+liRecs.length+' line item(s) from source');
+      state.lineItems = liRecs.map(function(rec){ return cloneLineItemFromRecord(rec); });
+
+      // After cloning, also: ensure imprintIds on each LI are still in working set.
+      // If a cloned LI references imprints that weren't on the source order's Imprints field
+      // (possible due to data inconsistency), pick those up too.
+      state.lineItems.forEach(function(li){
+        li.imprintIds.forEach(function(impId){
+          if (state.workingSet.indexOf(impId) === -1) {
+            state.workingSet.push(impId);
+            dlog('info', 'LI '+li.id+' references imprint '+impId+' not on source order — added to working set');
+          }
+        });
+      });
+
+      // Collect garment IDs that need name resolution
+      var garmentIdsNeeded = [];
+      state.lineItems.forEach(function(li){
+        if (li.garment && li.garment.recId && (!li.garment.name || li.garment.name === '(loading…)')) {
+          garmentIdsNeeded.push(li.garment.recId);
+        }
+      });
+
+      renderLineItems();
+
+      if (garmentIdsNeeded.length) {
+        dlog('info', 'resolving '+garmentIdsNeeded.length+' garment name(s)');
+        resolveGarmentNames(garmentIdsNeeded);
+      }
+
+      // Also fetch any newly-discovered imprints from LI references
+      var allNeededImprints = [];
+      state.workingSet.forEach(function(impId){
+        var have = (state.libraryImprints||[]).find(function(r){ return r.id === impId; });
+        if (!have) allNeededImprints.push(impId);
+      });
+      if (allNeededImprints.length) {
+        return fetchImprintsByIds(allNeededImprints).then(function(imps){
+          imps.forEach(function(rec){
+            var idx = (state.libraryImprints || []).findIndex(function(r){ return r.id === rec.id; });
+            if (idx === -1) state.libraryImprints.push(rec);
+            else state.libraryImprints[idx] = rec;
+          });
+          refreshWorkingSet();
+          renderLineItems();
+        });
+      }
+    });
+}
+
+// Fetch a batch of imprint records by ID. Returns the records array.
+function fetchImprintsByIds(impIds) {
+  if (!impIds || !impIds.length) return Promise.resolve([]);
+  var orParts = impIds.map(function(id){ return "RECORD_ID()='"+id+"'"; }).join(',');
+  var formula = 'OR('+orParts+')';
+  var flds = [I.id, I.nick, I.type, I.loc, I.screens, I.custTxt, I.repeat,
+              I.inksTxt, I.prev, I.created, I.proofs, I.linkedOrd]
+    .map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_IMPRINTS+'?'+flds
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&returnFieldsByFieldId=true&pageSize=100';
+
+  return dfetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('Imprints batch fetch failed: HTTP '+r.status); return r.json(); })
+    .then(function(d) { return d.records || []; });
+}
+
+function cloneLineItemFromRecord(rec) {
+  var f = rec.fields || {};
+  var li = emptyLineItem();
+  li.productType = getStr(f[L.productType]) || '';
+
+  // Garment — multipleRecordLinks. Just grab the first linked record ID and remember it.
+  // Name will be filled in by resolveGarmentNames below.
+  var garmentLinks = f[L.garment] || [];
+  if (garmentLinks.length) {
+    var garmRecId = typeof garmentLinks[0] === 'string' ? garmentLinks[0] : garmentLinks[0].id;
+    li.garment = { recId: garmRecId, name: '(loading…)', product: '', color: '' };
+  }
+
+  // Imprints — multipleRecordLinks
+  var impLinks = f[L.imprints] || [];
+  li.imprintIds = impLinks.map(function(x){ return typeof x === 'string' ? x : x.id; }).filter(Boolean);
+
+  li.proofingNotes = f[L.proofNotes] || '';
+  li.liNotes = f[L.liNotes] || '';
+  li.shippingNotes = f[L.ship] || '';
+  li.productionNotes = f[L.prod] || '';
+  li.finishingNotes = f[L.fin] || '';
+  li.productDesc = f[L.desc] || '';
+  li.nickname = f[L.nickname] || '';
+  li.womens = !!f[L.womens];
+  li.youth = !!f[L.youth];
+  li.ready2nd = false; // reset for fresh review on reorder
+  li.price = f[L.price] != null ? String(f[L.price]) : '';
+  li.patchSize = getStr(f[L.patch]) || '';
+  li.stickerSize = getStr(f[L.sticker]) || '';
+  li.promoDesc = f[L.promoDesc] || '';
+  // Sizes
+  li.sizes.OSFA = f[L.szOSFA] ? String(f[L.szOSFA]) : '';
+  li.sizes.XS = f[L.szXS] ? String(f[L.szXS]) : '';
+  li.sizes.S = f[L.szS] ? String(f[L.szS]) : '';
+  li.sizes.M = f[L.szM] ? String(f[L.szM]) : '';
+  li.sizes.L = f[L.szL] ? String(f[L.szL]) : '';
+  li.sizes.XL = f[L.szXL] ? String(f[L.szXL]) : '';
+  li.sizes['2XL'] = f[L.sz2XL] ? String(f[L.sz2XL]) : '';
+  li.sizes['3XL'] = f[L.sz3XL] ? String(f[L.sz3XL]) : '';
+  li.sizes['4XL'] = f[L.sz4XL] ? String(f[L.sz4XL]) : '';
+  li.sizes['5XL'] = f[L.sz5XL] ? String(f[L.sz5XL]) : '';
+  li.sizes['6XL'] = f[L.sz6XL] ? String(f[L.sz6XL]) : '';
+  return li;
+}
+
+function resolveGarmentNames(garmentRecIds) {
+  // Fetch garment records in one shot, then patch state.lineItems with names AND
+  // surgically update the visible garment chip text without re-rendering the entire
+  // line items list. This is critical: if the user has an imprint picker popover open,
+  // a full re-render destroys it mid-interaction (the bug where the picker doesn't
+  // respond on cloned line items until the user clears+re-adds the garment).
+  var orParts = garmentRecIds.map(function(id){ return "RECORD_ID()='"+id+"'"; }).join(',');
+  var formula = 'OR('+orParts+')';
+  var flds = [G.name, G.product, G.colorway].map(function(f){return 'fields%5B%5D='+f;}).join('&');
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_GARMENTS+'?'+flds
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&returnFieldsByFieldId=true&pageSize=100';
+
+  fetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(d) {
+      var recsById = {};
+      (d.records || []).forEach(function(r){ recsById[r.id] = r.fields || {}; });
+      // 1) Patch state
+      state.lineItems.forEach(function(li){
+        if (li.garment && li.garment.recId && recsById[li.garment.recId]) {
+          var gf = recsById[li.garment.recId];
+          li.garment.name = gf[G.name] || '(unknown)';
+          li.garment.product = gf[G.product] || '';
+          li.garment.color = gf[G.colorway] || '';
+        } else if (li.garment && li.garment.name === '(loading…)') {
+          li.garment.name = '(unknown garment)';
+        }
+      });
+      // 2) Patch DOM in place — find each line item card's garment-name span and update it
+      state.lineItems.forEach(function(li){
+        if (!li.garment) return;
+        var card = document.querySelector('[data-li-id="'+li.id+'"]');
+        if (!card) return;
+        var nameEl = card.querySelector('.li-garment-selected-name');
+        if (nameEl) {
+          nameEl.textContent = li.garment.name;
+          nameEl.setAttribute('title', li.garment.name);
+        }
+      });
+      console.log('[Pine SE] resolved '+Object.keys(recsById).length+' garment names; patched DOM in place');
+    })
+    .catch(function(e) {
+      console.warn('[Pine SE] Could not resolve garment names:', e.message);
+      // Replace stuck (loading…) chips with a clearer state so user knows to fix it
+      state.lineItems.forEach(function(li){
+        if (li.garment && li.garment.name === '(loading…)') {
+          li.garment.name = '(name unavailable — clear & re-search)';
+        }
+      });
+      // Patch DOM in place (no full re-render)
+      state.lineItems.forEach(function(li){
+        if (!li.garment) return;
+        var card = document.querySelector('[data-li-id="'+li.id+'"]');
+        if (!card) return;
+        var nameEl = card.querySelector('.li-garment-selected-name');
+        if (nameEl) {
+          nameEl.textContent = li.garment.name;
+          nameEl.setAttribute('title', li.garment.name);
+        }
+      });
+    });
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ZOOM PREVIEW (Phase 2)
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Proof preview — matches the proven Reprint Lookup pattern: cached URL from library
+// load, set img.src directly, show overlay. No refetch, no spinner, no state machine.
+// If a signed URL expires, sales refreshes the library and tries again.
+function openZoomForImprint(impRecId) {
+  dlog('info', 'openZoomForImprint('+impRecId+')');
+  var cached = (state.libraryImprints || []).find(function(r){ return r.id === impRecId; });
+  if (!cached) {
+    dlog('err', 'preview: imprint not in library cache: '+impRecId);
+    return;
+  }
+  var cf = cached.fields || {};
+  var nick = cf[I.nick] || '';
+  var id = cf[I.id] || '';
+  var loc = getStr(cf[I.loc]);
+  var type = getStr(cf[I.type]);
+  var screens = cf[I.screens];
+  var created = cf[I.created] ? formatDate(cf[I.created]) : '';
+  var added = state.workingSet.indexOf(impRecId) !== -1;
+
+  // Extract URL from the cached record. We use the LARGE THUMBNAIL URL specifically because
+  // the bare attachment.url returned from multipleLookupValues fields is often incomplete and
+  // fails to load (browser receives a stripped CDN URL with no extension/query). The
+  // thumbnails.large.url path is what Reprint Lookup uses and it works reliably.
+  // Airtable's "large" thumb caps at ~1024x1024 which is plenty for the popup.
+  var imageSrc = getThumb(cf[I.proofs]) || '';
+  dlog(imageSrc ? 'info' : 'warn', 'preview URL: '+(imageSrc ? imageSrc.slice(0, 60) + '…' : '(none)'));
+
+  renderZoomCard(impRecId, nick, id, loc, type, screens, created, added);
+
+  var imgEl = document.getElementById('zoomImg');
+  var empt = document.getElementById('zoomEmpty');
+  var spin = document.getElementById('zoomSpinner');
+  // Spinner is not used in the simple pattern — keep it hidden always
+  if (spin) spin.classList.add('hide');
+
+  if (imageSrc) {
+    if (imgEl) {
+      imgEl.src = imageSrc;
+      imgEl.classList.remove('hide');
+    }
+    if (empt) empt.classList.add('hide');
+  } else {
+    if (imgEl) imgEl.classList.add('hide');
+    if (empt) empt.classList.remove('hide');
+  }
+
+  document.getElementById('zoom').classList.add('on');
+}
+
+function onProofImgError() {
+  var src = document.getElementById('zoomImg') ? document.getElementById('zoomImg').src : '';
+  dlog('err', 'proof img failed to load (signed URL may have expired): '+src.slice(0, 80));
+  var imgEl = document.getElementById('zoomImg');
+  var empt = document.getElementById('zoomEmpty');
+  if (imgEl) imgEl.classList.add('hide');
+  if (empt) empt.classList.remove('hide');
+}
+
+function renderZoomCard(impRecId, nick, id, loc, type, screens, created, added) {
+  var tags = '';
+  if (type) tags += '<span class="tag t-b">'+escHtml(type)+'</span>';
+  if (loc) tags += '<span class="tag t-g">'+escHtml(loc)+'</span>';
+  if (screens) tags += '<span class="tag t-n">'+screens+' screen'+(screens!==1?'s':'')+'</span>';
+
+  var actionBtn = added
+    ? '<button class="btn btn-outline" onclick="toggleWorkingSet(\''+impRecId+'\');closeZoom()">Remove from order</button>'
+    : '<button class="btn btn-green" onclick="toggleWorkingSet(\''+impRecId+'\');closeZoom()">Add to order</button>';
+
+  document.getElementById('zoomCard').innerHTML =
+    '<div class="zoom-card-head">'
+      + '<div style="min-width:0">'
+        + '<div class="zoom-card-title">'+escHtml(nick || id || 'Untitled')+'</div>'
+        + '<div class="zoom-card-id">'+escHtml(id)+'</div>'
+      + '</div>'
+    + '</div>'
+    + (tags ? '<div class="zoom-card-tags">'+tags+'</div>' : '')
+    + (created ? '<div class="zoom-card-meta">First seen '+escHtml(created)+'</div>' : '')
+    + '<div class="zoom-card-actions">'
+      + '<button class="btn btn-outline" onclick="closeZoom()">Close</button>'
+      + actionBtn
+    + '</div>';
+}
+
+function closeZoom(e) {
+  if (e && e.target && e.target.id !== 'zoom') return; // only close on bg click
+  document.getElementById('zoom').classList.remove('on');
+}
+
+function getFullProof(p) {
+  // Walks every possible URL path Airtable might expose for an attachment.
+  // multipleLookupValues fields can return any of: bare array of attachments,
+  // valuesByLinkedRecordId nested format, or empty.
+  function pickFrom(att) {
+    if (!att) return '';
+    // Direct URL (full original)
+    if (att.url) return att.url;
+    // Thumbnails: full → large → small
+    if (att.thumbnails) {
+      if (att.thumbnails.full && att.thumbnails.full.url) return att.thumbnails.full.url;
+      if (att.thumbnails.large && att.thumbnails.large.url) return att.thumbnails.large.url;
+      if (att.thumbnails.small && att.thumbnails.small.url) return att.thumbnails.small.url;
+    }
+    return '';
+  }
+  if (!p) return '';
+  if (Array.isArray(p)) {
+    for (var i = 0; i < p.length; i++) {
+      var u = pickFrom(p[i]);
+      if (u) return u;
+    }
+    return '';
+  }
+  if (p.valuesByLinkedRecordId) {
+    var keys = Object.keys(p.valuesByLinkedRecordId);
+    for (var k = 0; k < keys.length; k++) {
+      var atts = p.valuesByLinkedRecordId[keys[k]];
+      if (!Array.isArray(atts)) continue;
+      for (var j = 0; j < atts.length; j++) {
+        var u2 = pickFrom(atts[j]);
+        if (u2) return u2;
+      }
+    }
+    return '';
+  }
+  return '';
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// NEW IMPRINT PANEL (Phase 2 — preview only, doesn't write yet)
+// ═════════════════════════════════════════════════════════════════════════════
+
+function openNewImprint() {
+  if (!state.currentOrder) return;
+  var custName = getStr((state.currentOrder.fields || {})[O.custName]) || 'this order';
+  document.getElementById('newImpSub').textContent = custName;
+  // Reset form
+  document.getElementById('niType').value = '';
+  document.getElementById('niLoc').value = '';
+  document.getElementById('niNick').value = '';
+  document.getElementById('niNotes').value = '';
+  setPanelStatus('niStatus', '', '');
+  document.getElementById('niCreate').disabled = false;
+  document.getElementById('niCreate').textContent = 'Create + add to order';
+  document.getElementById('newImpBg').classList.add('on');
+  document.getElementById('newImpPanel').classList.add('on');
+  setTimeout(function(){ document.getElementById('niType').focus(); }, 220);
+}
+
+function closeNewImprint() {
+  document.getElementById('newImpBg').classList.remove('on');
+  document.getElementById('newImpPanel').classList.remove('on');
+}
+
+function createNewImprint() {
+  var type = document.getElementById('niType').value;
+  var loc = document.getElementById('niLoc').value;
+  var nick = document.getElementById('niNick').value.trim();
+  var notes = document.getElementById('niNotes').value.trim();
+
+  if (!type) { setPanelStatus('niStatus', 'Imprint Type is required', 'err'); return; }
+  if (!loc) { setPanelStatus('niStatus', 'Location is required', 'err'); return; }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // LOCAL-ONLY "ghost" imprint (preview mode — no Airtable write).
+  // Generates a synthetic record so the imprint appears in the working set,
+  // library, and line-item picker. Lives in browser memory only; cleared on
+  // refresh. When WRITES_ENABLED flips on, replace this block with a real
+  // POST to Imprints + link Orders + push the real returned record.
+  // ──────────────────────────────────────────────────────────────────────────
+  var localId = 'local-' + Math.floor(Math.random()*900000 + 100000);
+  var custName = getStr((state.currentOrder.fields || {})[O.custName]) || '';
+  var orderId = state.currentOrder.id;
+
+  var ghostRec = {
+    id: localId,
+    fields: {}
+  };
+  ghostRec.fields[I.id] = '(local) ' + localId.slice(6);
+  ghostRec.fields[I.nick] = nick;
+  ghostRec.fields[I.type] = type;
+  ghostRec.fields[I.loc] = loc;
+  ghostRec.fields[I.created] = new Date().toISOString();
+  ghostRec.fields[I.linkedOrd] = [orderId];
+  if (notes) ghostRec.fields['_localNotes'] = notes; // stashed; not surfaced anywhere yet
+  ghostRec._local = true; // tag so future Submit Order write path can skip these
+
+  // Push into library (both raw + filterable snapshot) and working set
+  if (!state.libraryImprints) state.libraryImprints = [];
+  state.libraryImprints.unshift(ghostRec);
+  if (state.libraryAllRecs) state.libraryAllRecs.unshift(ghostRec);
+  if (state.workingSet.indexOf(localId) === -1) state.workingSet.unshift(localId);
+
+  // Console log preserves the v21 behavior — still useful for verifying payload shape
+  console.log('[Pine Sales Entry] LOCAL imprint created (no Airtable write):', {
+    id: localId,
+    customer: custName,
+    orderId: orderId,
+    type: type, location: loc, nickname: nick, notes: notes
+  });
+
+  // Re-render all three surfaces (same pattern as pullImprintsFromOrder)
+  renderLibrary(state.libraryAllRecs || state.libraryImprints, state.libraryCustLabel);
+  refreshWorkingSet();
+  renderLineItems();
+
+  // Close drawer — the new chip is the feedback, no need for a status message
+  closeNewImprint();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// (Legacy "PULL FROM PAST ORDER" block removed in v10 — its functionality is now
+//  handled by openOrderPicker('pull') + pullImprintsFromOrder above.)
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HELPERS (shared)
+// ═════════════════════════════════════════════════════════════════════════════
+
+function setPanelStatus(id, msg, cls) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (!msg) { el.className = 'panel-status'; el.textContent = ''; return; }
+  el.className = 'panel-status on '+(cls||'');
+  el.textContent = msg;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ESC key closes overlays
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  // Priority: submit preview > zoom > diag > new imprint panel > order picker
+  if (document.getElementById('submitPreviewBg').classList.contains('on')) { closeSubmitPreview(); return; }
+  if (document.getElementById('zoom').classList.contains('on')) { closeZoom({target:document.getElementById('zoom')}); return; }
+  if (document.getElementById('diagBg') && document.getElementById('diagBg').classList.contains('on')) { closeDiag(); return; }
+  if (document.getElementById('newImpPanel').classList.contains('on')) { closeNewImprint(); return; }
+  if (document.getElementById('reorderPickerBg').classList.contains('on')) { closeReorderPicker(); return; }
+});
+
+function fetchAll(url, acc, cap, cb) {
+  fetch(url, { headers: { Authorization: 'Bearer ' + tok() } })
+    .then(function(r) {
+      if (!r.ok) {
+        r.json().then(function(e){ cb([], e.error ? e.error.message : ('HTTP '+r.status)); });
+        return;
+      }
+      r.json().then(function(d) {
+        var all = acc.concat(d.records || []);
+        if (d.offset && all.length < cap) {
+          var next = url.replace(/&offset=[^&]*/, '') + '&offset=' + encodeURIComponent(d.offset);
+          fetchAll(next, all, cap, cb);
+        } else {
+          cb(all, null);
+        }
+      });
+    })
+    .catch(function(e){ cb([], e.message); });
+}
+
+function getStr(v) {
+  if (!v) return '';
+  if (typeof v === 'string') return v;
+  if (Array.isArray(v)) return v.map(getStr).filter(Boolean).join(', ');
+  if (typeof v === 'object' && v.name) return v.name;
+  return String(v);
+}
+
+function getThumb(p) {
+  if (!p) return '';
+  if (Array.isArray(p)) {
+    var a = p[0]; if (!a) return '';
+    return (a.thumbnails && a.thumbnails.large) ? a.thumbnails.large.url
+      : (a.thumbnails && a.thumbnails.small) ? a.thumbnails.small.url
+      : (a.url || '');
+  }
+  if (p.valuesByLinkedRecordId) {
+    var keys = Object.keys(p.valuesByLinkedRecordId);
+    if (!keys.length) return '';
+    var atts = p.valuesByLinkedRecordId[keys[0]];
+    if (!atts || !atts.length) return '';
+    var att = atts[0];
+    return (att.thumbnails && att.thumbnails.large) ? att.thumbnails.large.url
+      : (att.thumbnails && att.thumbnails.small) ? att.thumbnails.small.url
+      : (att.url || '');
+  }
+  return '';
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function timeAgo(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  if (isNaN(d)) return '';
+  var sec = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (sec < 60) return 'just now';
+  var min = Math.floor(sec / 60);
+  if (min < 60) return min+'m ago';
+  var hr = Math.floor(min / 60);
+  if (hr < 24) return hr+'h ago';
+  var day = Math.floor(hr / 24);
+  if (day < 14) return day+'d ago';
+  var wk = Math.floor(day / 7);
+  if (wk < 8) return wk+'w ago';
+  var mo = Math.floor(day / 30);
+  if (mo < 12) return mo+'mo ago';
+  return Math.floor(day/365)+'y ago';
+}
+
+function setHomeContent(html) { document.getElementById('homeContent').innerHTML = html; }
+function setOrderContent(html) { document.getElementById('orderContent').innerHTML = html; }
+function setText(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.innerHTML = val;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// GARMENT DETAIL MODAL (v12)
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Open the garment detail modal for a given record ID. Fetches on demand,
+// caches in state.garmentDetailCache so re-opens are instant.
+function openGarmentDetail(recId) {
+  if (!recId) return;
+  var modal = document.getElementById('garmDetail');
+  var body = document.getElementById('garmDetailBody');
+  if (!modal || !body) return;
+
+  // Show modal in loading state immediately
+  body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">'
+    + '<div style="font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:11px">Loading…</div>'
+    + '</div>';
+  modal.classList.add('on');
+
+  // Serve from cache if present
+  if (state.garmentDetailCache[recId]) {
+    renderGarmentDetail(state.garmentDetailCache[recId]);
+    return;
+  }
+
+  // Fetch the full record. No fields[]= filter — Airtable 422s if any listed
+  // field can't resolve. Pull whole record, pluck client-side.
+  var url = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_GARMENTS+'/'+recId
+    +'?returnFieldsByFieldId=true';
+  fetch(url, { headers: hdr() })
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(rec) {
+      state.garmentDetailCache[recId] = rec;
+      renderGarmentDetail(rec);
+    })
+    .catch(function(e) {
+      body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red)">'
+        + '<div style="font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:11px">Failed to load garment detail</div>'
+        + '<div style="font-size:11px;margin-top:6px">'+escHtml(e.message)+'</div>'
+        + '</div>';
+    });
+}
+
+function closeGarmentDetail() {
+  var modal = document.getElementById('garmDetail');
+  if (modal) modal.classList.remove('on');
+}
+
+function renderGarmentDetail(rec) {
+  var body = document.getElementById('garmDetailBody');
+  if (!body) return;
+  var f = rec.fields || {};
+
+  // Identity
+  var name = f[G.name] || '(unnamed)';
+  var nick = f[G.nickname] || '';
+  var mfr = getStr(f[G.mfr]) || '';
+  var product = f[G.product] || '';
+  var color = f[G.colorway] || '';
+  var style = getStr(f[G.style]) || '';
+
+  // Materials
+  var fabric = f[G.fabric] || '';
+  var weightOz = f[G.weightOz];
+  var fleece = !!f[G.fleece];
+
+  // Decoration ratings
+  var discharge = getStr(f[G.discharge]) || '';
+  var printMethods = f[G.printMethod];
+  if (printMethods && !Array.isArray(printMethods)) printMethods = [printMethods];
+  printMethods = printMethods || [];
+
+  // Notes
+  var notes = f[G.notes] || '';
+
+  // Sizes available
+  var sizeMap = [
+    ['XS',   f[G.szXS]],
+    ['S',    f[G.szS]],
+    ['M',    f[G.szM]],
+    ['L',    f[G.szL]],
+    ['XL',   f[G.szXL]],
+    ['2XL',  f[G.sz2XL]],
+    ['3XL',  f[G.sz3XL]],
+    ['4XL',  f[G.sz4XL]],
+    ['5XL',  f[G.sz5XL]],
+    ['6XL',  f[G.sz6XL]],
+    ['OSFA', f[G.szOSFA]]
+  ];
+  var availSizes = sizeMap.filter(function(s){ return !!s[1]; }).map(function(s){ return s[0]; });
+
+  // Upcharges
+  var upcharges = [
+    ['2XL', f[G.uc2XL]],
+    ['3XL', f[G.uc3XL]],
+    ['4XL', f[G.uc4XL]],
+    ['5XL', f[G.uc5XL]],
+    ['6XL', f[G.uc6XL]]
+  ].filter(function(u){ return u[1] && u[1] > 0; });
+
+  // Usage
+  var sold = f[G.sold2025];
+
+  // Images
+  var frontImg = getFirstAttachmentUrl(f[G.frontImg]);
+  var backImg = getFirstAttachmentUrl(f[G.backImg]);
+
+  // —— Render ——
+
+  var headerHtml = '<div class="garm-hdr">'
+    + '<div class="garm-hdr-left">'
+    +   '<div class="garm-hdr-name">'+escHtml(name)+'</div>'
+    +   (nick ? '<div class="garm-hdr-nick">'+escHtml(nick)+'</div>' : '')
+    +   '<div class="garm-hdr-meta">'+[mfr, product, color, style].filter(Boolean).map(escHtml).join(' · ')+'</div>'
+    + '</div>'
+    + '<button class="garm-hdr-close" onclick="closeGarmentDetail()" title="Close">✕</button>'
+    + '</div>';
+
+  var imagesHtml = '';
+  if (frontImg || backImg) {
+    imagesHtml = '<div class="garm-imgs">'
+      + (frontImg ? '<div class="garm-img-wrap"><img src="'+escAttr(frontImg)+'" alt="Front" /><div class="garm-img-cap">Front</div></div>' : '')
+      + (backImg  ? '<div class="garm-img-wrap"><img src="'+escAttr(backImg)+'" alt="Back" /><div class="garm-img-cap">Back</div></div>' : '')
+      + '</div>';
+  }
+
+  // Materials block
+  var matsBits = [];
+  if (fabric) matsBits.push(escHtml(fabric));
+  if (weightOz) matsBits.push(escHtml(weightOz + ' oz'));
+  if (fleece) matsBits.push('<span class="garm-pill garm-pill-warm">Fleece</span>');
+  var materialsHtml = matsBits.length
+    ? '<div class="garm-block"><div class="garm-block-lbl">About</div><div class="garm-block-val">'+matsBits.join(' · ')+'</div></div>'
+    : '';
+
+  // Decoration block
+  var dischHtml = discharge
+    ? '<div class="garm-row"><span class="garm-row-k">Discharge</span><span class="garm-pill garm-pill-'+dischargeClass(discharge)+'">'+escHtml(discharge)+'</span></div>'
+    : '<div class="garm-row"><span class="garm-row-k">Discharge</span><span class="garm-empty">Not rated</span></div>';
+  var pmHtml = printMethods.length
+    ? '<div class="garm-row"><span class="garm-row-k">Methods</span><span>'+printMethods.map(function(p){return '<span class="garm-pill garm-pill-cool">'+escHtml(p)+'</span>';}).join(' ')+'</span></div>'
+    : '<div class="garm-row"><span class="garm-row-k">Methods</span><span class="garm-empty">—</span></div>';
+  var decoBlock = '<div class="garm-block"><div class="garm-block-lbl">Decoration</div>'+dischHtml+pmHtml+'</div>';
+
+  // Sizes block
+  var sizesHtml = availSizes.length
+    ? '<div class="garm-block"><div class="garm-block-lbl">Available sizes</div><div class="garm-sizes">'
+      + availSizes.map(function(s){ return '<span class="garm-size-chip">'+escHtml(s)+'</span>'; }).join('')
+      + '</div></div>'
+    : '';
+
+  // Upcharges block
+  var ucHtml = upcharges.length
+    ? '<div class="garm-block"><div class="garm-block-lbl">Plus-size upcharges</div>'
+      + upcharges.map(function(u){ return '<div class="garm-row"><span class="garm-row-k">'+escHtml(u[0])+'</span><span class="garm-row-v">+$'+u[1].toFixed(2)+'</span></div>'; }).join('')
+      + '</div>'
+    : '';
+
+  // Notes block
+  var notesHtml = notes
+    ? '<div class="garm-block garm-block-notes"><div class="garm-block-lbl">Field notes</div><div class="garm-block-val">'+escHtml(notes).replace(/\n/g,'<br>')+'</div></div>'
+    : '';
+
+  // Usage block
+  var usageHtml = '';
+  if (sold && sold > 0) {
+    usageHtml = '<div class="garm-block"><div class="garm-block-lbl">Pine\'s history</div><div class="garm-block-val">Sold <strong>'+Number(sold).toLocaleString()+'</strong> units in 2025</div></div>';
+  }
+
+  body.innerHTML = headerHtml
+    + '<div class="garm-body-scroll">'
+    +   imagesHtml
+    +   materialsHtml
+    +   decoBlock
+    +   sizesHtml
+    +   ucHtml
+    +   notesHtml
+    +   usageHtml
+    + '</div>';
+}
+
+// Helper to pull first attachment URL safely
+function getFirstAttachmentUrl(val) {
+  if (!val || !Array.isArray(val) || !val.length) return '';
+  var first = val[0];
+  if (!first) return '';
+  // Prefer large thumbnail, fall back to original url
+  if (first.thumbnails && first.thumbnails.large && first.thumbnails.large.url) return first.thumbnails.large.url;
+  if (first.url) return first.url;
+  return '';
+}
+
+// Map discharge rating to a visual class.
+// Pine's scale (from Airtable schema):
+//   A          = best (discharges cleanly, full color)
+//   B+ / B     = good / okay
+//   C          = poor (discharge sits dull or muddy)
+//   Light Color = light-colored garment, discharge not needed
+//   1          = special case (likely fabric-content flag)
+function dischargeClass(rating) {
+  var r = String(rating).trim();
+  if (r === 'A') return 'good';
+  if (r === 'B+') return 'good';
+  if (r === 'B') return 'ok';
+  if (r === 'C') return 'warn';
+  if (r === 'Light Color') return 'neutral';
+  if (r === '1') return 'neutral';
+  // Fallback for any future values — string-match best-effort
+  var lc = r.toLowerCase();
+  if (lc.indexOf('excellent') > -1 || lc.indexOf('great') > -1) return 'good';
+  if (lc.indexOf('good') > -1) return 'ok';
+  if (lc.indexOf('poor') > -1 || lc.indexOf('bad') > -1) return 'warn';
+  return 'neutral';
+}
+
+// ESC key support for closing modal
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var m = document.getElementById('garmDetail');
+    if (m && m.classList.contains('on')) closeGarmentDetail();
+  }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═════════════════════════════════════════════════════════════════════════════
+
+window.onload = function() {
+  route();
+};
+</script>
+</body>
+</html>
