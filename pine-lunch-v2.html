@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lunch Board">
+<title>Lunch Board · Pine Central</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A0A08'/%3E%3Cpath d='M16 6 L16 26 M16 9 C12 11 10 12 9 15 M16 14 C20 12 22 13 23 16 M16 18 C12 20 11 21 10 24' stroke='%23E8E832' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<!-- ════════════════════════════════════════════════════════════════
+     HOURLY CREW — edit this list as the season's crew changes.
+     One name per line. That's the whole setup.
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+  const ROSTER = [
+    "TJ",
+    "Jillyan",
+    "Erik",
+    "Dawson",
+    "Kyle",
+    "Gabe",
+    "Annabelle",
+    "Hannah",
+    "Austin",
+    "Andrew",
+    "Dylan",
+  ];
+
+  // Paid lunch length, in minutes. Tiles fill a progress line toward this.
+  const LUNCH_MINUTES = 30;
+</script>
+
+<style>
+  /* Pine Central tokens — pulled from Operator View v60 */
+  :root{
+    --bg:#F2F2EE; --surface:#fff;
+    --border:#E5E5E0; --border-dk:#D0D0CA;
+    --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+    --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83260;
+    --black:#0A0A08; --black-2:#141410;
+    --sans:Helvetica,Arial,sans-serif;
+    --radius:12px; --radius-lg:18px;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; min-height:100%;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    user-select:none; -webkit-user-select:none; touch-action:manipulation;
+    padding:max(20px,env(safe-area-inset-top)) clamp(16px,3.5vw,38px) 40px;
+  }
+
+  /* top bar */
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:22px;}
+  .pill{
+    font-size:11px; font-weight:700; padding:6px 14px; border-radius:20px;
+    background:var(--black); color:var(--yellow); border:1px solid var(--yellow-border);
+    letter-spacing:.08em; text-transform:uppercase; white-space:nowrap;
+  }
+  .brand{font-size:12px; color:var(--muted); font-weight:700; letter-spacing:.04em; text-transform:uppercase;}
+  .clock{margin-left:auto; font-size:13px; color:var(--muted-lt); font-weight:700; letter-spacing:.02em;}
+
+  /* heading row */
+  .head{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+    flex-wrap:wrap; padding-bottom:16px; margin-bottom:22px;
+    border-bottom:1px solid var(--border-dk);
+  }
+  h1{
+    font-size:clamp(26px,4.5vw,40px); font-weight:700; margin:0;
+    text-transform:uppercase; letter-spacing:.01em; line-height:1;
+  }
+  .sub{color:var(--muted); font-size:clamp(12px,1.6vw,14px); margin-top:8px; letter-spacing:.01em;}
+  .count{display:flex; align-items:center; gap:10px; font-size:15px; font-weight:700; white-space:nowrap;}
+  .count .chip{
+    background:var(--black); color:var(--yellow); border-radius:8px;
+    padding:5px 11px; font-size:15px; letter-spacing:.02em;
+  }
+  .count .floor{color:var(--muted);}
+
+  /* grid */
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+    gap:clamp(11px,1.5vw,16px);
+  }
+
+  .tile{
+    position:relative; overflow:hidden;
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    background:var(--surface);
+    padding:18px 18px 16px; min-height:120px;
+    cursor:pointer; display:flex; flex-direction:column; justify-content:space-between;
+    transition:transform .1s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .tile:active{transform:scale(.97);}
+
+  .name{
+    font-size:clamp(20px,2.6vw,26px); font-weight:700;
+    text-transform:uppercase; letter-spacing:.01em; line-height:1.05;
+  }
+  .state{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.07em;}
+  .dot{width:9px; height:9px; border-radius:50%; flex:none;}
+
+  /* ON THE FLOOR — quiet white */
+  .tile.floor .name{color:var(--text);}
+  .tile.floor .state{color:var(--muted-lt);}
+  .tile.floor .dot{background:var(--muted-lt);}
+
+  /* AT LUNCH — flips to the black + yellow active state */
+  .tile.out{background:var(--black); border-color:var(--black);}
+  .tile.out .name{color:var(--yellow);}
+  .tile.out .state{color:var(--yellow);}
+  .tile.out .dot{background:var(--yellow);}
+  .meta{font-size:12px; color:#9a9a86; font-weight:700; letter-spacing:.02em; margin-top:9px;}
+  .meta .elapsed{color:var(--yellow);}
+
+  /* progress hairline fills across the 30-min window */
+  .bar{position:absolute; left:0; right:0; bottom:0; height:4px; background:rgba(232,232,50,.16);}
+  .bar > span{display:block; height:100%; width:0%; background:var(--yellow); transition:width .6s linear;}
+
+  /* past 30 — gentle yellow edge, never red */
+  .tile.over{border-color:var(--yellow); box-shadow:0 0 0 1px var(--yellow-border) inset, 0 6px 20px rgba(232,232,50,.10);}
+
+  footer{
+    margin-top:30px; display:flex; justify-content:space-between; align-items:center;
+    gap:10px; flex-wrap:wrap; color:var(--muted); font-size:12px;
+  }
+  .reset{
+    background:transparent; border:1px solid var(--border-dk); color:var(--muted);
+    padding:7px 14px; border-radius:20px; font:inherit; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em; cursor:pointer;
+  }
+  .reset:active{transform:scale(.96);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="pill">Lunch Board</span>
+  <span class="brand">Pine Central</span>
+  <span class="clock" id="clock"></span>
+</div>
+
+<div class="head">
+  <div>
+    <h1>Lunch Time!</h1>
+    <div class="sub">Tap a name when they head to lunch — tap again when they're back.</div>
+  </div>
+  <div class="count" id="count">—</div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <span id="date"></span>
+  <button class="reset" id="reset">Reset board</button>
+</footer>
+
+<script>
+/* storage: Claude artifact (window.storage) → GitHub Pages (localStorage) → in-memory */
+const Store = (() => {
+  const KEY = "pine-lunch-board";
+  const hasWin = typeof window.storage?.get === "function";
+  let mem = null;
+  return {
+    async load(){
+      try{
+        if(hasWin){ const r = await window.storage.get(KEY); return r ? JSON.parse(r.value) : null; }
+        const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null;
+      }catch(e){ return mem; }
+    },
+    async save(o){
+      mem = o;
+      try{
+        if(hasWin){ await window.storage.set(KEY, JSON.stringify(o)); return; }
+        localStorage.setItem(KEY, JSON.stringify(o));
+      }catch(e){}
+    }
+  };
+})();
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+let state = { date: todayKey(), out: {} };  // out: { name: epochMillisLeft }
+const fmt = ms => new Date(ms).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+
+function render(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  const now = Date.now();
+  let out = 0;
+
+  ROSTER.forEach(name => {
+    const left = state.out[name];
+    const isOut = !!left;
+    if(isOut) out++;
+
+    const t = document.createElement("div");
+    t.className = "tile " + (isOut ? "out" : "floor");
+
+    if(isOut){
+      const mins = Math.floor((now - left)/60000);
+      const pct = Math.min(100, (mins/LUNCH_MINUTES)*100);
+      if(mins >= LUNCH_MINUTES) t.classList.add("over");
+      t.innerHTML = `
+        <div>
+          <div class="name">${name}</div>
+          <div class="meta">Out ${fmt(left)} · <span class="elapsed">${mins} min</span></div>
+        </div>
+        <div class="state"><span class="dot"></span>At lunch</div>
+        <div class="bar"><span style="width:${pct}%"></span></div>`;
+    } else {
+      t.innerHTML = `
+        <div class="name">${name}</div>
+        <div class="state"><span class="dot"></span>On the floor</div>`;
+    }
+    t.addEventListener("click", () => toggle(name));
+    grid.appendChild(t);
+  });
+
+  document.getElementById("count").innerHTML =
+    `<span class="chip">${out} out</span><span class="floor">${ROSTER.length - out} on the floor</span>`;
+}
+
+async function toggle(name){
+  if(state.date !== todayKey()) state = { date: todayKey(), out: {} };
+  if(state.out[name]) delete state.out[name];
+  else state.out[name] = Date.now();
+  await Store.save(state);
+  render();
+}
+
+document.getElementById("reset").addEventListener("click", async () => {
+  state = { date: todayKey(), out: {} };
+  await Store.save(state);
+  render();
+});
+
+function tickClock(){
+  document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+}
+document.getElementById("date").textContent =
+  new Date().toLocaleDateString([], {weekday:"long", month:"long", day:"numeric"});
+
+(async () => {
+  const saved = await Store.load();
+  if(saved && saved.date === todayKey()) state = saved;   // resumes today
+  else await Store.save(state);                            // fresh each new day
+  tickClock(); render();
+})();
+
+setInterval(() => {
+  if(state.date !== todayKey()){ state = { date: todayKey(), out: {} }; Store.save(state); }
+  tickClock(); render();
+}, 20000);
+</script>
+</body>
+</html>
