@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lunch Board">
+<title>Lunch Board · Pine Central</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A0A08'/%3E%3Cpath d='M16 6 L16 26 M16 9 C12 11 10 12 9 15 M16 14 C20 12 22 13 23 16 M16 18 C12 20 11 21 10 24' stroke='%23E8E832' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<!-- ════════════════════════════════════════════════════════════════
+     HOURLY CREW — edit this list as the season's crew changes.
+     One name per line. That's the whole setup.
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+  const ROSTER = [
+    "TJ",
+    "Jillyan",
+    "Erik",
+    "Dawson",
+    "Kyle",
+    "Gabe",
+    "Annabelle",
+    "Hannah",
+    "Austin",
+    "Andrew",
+    "Dylan",
+    "Chris",
+  ];
+
+  // Paid lunch length, in minutes. Tiles fill a progress line toward this.
+  const LUNCH_MINUTES = 30;
+
+  // Punch-clock "ka-chunk" sound on each tap. Set to false to silence it.
+  const SOUND = true;
+</script>
+
+<style>
+  /* Pine Central tokens — pulled from Operator View v60 */
+  :root{
+    --bg:#F2F2EE; --surface:#fff;
+    --border:#E5E5E0; --border-dk:#D0D0CA;
+    --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+    --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83260;
+    --black:#0A0A08; --black-2:#141410;
+    --sans:Helvetica,Arial,sans-serif;
+    --radius:12px; --radius-lg:18px;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; min-height:100%;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    user-select:none; -webkit-user-select:none; touch-action:manipulation;
+    padding:max(20px,env(safe-area-inset-top)) clamp(16px,3.5vw,38px) 40px;
+  }
+
+  /* top bar */
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:22px;}
+  .pill{
+    font-size:11px; font-weight:700; padding:6px 14px; border-radius:20px;
+    background:var(--black); color:var(--yellow); border:1px solid var(--yellow-border);
+    letter-spacing:.08em; text-transform:uppercase; white-space:nowrap;
+  }
+  .brand{font-size:12px; color:var(--muted); font-weight:700; letter-spacing:.04em; text-transform:uppercase;}
+  .clock{margin-left:auto; font-size:13px; color:var(--muted-lt); font-weight:700; letter-spacing:.02em;}
+
+  /* heading row */
+  .head{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+    flex-wrap:wrap; padding-bottom:16px; margin-bottom:22px;
+    border-bottom:1px solid var(--border-dk);
+  }
+  h1{
+    font-size:clamp(26px,4.5vw,40px); font-weight:700; margin:0;
+    text-transform:uppercase; letter-spacing:.01em; line-height:1;
+  }
+  .sub{color:var(--muted); font-size:clamp(12px,1.6vw,14px); margin-top:8px; letter-spacing:.01em;}
+  .count{display:flex; align-items:center; gap:10px; font-size:15px; font-weight:700; white-space:nowrap;}
+  .count .chip{
+    background:var(--black); color:var(--yellow); border-radius:8px;
+    padding:5px 11px; font-size:15px; letter-spacing:.02em;
+  }
+  .count .floor{color:var(--muted);}
+
+  /* grid */
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+    gap:clamp(11px,1.5vw,16px);
+  }
+
+  .tile{
+    position:relative; overflow:hidden;
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    background:var(--surface);
+    padding:18px 18px 16px; min-height:120px;
+    cursor:pointer; display:flex; flex-direction:column; justify-content:space-between;
+    transition:transform .1s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .tile:active{transform:scale(.97);}
+
+  .name{
+    font-size:clamp(20px,2.6vw,26px); font-weight:700;
+    text-transform:uppercase; letter-spacing:.01em; line-height:1.05;
+  }
+  .state{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.07em;}
+  .dot{width:9px; height:9px; border-radius:50%; flex:none;}
+
+  /* ON THE FLOOR — quiet white */
+  .tile.floor .name{color:var(--text);}
+  .tile.floor .state{color:var(--muted-lt);}
+  .tile.floor .dot{background:var(--muted-lt);}
+
+  /* AT LUNCH — flips to the black + yellow active state */
+  .tile.out{background:var(--black); border-color:var(--black);}
+  .tile.out .name{color:var(--yellow);}
+  .tile.out .state{color:var(--yellow);}
+  .tile.out .dot{background:var(--yellow);}
+  .meta{font-size:12px; color:#9a9a86; font-weight:700; letter-spacing:.02em; margin-top:9px;}
+  .meta .elapsed{color:var(--yellow);}
+
+  /* progress hairline fills across the 30-min window */
+  .bar{position:absolute; left:0; right:0; bottom:0; height:4px; background:rgba(232,232,50,.16);}
+  .bar > span{display:block; height:100%; width:0%; background:var(--yellow); transition:width .6s linear;}
+
+  /* past 30 — gentle yellow edge, never red */
+  .tile.over{border-color:var(--yellow); box-shadow:0 0 0 1px var(--yellow-border) inset, 0 6px 20px rgba(232,232,50,.10);}
+
+  footer{
+    margin-top:30px; display:flex; justify-content:space-between; align-items:center;
+    gap:10px; flex-wrap:wrap; color:var(--muted); font-size:12px;
+  }
+  .reset{
+    background:transparent; border:1px solid var(--border-dk); color:var(--muted);
+    padding:7px 14px; border-radius:20px; font:inherit; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em; cursor:pointer;
+  }
+  .reset:active{transform:scale(.96);}
+
+  /* ── punch-clock flourish: recoil + slamming ink stamp ── */
+  @keyframes punch-recoil{
+    0%{transform:translateY(0) scale(1);}
+    20%{transform:translateY(3px) scale(.985);}
+    45%{transform:translateY(0) scale(1.004);}
+    100%{transform:translateY(0) scale(1);}
+  }
+  .tile.punch{animation:punch-recoil .34s ease;}
+
+  .stamp{
+    position:absolute; left:50%; top:50%; z-index:4; pointer-events:none;
+    padding:5px 13px 4px; border-radius:6px; text-align:center; line-height:1;
+    border:2.5px solid currentColor;
+    transform:translate(-50%,-50%) rotate(var(--rot,-6deg));
+    animation:stamp-slam 1.5s cubic-bezier(.2,.9,.25,1) forwards; opacity:0;
+  }
+  .stamp .lbl{display:block; font-size:9px; font-weight:700; letter-spacing:.2em; margin-bottom:3px;}
+  .stamp .tm{display:block; font-size:21px; font-weight:700; letter-spacing:.06em; font-variant-numeric:tabular-nums;}
+  .stamp.s-out{color:var(--yellow); text-shadow:0 0 6px rgba(0,0,0,.55);}
+  .stamp.s-in{color:#d23b2e; text-shadow:0 0 5px rgba(255,255,255,.75);}
+  @keyframes stamp-slam{
+    0%  {opacity:0; transform:translate(-50%,-50%) rotate(var(--rot,-6deg)) scale(1.9); filter:blur(2.5px);}
+    22% {opacity:1; transform:translate(-50%,-50%) rotate(var(--rot,-6deg)) scale(.9);  filter:blur(0);}
+    32% {transform:translate(-50%,-50%) rotate(var(--rot,-6deg)) scale(1.06);}
+    44% {transform:translate(-50%,-50%) rotate(var(--rot,-6deg)) scale(1);}
+    78% {opacity:1;}
+    100%{opacity:0; transform:translate(-50%,-50%) rotate(var(--rot,-6deg)) scale(1);}
+  }
+
+  /* lunchy doodle backdrop — sits behind everything, never intercepts taps */
+  .foodbg{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;}
+  .page{position:relative; z-index:1;}
+</style>
+</head>
+<body>
+
+<svg class="foodbg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <!-- one repeating tile of scattered, hand-drawn lunch doodles -->
+    <pattern id="lunch" patternUnits="userSpaceOnUse" width="340" height="300">
+      <g fill="none" stroke="#D2D1C2" stroke-width="2.4"
+         stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+
+        <!-- coffee cup + steam -->
+        <g transform="translate(34,40) rotate(-8)">
+          <path d="M4 12 h30 v14 a8 8 0 0 1 -8 8 h-14 a8 8 0 0 1 -8 -8 z"/>
+          <path d="M34 15 h6 a5 5 0 0 1 0 10 h-6"/>
+          <path d="M12 2 q4 4 0 8 M22 2 q4 4 0 8"/>
+        </g>
+
+        <!-- fork & knife -->
+        <g transform="translate(150,28) rotate(6)">
+          <path d="M2 0 v12 M8 0 v12 M14 0 v12 M8 12 v22"/>
+          <path d="M28 0 c6 2 6 14 0 16 v18"/>
+        </g>
+
+        <!-- pizza slice -->
+        <g transform="translate(250,34) rotate(-14)">
+          <path d="M0 0 L34 6 L17 40 Z"/>
+          <circle cx="14" cy="12" r="2.4" fill="#D2D1C2" stroke="none"/>
+          <circle cx="20" cy="20" r="2.4" fill="#D2D1C2" stroke="none"/>
+          <circle cx="13" cy="26" r="2.2" fill="#D2D1C2" stroke="none"/>
+        </g>
+
+        <!-- burger -->
+        <g transform="translate(60,150) rotate(4)">
+          <path d="M2 8 a18 10 0 0 1 36 0 z"/>
+          <path d="M0 14 h40 M0 22 q20 8 40 0"/>
+          <path d="M2 28 a18 8 0 0 0 36 0"/>
+          <circle cx="14" cy="4" r="1.2" fill="#D2D1C2" stroke="none"/>
+          <circle cx="24" cy="3" r="1.2" fill="#D2D1C2" stroke="none"/>
+        </g>
+
+        <!-- soda cup + straw -->
+        <g transform="translate(170,150) rotate(-6)">
+          <path d="M4 8 h26 l-3 32 h-20 z"/>
+          <path d="M2 8 h30 M18 8 l6 -14"/>
+        </g>
+
+        <!-- apple -->
+        <g transform="translate(270,158) rotate(8)">
+          <path d="M14 6 c-10 -6 -18 4 -12 16 c3 6 7 10 12 10 c5 0 9 -4 12 -10 c6 -12 -2 -22 -12 -16 z"/>
+          <path d="M14 6 q2 -8 9 -8"/>
+        </g>
+
+        <!-- donut -->
+        <g transform="translate(26,232) rotate(-5)">
+          <circle cx="18" cy="18" r="16"/>
+          <circle cx="18" cy="18" r="5.5"/>
+          <path d="M10 9 l3 3 M26 12 l-3 3 M27 24 l3 2 M9 26 l3 -2"/>
+        </g>
+
+        <!-- sandwich -->
+        <g transform="translate(150,236) rotate(6)">
+          <path d="M0 30 L20 4 L40 30 Z"/>
+          <path d="M4 24 h32"/>
+        </g>
+
+        <!-- hot drink to-go -->
+        <g transform="translate(258,238) rotate(-10)">
+          <path d="M4 6 h26 l-3 30 h-20 z"/>
+          <path d="M2 6 h30 M6 16 h22"/>
+        </g>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#lunch)"/>
+</svg>
+
+<div class="page">
+
+<div class="topbar">
+  <span class="pill">Lunch Board</span>
+  <span class="brand">Pine Central</span>
+  <span class="clock" id="clock"></span>
+</div>
+
+<div class="head">
+  <div>
+    <h1>Lunch Time!</h1>
+    <div class="sub">Tap a name when they head to lunch — tap again when they're back.</div>
+  </div>
+  <div class="count" id="count">—</div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <span id="date"></span>
+  <button class="reset" id="reset">Reset board</button>
+</footer>
+
+</div><!-- /.page -->
+
+<script>
+/* storage: Claude artifact (window.storage) → GitHub Pages (localStorage) → in-memory */
+const Store = (() => {
+  const KEY = "pine-lunch-board";
+  const hasWin = typeof window.storage?.get === "function";
+  let mem = null;
+  return {
+    async load(){
+      try{
+        if(hasWin){ const r = await window.storage.get(KEY); return r ? JSON.parse(r.value) : null; }
+        const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null;
+      }catch(e){ return mem; }
+    },
+    async save(o){
+      mem = o;
+      try{
+        if(hasWin){ await window.storage.set(KEY, JSON.stringify(o)); return; }
+        localStorage.setItem(KEY, JSON.stringify(o));
+      }catch(e){}
+    }
+  };
+})();
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+let state = { date: todayKey(), out: {} };  // out: { name: epochMillisLeft }
+const fmt = ms => new Date(ms).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+
+function render(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  const now = Date.now();
+  let out = 0;
+
+  ROSTER.forEach(name => {
+    const left = state.out[name];
+    const isOut = !!left;
+    if(isOut) out++;
+
+    const t = document.createElement("div");
+    t.className = "tile " + (isOut ? "out" : "floor");
+    t.dataset.name = name;
+
+    if(isOut){
+      const mins = Math.floor((now - left)/60000);
+      const pct = Math.min(100, (mins/LUNCH_MINUTES)*100);
+      if(mins >= LUNCH_MINUTES) t.classList.add("over");
+      t.innerHTML = `
+        <div>
+          <div class="name">${name}</div>
+          <div class="meta">Out ${fmt(left)} · <span class="elapsed">${mins} min</span></div>
+        </div>
+        <div class="state"><span class="dot"></span>At lunch</div>
+        <div class="bar"><span style="width:${pct}%"></span></div>`;
+    } else {
+      t.innerHTML = `
+        <div class="name">${name}</div>
+        <div class="state"><span class="dot"></span>On the floor</div>`;
+    }
+    t.addEventListener("click", () => toggle(name));
+    grid.appendChild(t);
+  });
+
+  document.getElementById("count").innerHTML =
+    `<span class="chip">${out} out</span><span class="floor">${ROSTER.length - out} on the floor</span>`;
+}
+
+async function toggle(name){
+  if(state.date !== todayKey()) state = { date: todayKey(), out: {} };
+  const punchingOut = !state.out[name];
+  const stampTime = new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  if(punchingOut) state.out[name] = Date.now();
+  else delete state.out[name];
+  await Store.save(state);
+  render();
+  punchCard(name, punchingOut ? "OUT" : "IN", stampTime);
+  chaChunk();
+}
+
+/* slam an ink stamp onto the just-tapped tile, then let it fade */
+function punchCard(name, label, time){
+  const tile = document.querySelector('.tile[data-name="' + CSS.escape(name) + '"]');
+  if(!tile) return;
+  tile.classList.remove("punch"); void tile.offsetWidth; tile.classList.add("punch");
+  const s = document.createElement("div");
+  s.className = "stamp " + (label === "OUT" ? "s-out" : "s-in");
+  s.style.setProperty("--rot", (Math.random()*6 - 9).toFixed(1) + "deg");
+  s.innerHTML = '<span class="lbl">' + label + '</span><span class="tm">' + time + '</span>';
+  tile.appendChild(s);
+  setTimeout(() => s.remove(), 1550);
+  setTimeout(() => tile.classList.remove("punch"), 360);
+}
+
+/* the "ka-chunk" — two quick mechanical thuds via WebAudio */
+let actx = null;
+function chaChunk(){
+  if(!SOUND) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === "suspended") actx.resume();
+    const t0 = actx.currentTime;
+    const thud = (t, f) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "square"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.05, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      o.connect(g).connect(actx.destination);
+      o.start(t); o.stop(t + 0.09);
+    };
+    thud(t0, 96);          // ka
+    thud(t0 + 0.085, 68);  // chunk
+  }catch(e){}
+}
+
+document.getElementById("reset").addEventListener("click", async () => {
+  state = { date: todayKey(), out: {} };
+  await Store.save(state);
+  render();
+});
+
+function tickClock(){
+  document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+}
+document.getElementById("date").textContent =
+  new Date().toLocaleDateString([], {weekday:"long", month:"long", day:"numeric"});
+
+(async () => {
+  const saved = await Store.load();
+  if(saved && saved.date === todayKey()) state = saved;   // resumes today
+  else await Store.save(state);                            // fresh each new day
+  tickClock(); render();
+})();
+
+setInterval(() => {
+  if(state.date !== todayKey()){ state = { date: todayKey(), out: {} }; Store.save(state); }
+  tickClock(); render();
+}, 20000);
+</script>
+</body>
+</html>
