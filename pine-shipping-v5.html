@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pine Shipping v5</title>
+<link rel="stylesheet" href="pine-design-v1.css">
+<style>
+/* ===== Canonical Pine tokens (verbatim from PINE-CANONICAL-CARD.md / catching v122) ===== */
+:root{
+  --bg:#F2F2EE; --surface:#fff; --bg-soft:#F8F8F5;
+  --border:#E5E5E0; --border-dk:#D0D0CA;
+  --green:#1e6b45; --green-lt:#e8f5ee; --green-md:#2d8a5a; --green-dk:#144d31;
+  --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+  --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83250;
+  --red:#c0392b; --red-bg:#fdf2f2; --red-bd:#f5c6c6;
+  --amb:#b7791f; --amb-bg:#fffbeb; --amb-bd:#fde68a;
+  --sb-bg:#0A0A08; --sb-border:#1A1A16; --sb-active:#141410;
+  --sans:Helvetica,Arial,sans-serif; --cond:Helvetica,Arial,sans-serif; --mono:Helvetica,Arial,sans-serif;
+  --radius:4px; --radius-lg:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ===== Topbar ===== */
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.tb-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond)}
+.tb-sub{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+.tb-spacer{flex:1}
+.btn-refresh,.btn-token{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);transition:all .1s}
+.btn-refresh:hover,.btn-token:hover{border-color:var(--text);color:var(--text)}
+
+/* ===== Preview badge ===== */
+.preview-badge{position:fixed;bottom:0;left:0;right:0;background:var(--amb-bg);border-top:1px solid var(--amb-bd);color:var(--amb);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-family:var(--cond);padding:5px 14px;text-align:center;z-index:90;pointer-events:none}
+
+/* ===== Scale chip + token-set state ===== */
+.btn-token.set{border-color:var(--green);color:var(--green)}
+.btn-token.set:hover{background:var(--green-lt)}
+.btn-token.scale-stable{border-color:var(--green);color:var(--green-dk);background:var(--green-lt)}
+.btn-token.scale-motion{border-color:var(--amb-bd);color:var(--amb);background:var(--amb-bg)}
+.btn-token.scale-idle{color:var(--muted)}
+
+/* ===== Layout ===== */
+.content{flex:1;overflow-y:auto;padding:18px 18px 44px;min-width:0}
+.q-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-lt);font-family:var(--cond);margin-bottom:10px}
+
+/* ===== Job card (verbatim canonical) ===== */
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;gap:16px;padding:16px 18px;cursor:pointer;transition:border-color .12s,box-shadow .12s;margin-bottom:8px}
+.job-card:hover{border-color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.job-card.flagged{border-color:var(--red-bd);background:var(--red-bg)}
+.jc-thumb{width:80px;height:80px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.jc-thumb img{width:100%;height:100%;object-fit:cover}
+.jc-thumb-ph{width:24px;height:24px;opacity:.2}
+.jc-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.jc-name{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--cond);color:var(--text)}
+.jc-name.muted{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.06em}
+.jc-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.jc-meta .tag{font-size:10px;padding:3px 9px}
+.jc-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;min-width:90px}
+.jc-order{font-size:36px;font-weight:700;letter-spacing:-0.02em;color:var(--text);font-family:var(--cond);line-height:1}
+.jc-status{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:var(--cond);color:var(--muted-lt)}
+
+/* ===== Tags (verbatim canonical) ===== */
+.tag{font-size:8px;padding:2px 7px;border-radius:2px;white-space:nowrap;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;font-family:var(--cond)}
+.tag.g{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-border)}
+.tag.r{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.tag.n{background:var(--surface);color:var(--muted);border-color:var(--border)}
+.tag.amb{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+
+/* ===== Detail drawer ===== */
+.drawer-mask{position:fixed;inset:0;background:rgba(13,13,11,.35);display:none;z-index:40}
+.drawer-mask.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .18s;z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.cp-order-strip{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;min-height:50px}
+.cp-back{padding:5px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;font-family:var(--cond);flex-shrink:0}
+.cp-back:hover{border-color:var(--text);color:var(--text)}
+.cp-order-info{flex:1;min-width:0;display:flex;align-items:baseline;gap:10px;overflow:hidden}
+.cp-order-num{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.12em;font-weight:700;font-family:var(--cond);flex-shrink:0}
+.cp-order-name{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-order-chips{display:flex;gap:4px;flex-shrink:0;flex-wrap:nowrap}
+.drawer-body{flex:1;overflow-y:auto;padding:14px}
+
+/* ===== Cards (info panels) ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px}
+.card-h{padding:9px 14px;border-bottom:1px solid var(--bg);display:flex;align-items:center;justify-content:space-between}
+.card-t{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-family:var(--cond)}
+.card-b{padding:12px 14px}
+
+/* ===== Address editor ===== */
+.fld{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.fld.row2{flex-direction:row;gap:8px}
+.fld.row2>div{flex:1;display:flex;flex-direction:column;gap:3px}
+.fld label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-lt);font-family:var(--cond)}
+.fld input{font-size:13px;padding:7px 9px;border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--sans);background:var(--surface);color:var(--text)}
+.fld input:focus{outline:none;border-color:var(--green)}
+.verify-line{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
+
+/* ===== Buttons (actions) ===== */
+.btn-act{font-size:11px;font-weight:700;padding:10px 16px;border-radius:var(--radius);cursor:pointer;text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond);border:1px solid;width:100%;margin-top:4px}
+.btn-act.green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-act.green:hover{background:var(--green-dk)}
+.btn-act.dark{background:var(--sb-bg);color:var(--yellow);border-color:var(--sb-bg)}
+.btn-act.outline{background:var(--surface);color:var(--muted);border-color:var(--border-dk)}
+.btn-act.outline:hover{border-color:var(--text);color:var(--text)}
+.btn-act:disabled{opacity:.4;cursor:not-allowed}
+
+/* ===== Rate rows ===== */
+.rate-row{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;cursor:pointer}
+.rate-row:hover{border-color:var(--border-dk)}
+.rate-row.sel{border-color:var(--green);background:var(--green-lt)}
+.rate-svc{font-size:12px;font-weight:700}
+.rate-cost{font-size:14px;font-weight:700;font-family:var(--mono)}
+
+.note{font-size:11px;color:var(--muted);line-height:1.5}
+.note.amb{color:var(--amb)}
+.note.red{color:var(--red)}
+.note.green{color:var(--green-dk)}
+.empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:13px}
+.spin{text-align:center;color:var(--muted);padding:20px;font-size:12px}
+
+/* ===== Token modal ===== */
+.tk-mask{position:fixed;inset:0;background:rgba(13,13,11,.4);display:none;align-items:center;justify-content:center;z-index:60}
+.tk-mask.on{display:flex}
+.tk-box{background:var(--surface);border-radius:var(--radius-lg);padding:20px;width:min(420px,90%)}
+.tk-box h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-family:var(--cond)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="tb-title">Pine Shipping</div>
+    <div class="tb-sub">Caught · Awaiting Ship</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <button class="btn-token scale-idle" id="scaleChip" onclick="connectScale()">⚖ Connect scale</button>
+  <button class="btn-token" id="tokenChip" onclick="openToken()">Token</button>
+  <button class="btn-refresh" onclick="loadQueue()">↻ Refresh</button>
+</div>
+
+<div class="content" id="content">
+  <div class="q-title" id="qTitle">Loading…</div>
+  <div id="queue"></div>
+</div>
+
+<!-- Detail drawer -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="cp-order-strip">
+    <button class="cp-back" onclick="closeDrawer()">← Back</button>
+    <div class="cp-order-info">
+      <span class="cp-order-num" id="dOrderNum">Order</span>
+      <span class="cp-order-name" id="dOrderName">—</span>
+    </div>
+    <div class="cp-order-chips" id="dChips"></div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<!-- Preview badge (canonical fixed-bottom strip) -->
+<div class="preview-badge" id="previewBadge">👁 Preview Mode — Writes &amp; Label Buys Disabled</div>
+
+<!-- Token modal -->
+<div class="tk-mask" id="tkMask">
+  <div class="tk-box">
+    <h3>Airtable Personal Access Token</h3>
+    <div class="fld"><input id="tkInput" type="password" placeholder="patXXXXXXXXXXXXXX..."></div>
+    <button class="btn-act green" onclick="saveToken()">Save</button>
+    <button class="btn-act outline" onclick="closeToken()">Cancel</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   PINE SHIPPING v1 — preview-mode build (2026-06-03)
+   Standalone sibling to catching. Airtable bus + ShipStation via worker proxy.
+   ========================================================================== */
+
+/* ---- FLAGS (both off; flip + bump version to go live) ---- */
+const STATUS_WRITES_ENABLED = false;  // address + status + tracking writeback
+const LABEL_BUY_ENABLED      = false; // postage purchase (money) — last to flip
+
+/* ---- CONFIG ---- */
+const WORKER = 'https://pine-workers.stephen-dab.workers.dev/proxy';
+// ⚠ CONFIRM: Pine's ship-from ZIP for rate quotes. 80525 = Fort Collins placeholder.
+const SHIP_FROM = { postalCode: '80525', country: 'US' };
+const DEFAULT_CARRIER = 'ups_walleted'; // matches what live orders use
+
+/* ===== DATA LAYER (verified against live schema 2026-06-03) ===== */
+const BASE = 'appJkaLk8DykjsgHR';
+const T_ORDERS = 'tbl8Tf0AeS9gnHOOS';
+const STATUS = { id:'fldhS4z28CdGmS1j5', awaitingShip:'Caught - Awaiting Ship', completed:'Completed', shipped:'Shipped' };
+// NOTE: writeback flips to 'Completed' (not 'Shipped') so existing Airtable
+// automations keyed on Completed fire. Pickup vs shipped is told apart by the
+// tracking fields (W_SHIP), not by status. 'shipped' kept only for reference.
+const R = {
+  customer:'fldoRraeYHsgfeWhj', orderNum:'fld4S3B5yJANKlE7l', shipMethod:'fldrjFuIBn45ewFU5',
+  weight:'fldgtq05PUymPatlc', boxes:'fldIbPucKznpcZQqI', shipAcct:'fldoOZSIN4PpJcQ4V',
+  proof:'fldzdj6DTD2TrACCf', phone:'fldRK2p80OPfhxzPv', status:'fldhS4z28CdGmS1j5',
+};
+const W_ADDR = {
+  contact:'fldpHFCU70jZpuKs6', addr:'fldDf4gRxe2NoUVPy',
+  city:'fldh0KVzmy5QsWj2D', state:'fldTlayqsfEWPaph0', zip:'fld4uEiBVeL9w48R3',
+};
+const W_SHIP = {
+  tracking:'fldLjGNoUKrxuX0O7', carrier:'fldjSezoa5NtveYvm', shipDate:'fldlMlDIr9hLYFfbL',
+  shipmentId:'fldBvbKYP48LiKO1Z', cost:'fldK95tJ2WHYKxzM8',
+};
+
+/* ===== SHIPSTATION JOIN (verified against live V1 data 2026-06-03) =====
+   ?orderNumber= is a LOOSE prefix match. Join on orderKey (bare Pine number),
+   NOT orderNumber (decorated "{num}-{customer}"). orderKey is NOT unique — an
+   order can appear twice after an address edit+recreate; disambiguate by status. */
+function resolveShipStationOrder(results, pineNum) {
+  const key = String(pineNum);
+  const exact = (results || []).filter(o => String(o.orderKey) === key);
+  const awaiting = exact.filter(o => o.orderStatus === 'awaiting_shipment');
+  if (awaiting.length === 1) return { state:'ok', order:awaiting[0], candidates:awaiting };
+  if (awaiting.length > 1)  return { state:'multi', order:null, candidates:awaiting };
+  if (exact.length)         return { state:'allShipped', order:null, candidates:exact };
+  return { state:'none', order:null, candidates:[] };
+}
+
+/* ---- STATE ---- */
+let CACHE = {};           // recId -> { order(airtable), ss(resolved), rates, picked, addr }
+let ACTIVE = null;        // recId of open drawer
+
+/* ---- SCALE (Mettler Toledo PS60 via WebHID — vendor 0x0EB8 / product 0xF000) ----
+   Standard HID Point-of-Sale Scale report (data, report-id stripped by WebHID):
+     byte0 status · byte1 unit · byte2 signed exponent · byte3 wLSB · byte4 wMSB
+   status: 2=stable@zero 3=in motion 4=stable(weight) · unit: 3=g 4=kg 12=oz 13=lb
+   weight = (wLSB | wMSB<<8) * 10^exponent. The scale reports its OWN unit, so the
+   ounces/pounds guess on the rate request disappears — we read it and pass it through. */
+const SCALE_FILTER = { vendorId:0x0EB8, productId:0xF000 };
+let SCALE = { device:null, value:0, unitCode:0, status:0, stable:false };
+
+function unitName(code){ return ({3:'g',4:'kg',11:'oz t',12:'oz',13:'lb'})[code] || 'oz'; }
+function ssUnits(code){ // ShipStation accepts pounds / ounces / grams
+  if(code===13) return 'pounds';
+  if(code===3)  return 'grams';
+  return 'ounces';
+}
+
+async function connectScale(){
+  if(!('hid' in navigator)){ alert('This browser has no WebHID. Open this page in Chrome or Edge on the shipping desktop.'); return; }
+  try{
+    const devs = await navigator.hid.requestDevice({ filters:[SCALE_FILTER] });
+    if(devs && devs.length) await openScale(devs[0]);
+    else dbg('no scale selected');
+  }catch(e){ dbg('scale connect failed', e.message); }
+}
+async function openScale(device){
+  try{
+    if(!device.opened) await device.open();
+    device.addEventListener('inputreport', onScaleReport);
+    SCALE.device = device;
+    renderScaleChip(); refreshScaleUse();
+    dbg('scale connected', device.productName);
+  }catch(e){ dbg('scale open failed', e.message); }
+}
+function onScaleReport(e){
+  const d = e.data;                       // DataView; report id already stripped
+  if(!d || d.byteLength < 5) return;
+  const status = d.getUint8(0);
+  const unit   = d.getUint8(1);
+  const exp    = d.getInt8(2);
+  const raw    = d.getUint8(3) | (d.getUint8(4) << 8);
+  SCALE.status   = status;
+  SCALE.unitCode = unit;
+  SCALE.value    = +(raw * Math.pow(10, exp)).toFixed(2);
+  SCALE.stable   = (status === 4);        // 4 = stable with weight
+  renderScaleChip(); refreshScaleUse();
+}
+async function autoReconnectScale(){
+  if(!('hid' in navigator)) return;
+  try{
+    const devs = await navigator.hid.getDevices();
+    const m = devs.find(x => x.vendorId===SCALE_FILTER.vendorId && x.productId===SCALE_FILTER.productId);
+    if(m) await openScale(m);             // permission persists per device — no gesture needed
+  }catch(e){ dbg('scale auto-reconnect skipped', e.message); }
+}
+function renderScaleChip(){
+  const c = document.getElementById('scaleChip');
+  if(!c) return;
+  if(!SCALE.device){ c.textContent='⚖ Connect scale'; c.className='btn-token scale-idle'; return; }
+  c.textContent = `⚖ ${SCALE.value} ${unitName(SCALE.unitCode)}`;
+  c.className = 'btn-token scale-' + ((SCALE.stable && SCALE.value>0) ? 'stable' : (SCALE.status===3 ? 'motion' : 'idle'));
+}
+function refreshScaleUse(){
+  const el = document.getElementById('scaleUse');
+  if(!el || !ACTIVE) return;
+  if(!SCALE.device){ el.innerHTML=''; return; }
+  if(SCALE.stable && SCALE.value>0){
+    el.innerHTML = `<button class="btn-act dark" style="margin-top:6px" onclick="useScaleWeight('${ACTIVE}')">Use scale weight — ${SCALE.value} ${unitName(SCALE.unitCode)}</button>`;
+  }else{
+    const hint = SCALE.status===3 ? 'settling…' : 'place box on the scale';
+    el.innerHTML = `<div class="note amb" style="margin-top:6px">Scale: ${SCALE.value? SCALE.value+' '+unitName(SCALE.unitCode):'—'} (${hint})</div>`;
+  }
+}
+function useScaleWeight(recId){
+  CACHE[recId].weightOverride = { value:SCALE.value, units:ssUnits(SCALE.unitCode) };
+  dbg('weight from scale', CACHE[recId].weightOverride);
+  fetchRates(recId);
+}
+
+/* ---- TOKEN ---- */
+function getToken(){ return localStorage.getItem('pine_at_key') || ''; }
+function openToken(){ document.getElementById('tkInput').value = getToken(); document.getElementById('tkMask').classList.add('on'); }
+function closeToken(){ document.getElementById('tkMask').classList.remove('on'); }
+function saveToken(){
+  const v = document.getElementById('tkInput').value.trim();
+  if(v) localStorage.setItem('pine_at_key', v);
+  closeToken(); renderTokenChip(); loadQueue();
+}
+function renderTokenChip(){
+  const c = document.getElementById('tokenChip');
+  if(!c) return;
+  if(getToken()){ c.classList.add('set'); c.textContent='Token ✓'; }
+  else { c.classList.remove('set'); c.textContent='Token'; }
+}
+
+/* ---- LOGGING ---- */
+function dbg(){ console.log('[shipping]', ...arguments); }
+
+/* ---- AIRTABLE (v0 REST) ---- */
+async function atList(){
+  const tok = getToken();
+  if(!tok) throw new Error('No token');
+  const formula = `{Order Status}='${STATUS.awaitingShip}'`;
+  const fieldIds = [...Object.values(R), ...Object.values(W_ADDR)];
+  let url = `https://api.airtable.com/v0/${BASE}/${T_ORDERS}?returnFieldsByFieldId=true`
+          + `&filterByFormula=${encodeURIComponent(formula)}`
+          + fieldIds.map(f=>`&fields%5B%5D=${f}`).join('');
+  const recs = [];
+  let offset = '';
+  do {
+    const r = await fetch(url + (offset?`&offset=${offset}`:''), { headers:{ Authorization:'Bearer '+tok } });
+    if(!r.ok) throw new Error('Airtable '+r.status);
+    const j = await r.json();
+    recs.push(...j.records);
+    offset = j.offset || '';
+  } while(offset);
+  return recs;
+}
+
+async function atPatch(recId, fields){
+  if(!STATUS_WRITES_ENABLED){
+    dbg('PREVIEW (writes disabled) would PATCH', recId, JSON.stringify(fields));
+    return { preview:true };
+  }
+  const tok = getToken();
+  const r = await fetch(`https://api.airtable.com/v0/${BASE}/${T_ORDERS}/${recId}`, {
+    method:'PATCH',
+    headers:{ Authorization:'Bearer '+tok, 'Content-Type':'application/json' },
+    body: JSON.stringify({ fields, returnFieldsByFieldId:true })
+  });
+  if(!r.ok) throw new Error('PATCH '+r.status);
+  return r.json();
+}
+
+/* ---- SHIPSTATION (via worker) ---- */
+async function ssGet(path){
+  const r = await fetch(`${WORKER}/shipstation/${path}`);
+  if(!r.ok) throw new Error('ShipStation '+r.status);
+  return r.json();
+}
+async function ssPost(path, body){
+  const r = await fetch(`${WORKER}/shipstation/${path}`, {
+    method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error('ShipStation '+r.status+' on '+path);
+  return r.json();
+}
+
+/* ---- FIELD HELPERS (v0 flat shapes) ---- */
+function fv(rec, id){ const v = rec.fields[id]; return (v===undefined||v===null)?'':v; }
+function firstStr(v){ return Array.isArray(v) ? (v[0]||'') : (v||''); }
+function proofUrl(rec){
+  const v = rec.fields[R.proof];
+  if(!v) return '';
+  const arr = Array.isArray(v)?v:[v];
+  for(const a of arr){
+    if(typeof a==='string' && a.startsWith('http')) return a;
+    if(a && a.thumbnails && a.thumbnails.large) return a.thumbnails.large.url;
+    if(a && a.url) return a.url;
+  }
+  return '';
+}
+
+/* ---- READINESS (pre-tap, from Airtable) ---- */
+function readiness(rec){
+  if(firstStr(fv(rec,R.shipAcct))) return { k:'n', t:'Ship in ShipStation' }; // blind-ship → out of v1
+  const haveAddr = firstStr(fv(rec,W_ADDR.addr)) && firstStr(fv(rec,W_ADDR.city)) && firstStr(fv(rec,W_ADDR.state)) && firstStr(fv(rec,W_ADDR.zip));
+  if(!haveAddr) return { k:'r', t:'No Address' };
+  const w = parseFloat(firstStr(fv(rec,R.weight)))||0;
+  if(!w) return { k:'amb', t:'Needs Weight' };
+  return { k:'g', t:'Ready' };
+}
+
+/* ---- QUEUE ---- */
+async function loadQueue(){
+  const q = document.getElementById('queue');
+  const t = document.getElementById('qTitle');
+  if(!getToken()){ t.textContent='No token'; q.innerHTML='<div class="empty">Add your Airtable token to load the queue.</div>'; return; }
+  t.textContent='Loading…'; q.innerHTML='<div class="spin">Loading caught orders…</div>';
+  try{
+    const recs = await atList();
+    CACHE = {};
+    recs.forEach(r => CACHE[r.id] = { order:r });
+    t.textContent = `${recs.length} order${recs.length===1?'':'s'} awaiting ship`;
+    if(!recs.length){ q.innerHTML='<div class="empty">Nothing caught & awaiting ship right now.</div>'; return; }
+    q.innerHTML = recs.map(cardHtml).join('');
+  }catch(e){
+    t.textContent='Error';
+    q.innerHTML=`<div class="empty">Couldn't load: ${e.message}. Check your token.</div>`;
+  }
+}
+
+function cardHtml(rec){
+  const cust = firstStr(fv(rec,R.customer)) || '—';
+  const num  = firstStr(fv(rec,R.orderNum)) || '—';
+  const method = firstStr(fv(rec,R.shipMethod));
+  const w = parseFloat(firstStr(fv(rec,R.weight)))||0;
+  const boxes = parseFloat(firstStr(fv(rec,R.boxes)))||0;
+  const rd = readiness(rec);
+  const pi = proofUrl(rec);
+  const thumb = pi
+    ? `<div class="jc-thumb"><img src="${pi}" onerror="this.style.display='none'"></div>`
+    : `<div class="jc-thumb"><svg class="jc-thumb-ph" viewBox="0 0 24 24"><path d="M3 3h18v18H3z" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>`;
+  const tags = [];
+  if(boxes) tags.push(`<span class="tag n">${boxes} box${boxes===1?'':'es'}</span>`);
+  if(w) tags.push(`<span class="tag n">${w} oz est</span>`);
+  if(method) tags.push(`<span class="tag n">${method}</span>`);
+  tags.push(`<span class="tag ${rd.k}">${rd.t}</span>`);
+  const flagged = rd.k==='r' ? ' flagged' : '';
+  return `<div class="job-card${flagged}" onclick="openCard('${rec.id}')">
+    ${thumb}
+    <div class="jc-info">
+      <div class="jc-name">${cust}</div>
+      <div class="jc-meta">${tags.join('')}</div>
+    </div>
+    <div class="jc-right">
+      <div class="jc-order">${num}</div>
+      <div class="jc-status">${rd.t}</div>
+    </div>
+  </div>`;
+}
+
+/* ---- DRAWER ---- */
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('drawerMask').classList.remove('on');
+  ACTIVE = null;
+}
+
+async function openCard(recId){
+  ACTIVE = recId;
+  const rec = CACHE[recId].order;
+  const cust = firstStr(fv(rec,R.customer)) || '—';
+  const num  = firstStr(fv(rec,R.orderNum)) || '—';
+  document.getElementById('dOrderNum').textContent = 'Order '+num;
+  document.getElementById('dOrderName').textContent = cust;
+  document.getElementById('dChips').innerHTML = '';
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('drawerMask').classList.add('on');
+  const body = document.getElementById('drawerBody');
+  body.innerHTML = '<div class="spin">Looking up in ShipStation…</div>';
+
+  if(!num || num==='—'){ body.innerHTML='<div class="empty">No order number on this record.</div>'; return; }
+  try{
+    const j = await ssGet(`orders?orderNumber=${encodeURIComponent(num)}`);
+    const res = resolveShipStationOrder(j.orders, num);
+    CACHE[recId].ss = res;
+    renderDetail(recId, res);
+  }catch(e){
+    body.innerHTML = `<div class="empty">ShipStation lookup failed: ${e.message}</div>`;
+  }
+}
+
+function renderDetail(recId, res){
+  const body = document.getElementById('drawerBody');
+  if(res.state==='none'){ body.innerHTML='<div class="empty">No matching order found in ShipStation by this number.</div>'; return; }
+  if(res.state==='allShipped'){
+    body.innerHTML = `<div class="card"><div class="card-b">
+      <div class="note amb">This order is already marked <b>shipped</b> in ShipStation (${res.candidates.length} record${res.candidates.length===1?'':'s'}).
+      Buying again would create a duplicate label.</div></div></div>`;
+    return;
+  }
+  if(res.state==='multi'){
+    body.innerHTML = `<div class="card"><div class="card-h"><span class="card-t">Multiple awaiting — pick one</span></div>
+      <div class="card-b">${res.candidates.map((o,i)=>{
+        const a=o.shipTo||{};
+        return `<div class="rate-row" onclick="pickCandidate('${recId}',${i})">
+          <div><div class="rate-svc">${a.name||'—'}</div>
+          <div class="note">${[a.street1,a.city,a.state].filter(Boolean).join(', ')}</div></div>
+          <div class="note">${o.orderId}</div></div>`;
+      }).join('')}</div></div>`;
+    return;
+  }
+  renderShippable(recId, res.order);
+}
+
+function pickCandidate(recId, i){
+  const res = CACHE[recId].ss;
+  renderShippable(recId, res.candidates[i]);
+}
+
+function renderShippable(recId, o){
+  CACHE[recId].picked = o;
+  const a = o.shipTo || {};
+  CACHE[recId].addr = {
+    name:a.name||'', company:a.company||'', street1:a.street1||'', street2:a.street2||'',
+    city:a.city||'', state:a.state||'', postalCode:a.postalCode||'', country:a.country||'US',
+    phone:a.phone||'', residential:!!a.residential
+  };
+  const verified = (a.addressVerified||'').toLowerCase().includes('validated successfully');
+  const blind = (o.advancedOptions && o.advancedOptions.billToParty==='my_other_account');
+  const wt = o.weight || {};
+  const body = document.getElementById('drawerBody');
+
+  // chips in strip
+  const chips = [];
+  if(wt.value) chips.push(`<span class="tag n">${wt.value} ${wt.units||'oz'}</span>`);
+  chips.push(verified ? `<span class="tag g">Addr OK</span>` : `<span class="tag amb">Unverified</span>`);
+  document.getElementById('dChips').innerHTML = chips.join('');
+
+  let html = '';
+  if(blind){
+    html += `<div class="card"><div class="card-b"><div class="note red">⚠ This order is set to third-party / blind-ship billing in ShipStation
+      (billToParty = my_other_account). That's out of v1 scope — finish this one in ShipStation.</div></div></div>`;
+  }
+
+  // address editor
+  const ad = CACHE[recId].addr;
+  html += `<div class="card"><div class="card-h"><span class="card-t">Ship To</span></div><div class="card-b">
+    <div class="fld"><label>Name</label><input data-f="name" value="${esc(ad.name)}"></div>
+    <div class="fld"><label>Company</label><input data-f="company" value="${esc(ad.company)}"></div>
+    <div class="fld"><label>Street 1</label><input data-f="street1" value="${esc(ad.street1)}"></div>
+    <div class="fld"><label>Street 2</label><input data-f="street2" value="${esc(ad.street2)}"></div>
+    <div class="fld row2">
+      <div><label>City</label><input data-f="city" value="${esc(ad.city)}"></div>
+      <div><label>State</label><input data-f="state" value="${esc(ad.state)}"></div>
+      <div><label>ZIP</label><input data-f="postalCode" value="${esc(ad.postalCode)}"></div>
+    </div>
+    <div class="verify-line">
+      ${verified ? '<span class="tag g">Validated</span>' : '<span class="tag amb">Not yet validated</span>'}
+      <span class="note ${verified?'green':'amb'}">${esc(a.addressVerified||'—')}</span>
+    </div>
+    <div class="note">Editing the address clears any fetched rates — address is fetched first, rates follow.</div>
+    <button class="btn-act outline" onclick="onAddrEdit('${recId}')">Apply address edits &amp; clear rates</button>
+  </div></div>`;
+
+  // rates
+  html += `<div class="card" id="rateCard"><div class="card-h"><span class="card-t">Rates</span></div>
+    <div class="card-b" id="rateBody">
+      <button class="btn-act dark" ${verified?'':'disabled'} onclick="fetchRates('${recId}')">${verified?'Fetch rates':'Validate address first'}</button>
+      <div id="scaleUse"></div>
+      ${verified?'':'<div class="note amb" style="margin-top:6px">Buy is gated on a validated address. Fix &amp; verify in ShipStation, then re-open.</div>'}
+    </div></div>`;
+
+  // buy + writeback (rendered after a rate is picked)
+  html += `<div id="buyCard"></div>`;
+
+  body.innerHTML = html;
+  refreshScaleUse();
+}
+
+function onAddrEdit(recId){
+  const inputs = document.querySelectorAll('#drawerBody input[data-f]');
+  const ad = CACHE[recId].addr;
+  inputs.forEach(i => ad[i.dataset.f] = i.value);
+  // clear rates + picked service
+  CACHE[recId].rates = null; CACHE[recId].picked.__service = null;
+  document.getElementById('rateBody').innerHTML =
+    `<button class="btn-act dark" onclick="fetchRates('${recId}')">Fetch rates</button>
+     <div id="scaleUse"></div>
+     <div class="note" style="margin-top:6px">Address applied locally. In v1, address writeback to Airtable + ShipStation lands when STATUS_WRITES_ENABLED flips on.</div>`;
+  document.getElementById('buyCard').innerHTML='';
+  refreshScaleUse();
+  dbg('address edited (local, preview)', ad);
+}
+
+async function fetchRates(recId){
+  const o = CACHE[recId].picked;
+  const ad = CACHE[recId].addr;
+  const ov = CACHE[recId].weightOverride;
+  const wt = ov || (o.weight && o.weight.value ? o.weight : { value:16, units:'ounces' });
+  const src = ov ? 'scale' : (o.weight && o.weight.value ? 'ShipStation' : 'fallback');
+  const rb = document.getElementById('rateBody');
+  rb.innerHTML = '<div class="spin">Fetching rates…</div>';
+  const payload = {
+    carrierCode: o.carrierCode || DEFAULT_CARRIER,
+    fromPostalCode: SHIP_FROM.postalCode,
+    toState: ad.state, toPostalCode: ad.postalCode, toCountry: ad.country||'US',
+    weight: wt,
+    dimensions: o.dimensions || undefined,
+    confirmation: 'none',
+    residential: !!ad.residential
+  };
+  try{
+    const rates = await ssPost('shipments/getrates', payload);
+    CACHE[recId].rates = rates;
+    const wline = `<div class="note" style="margin-bottom:8px">Weight: <b>${wt.value} ${wt.units}</b> <span class="${src==='scale'?'':''}">(${src})</span></div>`;
+    if(!Array.isArray(rates) || !rates.length){ rb.innerHTML=wline+'<div class="note amb">No rates returned for this carrier/destination.</div><div id="scaleUse"></div>'; refreshScaleUse(); return; }
+    rb.innerHTML = wline + rates.map((r,i)=>{
+      const cost = (r.shipmentCost||0)+(r.otherCost||0);
+      return `<div class="rate-row" id="rate-${recId}-${i}" onclick="pickRate('${recId}',${i})">
+        <div class="rate-svc">${r.serviceName||r.serviceCode}</div>
+        <div class="rate-cost">$${cost.toFixed(2)}</div></div>`;
+    }).join('') + '<div id="scaleUse"></div>';
+    refreshScaleUse();
+  }catch(e){
+    rb.innerHTML = `<div class="note red">Rate fetch failed: ${e.message}</div><div id="scaleUse"></div>`;
+    refreshScaleUse();
+  }
+}
+
+function pickRate(recId, i){
+  const rates = CACHE[recId].rates;
+  const r = rates[i];
+  CACHE[recId].picked.__service = r;
+  document.querySelectorAll(`[id^="rate-${recId}-"]`).forEach(el=>el.classList.remove('sel'));
+  const el = document.getElementById(`rate-${recId}-${i}`); if(el) el.classList.add('sel');
+  const cost = (r.shipmentCost||0)+(r.otherCost||0);
+  const o = CACHE[recId].picked;
+  document.getElementById('buyCard').innerHTML = `<div class="card"><div class="card-h"><span class="card-t">Buy Label</span></div><div class="card-b">
+    <div class="note">${r.serviceName||r.serviceCode} · <b>$${cost.toFixed(2)}</b> · ${o.carrierCode||DEFAULT_CARRIER}</div>
+    <button class="btn-act green" onclick="confirmBuy('${recId}',${i})">${LABEL_BUY_ENABLED?'Confirm buy':'Confirm buy (preview)'} — $${cost.toFixed(2)}</button>
+  </div></div>`;
+}
+
+async function confirmBuy(recId, i){
+  const o = CACHE[recId].picked;
+  const r = CACHE[recId].rates[i];
+  const cost = (r.shipmentCost||0)+(r.otherCost||0);
+  if(!confirm(`Buy ${r.serviceName||r.serviceCode} for $${cost.toFixed(2)}?`)) return;
+
+  const buyPayload = {
+    orderId: o.orderId,
+    carrierCode: o.carrierCode || DEFAULT_CARRIER,
+    serviceCode: r.serviceCode,
+    packageCode: o.packageCode || 'package',
+    confirmation: 'none',
+    shipDate: new Date().toISOString().slice(0,10),
+    weight: CACHE[recId].weightOverride || (o.weight && o.weight.value ? o.weight : { value:16, units:'ounces' }),
+    dimensions: o.dimensions || undefined,
+    testLabel: false
+  };
+
+  if(!LABEL_BUY_ENABLED){
+    dbg('PREVIEW (buy disabled) would POST orders/createlabelfororder', buyPayload);
+    const info = { trackingNumber:'PREVIEW-TRACK-0001', shipmentId:'PREVIEW-SHIP', carrierCode:buyPayload.carrierCode, cost };
+    CACHE[recId].shipped = info;
+    await doWriteback(recId, info);
+    renderShipped(recId, info, true);
+    return;
+  }
+
+  try{
+    const label = await ssPost('orders/createlabelfororder', buyPayload);
+    dbg('label bought', label.trackingNumber, label.shipmentId);
+    printLabel(label.labelData);
+    const info = { trackingNumber:label.trackingNumber, shipmentId:String(label.shipmentId), carrierCode:buyPayload.carrierCode, cost };
+    CACHE[recId].shipped = info;
+    await doWriteback(recId, info);
+    renderShipped(recId, info, false);
+  }catch(e){
+    alert('Buy failed: '+e.message);
+  }
+}
+
+function renderShipped(recId, info, isPreview){
+  const bc = document.getElementById('buyCard');
+  bc.innerHTML = `<div class="card"><div class="card-h"><span class="card-t">${isPreview?'Shipped (preview)':'Shipped'}</span></div><div class="card-b">
+    <div class="note green">✓ ${isPreview?'Label NOT bought (preview). This is the chain that would run:':'Label bought.'}</div>
+    <div class="note" style="margin-top:6px">Tracking: <b>${esc(info.trackingNumber)}</b><br>Carrier: ${esc(info.carrierCode)}<br>Shipment ID: ${esc(info.shipmentId)}<br>Cost: $${(info.cost||0).toFixed(2)}<br>Status → <b>Completed</b> (fires automations)</div>
+    <button class="btn-act outline" onclick="voidLabel('${recId}')">${isPreview?'Void label (preview)':'Void label'}</button>
+  </div></div>`;
+}
+
+async function voidLabel(recId){
+  const info = CACHE[recId].shipped;
+  if(!info){ alert('No label on this card to void.'); return; }
+  if(!confirm(`Void the label for shipment ${info.shipmentId}?\nThis cancels the label${LABEL_BUY_ENABLED?' and requests a refund':''} and reverts the order to Caught - Awaiting Ship.`)) return;
+
+  // 1. Void the label at ShipStation (part of the buy chain → gated on LABEL_BUY_ENABLED)
+  if(!LABEL_BUY_ENABLED){
+    dbg('PREVIEW (buy disabled) would POST shipments/voidlabel', { shipmentId: info.shipmentId });
+  }else{
+    try{
+      const res = await ssPost('shipments/voidlabel', { shipmentId: Number(info.shipmentId) });
+      if(res && res.approved === false){ alert('ShipStation declined the void: '+(res.message||'unknown')); return; }
+      dbg('label voided', info.shipmentId);
+    }catch(e){ alert('Void failed: '+e.message); return; }
+  }
+
+  // 2. Revert the Airtable writeback (gated on STATUS_WRITES_ENABLED)
+  await revertWriteback(recId);
+
+  const bc = document.getElementById('buyCard');
+  bc.innerHTML = `<div class="card"><div class="card-b"><div class="note amb">↩ ${LABEL_BUY_ENABLED?'Label voided.':'Void previewed.'} Order reverted to Caught - Awaiting Ship — it'll reappear in the queue on refresh.</div></div></div>`;
+  CACHE[recId].shipped = null;
+}
+
+async function revertWriteback(recId){
+  const fields = {};
+  fields[W_SHIP.tracking]   = '';
+  fields[W_SHIP.carrier]    = '';
+  fields[W_SHIP.shipDate]   = null;
+  fields[W_SHIP.shipmentId] = '';
+  fields[R.status]          = STATUS.awaitingShip;
+  await atPatch(recId, fields);
+  dbg('writeback reverted (or previewed)', recId);
+}
+
+async function doWriteback(recId, info){
+  const fields = {};
+  fields[W_SHIP.tracking]   = info.trackingNumber;
+  fields[W_SHIP.carrier]    = info.carrierCode;
+  fields[W_SHIP.shipDate]   = new Date().toISOString().slice(0,10);
+  fields[W_SHIP.shipmentId] = info.shipmentId;
+  if(typeof info.cost==='number') fields[W_SHIP.cost] = info.cost;
+  fields[R.status] = STATUS.completed;   // fires Completed automations; tracking fields mark it as shipped
+  // address writeback (flat)
+  const ad = CACHE[recId].addr;
+  fields[W_ADDR.contact] = ad.name;
+  fields[W_ADDR.addr]    = [ad.street1, ad.street2].filter(Boolean).join(' ');
+  fields[W_ADDR.city]    = ad.city;
+  fields[W_ADDR.state]   = ad.state;
+  fields[W_ADDR.zip]     = ad.postalCode;
+  await atPatch(recId, fields);
+  dbg('writeback complete (or previewed)', recId);
+}
+
+function printLabel(b64){
+  if(!b64) return;
+  const w = window.open('');
+  w.document.write(`<iframe width="100%" height="100%" src="data:application/pdf;base64,${b64}"></iframe>`);
+}
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ---- BOOT ---- */
+if(LABEL_BUY_ENABLED && STATUS_WRITES_ENABLED){
+  const pb = document.getElementById('previewBadge'); if(pb) pb.style.display='none';
+}
+renderTokenChip();
+loadQueue();
+autoReconnectScale();
+</script>
+</body>
+</html>
