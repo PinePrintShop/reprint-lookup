@@ -1,0 +1,3622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pine Sales Entry v2-v15</title>
+<style>
+/* ── Pine canonical tokens (exact from pine-catching-v122) ── */
+:root{
+  --bg:#F2F2EE; --surface:#fff; --bg-soft:#F8F8F5;
+  --border:#E5E5E0; --border-dk:#D0D0CA;
+  --green:#1e6b45; --green-lt:#e8f5ee; --green-md:#2d8a5a; --green-dk:#144d31;
+  --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+  --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83250;
+  --red:#c0392b; --red-bg:#fdf2f2; --red-bd:#f5c6c6;
+  --amb:#b7791f; --amb-bg:#fffbeb; --amb-bd:#fde68a;
+  --sb-bg:#0A0A08; --sb-border:#1A1A16; --sb-active:#141410;
+  --sans:Helvetica,Arial,sans-serif;
+  --cond:Helvetica,Arial,sans-serif;
+  --mono:Helvetica,Arial,sans-serif;
+  --radius:4px; --radius-lg:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+/* ── Sales-entry size bump ── Cards/text/buttons are a touch larger than
+   catching's canonical sizing because Sales Entry is a less-dense view
+   (queue inbox vs production floor). All ratios preserved. */
+
+/* ── App shell ── */
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* ── Topbar (press-bar pattern from catching) ── */
+.topbar{display:flex;align-items:center;gap:8px;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;position:sticky;top:0;z-index:50;flex-shrink:0}
+.topbar-spacer{flex:1}
+.btn-refresh,.btn-token{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);display:flex;align-items:center;gap:5px;flex-shrink:0;transition:all .1s}
+.btn-refresh:hover,.btn-token:hover{border-color:var(--text);color:var(--text)}
+.btn-token.set{border-color:var(--green);color:var(--green)}
+.btn-token.set:hover{background:var(--green-lt)}
+.pt{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;transition:all .1s;font-family:var(--cond);display:flex;align-items:center}
+.pt:hover{border-color:var(--text);color:var(--text)}
+.pt.on{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.pt-ct{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:rgba(255,255,255,.08);font-size:9px;padding:0 4px;margin-left:5px;color:var(--muted-lt);font-family:var(--mono)}
+.pt.on .pt-ct{background:rgba(232,232,50,.15);color:var(--yellow)}
+
+/* ── Token entry screen ── */
+.token-screen{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.token-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;max-width:420px;width:100%}
+.token-title{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond);margin-bottom:6px}
+.token-sub{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.token-input{width:100%;padding:8px 10px;font-size:13px;font-family:var(--mono);border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--bg);outline:none}
+.token-input:focus{border-color:var(--green)}
+.token-btn{margin-top:10px;width:100%;padding:8px 12px;background:var(--text);color:var(--surface);border:none;border-radius:var(--radius);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:var(--cond)}
+.token-btn:hover{background:#000}
+.token-err{margin-top:8px;font-size:11px;color:var(--red);min-height:14px}
+
+/* ── Content canvas ── */
+.content{padding:20px;max-width:none}
+
+/* ── Queue header (q-hdr from catching) ── */
+.q-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:14px;flex-wrap:wrap}
+.q-title{font-size:10px;font-weight:700;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond)}
+.q-date{font-size:10px;color:var(--muted-lt);font-family:var(--mono)}
+.q-search{background:var(--surface);border:1px solid var(--border-dk);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;width:240px}
+.q-search input{flex:1;border:none;outline:none;font-size:11px;font-family:var(--cond);background:transparent;color:var(--text);text-transform:uppercase;letter-spacing:.04em}
+.q-search input::placeholder{color:var(--muted-lt);text-transform:uppercase;letter-spacing:.06em}
+.q-search-icon{font-size:11px;color:var(--muted-lt)}
+
+/* ── Empty / state ── */
+.empty{text-align:center;padding:48px 20px;color:var(--muted-lt);font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond)}
+
+/* ── Cards (.card — info panels) ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px}
+.card-h{padding:9px 14px;border-bottom:1px solid var(--bg);display:flex;align-items:center;justify-content:space-between}
+.card-t{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-family:var(--cond)}
+.card-b{padding:12px 14px}
+
+/* ── Job card — CANONICAL (exact from catching v122 lines 123–137) ── */
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;gap:16px;padding:16px 18px;cursor:pointer;transition:border-color .12s,box-shadow .12s;margin-bottom:8px}
+.job-card:hover{border-color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.job-card.flagged{border-color:var(--red-bd);background:var(--red-bg)}
+.jc-thumb{width:80px;height:80px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.jc-thumb img{width:100%;height:100%;object-fit:cover}
+.jc-thumb-ph{width:24px;height:24px;opacity:.2}
+.jc-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.jc-name{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--cond);color:var(--text)}
+.jc-name.muted{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.06em}
+.jc-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.jc-meta .tag{font-size:10px;padding:3px 9px}
+.jc-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;min-width:90px}
+.jc-order{font-size:36px;font-weight:700;letter-spacing:-0.02em;color:var(--text);font-family:var(--cond);line-height:1}
+.jc-status{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:var(--cond);color:var(--muted-lt)}
+.jc-status.qcd{color:var(--green)}
+.jc-status.complete{color:var(--green-dk)}
+
+/* ── Order group (.og) — exact from catching ── */
+.og{margin-bottom:18px}
+.og-hdr{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;margin-bottom:6px}
+.og-hdr:hover{background:var(--surface);border-color:var(--border-dk)}
+.og-num{font-size:14px;font-weight:700;color:var(--text);font-family:var(--cond);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;flex-shrink:0}
+.og-cust{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.og-meta{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.og-meta .tag{font-size:9px;padding:2px 7px}
+
+/* ── Tags — exact from catching v122 ── */
+.tag{font-size:8px;padding:2px 7px;border-radius:2px;white-space:nowrap;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;font-family:var(--cond)}
+.tag.g{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-border)}
+.tag.y{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-border)}
+.tag.r{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.tag.n{background:var(--surface);color:var(--muted);border-color:var(--border)}
+.tag.amb{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+
+/* ── Cockpit strip (cp-order-strip pattern) ── */
+.cp-order-strip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;min-height:54px;margin-bottom:10px}
+.cp-back{padding:5px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;font-family:var(--cond);flex-shrink:0;transition:all .1s}
+.cp-back:hover{border-color:var(--text);color:var(--text)}
+.cp-order-info{flex:1;min-width:0;display:flex;align-items:baseline;gap:10px;overflow:hidden}
+.cp-order-num{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.12em;font-weight:700;font-family:var(--cond);flex-shrink:0}
+.cp-order-name{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-order-chips{display:flex;gap:4px;flex-shrink:0;flex-wrap:nowrap}
+
+/* ── New for sales entry — small additions not in catching ── */
+/* Mode picker — shown inside a fresh order, asks which workflow */
+.mode-pick{padding:32px 16px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.mode-pick-hdr{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-family:var(--cond);text-align:center}
+.mode-pick-tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:760px}
+.mode-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 20px;cursor:pointer;transition:all .12s;display:flex;flex-direction:column;gap:8px;text-align:left}
+.mode-tile:hover{border-color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.04);transform:translateY(-1px)}
+.mode-tile-name{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--text);font-family:var(--cond);line-height:1.1}
+.mode-tile-sub{font-size:12px;color:var(--muted);line-height:1.5}
+.mode-tile-when{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.1em;font-weight:700;font-family:var(--cond);margin-top:auto;padding-top:8px;border-top:1px solid var(--border)}
+
+.cp-ready{padding:5px 12px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:20px;font-family:var(--cond);cursor:pointer;background:var(--surface);color:var(--muted);border:1px solid var(--border-dk);transition:all .1s}
+.cp-ready:hover{border-color:var(--text);color:var(--text)}
+.cp-ready.on{background:var(--green);color:var(--surface);border-color:var(--green)}
+
+/* ── Diag (hidden by default; ?diag=1 to show) ── */
+.diag{display:none;position:fixed;bottom:0;left:0;right:0;max-height:30vh;overflow:auto;background:#0D0D0B;color:#E8E832;font-family:var(--mono);font-size:11px;padding:8px 12px;border-top:1px solid var(--green);z-index:9999;white-space:pre-wrap}
+body.diag-on .diag{display:block}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Order detail body — sections, imprint tiles, line item rows, form
+   ──────────────────────────────────────────────────────────────────── */
+/* Sections (IMPRINTS, LINE ITEMS) — stacked panels in the order body */
+.sec{margin-bottom:14px}
+.sec-hdr{
+  display:flex;align-items:baseline;gap:10px;
+  padding:0 2px 8px;border-bottom:1px solid var(--border);margin-bottom:10px
+}
+.sec-title{
+  font-family:var(--cond);font-weight:700;text-transform:uppercase;
+  font-size:14px;letter-spacing:.04em;color:var(--text)
+}
+.sec-sub{font-size:11px;color:var(--muted);font-family:var(--cond)}
+.sec-add{
+  margin-left:auto;
+  background:var(--text);color:var(--bg);
+  border:none;padding:6px 12px;border-radius:4px;
+  font-family:var(--cond);font-weight:700;font-size:12px;
+  cursor:pointer;text-transform:uppercase;letter-spacing:.04em
+}
+.sec-add:hover{background:#2a2a26}
+.sec-add.stub{background:#999;cursor:not-allowed;opacity:.65}
+.sec-add.stub:hover{background:#999}
+.sec-empty-hint{
+  background:var(--panel);border:1px dashed var(--border);
+  border-radius:6px;padding:14px;text-align:center;
+  font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.5
+}
+.sec-empty-cta{
+  display:block;margin:10px auto 0;
+  background:var(--yellow);color:var(--text);
+  border:none;padding:8px 16px;border-radius:4px;
+  font-family:var(--cond);font-weight:700;font-size:13px;
+  cursor:pointer;text-transform:uppercase;letter-spacing:.04em
+}
+.sec-empty-cta:hover{filter:brightness(.95)}
+
+/* Imprint tiles — square-ish, proof-dominant when proof exists */
+.imp-tile-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px
+}
+.imp-tile{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:6px;cursor:pointer;
+  display:flex;flex-direction:column;gap:6px;
+  transition:border-color .12s, transform .12s
+}
+.imp-tile:hover{border-color:#999}
+.imp-tile.ghost{border-style:dashed;border-color:#b8860b;background:#fffdf6}
+.imp-thumb{
+  aspect-ratio:1.1;background:#ebebe6;border-radius:4px;position:relative;
+  display:flex;align-items:center;justify-content:center;overflow:hidden
+}
+.imp-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.imp-thumb-ph{width:42px;height:42px;color:#bbb}
+.imp-thumb-badge{
+  position:absolute;top:4px;right:4px;
+  font-family:var(--cond);font-size:9px;font-weight:700;
+  background:#b8860b;color:#fff;padding:2px 5px;border-radius:3px;
+  text-transform:uppercase;letter-spacing:.05em
+}
+.imp-tile-body{display:flex;flex-direction:column;gap:2px;padding:2px 4px 4px}
+.imp-tile-name{
+  font-family:var(--cond);font-weight:700;font-size:13px;
+  color:var(--text);text-transform:uppercase;letter-spacing:.02em;
+  line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.imp-tile-sub{font-size:11px;color:var(--muted);line-height:1.3}
+.imp-tile-attach{
+  font-size:10px;color:var(--muted);margin-top:2px;
+  font-family:var(--cond);text-transform:uppercase;letter-spacing:.03em
+}
+.imp-tile-attach.warn{color:#b8860b;font-weight:700}
+
+/* Line item rows — dense, horizontal-first, with mini size grid */
+.li-row{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:10px 12px;margin-bottom:8px
+}
+.li-line{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:8px
+}
+.li-line-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.li-imp-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#e7ecf5;color:#2d4a7c;
+  font-family:var(--cond);font-weight:700;font-size:11px;
+  padding:3px 7px;border-radius:3px;
+  text-transform:uppercase;letter-spacing:.03em
+}
+.li-imp-pill.warn{background:#fff4d6;color:#7a5a00}
+.li-garment{
+  font-weight:700;font-size:14px;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.li-price{
+  font-size:12px;color:var(--muted);white-space:nowrap;
+  font-family:var(--cond)
+}
+.li-sz-mini{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:3px
+}
+.li-sz-cell{
+  background:#ebebe6;border-radius:3px;padding:5px 4px;
+  font-family:var(--cond);font-size:11px;text-align:center;
+  color:#888;text-transform:uppercase;letter-spacing:.02em
+}
+.li-sz-cell.filled{background:#dbe5d6;color:#345030;font-weight:700}
+
+/* Imprint form — inline expandable panel at top of IMPRINTS section */
+.imp-form{
+  background:#fcfcfa;border:1px solid var(--text);
+  border-radius:6px;padding:14px;margin-bottom:12px
+}
+.imp-form-hdr{
+  display:flex;align-items:center;gap:8px;
+  padding-bottom:10px;margin-bottom:12px;
+  border-bottom:1px solid var(--border)
+}
+.imp-form-title{
+  font-family:var(--cond);font-weight:700;text-transform:uppercase;
+  font-size:14px;letter-spacing:.04em;color:var(--text);flex:1
+}
+.imp-form-x{
+  background:transparent;border:none;font-size:22px;line-height:1;
+  cursor:pointer;color:var(--muted);padding:0 4px
+}
+.imp-form-x:hover{color:var(--text)}
+.imp-form-row{margin-bottom:14px}
+.imp-form-row:last-of-type{margin-bottom:0}
+.imp-form-lbl{
+  font-family:var(--cond);font-weight:700;font-size:11px;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+  margin-bottom:6px
+}
+.imp-form-lbl .opt{
+  font-weight:400;text-transform:none;font-size:10px;
+  color:#aaa;letter-spacing:0;margin-left:4px
+}
+.imp-form-btns{
+  display:flex;flex-wrap:wrap;gap:6px
+}
+.imp-form-btns.sub{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+.imp-btn{
+  background:#fff;border:1px solid #ccc;color:var(--text);
+  padding:8px 14px;border-radius:4px;
+  font-family:var(--cond);font-weight:700;font-size:12px;
+  cursor:pointer;text-transform:uppercase;letter-spacing:.03em;
+  transition:all .1s
+}
+.imp-btn:hover{border-color:var(--text);background:#f5f5f0}
+.imp-btn.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.imp-btn.cat{padding:10px 16px;font-size:13px}
+.imp-btn.cat.on{background:var(--yellow);color:var(--text);border-color:var(--text)}
+.imp-btn.sub{padding:6px 10px;font-size:11px}
+.imp-btn.ghost{background:transparent;border:1px dashed #ccc;color:var(--muted)}
+.imp-btn.num{min-width:42px;padding-left:0;padding-right:0;text-align:center}
+.imp-btn.ghost:hover{border-color:var(--text);color:var(--text)}
+.imp-btn.primary{background:var(--yellow);border-color:var(--text);font-size:13px;padding:9px 18px}
+.imp-btn.primary:hover{filter:brightness(.95)}
+.imp-btn.danger{background:#fff;border-color:#c44;color:#c44}
+.imp-btn.danger:hover{background:#c44;color:#fff}
+.imp-form-input{
+  width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:4px;
+  font-size:14px;font-family:var(--sans);box-sizing:border-box
+}
+.imp-form-input:focus{outline:none;border-color:var(--text)}
+.imp-form-textarea{
+  width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:4px;
+  font-size:13px;font-family:var(--sans);box-sizing:border-box;
+  min-height:60px;resize:vertical;line-height:1.4
+}
+.imp-form-textarea:focus{outline:none;border-color:var(--text)}
+.imp-form-empty{
+  background:#f5f5f0;border-radius:4px;padding:10px 12px;
+  font-size:12px;color:var(--muted);line-height:1.4
+}
+.imp-form-li-list{
+  display:flex;flex-direction:column;gap:4px;
+  background:#f5f5f0;border-radius:4px;padding:6px
+}
+.imp-form-li{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;border-radius:3px;cursor:pointer;
+  font-size:13px;transition:background .1s
+}
+.imp-form-li:hover{background:#ebebe6}
+.imp-form-li.on{background:#dbe5d6}
+.imp-form-li input[type="checkbox"]{margin:0;cursor:pointer}
+.imp-form-li-actions{display:flex;gap:6px;margin-top:6px}
+.imp-form-actions{
+  display:flex;gap:8px;justify-content:flex-end;
+  padding-top:14px;margin-top:14px;border-top:1px solid var(--border)
+}
+.imp-form-actions .imp-btn.danger{margin-right:auto}
+
+/* ─────────────────────────────────────────────────────────────────────
+   v2-v7: imprint-first empty state, LI focus mode, review/submit
+   ──────────────────────────────────────────────────────────────────── */
+
+/* Cockpit Review / Submit buttons */
+.cp-review, .cp-submit {
+  padding:6px 12px; font-size:10px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em;
+  border-radius:20px; cursor:pointer; font-family:var(--cond);
+  display:inline-flex; align-items:center; gap:5px;
+  transition:all .1s;
+}
+.cp-review { background:var(--surface); color:var(--text); border:1px solid var(--border-dk); }
+.cp-review:hover { border-color:var(--text); }
+.cp-submit { background:var(--yellow); color:var(--text); border:1px solid var(--text); }
+.cp-submit:hover { filter:brightness(0.95); }
+
+/* Intro banner — two-step header for imprint-empty mode */
+.intro-banner { padding:10px 4px 14px; }
+.intro-banner .step {
+  display:flex; align-items:center; gap:8px;
+}
+.intro-banner .stepnum {
+  background:var(--text); color:var(--yellow);
+  width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; font-family:var(--cond); flex-shrink:0;
+}
+.intro-banner .stepnum.next { background:#D0D0CA; color:#fff; }
+.intro-banner .stept {
+  font-size:13px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.04em; font-family:var(--cond); color:var(--text);
+}
+.intro-banner .stept.muted { color:var(--muted-lt); }
+.intro-banner .arr { color:#D0D0CA; padding:0 2px; font-size:14px; }
+
+/* Empty cards (used when imprint form was closed but should re-open) */
+.empty-card {
+  background:#fff; border:1px dashed #D0D0CA; border-radius:6px;
+  padding:32px 16px; text-align:center;
+}
+.empty-card-ico { font-size:32px; color:#D0D0CA; margin-bottom:10px; }
+.empty-card-big { font-size:14px; font-weight:700; margin-bottom:6px; font-family:var(--cond); text-transform:uppercase; letter-spacing:.04em; }
+.empty-card-sub { font-size:12px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+.empty-card-cta {
+  background:var(--text); color:#fff; border:none;
+  padding:10px 18px; border-radius:5px;
+  font-size:12px; font-weight:700; cursor:pointer;
+  text-transform:uppercase; letter-spacing:.04em; font-family:var(--cond);
+  display:inline-flex; align-items:center; gap:6px;
+}
+
+/* Imprint strip — pinned at top in li-empty / li-focus / review */
+.imp-strip {
+  background:#fff; border:1px solid var(--border); border-radius:6px;
+  padding:8px 10px; margin-bottom:12px;
+  display:flex; align-items:center; gap:8px;
+}
+.imp-strip-lbl {
+  font-size:9px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.08em; font-weight:700; flex-shrink:0; font-family:var(--cond);
+}
+.imp-chips { display:flex; gap:5px; flex:1; flex-wrap:wrap; min-width:0; }
+.imp-chip {
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--bg); border:1px solid var(--border); border-radius:4px;
+  padding:4px 8px; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.03em; font-family:var(--cond);
+  cursor:pointer; transition:border-color .1s;
+}
+.imp-chip:hover { border-color:var(--text); }
+.imp-chip.ghost { border-style:dashed; border-color:#b8860b; background:#fffdf6; }
+.imp-chip-ph {
+  width:18px; height:18px; background:#dbe5d6; border-radius:2px;
+  display:flex; align-items:center; justify-content:center;
+  color:#345030; flex-shrink:0;
+}
+.imp-chip-ph i { font-size:11px; }
+.imp-strip-add {
+  background:transparent; border:1px dashed var(--muted); color:var(--muted);
+  padding:5px 11px; border-radius:4px;
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.04em; cursor:pointer; font-family:var(--cond); flex-shrink:0;
+}
+.imp-strip-add:hover { border-color:var(--text); color:var(--text); }
+
+/* LI stub — empty state for li-empty mode */
+.li-stub {
+  background:#fff; border:1px dashed #D0D0CA; border-radius:6px;
+  padding:32px 16px; text-align:center; transition:all .15s;
+}
+.li-stub.firmer { border-style:solid; border-color:var(--text); }
+.li-stub.dimmed { opacity:.4; pointer-events:none; }
+.li-stub-ico { font-size:30px; color:#D0D0CA; margin-bottom:10px; }
+.li-stub-big {
+  font-size:14px; font-weight:700; margin-bottom:6px;
+  font-family:var(--cond); text-transform:uppercase; letter-spacing:.03em;
+}
+.li-stub-sub {
+  font-size:12px; color:var(--muted); margin-bottom:16px;
+  line-height:1.5; max-width:380px; margin-left:auto; margin-right:auto;
+}
+.li-stub-cta {
+  background:var(--text); color:#fff; border:none;
+  padding:10px 20px; border-radius:5px;
+  font-size:12px; font-weight:700; cursor:pointer;
+  text-transform:uppercase; letter-spacing:.04em; font-family:var(--cond);
+  display:inline-flex; align-items:center; gap:6px;
+}
+.li-stub-cta:hover { background:#2a2a26; }
+.li-stub-pivot { margin-top:12px; font-size:11px; color:#BBBBB5; }
+.li-stub-pivot a { color:var(--muted); cursor:pointer; text-decoration:underline; }
+.li-stub-pivot a:hover { color:var(--text); }
+
+/* Imprint form variants */
+.imp-form .imp-form-counter {
+  font-size:10px; color:var(--muted); font-style:italic;
+}
+.imp-form.sheet {
+  /* Form sliding over LI focus — slightly more emphasized border */
+  border:1.5px solid var(--text);
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* LI focus — pager + dots + card */
+.pager {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:6px; padding:0 2px;
+}
+.pager-l, .pager-r {
+  background:#fff; border:1px solid var(--border-dk); border-radius:50%;
+  width:30px; height:30px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--muted); transition:all .1s;
+}
+.pager-l:hover:not([disabled]), .pager-r:hover:not([disabled]) {
+  border-color:var(--text); color:var(--text);
+}
+.pager-l[disabled], .pager-r[disabled] { opacity:.3; cursor:not-allowed; }
+.pager-pos {
+  flex:1; text-align:center;
+  font-size:11px; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+  font-family:var(--cond);
+}
+.dots {
+  display:flex; gap:4px; justify-content:center; margin-bottom:10px;
+}
+.dot {
+  width:6px; height:6px; border-radius:50%; background:var(--border-dk);
+  transition:all .15s;
+}
+.dot.on { background:var(--text); width:18px; border-radius:3px; }
+
+/* Line-item tabs (v2-v14) — direct access, garment shown on each tab */
+.li-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.li-tabs-lbl{font-size:9px;color:var(--muted-lt);font-family:var(--cond);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-right:2px}
+.li-tab{display:inline-flex;align-items:baseline;gap:7px;max-width:240px;padding:8px 15px;border-radius:20px;border:1px solid var(--border-dk);background:#fff;color:var(--muted);font-family:var(--cond);font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .1s}
+.li-tab:hover{border-color:var(--text);color:var(--text)}
+.li-tab.on{background:var(--text);border-color:var(--text);color:var(--yellow)}
+.li-tab-g{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;opacity:.7}
+.li-tab-g.empty{opacity:.45}
+.li-tab-add{padding:8px 14px;border-radius:20px;border:1px dashed var(--border-dk);background:transparent;color:var(--muted);font-family:var(--cond);font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.li-tab-add:hover{border-color:var(--text);color:var(--text)}
+
+.li-focus {
+  background:#fff; border:1px solid var(--border); border-radius:6px;
+  padding:14px; transition:opacity .15s;
+}
+.li-focus.dimmed { opacity:.4; pointer-events:none; }
+.li-row { margin-bottom:14px; }
+.li-row:last-child { margin-bottom:0; }
+.li-lbl {
+  font-size:9px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.08em; font-weight:700; font-family:var(--cond);
+  margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;
+}
+.li-lbl .meta {
+  font-weight:400; color:var(--muted-lt); letter-spacing:0;
+  text-transform:none; font-size:10px;
+}
+.li-imps { display:flex; gap:6px; flex-wrap:wrap; }
+.li-imp {
+  padding:7px 14px; border:1px solid var(--border-dk); border-radius:20px;
+  font-size:11px; font-weight:700; cursor:pointer;
+  background:#fff; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.04em; font-family:var(--cond);
+  display:inline-flex; align-items:center; gap:5px;
+  transition:all .1s;
+}
+.li-imp:hover { border-color:var(--text); color:var(--text); }
+.li-imp.on { background:var(--text); color:var(--yellow); border-color:var(--text); }
+
+/* Assigned-only imprint chips + inline "+ Assign" picker (v2-v15) */
+.li-imp-chip{padding:7px 9px 7px 13px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond);background:var(--text);color:var(--yellow);border:1px solid var(--text);display:inline-flex;align-items:center;gap:8px}
+.li-imp-x{cursor:pointer;opacity:.6;font-size:14px;line-height:1}
+.li-imp-x:hover{opacity:1}
+.li-assign-btn{padding:7px 13px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond);background:transparent;color:var(--muted);border:1px dashed var(--border-dk);cursor:pointer;transition:all .1s}
+.li-assign-btn:hover{border-color:var(--text);color:var(--text)}
+.li-assign-btn.on{background:var(--text);color:var(--yellow);border-style:solid;border-color:var(--text)}
+.li-assign-picker{margin-top:10px;border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--bg-soft);padding:8px}
+.li-assign-picker-h{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;font-family:var(--cond);padding:2px 4px 8px}
+.li-pick-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;cursor:pointer;transition:all .1s}
+.li-pick-row:last-child{margin-bottom:0}
+.li-pick-row:hover{border-color:var(--text)}
+.li-pick-id{font-family:var(--cond);font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase}
+.li-pick-loc{font-size:11px;color:var(--muted)}
+.li-pick-plus{font-family:var(--cond);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--green)}
+.li-pick-empty{font-size:11px;color:var(--muted-lt);font-style:italic;padding:6px 10px}
+
+/* Garment picker stub */
+.garm-pick {
+  background:var(--bg); border:1px solid var(--border); border-radius:5px;
+  padding:10px 12px; display:flex; align-items:center; gap:10px; cursor:pointer;
+  transition:border-color .1s;
+}
+.garm-pick:hover { border-color:var(--text); }
+.garm-pick.empty {
+  border:1px dashed #b7791f; background:#fffbe8;
+}
+.garm-pick .swatch {
+  width:32px; height:32px; border-radius:4px; flex-shrink:0;
+  background:var(--muted);
+}
+.garm-pick .swatch.empty {
+  background:#ebebe6;
+  display:flex; align-items:center; justify-content:center; color:#bbb;
+}
+.garm-pick .swatch.empty i { font-size:16px; }
+.garm-pick-name { font-size:13px; font-weight:700; flex:1; }
+.garm-pick-name.empty { color:#b7791f; font-style:italic; font-weight:400; }
+.garm-pick .chev { color:var(--muted); }
+
+/* Size grid */
+.sz-grid {
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;
+}
+.sz-cell {
+  background:var(--bg); border:1px solid var(--border); border-radius:5px;
+  padding:10px 12px;
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; transition:all .1s;
+}
+.sz-cell:hover { border-color:var(--text); }
+.sz-cell.f { background:#dbe5d6; border-color:#345030; }
+.sz-lbl {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.03em; font-family:var(--cond);
+}
+.sz-val {
+  font-size:14px; font-weight:700; color:#345030;
+  font-family:var(--cond);
+}
+.sz-placeholder { font-size:11px; color:var(--muted-lt); }
+.sz-more {
+  background:transparent; border:1px dashed var(--muted); color:var(--muted);
+  font-size:11px; padding:8px; border-radius:4px; cursor:pointer;
+  text-align:center; margin-top:6px; font-family:var(--cond);
+  text-transform:uppercase; letter-spacing:.03em; font-weight:700;
+}
+.sz-more:hover { border-color:var(--text); color:var(--text); }
+
+/* Price row */
+.price-row { display:flex; gap:10px; }
+.price-pick {
+  flex:1; background:var(--bg); border:1px solid var(--border); border-radius:5px;
+  padding:10px 12px; cursor:pointer; transition:border-color .1s;
+}
+.price-pick:hover { border-color:var(--text); }
+.price-pick.empty { border:1px dashed #b7791f; background:#fffbe8; }
+.price-pick-lbl {
+  font-size:9px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.08em; font-weight:700; font-family:var(--cond);
+  margin-bottom:2px;
+}
+.price-pick-val { font-size:14px; font-weight:700; font-family:var(--cond); }
+.price-pick-val.empty { color:#b7791f; font-style:italic; font-weight:400; }
+.price-pick-sub { font-size:10px; color:var(--muted); margin-top:1px; }
+
+/* LI focus actions */
+.li-focus-actions {
+  display:flex; gap:8px; align-items:center;
+  padding-top:14px; margin-top:14px; border-top:1px solid var(--border);
+}
+.li-act {
+  padding:9px 16px; border-radius:5px; cursor:pointer;
+  font-size:12px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.04em; font-family:var(--cond);
+  display:inline-flex; align-items:center; gap:5px;
+  transition:all .1s; border:1px solid;
+}
+.li-act.primary { background:var(--yellow); border-color:var(--text); color:var(--text); }
+.li-act.primary:hover { filter:brightness(0.95); }
+.li-act.ghost { background:transparent; border:1px dashed var(--border-dk); color:var(--muted); }
+.li-act.ghost:hover { border-color:var(--text); color:var(--text); }
+.li-act.danger { background:#fff; border-color:#c44; color:#c44; }
+.li-act.danger:hover { background:#c44; color:#fff; }
+
+/* Review / Submit banner + content — sized for legibility at desktop widths.
+   Review is a final check, not an editing surface — generous sizing helps scanning. */
+.rev-banner {
+  background:#0A0A08; color:var(--yellow);
+  padding:16px 22px; border-radius:8px; margin-bottom:18px;
+  display:flex; align-items:center; gap:14px;
+  font-size:14px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.06em; font-family:var(--cond);
+}
+.rev-banner.submit {
+  background:#5a1f1f; color:#ffd166;
+}
+.rev-banner > i { font-size:22px; }
+.rev-banner > span { flex:1; }
+.rev-banner-actions { display:flex; gap:10px; }
+.rev-banner-btn {
+  background:transparent; border:1px solid var(--yellow); color:var(--yellow);
+  padding:10px 18px; border-radius:4px;
+  font-size:12px; cursor:pointer; text-transform:uppercase;
+  letter-spacing:.05em; font-weight:700; font-family:var(--cond);
+}
+.rev-banner.submit .rev-banner-btn { border-color:#ffd166; color:#ffd166; }
+.rev-banner-btn.primary { background:var(--yellow); color:var(--text); border-color:var(--yellow); }
+.rev-banner.submit .rev-banner-btn.primary { background:#ffd166; color:#5a1f1f; border-color:#ffd166; }
+.rev-banner-btn:hover { filter:brightness(0.92); }
+
+.rev-sec-h {
+  font-size:13px; color:var(--text); text-transform:uppercase;
+  letter-spacing:.08em; font-weight:700; font-family:var(--cond);
+  margin:20px 2px 10px;
+  padding-bottom:6px; border-bottom:1px solid var(--border);
+}
+.rev-sec-h .rev-sec-meta {
+  font-weight:400; color:var(--muted); margin-left:8px;
+  font-size:12px; letter-spacing:.04em;
+}
+.rev-empty {
+  background:#fffbe8; border:1px dashed #b7791f; color:#b7791f;
+  border-radius:6px; padding:18px 20px; font-size:14px;
+}
+.rev-imp-row {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px;
+  margin-bottom:14px;
+}
+.rev-imp {
+  background:#fff; border:1px solid var(--border); border-radius:6px;
+  padding:10px; cursor:default;
+}
+.rev-imp-ph {
+  aspect-ratio:1.4; background:#ebebe6; border-radius:5px;
+  display:flex; align-items:center; justify-content:center;
+  color:#bbb; margin-bottom:8px;
+}
+.rev-imp-ph i { font-size:32px; }
+.rev-imp-id {
+  font-size:15px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.04em; font-family:var(--cond);
+  color:var(--text);
+}
+.rev-imp-sub {
+  font-size:12px; color:var(--muted);
+  font-family:var(--cond); text-transform:uppercase; letter-spacing:.04em;
+  margin-top:2px;
+}
+
+.rev-li {
+  background:#fff; border:1px solid var(--border); border-radius:6px;
+  padding:14px 18px; margin-bottom:8px; cursor:pointer;
+  transition:border-color .1s, box-shadow .1s;
+}
+.rev-li:hover { border-color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.rev-li-top {
+  display:flex; align-items:center; gap:12px; margin-bottom:10px;
+}
+.rev-li-pills { display:flex; gap:5px; flex-shrink:0; flex-wrap:wrap; }
+.rev-li-pill {
+  background:#e7ecf5; color:#2d4a7c;
+  font-size:12px; font-weight:700; padding:4px 9px; border-radius:3px;
+  text-transform:uppercase; letter-spacing:.04em; font-family:var(--cond);
+  white-space:nowrap;
+}
+.rev-li-pill.warn { background:#fff4d6; color:#7a5a00; }
+.rev-li-garm {
+  font-size:16px; font-weight:700; flex:1; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--text);
+}
+.rev-li-price {
+  font-size:14px; color:var(--text); white-space:nowrap;
+  font-family:var(--cond); font-weight:700;
+}
+.rev-li-price .meta { color:var(--muted); font-weight:400; margin-left:4px; }
+.rev-li-price.warn { color:#b7791f; font-style:italic; font-weight:400; }
+.rev-li-sz {
+  display:flex; gap:18px; font-size:13px; color:var(--text);
+  flex-wrap:wrap; padding-left:4px;
+}
+.rev-li-sz span { font-family:var(--cond); }
+.rev-li-sz span .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-size:11px; margin-right:3px; }
+.rev-li-sz span .v { color:#345030; font-weight:700; font-size:14px; }
+
+/* ─────────────────────────────────────────────────────────────────────
+   v2-v8: inline editable size inputs, inline price input, garment picker
+   ──────────────────────────────────────────────────────────────────── */
+
+/* Inline size cells — each is a <label> wrapping an <input> */
+.sz-input-cell {
+  cursor:text;
+  padding:6px 10px;
+}
+.sz-input-cell .sz-lbl {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.03em; font-family:var(--cond);
+  color:var(--muted);
+}
+.sz-input-cell.f .sz-lbl { color:#345030; }
+.sz-input-cell .sz-input {
+  background:transparent; border:none; outline:none;
+  width:48px; text-align:right;
+  font-size:15px; font-weight:700;
+  font-family:var(--cond); color:var(--text);
+  padding:0; margin:0;
+  /* Remove number input spinners */
+  -moz-appearance:textfield;
+  appearance:textfield;
+}
+.sz-input-cell .sz-input::-webkit-outer-spin-button,
+.sz-input-cell .sz-input::-webkit-inner-spin-button {
+  -webkit-appearance:none; margin:0;
+}
+.sz-input-cell .sz-input::placeholder { color:var(--muted-lt); font-weight:400; }
+.sz-input-cell .sz-input:focus { color:#b7791f; }
+.sz-input-cell:has(.sz-input:focus) {
+  background:#fffbe8; border-color:#b7791f;
+}
+
+/* Second row for the rare sizes */
+.sz-grid-more {
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;
+  margin-top:6px;
+}
+.sz-more-collapse {
+  background:transparent; border:1px dashed var(--border-dk); color:var(--muted);
+  font-size:11px; padding:8px; border-radius:4px; cursor:pointer;
+  font-family:var(--cond); text-transform:uppercase; letter-spacing:.03em;
+  font-weight:700;
+}
+.sz-more-collapse:hover { border-color:var(--text); color:var(--text); }
+/* The collapsed "+ XS, 3XL, …" button styling refines what was a div in v2-v7 */
+button.sz-more {
+  width:100%; display:block;
+}
+
+/* Inline price input */
+.price-pick-input {
+  flex:1; background:var(--bg); border:1px solid var(--border); border-radius:5px;
+  padding:10px 12px;
+  transition:border-color .1s;
+}
+.price-pick-input:focus-within { border-color:var(--text); }
+.price-pick-input .price-pick-lbl {
+  font-size:9px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.08em; font-weight:700; font-family:var(--cond);
+  margin-bottom:2px;
+}
+.price-input-wrap {
+  display:flex; align-items:baseline; gap:2px;
+}
+.price-prefix {
+  font-size:14px; font-weight:700; color:var(--text); font-family:var(--cond);
+}
+.price-input {
+  background:transparent; border:none; outline:none;
+  flex:1; min-width:0;
+  font-size:14px; font-weight:700;
+  font-family:var(--cond); color:var(--text);
+  padding:0; margin:0;
+  -moz-appearance:textfield;
+  appearance:textfield;
+}
+.price-input::-webkit-outer-spin-button,
+.price-input::-webkit-inner-spin-button {
+  -webkit-appearance:none; margin:0;
+}
+.price-input::placeholder { color:var(--muted-lt); font-weight:400; }
+.price-input:focus { color:#b7791f; }
+
+/* ─── Garment picker panel ─── */
+.garm-pick.open {
+  border-color:var(--text);
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+}
+.garm-panel {
+  background:#fff; border:1px solid var(--text); border-top:none;
+  border-bottom-left-radius:5px; border-bottom-right-radius:5px;
+  margin-top:-1px; /* overlap the garm-pick border */
+  overflow:hidden;
+}
+.garm-search {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.garm-search > i { color:var(--muted); flex-shrink:0; font-size:14px; }
+.garm-search-input {
+  flex:1; min-width:0;
+  background:transparent; border:none; outline:none;
+  font-size:14px; font-family:inherit; color:var(--text);
+  padding:0;
+}
+.garm-search-input::placeholder { color:var(--muted-lt); }
+.garm-search-x {
+  background:transparent; border:none; cursor:pointer;
+  color:var(--muted); padding:2px; flex-shrink:0; display:flex;
+}
+.garm-search-x:hover { color:var(--text); }
+.garm-search-x i { font-size:14px; }
+
+.garm-results {
+  max-height:280px; overflow-y:auto;
+}
+.garm-status {
+  padding:14px 12px; text-align:center;
+  font-size:12px; color:var(--muted); font-style:italic;
+}
+.garm-status.hint { color:var(--muted-lt); }
+.garm-status.err { color:#c44; }
+.garm-result {
+  padding:9px 14px; cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:background .08s;
+}
+.garm-result:hover { background:var(--bg-soft); }
+.garm-result:last-child { border-bottom:none; }
+.garm-result-name {
+  font-size:13px; font-weight:500; color:var(--text);
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px){
+  .content{padding:12px}
+  .topbar{padding:8px 12px}
+  .q-hdr{flex-direction:column;align-items:stretch;gap:8px}
+  .q-search{width:100%}
+  .job-card{padding:12px 14px;gap:12px;flex-wrap:wrap}
+  .jc-thumb{width:64px;height:64px}
+  .jc-name{font-size:16px}
+  .jc-order{font-size:28px}
+  .jc-cta{min-width:0;flex-basis:100%;flex-direction:row;justify-content:flex-end;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
+  .cp-order-name{font-size:14px}
+}
+/* ── New for v2-v11: Reorder library ── */
+.btn-reorder{font-size:10px;font-weight:700;padding:6px 14px;border:1px solid var(--sb-bg);border-radius:20px;background:var(--sb-bg);color:var(--yellow);cursor:pointer;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond)}
+.btn-reorder:hover{background:#1a1a14}
+.rl-strip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 14px;display:flex;align-items:center;gap:12px;min-height:54px;margin-bottom:14px}
+.rl-strip-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rl-kicker{font-size:9px;color:var(--muted-lt);text-transform:uppercase;letter-spacing:.12em;font-weight:700;font-family:var(--cond)}
+.rl-cust{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--text);line-height:1.1;font-family:var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-chip-btn{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);flex-shrink:0}
+.rl-chip-btn:hover{border-color:var(--text);color:var(--text)}
+.rl-pick{max-width:520px;margin:30px auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.rl-pick-title{font-size:14px;font-weight:700;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.rl-pick-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.rl-pick-input{width:100%;padding:9px 12px;font-size:14px;border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--bg);outline:none;font-family:var(--sans)}
+.rl-pick-input:focus{border-color:var(--green)}
+.rl-pick-results{margin-top:8px;max-height:50vh;overflow-y:auto}
+.rl-pick-row{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-top:6px;cursor:pointer;font-family:var(--cond);font-weight:700;font-size:13px;letter-spacing:.02em;text-transform:uppercase;transition:all .1s}
+.rl-pick-row:hover{border-color:var(--green);background:var(--green-lt)}
+.rl-pick-status{font-size:11px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.04em;text-transform:uppercase;font-weight:700;padding:14px 4px;text-align:center}
+.rl-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.rl-search{background:var(--surface);border:1px solid var(--border-dk);border-radius:20px;padding:6px 14px;display:flex;align-items:center;gap:7px;width:280px}
+.rl-search input{flex:1;border:none;outline:none;font-size:12px;font-family:var(--cond);background:transparent;color:var(--text);text-transform:uppercase;letter-spacing:.04em}
+.rl-search input::placeholder{color:var(--muted-lt)}
+.rl-flbl{font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-left:6px}
+.rl-sel{height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:var(--cond);outline:none;text-transform:uppercase;letter-spacing:.03em;font-weight:700}
+.rl-fcount{margin-left:auto;font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.rl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.rl-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .12s,box-shadow .12s;position:relative}
+.rl-tile:hover{border-color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.rl-tile.sel{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
+.rl-tile.hide{display:none}
+.rl-thumb{aspect-ratio:1;background:var(--bg);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.rl-thumb img{width:100%;height:100%;object-fit:cover}
+.rl-thumb .ph{font-size:34px;color:var(--muted-lt)}
+.rl-badge{position:absolute;top:7px;right:7px;width:21px;height:21px;border-radius:50%;background:var(--green);color:#fff;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.rl-tile.sel .rl-badge{display:flex}
+.rl-tbody{padding:9px 11px}
+.rl-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;font-family:var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);line-height:1.15}
+.rl-id{font-size:9px;color:var(--muted-lt);font-family:var(--mono);letter-spacing:.04em;margin-top:1px}
+.rl-ttags{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
+.rl-tmeta{font-size:9px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.05em;text-transform:uppercase;font-weight:700;margin-top:7px}
+.rl-empty{grid-column:1/-1;text-align:center;padding:40px;color:var(--muted-lt);font-size:11px;font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.rl-tray{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:11px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;box-shadow:0 -1px 4px rgba(0,0,0,.04)}
+.rl-tray-count{font-size:12px;font-weight:700;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em;color:var(--text)}
+.rl-tray-clear{font-size:9px;color:var(--muted);font-family:var(--cond);letter-spacing:.06em;text-transform:uppercase;font-weight:700;cursor:pointer;border:none;background:none;margin-left:10px}
+.rl-tray-clear:hover{color:var(--text)}
+.rl-tray-btn{background:var(--green);color:#fff;border:none;border-radius:var(--radius);padding:9px 20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:var(--cond);cursor:pointer;flex-shrink:0;transition:background .12s}
+.rl-tray-btn:hover:not(:disabled){background:var(--green-dk)}
+.rl-tray-btn:disabled{background:var(--border-dk);color:var(--muted-lt);cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Topbar (press-bar pattern from catching) -->
+  <div class="topbar" id="topbar" style="display:none">
+    <div id="topbarFilters" style="display:flex;gap:6px;align-items:center;flex:1;overflow-x:auto"></div>
+    <button class="btn-refresh" onclick="loadQueue()">↻ Refresh</button>
+  </div>
+
+  <!-- Token entry screen (shown if no token in localStorage) -->
+  <div class="token-screen" id="tokenScreen" style="display:none">
+    <div class="token-card">
+      <div class="token-title">Pine sales entry</div>
+      <div class="token-sub">Paste your Airtable token to get started. Stored locally in this browser; nothing is sent anywhere except Airtable.</div>
+      <input class="token-input" id="tokenInput" placeholder="patXXXXXXXXXXXXXX.XXX..." autocomplete="off" />
+      <button class="token-btn" onclick="saveToken()">Connect</button>
+      <div class="token-err" id="tokenErr"></div>
+    </div>
+  </div>
+
+  <!-- Main canvas (queue or detail) -->
+  <div class="content" id="canvas" style="display:none"></div>
+
+  <!-- Diag panel -->
+  <pre class="diag" id="diag"></pre>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════
+// PINE SALES ENTRY v2-v1
+// Home queue scaffolding. Order detail (Reorder/New canvases) lands in v2-v2.
+// ════════════════════════════════════════════════════════════════════════
+
+var WRITES_ENABLED = false; // hard-off until explicit flip
+var BASE = 'appJkaLk8DykjsgHR';
+var TBL_ORDERS = 'tbl8Tf0AeS9gnHOOS';
+var TBL_IMPRINTS = 'tbln9oAGvz2PNBZLV';
+var TBL_LINES = 'tblJx5UlwO7oMSk5H';
+var TBL_GARMENTS = 'tblukWGm0CIelookM';
+var TBL_CUSTOMERS = 'tblXToEJONa3VELp2';
+var CUST_NAME_FIELD = 'fld47twOIwW053ihT'; // Customers → Company Name
+
+// ── Order field map (only what the queue needs) ──
+var O = {
+  num:        'fld4S3B5yJANKlE7l', // Invoice / Order Number (formula → integer)
+  custName:   'fldoRraeYHsgfeWhj', // [TEXT] Customer Name
+  salesperson:'fldSPnWlnzz48ZZDD', // Sales Person (singleSelect)
+  status:     'fldhS4z28CdGmS1j5', // Order Status (singleSelect)
+  due:        'fldphJYdlBNS0dmAK', // Customer Due Date
+  deadType:   'fldMFfWyYJ6ZQDte6', // Hard Deadline or ASAP (singleSelect)
+  shipMethod: 'fldpVCwzNucLLifXD', // [TEXT] Shipping Method
+  imprintCt:  'fld6PYwIG8eT9xlCR', // Total Linked Imprints (rollup)
+  imprints:   'fldShbb1tOR0zwGIt', // Imprints (link)
+  lineItems:  'fldU6fgrz6sU3wyIZ', // Line Items (link)
+  customer:   'fldjj1X0WYQOuqHYQ', // Customer (link → Customers)
+};
+
+// ── Imprint field map ──
+var I = {
+  id:        'fldDFfwFQ9B20n2kT', // Imprint ID (primary multilineText, e.g. "9697-A")
+  idGen:     'fldHjjQ5lzm66ox5j', // Imprint ID Generator (formula — display alias)
+  nick:      'fldyGOHRKNz00MaYQ', // Imprint Nickname
+  type:      'fldjNCuaGOkWgzH2K', // Imprint Type (singleSelect, 26 options)
+  loc:       'fldKQIL0rSJBSeC8S', // Location (singleSelect, 15 options)
+  notes:     'fldNuEzGIYI8FWqXu', // Print Notes
+  proofs:    'fldUOIfCd22MxevRm', // Proof Images (multipleLookupValues from LIs)
+  linkedOrd: 'flds9F80ZDkTH1M1t', // Linked Orders (multipleRecordLinks)
+  lis:       'fldsvntAy1QHEoDAg', // Line Items (multipleRecordLinks)
+  custName:  'fldeLMIAC0ABQAjYJ', // Customer Name Search (formula — for library)
+  screens:   'fld8rgkIj1RPO97QU', // Screen Count (number)
+  inkChanges:'fld6Tv0llCxjjyyHJ', // Ink Changes (number)
+  created:   'fldc7aezBfzoVPeAY', // Created Timestamp
+  inks:      'fldpNCCXTgHyDhvak', // Inks (multipleRecordLinks) — for reorder seeding
+  inkNames:  'fldMM5hp8kEpo3KKT', // Ink Names Search (formula) — display
+  sepUrl:    'fldiBqdFTRMahiMeI', // Sep File URL — for reorder seeding
+  prev:      'fldAEQvMAAZX9gnhl', // Previous Imprint ID (multipleRecordLinks)
+  repeat:    'flda9L7041ahNZT0b', // Repeat? (checkbox)
+};
+
+// ── Line Item field map ──
+var L = {
+  productType:'fld8LIkrBXv8WoRRb', // Product Type (singleSelect)
+  garment:    'fldZbOdGIoCk3Gan2', // Garment Type (link → Garments)
+  garmentTxt: 'fldKhz9uZgXwfeIto', // Garment Record ID [TEXT] (formula)
+  imprints:   'fldTFz4ZzfOthqkg6', // Imprints (link)
+  totalQty:   'fldFfuKAcduwWQp8g', // Total Quantity (formula)
+  price:      'fldtMZWzA4dfPxEXx', // Price Input (currency, writable)
+  pricePer:   'fldRtky7ZFruumxWD', // Price / Piece (formula)
+  // Sizes
+  szXS: 'fldVA9ZmYxhDxtnYZ', szS:  'fldCZr5lB6Jx80lfG', szM: 'fldzTs1qKe9IBxxSn',
+  szL:  'fldnRLJxjUDa1mQTj', szXL: 'fldTRgdexcpBXXQPv', sz2XL:'fldin7j6uGO0uRTec',
+  sz3XL:'fldpltq9fdRkrvIvt', sz4XL:'fldrsci7JnToa43Zd', sz5XL:'fldchnRSKFukouW6N',
+  sz6XL:'fldI8gTtsEJwg33BI', szOSFA:'fld2bgIlmPbANgLVK',
+};
+
+// ── Garment field map (minimal — for resolving garment names from records) ──
+var G = {
+  name:       'fldT4jfh2XV9lERef', // Garment Name (formula)
+  brand:      'fldtL6paVNlfMRDj4', // Manufacturer (multipleSelects)
+  productNum: 'fldJlvS5vcBkzx3hG', // Product Number
+  colorway:   'flduMprMvRlAHAiCh', // Colorway
+};
+
+// ── Imprint Type options grouped by category (matches Airtable colors) ──
+// Sales picks a category button → sub-options appear as a second row.
+var IMPRINT_TYPE_GROUPS = [
+  { label: 'Screen-print', options: [
+    'Discharge', 'No Base W/B', 'Bleed Blocker + W/B', 'EZP Base + W/B', 'Flatstock'
+  ]},
+  { label: 'Supacolor', options: [
+    'Supacolor - Wearable', 'Supacolor - 1C Wearable',
+    'Supacolor - Blocker', 'Supacolor - 1C Blocker',
+    'Supacolor - Headwear', 'Supacolor - 1C Headwear',
+    'Supacolor - Promotional', 'Supacolor - 1C Promotional',
+    'Supacolor - Reflective'
+  ]},
+  { label: 'Embroidery', options: [
+    'Embroidery', 'Patch Application', 'Hem Label Application',
+    'Woven Label Application', 'Patch/Label ONLY'
+  ]},
+  { label: 'Decopress', options: [
+    'Decopress - Woven / Twill', 'Decopress - Leather',
+    'Decopress - Metallic', 'Decopress - Reflective'
+  ]},
+  { label: 'Finishing', options: [
+    'Finishing - Fold & Bag', 'Finishing - UPC sticker', 'Finishing - Bandana Hanger'
+  ]},
+];
+
+// ── Location options — primary (top 8 most common) + extended ──
+// Per audit: Front 5091, Back 2715, Bandana 2664, L Chest 1717 = 89% of all imprints.
+// Show those 4 + a few more common ones as primary buttons. Rest behind "+More".
+var LOCATIONS_PRIMARY = ['Front', 'Back', 'Left Chest', 'Bandana', 'Left Sleeve', 'Right Sleeve', 'Size Tag', 'Flatstock'];
+var LOCATIONS_MORE = ['Right Chest', 'Pocket', 'Hood', 'Front Hem', 'Back Hem', 'Tea Towel', 'Multiple Locations'];
+
+// Active salespeople (Stephen & Josh removed — no longer in sales)
+var SALESPEOPLE = [
+  { id: 'selIVwe4A0W8CPlob', name: 'Garrett' },
+  { id: 'selAA6eK85LU69A5p', name: 'Patrick' },
+  { id: 'selt69IwC8hxv1D3s', name: 'Chris' }
+];
+var STATUS_AWAITING_PROOF = 'sel7xP5lp1t4zU3gC';
+
+// ── App state ──
+var state = {
+  token: null,
+  view: 'queue',       // 'queue' | 'detail' | 'reorder'
+  reorder: null,       // New Reorder flow state (v2-v11) — see openReorder()
+  filterMode: 'all',   // 'all' | 'rep'
+  filterRep: null,     // when filterMode==='rep', which rep name
+  hideStale: true,     // hide orders > 30 days old by default (likely abandoned)
+  search: '',
+  orders: [],          // loaded queue
+  dueEdits: {},        // local-only due date edits: { recId: 'YYYY-MM-DD' }
+  selectedOrderId: null,
+  selectedMode: null,
+  loading: false,
+  err: null,
+  // Order detail state — loaded on openOrder, cleared on backToQueue
+  orderImprints: [],   // imprint records from Airtable + local ghost imprints
+  orderLineItems: [],  // line item records from Airtable + local ghost LIs
+  garmentNames: {},    // recId → readable name cache
+  detailLoading: false,
+  detailErr: null,
+  // Detail-view sub-mode. Determined automatically from data + user action:
+  //   'imprint-empty'    — no imprints yet, imprint form is the body (auto-open)
+  //   'li-empty'         — at least 1 imprint, no LIs yet, empty-stub body
+  //   'li-focus'         — focused on one LI; state.focusLiIndex points to which
+  //   'review'           — dense read-only overview, "review" button pressed
+  //   'submit-confirm'   — same view as review but with stronger banner
+  detailMode: 'imprint-empty',
+  focusLiIndex: 0,      // which LI is currently focused in li-focus mode
+  liAssignOpen: null,   // liId whose inline "+ Assign" picker is open (v2-v15), else null
+  // Imprint form state — null when closed, object when open
+  // { mode: 'new' | 'edit', editingId: null | localId, location: '', type: '',
+  //   typeCategory: '', nickname: '', notes: '', applyToLis: [liId, ...], showMoreLocs: false,
+  //   originReturn: 'li-focus' | 'imprint-empty' | 'li-empty' — where to return after save }
+  imprintForm: null,
+  // Local ghost counters — survive only in browser memory
+  ghostImprintCounter: 0,
+  ghostLiCounter: 0,
+  // Garment picker — null when closed, object when open
+  // { liId, query: '', results: [], loading: false, err: null }
+  garmentPicker: null,
+  // Track which LIs have the "more sizes" row expanded (auto-expanded if data exists)
+  moreSizesExpanded: {}
+};
+
+// ── Diag helpers ──
+function dlog(){
+  if (!document.body.classList.contains('diag-on')) return;
+  var args = Array.prototype.slice.call(arguments);
+  var d = document.getElementById('diag');
+  d.textContent += args.map(function(a){
+    return typeof a === 'string' ? a : JSON.stringify(a);
+  }).join(' ') + '\n';
+  d.scrollTop = d.scrollHeight;
+}
+function diagInit(){
+  if (location.search.indexOf('diag=1') >= 0) document.body.classList.add('diag-on');
+  dlog('=== Pine Sales Entry v2-v15 ===');
+  dlog('token present:', !!state.token);
+}
+
+// ── Token handling ──
+function loadToken(){
+  state.token = localStorage.getItem('pine_at_key') || null;
+  return state.token;
+}
+function saveToken(){
+  var v = document.getElementById('tokenInput').value.trim();
+  if (!v) { document.getElementById('tokenErr').textContent = 'Token is required.'; return; }
+  if (v.indexOf('•') >= 0) {
+    document.getElementById('tokenErr').textContent = 'Looks like the password manager pasted bullets — paste the actual token.';
+    return;
+  }
+  if (v.length < 30) {
+    document.getElementById('tokenErr').textContent = 'That token looks too short. Double-check.';
+    return;
+  }
+  localStorage.setItem('pine_at_key', v);
+  state.token = v;
+  document.getElementById('tokenScreen').style.display = 'none';
+  enterApp();
+}
+function hdr(){ return { 'Authorization': 'Bearer ' + state.token, 'Content-Type': 'application/json' }; }
+
+// ── Airtable read layer ──
+function atGetOrders(){
+  // List Awaiting-Proof orders; filter client-side by rep
+  var flds = [O.num, O.custName, O.salesperson, O.status, O.due, O.shipMethod, O.imprintCt, O.imprints, O.lineItems, O.customer]
+    .map(function(f){ return 'fields%5B%5D=' + f; }).join('&');
+  var filt = encodeURIComponent("{Order Status}='Awaiting Proof'");
+  var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL_ORDERS + '?' + flds
+    + '&filterByFormula=' + filt
+    + '&returnFieldsByFieldId=true&pageSize=100';
+  return fetch(url, { headers: hdr() }).then(function(r){
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(d){ return d.records || []; });
+}
+
+// ── Helpers for field extraction (v0 REST format) ──
+function getStr(v){
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number') return String(v);
+  if (Array.isArray(v)) return v.map(getStr).join(', ');
+  if (v && typeof v === 'object' && v.name) return v.name;
+  return String(v);
+}
+function getNum(v){
+  if (v == null) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') return parseFloat(v) || 0;
+  if (Array.isArray(v) && v.length) return getNum(v[0]);
+  return 0;
+}
+function getSelName(v){
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (v && v.name) return v.name;
+  return '';
+}
+function getLinkCount(v){
+  if (Array.isArray(v)) return v.length;
+  return 0;
+}
+// v0 REST returns multipleRecordLinks as bare string arrays (["recXXX"]).
+// MCP returns [{id, name}]. This helper handles both — always returns string[].
+function getLinkIds(v){
+  if (!Array.isArray(v)) return [];
+  return v.map(function(x){
+    return (typeof x === 'string') ? x : ((x && x.id) || '');
+  }).filter(Boolean);
+}
+// Get attachment thumb URL from a multipleAttachments or multipleLookupValues-of-attachments field.
+// v0 returns array of {id, url, thumbnails:{small,large}} for attachments,
+// or array of those same objects for lookup-of-attachments.
+function getProofThumbUrl(v){
+  if (!Array.isArray(v) || !v.length) return null;
+  var first = v[0];
+  if (!first) return null;
+  if (first.thumbnails && first.thumbnails.large) return first.thumbnails.large.url;
+  if (first.thumbnails && first.thumbnails.small) return first.thumbnails.small.url;
+  if (first.url) return first.url;
+  return null;
+}
+
+// ── Order detail fetches ──
+// Fetch a list of records from a table by record IDs using filterByFormula OR(RECORD_ID()...)
+function atGetByIds(tableId, ids, fieldIds){
+  if (!ids || !ids.length) return Promise.resolve([]);
+  var orParts = ids.map(function(id){ return "RECORD_ID()='" + id + "'"; }).join(',');
+  var formula = 'OR(' + orParts + ')';
+  var flds = fieldIds.map(function(f){ return 'fields%5B%5D=' + f; }).join('&');
+  var url = 'https://api.airtable.com/v0/' + BASE + '/' + tableId + '?' + flds
+    + '&filterByFormula=' + encodeURIComponent(formula)
+    + '&returnFieldsByFieldId=true&pageSize=100';
+  return fetch(url, { headers: hdr() }).then(function(r){
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(d){ return d.records || []; });
+}
+function atGetImprintsByIds(ids){
+  return atGetByIds(TBL_IMPRINTS, ids,
+    [I.id, I.idGen, I.nick, I.type, I.loc, I.notes, I.proofs, I.lis]);
+}
+function atGetLineItemsByIds(ids){
+  return atGetByIds(TBL_LINES, ids,
+    [L.productType, L.garment, L.imprints, L.totalQty, L.price,
+     L.szXS, L.szS, L.szM, L.szL, L.szXL, L.sz2XL, L.sz3XL, L.sz4XL, L.sz5XL, L.sz6XL, L.szOSFA]);
+}
+function atGetGarmentsByIds(ids){
+  return atGetByIds(TBL_GARMENTS, ids, [G.name, G.brand, G.productNum, G.colorway]);
+}
+
+// ── Date helpers ──
+function daysUntil(isoDate){
+  if (!isoDate) return null;
+  var d = new Date(isoDate + 'T00:00:00');
+  var now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((d - now) / 86400000);
+}
+function dueTagClass(days){
+  if (days == null) return 'n';
+  if (days < 0) return 'r';
+  if (days <= 7) return 'a';
+  return 'n';
+}
+function dueLabel(isoDate){
+  if (!isoDate) return 'No due date';
+  var days = daysUntil(isoDate);
+  var d = new Date(isoDate + 'T00:00:00');
+  var mo = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'][d.getMonth()];
+  var dom = d.getDate();
+  var pad = days == null ? '' : (' · ' + (days < 0 ? 'overdue' : (days + 'd')));
+  return 'Due ' + mo + ' ' + dom + pad;
+}
+
+// ── Boot ──
+function boot(){
+  diagInit();
+  loadToken();
+  if (!state.token) {
+    document.getElementById('tokenScreen').style.display = 'flex';
+    return;
+  }
+  enterApp();
+}
+function enterApp(){
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('canvas').style.display = 'block';
+  render();
+  loadQueue();
+}
+
+// ── Queue load ──
+function loadQueue(){
+  state.loading = true;
+  state.err = null;
+  setStatus('loading…', '');
+  render();
+  atGetOrders().then(function(recs){
+    state.orders = recs;
+    state.loading = false;
+    setStatus(recs.length + ' awaiting proof', 'connected');
+    render();
+  }).catch(function(err){
+    state.loading = false;
+    state.err = err.message;
+    setStatus('error: ' + err.message, 'err');
+    dlog('queue load err:', err.message);
+    render();
+  });
+}
+function setStatus(msg, cls){
+  // Now a no-op. Loading/error states render inline in the queue body.
+  // Keeping the function so existing callers don't break.
+}
+
+// ── Filtering ──
+function applyFilters(orders){
+  var search = state.search.trim().toLowerCase();
+  return orders.filter(function(o){
+    var f = o.cellValuesByFieldId || o.fields || {};
+    var rep = getSelName(f[O.salesperson]);
+    var cust = getStr(f[O.custName]);
+    var num = getNum(f[O.num]);
+
+    // Stale filter — orders > 30 days in Awaiting Proof are likely abandoned
+    if (state.hideStale && o.createdTime) {
+      var ageDays = Math.floor((Date.now() - new Date(o.createdTime).getTime()) / 86400000);
+      if (ageDays > 30) return false;
+    }
+
+    if (state.filterMode === 'rep') {
+      if (rep !== state.filterRep) return false;
+    }
+    // 'all' — no rep filter
+
+    if (search) {
+      var hay = (String(num) + ' ' + cust + ' ' + rep).toLowerCase();
+      if (hay.indexOf(search) < 0) return false;
+    }
+    return true;
+  }).sort(function(a, b){
+    // Sort by due date ascending; null dates at bottom
+    var fa = a.cellValuesByFieldId || a.fields || {};
+    var fb = b.cellValuesByFieldId || b.fields || {};
+    var da = fa[O.due] || '9999-12-31';
+    var db = fb[O.due] || '9999-12-31';
+    return da < db ? -1 : (da > db ? 1 : 0);
+  });
+}
+
+function countByRep(orders){
+  // counts the active (non-stale, if hideStale on) orders per rep
+  var counts = { All: 0, Stale: 0 };
+  SALESPEOPLE.forEach(function(p){ counts[p.name] = 0; });
+  orders.forEach(function(o){
+    var f = o.cellValuesByFieldId || o.fields || {};
+    var rep = getSelName(f[O.salesperson]);
+    var isStale = false;
+    if (o.createdTime) {
+      var ageDays = Math.floor((Date.now() - new Date(o.createdTime).getTime()) / 86400000);
+      isStale = ageDays > 30;
+    }
+    if (isStale) {
+      counts.Stale++;
+      if (state.hideStale) return; // skip stale in rep counts when hidden
+    }
+    counts.All++;
+    if (counts[rep] != null) counts[rep]++;
+  });
+  return counts;
+}
+
+function toggleStale(){
+  state.hideStale = !state.hideStale;
+  render();
+}
+
+// ── Render: queue ──
+function render(){
+  // Commit pending input edits before re-render destroys their DOM.
+  // Focus an input → type → click a button → button calls render() before the input's
+  // onchange has fired. Blurring forces change to fire synchronously.
+  if (document.activeElement && document.activeElement.tagName === 'INPUT'
+      && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
+  if (state.view === 'detail') return renderDetail();
+  if (state.view === 'reorder') return renderReorder();
+  renderQueue();
+}
+
+function renderFilterChips(counts){
+  var html = '';
+  // "All" first — default view
+  html += '<div class="pt' + (state.filterMode === 'all' ? ' on' : '') + '" onclick="setFilter(\'all\')">All<span class="pt-ct">' + (counts.All || 0) + '</span></div>';
+  // Active reps
+  SALESPEOPLE.forEach(function(p){
+    var isOn = state.filterMode === 'rep' && state.filterRep === p.name;
+    html += '<div class="pt' + (isOn ? ' on' : '') + '" onclick="setFilterRep(\'' + p.name + '\')">' + p.name + '<span class="pt-ct">' + (counts[p.name] || 0) + '</span></div>';
+  });
+
+  // Stale toggle — only show if there are any stale orders to manage
+  if (counts.Stale > 0) {
+    var staleLabel = state.hideStale ? 'Show stale' : 'Hide stale';
+    html += '<div class="pt" style="margin-left:8px" onclick="toggleStale()">' + staleLabel + '<span class="pt-ct">' + counts.Stale + '</span></div>';
+  }
+  return html;
+}
+
+function renderQueue(){
+  var canvas = document.getElementById('canvas');
+  var filtered = applyFilters(state.orders);
+  var counts = countByRep(state.orders);
+
+  // Topbar filter chips
+  document.getElementById('topbarFilters').innerHTML = renderFilterChips(counts);
+
+  // Queue header (q-hdr pattern from catching)
+  var dateLbl = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'America/Denver'});
+  var titleLbl = 'Awaiting proof — ' + filtered.length + ' order' + (filtered.length === 1 ? '' : 's');
+  var html = '<div class="q-hdr">';
+  html += '<span class="q-title">' + titleLbl + '</span>';
+  html += '<div style="display:flex;gap:10px;align-items:center">';
+  html += '<button class="btn-reorder" onclick="openReorder()">↺ New Reorder</button>';
+  html += '<div class="q-search">';
+  html += '<span class="q-search-icon">⌕</span>';
+  html += '<input type="text" placeholder="Order #, customer" value="' + escAttr(state.search) + '" oninput="onSearch(this.value)" />';
+  html += '</div>';
+  html += '<span class="q-date">' + escHtml(dateLbl) + '</span>';
+  html += '</div>';
+  html += '</div>';
+
+  // Body
+  if (state.loading) {
+    html += '<div class="empty">Loading queue…</div>';
+  } else if (state.err) {
+    html += '<div class="empty" style="color:var(--red)">Couldn\'t load queue · ' + escHtml(state.err) + '</div>';
+  } else if (!filtered.length) {
+    html += '<div class="empty">No orders match — switch rep or clear search</div>';
+  } else {
+    filtered.forEach(function(o){ html += renderOrderCard(o); });
+  }
+
+  canvas.innerHTML = html;
+}
+
+function renderOrderCard(o){
+  var f = o.cellValuesByFieldId || o.fields || {};
+  var num = getNum(f[O.num]);
+  var cust = getStr(f[O.custName]) || '(no customer)';
+  var rep = getSelName(f[O.salesperson]) || '—';
+  var due = f[O.due] || null;
+  var ship = getStr(f[O.shipMethod]) || '';
+  var imprintCt = getNum(f[O.imprintCt]) || getLinkCount(f[O.imprints]);
+  var liCt = getLinkCount(f[O.lineItems]);
+  var inProgress = imprintCt > 0 || liCt > 0;
+  var days = daysUntil(due);
+
+  // Staleness: orders in Awaiting Proof more than 30 days are likely abandoned.
+  // Use Airtable createdTime as the age signal.
+  var createdAt = o.createdTime || null;
+  var ageDays = createdAt ? Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000) : 0;
+  var isStale = ageDays > 30;
+
+  // Card classes: stale gets red-tinted treatment (.flagged from catching)
+  var cls = 'job-card' + (isStale ? ' flagged' : '');
+
+  var html = '<div class="' + cls + '" onclick="openOrder(\'' + o.id + '\')">';
+
+  // NO thumb — orders at Awaiting Proof stage don't have proofs yet.
+  // (Once an order has proofs in v2-v4+, we can re-introduce the thumb conditionally.)
+
+  // Info block (left/middle now, since no thumb)
+  html += '<div class="jc-info">';
+  html += '<div class="jc-name">' + escHtml(cust) + '</div>';
+  html += '<div class="jc-meta">';
+
+  // Deadline-type + date.
+  // Real data shows: Hard Deadline orders consistently have due dates, ASAP orders consistently don't.
+  // ASAP = "no specific date, just go" — missing date is NORMAL, not a problem.
+  // Hard Deadline + no date = real data gap, needs attention.
+  // No deadline type at all = data gap (this is rare; Pipedrive populates this field).
+  var deadType = getSelName(f[O.deadType]); // 'Hard Deadline' | 'ASAP' | ''
+  var effectiveDue = state.dueEdits[o.id] || due;
+  if (deadType === 'Hard Deadline') {
+    if (effectiveDue) {
+      var d = daysUntil(effectiveDue);
+      var hardCls = (d != null && d <= 7) ? 'r' : 'r'; // always red for hard deadline visibility
+      var hardLbl = 'Hard · ' + dueLabel(effectiveDue);
+      html += '<span class="tag r">' + escHtml(hardLbl) + '</span>';
+      // Overdue urgency hint as a separate chip
+      if (d != null && d < 0) {
+        html += '<span class="tag r">' + Math.abs(d) + 'd overdue</span>';
+      } else if (d != null && d <= 7) {
+        html += '<span class="tag amb">' + d + 'd left</span>';
+      }
+    } else {
+      // Hard Deadline with no date is a real data gap
+      html += '<span class="tag amb">Hard Deadline · No date set</span>';
+    }
+  } else if (deadType === 'ASAP') {
+    // ASAP is yellow-on-dark (g tag — Pine signature). Date is optional & usually absent.
+    html += '<span class="tag g">ASAP</span>';
+    if (effectiveDue) {
+      html += '<span class="tag n">' + escHtml(dueLabel(effectiveDue)) + '</span>';
+    }
+  } else {
+    // No deadline type set at all
+    if (effectiveDue) {
+      var d2 = daysUntil(effectiveDue);
+      var dueCls2 = (d2 != null && d2 < 0) ? 'r' : ((d2 != null && d2 <= 7) ? 'amb' : 'n');
+      html += '<span class="tag ' + dueCls2 + '">' + escHtml(dueLabel(effectiveDue)) + '</span>';
+      html += '<span class="tag amb">No deadline type</span>';
+    } else {
+      html += '<span class="tag amb">No deadline set</span>';
+    }
+  }
+
+  if (ship) html += '<span class="tag n">' + escHtml(ship) + '</span>';
+  // Rep tag — always show in 'all' view, hide when filtering to one rep (redundant)
+  if (state.filterMode !== 'rep') html += '<span class="tag n">' + escHtml(rep) + '</span>';
+  // Progress signal
+  if (imprintCt > 0 && liCt > 0) {
+    html += '<span class="tag g">' + imprintCt + ' impr · ' + liCt + ' li</span>';
+  } else if (imprintCt > 0) {
+    html += '<span class="tag g">' + imprintCt + ' impr · 0 li</span>';
+  } else if (liCt > 0) {
+    html += '<span class="tag g">0 impr · ' + liCt + ' li</span>';
+  } else {
+    html += '<span class="tag n">empty</span>';
+  }
+  // Stale flag — last because it's a meta-signal, not a sales-action signal
+  if (isStale) {
+    html += '<span class="tag r">Stale · ' + ageDays + 'd old</span>';
+  }
+  html += '</div>';
+  html += '</div>';
+
+  // Right block — just the big order number. No CTA button. Card is click-target.
+  html += '<div class="jc-right">';
+  html += '<div class="jc-order">' + (num || '—') + '</div>';
+  if (inProgress) {
+    html += '<div class="jc-status qcd">In progress</div>';
+  } else if (isStale) {
+    html += '<div class="jc-status" style="color:var(--red)">Stale</div>';
+  } else {
+    html += '<div class="jc-status">New</div>';
+  }
+  html += '</div>';
+
+  html += '</div>'; // /job-card
+  return html;
+}
+
+// ── Event handlers ──
+function onSearch(v){ state.search = v; render(); }
+function setFilter(mode){ state.filterMode = mode; state.filterRep = null; render(); }
+function setFilterRep(name){ state.filterMode = 'rep'; state.filterRep = name; render(); }
+
+function openOrder(recId){
+  state.selectedOrderId = recId;
+  state.selectedMode = null;
+  state.view = 'detail';
+  // Reset detail state
+  state.orderImprints = [];
+  state.orderLineItems = [];
+  state.imprintForm = null;
+  state.detailLoading = true;
+  state.detailErr = null;
+  state.detailMode = 'imprint-empty'; // will be re-resolved after load
+  state.focusLiIndex = 0;
+  render();
+  loadOrderDetail(recId);
+}
+function backToQueue(){
+  state.selectedOrderId = null;
+  state.selectedMode = null;
+  state.orderImprints = [];
+  state.orderLineItems = [];
+  state.imprintForm = null;
+  state.detailLoading = false;
+  state.detailErr = null;
+  state.detailMode = 'imprint-empty';
+  state.focusLiIndex = 0;
+  state.view = 'queue';
+  render();
+}
+function pickMode(mode){
+  state.selectedMode = mode;
+  render();
+}
+
+// ── Resolve the right detailMode from current data shape ──
+// Called after load and after any state change that might shift mode.
+// Does NOT override an explicit user-set mode (review/submit-confirm).
+function resolveDetailMode(){
+  // If user is in a review-ish mode, respect that
+  if (state.detailMode === 'review' || state.detailMode === 'submit-confirm') return;
+  var nImps = state.orderImprints.length;
+  var nLis  = state.orderLineItems.length;
+  if (nImps === 0) {
+    state.detailMode = 'imprint-empty';
+  } else if (nLis === 0) {
+    state.detailMode = 'li-empty';
+  } else {
+    state.detailMode = 'li-focus';
+    // Clamp focus index to valid range
+    if (state.focusLiIndex >= nLis) state.focusLiIndex = nLis - 1;
+    if (state.focusLiIndex < 0) state.focusLiIndex = 0;
+  }
+}
+
+// ── Load all imprints + line items + garments for an order ──
+function loadOrderDetail(recId){
+  // Find the cached order record from the queue load
+  var rec = null;
+  for (var i = 0; i < state.orders.length; i++) {
+    if (state.orders[i].id === recId) { rec = state.orders[i]; break; }
+  }
+  if (!rec) {
+    state.detailLoading = false;
+    state.detailErr = 'Order record not found in queue cache';
+    render();
+    return;
+  }
+  var f = rec.cellValuesByFieldId || rec.fields || {};
+  var orderImprintIds = getLinkIds(f[O.imprints]);
+  var liIds = getLinkIds(f[O.lineItems]);
+
+  dlog('loadOrderDetail:', recId, 'order imprints:', orderImprintIds.length, 'LIs:', liIds.length);
+
+  // Phase 1: fetch LIs first so we can also see which imprints they reference.
+  // (An LI can be linked to imprints that the Order is not linked to. Loading only
+  //  the Order's imprints leaves those orphans showing as truncated record IDs.)
+  atGetLineItemsByIds(liIds).then(function(liRecs){
+    state.orderLineItems = liRecs.slice();
+
+    // Collect the FULL imprint ID set: union of order's imprints + each LI's imprints
+    var allImpIds = orderImprintIds.slice();
+    liRecs.forEach(function(li){
+      var lf = li.cellValuesByFieldId || li.fields || {};
+      getLinkIds(lf[L.imprints]).forEach(function(id){
+        if (id && allImpIds.indexOf(id) === -1) allImpIds.push(id);
+      });
+    });
+    var orphans = allImpIds.length - orderImprintIds.length;
+    if (orphans > 0) {
+      dlog('found', orphans, 'imprint(s) referenced by LIs but not by Order — loading anyway');
+    }
+
+    // Phase 2: fetch all imprints (order + LI-orphans) in one call
+    return atGetImprintsByIds(allImpIds).then(function(impRecs){
+      state.orderImprints = impRecs.slice();
+      resolveDetailMode();
+      maybeAutoOpenImprintForm();
+
+      // Phase 3: garments
+      var garmentIds = [];
+      liRecs.forEach(function(li){
+        var lf = li.cellValuesByFieldId || li.fields || {};
+        getLinkIds(lf[L.garment]).forEach(function(g){
+          if (g && garmentIds.indexOf(g) === -1) garmentIds.push(g);
+        });
+      });
+      if (!garmentIds.length) {
+        state.detailLoading = false;
+        render();
+        return;
+      }
+      return atGetGarmentsByIds(garmentIds).then(function(garmRecs){
+        garmRecs.forEach(function(gr){
+          var gf = gr.cellValuesByFieldId || gr.fields || {};
+          state.garmentNames[gr.id] = getStr(gf[G.name]) || '(garment)';
+        });
+        state.detailLoading = false;
+        render();
+      }).catch(function(err){
+        // Garment resolution is non-critical — render anyway
+        dlog('garment fetch failed:', err.message);
+        state.detailLoading = false;
+        render();
+      });
+    });
+  }).catch(function(err){
+    state.detailLoading = false;
+    state.detailErr = err.message;
+    dlog('loadOrderDetail err:', err.message);
+    render();
+  });
+}
+
+// Auto-open the imprint form when an order has no imprints and no LIs yet.
+function maybeAutoOpenImprintForm(){
+  var isFresh = state.orderImprints.length === 0 && state.orderLineItems.length === 0;
+  if (isFresh && !state.imprintForm) {
+    state.imprintForm = {
+      mode: 'new', editingId: null,
+      location: '', typeCategory: '', type: '',
+      nickname: '', notes: '', screens: '', inkChanges: '', applyToLis: [], showMoreLocs: false,
+      originReturn: 'imprint-empty'
+    };
+  }
+}
+
+// ── Due date editor ──
+// Preview-mode only: writes land in state.dueEdits and are surfaced visually,
+// but nothing is sent to Airtable until WRITES_ENABLED flips.
+function openDueEditor(recId){
+  var el = document.getElementById('dueDate_' + recId);
+  if (!el) return;
+  // showPicker() is the modern way; falls back to click() for older browsers
+  try {
+    if (typeof el.showPicker === 'function') el.showPicker();
+    else el.click();
+  } catch (e) {
+    el.click();
+  }
+}
+function onDueChange(recId, val){
+  if (!val) {
+    delete state.dueEdits[recId];
+  } else {
+    state.dueEdits[recId] = val; // 'YYYY-MM-DD'
+  }
+  dlog('due edit (preview, no write):', recId, val || '(cleared)');
+  render();
+}
+
+// ── Render: detail ──
+function renderDetail(){
+  var canvas = document.getElementById('canvas');
+  var rec = null;
+  for (var i = 0; i < state.orders.length; i++) {
+    if (state.orders[i].id === state.selectedOrderId) { rec = state.orders[i]; break; }
+  }
+  if (!rec) { canvas.innerHTML = '<div class="empty">Order not found</div>'; return; }
+  var f = rec.cellValuesByFieldId || rec.fields || {};
+  var num = getNum(f[O.num]);
+  var cust = getStr(f[O.custName]) || '(no customer)';
+  var rep = getSelName(f[O.salesperson]) || '—';
+  var due = f[O.due] || null;
+  var ship = getStr(f[O.shipMethod]) || '';
+  var imprintCt = getNum(f[O.imprintCt]) || getLinkCount(f[O.imprints]);
+  var liCt = getLinkCount(f[O.lineItems]);
+  var inProgress = imprintCt > 0 || liCt > 0;
+  var days = daysUntil(due);
+  var dueCls = (days != null && days < 0) ? 'r' : ((days != null && days <= 7) ? 'amb' : 'n');
+
+  // Cockpit strip — canonical .cp-order-strip from catching v122
+  // Kicker (order N) and customer name on SAME baseline-aligned line.
+  var deadType = getSelName(f[O.deadType]); // 'Hard Deadline' | 'ASAP' | ''
+  var effectiveDue = state.dueEdits[rec.id] || due;
+  var ddays = daysUntil(effectiveDue);
+
+  var html = '<div class="cp-order-strip">';
+  html += '<button class="cp-back" onclick="backToQueue()">← Queue</button>';
+  html += '<div class="cp-order-info">';
+  html += '<span class="cp-order-num">Order ' + (num || '—') + '</span>';
+  html += '<span class="cp-order-name">' + escHtml(cust) + '</span>';
+  html += '</div>';
+  html += '<div class="cp-order-chips">';
+
+  // Deadline-type pill — Hard (red) / ASAP (green) / data-gap (amber)
+  if (deadType === 'Hard Deadline') {
+    html += '<span class="tag r">Hard Deadline</span>';
+  } else if (deadType === 'ASAP') {
+    html += '<span class="tag g">ASAP</span>';
+  } else {
+    html += '<span class="tag amb">No deadline type</span>';
+  }
+
+  // Editable date — clicking the chip opens a small inline date input.
+  // ASAP orders don't NEED a date (per real data pattern) — but we still allow setting one.
+  // Hard Deadline orders missing a date is a real data gap — show as amber problem.
+  var dateInputId = 'dueDate_' + rec.id;
+  var dateCls = 'tag ';
+  var showDateChip = true;
+  var dueDisplay;
+  if (!effectiveDue) {
+    if (deadType === 'ASAP') {
+      // ASAP-no-date is normal; subtle "+ Add date" affordance
+      dateCls += 'n';
+      dueDisplay = '+ Add date';
+    } else {
+      // Hard Deadline or no-type with no date — actionable
+      dateCls += 'amb';
+      dueDisplay = 'Set due date';
+    }
+  } else {
+    if (ddays != null && ddays < 0) dateCls += 'r';
+    else if (ddays != null && ddays <= 7) dateCls += 'amb';
+    else dateCls += 'n';
+    dueDisplay = dueLabel(effectiveDue);
+  }
+  html += '<span class="' + dateCls + '" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px" onclick="openDueEditor(\'' + rec.id + '\')">';
+  html += escHtml(dueDisplay);
+  html += '<span style="opacity:.5;font-size:9px">✎</span>';
+  html += '</span>';
+  // Hidden native date input — triggered by openDueEditor()
+  html += '<input type="date" id="' + dateInputId + '" value="' + escAttr(effectiveDue || '') + '" onchange="onDueChange(\'' + rec.id + '\', this.value)" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px" />';
+
+  if (ship) html += '<span class="tag n">' + escHtml(ship) + '</span>';
+  html += '<span class="tag n">' + escHtml(rep) + '</span>';
+  html += '</div>';
+
+  // Cockpit right actions: Review / Submit
+  // Hidden when already in review / submit-confirm (those modes have their own banner actions).
+  if (state.detailMode !== 'review' && state.detailMode !== 'submit-confirm') {
+    var canReview = state.orderImprints.length > 0 || state.orderLineItems.length > 0;
+    if (canReview) {
+      html += '<button class="cp-review" onclick="goReview()"><i class="ti ti-eye" aria-hidden="true"></i> Review</button>';
+      html += '<button class="cp-submit" onclick="goSubmitConfirm()"><i class="ti ti-send" aria-hidden="true"></i> Submit</button>';
+    }
+  }
+  html += '</div>';
+
+  // Body
+  if (state.detailLoading) {
+    html += '<div class="empty">Loading order…</div>';
+  } else if (state.detailErr) {
+    html += '<div class="empty" style="color:var(--red)">Couldn\'t load detail · ' + escHtml(state.detailErr) + '</div>';
+  } else {
+    html += renderDetailBody(rec, cust);
+  }
+
+  canvas.innerHTML = html;
+}
+
+// ── Order detail body: IMPRINTS section + LINE ITEMS section ──
+function renderDetailBody(rec, cust){
+  // Route by detailMode — each mode produces a distinct body shape.
+  switch (state.detailMode) {
+    case 'imprint-empty':   return renderModeImprintEmpty(rec, cust);
+    case 'li-empty':        return renderModeLiEmpty(rec, cust);
+    case 'li-focus':        return renderModeLiFocus(rec, cust);
+    case 'review':          return renderModeReview(rec, cust, false);
+    case 'submit-confirm':  return renderModeReview(rec, cust, true);
+    default:                return renderModeImprintEmpty(rec, cust);
+  }
+}
+
+// ── Imprint strip — shown above LI focus/empty/review when imprints exist ──
+function renderImprintStrip(opts){
+  opts = opts || {};
+  var imps = state.orderImprints;
+  var html = '<div class="imp-strip">';
+  html += '<span class="imp-strip-lbl">Imprints</span>';
+  if (imps.length === 0) {
+    html += '<div class="imp-chips" style="flex:1;font-size:11px;color:#BBBBB5;font-style:italic;">No imprints yet</div>';
+  } else {
+    html += '<div class="imp-chips">';
+    imps.forEach(function(imp){
+      var f = imp.cellValuesByFieldId || imp.fields || {};
+      var label = getStr(f[I.idGen]) || getStr(f[I.id]) || 'imprint';
+      var loc = getSelName(f[I.loc]) || '';
+      var isGhost = !!imp._local;
+      var cls = 'imp-chip' + (isGhost ? ' ghost' : '');
+      var onclick = isGhost
+        ? 'openImprintForm(\'edit\',\'' + imp.id + '\')'
+        : 'showReadOnlyImprint(\'' + imp.id + '\')';
+      html += '<div class="' + cls + '" onclick="' + onclick + '">';
+      html += '<span class="imp-chip-ph"><i class="ti ti-photo"></i></span>';
+      html += '<span class="imp-chip-lbl">' + escHtml(label) + (loc ? ' · ' + escHtml(loc.toLowerCase()) : '') + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  if (opts.showAdd !== false) {
+    html += '<button class="imp-strip-add" onclick="openImprintForm(\'new\')">+ Add' + (imps.length > 0 ? ' another' : ' imprint') + '</button>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── MODE: imprint-empty — fresh order, no imprints yet, form is the whole body ──
+function renderModeImprintEmpty(rec, cust){
+  var html = '';
+  // Two-step intro header
+  html += '<div class="intro-banner">';
+  html += '<div class="step">';
+  html += '<div class="stepnum">1</div><div class="stept">Add all the imprints</div>';
+  html += '<i class="ti ti-chevron-right arr" aria-hidden="true"></i>';
+  html += '<div class="stepnum next">2</div><div class="stept muted">Then build line items</div>';
+  html += '</div>';
+  html += '</div>';
+  // Form is the focus
+  if (state.imprintForm) {
+    html += renderImprintForm();
+  } else {
+    // Should not normally hit this — maybeAutoOpenImprintForm should have run.
+    // But if a user closes the form on an empty order, show a CTA to reopen.
+    html += '<div class="empty-card">';
+    html += '<div class="empty-card-ico"><i class="ti ti-photo" aria-hidden="true"></i></div>';
+    html += '<div class="empty-card-big">Start with an imprint</div>';
+    html += '<div class="empty-card-sub">Add the design (location + type) before building line items.</div>';
+    html += '<button class="empty-card-cta" onclick="openImprintForm(\'new\')"><i class="ti ti-plus" aria-hidden="true"></i> Add first imprint</button>';
+    html += '</div>';
+  }
+  return html;
+}
+
+// ── MODE: li-empty — at least 1 imprint, no LIs yet ──
+function renderModeLiEmpty(rec, cust){
+  var html = '';
+  html += renderImprintStrip();
+  // If imprint form is open (mid-flow from strip +Add), show it; LI stub goes behind dimmed
+  if (state.imprintForm) {
+    html += renderImprintFormSheet();
+    html += renderLiEmptyStub(true); // dimmed peek
+  } else {
+    html += renderLiEmptyStub(false);
+  }
+  return html;
+}
+
+function renderLiEmptyStub(dimmed){
+  var imps = state.orderImprints;
+  var firmer = imps.length >= 2; // C-mode in sketch: stronger nudge after 2+ imprints
+  var html = '<div class="li-stub' + (firmer ? ' firmer' : '') + (dimmed ? ' dimmed' : '') + '">';
+  html += '<div class="li-stub-ico"><i class="ti ti-shirt" aria-hidden="true"></i></div>';
+  if (firmer) {
+    html += '<div class="li-stub-big">' + imps.length + ' imprints ready · time for line items</div>';
+    html += '<div class="li-stub-sub">Add line items below. Each one gets attached to whichever imprints belong on it.</div>';
+  } else {
+    html += '<div class="li-stub-big">Ready for line items</div>';
+    html += '<div class="li-stub-sub">You have 1 imprint. You can add more, or start attaching this one to line items.</div>';
+  }
+  html += '<button class="li-stub-cta" onclick="addNewLineItem()"><i class="ti ti-plus" aria-hidden="true"></i> Add first line item</button>';
+  html += '<div class="li-stub-pivot">— or <a onclick="openImprintForm(\'new\')">add another imprint</a> —</div>';
+  html += '</div>';
+  return html;
+}
+
+// ── MODE: li-focus — focused on one LI, with pager + imprint strip ──
+function renderModeLiFocus(rec, cust){
+  var html = '';
+  html += renderImprintStrip();
+  // If imprint form is open (mid-flow from strip), show it sliding over the LI
+  if (state.imprintForm) {
+    html += renderImprintFormSheet();
+    html += renderFocusedLi(true); // dimmed peek
+  } else {
+    html += renderFocusedLi(false);
+  }
+  return html;
+}
+
+function renderFocusedLi(dimmed){
+  var lis = state.orderLineItems;
+  var total = lis.length;
+  if (total === 0) return ''; // shouldn't happen — mode would be li-empty
+  var idx = state.focusLiIndex;
+  if (idx >= total) idx = total - 1;
+  if (idx < 0) idx = 0;
+  var li = lis[idx];
+
+  var html = '';
+  // Line-item tabs — direct access, each tab shows its garment (v2-v14, replaces pager+dots)
+  html += '<div class="li-tabs">';
+  html += '<span class="li-tabs-lbl">' + total + ' line item' + (total === 1 ? '' : 's') + '</span>';
+  for (var i = 0; i < total; i++) {
+    var lf = lis[i].cellValuesByFieldId || lis[i].fields || {};
+    var gids = getLinkIds(lf[L.garment]);
+    var gnm = (gids.length && state.garmentNames[gids[0]]) || '';
+    html += '<button class="li-tab' + (i === idx ? ' on' : '') + '" onclick="gotoLi(' + i + ')">';
+    html += 'Line ' + (i + 1);
+    html += gnm
+      ? ' <span class="li-tab-g">' + escHtml(gnm) + '</span>'
+      : ' <span class="li-tab-g empty">no garment</span>';
+    html += '</button>';
+  }
+  html += '<button class="li-tab-add" onclick="addNewLineItem()">+ Add</button>';
+  html += '</div>';
+
+  // The focused LI card
+  html += '<div class="li-focus' + (dimmed ? ' dimmed' : '') + '">';
+  html += renderLiFocusInner(li, idx, total);
+  html += '</div>';
+
+  return html;
+}
+
+function renderLiFocusInner(li, idx, total){
+  var f = li.cellValuesByFieldId || li.fields || {};
+  var liId = li.id;
+  var attachedImpIds = getLinkIds(f[L.imprints]);
+  var garmentIds = getLinkIds(f[L.garment]);
+  var garmentName = garmentIds.length && state.garmentNames[garmentIds[0]] || '';
+  var price = getNum(f[L.price]);
+
+  // Compute live qty from sizes (since formula doesn't refresh locally without write)
+  var liveQty = 0;
+  ['szXS','szS','szM','szL','szXL','sz2XL','sz3XL','sz4XL','sz5XL','sz6XL','szOSFA'].forEach(function(k){
+    liveQty += getNum(f[L[k]]);
+  });
+
+  var html = '';
+
+  // Imprints row — assigned-only chips + inline "+ Assign" picker (v2-v15).
+  // The top strip already lists every imprint, so the line shows just what's on it.
+  html += '<div class="li-row">';
+  html += '<div class="li-lbl">Imprints on this line item</div>';
+  html += '<div class="li-imps">';
+  if (state.orderImprints.length === 0) {
+    html += '<span style="font-size:11px;color:#BBBBB5;font-style:italic;">No imprints exist yet</span>';
+  } else {
+    var anyAssigned = false;
+    state.orderImprints.forEach(function(imp){
+      if (attachedImpIds.indexOf(imp.id) === -1) return;
+      anyAssigned = true;
+      var ifld = imp.cellValuesByFieldId || imp.fields || {};
+      var label = getStr(ifld[I.idGen]) || getStr(ifld[I.id]) || 'imprint';
+      var loc = getSelName(ifld[I.loc]) || '';
+      html += '<span class="li-imp-chip">';
+      html += escHtml(label) + (loc ? ' · ' + escHtml(loc.toLowerCase()) : '');
+      html += ' <span class="li-imp-x" title="Remove from this line" onclick="toggleImpOnLi(\'' + liId + '\',\'' + imp.id + '\')">×</span>';
+      html += '</span>';
+    });
+    if (!anyAssigned) {
+      html += '<span style="font-size:11px;color:#BBBBB5;font-style:italic;margin-right:2px;">None yet</span>';
+    }
+    var pickerOpen = state.liAssignOpen === liId;
+    html += '<button class="li-assign-btn' + (pickerOpen ? ' on' : '') + '" onclick="toggleLiAssign(\'' + liId + '\')">+ Assign</button>';
+  }
+  html += '</div>';
+  // Inline picker — the imprints not yet on this line
+  if (state.orderImprints.length > 0 && state.liAssignOpen === liId) {
+    var avail = state.orderImprints.filter(function(imp){ return attachedImpIds.indexOf(imp.id) === -1; });
+    html += '<div class="li-assign-picker">';
+    html += '<div class="li-assign-picker-h">Add an imprint to this line</div>';
+    if (avail.length === 0) {
+      html += '<div class="li-pick-empty">All imprints are already on this line.</div>';
+    } else {
+      avail.forEach(function(imp){
+        var ifld = imp.cellValuesByFieldId || imp.fields || {};
+        var label = getStr(ifld[I.idGen]) || getStr(ifld[I.id]) || 'imprint';
+        var loc = getSelName(ifld[I.loc]) || '';
+        html += '<div class="li-pick-row" onclick="toggleImpOnLi(\'' + liId + '\',\'' + imp.id + '\')">';
+        html += '<span><span class="li-pick-id">' + escHtml(label) + '</span>' + (loc ? ' <span class="li-pick-loc">· ' + escHtml(loc.toLowerCase()) + '</span>' : '') + '</span>';
+        html += '<span class="li-pick-plus">+ Add</span>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Garment row — real picker
+  html += '<div class="li-row">';
+  html += '<div class="li-lbl">Garment</div>';
+  var pickerOpenForThisLi = state.garmentPicker && state.garmentPicker.liId === liId;
+  var garmCls = 'garm-pick' + (garmentName ? '' : ' empty') + (pickerOpenForThisLi ? ' open' : '');
+  html += '<div class="' + garmCls + '" onclick="' + (pickerOpenForThisLi ? 'closeGarmentPicker()' : 'openGarmentPicker(\'' + liId + '\')') + '">';
+  if (garmentName) {
+    html += '<div class="swatch" style="background:#888880;"></div>';
+    html += '<div class="garm-pick-name">' + escHtml(garmentName) + '</div>';
+  } else {
+    html += '<div class="swatch empty"><i class="ti ti-shirt" aria-hidden="true"></i></div>';
+    html += '<div class="garm-pick-name empty">Pick a garment</div>';
+  }
+  html += '<i class="ti ti-chevron-' + (pickerOpenForThisLi ? 'up' : 'down') + ' chev" aria-hidden="true"></i>';
+  html += '</div>';
+  // Picker panel slides under the garment row
+  if (pickerOpenForThisLi) {
+    html += renderGarmentPickerPanel(liId);
+  }
+  html += '</div>';
+
+  // Sizes — inline editable inputs.
+  // Auto-expand "more sizes" if any of XS/3XL/4XL/5XL/6XL has a value.
+  var moreFilled = getNum(f[L.szXS]) + getNum(f[L.sz3XL]) + getNum(f[L.sz4XL]) + getNum(f[L.sz5XL]) + getNum(f[L.sz6XL]);
+  var moreExpanded = state.moreSizesExpanded[liId] || moreFilled > 0;
+
+  html += '<div class="li-row">';
+  html += '<div class="li-lbl">Sizes <span class="meta"><span id="szTotal-' + liId + '">' + (liveQty || 0) + '</span> pcs</span></div>';
+  html += '<div class="sz-grid">';
+  // Tab order is document order — inputs in S→M→L→XL→2XL→OSFA order, then XS→3XL→4XL→5XL→6XL when expanded, then price.
+  var sizes = [
+    { key: 'szS',    label: 'S' },
+    { key: 'szM',    label: 'M' },
+    { key: 'szL',    label: 'L' },
+    { key: 'szXL',   label: 'XL' },
+    { key: 'sz2XL',  label: '2XL' },
+    { key: 'szOSFA', label: 'OS' }
+  ];
+  sizes.forEach(function(sz){
+    html += renderSizeCell(liId, sz.key, sz.label, getNum(f[L[sz.key]]));
+  });
+  html += '</div>';
+
+  if (moreExpanded) {
+    html += '<div class="sz-grid sz-grid-more">';
+    var moreSizes = [
+      { key: 'szXS',  label: 'XS' },
+      { key: 'sz3XL', label: '3XL' },
+      { key: 'sz4XL', label: '4XL' },
+      { key: 'sz5XL', label: '5XL' },
+      { key: 'sz6XL', label: '6XL' }
+    ];
+    moreSizes.forEach(function(sz){
+      html += renderSizeCell(liId, sz.key, sz.label, getNum(f[L[sz.key]]));
+    });
+    html += '<button class="sz-more-collapse" onclick="toggleMoreSizes(\'' + liId + '\')" tabindex="-1">− Less</button>';
+    html += '</div>';
+  } else {
+    html += '<button class="sz-more" onclick="toggleMoreSizes(\'' + liId + '\')" tabindex="-1">';
+    html += '<i class="ti ti-plus" aria-hidden="true"></i> XS, 3XL, 4XL, 5XL, 6XL';
+    html += '</button>';
+  }
+  html += '</div>';
+
+  // Price row — inline input
+  html += '<div class="li-row">';
+  html += '<div class="li-lbl">Price</div>';
+  html += '<div class="price-row">';
+  // Per-piece input
+  html += '<div class="price-pick-input">';
+  html += '<div class="price-pick-lbl">Per piece</div>';
+  html += '<div class="price-input-wrap">';
+  html += '<span class="price-prefix">$</span>';
+  html += '<input type="number" inputmode="decimal" step="0.01" min="0" '
+       + 'id="price-' + liId + '" class="price-input" '
+       + 'value="' + (price > 0 ? price.toFixed(2) : '') + '" placeholder="0.00" '
+       + 'onchange="onPriceChange(\'' + liId + '\', this.value)" '
+       + 'onkeydown="onPriceKey(event, \'' + liId + '\')" />';
+  html += '</div>';
+  html += '</div>';
+  // Line total (read-only display, updated in-place)
+  html += '<div class="price-pick">';
+  html += '<div class="price-pick-lbl">Line total</div>';
+  var lineTotal = price * liveQty;
+  var hasTotal = price > 0 && liveQty > 0;
+  html += '<div class="price-pick-val" id="lineTotal-' + liId + '">';
+  html += hasTotal ? '$' + lineTotal.toFixed(2) : '—';
+  html += '</div>';
+  html += '<div class="price-pick-sub" id="lineTotalSub-' + liId + '">';
+  html += hasTotal ? liveQty + ' × $' + price.toFixed(2) : '';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Actions
+  html += '<div class="li-focus-actions">';
+  if (li._local) {
+    html += '<button class="li-act danger" onclick="deleteGhostLi(\'' + liId + '\')"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>';
+  }
+  html += '<div style="flex:1"></div>';
+  if (idx < total - 1) {
+    html += '<button class="li-act primary" id="saveBtn-' + liId + '" onclick="saveAndNextLi()">Save · next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>';
+  } else {
+    html += '<button class="li-act ghost" onclick="addNewLineItem()"><i class="ti ti-plus" aria-hidden="true"></i> Add another</button>';
+    html += '<button class="li-act primary" id="saveBtn-' + liId + '" onclick="goReview()">Save · review</button>';
+  }
+  html += '</div>';
+
+  return html;
+}
+
+// Render a single inline-editable size cell.
+// On change: updates state, refreshes total spans in-place (no full re-render — keeps focus).
+function renderSizeCell(liId, sizeKey, label, val){
+  var filled = val > 0;
+  var cls = 'sz-cell sz-input-cell' + (filled ? ' f' : '');
+  var inputId = 'sz-' + liId + '-' + sizeKey;
+  var html = '<label class="' + cls + '" for="' + inputId + '">';
+  html += '<span class="sz-lbl">' + label + '</span>';
+  html += '<input type="number" inputmode="numeric" min="0" '
+       + 'id="' + inputId + '" class="sz-input" '
+       + 'value="' + (val > 0 ? val : '') + '" placeholder="—" '
+       + 'onchange="onSizeChange(\'' + liId + '\',\'' + sizeKey + '\', this.value)" '
+       + 'onfocus="this.select()" '
+       + 'onkeydown="onSizeKey(event, \'' + liId + '\', \'' + sizeKey + '\')" />';
+  html += '</label>';
+  return html;
+}
+
+// Render the garment picker panel beneath the garment row
+function renderGarmentPickerPanel(liId){
+  var p = state.garmentPicker;
+  if (!p || p.liId !== liId) return '';
+  var html = '<div class="garm-panel">';
+  // Search input
+  html += '<div class="garm-search">';
+  html += '<i class="ti ti-search" aria-hidden="true"></i>';
+  html += '<input type="text" id="garmSearch" class="garm-search-input" '
+       + 'placeholder="Search by brand, style, color — e.g. bella 3001 black" '
+       + 'value="' + escAttr(p.query) + '" '
+       + 'oninput="onGarmentSearch(this.value)" />';
+  html += '<button class="garm-search-x" onclick="closeGarmentPicker()" title="Close"><i class="ti ti-x" aria-hidden="true"></i></button>';
+  html += '</div>';
+  // Results
+  html += '<div class="garm-results">';
+  if (p.loading) {
+    html += '<div class="garm-status">Searching…</div>';
+  } else if (p.err) {
+    html += '<div class="garm-status err">' + escHtml(p.err) + '</div>';
+  } else if (!p.query) {
+    html += '<div class="garm-status hint">Type a brand, style number, or color to search ' + GARMENT_TOTAL + ' garments.</div>';
+  } else if (p.results.length === 0) {
+    html += '<div class="garm-status">No matches for "' + escHtml(p.query) + '".</div>';
+  } else {
+    p.results.forEach(function(g){
+      var gf = g.cellValuesByFieldId || g.fields || {};
+      var name = getStr(gf[G.name]) || '(no name)';
+      html += '<div class="garm-result" onclick="pickGarment(\'' + liId + '\',\'' + g.id + '\')">';
+      html += '<div class="garm-result-name">' + escHtml(name) + '</div>';
+      html += '</div>';
+    });
+    if (p.results.length === MAX_GARMENT_RESULTS) {
+      html += '<div class="garm-status hint">Showing ' + MAX_GARMENT_RESULTS + ' matches — refine your search to narrow.</div>';
+    }
+  }
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+// ── MODE: review / submit-confirm — dense overview ──
+function renderModeReview(rec, cust, isSubmitConfirm){
+  var html = '';
+  // Top banner — review vs submit-confirm have different urgency
+  var bannerCls = isSubmitConfirm ? 'rev-banner submit' : 'rev-banner';
+  html += '<div class="' + bannerCls + '">';
+  html += '<i class="ti ti-' + (isSubmitConfirm ? 'send' : 'eye') + '" aria-hidden="true"></i>';
+  html += '<span>' + (isSubmitConfirm
+    ? 'Confirm submit — order goes to the shop'
+    : 'Review · everything below is read-only') + '</span>';
+  html += '<div class="rev-banner-actions">';
+  html += '<button class="rev-banner-btn" onclick="keepEditing()">Keep editing</button>';
+  html += '<button class="rev-banner-btn primary" onclick="' + (isSubmitConfirm ? 'confirmSubmit()' : 'goSubmitConfirm()') + '">';
+  html += (isSubmitConfirm ? 'Confirm submit' : 'Submit order');
+  html += '</button>';
+  html += '</div>';
+  html += '</div>';
+
+  // Imprints
+  var imps = state.orderImprints;
+  html += '<div class="rev-sec-h">Imprints<span class="rev-sec-meta">' + imps.length + (imps.length === 1 ? ' design' : ' designs') + '</span></div>';
+  if (imps.length === 0) {
+    html += '<div class="rev-empty">No imprints — at least one is required before submitting.</div>';
+  } else {
+    html += '<div class="rev-imp-row">';
+    imps.forEach(function(imp){
+      var f = imp.cellValuesByFieldId || imp.fields || {};
+      var idLabel = getStr(f[I.idGen]) || getStr(f[I.id]) || 'imprint';
+      var loc = getSelName(f[I.loc]) || '—';
+      var type = getSelName(f[I.type]) || '—';
+      html += '<div class="rev-imp">';
+      html += '<div class="rev-imp-ph"><i class="ti ti-photo" aria-hidden="true"></i></div>';
+      html += '<div class="rev-imp-id">' + escHtml(idLabel) + '</div>';
+      html += '<div class="rev-imp-sub">' + escHtml(loc.toLowerCase()) + ' · ' + escHtml(type) + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Line items
+  var lis = state.orderLineItems;
+  var grandQty = 0, grandTotal = 0, incomplete = 0;
+  lis.forEach(function(li){
+    var f = li.cellValuesByFieldId || li.fields || {};
+    var liQty = 0;
+    ['szXS','szS','szM','szL','szXL','sz2XL','sz3XL','sz4XL','sz5XL','sz6XL','szOSFA'].forEach(function(k){
+      liQty += getNum(f[L[k]]);
+    });
+    var liPrice = getNum(f[L.price]);
+    grandQty += liQty;
+    grandTotal += liPrice * liQty;
+    if (!liPrice || !liQty || !getLinkIds(f[L.imprints]).length || !getLinkIds(f[L.garment]).length) incomplete++;
+  });
+  html += '<div class="rev-sec-h">Line items<span class="rev-sec-meta">'
+    + lis.length + (lis.length === 1 ? ' line' : ' lines')
+    + ' · ' + grandQty + ' pcs · $' + grandTotal.toFixed(2);
+  if (incomplete > 0) html += ' · <span style="color:#b7791f;">' + incomplete + ' incomplete</span>';
+  html += '</span></div>';
+
+  if (lis.length === 0) {
+    html += '<div class="rev-empty">No line items — add at least one before submitting.</div>';
+  } else {
+    lis.forEach(function(li, idx){
+      html += renderReviewLi(li, idx);
+    });
+  }
+
+  return html;
+}
+
+function renderReviewLi(li, idx){
+  var f = li.cellValuesByFieldId || li.fields || {};
+  var impIds = getLinkIds(f[L.imprints]);
+  var garmentIds = getLinkIds(f[L.garment]);
+  var garmentName = garmentIds.length && state.garmentNames[garmentIds[0]] || '(no garment)';
+  var price = getNum(f[L.price]);
+  var liQty = 0;
+  ['szXS','szS','szM','szL','szXL','sz2XL','sz3XL','sz4XL','sz5XL','sz6XL','szOSFA'].forEach(function(k){
+    liQty += getNum(f[L[k]]);
+  });
+  var lineTotal = price * liQty;
+
+  var html = '<div class="rev-li" onclick="jumpToLi(' + idx + ')">';
+  html += '<div class="rev-li-top">';
+  html += '<div class="rev-li-pills">';
+  if (impIds.length === 0) {
+    html += '<span class="rev-li-pill warn">no imprint</span>';
+  } else {
+    impIds.forEach(function(impId){
+      html += '<span class="rev-li-pill">' + escHtml(lookupImprintLabel(impId)) + '</span>';
+    });
+  }
+  html += '</div>';
+  html += '<span class="rev-li-garm">' + escHtml(garmentName) + '</span>';
+  if (price > 0 && liQty > 0) {
+    html += '<span class="rev-li-price">$' + lineTotal.toFixed(2) + '<span class="meta"> · ' + liQty + 'pc</span></span>';
+  } else {
+    html += '<span class="rev-li-price warn">incomplete</span>';
+  }
+  html += '</div>';
+  html += '<div class="rev-li-sz">';
+  var anySize = false;
+  [
+    { key: 'szXS',  label: 'XS' },
+    { key: 'szS',   label: 'S' },
+    { key: 'szM',   label: 'M' },
+    { key: 'szL',   label: 'L' },
+    { key: 'szXL',  label: 'XL' },
+    { key: 'sz2XL', label: '2XL' },
+    { key: 'sz3XL', label: '3XL' },
+    { key: 'sz4XL', label: '4XL' },
+    { key: 'sz5XL', label: '5XL' },
+    { key: 'sz6XL', label: '6XL' },
+    { key: 'szOSFA',label: 'OS' }
+  ].forEach(function(sz){
+    var v = getNum(f[L[sz.key]]);
+    if (v > 0) {
+      html += '<span><span class="lbl">' + sz.label + '</span><span class="v">' + v + '</span></span>';
+      anySize = true;
+    }
+  });
+  if (!anySize) html += '<span style="color:#b7791f;">no sizes</span>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+// ── Render one imprint tile (real or ghost) ──
+function renderImprintTile(imp){
+  var isGhost = !!imp._local;
+  var f = imp.cellValuesByFieldId || imp.fields || {};
+  var impId = getStr(f[I.idGen]) || getStr(f[I.id]) || (isGhost ? 'New imprint' : '(no id)');
+  var nick = getStr(f[I.nick]);
+  var loc = getSelName(f[I.loc]) || '—';
+  var type = getSelName(f[I.type]) || '—';
+  var liIds = getLinkIds(f[I.lis]);
+  var attachedCount = liIds.length;
+  var proofUrl = getProofThumbUrl(f[I.proofs]);
+
+  var titleLine = nick || impId;
+
+  var cls = 'imp-tile';
+  if (isGhost) cls += ' ghost';
+
+  var onclick = isGhost
+    ? 'openImprintForm(\'edit\',\'' + imp.id + '\')'
+    : 'showReadOnlyImprint(\'' + imp.id + '\')';
+
+  var html = '<div class="' + cls + '" onclick="' + onclick + '">';
+  // Thumb area — proof when available, muted placeholder otherwise
+  html += '<div class="imp-thumb">';
+  if (proofUrl) {
+    html += '<img src="' + escAttr(proofUrl) + '" alt="" onerror="this.style.display=\'none\'">';
+  } else {
+    html += '<svg class="imp-thumb-ph" viewBox="0 0 24 24" fill="none">';
+    html += '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>';
+    html += '<circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>';
+    html += '<path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+    html += '</svg>';
+  }
+  if (isGhost) html += '<span class="imp-thumb-badge">ghost</span>';
+  html += '</div>';
+  // Tile body — id/nickname + loc · type + attach count
+  html += '<div class="imp-tile-body">';
+  html += '<div class="imp-tile-name">' + escHtml(titleLine) + '</div>';
+  html += '<div class="imp-tile-sub">' + escHtml(loc.toLowerCase()) + ' · ' + escHtml(type) + '</div>';
+  if (attachedCount > 0) {
+    html += '<div class="imp-tile-attach">on ' + attachedCount + (attachedCount === 1 ? ' line item' : ' line items') + '</div>';
+  } else {
+    html += '<div class="imp-tile-attach warn">⚠ not on any line item yet</div>';
+  }
+  html += '</div>';
+  html += '</div>'; // /imp-tile
+  return html;
+}
+
+// ── Render one line item row (read-only for now) ──
+function renderLineItemRow(li){
+  var f = li.cellValuesByFieldId || li.fields || {};
+  var qty = getNum(f[L.totalQty]);
+  var price = getNum(f[L.price]);
+  var garmentIds = getLinkIds(f[L.garment]);
+  var garmentName = garmentIds.length && state.garmentNames[garmentIds[0]] || '(garment)';
+  var impIds = getLinkIds(f[L.imprints]);
+
+  // Size cells: S, M, L, XL, 2XL, OSFA shown, + button reveals more
+  var sizes = [
+    { key: 's', label: 's', val: getNum(f[L.szS]) },
+    { key: 'm', label: 'm', val: getNum(f[L.szM]) },
+    { key: 'l', label: 'l', val: getNum(f[L.szL]) },
+    { key: 'xl', label: 'xl', val: getNum(f[L.szXL]) },
+    { key: '2xl', label: '2xl', val: getNum(f[L.sz2XL]) },
+    { key: 'osfa', label: 'os', val: getNum(f[L.szOSFA]) }
+  ];
+  // Check if there are any "more" sizes filled
+  var moreFilled = getNum(f[L.szXS]) + getNum(f[L.sz3XL]) + getNum(f[L.sz4XL]) + getNum(f[L.sz5XL]) + getNum(f[L.sz6XL]);
+
+  var html = '<div class="li-row">';
+  // Top line: imprint pills + garment name + price
+  html += '<div class="li-line">';
+  html += '<div class="li-line-l">';
+  impIds.forEach(function(impId){
+    var label = lookupImprintLabel(impId);
+    html += '<span class="li-imp-pill">' + escHtml(label) + '</span>';
+  });
+  if (!impIds.length) {
+    html += '<span class="li-imp-pill warn">⚠ no imprint</span>';
+  }
+  html += '<span class="li-garment">' + escHtml(garmentName) + '</span>';
+  html += '</div>';
+  html += '<span class="li-price">$' + (price ? price.toFixed(2) : '—') + (qty > 0 ? ' · ' + qty + 'pc' : '') + '</span>';
+  html += '</div>';
+  // Size mini grid
+  html += '<div class="li-sz-mini">';
+  sizes.forEach(function(s){
+    var cls = 'li-sz-cell' + (s.val > 0 ? ' filled' : '');
+    html += '<div class="' + cls + '">' + s.label + (s.val > 0 ? ' ' + s.val : '') + '</div>';
+  });
+  // "+more" cell
+  var moreCls = 'li-sz-cell' + (moreFilled > 0 ? ' filled' : '');
+  html += '<div class="' + moreCls + '">' + (moreFilled > 0 ? '+' + moreFilled : '+') + '</div>';
+  html += '</div>';
+  html += '</div>'; // /li-row
+  return html;
+}
+
+// Look up display label for an imprint by record ID — checks orderImprints (real + ghost)
+function lookupImprintLabel(impId){
+  for (var i = 0; i < state.orderImprints.length; i++) {
+    if (state.orderImprints[i].id === impId) {
+      var f = state.orderImprints[i].cellValuesByFieldId || state.orderImprints[i].fields || {};
+      var idLabel = getStr(f[I.idGen]) || getStr(f[I.id]) || 'imprint';
+      return idLabel;
+    }
+  }
+  // Fall back to truncated record ID
+  return impId.slice(0, 8) + '…';
+}
+
+// Stub for tapping a real imprint tile — read-only view (no editing yet, writes off)
+function showReadOnlyImprint(impId){
+  var rec = null;
+  for (var i = 0; i < state.orderImprints.length; i++) {
+    if (state.orderImprints[i].id === impId) { rec = state.orderImprints[i]; break; }
+  }
+  if (!rec) return;
+  var f = rec.cellValuesByFieldId || rec.fields || {};
+  var msg = 'Imprint ' + (getStr(f[I.idGen]) || getStr(f[I.id])) + '\n\n'
+    + 'Location: ' + (getSelName(f[I.loc]) || '—') + '\n'
+    + 'Type: ' + (getSelName(f[I.type]) || '—') + '\n'
+    + 'Nickname: ' + (getStr(f[I.nick]) || '—') + '\n'
+    + 'Notes: ' + (getStr(f[I.notes]) || '—') + '\n\n'
+    + '(Editing this real imprint will become available when writes are enabled.)';
+  alert(msg);
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Imprint form (inline, expandable at top of IMPRINTS section)
+// ──────────────────────────────────────────────────────────────────────────
+
+function openImprintForm(mode, editingId){
+  // Remember where to return after the form closes.
+  // imprint-empty → after save, mode resolves naturally to li-empty
+  // li-empty / li-focus → after save, return to that mode
+  var origin = state.detailMode;
+  if (mode === 'edit' && editingId) {
+    // Find the ghost record and pre-fill
+    var ghost = null;
+    for (var i = 0; i < state.orderImprints.length; i++) {
+      if (state.orderImprints[i].id === editingId) { ghost = state.orderImprints[i]; break; }
+    }
+    if (!ghost || !ghost._local) {
+      // Real imprint editing not yet supported
+      showReadOnlyImprint(editingId);
+      return;
+    }
+    var gf = ghost.fields || {};
+    // Figure out which type category this is in
+    var typeName = getSelName(gf[I.type]);
+    var category = '';
+    IMPRINT_TYPE_GROUPS.forEach(function(grp){
+      if (grp.options.indexOf(typeName) !== -1) category = grp.label;
+    });
+    var liIds = getLinkIds(gf[I.lis]);
+    state.imprintForm = {
+      mode: 'edit',
+      editingId: editingId,
+      location: getSelName(gf[I.loc]) || '',
+      typeCategory: category,
+      type: typeName,
+      nickname: getStr(gf[I.nick]) || '',
+      notes: getStr(gf[I.notes]) || '',
+      screens: (gf[I.screens] != null ? String(gf[I.screens]) : ''),
+      inkChanges: (gf[I.inkChanges] != null ? String(gf[I.inkChanges]) : ''),
+      applyToLis: liIds.slice(),
+      showMoreLocs: false,
+      originReturn: origin
+    };
+  } else {
+    state.imprintForm = {
+      mode: 'new',
+      editingId: null,
+      location: '',
+      typeCategory: '',
+      type: '',
+      nickname: '',
+      notes: '',
+      screens: '',
+      inkChanges: '',
+      applyToLis: [],
+      showMoreLocs: false,
+      originReturn: origin
+    };
+  }
+  render();
+}
+
+function closeImprintForm(){
+  state.imprintForm = null;
+  resolveDetailMode();
+  render();
+}
+
+function setFormLocation(loc){
+  if (!state.imprintForm) return;
+  state.imprintForm.location = loc;
+  render();
+}
+function toggleMoreLocs(){
+  if (!state.imprintForm) return;
+  state.imprintForm.showMoreLocs = !state.imprintForm.showMoreLocs;
+  render();
+}
+function setFormTypeCategory(cat){
+  if (!state.imprintForm) return;
+  // Don't reset existing type if category matches
+  state.imprintForm.typeCategory = state.imprintForm.typeCategory === cat ? '' : cat;
+  // If clearing category, clear type too
+  if (!state.imprintForm.typeCategory) state.imprintForm.type = '';
+  render();
+}
+function setFormType(t){
+  if (!state.imprintForm) return;
+  state.imprintForm.type = t;
+  render();
+}
+function setFormNick(v){ if (state.imprintForm) state.imprintForm.nickname = v; }
+function setFormNotes(v){ if (state.imprintForm) state.imprintForm.notes = v; }
+function pickImpNum(field, n){ if (!state.imprintForm) return; state.imprintForm[field] = String(n); state.imprintForm[field + 'More'] = false; render(); }
+function toggleImpNumMore(field){
+  if (!state.imprintForm) return;
+  var on = !state.imprintForm[field + 'More'];
+  state.imprintForm[field + 'More'] = on;
+  render();
+  if (on) setTimeout(function(){ var el = document.getElementById('impNum_' + field); if (el) el.focus(); }, 0);
+}
+function setImpNumCustom(field, v){ if (state.imprintForm) state.imprintForm[field] = v; }
+
+// Numeric button picker for screen count / color changes (v2-v13).
+// Buttons 1–8 (the practical ceiling) + a "+" that reveals a custom entry for higher.
+function impNumRowHTML(label, field){
+  var f = state.imprintForm;
+  var val = (f[field] == null) ? '' : String(f[field]);
+  var moreOn = !!f[field + 'More'];
+  var numVal = (val === '') ? null : Number(val);
+  var h = '<div class="imp-form-lbl">' + label + '</div>';
+  h += '<div class="imp-form-btns">';
+  for (var n = 1; n <= 8; n++){
+    var on = (numVal === n);
+    h += '<button class="imp-btn num' + (on ? ' on' : '') + '" onclick="pickImpNum(\'' + field + '\',' + n + ')">' + n + '</button>';
+  }
+  // A chosen value above 8 shows as its own active key.
+  if (numVal != null && !isNaN(numVal) && numVal > 8){
+    h += '<button class="imp-btn num on" onclick="toggleImpNumMore(\'' + field + '\')">' + numVal + '</button>';
+  }
+  h += '<button class="imp-btn ghost' + (moreOn ? ' on' : '') + '" onclick="toggleImpNumMore(\'' + field + '\')">+</button>';
+  h += '</div>';
+  if (moreOn){
+    h += '<div style="margin-top:6px"><input id="impNum_' + field + '" type="number" min="9" step="1" inputmode="numeric" class="imp-form-input" style="max-width:160px" value="' + escAttr(val) + '" placeholder="Enter a higher number" oninput="setImpNumCustom(\'' + field + '\',this.value)" /></div>';
+  }
+  return h;
+}
+function toggleApplyLi(liId){
+  if (!state.imprintForm) return;
+  var idx = state.imprintForm.applyToLis.indexOf(liId);
+  if (idx === -1) state.imprintForm.applyToLis.push(liId);
+  else state.imprintForm.applyToLis.splice(idx, 1);
+  render();
+}
+function selectAllLis(){
+  if (!state.imprintForm) return;
+  state.imprintForm.applyToLis = state.orderLineItems.map(function(li){ return li.id; });
+  render();
+}
+function clearAllLis(){
+  if (!state.imprintForm) return;
+  state.imprintForm.applyToLis = [];
+  render();
+}
+
+function saveImprintForm(addAnother){
+  var f = state.imprintForm;
+  if (!f) return;
+  if (!f.location) { alert('Location is required.'); return; }
+  if (!f.type) { alert('Type is required.'); return; }
+
+  var isSP = f.typeCategory === 'Screen-print';
+  if (isSP) {
+    if (f.screens === '' || f.screens == null) { alert('Screen count is required for screen-print imprints.'); return; }
+    if (f.inkChanges === '' || f.inkChanges == null) { alert('Color changes is required for screen-print imprints.'); return; }
+  }
+
+  if (f.mode === 'edit' && f.editingId) {
+    // Update existing ghost
+    for (var i = 0; i < state.orderImprints.length; i++) {
+      var imp = state.orderImprints[i];
+      if (imp.id === f.editingId && imp._local) {
+        imp.fields[I.loc] = f.location;
+        imp.fields[I.type] = f.type;
+        imp.fields[I.nick] = f.nickname;
+        imp.fields[I.notes] = f.notes;
+        imp.fields[I.screens] = (isSP && f.screens !== '' && f.screens != null) ? Number(f.screens) : null;
+        imp.fields[I.inkChanges] = (isSP && f.inkChanges !== '' && f.inkChanges != null) ? Number(f.inkChanges) : null;
+        imp.fields[I.lis] = f.applyToLis.slice();
+        break;
+      }
+    }
+    dlog('ghost imprint updated (preview, no write):', f.editingId);
+  } else {
+    // Create new ghost imprint
+    state.ghostImprintCounter++;
+    var localId = 'local-' + Date.now() + '-' + state.ghostImprintCounter;
+    var ghost = {
+      id: localId,
+      _local: true,
+      fields: {}
+    };
+    ghost.fields[I.id] = '(new) ' + localId.slice(-5);
+    ghost.fields[I.idGen] = 'NEW-' + state.ghostImprintCounter;
+    ghost.fields[I.nick] = f.nickname;
+    ghost.fields[I.loc] = f.location;
+    ghost.fields[I.type] = f.type;
+    ghost.fields[I.notes] = f.notes;
+    ghost.fields[I.screens] = (isSP && f.screens !== '' && f.screens != null) ? Number(f.screens) : null;
+    ghost.fields[I.inkChanges] = (isSP && f.inkChanges !== '' && f.inkChanges != null) ? Number(f.inkChanges) : null;
+    ghost.fields[I.lis] = f.applyToLis.slice();
+    state.orderImprints.push(ghost);
+
+    // Reflect the link on each affected LI's local record as well
+    f.applyToLis.forEach(function(liId){
+      for (var j = 0; j < state.orderLineItems.length; j++) {
+        var li = state.orderLineItems[j];
+        if (li.id === liId) {
+          var lif = li.cellValuesByFieldId || li.fields || (li.fields = {});
+          if (!li.cellValuesByFieldId) li.fields = lif;
+          var current = getLinkIds(lif[L.imprints]);
+          if (current.indexOf(localId) === -1) current.push(localId);
+          lif[L.imprints] = current;
+          break;
+        }
+      }
+    });
+
+    dlog('ghost imprint created (preview, no write):', localId, f.location, f.type);
+  }
+
+  if (addAnother) {
+    // Re-open a fresh form, keep the user in flow
+    state.imprintForm = {
+      mode: 'new',
+      editingId: null,
+      location: '',
+      typeCategory: '',
+      type: '',
+      nickname: '',
+      notes: '',
+      screens: '',
+      inkChanges: '',
+      applyToLis: [],
+      showMoreLocs: false,
+      originReturn: 'imprint-empty' // we're still in imprint-creation mode
+    };
+  } else {
+    state.imprintForm = null;
+    // Resolve mode from the new data shape
+    resolveDetailMode();
+  }
+  render();
+}
+
+function deleteGhostImprint(){
+  var f = state.imprintForm;
+  if (!f || f.mode !== 'edit' || !f.editingId) return;
+  if (!confirm('Delete this imprint? (preview only — no Airtable write)')) return;
+  // Remove from orderImprints
+  state.orderImprints = state.orderImprints.filter(function(imp){
+    return !(imp.id === f.editingId && imp._local);
+  });
+  // Unlink from any LI's local imprint links
+  state.orderLineItems.forEach(function(li){
+    var lif = li.cellValuesByFieldId || li.fields || {};
+    var links = getLinkIds(lif[L.imprints]);
+    var filtered = links.filter(function(id){ return id !== f.editingId; });
+    if (filtered.length !== links.length) lif[L.imprints] = filtered;
+  });
+  state.imprintForm = null;
+  dlog('ghost imprint deleted (preview):', f.editingId);
+  render();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// LI focus mode — navigation and editing handlers
+// ════════════════════════════════════════════════════════════════════
+
+function prevLi(){
+  if (state.focusLiIndex > 0) {
+    state.focusLiIndex--;
+    render();
+  }
+}
+function nextLi(){
+  if (state.focusLiIndex < state.orderLineItems.length - 1) {
+    state.focusLiIndex++;
+    render();
+  }
+}
+function gotoLi(idx){
+  if (idx < 0 || idx >= state.orderLineItems.length) return;
+  state.focusLiIndex = idx;
+  render();
+}
+function toggleLiAssign(liId){
+  state.liAssignOpen = (state.liAssignOpen === liId) ? null : liId;
+  render();
+}
+function saveAndNextLi(){
+  // Save = nothing right now (preview, edits live in local state already).
+  // Just advance.
+  if (state.focusLiIndex < state.orderLineItems.length - 1) {
+    state.focusLiIndex++;
+  }
+  render();
+}
+function jumpToLi(idx){
+  state.focusLiIndex = idx;
+  state.detailMode = 'li-focus';
+  render();
+}
+
+// Add a new ghost line item, jump to focus on it
+function addNewLineItem(){
+  state.ghostLiCounter++;
+  var localId = 'local-li-' + Date.now() + '-' + state.ghostLiCounter;
+  var ghost = {
+    id: localId,
+    _local: true,
+    fields: {}
+  };
+  // Initialize with empty fields
+  ghost.fields[L.imprints] = [];
+  ghost.fields[L.garment] = [];
+  ghost.fields[L.price] = 0;
+  ghost.fields[L.szXS] = 0; ghost.fields[L.szS] = 0; ghost.fields[L.szM] = 0;
+  ghost.fields[L.szL] = 0;  ghost.fields[L.szXL] = 0; ghost.fields[L.sz2XL] = 0;
+  ghost.fields[L.sz3XL] = 0; ghost.fields[L.sz4XL] = 0; ghost.fields[L.sz5XL] = 0;
+  ghost.fields[L.sz6XL] = 0; ghost.fields[L.szOSFA] = 0;
+  state.orderLineItems.push(ghost);
+  state.focusLiIndex = state.orderLineItems.length - 1;
+  state.detailMode = 'li-focus';
+  dlog('ghost LI added (preview):', localId);
+  render();
+}
+function deleteGhostLi(liId){
+  if (!confirm('Delete this line item? (preview only — no Airtable write)')) return;
+  state.orderLineItems = state.orderLineItems.filter(function(li){
+    return !(li.id === liId && li._local);
+  });
+  // Clean up references from imprints' `lis` field too
+  state.orderImprints.forEach(function(imp){
+    var ifld = imp.cellValuesByFieldId || imp.fields || {};
+    var lisLink = getLinkIds(ifld[I.lis]);
+    var filtered = lisLink.filter(function(id){ return id !== liId; });
+    if (filtered.length !== lisLink.length) ifld[I.lis] = filtered;
+  });
+  // Adjust focus
+  if (state.focusLiIndex >= state.orderLineItems.length) {
+    state.focusLiIndex = Math.max(0, state.orderLineItems.length - 1);
+  }
+  resolveDetailMode();
+  dlog('ghost LI deleted (preview):', liId);
+  render();
+}
+
+// Toggle an imprint's attachment to a specific LI
+function toggleImpOnLi(liId, impId){
+  var li = state.orderLineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  var lif = li.cellValuesByFieldId || li.fields || (li.fields = {});
+  // Always work with the .fields object for our local mutations
+  if (!li.fields) li.fields = lif;
+  var current = getLinkIds(li.fields[L.imprints]);
+  var idx = current.indexOf(impId);
+  if (idx === -1) current.push(impId);
+  else current.splice(idx, 1);
+  li.fields[L.imprints] = current;
+
+  // Reflect on the imprint's `lis` field too — keeps two views consistent
+  var imp = state.orderImprints.find(function(x){ return x.id === impId; });
+  if (imp) {
+    var ifld = imp.cellValuesByFieldId || imp.fields || (imp.fields = {});
+    if (!imp.fields) imp.fields = ifld;
+    var iLis = getLinkIds(imp.fields[I.lis]);
+    var iIdx = iLis.indexOf(liId);
+    if (idx === -1 && iIdx === -1) iLis.push(liId);
+    else if (idx !== -1 && iIdx !== -1) iLis.splice(iIdx, 1);
+    imp.fields[I.lis] = iLis;
+  }
+  dlog('toggle imprint on LI (preview):', liId, impId, idx === -1 ? 'attached' : 'detached');
+  render();
+}
+
+// ── Inline size/price editing (no full re-render — preserves focus across Tab) ──
+// onSizeChange and onPriceChange fire on `change` (blur or Enter), not on every keystroke.
+// They mutate local state and update two derived spans in-place:
+//   #szTotal-{liId}  — running total above the size grid
+//   #lineTotal-{liId} + #lineTotalSub-{liId} — line total in the price row
+
+function onSizeChange(liId, sizeKey, rawVal){
+  var li = state.orderLineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  if (!li.fields) li.fields = li.cellValuesByFieldId || {};
+  var n = parseInt(rawVal, 10);
+  if (isNaN(n) || n < 0) n = 0;
+  li.fields[L[sizeKey]] = n;
+  dlog('size edit (preview):', liId, sizeKey, '=', n);
+  refreshLiTotals(liId);
+  // Also reflect filled/empty state on the cell itself (parent label of the input)
+  var input = document.getElementById('sz-' + liId + '-' + sizeKey);
+  if (input) {
+    // Normalize the display value (e.g. "07" → "7")
+    input.value = n > 0 ? String(n) : '';
+    var cell = input.closest('.sz-cell');
+    if (cell) cell.classList.toggle('f', n > 0);
+  }
+}
+
+function onPriceChange(liId, rawVal){
+  var li = state.orderLineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  if (!li.fields) li.fields = li.cellValuesByFieldId || {};
+  var n = parseFloat(rawVal);
+  if (isNaN(n) || n < 0) n = 0;
+  li.fields[L.price] = n;
+  dlog('price edit (preview):', liId, '$' + n.toFixed(2));
+  refreshLiTotals(liId);
+  // Normalize the displayed value (e.g. "5" → "5.00")
+  var input = document.getElementById('price-' + liId);
+  if (input && n > 0) input.value = n.toFixed(2);
+  else if (input) input.value = '';
+}
+
+// In-place refresh of the two derived spans on the LI focus card.
+// Called from onSizeChange / onPriceChange — does NOT call render().
+function refreshLiTotals(liId){
+  var li = state.orderLineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  var f = li.cellValuesByFieldId || li.fields || {};
+  var totalQty = 0;
+  ['szXS','szS','szM','szL','szXL','sz2XL','sz3XL','sz4XL','sz5XL','sz6XL','szOSFA'].forEach(function(k){
+    totalQty += getNum(f[L[k]]);
+  });
+  var price = getNum(f[L.price]);
+  var hasTotal = price > 0 && totalQty > 0;
+  // Update the running total above the size grid
+  var totalEl = document.getElementById('szTotal-' + liId);
+  if (totalEl) totalEl.textContent = totalQty;
+  // Update line total
+  var ltEl = document.getElementById('lineTotal-' + liId);
+  var ltSubEl = document.getElementById('lineTotalSub-' + liId);
+  if (ltEl) ltEl.textContent = hasTotal ? '$' + (price * totalQty).toFixed(2) : '—';
+  if (ltSubEl) ltSubEl.textContent = hasTotal ? totalQty + ' × $' + price.toFixed(2) : '';
+}
+
+// Keyboard nav within size inputs:
+//   Enter on any size → moves focus to next size; on last size (last input on screen) → focuses price
+//   Enter on price → click Save·next button (whichever it is)
+// Tab works natively (document order). We intercept Enter to make it feel like Tab without surprise.
+function onSizeKey(e, liId, sizeKey){
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    // Focus the next form element in document order
+    focusNextField(e.target);
+  }
+}
+function onPriceKey(e, liId){
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    // First commit the current change (the change event may not have fired yet
+    // because the input still has focus). Then click Save.
+    onPriceChange(liId, e.target.value);
+    // Tab past any remaining elements to the save button
+    var btn = document.getElementById('saveBtn-' + liId);
+    if (btn) btn.click();
+  }
+}
+
+// Helper: find the next focusable element in document order (input, button) inside the LI focus card.
+function focusNextField(from){
+  // Walk the document forward looking for focusable elements
+  var focusable = Array.prototype.slice.call(document.querySelectorAll(
+    '.li-focus input, .li-focus button:not([tabindex="-1"])'
+  ));
+  var idx = focusable.indexOf(from);
+  if (idx === -1) return;
+  for (var i = idx + 1; i < focusable.length; i++) {
+    var el = focusable[i];
+    if (el.offsetParent !== null) { // visible
+      el.focus();
+      return;
+    }
+  }
+}
+
+// Toggle the "more sizes" row (XS, 3XL, 4XL, 5XL, 6XL). This DOES trigger a re-render
+// since it changes the DOM structure (adds/removes inputs).
+function toggleMoreSizes(liId){
+  state.moreSizesExpanded[liId] = !state.moreSizesExpanded[liId];
+  render();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Garment picker
+// ════════════════════════════════════════════════════════════════════
+
+var GARMENT_TOTAL = '4,956'; // displayed in empty state — verified from MCP audit
+var MAX_GARMENT_RESULTS = 20;
+var GARMENT_POOL = 60; // over-fetch, then rank client-side and trim to MAX_GARMENT_RESULTS
+var garmentSearchTimer = null;
+var garmentSearchSeq = 0; // race-guard: only the latest fetch's response wins
+
+function openGarmentPicker(liId){
+  state.garmentPicker = { liId: liId, query: '', results: [], loading: false, err: null };
+  render();
+  // Auto-focus the search input after render
+  setTimeout(function(){
+    var el = document.getElementById('garmSearch');
+    if (el) el.focus();
+  }, 0);
+}
+
+function closeGarmentPicker(){
+  state.garmentPicker = null;
+  if (garmentSearchTimer) clearTimeout(garmentSearchTimer);
+  render();
+}
+
+function onGarmentSearch(q){
+  if (!state.garmentPicker) return;
+  state.garmentPicker.query = q;
+  // Debounce search
+  if (garmentSearchTimer) clearTimeout(garmentSearchTimer);
+  if (!q || q.trim().length < 2) {
+    // Too short — clear results
+    state.garmentPicker.results = [];
+    state.garmentPicker.loading = false;
+    state.garmentPicker.err = null;
+    renderGarmentResultsOnly();
+    return;
+  }
+  state.garmentPicker.loading = true;
+  state.garmentPicker.err = null;
+  renderGarmentResultsOnly();
+  garmentSearchTimer = setTimeout(function(){ runGarmentSearch(q); }, 250);
+}
+
+// Run a search against the Garments table. The query is tokenized on whitespace and
+// EACH token must appear somewhere in the Garment Name formula (which concatenates
+// brand + style + colorway), in any order — so "3001 black" matches
+// "Bella Canvas 3001CVC - Black Heather". Results are over-fetched (GARMENT_POOL),
+// ranked client-side so the cleanest hit floats to the top, then trimmed to
+// MAX_GARMENT_RESULTS. Case-insensitive via LOWER().
+function runGarmentSearch(q){
+  var mySeq = ++garmentSearchSeq;
+  // Tokenize: lowercase, split on whitespace, drop empties, cap to keep the formula sane.
+  var tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
+  if (!tokens.length) {
+    if (state.garmentPicker) { state.garmentPicker.results = []; state.garmentPicker.loading = false; }
+    renderGarmentResultsOnly();
+    return;
+  }
+  // One FIND() per token, AND-ed together. Escape single quotes inside each token.
+  var terms = tokens.map(function(t){
+    return "FIND('" + t.replace(/'/g, "\\'") + "',LOWER({" + G.name + "}))>0";
+  });
+  var formula = terms.length === 1 ? terms[0] : 'AND(' + terms.join(',') + ')';
+  var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL_GARMENTS
+    + '?fields%5B%5D=' + G.name
+    + '&filterByFormula=' + encodeURIComponent(formula)
+    + '&returnFieldsByFieldId=true&pageSize=' + GARMENT_POOL;
+  fetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('Search failed: HTTP ' + r.status); return r.json(); })
+    .then(function(d){
+      if (mySeq !== garmentSearchSeq) return; // a newer search has fired
+      if (!state.garmentPicker) return;
+      state.garmentPicker.results = rankGarmentResults(d.records || [], tokens).slice(0, MAX_GARMENT_RESULTS);
+      state.garmentPicker.loading = false;
+      state.garmentPicker.err = null;
+      renderGarmentResultsOnly();
+    })
+    .catch(function(err){
+      if (mySeq !== garmentSearchSeq) return;
+      if (!state.garmentPicker) return;
+      state.garmentPicker.loading = false;
+      state.garmentPicker.err = err.message;
+      renderGarmentResultsOnly();
+      dlog('garment search err:', err.message);
+    });
+}
+
+// Rank garments by how cleanly the typed tokens match the name. Lower score = better.
+// Signals: tokens appearing early in the name; a token landing at a word/segment
+// boundary (e.g. "3001" at the start of "3001CVC"); and the first token anchoring the
+// very start of the name (a brand hit). A gentle length penalty breaks ties toward the
+// more specific / base colorway. All tokens are guaranteed present by the formula.
+function rankGarmentResults(records, tokens){
+  function score(nm){
+    var s = 0;
+    for (var i = 0; i < tokens.length; i++){
+      var t = tokens[i];
+      var idx = nm.indexOf(t);
+      if (idx < 0){ s += 10000; continue; } // shouldn't happen — formula guarantees presence
+      s += idx;                              // earlier in the name = better
+      var before = idx === 0 ? ' ' : nm.charAt(idx - 1);
+      if (/[^a-z0-9]/.test(before)) s -= 25; // token starts a word/segment
+    }
+    if (nm.indexOf(tokens[0]) === 0) s -= 50; // first token anchors the name (brand hit)
+    s += nm.length * 0.05;                    // tiebreak: prefer cleaner/shorter names
+    return s;
+  }
+  return records
+    .map(function(g){
+      var gf = g.cellValuesByFieldId || g.fields || {};
+      var nm = (getStr(gf[G.name]) || '').toLowerCase();
+      return { rec: g, sc: score(nm) };
+    })
+    .sort(function(a, b){ return a.sc - b.sc; })
+    .map(function(x){ return x.rec; });
+}
+
+// Re-render JUST the .garm-results node, so the search input keeps focus across keystrokes
+function renderGarmentResultsOnly(){
+  var p = state.garmentPicker;
+  if (!p) return;
+  var resultsEl = document.querySelector('.garm-results');
+  if (!resultsEl) return;
+  // Same logic as in renderGarmentPickerPanel
+  var html = '';
+  if (p.loading) {
+    html = '<div class="garm-status">Searching…</div>';
+  } else if (p.err) {
+    html = '<div class="garm-status err">' + escHtml(p.err) + '</div>';
+  } else if (!p.query) {
+    html = '<div class="garm-status hint">Type a brand, style number, or color to search ' + GARMENT_TOTAL + ' garments.</div>';
+  } else if (p.results.length === 0) {
+    html = '<div class="garm-status">No matches for "' + escHtml(p.query) + '".</div>';
+  } else {
+    p.results.forEach(function(g){
+      var gf = g.cellValuesByFieldId || g.fields || {};
+      var name = getStr(gf[G.name]) || '(no name)';
+      html += '<div class="garm-result" onclick="pickGarment(\'' + p.liId + '\',\'' + g.id + '\')">';
+      html += '<div class="garm-result-name">' + escHtml(name) + '</div>';
+      html += '</div>';
+    });
+    if (p.results.length === MAX_GARMENT_RESULTS) {
+      html += '<div class="garm-status hint">Showing ' + MAX_GARMENT_RESULTS + ' matches — refine to narrow.</div>';
+    }
+  }
+  resultsEl.innerHTML = html;
+}
+
+function pickGarment(liId, garmentRecId){
+  var li = state.orderLineItems.find(function(x){ return x.id === liId; });
+  if (!li) return;
+  if (!li.fields) li.fields = li.cellValuesByFieldId || {};
+  li.fields[L.garment] = [garmentRecId];
+  // Cache the name from the picker results so renderLiFocusInner can display it
+  if (state.garmentPicker && state.garmentPicker.results) {
+    var match = state.garmentPicker.results.find(function(g){ return g.id === garmentRecId; });
+    if (match) {
+      var gf = match.cellValuesByFieldId || match.fields || {};
+      state.garmentNames[garmentRecId] = getStr(gf[G.name]) || '(garment)';
+    }
+  }
+  state.garmentPicker = null;
+  dlog('garment picked (preview):', liId, garmentRecId, state.garmentNames[garmentRecId]);
+  render();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Review / Submit transitions
+// ════════════════════════════════════════════════════════════════════
+
+function goReview(){
+  state.imprintForm = null; // close any open form
+  state.detailMode = 'review';
+  render();
+}
+function goSubmitConfirm(){
+  state.imprintForm = null;
+  state.detailMode = 'submit-confirm';
+  render();
+}
+function keepEditing(){
+  // Go back to li-focus on the first LI (or li-empty / imprint-empty if no LIs)
+  resolveBackFromReview();
+  render();
+}
+function resolveBackFromReview(){
+  // Force a re-resolve from data
+  var imprintsExist = state.orderImprints.length > 0;
+  var lisExist = state.orderLineItems.length > 0;
+  if (!imprintsExist) state.detailMode = 'imprint-empty';
+  else if (!lisExist) state.detailMode = 'li-empty';
+  else state.detailMode = 'li-focus';
+}
+function confirmSubmit(){
+  alert('Submit goes live when WRITES_ENABLED flips. For now this is preview-only — your inputs above show what would be written.');
+  dlog('SUBMIT CONFIRMED (preview — no write). Imprints:', state.orderImprints.length, 'LIs:', state.orderLineItems.length);
+}
+
+// ── Render the inline imprint form ──
+// Variant via wrapper class: 'imp-form' (default, used in imprint-empty) or 'imp-form sheet' (overlay over LI)
+function renderImprintForm(){
+  var f = state.imprintForm;
+  if (!f) return '';
+
+  var isImprintEmptyMode = f.originReturn === 'imprint-empty' && f.mode === 'new';
+  var isOverlay = (state.detailMode === 'li-empty' || state.detailMode === 'li-focus') && f.mode === 'new';
+  var isEditMode = f.mode === 'edit';
+
+  var wrapperCls = 'imp-form' + (isOverlay ? ' sheet' : '');
+  var html = '<div class="' + wrapperCls + '">';
+  // Header — varies by context
+  html += '<div class="imp-form-hdr">';
+  if (isEditMode) {
+    html += '<span class="imp-form-title">Edit imprint</span>';
+  } else if (isImprintEmptyMode) {
+    var count = state.orderImprints.length;
+    if (count === 0) {
+      html += '<span class="imp-form-title">First imprint</span>';
+      html += '<span class="imp-form-counter">imprints come before line items</span>';
+    } else {
+      html += '<span class="imp-form-title">Imprint ' + (count + 1) + '</span>';
+      html += '<span class="imp-form-counter">' + count + ' added so far · keep going or move on</span>';
+    }
+  } else {
+    html += '<span class="imp-form-title">New imprint</span>';
+  }
+  html += '<button class="imp-form-x" onclick="closeImprintForm()" title="Close"><i class="ti ti-x" aria-hidden="true"></i></button>';
+  html += '</div>';
+
+  // Location
+  html += '<div class="imp-form-row">';
+  html += '<div class="imp-form-lbl">Location</div>';
+  html += '<div class="imp-form-btns">';
+  LOCATIONS_PRIMARY.forEach(function(loc){
+    var on = f.location === loc;
+    html += '<button class="imp-btn' + (on ? ' on' : '') + '" onclick="setFormLocation(\'' + loc + '\')">' + escHtml(loc) + '</button>';
+  });
+  if (f.showMoreLocs) {
+    LOCATIONS_MORE.forEach(function(loc){
+      var on = f.location === loc;
+      html += '<button class="imp-btn' + (on ? ' on' : '') + '" onclick="setFormLocation(\'' + loc + '\')">' + escHtml(loc) + '</button>';
+    });
+    html += '<button class="imp-btn ghost" onclick="toggleMoreLocs()">− Less</button>';
+  } else {
+    if (f.location && LOCATIONS_PRIMARY.indexOf(f.location) === -1) {
+      html += '<button class="imp-btn on" onclick="setFormLocation(\'' + f.location + '\')">' + escHtml(f.location) + '</button>';
+    }
+    html += '<button class="imp-btn ghost" onclick="toggleMoreLocs()">+ More</button>';
+  }
+  html += '</div>';
+  html += '</div>';
+
+  // Type — two-stage (category → sub-option)
+  html += '<div class="imp-form-row">';
+  html += '<div class="imp-form-lbl">Type</div>';
+  html += '<div class="imp-form-btns">';
+  IMPRINT_TYPE_GROUPS.forEach(function(grp){
+    var on = f.typeCategory === grp.label;
+    html += '<button class="imp-btn cat' + (on ? ' on' : '') + '" onclick="setFormTypeCategory(\'' + grp.label + '\')">' + escHtml(grp.label) + '</button>';
+  });
+  html += '</div>';
+  // Sub-options shown when a category is selected
+  if (f.typeCategory) {
+    var group = IMPRINT_TYPE_GROUPS.find(function(g){ return g.label === f.typeCategory; });
+    if (group) {
+      html += '<div class="imp-form-btns sub">';
+      group.options.forEach(function(opt){
+        var on = f.type === opt;
+        var label = opt.replace(/^Supacolor - /, '').replace(/^Decopress - /, '').replace(/^Finishing - /, '');
+        html += '<button class="imp-btn sub' + (on ? ' on' : '') + '" onclick="setFormType(\'' + opt.replace(/'/g, "\\'") + '\')">' + escHtml(label) + '</button>';
+      });
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+
+  // Screen count + Color changes (button pickers) — v2-v13. Required, and shown only for
+  // screen-print imprints (counts don't apply to Supacolor / embroidery / decopress / finishing).
+  if (f.typeCategory === 'Screen-print') {
+    html += '<div class="imp-form-row">' + impNumRowHTML('Screen count', 'screens') + '</div>';
+    html += '<div class="imp-form-row">' + impNumRowHTML('Color changes', 'inkChanges') + '</div>';
+  }
+
+  // Nickname
+  html += '<div class="imp-form-row">';
+  html += '<div class="imp-form-lbl">Nickname <span class="opt">optional</span></div>';
+  html += '<input type="text" class="imp-form-input" value="' + escAttr(f.nickname) + '" placeholder="e.g. PERC logo - front" oninput="setFormNick(this.value)" />';
+  html += '</div>';
+
+  // Print notes — collapsed by default to keep form compact, optional row at bottom
+  // (kept inline for now; future: expand-on-click)
+  html += '<div class="imp-form-row">';
+  html += '<div class="imp-form-lbl">Print notes <span class="opt">optional</span></div>';
+  html += '<textarea class="imp-form-textarea" placeholder="Anything Seps or the operator needs to know" oninput="setFormNotes(this.value)">' + escHtml(f.notes) + '</textarea>';
+  html += '</div>';
+
+  // Apply-to-line-items — only relevant when LIs exist AND we're not in imprint-empty mode.
+  // In imprint-empty mode by definition there are no LIs yet, so this row would always be empty.
+  if (!isImprintEmptyMode && state.orderLineItems.length > 0) {
+    html += '<div class="imp-form-row">';
+    html += '<div class="imp-form-lbl">Apply to line items <span class="opt">optional</span></div>';
+    html += '<div class="imp-form-li-list">';
+    state.orderLineItems.forEach(function(li){
+      var lif = li.cellValuesByFieldId || li.fields || {};
+      var gIds = getLinkIds(lif[L.garment]);
+      var garmentName = gIds.length && state.garmentNames[gIds[0]] || (li._local ? '(new line item)' : '(garment)');
+      var checked = f.applyToLis.indexOf(li.id) !== -1;
+      html += '<label class="imp-form-li' + (checked ? ' on' : '') + '">';
+      html += '<input type="checkbox"' + (checked ? ' checked' : '') + ' onchange="toggleApplyLi(\'' + li.id + '\')" />';
+      html += '<span>' + escHtml(garmentName) + '</span>';
+      html += '</label>';
+    });
+    html += '</div>';
+    html += '<div class="imp-form-li-actions">';
+    html += '<button class="imp-btn ghost" onclick="selectAllLis()">Select all</button>';
+    html += '<button class="imp-btn ghost" onclick="clearAllLis()">Clear</button>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  // Actions — adapt to context
+  html += '<div class="imp-form-actions">';
+  if (isEditMode) {
+    html += '<button class="imp-btn danger" onclick="deleteGhostImprint()"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>';
+    html += '<div style="flex:1"></div>';
+    html += '<button class="imp-btn ghost" onclick="closeImprintForm()">Cancel</button>';
+    html += '<button class="imp-btn primary" onclick="saveImprintForm(false)">Save changes</button>';
+  } else if (isImprintEmptyMode) {
+    // The imprint-first flow: two saves, primary = add another (typical case)
+    html += '<button class="imp-btn ghost" onclick="closeImprintForm()">Cancel</button>';
+    html += '<div style="flex:1"></div>';
+    html += '<button class="imp-btn" onclick="saveImprintForm(false)">Save · move to line items</button>';
+    html += '<button class="imp-btn primary" onclick="saveImprintForm(true)">Save &amp; add another</button>';
+  } else {
+    // Adding from the strip mid-flow
+    html += '<button class="imp-btn ghost" onclick="closeImprintForm()">Cancel</button>';
+    html += '<div style="flex:1"></div>';
+    html += '<button class="imp-btn primary" onclick="saveImprintForm(false)">Add imprint</button>';
+  }
+  html += '</div>';
+
+  html += '</div>'; // /imp-form
+  return html;
+}
+
+// Alias: in li-focus/li-empty modes the form renders with a slightly different visual
+// wrapper class. renderImprintForm handles the class internally via isOverlay.
+function renderImprintFormSheet(){ return renderImprintForm(); }
+
+// ── Util ──
+// ═══════════════════════════════════════════════════════════════════════════
+// NEW REORDER — customer library (v2-v11)
+// Browse a customer's past imprints and select designs to reorder. This slice
+// is read-only browse + multi-select. Seeding the selected specs into a reorder
+// (ghost imprints) lands in the next version. No writes anywhere.
+//   Customers (TBL_CUSTOMERS) → customer picker
+//   Imprints filtered by Customer Name Search (I.custName) → library grid
+// ═══════════════════════════════════════════════════════════════════════════
+var reorderCustTimer = null, reorderCustSeq = 0, reorderLibSeq = 0;
+
+function openReorder(){
+  state.view = 'reorder';
+  state.reorder = { step:'customer', custQuery:'', custResults:[], custLoading:false, custErr:null,
+                    customer:null, libLoading:false, libErr:null, imprints:[], selected:{} };
+  render();
+  setTimeout(function(){ var el = document.getElementById('rlCustInput'); if (el) el.focus(); }, 0);
+}
+function exitReorder(){ state.view = 'queue'; state.reorder = null; render(); }
+function reorderBackToCustomer(){
+  if (!state.reorder) return;
+  state.reorder.step = 'customer'; state.reorder.imprints = []; state.reorder.selected = {};
+  render();
+  setTimeout(function(){ var el = document.getElementById('rlCustInput'); if (el) el.focus(); }, 0);
+}
+
+// ── Customer picker ──
+function onReorderCustSearch(q){
+  if (!state.reorder) return;
+  state.reorder.custQuery = q;
+  if (reorderCustTimer) clearTimeout(reorderCustTimer);
+  if (!q || q.trim().length < 2){ state.reorder.custResults = []; state.reorder.custLoading = false; renderReorderCustResults(); return; }
+  state.reorder.custLoading = true; renderReorderCustResults();
+  reorderCustTimer = setTimeout(function(){ runReorderCustSearch(q); }, 250);
+}
+function runReorderCustSearch(q){
+  var seq = ++reorderCustSeq;
+  // Double-quoted formula literal so apostrophes in names don't need escaping; strip " and \.
+  var safe = q.trim().replace(/"/g,'').replace(/\\/g,'').toLowerCase();
+  var formula = 'FIND("' + safe + '",LOWER({' + CUST_NAME_FIELD + '}))>0';
+  var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL_CUSTOMERS
+    + '?fields%5B%5D=' + CUST_NAME_FIELD
+    + '&filterByFormula=' + encodeURIComponent(formula)
+    + '&returnFieldsByFieldId=true&pageSize=20';
+  fetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(d){
+      if (seq !== reorderCustSeq || !state.reorder) return;
+      state.reorder.custResults = (d.records || []).slice();
+      state.reorder.custLoading = false; state.reorder.custErr = null;
+      renderReorderCustResults();
+    })
+    .catch(function(e){
+      if (seq !== reorderCustSeq || !state.reorder) return;
+      state.reorder.custLoading = false; state.reorder.custErr = e.message; renderReorderCustResults();
+    });
+}
+function pickReorderCustomer(id){
+  if (!state.reorder) return;
+  var match = (state.reorder.custResults || []).find(function(c){ return c.id === id; });
+  var nm = '';
+  if (match){ var f = match.cellValuesByFieldId || match.fields || {}; nm = getStr(f[CUST_NAME_FIELD]) || ''; }
+  state.reorder.customer = { id:id, name:nm };
+  state.reorder.step = 'library';
+  state.reorder.libLoading = true; state.reorder.libErr = null; state.reorder.imprints = []; state.reorder.selected = {};
+  render();
+  loadReorderLibrary();
+}
+
+// ── Library load ──
+function loadReorderLibrary(){
+  var seq = ++reorderLibSeq;
+  var name = (state.reorder.customer && state.reorder.customer.name) || '';
+  var safe = name.replace(/"/g,'').replace(/\\/g,'').toLowerCase();
+  var formula = 'FIND("' + safe + '",LOWER({' + I.custName + '}))>0';
+  var flds = [I.id, I.nick, I.type, I.loc, I.screens, I.inkChanges, I.created, I.proofs, I.custName]
+    .map(function(f){ return 'fields%5B%5D=' + f; }).join('&');
+  var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL_IMPRINTS + '?' + flds
+    + '&filterByFormula=' + encodeURIComponent(formula)
+    + '&sort%5B0%5D%5Bfield%5D=' + I.created + '&sort%5B0%5D%5Bdirection%5D=desc'
+    + '&returnFieldsByFieldId=true&pageSize=100';
+  fetch(url, { headers: hdr() })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(d){
+      if (seq !== reorderLibSeq || !state.reorder) return;
+      state.reorder.imprints = (d.records || []);
+      state.reorder.libLoading = false; state.reorder.libErr = null;
+      render();
+    })
+    .catch(function(e){
+      if (seq !== reorderLibSeq || !state.reorder) return;
+      state.reorder.libLoading = false; state.reorder.libErr = e.message; render();
+    });
+}
+
+// ── Render: dispatch ──
+function renderReorder(){
+  var canvas = document.getElementById('canvas');
+  document.getElementById('topbarFilters').innerHTML = ''; // reorder owns the screen
+  var r = state.reorder;
+  if (!r){ exitReorder(); return; }
+  canvas.innerHTML = (r.step === 'customer') ? renderReorderCustomerPick() : renderReorderLibrary();
+}
+
+function renderReorderCustomerPick(){
+  var r = state.reorder;
+  var h = '<div class="rl-strip">'
+    + '<div class="rl-strip-info"><span class="rl-kicker">New reorder</span>'
+    + '<span class="rl-cust">Pick a customer</span></div>'
+    + '<button class="rl-chip-btn" onclick="exitReorder()">Cancel</button>'
+    + '</div>';
+  h += '<div class="rl-pick">';
+  h += '<div class="rl-pick-title">Whose past work?</div>';
+  h += '<div class="rl-pick-sub">Search a customer to see every imprint they\u2019ve printed, then pick the designs to reorder.</div>';
+  h += '<input id="rlCustInput" class="rl-pick-input" type="text" placeholder="Search customer name\u2026" value="' + escAttr(r.custQuery) + '" oninput="onReorderCustSearch(this.value)" />';
+  h += '<div class="rl-pick-results" id="rlCustResults">' + reorderCustResultsHTML() + '</div>';
+  h += '</div>';
+  return h;
+}
+function reorderCustResultsHTML(){
+  var r = state.reorder; if (!r) return '';
+  if (r.custLoading) return '<div class="rl-pick-status">Searching\u2026</div>';
+  if (r.custErr) return '<div class="rl-pick-status" style="color:var(--red)">' + escHtml(r.custErr) + '</div>';
+  if (!r.custQuery || r.custQuery.trim().length < 2) return '<div class="rl-pick-status">Type at least 2 letters</div>';
+  if (!r.custResults.length) return '<div class="rl-pick-status">No customers match \u201c' + escHtml(r.custQuery) + '\u201d</div>';
+  return r.custResults.map(function(c){
+    var f = c.cellValuesByFieldId || c.fields || {};
+    var nm = getStr(f[CUST_NAME_FIELD]) || '(no name)';
+    return '<div class="rl-pick-row" onclick="pickReorderCustomer(\'' + c.id + '\')">' + escHtml(nm) + '</div>';
+  }).join('');
+}
+function renderReorderCustResults(){
+  var el = document.getElementById('rlCustResults'); if (el) el.innerHTML = reorderCustResultsHTML();
+}
+
+// ── Render: library grid ──
+function renderReorderLibrary(){
+  var r = state.reorder, cust = (r.customer && r.customer.name) || 'Customer';
+  var h = '<div class="rl-strip">'
+    + '<button class="rl-chip-btn" onclick="reorderBackToCustomer()">\u2190 Customer</button>'
+    + '<div class="rl-strip-info"><span class="rl-kicker">Reorder \u00b7 select past designs to pull in</span>'
+    + '<span class="rl-cust" title="' + escAttr(cust) + '">' + escHtml(cust) + '</span></div>'
+    + '<button class="rl-chip-btn" onclick="exitReorder()">Cancel</button>'
+    + '</div>';
+  if (r.libLoading) return h + '<div class="rl-empty" style="padding:60px">Loading ' + escHtml(cust) + '\u2019s imprints\u2026</div>';
+  if (r.libErr) return h + '<div class="rl-empty" style="color:var(--red);padding:60px">Couldn\u2019t load imprints \u00b7 ' + escHtml(r.libErr) + '</div>';
+  if (!r.imprints.length) return h + '<div class="rl-empty" style="padding:60px">No past imprints found for ' + escHtml(cust) + '.</div>';
+
+  h += '<div class="rl-filters">'
+    + '<div class="rl-search"><span style="font-size:12px;color:var(--muted-lt)">\u2315</span>'
+    + '<input id="rlSearch" type="text" placeholder="Search nickname or ID\u2026" oninput="filterReorderTiles()" /></div>'
+    + '<span class="rl-flbl">Location</span><select class="rl-sel" id="rlLoc" onchange="filterReorderTiles()">' + reorderLocOpts() + '</select>'
+    + '<span class="rl-flbl">Type</span><select class="rl-sel" id="rlType" onchange="filterReorderTiles()">'
+    +   '<option>All</option><option>Screen Print</option><option>Supacolor</option><option>Embroidery / Patch</option><option>Decopress</option><option>Finishing</option></select>'
+    + '<span class="rl-flbl">Last run</span><select class="rl-sel" id="rlDate" onchange="filterReorderTiles()">'
+    +   '<option>All time</option><option>Last 90 days</option><option>Last 6 months</option><option>Last year</option></select>'
+    + '<span class="rl-fcount" id="rlFcount">' + r.imprints.length + ' imprint' + (r.imprints.length !== 1 ? 's' : '') + ' \u00b7 most recent first</span>'
+    + '</div>';
+  h += '<div class="rl-grid" id="rlGrid">' + r.imprints.map(reorderTileHTML).join('') + '</div>';
+  h += reorderTrayHTML();
+  return h;
+}
+function reorderLocOpts(){
+  var locs = {};
+  (state.reorder.imprints || []).forEach(function(rec){ var f = rec.cellValuesByFieldId || rec.fields || {}; var l = getSelName(f[I.loc]) || ''; if (l) locs[l] = 1; });
+  return ['All'].concat(Object.keys(locs).sort()).map(function(o){ return '<option>' + escHtml(o) + '</option>'; }).join('');
+}
+function reorderTileHTML(rec){
+  var f = rec.cellValuesByFieldId || rec.fields || {};
+  var id = getStr(f[I.id]) || '';
+  var nick = getStr(f[I.nick]) || '';
+  var loc = getSelName(f[I.loc]) || '';
+  var type = getSelName(f[I.type]) || '';
+  var screens = getNum(f[I.screens]);
+  var inkc = getNum(f[I.inkChanges]);
+  var created = f[I.created] || '';
+  var thumb = rlThumb(f[I.proofs]);
+  var name = nick || id || 'Untitled';
+  var sel = !!(state.reorder.selected && state.reorder.selected[rec.id]);
+  var tags = '<span class="tag n">' + escHtml(loc || '\u2014') + '</span>'
+    + (type ? '<span class="tag n">' + escHtml(type.replace(/ - .*/, '')) + '</span>' : '')
+    + (screens ? '<span class="tag g">' + screens + ' scr</span>' : '');
+  var metaBits = [];
+  if (inkc) metaBits.push(inkc + ' ink change' + (inkc !== 1 ? 's' : ''));
+  if (created) metaBits.push(rlTimeAgo(created));
+  var meta = metaBits.join(' \u00b7 ');
+  var thumbHtml = thumb
+    ? '<img src="' + escAttr(thumb) + '" alt="proof" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'ph\',textContent:\'\u2317\'}))" />'
+    : '<div class="ph">\u2317</div>';
+  return '<div class="rl-tile' + (sel ? ' sel' : '') + '" data-id="' + rec.id + '"'
+    + ' data-name="' + escAttr((nick + ' ' + id).toLowerCase()) + '"'
+    + ' data-loc="' + escAttr(loc) + '" data-type="' + escAttr(type) + '" data-created="' + escAttr(String(created)) + '"'
+    + ' onclick="toggleReorderSelect(\'' + rec.id + '\')">'
+    + '<div class="rl-thumb">' + thumbHtml + '<div class="rl-badge">\u2713</div></div>'
+    + '<div class="rl-tbody"><div class="rl-name" title="' + escAttr(name) + '">' + escHtml(name) + '</div>'
+    + (id ? '<div class="rl-id">' + escHtml(id) + '</div>' : '')
+    + '<div class="rl-ttags">' + tags + '</div>'
+    + (meta ? '<div class="rl-tmeta">' + escHtml(meta) + '</div>' : '')
+    + '</div></div>';
+}
+function rlThumb(p){
+  if (!p) return '';
+  if (Array.isArray(p)){ var a = p[0]; if (!a) return '';
+    return (a.thumbnails && a.thumbnails.large) ? a.thumbnails.large.url : (a.thumbnails && a.thumbnails.small) ? a.thumbnails.small.url : (a.url || ''); }
+  if (p.valuesByLinkedRecordId){ var ks = Object.keys(p.valuesByLinkedRecordId); if (!ks.length) return '';
+    var at = p.valuesByLinkedRecordId[ks[0]]; if (!at || !at.length) return ''; var x = at[0];
+    return (x.thumbnails && x.thumbnails.large) ? x.thumbnails.large.url : (x.thumbnails && x.thumbnails.small) ? x.thumbnails.small.url : (x.url || ''); }
+  return '';
+}
+function rlTimeAgo(iso){
+  var t = new Date(iso).getTime(); if (isNaN(t)) return '';
+  var d = Math.floor((Date.now() - t) / 86400000);
+  if (d < 1) return 'today'; if (d < 7) return d + 'd ago';
+  if (d < 60) return Math.floor(d / 7) + 'w ago'; if (d < 365) return Math.floor(d / 30) + 'mo ago';
+  return Math.floor(d / 365) + 'y ago';
+}
+
+// ── Selection + tray ──
+function toggleReorderSelect(id){
+  if (!state.reorder) return;
+  if (state.reorder.selected[id]) delete state.reorder.selected[id]; else state.reorder.selected[id] = true;
+  var tile = document.querySelector('.rl-tile[data-id="' + id + '"]');
+  if (tile) tile.classList.toggle('sel', !!state.reorder.selected[id]);
+  updateReorderTray();
+}
+function clearReorderSelect(){
+  if (!state.reorder) return;
+  state.reorder.selected = {};
+  document.querySelectorAll('.rl-tile.sel').forEach(function(t){ t.classList.remove('sel'); });
+  updateReorderTray();
+}
+function reorderSelCount(){ return state.reorder ? Object.keys(state.reorder.selected).length : 0; }
+function reorderTrayHTML(){
+  var n = reorderSelCount();
+  return '<div class="rl-tray"><div style="display:flex;align-items:center;min-width:0">'
+    + '<span class="rl-tray-count" id="rlTrayCount">' + (n ? n + ' imprint' + (n !== 1 ? 's' : '') + ' selected' : '0 selected') + '</span>'
+    + '<button class="rl-tray-clear" id="rlTrayClear" onclick="clearReorderSelect()" style="' + (n ? '' : 'display:none') + '">Clear</button>'
+    + '</div>'
+    + '<button class="rl-tray-btn" id="rlTrayBtn" onclick="startReorder()"' + (n ? '' : ' disabled') + '>' + (n ? 'Start reorder with ' + n + ' \u2192' : 'Start reorder \u2192') + '</button>'
+    + '</div>';
+}
+function updateReorderTray(){
+  var n = reorderSelCount();
+  var c = document.getElementById('rlTrayCount'); if (c) c.textContent = n ? (n + ' imprint' + (n !== 1 ? 's' : '') + ' selected') : '0 selected';
+  var cl = document.getElementById('rlTrayClear'); if (cl) cl.style.display = n ? '' : 'none';
+  var b = document.getElementById('rlTrayBtn'); if (b){ b.disabled = n === 0; b.textContent = n ? ('Start reorder with ' + n + ' \u2192') : 'Start reorder \u2192'; }
+}
+
+// ── Filters (client-side, focus-safe show/hide) ──
+function filterReorderTiles(){
+  var q = ((document.getElementById('rlSearch') || {}).value || '').trim().toLowerCase();
+  var loc = (document.getElementById('rlLoc') || {}).value || 'All';
+  var typeCat = (document.getElementById('rlType') || {}).value || 'All';
+  var dateWin = (document.getElementById('rlDate') || {}).value || 'All time';
+  var cutoff = reorderDateCutoff(dateWin);
+  var shown = 0, total = 0;
+  document.querySelectorAll('.rl-tile').forEach(function(t){
+    total++;
+    var hit = true;
+    if (q && t.getAttribute('data-name').indexOf(q) === -1) hit = false;
+    if (hit && loc !== 'All' && t.getAttribute('data-loc') !== loc) hit = false;
+    if (hit && typeCat !== 'All' && !reorderTypeMatch(t.getAttribute('data-type'), typeCat)) hit = false;
+    if (hit && cutoff){ var c = Date.parse(t.getAttribute('data-created')); if (isNaN(c) || c < cutoff) hit = false; }
+    t.classList.toggle('hide', !hit);
+    if (hit) shown++;
+  });
+  var fc = document.getElementById('rlFcount');
+  if (fc){
+    var anyFilter = q || loc !== 'All' || typeCat !== 'All' || dateWin !== 'All time';
+    fc.textContent = anyFilter ? ('Showing ' + shown + ' of ' + total) : (total + ' imprint' + (total !== 1 ? 's' : '') + ' \u00b7 most recent first');
+  }
+}
+function reorderDateCutoff(win){
+  var now = Date.now(), day = 86400000;
+  if (win === 'Last 90 days') return now - 90 * day;
+  if (win === 'Last 6 months') return now - 182 * day;
+  if (win === 'Last year') return now - 365 * day;
+  return 0;
+}
+function reorderTypeMatch(t, cat){
+  if (!t) return false; t = String(t);
+  switch (cat){
+    case 'Screen Print': return ['Discharge','No Base W/B','Bleed Blocker + W/B','EZP Base + W/B','Flatstock'].indexOf(t) !== -1;
+    case 'Supacolor': return t.indexOf('Supacolor') === 0;
+    case 'Embroidery / Patch': return t === 'Embroidery' || t.indexOf('Patch') !== -1 || t.indexOf('Label') !== -1;
+    case 'Decopress': return t.indexOf('Decopress') === 0;
+    case 'Finishing': return t.indexOf('Finishing') === 0;
+    default: return true;
+  }
+}
+
+// ── Start reorder — STUB (preview only; seeding ghost imprints is the next slice) ──
+function startReorder(){
+  if (!state.reorder) return;
+  var ids = Object.keys(state.reorder.selected);
+  if (!ids.length) return;
+  var specs = ids.map(function(id){
+    var rec = (state.reorder.imprints || []).find(function(x){ return x.id === id; });
+    var f = rec ? (rec.cellValuesByFieldId || rec.fields || {}) : {};
+    return { srcId:id, imprintId:getStr(f[I.id]), nick:getStr(f[I.nick]), type:getSelName(f[I.type]),
+             loc:getSelName(f[I.loc]), screens:getNum(f[I.screens]), inkChanges:getNum(f[I.inkChanges]) };
+  });
+  dlog('REORDER (preview): would seed ' + specs.length + ' imprint(s):', JSON.stringify(specs));
+  alert('Preview: ' + specs.length + ' design' + (specs.length !== 1 ? 's' : '') + ' selected from '
+    + (state.reorder.customer.name || 'this customer') + '.\n\nSeeding these into a reorder is the next step \u2014 nothing has been written.');
+}
+
+function escHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function escAttr(s){ return escHtml(s); }
+
+// ── Go ──
+boot();
+</script>
+</body>
+</html>
