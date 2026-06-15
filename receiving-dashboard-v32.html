@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receiving Dashboard v32 — Pine Central</title>
+<link rel="stylesheet" href="pine-design-v1.css">
+<style>
+/* App-specific styles only — buttons/tags/loading now handled by pine-design-v1.css */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* App-specific .btn variants (JS renders .btn / .btn.p / .btn.grn throughout) */
+.btn{background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);color:var(--muted);font-size:9px;padding:5px 10px;cursor:pointer;font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase;transition:all .1s}
+.btn:hover{border-color:var(--text);color:var(--text)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.p{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.btn.p:hover{background:#1A1A16}
+.btn.grn{background:var(--green-lt);border-color:#b8dfcc;color:var(--green-dk)}
+.btn.grn:hover{background:#d4ede0}
+
+.stats-bar{display:flex;overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;gap:6px;scrollbar-width:none;flex-shrink:0}
+.stats-bar::-webkit-scrollbar{display:none}
+.stat-cell.alert-ct .stat-ct{background:rgba(192,57,43,.1);color:var(--red)}
+.stat-sep{width:1px;align-self:stretch;background:var(--border-dk);margin:2px 4px;flex-shrink:0}
+.sort-cell{white-space:nowrap}
+.vendor-select{font-family:var(--cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text);background:var(--surface);border:1px solid var(--border-dk);border-radius:20px;padding:6px 10px;cursor:pointer;white-space:nowrap;max-width:220px;flex-shrink:0}
+.vendor-select:focus{outline:none;border-color:var(--text)}
+
+.action-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+.sim-toggle{white-space:nowrap}
+.sim-toggle.on{background:var(--amb-bg);border-color:var(--amb-bd);color:var(--amb)}
+.tok-panel{display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px}
+.tok-panel.show{display:flex}
+.tok-status{font-size:11px;color:var(--muted);font-family:var(--cond);white-space:nowrap}
+.tok-input{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border-dk);border-radius:var(--radius);padding:6px 10px;font-size:12px;font-family:'Courier New',monospace;color:var(--text)}
+.tok-input:focus{outline:none;border-color:var(--green)}
+.btn-refresh.tok-set{border-color:var(--green);color:var(--green)}
+.sim-banner{display:none;background:var(--amb-bg);border-bottom:1px solid var(--amb-bd);color:var(--amb);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:center;padding:7px 16px;font-family:var(--cond)}
+.sim-banner.show{display:block}
+.search-wrap{flex:1;position:relative;display:flex;align-items:center}
+.search-inp{width:100%;background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);padding:6px 28px 6px 10px;font-size:12px;font-family:var(--sans);color:var(--text)}
+.search-inp:focus{outline:none;border-color:var(--green)}
+.search-inp::placeholder{color:var(--muted-lt)}
+.search-clr{position:absolute;right:8px;background:none;border:none;color:var(--muted-lt);cursor:pointer;font-size:14px;display:none;line-height:1}
+.search-clr.show{display:block}
+
+/* App-specific button variants beyond the design system */
+.btn.red{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+.btn.red:hover{background:#fce8e8}
+.btn.amb{background:var(--amb-bg);border-color:var(--amb-bd);color:var(--amb)}
+
+/* Tag variant for amber (design system uses .tag.a but this app uses .tag.amb) */
+.tag.amb{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.tag.grn{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+
+.list-area{padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.date-hdr{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond);padding:16px 0 6px}
+.date-hdr.today{color:var(--green)}
+
+/* Canonical .og group header (matches catching v122) — enlarged for desktop */
+.order-group{margin-bottom:18px}
+.order-hd{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;user-select:none;margin-bottom:6px}
+.order-hd:hover{background:var(--surface);border-color:var(--border-dk)}
+.ochev{font-size:14px;color:var(--muted);font-family:var(--mono);width:16px;flex-shrink:0;transition:transform .12s;order:-1;text-align:center;transform:rotate(-90deg)}
+.order-open .ochev{transform:rotate(0deg)}
+.onum{font-size:22px;font-weight:700;color:var(--text);font-family:var(--cond);font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap;line-height:1;flex-shrink:0}
+.ocust{font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--cond);color:var(--text)}
+.ohd-left{flex:1;min-width:0;display:flex;align-items:baseline;gap:11px}
+.opo{font-family:var(--cond);font-size:14px;font-weight:700;color:var(--text);letter-spacing:.03em;white-space:nowrap;flex-shrink:0}
+.opo .opo-k{color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.1em;margin-right:2px}
+.ometa{display:flex;gap:7px;align-items:center;flex-shrink:0}
+.ometa .tag{font-size:11px;padding:4px 10px}
+.ometa .btn{font-size:11px;padding:6px 12px}
+
+.li-wrap{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.order-open .li-wrap{display:block}
+.li{border-top:1px solid var(--border)}
+.li:first-child{border-top:none}
+.li-row{display:flex;align-items:center;gap:18px;padding:20px 22px;cursor:pointer;transition:background .1s}
+.li-row:hover{background:var(--bg-soft)}
+.li-exp .li-row{background:var(--bg-soft);border-bottom:1px solid var(--border)}
+.li-left{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.li-ref{font-size:11px;color:var(--muted-lt);letter-spacing:.04em;font-family:var(--mono)}
+.li-name{font-size:23px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--cond);color:var(--text)}
+.li-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.li-tags .tag{font-size:11px;padding:4px 11px}
+.li-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;min-width:100px}
+
+.li-detail{display:none;padding:18px 22px;background:var(--bg)}
+.li-exp .li-detail{display:block}
+.detail-meta{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:16px}
+.dm{display:flex;flex-direction:column;gap:4px}
+.dl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-family:var(--cond)}
+.dv{font-size:15px;font-family:var(--mono);color:var(--text)}
+.dv.red{color:var(--red)}
+.dv.amb{color:var(--amb)}
+.dv.grn{color:var(--green);font-weight:700}
+.dv.lg{font-size:19px;font-weight:700;letter-spacing:.01em}
+.dv.lg.red{color:var(--red)}
+.dv.lg.amb{color:var(--amb)}
+.dv.lg.grn{color:var(--green)}
+
+.size-wrap{overflow-x:auto;margin-bottom:14px}
+.size-tbl{width:100%;border-collapse:collapse;font-size:15px;table-layout:fixed}
+.size-tbl th{padding:11px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--surface);border:1px solid var(--border);text-align:left;font-family:var(--cond)}
+.size-tbl th.ra{text-align:right}
+.size-tbl th.grn{color:var(--green)}
+.size-tbl td{padding:11px 14px;border:1px solid var(--border);background:var(--surface);font-family:var(--mono);vertical-align:middle}
+.size-tbl tr.tot td{background:var(--bg);font-weight:700;border-top:2px solid var(--border-dk)}
+.s-lbl{color:var(--muted);font-size:14px;font-weight:700}
+.s-ord{color:var(--text)}
+.s-ext{color:var(--muted);font-size:14px}
+.ainp{width:100%;max-width:220px;background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);padding:9px 12px;font-family:var(--mono);font-size:15px;color:var(--text);transition:border-color .12s;-moz-appearance:textfield}
+.ainp::-webkit-outer-spin-button,.ainp::-webkit-inner-spin-button{-webkit-appearance:none}
+.ainp:focus{outline:none;border-color:var(--green);background:var(--green-lt)}
+.dc{text-align:right;white-space:nowrap}
+.act-cell{display:flex;align-items:center;gap:10px}
+.act-cell .ainp{flex-shrink:0}
+.fill-btn{background:var(--surface);border:1px solid var(--border-dk);color:var(--muted);font-size:12px;cursor:pointer;padding:7px 12px;border-radius:var(--radius);font-family:var(--cond);font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:all .1s;white-space:nowrap}
+.fill-btn:hover{background:var(--green-lt);border-color:#b8dfcc;color:var(--green)}
+.fill-btn.filled{background:var(--green-lt);border-color:#b8dfcc;color:var(--green);opacity:.7}
+.tot .act-cell{justify-content:flex-start;gap:12px}
+.tot .act-cell .dpill{font-size:13px;padding:3px 9px}
+
+.dpill{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:2px;border:1px solid;white-space:nowrap}
+.li-right .dpill{font-size:12px;padding:3px 9px}
+.dpill.ok{background:var(--green-lt);color:var(--green-dk);border-color:#b8dfcc}
+.dpill.sh{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.dpill.ov{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.dpill.em{background:var(--bg);color:var(--muted-lt);border-color:var(--border)}
+
+.ms-block{border-radius:var(--radius);padding:10px 12px;margin-bottom:10px}
+.ms-block.flagged{background:var(--red-bg);border:1px solid var(--red-bd)}
+.ms-block.inprog{background:var(--amb-bg);border:1px solid var(--amb-bd)}
+.ms-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-family:var(--cond)}
+.ms-block.flagged .ms-title{color:var(--red)}
+.ms-block.inprog .ms-title{color:var(--amb)}
+.ms-note{color:var(--text);line-height:1.45;font-size:12px}
+
+.action-row{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;margin-top:4px}
+.action-left{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.detail-actions-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--border)}
+.dat-left{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.detail-actions-top .btn{font-size:13px;padding:10px 18px;border-radius:var(--radius-lg)}
+.detail-actions-top .btn.p{font-size:14px;padding:11px 22px}
+
+.err-box{margin:12px 16px;padding:10px 12px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--radius-lg);font-size:11px;color:#7a1a1a;font-family:var(--mono)}
+
+.jc-thumb{width:96px;height:96px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.jc-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.jc-thumb-ph{width:28px;height:28px;opacity:.2}
+.pm{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.92);flex-direction:column}
+.pm.open{display:flex}
+.pm-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#111;flex-shrink:0;border-bottom:1px solid #222}
+.pm-close{font-size:11px;padding:5px 12px;border-radius:var(--radius);border:1px solid #444;background:#222;color:#ccc;cursor:pointer;font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.pm-fn{font-size:11px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+.pm-body{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:16px}
+.pm-body img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--radius)}
+.pm-loading{color:#555;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-family:var(--cond)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--sb-bg);color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border-radius:var(--radius);z-index:999;font-family:var(--cond);border:1px solid var(--sb-border);animation:tup .18s ease}
+.toast.ok{border-color:var(--green)}
+.toast.ok::before{content:'OK  ';color:var(--green)}
+.toast.err{border-color:var(--red)}
+.toast.err::before{content:'ERR  ';color:var(--red)}
+@keyframes tup{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+
+.print-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center}
+.print-overlay.open{display:flex}
+.print-box{background:var(--surface);border:1px solid var(--border-dk);border-radius:var(--radius-lg);padding:20px;min-width:280px;max-width:400px;width:90%}
+.ms-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;align-items:center;justify-content:center}
+.ms-overlay.open{display:flex}
+.ms-box{background:var(--surface);border:1px solid var(--border-dk);border-radius:var(--radius-lg);padding:22px;min-width:300px;max-width:460px;width:92%}
+.ms-box-hdr{font-size:18px;font-weight:700;color:var(--red);font-family:var(--cond);margin-bottom:4px}
+.ms-box-sub{font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:16px}
+.ms-box-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;font-family:var(--cond)}
+.ms-box-ta{width:100%;background:var(--bg);border:1px solid var(--border-dk);border-radius:var(--radius);padding:10px 12px;font-size:14px;font-family:var(--sans);color:var(--text);resize:vertical;min-height:90px}
+.ms-box-ta:focus{outline:none;border-color:var(--red)}
+.ms-box-ta::placeholder{color:var(--muted-lt)}
+.ms-box-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.ms-box-footer .btn{font-size:13px;padding:10px 18px;border-radius:var(--radius-lg)}
+.print-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;font-family:var(--cond)}
+.print-ord{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--text);margin-bottom:3px}
+.print-cust{font-size:13px;color:var(--muted);margin-bottom:16px;font-family:var(--cond)}
+.print-footer{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<div class="stats-bar">
+  <div class="stat-cell active" id="sf-all" onclick="setFilter('all',this)">All<span class="stat-ct" id="sAll">—</span></div>
+  <div class="stat-cell" id="sf-urgent" onclick="setFilter('urgent',this)">Urgent<span class="stat-ct" id="sUrgent">—</span></div>
+  <div class="stat-cell" id="sf-misship" onclick="setFilter('misship',this)">Mis-ships<span class="stat-ct" id="sMisship">—</span></div>
+  <div class="stat-cell" id="sf-overdue" onclick="setFilter('overdue',this)">Overdue<span class="stat-ct" id="sOverdue">—</span></div>
+  <div class="stat-cell" id="sf-completed" onclick="setFilter('completed',this)">Completed<span class="stat-ct" id="sCompleted">—</span></div>
+  <div class="stat-sep"></div>
+  <div class="stat-cell sort-cell" id="so-po" onclick="toggleSort()">Sort: <span id="sortLbl">Date</span></div>
+  <select class="vendor-select" id="vendorSel" onchange="setVendor(this.value)"><option value="">All Vendors</option></select>
+</div>
+
+<div class="action-bar">
+  <div class="search-wrap">
+    <input type="text" class="search-inp" id="searchInp" placeholder="Search order #, customer, PO, garment..." oninput="onSearch(this.value)">
+    <button class="search-clr" id="searchClr" onclick="clearSearch()">x</button>
+  </div>
+  <button class="btn-refresh" id="refreshBtn" onclick="loadData()">Refresh</button>
+  <button class="btn-refresh sim-toggle" id="simBtn" onclick="toggleSimulate()">SIMULATE: OFF</button>
+  <button class="btn-refresh" id="tokBtn" onclick="toggleTokenPanel()">Token</button>
+</div>
+<div class="tok-panel" id="tokPanel">
+  <span class="tok-status">API token (saved to this device):</span>
+  <input type="password" class="tok-input" id="tokInput" placeholder="Paste Airtable token (pat...)" autocomplete="off" spellcheck="false">
+  <button class="btn-refresh" onclick="saveTokenUI()">Save</button>
+  <button class="btn-refresh" onclick="clearTokenUI()">Clear</button>
+</div>
+<div class="sim-banner" id="simBanner">SIMULATE MODE — actions are local only, nothing is written to Airtable</div>
+
+<div id="listArea">
+  <div class="loading"><div class="spin"></div>Enter token to load</div>
+</div>
+
+<div class="pm" id="pmModal">
+  <div class="pm-bar">
+    <button class="pm-close" onclick="pmClose()">Close</button>
+    <span class="pm-fn" id="pmFn"></span>
+  </div>
+  <div class="pm-body" id="pmBody" onclick="if(event.target===this)pmClose()"><div class="pm-loading">Loading...</div></div>
+</div>
+
+<div class="print-overlay" id="printOverlay">
+  <div class="print-box">
+    <div class="print-hdr">Receiving Label</div>
+    <div class="print-ord" id="poOrd"></div>
+    <div class="print-cust" id="poCust"></div>
+    <div class="print-footer">
+      <button class="btn" onclick="closePrint()">Cancel</button>
+      <button class="btn p" onclick="doPrint()">Print Label</button>
+    </div>
+  </div>
+</div>
+
+<div class="ms-overlay" id="msOverlay">
+  <div class="ms-box">
+    <div class="ms-box-hdr">Flag Mis-ship</div>
+    <div class="ms-box-sub" id="msBoxSub"></div>
+    <div class="ms-box-lbl">Describe the mis-ship issue</div>
+    <textarea class="ms-box-ta" id="msBoxTa" placeholder="e.g. Received 5 Larges instead of 5 Mediums..."></textarea>
+    <div class="ms-box-footer">
+      <button class="btn" onclick="closeMsModal()">Cancel</button>
+      <button class="btn red" id="msBoxSave" onclick="submitMsModal()">Flag Mis-ship</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var BASE_ID='appJkaLk8DykjsgHR',TABLE_ID='tblJx5UlwO7oMSk5H',MIN_ORDER=9500;
+var ORDERS_TBL='tbl8Tf0AeS9gnHOOS';
+var ORDER_STATUS_FIELD='fldhS4z28CdGmS1j5';
+var STAGED_STATUS='Received & Staged';
+// Receiving only advances an order from the one status that guarantees every garment is on order.
+// A partially-ordered order can't be here, so it can't false-stage; advanced/terminal/exception
+// states simply aren't this value, so they're left untouched for free.
+var STAGE_FROM_STATUS='Ordered - In Production';
+var WRITES_ENABLED=false;
+var STATUS_WRITES_ENABLED=false;
+var SIMULATE=false;
+var EXCLUDE_STATUS=['Completed','Shipped'];
+var INCLUDE_PRODUCT_TYPES=['Printed Apparel','Embroidered Apparel'];
+
+var F={
+  ref:'fldU6oLyZnxhhm2kX',
+  orderLink:'fld5r0tFvdpzWV5pA',
+  ordered:'fldBnjGyTLLjzz97l',
+  received:'fldwaSkM0sJJ2oYsQ',
+  receivedTime:'fldmMViJMYizJfOev',
+  po:'fldIUAnkNscvEVDjU',
+  supplier:'fldoboa9QhrHbEe8A',
+  supplierName:'fldj5Oq8JVUocLzS2',
+  arrival:'fld9EfCdiP8cgSepO',
+  imprintIds:'fldmGRcdXyvheWjmv',
+  equipmentLookup:'fldFdmnKTw5SG45k5',
+  printDate:'fldxJsB2j9FO0t3ZL',
+  orderNum:'fldRNXpvna5jpa1v5',
+  customer:'fldB4mKfMl2Lp9UK0',
+  orderedTotal:'fldRnt7Y6jEFqoZMC',
+  totalQty:'fldFfuKAcduwWQp8g',
+  orderStatus:'fldpCv8bxptGJ1gty',
+  dueDate:'fldqoBVfIvvKZrgiM',
+  productType:'fld8LIkrBXv8WoRRb',
+  misship:'fldDlrzYoe2q31K0U',
+  misshipDetails:'fldQP8hzBdUXl50Io',
+  misshipInProgress:'fldKNP8l61EEaJHmA',
+  misshipResolved:'fldt0vrDUpL3eKatw',
+  garmentName:'fldKhz9uZgXwfeIto',
+  proofImages:'flddhvdkKI31tFTdX',
+  oXS:'fldVA9ZmYxhDxtnYZ',oS:'fldCZr5lB6Jx80lfG',oM:'fldzTs1qKe9IBxxSn',
+  oL:'fldnRLJxjUDa1mQTj',oXL:'fldTRgdexcpBXXQPv',o2XL:'fldin7j6uGO0uRTec',
+  o3XL:'fldpltq9fdRkrvIvt',o4XL:'fldrsci7JnToa43Zd',o5XL:'fldchnRSKFukouW6N',
+  oOSFA:'fld2bgIlmPbANgLVK',o6XL:'fldI8gTtsEJwg33BI',
+  aXS:'fldam6SyOjB3VebzQ',aS:'fldM6F2oo5fV9zPse',aM:'fldejqlR3EGch1svc',
+  aL:'fldn3bdKPd3LkuuP3',aXL:'fldVsaOkMG6JglWv3',a2XL:'fld1YCamiJYBRjoZL',
+  a3XL:'fld1itap3IIl4UbST',a4XL:'fldkPODsJyE4OZXXZ',a5XL:'fldJpbBIdckvwHj7K',
+  aOSFA:'fldcseeXJjlFbIBhA',
+  eXS:'fldKcVhxgaclD1csp',eS:'fldgf19Xi1VDqro4Q',eM:'fldWxiQEIFsqwxFW1',
+  eL:'fldclPpJQpcXuT4Wn',eXL:'fldWjibddJoIC1JGu',e2XL:'fldgd2JZCSS3YBYX2',
+  e3XL:'fldbht14x4cRBPRVL',e4XL:'fldLyB756Va085UDj',e5XL:'fldHZ0WmjhzF34noZ',
+  eOSFA:'fldKS4Jk6aZvxR4Nn'
+};
+
+var SIZES=[
+  {l:'XS',ok:'oXS',ak:'aXS',ek:'eXS'},{l:'S',ok:'oS',ak:'aS',ek:'eS'},
+  {l:'M',ok:'oM',ak:'aM',ek:'eM'},{l:'L',ok:'oL',ak:'aL',ek:'eL'},
+  {l:'XL',ok:'oXL',ak:'aXL',ek:'eXL'},{l:'2XL',ok:'o2XL',ak:'a2XL',ek:'e2XL'},
+  {l:'3XL',ok:'o3XL',ak:'a3XL',ek:'e3XL'},{l:'4XL',ok:'o4XL',ak:'a4XL',ek:'e4XL'},
+  {l:'5XL',ok:'o5XL',ak:'a5XL',ek:'e5XL'},{l:'OSFA',ok:'oOSFA',ak:'aOSFA',ek:'eOSFA'},
+  {l:'6XL',ok:'o6XL',ak:null,ek:null}
+];
+
+var allRecords=[],currentFilter='all',currentSort='date',vendorFilter='',searchTerm='',pending={},fillState={},openOrds={},openLines={},printOrdNum=null,toastTimer,orderProgress={};
+
+function getToken(){return localStorage.getItem('pine_at_key')||'';}
+
+window.addEventListener('DOMContentLoaded',function(){
+  updateTokenIndicator();
+  var t=getToken();
+  if(t){loadData();}
+  else{document.getElementById('listArea').innerHTML='<div class="loading">No API token found. Click <b>Token</b> above to add one, then Refresh.</div>';}
+});
+
+async function loadData(){
+  var token=getToken();
+  if(!token){document.getElementById('listArea').innerHTML='<div class="loading">No API token found. Set token in Pine Central shell and click Refresh.</div>';return;}
+  var btn=document.getElementById('refreshBtn');
+  btn.textContent='...';btn.disabled=true;
+  document.getElementById('listArea').innerHTML='<div class="loading"><div class="spin"></div>Loading orders...</div>';
+  try{
+    var raw=await fetchAll(token);
+    pending={};fillState={};
+    allRecords=raw.filter(function(r){
+      if(!isApparelLine(r))return false;
+      var isMisship=fv(r,'misship')===true&&fv(r,'misshipResolved')!==true;
+      if(fv(r,'received')===true&&!isMisship&&!recvWithin24h(r))return false;
+      var st=getStatus(r);
+      var isActiveMisship=isMisship&&fv(r,'misshipInProgress')===true;
+      if(!isActiveMisship&&EXCLUDE_STATUS.indexOf(st)>=0)return false;
+      return true;
+    });
+    orderProgress={};
+    try{
+      var _onums=[],_seenO={};
+      allRecords.forEach(function(r){var n=orderNum(r);if(n&&!_seenO[n]){_seenO[n]=1;_onums.push(n);}});
+      orderProgress=await fetchOrderProgress(token,_onums);
+    }catch(_pe){orderProgress={};console.warn('order progress fetch failed:',_pe&&_pe.message);}
+    renderAll();updateStats();populateVendorDropdown();
+  }catch(e){
+    document.getElementById('listArea').innerHTML='<div class="err-box">Load failed: '+esc(e.message)+'</div>';
+    toast('Load failed','err');
+  }finally{btn.textContent='Refresh';btn.disabled=false;}
+}
+
+async function fetchAll(token){
+  var records=[],offset=null;
+  var filterFormula='AND({'+F.ordered+'}=TRUE(),OR({'+F.received+'}!=TRUE(),{'+F.misship+'}=TRUE(),IS_AFTER({'+F.receivedTime+'},DATEADD(NOW(),-24,"hours"))))';
+  do{
+    var p=new URLSearchParams();
+    Object.values(F).forEach(function(id){p.append('fields[]',id);});
+    p.set('returnFieldsByFieldId','true');
+    p.set('filterByFormula',filterFormula);
+    p.set('sort[0][field]',F.printDate);
+    p.set('sort[0][direction]','asc');
+    if(offset)p.set('offset',offset);
+    var res=await fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+TABLE_ID+'?'+p,{headers:{Authorization:'Bearer '+token}});
+    if(!res.ok){var d=await res.json();throw new Error(d.error&&d.error.message?d.error.message:'API '+res.status);}
+    var data=await res.json();
+    records=records.concat(data.records||[]);
+    offset=data.offset;
+  }while(offset);
+  return records;
+}
+
+// Board-membership predicate: a real garment line we count toward an order.
+// Mirrors loadData's old inline filters (excludes non-apparel types, 0-qty, shipping lines, sub-MIN orders).
+function isApparelLine(r){
+  if(fv(r,'ordered')!==true)return false;
+  if(orderNum(r)<MIN_ORDER)return false;
+  var pt=fv(r,'productType');
+  if(pt){var ptn=typeof pt==='object'?pt.name:String(pt);if(INCLUDE_PRODUCT_TYPES.indexOf(ptn)<0)return false;}
+  var qty=Number(fv(r,'totalQty')||0);if(qty<=0)return false;
+  var gn=String(fv(r,'garmentName')||'').toLowerCase();if(gn.indexOf('shipping')>=0)return false;
+  return true;
+}
+
+// X/N order progress: for each order on the board, count ALL its apparel lines (n)
+// and how many are received (x) — including lines that already aged off the 24h board.
+// Batched OR over the order-number lookup (chunked); soft-fails to {} on error.
+async function fetchOrderProgress(token,orderNums){
+  var prog={};
+  if(!orderNums||!orderNums.length)return prog;
+  var pf=[F.ordered,F.orderNum,F.productType,F.totalQty,F.garmentName,F.received,F.misship,F.misshipResolved];
+  var CH=50;
+  for(var i=0;i<orderNums.length;i+=CH){
+    var chunk=orderNums.slice(i,i+CH);
+    var formula='OR('+chunk.map(function(n){return '{'+F.orderNum+'}='+n;}).join(',')+')';
+    var offset=null;
+    do{
+      var p=new URLSearchParams();
+      pf.forEach(function(id){p.append('fields[]',id);});
+      p.set('returnFieldsByFieldId','true');
+      p.set('filterByFormula',formula);
+      if(offset)p.set('offset',offset);
+      var res=await fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+TABLE_ID+'?'+p,{headers:{Authorization:'Bearer '+token}});
+      if(!res.ok)throw new Error('progress '+res.status);
+      var data=await res.json();
+      (data.records||[]).forEach(function(r){
+        if(!isApparelLine(r))return;
+        var num=orderNum(r);if(!num)return;
+        if(!prog[num])prog[num]={x:0,n:0,openMisship:false,staged:false};
+        prog[num].n++;
+        if(fv(r,'received')===true)prog[num].x++;
+        if(fv(r,'misship')===true&&fv(r,'misshipResolved')!==true)prog[num].openMisship=true;
+      });
+      offset=data.offset;
+    }while(offset);
+  }
+  return prog;
+}
+
+function fv(r,key){var id=F[key];if(id===undefined)return undefined;return(r.fields&&r.fields[id]!==undefined)?r.fields[id]:((r.cellValuesByFieldId&&r.cellValuesByFieldId[id]!==undefined)?r.cellValuesByFieldId[id]:undefined);}
+
+function orderNum(r){
+  var v=fv(r,'orderNum');
+  if(!v)return 0;
+  if(typeof v==='number')return v;
+  if(typeof v==='object'&&v.valuesByLinkedRecordId){var a=Object.values(v.valuesByLinkedRecordId);for(var i=0;i<a.length;i++){if(a[i]&&a[i][0])return Number(a[i][0]);}return 0;}
+  return parseInt(v)||0;
+}
+
+function getStatus(r){
+  var v=fv(r,'orderStatus');
+  if(!v)return '';
+  if(typeof v==='object'&&v.valuesByLinkedRecordId){var a=Object.values(v.valuesByLinkedRecordId);for(var i=0;i<a.length;i++){if(a[i]&&a[i][0])return String(a[i][0]);}return '';}
+  if(Array.isArray(v))return v[0]?String(v[0]):'';
+  return String(v);
+}
+
+function supName(r){
+  var f=fv(r,'supplierName');
+  if(f&&typeof f==='string'&&f.trim())return f.trim();
+  var v=fv(r,'supplier');
+  if(!v)return '';
+  if(Array.isArray(v))return v.map(function(s){return s.name||s;}).join(', ');
+  return v.name||String(v);
+}
+
+function getGarmentName(r){
+  var g=fv(r,'garmentName');
+  if(g&&typeof g==='string'&&g.trim())return g.trim();
+  return fv(r,'customer')||'Unknown Garment';
+}
+
+function getThumbUrl(r){
+  var v=fv(r,'proofImages');
+  if(!v||!Array.isArray(v)||!v.length)return null;
+  var p=v[0];
+  return (p.thumbnails&&p.thumbnails.large&&p.thumbnails.large.url)?p.thumbnails.large.url:p.url||null;
+}
+
+function getLargeUrl(r){
+  var v=fv(r,'proofImages');
+  if(!v||!Array.isArray(v)||!v.length)return null;
+  var p=v[0];
+  return (p.thumbnails&&p.thumbnails.large&&p.thumbnails.large.url)?p.thumbnails.large.url:p.url||null;
+}
+
+function getPD(r){
+  var v=fv(r,'printDate');
+  if(v&&!(typeof v==='object'&&v.error))return{date:String(v),isDue:false};
+  var dv=fv(r,'dueDate');
+  if(dv){
+    if(typeof dv==='object'&&dv.valuesByLinkedRecordId){var vals=Object.values(dv.valuesByLinkedRecordId);for(var i=0;i<vals.length;i++){if(vals[i]&&vals[i][0])return{date:String(vals[i][0]).split('T')[0],isDue:true};}}
+    if(typeof dv==='string')return{date:dv.split('T')[0],isDue:true};
+  }
+  return null;
+}
+function getPDStr(r){var p=getPD(r);return p?p.date:null;}
+function recvWithin24h(r){
+  if(fv(r,'received')!==true)return false;
+  var t=fv(r,'receivedTime');if(!t)return false;
+  var dt=new Date(t);if(isNaN(dt.getTime()))return false;
+  return (Date.now()-dt.getTime())<86400000;
+}
+function getImprintIds(r){var v=fv(r,'imprintIds');if(!v)return[];if(Array.isArray(v))return v.filter(Boolean);if(typeof v==='string')return v.split(',').map(function(s){return s.trim();}).filter(Boolean);return[];}
+function getEquipmentList(records){
+  var seen={},names=[];
+  records.forEach(function(r){
+    var v=fv(r,'equipmentLookup');if(!v)return;
+    if(typeof v==='object'&&v.valuesByLinkedRecordId){Object.values(v.valuesByLinkedRecordId).forEach(function(arr){(Array.isArray(arr)?arr:[arr]).forEach(function(e){var n=typeof e==='object'?e.name:String(e);if(n&&!seen[n]){seen[n]=1;names.push(n);}});});}
+    else if(Array.isArray(v)){v.forEach(function(e){var n=typeof e==='object'?e.name:String(e);if(n&&!seen[n]){seen[n]=1;names.push(n);}});}
+  });
+  return names;
+}
+
+function daysUntil(ds){
+  if(!ds)return null;
+  var pts=ds.split('/');
+  var d=pts.length===3?new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])):new Date(ds);
+  if(isNaN(d.getTime()))return null;
+  var t=new Date();t.setHours(0,0,0,0);
+  return Math.round((d.getTime()-t.getTime())/86400000);
+}
+
+function fmtDate(ds){
+  if(!ds)return '';
+  var d=new Date(ds+'T12:00:00');
+  if(isNaN(d.getTime()))return ds;
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function groupByOrder(records){
+  var map={};
+  records.forEach(function(r){
+    var num=orderNum(r);if(!num)return;
+    if(!map[num])map[num]={num:num,customer:fv(r,'customer')||'Unknown',printDate:null,isDue:false,po:null,pos:[],records:[]};
+    map[num].records.push(r);
+    var pd=getPD(r);
+    if(pd&&(!map[num].printDate||daysUntil(pd.date)<daysUntil(map[num].printDate))){map[num].printDate=pd.date;map[num].isDue=pd.isDue;}
+    var pov=fv(r,'po');
+    if(pov){var ps=String(pov).trim();if(ps){if(map[num].pos.indexOf(ps)<0)map[num].pos.push(ps);if(map[num].po===null||ps<map[num].po)map[num].po=ps;}}
+  });
+  return Object.values(map).sort(function(a,b){
+    if(currentSort==='po'){
+      var pa=a.po||'',pb=b.po||'';
+      if(pa===''&&pb==='')return a.num-b.num;
+      if(pa==='')return 1;if(pb==='')return -1;
+      return pa.localeCompare(pb,undefined,{numeric:true})||a.num-b.num;
+    }
+    var da=daysUntil(a.printDate),db=daysUntil(b.printDate);
+    if(da===null&&db===null)return a.num-b.num;
+    if(da===null)return 1;if(db===null)return -1;return da-db;
+  });
+}
+
+function applyFilter(groups){
+  var result=groups;
+  if(currentFilter==='completed'){
+    // Completed tab: keep only received-within-24h line items
+    result=result.map(function(g){return Object.assign({},g,{records:g.records.filter(function(r){return recvWithin24h(r);})});}).filter(function(g){return g.records.length>0;});
+  } else {
+    // All other tabs: hide completed line items
+    result=result.map(function(g){return Object.assign({},g,{records:g.records.filter(function(r){return !recvWithin24h(r);})});}).filter(function(g){return g.records.length>0;});
+    if(currentFilter==='urgent')result=result.filter(function(g){var d=daysUntil(g.printDate);return d!==null&&d<=4;});
+    else if(currentFilter==='misship')result=result.filter(function(g){return g.records.some(function(r){return fv(r,'misship')===true&&fv(r,'misshipResolved')!==true;});});
+    else if(currentFilter==='overdue')result=result.filter(function(g){return g.records.some(function(r){var d=daysUntil(fv(r,'arrival'));return d!==null&&d<0;});});
+  }
+  if(vendorFilter){
+    result=result.map(function(g){return Object.assign({},g,{records:g.records.filter(function(r){return vendorOf(r)===vendorFilter;})});}).filter(function(g){return g.records.length>0;});
+  }
+  if(searchTerm){
+    result=result.map(function(g){return Object.assign({},g,{records:g.records.filter(function(r){return matchSearch(r,g.num);})});}).filter(function(g){return g.records.length>0;});
+  }
+  return result;
+}
+
+function updateStats(){
+  var activeRecs=allRecords.filter(function(r){return !recvWithin24h(r);});
+  var completedRecs=allRecords.filter(function(r){return recvWithin24h(r);});
+  var groups=groupByOrder(activeRecs);
+  var total=groups.length;
+  var urgent=groups.filter(function(g){var d=daysUntil(g.printDate);return d!==null&&d<=4;}).length;
+  var misship=activeRecs.filter(function(r){return fv(r,'misship')===true&&fv(r,'misshipResolved')!==true;}).length;
+  var overdue=activeRecs.filter(function(r){var d=daysUntil(fv(r,'arrival'));return d!==null&&d<0;}).length;
+  var completed=groupByOrder(completedRecs).length;
+  document.getElementById('sAll').textContent=total;
+  document.getElementById('sUrgent').textContent=urgent;
+  document.getElementById('sMisship').textContent=misship;
+  document.getElementById('sOverdue').textContent=overdue;
+  var cEl=document.getElementById('sCompleted');if(cEl)cEl.textContent=completed;
+  var msCell=document.getElementById('sf-misship');
+  if(misship>0){msCell.classList.add('alert-ct');}else{msCell.classList.remove('alert-ct');}
+}
+
+function renderAll(){
+  var groups=applyFilter(groupByOrder(allRecords));
+  var area=document.getElementById('listArea');
+  if(!groups.length){area.innerHTML='<div class="empty">No pending orders</div>';return;}
+  var html='<div class="list-area">';
+  var lastDK=null;
+  groups.forEach(function(g){
+    if(currentSort==='po'){
+      var pk=g.po||'none';
+      if(pk!==lastDK){
+        var plbl=g.po?('PO '+esc(g.po)):'No PO';
+        html+='<div class="date-hdr">'+plbl+'</div>';
+        lastDK=pk;
+      }
+      html+=renderGroup(g);
+      return;
+    }
+    var days=daysUntil(g.printDate);
+    var dk;
+    if(!g.printDate)dk='none';
+    else if(days<0)dk='overdue';
+    else dk=g.printDate;
+    if(dk!==lastDK){
+      var lbl,cls='date-hdr';
+      if(dk==='none')lbl='No date set';
+      else if(dk==='overdue'){lbl='Overdue';cls='date-hdr';}
+      else if(days===0){lbl='Today';cls='date-hdr today';}
+      else if(days===1)lbl='Tomorrow';
+      else lbl=fmtDate(g.printDate);
+      html+='<div class="'+cls+'">'+lbl+'</div>';
+      lastDK=dk;
+    }
+    html+=renderGroup(g);
+  });
+  html+='</div>';
+  area.innerHTML=html;
+}
+
+function renderGroup(g){
+  var days=daysUntil(g.printDate);
+  var pfx=g.isDue?'Due':'Prints';
+  var urgTag='';
+  if(days!==null&&days<0)urgTag='<span class="tag r">Overdue</span>';
+  else if(days!==null&&days===0)urgTag='<span class="tag r">'+pfx+' Today</span>';
+  else if(days!==null&&days<=4)urgTag='<span class="tag r">'+pfx+' in '+days+'d</span>';
+  else if(days!==null&&days<=7)urgTag='<span class="tag amb">'+pfx+' in '+days+'d</span>';
+  var hasMisship=g.records.some(function(r){return fv(r,'misship')===true&&fv(r,'misshipResolved')!==true;});
+  var misTag=hasMisship?'<span class="tag r">Mis-ship</span>':'';
+  var prog=orderProgress[g.num];
+  var progTag='';
+  if(prog&&prog.n>0){progTag='<span class="tag '+(prog.x>=prog.n?'grn':'n')+'">'+prog.x+'/'+prog.n+' in</span>';}
+  var poEl='';
+  if(g.pos&&g.pos.length){
+    var poS=g.pos.slice().sort();
+    var poTxt=poS.length<=3?poS.join(', '):(poS.slice(0,3).join(', ')+' +'+(poS.length-3));
+    poEl='<span class="opo"><span class="opo-k">PO</span>'+esc(poTxt)+'</span>';
+  }
+  var cnt=g.records.length;
+  var totPcs=g.records.reduce(function(s,r){return s+SIZES.filter(function(z){return (fv(r,z.ok)||0)>0;}).reduce(function(a,z){return a+(fv(r,z.ok)||0);},0);},0);
+  var isOpen=openOrds[g.num];
+  return '<div class="order-group'+(isOpen?' order-open':'')+'" id="og-'+g.num+'">'
+    +'<div class="order-hd" onclick="togOrd('+g.num+')">'
+    +'<span class="onum">'+g.num+'</span>'
+    +'<div class="ohd-left"><span class="ocust">'+esc(g.customer)+'</span>'+poEl+'</div>'
+    +'<div class="ometa">'+urgTag+misTag+progTag+'<span class="tag n">'+cnt+' line'+(cnt!==1?'s':'')+'</span>'
+    +'<span class="tag g">'+totPcs+' pcs</span>'
+    +'<button class="btn" onclick="event.stopPropagation();openPrint('+g.num+',\''+esc(g.customer)+'\')">Label</button>'
+    +'</div>'
+    +'<span class="ochev">v</span>'
+    +'</div>'
+    +'<div class="li-wrap" id="lw-'+g.num+'">'
+    +g.records.map(function(r){return renderLI(r,g);}).join('')
+    +'</div>'
+    +'</div>';
+}
+
+function renderLI(r,g){
+  var id=r.id;
+  var gname=getGarmentName(r);
+  var sup=supName(r);
+  var po=fv(r,'po')||'';
+  var arr=fv(r,'arrival')||'';
+  var isMisship=fv(r,'misship')===true;
+  var isResolved=fv(r,'misshipResolved')===true;
+  var isInProg=fv(r,'misshipInProgress')===true;
+  var msDetails=fv(r,'misshipDetails')||'';
+  var arrDays=arr?daysUntil(arr):null;
+  var arrOvr=arrDays!==null&&arrDays<0;
+  var activeSizes=SIZES.filter(function(s){return (fv(r,s.ok)||0)>0;});
+  var pendActs=pending[id]||{};
+  var isExp=openLines[id];
+  var tO=activeSizes.reduce(function(s,z){return s+(fv(r,z.ok)||0);},0);
+  var tE=activeSizes.reduce(function(s,z){return s+(z.ek?(fv(r,z.ek)||0):0);},0);
+
+  var liTags='';
+  if(sup)liTags+='<span class="tag n">'+esc(sup)+'</span>';
+  if(po)liTags+='<span class="tag n">PO: '+esc(po)+'</span>';
+  if(arr&&arrOvr)liTags+='<span class="tag r">Arr. '+fmtDate(arr)+'</span>';
+  else if(arr)liTags+='<span class="tag n">Arr. '+fmtDate(arr)+'</span>';
+  if(isMisship&&!isResolved)liTags+=isInProg?'<span class="tag amb">Mis-ship In Progress</span>':'<span class="tag r">Mis-ship</span>';
+
+  var hasPend=Object.keys(pendActs).length>0;
+  var rightPill='<span class="dpill em">—</span>';
+  if(hasPend){
+    var tExp=0,tAct=0;
+    activeSizes.forEach(function(s){var o=fv(r,s.ok)||0,e=s.ek?(fv(r,s.ek)||0):0;tExp+=o+e;tAct+=Number(pendActs[F[s.ak]]||0);});
+    var d=tExp-tAct;
+    if(d===0)rightPill='<span class="dpill ok">Match</span>';
+    else if(d>0)rightPill='<span class="dpill sh">-'+d+'</span>';
+    else rightPill='<span class="dpill ov">+'+Math.abs(d)+'</span>';
+  }
+
+  var sizeRows=activeSizes.map(function(s){
+    var oVal=fv(r,s.ok)||0,eVal=s.ek?(fv(r,s.ek)||0):0;
+    var aStored=s.ak?pendActs[F[s.ak]]:undefined;
+    var aDb=s.ak?fv(r,s.ak):undefined;
+    var aVal=aStored!==undefined&&aStored!==null?aStored:(aDb!==undefined&&aDb!==null&&aDb!==''?aDb:'');
+    var inp=s.ak?'<input type="number" min="0" class="ainp" id="ai-'+id+'-'+s.l+'" value="'+(aVal!==''&&aVal!==null?aVal:'')+'" placeholder="0" oninput="onInp(this,\''+id+'\',\''+s.ak+'\',\''+s.ok+'\',\''+(s.ek||'')+'\',\''+g.num+'\')">'
+      :'<span style="color:var(--muted-lt)">—</span>';
+    var fb=s.ak?'<button id="fb-'+id+'-'+s.l+'" class="fill-btn'+(fillState[id+'-'+s.l]?' filled':'')+'" onclick="quickFill(\''+id+'\',\''+s.l+'\',\''+s.ak+'\',\''+s.ok+'\',\''+(s.ek||'')+'\',\''+g.num+'\','+(oVal+eVal)+')">fill '+Number(oVal+eVal)+'</button>':'';
+    return '<tr><td class="s-lbl">'+s.l+'</td><td class="s-ord">'+oVal+'</td><td class="s-ext">'+(eVal>0?'+'+eVal:'—')+'</td><td><div class="act-cell">'+inp+fb+'</div></td></tr>';
+  }).join('');
+
+  var tActs=Object.values(pendActs);
+  var tA=tActs.length?tActs.reduce(function(s,v){return s+(Number(v)||0);},0):null;
+  var totDelta=tA!==null?deltaHtml(tO,tE,tA):'<span class="dpill em">—</span>';
+
+  var msBlockHtml='';
+  if(isMisship&&!isResolved){
+    msBlockHtml=isInProg
+      ?'<div class="ms-block inprog"><div class="ms-title">Replacement Ordered</div><div class="ms-note">'+esc(msDetails||'Replacement has been ordered from supplier.')+'</div></div>'
+      :'<div class="ms-block flagged"><div class="ms-title">Mis-ship Flagged</div><div class="ms-note">'+esc(msDetails||'No details recorded.')+'</div></div>';
+  }
+
+  var isDone=recvWithin24h(r);
+  var resolveBtn=(isMisship&&!isResolved)?'<button class="btn grn" onclick="resolveMisship(\''+id+'\',\''+g.num+'\')">Mark Resolved</button>':'';
+  var flagBtn=(!isDone&&(!isMisship||isResolved))?'<button class="btn" onclick="openMsModal(\''+id+'\',\''+g.num+'\',\''+esc(gname).replace(/'/g,"\\'")+'\')">Flag Mis-ship</button>':'';
+  var recvBtn=isDone
+    ?'<button class="btn" id="rb-'+id+'" onclick="openPrint('+g.num+',\''+esc(g.customer).replace(/'/g,"\\'")+'\')">Reprint Label</button>'
+    :'<button class="btn p" id="rb-'+id+'" onclick="markRecv(\''+id+'\',\''+g.num+'\')">Mark Received</button>';
+
+  var thumbUrl=getThumbUrl(r);
+  var thumbHtml=thumbUrl
+    ?'<div class="jc-thumb" onclick="event.stopPropagation();pmOpen(\''+id+'\',\''+esc(gname)+'\')"><img src="'+thumbUrl+'" onerror="this.parentNode.innerHTML=\'<svg class=jc-thumb-ph viewBox=\\\"0 0 24 24\\\" fill=none stroke=currentColor stroke-width=1.5><rect x=3 y=3 width=18 height=18 rx=2/><path d=\\\"M3 9l4-4 4 4 4-5 4 6\\\"/></svg>\'"></div>'
+    :'<div class="jc-thumb"><svg class="jc-thumb-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-5 4 6"/></svg></div>';
+
+  return '<div class="li'+(isExp?' li-exp':'')+'" id="li-'+id+'">'
+    +'<div class="li-row" onclick="togLI(\''+id+'\',\''+g.num+'\')">'
+    +thumbHtml
+    +'<div class="li-left">'
+    +'<div class="li-ref">'+esc(fv(r,'ref')||id)+'</div>'
+    +'<div class="li-name">'+esc(gname)+'</div>'
+    +'<div class="li-tags">'+liTags+'</div>'
+    +'</div>'
+    +'<div class="li-right">'+(isDone?'<span class="tag grn">✓ Received</span>':rightPill)+'<span class="tag k">'+tO+' pcs</span></div>'
+    +'</div>'
+    +'<div class="li-detail" id="ld-'+id+'">'
+    +'<div class="detail-actions-top"><div class="dat-left">'+flagBtn+resolveBtn+'</div>'+recvBtn+'</div>'
+    +'<div class="detail-meta">'
+    +(sup?'<div class="dm"><span class="dl">Supplier</span><span class="dv">'+esc(sup)+'</span></div>':'')
+    +(po?'<div class="dm"><span class="dl">PO</span><span class="dv">'+esc(po)+'</span></div>':'')
+    +(arr?'<div class="dm"><span class="dl">Expected Arrival</span><span class="dv lg'+(arrOvr?' red':(arrDays!==null&&arrDays<=2?' amb':''))+'">'+(fmtDate(arr)||(arr||''))+(arrOvr?' — OVERDUE':'')+'</span></div>':'')
+    +'<div class="dm"><span class="dl">Print Date</span><span class="dv lg'+(getPD(r)&&daysUntil(getPD(r).date)!==null&&daysUntil(getPD(r).date)<=4?' red':'')+'">'+((getPD(r)&&fmtDate(getPD(r).date))||'—')+'</span></div>'
+    +'<div class="dm"><span class="dl">Ordered Total</span><span class="dv">'+tO+(tE>0?' +'+tE+' extras':'')+'</span></div>'
+    +'</div>'
+    +msBlockHtml
+    +(thumbUrl?'<div style="margin-bottom:10px"><button class="btn" onclick="pmOpen(\''+id+'\',\''+esc(gname)+'\')">View Proof</button></div>':'')
+    +'<div class="size-wrap"><table class="size-tbl">'
+    +'<thead><tr><th style="width:12%">Size</th><th style="width:22%">Ordered</th><th style="width:22%">+Extra</th><th class="grn" style="width:44%">Actual</th></tr></thead>'
+    +'<tbody>'+(sizeRows||'<tr><td colspan="4" style="color:var(--muted-lt);padding:10px;font-size:11px">No sized quantities</td></tr>')
+    +'<tr class="tot"><td class="s-lbl">Total</td><td class="s-ord">'+tO+'</td><td class="s-ext">'+(tE>0?'+'+tE:'—')+'</td><td><div class="act-cell"><span id="ta-'+id+'">'+(tA!==null?tA:'—')+'</span><span id="td-'+id+'">'+totDelta+'</span></div></td></tr>'
+    +'</tbody></table></div>'
+    +'</div>'
+    +'</div>';
+}
+
+function deltaHtml(o,e,a){
+  if(a===null||a===undefined||a==='')return '<span class="dpill em">—</span>';
+  var exp=o+(e||0),d=exp-Number(a);
+  if(d===0)return '<span class="dpill ok">Match</span>';
+  if(d>0)return '<span class="dpill sh">-'+d+'</span>';
+  return '<span class="dpill ov">+'+Math.abs(d)+'</span>';
+}
+
+function togOrd(num){
+  var el=document.getElementById('og-'+num);if(!el)return;
+  if(openOrds[num]){delete openOrds[num];el.classList.remove('order-open');}
+  else{openOrds[num]=true;el.classList.add('order-open');}
+}
+
+function togLI(id,ordNum){
+  if(openLines[id]){delete openLines[id];}else{openLines[id]=true;}
+  var g=groupByOrder(allRecords).filter(function(x){return x.num===Number(ordNum);})[0];
+  if(g){var lw=document.getElementById('lw-'+ordNum);if(lw)lw.innerHTML=g.records.map(function(r){return renderLI(r,g);}).join('');}
+}
+
+var msModalRec=null,msModalOrd=null;
+function openMsModal(recId,ordNum,label){
+  msModalRec=recId;msModalOrd=ordNum;
+  var sub=document.getElementById('msBoxSub'),ta=document.getElementById('msBoxTa');
+  if(sub)sub.textContent=(label||'')+'  ·  Order #'+ordNum;
+  if(ta)ta.value='';
+  document.getElementById('msOverlay').classList.add('open');
+  if(ta)setTimeout(function(){ta.focus();},50);
+}
+function closeMsModal(){document.getElementById('msOverlay').classList.remove('open');msModalRec=null;msModalOrd=null;}
+function submitMsModal(){if(msModalRec)saveMisship(msModalRec,msModalOrd);}
+
+function onSearch(val){
+  searchTerm=val.trim().toLowerCase();
+  document.getElementById('searchClr').className='search-clr'+(searchTerm?' show':'');
+  renderAll();
+}
+function clearSearch(){document.getElementById('searchInp').value='';onSearch('');}
+
+function setFilter(f,btn){
+  currentFilter=f;
+  ['sf-all','sf-urgent','sf-misship','sf-overdue','sf-completed'].forEach(function(idd){var c=document.getElementById(idd);if(c)c.classList.remove('active');});
+  btn.classList.add('active');
+  renderAll();
+}
+function toggleSort(){
+  currentSort=(currentSort==='po')?'date':'po';
+  var cell=document.getElementById('so-po'),lbl=document.getElementById('sortLbl');
+  if(lbl)lbl.textContent=(currentSort==='po')?'PO':'Date';
+  if(cell){if(currentSort==='po')cell.classList.add('active');else cell.classList.remove('active');}
+  renderAll();
+}
+function toggleSimulate(){
+  SIMULATE=!SIMULATE;
+  var b=document.getElementById('simBtn'),banner=document.getElementById('simBanner');
+  if(b){b.textContent='SIMULATE: '+(SIMULATE?'ON':'OFF');b.className='btn-refresh sim-toggle'+(SIMULATE?' on':'');}
+  if(banner)banner.className='sim-banner'+(SIMULATE?' show':'');
+  toast(SIMULATE?'Simulate mode ON — no writes':'Simulate mode OFF','ok');
+}
+
+function updateTokenIndicator(){
+  var b=document.getElementById('tokBtn');if(!b)return;
+  var has=!!getToken();
+  b.textContent=has?'Token \u2713':'Token';
+  b.className='btn-refresh'+(has?' tok-set':'');
+}
+function toggleTokenPanel(){
+  var p=document.getElementById('tokPanel');if(!p)return;
+  var open=!p.classList.contains('show');
+  p.className='tok-panel'+(open?' show':'');
+  if(open){var i=document.getElementById('tokInput');if(i){i.value=getToken();i.focus();i.select();}}
+}
+function saveTokenUI(){
+  var i=document.getElementById('tokInput');if(!i)return;
+  var v=(i.value||'').trim();
+  if(!v){toast('Enter a token','err');return;}
+  localStorage.setItem('pine_at_key',v);
+  updateTokenIndicator();
+  var p=document.getElementById('tokPanel');if(p)p.className='tok-panel';
+  toast('Token saved','ok');
+  loadData();
+}
+function clearTokenUI(){
+  localStorage.removeItem('pine_at_key');
+  var i=document.getElementById('tokInput');if(i)i.value='';
+  updateTokenIndicator();
+  toast('Token cleared','ok');
+}
+function vendorOf(r){var v=fv(r,'supplierName');return v?String(v).trim():'';}
+function setVendor(val){vendorFilter=val;renderAll();}
+function populateVendorDropdown(){
+  var sel=document.getElementById('vendorSel');if(!sel)return;
+  var seen={},names=[];
+  allRecords.forEach(function(r){var v=vendorOf(r);if(v&&!seen[v]){seen[v]=1;names.push(v);}});
+  names.sort(function(a,b){return a.localeCompare(b);});
+  var cur=vendorFilter;
+  sel.innerHTML='<option value="">All Vendors</option>'+names.map(function(n){return '<option value="'+esc(n)+'"'+(n===cur?' selected':'')+'>'+esc(n)+'</option>';}).join('');
+  if(cur&&names.indexOf(cur)<0){vendorFilter='';sel.value='';}
+}
+
+function matchSearch(r,oNum){
+  if(!searchTerm)return true;
+  var q=searchTerm;
+  if((fv(r,'customer')||'').toLowerCase().indexOf(q)>=0)return true;
+  if((fv(r,'po')||'').toLowerCase().indexOf(q)>=0)return true;
+  if(String(oNum||'').indexOf(q)>=0)return true;
+  if((getGarmentName(r)||'').toLowerCase().indexOf(q)>=0)return true;
+  return false;
+}
+
+function onInp(inp,recId,ak,ok,ek,ordNum){
+  if(!pending[recId])pending[recId]={};
+  pending[recId][F[ak]]=inp.value===''?null:Number(inp.value);
+  var r=allRecords.filter(function(x){return x.id===recId;})[0];if(!r)return;
+  var activeSizes=SIZES.filter(function(s){return (fv(r,s.ok)||0)>0;});
+  var tO=activeSizes.reduce(function(s,z){return s+(fv(r,z.ok)||0);},0);
+  var tE=activeSizes.reduce(function(s,z){return s+(z.ek?(fv(r,z.ek)||0):0);},0);
+  var acts=pending[recId]||{};
+  var allFilled=activeSizes.filter(function(s){return s.ak;}).every(function(s){return acts[F[s.ak]]!==null&&acts[F[s.ak]]!==undefined&&acts[F[s.ak]]!=='';});
+  var tA=activeSizes.filter(function(s){return s.ak;}).reduce(function(s,z){return s+Number(acts[F[z.ak]]||0);},0);
+  var taEl=document.getElementById('ta-'+recId),tdEl=document.getElementById('td-'+recId);
+  if(taEl)taEl.textContent=allFilled?tA:(tA+'+');
+  if(tdEl&&allFilled)tdEl.innerHTML=deltaHtml(tO,tE,tA);
+}
+
+function quickFill(id,sl,ak,ok,ek,ordNum,fillVal){
+  var key=id+'-'+sl,inp=document.getElementById('ai-'+id+'-'+sl);if(!inp)return;
+  if(fillState[key]){fillState[key]=false;inp.value='';}else{fillState[key]=true;inp.value=Number(fillVal);}
+  var btn=document.getElementById('fb-'+id+'-'+sl);
+  if(btn){if(fillState[key])btn.classList.add('filled');else btn.classList.remove('filled');}
+  onInp(inp,id,ak,ok,ek,ordNum);
+}
+
+// Pull the order's record id off the line's single-link to Orders (handles v0 string-array + MCP object shapes).
+function orderRecId(r){
+  var v=fv(r,'orderLink');
+  if(!v)return null;
+  if(Array.isArray(v)){var x=v[0];return (typeof x==='string')?x:(x&&x.id)||null;}
+  if(typeof v==='object'){if(v.linkedRecordIds&&v.linkedRecordIds[0])return v.linkedRecordIds[0];if(v.id)return v.id;}
+  return (typeof v==='string')?v:null;
+}
+
+// Handoff trigger: fire after a line is received. Stage the order iff every apparel line is in,
+// there's no open mis-ship, and the order isn't already on its own advanced/exception track.
+function maybeStageOrder(lineRec,ordNum){
+  if(!lineRec)return;
+  var prog=orderProgress[ordNum];
+  if(!prog||prog.n<=0)return;            // can't confirm completeness without the full-order read
+  if(prog.staged)return;                 // already handled this session
+  if(prog.x<prog.n)return;               // not all apparel lines received yet
+  if(prog.openMisship)return;            // unresolved mis-ship -> hold, replacement still pending
+  var st=getStatus(lineRec)||'';
+  if(st!==STAGE_FROM_STATUS)return;     // only advance the canonical "all garments ordered, awaiting goods" state
+  stageOrder(orderRecId(lineRec),ordNum);
+}
+
+// Gated keystone write: Order Status -> "Received & Staged". Forward-only, idempotent per session.
+// Honors SIMULATE (local only) and STATUS_WRITES_ENABLED (real PATCH); previews to console otherwise.
+async function stageOrder(orderRecId,ordNum){
+  var prog=orderProgress[ordNum];
+  if(prog&&prog.staged)return;
+  if(SIMULATE){
+    if(prog)prog.staged=true;
+    console.log('[SIMULATE] order '+ordNum+' complete -> would set Order Status = "'+STAGED_STATUS+'"');
+    toast('SIMULATED: '+ordNum+' staged','ok');
+    return;
+  }
+  if(!STATUS_WRITES_ENABLED){
+    if(prog)prog.staged=true;
+    console.log('[PREVIEW status writes OFF] order '+ordNum+' ('+(orderRecId||'no recId')+') complete -> would set "'+STAGED_STATUS+'"');
+    toast('Order '+ordNum+' complete (stage write off)','ok');
+    return;
+  }
+  if(!orderRecId){console.warn('stageOrder: no order recId for '+ordNum);return;}
+  var token=getToken();if(!token)return;
+  try{
+    var body={fields:{}};body.fields[ORDER_STATUS_FIELD]=STAGED_STATUS;
+    var res=await fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+ORDERS_TBL+'/'+orderRecId,{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){var d=await res.json();throw new Error(d.error&&d.error.message?d.error.message:'API '+res.status);}
+    if(prog)prog.staged=true;
+    toast('Order '+ordNum+' staged','ok');
+  }catch(e){toast('Stage failed: '+e.message,'err');}
+}
+
+async function markRecv(recId,ordNum){
+  var token=getToken();if(!token){toast('No token','err');return;}
+  if(!WRITES_ENABLED&&!SIMULATE){toast('Writes disabled','err');return;}
+  var btn=document.getElementById('rb-'+recId);
+  btn.disabled=true;btn.textContent='Saving...';
+  if(SIMULATE){
+    var rrS=allRecords.filter(function(r){return r.id===recId;})[0];
+    var custS=rrS?fv(rrS,'customer')||'':'';
+    if(rrS&&rrS.fields){rrS.fields[F.received]=true;rrS.fields[F.receivedTime]=new Date().toISOString();}
+    var snapS=groupByOrder(allRecords).filter(function(x){return x.num===Number(ordNum);})[0]||null;
+    delete pending[recId];
+    delete openLines[recId];
+    if(orderProgress[ordNum])orderProgress[ordNum].x++;
+    toast('SIMULATED received (no write)','ok');
+    renderAll();updateStats();
+    maybeStageOrder(rrS,Number(ordNum));
+    openPrint(Number(ordNum),custS,snapS);
+    return;
+  }
+  try{
+    var updates=pending[recId]||{};
+    var fields=Object.assign({},updates);fields[F.received]=true;
+    var res=await fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+TABLE_ID+'/'+recId,{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({fields:fields})});
+    if(!res.ok){var d=await res.json();throw new Error(d.error&&d.error.message?d.error.message:'API '+res.status);}
+    var recvdCustomer='';
+    var rr=allRecords.filter(function(r){return r.id===recId;})[0];
+    if(rr){recvdCustomer=fv(rr,'customer')||'';if(rr.fields){rr.fields[F.received]=true;rr.fields[F.receivedTime]=new Date().toISOString();}}
+    var snap=groupByOrder(allRecords).filter(function(x){return x.num===Number(ordNum);})[0]||null;
+    delete pending[recId];
+    delete openLines[recId];
+    if(orderProgress[ordNum])orderProgress[ordNum].x++;
+    toast('Marked received','ok');
+    renderAll();updateStats();
+    maybeStageOrder(rr,Number(ordNum));
+    openPrint(Number(ordNum),recvdCustomer,snap);
+  }catch(e){toast('Error: '+e.message,'err');btn.disabled=false;btn.textContent='Mark Received';}
+}
+
+async function saveMisship(recId,ordNum){
+  var token=getToken();if(!token){toast('No token','err');return;}
+  if(!WRITES_ENABLED&&!SIMULATE){toast('Writes disabled','err');return;}
+  var ta=document.getElementById('msBoxTa'),details=ta?ta.value.trim():'';
+  if(!details){toast('Describe the issue first','err');return;}
+  var btn=document.getElementById('msBoxSave');if(btn){btn.disabled=true;btn.textContent='Saving...';}
+  if(SIMULATE){
+    var recS=allRecords.filter(function(r){return r.id===recId;})[0];
+    if(recS&&recS.fields){recS.fields[F.misship]=true;recS.fields[F.misshipDetails]=details;recS.fields[F.misshipInProgress]=true;}
+    closeMsModal();
+    toast('SIMULATED mis-ship (no write)','ok');
+    refreshOrderRow(Number(ordNum));
+    updateStats();
+    if(btn){btn.disabled=false;btn.textContent='Flag Mis-ship';}
+    return;
+  }
+  try{
+    var fields={};fields[F.misship]=true;fields[F.misshipDetails]=details;fields[F.misshipInProgress]=true;
+    var res=await fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+TABLE_ID+'/'+recId,{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({fields:fields})});
+    if(!res.ok){var d=await res.json();throw new Error(d.error&&d.error.message?d.error.message:'API '+res.status);}
+    var rec=allRecords.filter(function(r){return r.id===recId;})[0];
+    if(rec&&rec.fields){rec.fields[F.misship]=true;rec.fields[F.misshipDetails]=details;rec.fields[F.misshipInProgress]=true;}
+    closeMsModal();
+    toast('Mis-ship flagged','ok');
+    refreshOrderRow(Number(ordNum));
+    updateStats();
+  }catch(e){toast('Error: '+e.message,'err');if(btn){btn.disabled=false;btn.textContent='Flag Mis-ship';}}
+}
+
+async function resolveMisship(recId,ordNum){
+  var token=getToken();if(!token){toast('No token','err');return;}
+  if(!WRITES_ENABLED&&!SIMULATE){toast('Writes disabled','err');return;}
+  var btn=document.querySelector('#li-'+recId+' .btn.grn');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
+  if(SIMULATE){
+    var recS=allRecords.filter(function(r){return r.id===recId;})[0];
+    if(recS&&recS.fields)recS.fields[F.misshipResolved]=true;
+    allRecords=allRecords.filter(function(r){return r.id!==recId;});
+    delete openLines[recId];
+    animateOut('li-'+recId,Number(ordNum));
+    toast('SIMULATED resolved (no write)','ok');
+    return;
+  }
+  try{
+    var fields={};fields[F.misshipResolved]=true;
+    var res=await fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+TABLE_ID+'/'+recId,{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({fields:fields})});
+    if(!res.ok){var d=await res.json();throw new Error(d.error&&d.error.message?d.error.message:'API '+res.status);}
+    allRecords=allRecords.filter(function(r){return r.id!==recId;});
+    delete openLines[recId];
+    animateOut('li-'+recId,Number(ordNum));
+    toast('Mis-ship resolved','ok');
+  }catch(e){toast('Error: '+e.message,'err');if(btn){btn.disabled=false;btn.textContent='Mark Resolved';}}
+}
+
+function animateOut(elId,ordNum){
+  var el=document.getElementById(elId);
+  if(!el){updateStats();renderAll();return;}
+  el.style.transition='opacity .2s,transform .2s';
+  el.style.opacity='0';el.style.transform='translateX(10px)';
+  setTimeout(function(){
+    var grp=el.closest('.order-group');
+    var rem=grp?grp.querySelectorAll('.li').length:0;
+    if(rem<=1){
+      if(grp){grp.style.transition='opacity .2s';grp.style.opacity='0';setTimeout(function(){delete openOrds[ordNum];updateStats();renderAll();},220);}
+    } else {
+      el.remove();updateStats();
+      refreshOrderRow(ordNum);
+    }
+  },220);
+}
+
+function refreshOrderRow(ordNum){
+  var g=groupByOrder(allRecords).filter(function(x){return x.num===ordNum;})[0];
+  if(!g)return;
+  var lw=document.getElementById('lw-'+ordNum);
+  if(lw)lw.innerHTML=g.records.map(function(r){return renderLI(r,g);}).join('');
+}
+
+var printGroupSnap=null;
+function openPrint(ordNum,customer,groupSnap){
+  printOrdNum=ordNum;
+  printGroupSnap=groupSnap||groupByOrder(allRecords).filter(function(x){return x.num===Number(ordNum);})[0]||null;
+  document.getElementById('poOrd').textContent='Order #'+ordNum;
+  document.getElementById('poCust').textContent=customer||'';
+  document.getElementById('printOverlay').classList.add('open');
+}
+function closePrint(){document.getElementById('printOverlay').classList.remove('open');printOrdNum=null;printGroupSnap=null;}
+function doPrint(){
+  if(!printOrdNum)return;
+  var ordNum=printOrdNum;
+  var token=getToken();
+  var g=printGroupSnap||groupByOrder(allRecords).filter(function(x){return x.num===Number(ordNum);})[0];
+  if(!g){toast('Order data not available','err');return;}
+  closePrint();
+  toast('Preparing label...','ok');
+  var dlvMethod='—',dueDate='—',pandaUrl='',orderNotes='';
+  function build(){
+    var printDates=[];var seenPD={};
+    g.records.forEach(function(r){var s=getPDStr(r);if(s&&!seenPD[s]){seenPD[s]=1;printDates.push(s);}});
+    var impIds=[];var seenI={};
+    g.records.forEach(function(r){getImprintIds(r).forEach(function(i){if(i&&!seenI[i]){seenI[i]=1;impIds.push(i);}});});
+    var equipList=getEquipmentList(g.records);
+    var qrTarget=pandaUrl||'';
+    if(dueDate==='—'&&g.records[0]){var d=fv(g.records[0],'dueDate');if(d&&typeof d==='object'&&d.valuesByLinkedRecordId){var v=[];Object.values(d.valuesByLinkedRecordId).forEach(function(a){v=v.concat(a);});if(v[0])dueDate=String(v[0]).split('T')[0];}}
+    function fmtLong(ds){if(!ds||ds==='—')return ds;var pts=ds.split('/');var dt=pts.length===3?new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])):new Date(ds);if(isNaN(dt.getTime()))return ds;return dt.toLocaleDateString('en-US',{month:'long',day:'numeric'});}
+    var printDateStr=printDates.map(fmtLong).join(', ')||'—';
+    var equipment=equipList.length?equipList.join(' · '):(impIds.join(' · ')||'');
+    var fullyReceived=g.records.every(function(r){return fv(r,'received')===true;});
+    var chkInner=fullyReceived?'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>':'';
+    var win;try{win=window.open('','_blank','width=384,height=576,toolbar=0,menubar=0,location=0,status=0,scrollbars=0,resizable=0');}catch(e){}
+    if(!win){toast('Allow pop-ups for labels','err');return;}
+    try{
+      win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Label - '+ordNum+'</title><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><style>*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}html,body{width:4in;height:6in;background:#fff;overflow:hidden}.lbl{width:4in;height:6in;display:flex;flex-direction:column;background:#fff}.lbl-top{background:#000;color:#fff;text-align:center;padding:12px 8px 8px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.lbl-ordnum{font-size:100pt;font-weight:900;line-height:.85;letter-spacing:-4px}.lbl-body{flex:1;padding:10px 12px 6px;display:flex;flex-direction:column;gap:5px;overflow:hidden}.lbl-top-row{display:flex;align-items:flex-start;gap:10px}#qr{flex-shrink:0;width:118px}#qr img,#qr canvas{width:118px!important;height:118px!important;display:block}.lbl-top-fields{flex:1;min-width:0}.lbl-lbl{font-size:9pt;color:#000;margin-bottom:2px;line-height:1.2}.lbl-pill{background:#000!important;color:#fff!important;font-size:14pt;font-weight:700;padding:5px 10px;display:block;text-align:center;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}.lbl-pill.sm{font-size:12pt}.lbl-notes-wrap{display:flex;flex-direction:column;flex:1;min-height:0}.lbl-notes-hd{background:#000!important;color:#fff!important;font-size:11pt;font-weight:700;padding:3px 8px;letter-spacing:.08em;display:inline-block;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}.lbl-notes-area{border:2px solid #000;padding:5px 8px;font-size:10pt;color:#333;flex:1;min-height:24px}.lbl-footer{background:#000!important;color:#fff!important;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.lbl-recv-txt{font-size:20pt;font-weight:900;letter-spacing:.06em;color:#fff!important}.lbl-recv-chk{width:30px;height:30px;border:3px solid #fff;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:4in 6in;margin:0}@media print{html,body{width:4in;height:6in}.lbl-top,.lbl-pill,.lbl-notes-hd,.lbl-footer{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}<\/style><\/head><body><div class="lbl"><div class="lbl-top"><div class="lbl-ordnum">'+ordNum+'<\/div><\/div><div class="lbl-body"><div class="lbl-top-row"><div class="lbl-top-fields"><div class="lbl-lbl">Customer:<\/div><div class="lbl-pill">'+esc(g.customer)+'<\/div><\/div><div id="qr" data-url="'+(qrTarget||'')+'"><\/div><\/div><div><div class="lbl-lbl">Due Date:<\/div><div class="lbl-pill">'+dueDate+'<\/div><\/div><div><div class="lbl-lbl">Imprint Date(s):<\/div><div class="lbl-pill">'+printDateStr+'<\/div><\/div><div><div class="lbl-lbl">Method of Delivery:<\/div><div class="lbl-pill sm">'+esc(dlvMethod)+'<\/div><\/div><div class="lbl-notes-wrap"><div class="lbl-notes-hd">Notes<\/div><div class="lbl-notes-area">'+esc(orderNotes||'')+'<\/div><\/div>'+(equipment?'<div><div class="lbl-lbl">Press / Equipment:<\/div><div class="lbl-pill sm">'+esc(equipment)+'<\/div><\/div>':'')+'<\/div><div class="lbl-footer"><span class="lbl-recv-txt">FULLY RECEIVED<\/span><div class="lbl-recv-chk">'+chkInner+'<\/div><\/div><\/div><script>window.onload=function(){var qrEl=document.getElementById("qr");if(qrEl&&qrEl.dataset.url&&qrEl.dataset.url.length>0){new QRCode(qrEl,{text:qrEl.dataset.url,width:156,height:156,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.L});}setTimeout(function(){window.print();},500);};<\/script><\/body><\/html>');
+      win.document.close();
+    }catch(e){toast('Label error: '+e.message,'err');try{win.close();}catch(_){}}
+  }
+  if(token){
+    var p=new URLSearchParams();
+    p.set('filterByFormula','{Invoice / Order Number}='+ordNum);
+    p.append('fields[]','fldqIIPwPEJXL7Efu');
+    p.append('fields[]','fldzzDJNF6rvTCmRq');
+    p.append('fields[]','fldpVCwzNucLLifXD');
+    p.append('fields[]','fldphJYdlBNS0dmAK');
+    p.set('maxRecords','1');p.set('returnFieldsByFieldId','true');
+    fetch('https://api.airtable.com/v0/'+BASE_ID+'/tbl8Tf0AeS9gnHOOS?'+p,{headers:{Authorization:'Bearer '+token}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){
+      if(d&&d.records&&d.records.length){var o=d.records[0].fields||{};pandaUrl=o.fldqIIPwPEJXL7Efu||'';orderNotes=o.fldzzDJNF6rvTCmRq||'';if(o.fldpVCwzNucLLifXD)dlvMethod=o.fldpVCwzNucLLifXD;if(o.fldphJYdlBNS0dmAK)dueDate=o.fldphJYdlBNS0dmAK;}
+      build();
+    })
+    .catch(function(){build();});
+  } else { build(); }
+}
+
+function pmClose(){document.getElementById('pmModal').classList.remove('open');}
+
+function pmOpen(recId,label){
+  var modal=document.getElementById('pmModal');
+  var body=document.getElementById('pmBody');
+  var fn=document.getElementById('pmFn');
+  fn.textContent=label||'Proof';
+  body.innerHTML='<div class="pm-loading">Loading...</div>';
+  modal.classList.add('open');
+  var token=getToken();
+  if(!token){body.innerHTML='<div class="pm-loading">No token</div>';return;}
+  var formula="RECORD_ID()='"+recId+"'";
+  fetch('https://api.airtable.com/v0/'+BASE_ID+'/'+TABLE_ID
+    +'?fields[]='+F.proofImages
+    +'&filterByFormula='+encodeURIComponent(formula)
+    +'&returnFieldsByFieldId=true&pageSize=1',
+    {headers:{Authorization:'Bearer '+token}})
+  .then(function(res){return res.json();})
+  .then(function(data){
+    var rec=data.records&&data.records[0];
+    if(!rec){body.innerHTML='<div class="pm-loading">Not found</div>';return;}
+    var v=rec.fields&&rec.fields[F.proofImages];
+    if(!v||!Array.isArray(v)||!v.length){body.innerHTML='<div class="pm-loading">No proof image</div>';return;}
+    var p=v[0];
+    var url=(p.thumbnails&&p.thumbnails.large&&p.thumbnails.large.url)?p.thumbnails.large.url:p.url;
+    if(!url){body.innerHTML='<div class="pm-loading">No image URL</div>';return;}
+    var img=new Image();
+    img.style.cssText='max-width:100%;max-height:100%;object-fit:contain;border-radius:4px';
+    img.onload=function(){body.innerHTML='';body.appendChild(img);};
+    img.onerror=function(){body.innerHTML='<div class="pm-loading">Could not load image</div>';};
+    img.src=url;
+  })
+  .catch(function(){body.innerHTML='<div class="pm-loading">Error loading proof</div>';});
+}
+
+function toast(msg,type){
+  document.querySelector('.toast')&&document.querySelector('.toast').remove();
+  clearTimeout(toastTimer);
+  var t=document.createElement('div');t.className='toast '+(type||'ok');t.textContent=msg;
+  document.body.appendChild(t);toastTimer=setTimeout(function(){t.remove();},3000);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
