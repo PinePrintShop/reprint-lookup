@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Floor Status v2</title>
+<link rel="stylesheet" href="pine-design-v1.css">
+<style>
+:root{
+  --bg:#F2F2EE; --bg-soft:#F8F8F5; --surface:#fff;
+  --border:#E5E5E0; --border-dk:#D0D0CA;
+  --green:#1e6b45; --green-lt:#e8f5ee; --green-dk:#144d31;
+  --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+  --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83250;
+  --red:#c0392b; --red-bg:#fdf2f2; --red-bd:#f5c6c6;
+  --amb:#b7791f; --amb-bg:#fffbeb; --amb-bd:#fde68a;
+  --sb-bg:#0A0A08; --sb-border:#1A1A16; --sb-active:#141410;
+  --sans:Helvetica,Arial,sans-serif;
+  --cond:Helvetica,Arial,sans-serif;
+  --mono:Helvetica,Arial,sans-serif;
+  --radius:4px; --radius-lg:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 60px}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.tb-title{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.tb-spacer{flex:1}
+.tb-stamp{font-size:11px;color:var(--muted-lt);font-family:var(--mono)}
+.pt{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;font-family:var(--cond);transition:all .1s}
+.pt:hover{border-color:var(--text);color:var(--text)}
+
+/* Token row */
+.tokrow{display:none;align-items:center;gap:8px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px}
+.tokrow.show{display:flex}
+.tokrow input{flex:1;min-width:0;font-size:13px;padding:7px 10px;border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--mono)}
+.tok-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* Press card */
+.pcard{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border-dk);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+.pcard.running{border-left-color:var(--green)}
+.pcard.setup{border-left-color:var(--amb)}
+.pcard.stale{border-left-color:var(--red)}
+.pc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.pc-name{font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-family:var(--cond)}
+.pill{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:3px;border:1px solid;font-family:var(--cond);white-space:nowrap}
+.pill.running{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-border)}
+.pill.setup{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+.pill.idle{background:var(--bg);color:var(--muted);border-color:var(--border)}
+.pill.done{background:var(--green-lt);color:var(--green);border-color:#bfe3cd}
+.pill.stale{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+
+/* Live job */
+.pc-job{display:flex;align-items:flex-start;gap:14px}
+.pc-jinfo{flex:1;min-width:0}
+.pc-cust{font-size:20px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--cond)}
+.pc-cust.muted{color:var(--muted);font-size:14px}
+.pc-sub{font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-right{text-align:right;flex-shrink:0;min-width:78px}
+.pc-order{font-size:30px;font-weight:700;line-height:1;letter-spacing:-.02em;font-family:var(--cond)}
+.pc-elapsed{font-size:11px;color:var(--muted);margin-top:4px}
+.pc-elapsed.stale{color:var(--red);font-weight:700}
+
+/* Crew + footer rows */
+.pc-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:11px}
+.chip{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:3px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:var(--cond)}
+.chip.crew{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-border)}
+.chip.catch{background:var(--green-lt);color:var(--green-dk);border-color:#bfe3cd}
+.chip.none{color:var(--muted-lt)}
+.pc-next{font-size:11px;color:var(--muted-lt);margin-top:9px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-next b{color:var(--muted);font-weight:700}
+
+/* states */
+.empty{background:var(--surface);border:1px dashed var(--border-dk);border-radius:var(--radius-lg);padding:30px 16px;text-align:center;color:var(--muted);font-size:13px}
+.err{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);border-radius:var(--radius-lg);padding:12px 14px;font-size:13px;margin-bottom:10px}
+.foot{text-align:center;font-size:10px;color:var(--muted-lt);letter-spacing:.06em;text-transform:uppercase;margin-top:18px;font-family:var(--cond)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="tb-title">Floor Status</span>
+    <span class="tb-spacer"></span>
+    <span class="tb-stamp" id="stamp">—</span>
+    <button class="pt" id="refreshBtn" onclick="loadFloor()">Refresh</button>
+    <button class="pt" id="tokBtn" onclick="toggleTokenRow()">Token</button>
+  </div>
+
+  <div class="tokrow" id="tokrow">
+    <span class="tok-lbl">API&nbsp;Key</span>
+    <input id="tokInput" type="password" placeholder="key..." autocomplete="off">
+    <button class="pt" onclick="saveToken()">Save</button>
+  </div>
+
+  <div id="grid">
+    <div class="empty">Loading the floor…</div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* ============================================================
+   Floor Status v1 — read-only manager dashboard
+   Pure Airtable reads. No writes, no schema changes.
+   Status derived from Imprint timer flags + Equipment.
+   ============================================================ */
+
+var BASE = 'appJkaLk8DykjsgHR';
+var TBL_IMPRINTS = 'tbln9oAGvz2PNBZLV';
+var TBL_OPERATORS = 'tblQm9hy2WZCx9jnd';
+
+/* Imprints field IDs */
+var F = {
+  imprintId:  'fldHjjQ5lzm66ox5j',
+  customer:   'fldeLMIAC0ABQAjYJ',
+  orderNum:   'fldZAIMnXPYF9LiXq',
+  desc:       'fld0jStSNsRNjjeZy',
+  location:   'fldKQIL0rSJBSeC8S',
+  pcs:        'fldFipR4ddfqMPeAX',
+  equipment:  'fldv59OGU7EkBVofo',
+  setupStart: 'fldsYmRn7FwmWCH97',
+  setupDone:  'flde7ZQVkoFrbLDOI',
+  runStart:   'fldmnZof3Dce60JKv',
+  runDone:    'fldFuDZ68QdUMt3pM',
+  setupPaused:'fldqI5DKEDbIzT5h4',
+  runPaused:  'fld8rm9doVF3923FP',
+  setupStartActual:'fldVzoaUDY8ur8b8Z',
+  runStartActual:  'fldovkCrnOyd6GYxW',
+  runEndActual:    'fldtoIc7CRd5sXeBS',
+  isToday:    'fldq1VzzuxVavP7cm',
+  operators:  'fld5pdD7bdND4CR8h'
+};
+var OP_NAME = 'fldTHbsn4OOw4VzNO';
+
+/* A job running longer than this is flagged as possibly-stale
+   (operator likely forgot to tap End Run). Minutes. */
+var STALE_RUN_MIN = 180;
+
+/* Preferred press ordering; anything not listed sorts after, alpha. */
+var PRESS_ORDER = [
+  'Press 1 - ROQ NEXT',
+  'Press 2 - ROQ YOU',
+  'Embroidery - TAJIMA 6-Head',
+  'Heat press - D3',
+  'Heat press - Tag Press',
+  'Heat press - Hat Press',
+  'Flatstock - M&R Saturn'
+];
+
+var REFRESH_MS = 20000;
+var opMap = {};       /* recId -> operator name */
+var refreshTimer = null;
+
+/* ---------- token ---------- */
+function getToken(){ return localStorage.getItem('pine_at_key') || ''; }
+function toggleTokenRow(){
+  var r = document.getElementById('tokrow');
+  r.classList.toggle('show');
+  if(r.classList.contains('show')){ document.getElementById('tokInput').value = getToken(); }
+}
+function saveToken(){
+  var v = document.getElementById('tokInput').value.trim();
+  if(v){ localStorage.setItem('pine_at_key', v); }
+  document.getElementById('tokrow').classList.remove('show');
+  loadFloor();
+}
+
+/* ---------- airtable helpers (v0 REST) ---------- */
+function atHeaders(){ return { 'Authorization': 'Bearer ' + getToken() }; }
+
+function listAll(tableId, params){
+  /* paginates the v0 list endpoint, returns array of {id, fields} */
+  return new Promise(function(resolve, reject){
+    var out = [];
+    function page(offset){
+      var url = 'https://api.airtable.com/v0/' + BASE + '/' + tableId +
+                '?returnFieldsByFieldId=true&pageSize=100' + (params || '');
+      if(offset){ url += '&offset=' + encodeURIComponent(offset); }
+      fetch(url, { headers: atHeaders() })
+        .then(function(r){
+          if(!r.ok){ return r.text().then(function(t){ throw new Error('HTTP ' + r.status + ' ' + t.slice(0,120)); }); }
+          return r.json();
+        })
+        .then(function(j){
+          out = out.concat(j.records || []);
+          if(j.offset){ page(j.offset); } else { resolve(out); }
+        })
+        .catch(reject);
+    }
+    page(null);
+  });
+}
+
+/* ---------- field readers (tolerant of v0 / object shapes) ---------- */
+function selName(v){ if(v == null) return ''; if(typeof v === 'string') return v; if(v.name) return v.name; return ''; }
+function firstLookup(v){ if(Array.isArray(v)) return v.length ? v[0] : ''; return (v == null ? '' : v); }
+function boolOf(v){ return v === true; }
+function linkIds(v){
+  if(!Array.isArray(v)) return [];
+  return v.map(function(x){ return (typeof x === 'string') ? x : (x && x.id) || ''; }).filter(Boolean);
+}
+function msOf(v){ if(!v) return 0; var t = Date.parse(v); return isNaN(t) ? 0 : t; }
+
+/* ---------- time formatting ---------- */
+function fmtClock(ms){
+  if(!ms) return '';
+  try{
+    return new Intl.DateTimeFormat('en-US',{ timeZone:'America/Denver', hour:'numeric', minute:'2-digit' }).format(new Date(ms));
+  }catch(e){ return ''; }
+}
+function fmtElapsed(fromMs){
+  if(!fromMs) return '';
+  var mins = Math.max(0, Math.round((Date.now() - fromMs) / 60000));
+  if(mins < 60) return mins + ' min';
+  var h = Math.floor(mins / 60), m = mins % 60;
+  return h + 'h' + (m ? ' ' + m + 'm' : '');
+}
+
+/* ---------- build a job from an imprint record ---------- */
+function toJob(rec){
+  var f = rec.fields || {};
+  var setupStart = boolOf(f[F.setupStart]);
+  var setupDone  = boolOf(f[F.setupDone]);
+  var runStart   = boolOf(f[F.runStart]);
+  var runDone    = boolOf(f[F.runDone]);
+
+  var status;
+  if(runDone) status = 'done';
+  else if(runStart) status = 'running';
+  else if(setupStart && !setupDone) status = 'setup';
+  else if(setupStart && setupDone) status = 'ready'; /* setup complete, run not started */
+  else status = 'queued';
+
+  var crew = linkIds(f[F.operators]).map(function(id){ return opMap[id] || null; }).filter(Boolean);
+  /* Crew slot convention from the operator app's check-in:
+     positions 1-2 = press operators, position 3 = Quality Control (the catcher).
+     Anyone past slot 3 falls back into operators. */
+  var operators = crew.length > 2 ? crew.slice(0,2).concat(crew.slice(3)) : crew.slice(0,2);
+  var catcher = crew.length > 2 ? crew[2] : '';
+
+  var runStartMs = msOf(f[F.runStartActual]);
+  var setupStartMs = msOf(f[F.setupStartActual]);
+  var runEndMs = msOf(f[F.runEndActual]);
+
+  return {
+    id: rec.id,
+    imprintId: f[F.imprintId] || '',
+    customer: selName(f[F.customer]) || (f[F.customer] || ''),
+    order: firstLookup(f[F.orderNum]) || '',
+    desc: (f[F.desc] || '').trim(),
+    location: selName(f[F.location]),
+    pcs: f[F.pcs] || 0,
+    press: selName(f[F.equipment]) || 'Unassigned',
+    status: status,
+    paused: boolOf(f[F.runPaused]) || boolOf(f[F.setupPaused]),
+    crew: crew,
+    operators: operators,
+    catcher: catcher,
+    runStartMs: runStartMs,
+    setupStartMs: setupStartMs,
+    runEndMs: runEndMs,
+    activityTs: Math.max(runEndMs, runStartMs, setupStartMs)
+  };
+}
+
+/* ---------- crew for the whole day on a press ---------- */
+/* Returns { operators:[...], catcher:'' } drawn from the most
+   representative job: the running job first, else most recent activity. */
+function dayCrew(jobs){
+  var pick = null, i;
+  for(i = 0; i < jobs.length; i++){ if(jobs[i].status === 'running' && jobs[i].crew.length){ pick = jobs[i]; break; } }
+  if(!pick){
+    var withCrew = jobs.filter(function(j){ return j.crew.length; });
+    withCrew.sort(function(a,b){ return b.activityTs - a.activityTs; });
+    pick = withCrew.length ? withCrew[0] : null;
+  }
+  if(!pick) return { operators: [], catcher: '' };
+  return { operators: pick.operators, catcher: pick.catcher };
+}
+
+/* ---------- ordering of queued jobs ("next up") ---------- */
+function ordVal(j){ var n = parseInt(j.order, 10); return isNaN(n) ? 1e12 : n; }
+function nextUp(jobs){
+  var q = jobs.filter(function(j){ return j.status === 'queued' || j.status === 'ready'; });
+  q.sort(function(a,b){ return ordVal(a) - ordVal(b) || a.imprintId.localeCompare(b.imprintId); });
+  return q.length ? q[0] : null;
+}
+function lastDone(jobs){
+  var d = jobs.filter(function(j){ return j.status === 'done'; });
+  d.sort(function(a,b){ return b.runEndMs - a.runEndMs; });
+  return d.length ? d[0] : null;
+}
+
+/* ---------- press ordering ---------- */
+function pressRank(name){ var i = PRESS_ORDER.indexOf(name); return i === -1 ? 999 : i; }
+
+/* ---------- render ---------- */
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+
+function crewChips(c){
+  var html = '';
+  if(c.operators && c.operators.length){
+    html += c.operators.map(function(n){ return '<span class="chip crew">' + esc(n) + '</span>'; }).join('');
+  } else {
+    html += '<span class="chip none">No operators set</span>';
+  }
+  if(c.catcher){
+    html += '<span class="chip catch">QC \u00B7 ' + esc(c.catcher) + '</span>';
+  } else {
+    html += '<span class="chip none">No catcher set</span>';
+  }
+  return html;
+}
+
+function renderPress(name, jobs){
+  /* determine live job + press status */
+  var live = null, i;
+  for(i = 0; i < jobs.length; i++){ if(jobs[i].status === 'running'){ live = jobs[i]; break; } }
+  if(!live){ for(i = 0; i < jobs.length; i++){ if(jobs[i].status === 'setup'){ live = jobs[i]; break; } } }
+
+  var total = jobs.length;
+  var doneCount = jobs.filter(function(j){ return j.status === 'done'; }).length;
+  var crew = dayCrew(jobs);
+
+  var pState, pillCls, pillTxt, cardCls = '';
+  var elapsed = '', elapsedStale = false;
+
+  if(live && live.status === 'running'){
+    var mins = (Date.now() - live.runStartMs) / 60000;
+    elapsedStale = live.runStartMs && mins > STALE_RUN_MIN;
+    pState = 'running'; cardCls = elapsedStale ? 'running stale' : 'running';
+    pillCls = elapsedStale ? 'stale' : 'running';
+    pillTxt = elapsedStale ? '\u26A0 Check' : '\u25CF Running';
+    elapsed = live.runStartMs ? ((live.paused ? 'paused \u00B7 ' : '') + 'running ' + fmtElapsed(live.runStartMs)) : 'running';
+  } else if(live && live.status === 'setup'){
+    pState = 'setup'; cardCls = 'setup'; pillCls = 'setup'; pillTxt = '\u25D0 In setup';
+    elapsed = live.setupStartMs ? ('setup ' + fmtElapsed(live.setupStartMs)) : 'in setup';
+  } else if(total > 0 && doneCount === total){
+    pState = 'done'; pillCls = 'done'; pillTxt = '\u2713 Done for day';
+  } else {
+    pState = 'idle'; pillCls = 'idle'; pillTxt = '\u25CB Idle';
+  }
+
+  var html = '<div class="pcard ' + cardCls + '">';
+  html += '<div class="pc-top"><span class="pc-name">' + esc(name) + '</span>' +
+          '<span class="pill ' + pillCls + '">' + pillTxt + '</span></div>';
+
+  if(live){
+    var sub = [];
+    if(live.imprintId) sub.push(live.imprintId);
+    if(live.location) sub.push(live.location);
+    if(live.desc) sub.push(live.desc);
+    if(live.pcs) sub.push(live.pcs + ' pcs');
+    html += '<div class="pc-job"><div class="pc-jinfo">' +
+              '<div class="pc-cust">' + esc(live.customer || 'Unnamed') + '</div>' +
+              '<div class="pc-sub">' + esc(sub.join('  \u00B7  ')) + '</div>' +
+            '</div><div class="pc-right">' +
+              '<div class="pc-order">' + esc(live.order || '') + '</div>' +
+              '<div class="pc-elapsed ' + (elapsedStale ? 'stale' : '') + '">' + esc(elapsed) + '</div>' +
+            '</div></div>';
+  } else {
+    var ld = lastDone(jobs);
+    var lbl = (pState === 'done') ? 'All jobs done' : 'No job running';
+    var ldTxt = ld ? ('last: ' + (ld.customer || ld.imprintId) + ' (' + ld.order + ')' + (ld.runEndMs ? ' \u00B7 finished ' + fmtClock(ld.runEndMs) : '')) : 'nothing run yet today';
+    html += '<div class="pc-job"><div class="pc-jinfo">' +
+              '<div class="pc-cust muted">' + esc(lbl) + '</div>' +
+              '<div class="pc-sub">' + esc(ldTxt) + '</div>' +
+            '</div></div>';
+  }
+
+  /* meta row: crew + jobs-done counter */
+  html += '<div class="pc-meta">' + crewChips(crew) +
+          '<span class="chip">' + doneCount + '/' + total + ' done</span></div>';
+
+  /* next up */
+  var nu = nextUp(jobs);
+  if(nu && pState !== 'done'){
+    var nuBits = [nu.customer || nu.imprintId];
+    if(nu.order) nuBits[0] = (nu.customer || nu.imprintId) + ' (' + nu.order + ')';
+    html += '<div class="pc-next"><b>Next up:</b> ' + esc(nuBits[0]) +
+            (nu.location ? ' \u00B7 ' + esc(nu.location) : '') + '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function render(jobs){
+  var grid = document.getElementById('grid');
+  if(!jobs.length){
+    grid.innerHTML = '<div class="empty">No jobs scheduled today.</div>';
+    document.getElementById('foot').textContent = '';
+    return;
+  }
+  /* group by press */
+  var groups = {};
+  jobs.forEach(function(j){ (groups[j.press] = groups[j.press] || []).push(j); });
+
+  var names = Object.keys(groups).sort(function(a,b){ return pressRank(a) - pressRank(b) || a.localeCompare(b); });
+  grid.innerHTML = names.map(function(n){ return renderPress(n, groups[n]); }).join('');
+
+  var running = jobs.filter(function(j){ return j.status === 'running'; }).length;
+  document.getElementById('foot').textContent =
+    names.length + ' machine' + (names.length === 1 ? '' : 's') + ' active \u00B7 ' +
+    running + ' running \u00B7 read-only';
+}
+
+/* ---------- load ---------- */
+function setStamp(txt){ document.getElementById('stamp').textContent = txt; }
+
+function loadFloor(){
+  if(!getToken()){
+    document.getElementById('grid').innerHTML = '<div class="err">No API key set. Tap <b>Token</b> to add one.</div>';
+    document.getElementById('tokrow').classList.add('show');
+    return;
+  }
+  setStamp('loading…');
+  var btn = document.getElementById('refreshBtn');
+  btn.textContent = '…';
+
+  /* operators map first (small: name field only), then today's imprints */
+  var opPromise = Object.keys(opMap).length
+    ? Promise.resolve(null)
+    : listAll(TBL_OPERATORS, '&fields[]=' + OP_NAME).then(function(recs){
+        recs.forEach(function(r){ var nm = (r.fields || {})[OP_NAME]; if(nm){ opMap[r.id] = nm; } });
+      });
+
+  var impParams =
+    '&filterByFormula=' + encodeURIComponent('{' + F.isToday + '}=1') +
+    Object.keys(F).map(function(k){ return '&fields[]=' + F[k]; }).join('');
+
+  opPromise
+    .then(function(){ return listAll(TBL_IMPRINTS, impParams); })
+    .then(function(recs){
+      var jobs = recs.map(toJob);
+      render(jobs);
+      setStamp('updated ' + fmtClock(Date.now()));
+      btn.textContent = 'Refresh';
+    })
+    .catch(function(err){
+      document.getElementById('grid').innerHTML = '<div class="err">Could not load: ' + esc(err.message) + '</div>';
+      setStamp('error');
+      btn.textContent = 'Refresh';
+    });
+}
+
+/* ---------- boot ---------- */
+function boot(){
+  loadFloor();
+  if(refreshTimer){ clearInterval(refreshTimer); }
+  refreshTimer = setInterval(function(){ if(!document.hidden){ loadFloor(); } }, REFRESH_MS);
+}
+document.addEventListener('visibilitychange', function(){ if(!document.hidden){ loadFloor(); } });
+boot();
+</script>
+</body>
+</html>
