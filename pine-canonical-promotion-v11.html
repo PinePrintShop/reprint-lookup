@@ -1,0 +1,1240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pine Canonical Promotion v11</title>
+<style>
+:root{
+  --bg:#F2F2EE; --bg-soft:#F8F8F5; --surface:#fff;
+  --border:#E5E5E0; --border-dk:#D0D0CA;
+  --green:#1e6b45; --green-lt:#e8f5ee; --green-dk:#144d31;
+  --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+  --yellow:#E8E832; --yellow-dim:#E8E83230; --yellow-border:#E8E83250;
+  --red:#c0392b; --red-bg:#fdf2f2; --red-bd:#f5c6c6;
+  --amb:#b7791f; --amb-bg:#fffbeb; --amb-bd:#fde68a;
+  --sb-bg:#0A0A08;
+  --sans:Helvetica,Arial,sans-serif;
+  --cond:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --mono:'Courier New',monospace;
+  --radius:4px; --radius-lg:6px;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 80px}
+
+/* Header */
+.topbar{background:var(--sb-bg);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:14px;justify-content:space-between;border-bottom:2px solid var(--yellow);margin-bottom:18px}
+.topbar-title{font-family:var(--cond);font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.06em;color:var(--yellow)}
+.topbar-sub{font-size:11px;color:var(--muted-lt);font-family:var(--cond);letter-spacing:.02em;margin-left:6px}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.preview-badge{background:var(--yellow);color:var(--text);padding:4px 10px;border-radius:var(--radius);font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+
+/* Token row */
+.token-row{margin:0 18px 14px;display:flex;gap:8px;align-items:flex-end}
+.token-row.hide{display:none}
+.token-field{flex:1}
+.token-field label{display:block;font-size:10px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.token-field input{width:100%;padding:8px 10px;border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--mono);font-size:12px;background:var(--surface)}
+
+/* Buttons */
+.btn{padding:9px 16px;border-radius:var(--radius);font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:11px;border:1px solid;cursor:pointer;background:var(--surface);color:var(--text);text-decoration:none;display:inline-block}
+.btn-dark{background:var(--text);color:var(--yellow);border-color:var(--text)}
+.btn-outline{background:transparent;border-color:var(--border-dk)}
+/* v7: topbar sits on a near-black surface, so outline buttons need light ink */
+.topbar .btn{color:#fff;background:transparent;border-color:rgba(255,255,255,.28)}
+.topbar .btn:hover{color:var(--yellow);border-color:var(--yellow)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green-dk)}
+.btn-sm{padding:6px 12px;font-size:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);margin-bottom:14px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;overflow:hidden}
+.tab{padding:11px 18px;font-family:var(--cond);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);cursor:pointer;border:none;background:transparent;display:flex;align-items:center;gap:8px}
+.tab:hover:not(.on){color:var(--text)}
+.tab.on{color:var(--text);border-bottom:3px solid var(--green);padding-bottom:8px}
+.tab-count{background:var(--bg);color:var(--text);padding:2px 8px;border-radius:10px;font-family:var(--mono);font-size:10px}
+.tab.on .tab-count{background:var(--yellow)}
+
+/* Filter row */
+.filter-row{padding:10px 18px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;font-size:11px}
+.filter-row input[type=text]{flex:1;padding:6px 10px;border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--sans);font-size:12px;background:var(--surface)}
+.filter-lbl{font-family:var(--cond);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.win-seg{display:flex;gap:0;border:1px solid var(--border-dk);border-radius:var(--radius);overflow:hidden}
+.win-btn{padding:6px 12px;font-family:var(--cond);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--surface);border:none;border-left:1px solid var(--border-dk);cursor:pointer;white-space:nowrap}
+.win-btn:first-child{border-left:none}
+.win-btn:hover:not(.on){color:var(--text)}
+.win-btn.on{background:var(--sb-bg);color:var(--yellow)}
+
+/* Content */
+.content{padding:0 18px}
+
+/* Status panel */
+.state-panel{padding:50px 22px;text-align:center;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.state-icon{font-size:42px;margin-bottom:10px}
+.state-title{font-family:var(--cond);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--text);margin-bottom:4px}
+.state-txt{font-size:12px}
+.spin{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Promotion card */
+.promo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden}
+.promo-head{display:flex;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);align-items:center}
+.promo-thumb{width:80px;height:80px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border-dk);overflow:hidden;flex-shrink:0;cursor:zoom-in;display:flex;align-items:center;justify-content:center}
+.promo-thumb img{width:100%;height:100%;object-fit:cover}
+.promo-thumb-ph{font-size:24px;color:var(--muted-lt)}
+.promo-info{flex:1;min-width:0}
+.promo-cust{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.promo-id{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--text);text-align:right}
+.promo-id-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.promo-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{padding:2px 8px;border-radius:3px;font-size:10px;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.tag-loc{background:var(--green-lt);color:var(--green-dk);border:1px solid #b8dfcc}
+.tag-type{background:#e0f2fe;color:#075985;border:1px solid #bae6fd}
+.tag-count{background:var(--yellow-dim);color:var(--text);border:1px solid var(--yellow-border)}
+.tag-chain{background:var(--amb-bg);color:var(--amb);border:1px solid var(--amb-bd)}
+
+.promo-body{padding:14px 16px;display:grid;grid-template-columns:1fr 320px;gap:18px}
+.promo-detail h4{margin:0 0 4px;font-family:var(--cond);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.promo-detail .val{font-size:13px;margin-bottom:10px;font-family:var(--mono);word-break:break-word}
+.promo-detail .val a{color:var(--green-dk);text-decoration:underline}
+.promo-detail .val.muted{color:var(--muted-lt);font-style:italic}
+
+.recent-links{font-size:11px;margin-top:6px}
+.recent-links-row{padding:4px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:8px}
+.recent-links-row:first-child{border-top:none}
+.recent-links-row .ln-id{font-family:var(--mono);font-weight:700}
+.recent-links-row .ln-when{color:var(--muted);font-size:10px}
+
+.promo-action{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.promo-action h4{margin:0 0 10px;font-family:var(--cond);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.promo-action .field{margin-bottom:8px}
+.promo-action .field label{display:block;font-size:10px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.promo-action .field input,.promo-action .field select{width:100%;padding:6px 8px;border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--sans);font-size:12px;background:var(--surface)}
+.promo-action .field input.mono{font-family:var(--mono);font-size:11px}
+.promo-action .field-row{display:flex;gap:6px}
+.promo-action .field-row .field{flex:1}
+.promo-action .btn-row{display:flex;gap:6px;margin-top:8px}
+.promo-action .btn-row .btn{flex:1}
+
+/* v2 — canonical ID display */
+.promo-canon{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.02em}
+.promo-canon-muted{color:var(--muted-lt);font-style:italic}
+
+/* v2 — numbered workflow inside action panel */
+.wf-step{margin-bottom:10px}
+.wf-step-head{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.wf-step-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--text);color:var(--yellow);font-family:var(--cond);font-weight:700;font-size:10px;flex-shrink:0}
+.wf-step-title{font-size:12px;font-weight:700;line-height:1.3}
+.wf-step-body{margin-left:24px}
+.wf-help{font-size:11px;color:var(--muted);line-height:1.4;margin-bottom:6px}
+.wf-help em{font-style:italic;color:var(--text);font-weight:700}
+.wf-step .btn-row{margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}
+.wf-step .btn-row .btn{flex:1;text-align:center;min-width:auto;font-size:10px;padding:5px 6px;text-decoration:none;line-height:1.2}
+.wf-url-input{width:100%;padding:6px 8px;border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--mono);font-size:11px;background:var(--surface)}
+.wf-save-row{display:flex;gap:6px;align-items:stretch}
+.wf-select{flex:1;padding:6px 8px;border:1px solid var(--border-dk);border-radius:var(--radius);font-family:var(--sans);font-size:12px;background:var(--surface)}
+.wf-save-row .btn{flex-shrink:0}
+.wf-skip{width:100%;margin-top:8px;padding:6px;background:transparent;border:none;color:var(--muted);font-family:var(--cond);font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;text-decoration:underline}
+.wf-skip:hover{color:var(--text)}
+
+/* v3 — Finder breadcrumb */
+.wf-breadcrumb{background:var(--surface);border:1px solid var(--border-dk);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--text);margin-bottom:6px;word-break:break-word}
+
+/* Promoted state */
+.promo-card.promoted .promo-head{background:var(--green-lt)}
+.promo-card.skipped .promo-head{background:var(--bg)}
+.promoted-info{font-size:11px;color:var(--green-dk);font-family:var(--cond);letter-spacing:.02em;margin-top:4px}
+
+/* Image zoom overlay */
+.zoom{position:fixed;inset:0;background:rgba(13,13,11,.78);z-index:900;display:none;align-items:center;justify-content:center;padding:32px}
+.zoom.on{display:flex}
+.zoom-img{max-width:90vw;max-height:88vh;background:#fff;border-radius:var(--radius-lg);object-fit:contain}
+.zoom-close{position:absolute;top:20px;right:24px;color:#fff;font-size:24px;background:none;border:none;cursor:pointer}
+
+/* Diagnostic button */
+.diag-btn{position:fixed;bottom:14px;right:14px;width:36px;height:36px;border-radius:50%;background:var(--sb-bg);color:var(--yellow);border:1px solid var(--yellow-border);cursor:pointer;font-size:14px;z-index:800;box-shadow:0 4px 12px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center}
+.diag-bg{display:none;position:fixed;inset:0;background:rgba(13,13,11,.55);z-index:801;align-items:center;justify-content:center;padding:24px}
+.diag-bg.on{display:flex}
+.diag-card{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:760px;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border-dk);overflow:hidden}
+.diag-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+.diag-body{flex:1;overflow-y:auto;background:#0A0A08;color:#c4d4be;font-family:var(--mono);font-size:11px;line-height:1.5;padding:14px 18px;white-space:pre-wrap;word-break:break-word}
+.diag-body .ok{color:#a3e635}
+.diag-body .warn{color:#facc15}
+.diag-body .err{color:#f87171}
+.diag-body .dim{color:#6b7280}
+.diag-ftr{padding:10px 18px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:flex-end;gap:8px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <span class="topbar-title">Canonical Design Promotion</span>
+    <span class="topbar-sub">v11 — Airtable-backed · writes LIVE</span>
+  </div>
+  <div class="topbar-right">
+    <span class="preview-badge">Preview mode</span>
+    <button class="btn btn-outline btn-sm" onclick="loadData()">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="token-row" id="tokenRow">
+  <div class="token-field">
+    <label>Airtable Personal Access Token</label>
+    <input type="password" id="tokInp" placeholder="patXXXXXXXXXXXXXX.YYYY…" />
+  </div>
+  <button class="btn btn-dark" onclick="saveTokenAndLoad()">Connect</button>
+</div>
+
+<div class="wrap">
+
+  <div class="tabs" id="tabsBar" style="display:none">
+    <button class="tab on" data-tab="pending" onclick="setTab('pending')">
+      Pending promotion <span class="tab-count" id="cnt-pending">0</span>
+    </button>
+    <button class="tab" data-tab="promoted" onclick="setTab('promoted')">
+      Promoted <span class="tab-count" id="cnt-promoted">0</span>
+    </button>
+    <button class="tab" data-tab="skipped" onclick="setTab('skipped')">
+      Skipped <span class="tab-count" id="cnt-skipped">0</span>
+    </button>
+  </div>
+
+  <div class="filter-row" id="filterRow" style="display:none">
+    <span class="filter-lbl">Window:</span>
+    <div class="win-seg" id="winSeg">
+      <button class="win-btn" data-win="4" onclick="setWindow(4)">4 mo</button>
+      <button class="win-btn" data-win="6" onclick="setWindow(6)">6 mo</button>
+      <button class="win-btn on" data-win="12" onclick="setWindow(12)">12 mo</button>
+      <button class="win-btn" data-win="0" onclick="setWindow(0)">All</button>
+    </div>
+    <span class="filter-lbl" style="margin-left:6px">Filter:</span>
+    <input type="text" id="searchInp" placeholder="Search by customer, imprint ID, or location…" oninput="onSearchInput()" />
+    <span class="filter-lbl" id="floorNote" style="margin-left:auto;color:var(--muted-lt);text-transform:none;letter-spacing:0;font-family:var(--sans);font-weight:400;font-size:10px;white-space:nowrap">Pending = reordered 2+ times</span>
+  </div>
+
+  <div class="content" id="content">
+    <div class="state-panel">
+      <div class="state-icon">🔧</div>
+      <div class="state-title">Enter token to begin</div>
+      <div class="state-txt">Paste your Airtable Personal Access Token above. Token is stored in localStorage as <code>pine_at_key</code>.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Image zoom overlay -->
+<div class="zoom" id="zoom" onclick="closeZoom()">
+  <button class="zoom-close" onclick="closeZoom()">✕</button>
+  <img class="zoom-img" id="zoomImg" alt="proof" onclick="event.stopPropagation()" />
+</div>
+
+<!-- Diagnostics -->
+<button class="diag-btn" onclick="openDiag()" title="Diagnostics">🔧</button>
+<div class="diag-bg" id="diagBg" onclick="if(event.target.id==='diagBg')closeDiag()">
+  <div class="diag-card">
+    <div class="diag-head">
+      <strong style="font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:13px">Diagnostics</strong>
+      <button class="btn btn-sm btn-outline" onclick="closeDiag()">✕</button>
+    </div>
+    <div class="diag-body" id="diagBody">Loading…</div>
+    <div class="diag-ftr">
+      <button class="btn btn-sm btn-outline" onclick="diagClear()">Clear</button>
+      <button class="btn btn-sm btn-dark" onclick="diagCopy()">Copy to clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ═════════════════════════════════════════════════════════════════════════════
+
+var BASE = 'appJkaLk8DykjsgHR';
+var TBL_IMPRINTS = 'tbln9oAGvz2PNBZLV';
+var TBL_ORDERS = 'tbl8Tf0AeS9gnHOOS';
+
+// Drive folder locations (v3 — used by action panel as Finder navigation hints)
+// Browsers block file:// links from https pages, and Drive's web links open in Chrome,
+// not Finder. The honest UX is to show Art the path and let them navigate in Finder.
+var DRIVE_BREADCRUMB = 'Google Drive › Shared drives › Printshop › Pine Master Designs';
+var DRIVE_FINDER_PATH = 'Shared drives/Printshop/Pine Master Designs';
+
+// Imprint field IDs
+var I = {
+  id: 'fldDFfwFQ9B20n2kT',
+  nick: 'fldyGOHRKNz00MaYQ',
+  prev: 'fldAEQvMAAZX9gnhl',
+  loc: 'fldKQIL0rSJBSeC8S',
+  type: 'fldjNCuaGOkWgzH2K',
+  custTxt: 'fldeLMIAC0ABQAjYJ',
+  proofs: 'fldUOIfCd22MxevRm',
+  linkedOrd: 'flds9F80ZDkTH1M1t',
+  created: 'fldc7aezBfzoVPeAY',
+  autoNumber: 'fldroZJQgkjQYlI1O',  // existing autoNumber — fallback for Canonical ID preview
+
+  // Canonical promotion schema (added to Imprints table, this session)
+  canonId:     'fldNDHBSscGx8PGgu',  // formula  I-NNNNN  (auto, every record)
+  canonFolder: 'flduiSyyBu5bf8jfG',  // text     design-folder URL (written on root)
+  canonStatus: 'fld4ATabznCA1CPuV',  // select   Pending / Promoted / Skipped
+  promotedBy:  'fldTtMi8BEvIBROJ7',  // select   Whitney / Hannah
+  promotedAt:  'fldbR7VfS0wsKdf2z',  // dateTime
+  canonDesign: 'fldp2kFcFN0GM8Zit',  // link     → root (shared key, stamped on every family member)
+  masterFolder:'fld0Bu2TH7Rgflvm4',  // lookup   root's folder, one hop (display-only)
+  masterId:    'fldBHbv5lUXAm0D5V'   // lookup   root's I-NNNNN, one hop (display-only)
+};
+
+// Root + deeper imprint records need the canonical fields so we can derive status
+// and display promotion info. Linker records don't (they're read for date/id only).
+var ROOT_FIELDS = [I.id, I.nick, I.prev, I.loc, I.type, I.custTxt, I.proofs,
+  I.linkedOrd, I.created, I.autoNumber,
+  I.canonId, I.canonStatus, I.canonFolder, I.promotedBy, I.promotedAt, I.canonDesign];
+
+// Order field IDs
+var O = {
+  num: 'fld4S3B5yJANKlE7l',
+  custName: 'fldoRraeYHsgfeWhj',
+  created: 'fldXUjQHSeRaW5per'
+};
+
+// Promotion status now lives on the Imprints records themselves (Canonical Status,
+// Folder URL, Promoted By/At). localStorage only retains skip *reasons*, which have
+// no Airtable home — they're a non-authoritative annotation.
+var SKIP_REASONS_KEY = 'pine_canonical_skipreasons';
+
+// Names must match the Promoted By singleSelect options exactly, or a write rejects.
+// Field currently offers Whitney + Hannah (the rollout pair). Add here only if the
+// field gains the option too.
+var ART_DEPT_NAMES = ['Whitney', 'Hannah'];
+
+// ── WRITE GATE ────────────────────────────────────────────────────────────────
+// false = dry run. Every PATCH is logged to the diagnostics panel instead of sent.
+// Flip to true only after the dry-run payloads have been eyeballed end to end.
+var WRITES_ENABLED = true;
+
+// ── CATALOG THRESHOLD ─────────────────────────────────────────────────────────
+// A design only enters the Pending queue once it's been reordered at least this
+// many times — that's the point where it's worth cataloging a master copy.
+// Below this it's a one-off repeat, not a recurring design. Applies to Pending
+// only; Promoted/Skipped keep their full history regardless of count.
+var MIN_REORDERS_TO_CATALOG = 2;
+
+// ═════════════════════════════════════════════════════════════════════════════
+// STATE
+// ═════════════════════════════════════════════════════════════════════════════
+
+var state = {
+  // raw data
+  linkerImprints: [],     // imprints that have Previous Imprint set (the "new" side of reorder pairs)
+  rootImprints: {},       // recId → imprint record (the "past" imprints being linked-to)
+
+  // computed
+  promotionQueue: [],     // [{rootId, root, linkers, chainDepth}] for tab=pending
+  promotedItems: [],      // same shape for tab=promoted
+  skippedItems: [],       // same shape for tab=skipped
+
+  // canonical statuses, hydrated from the Imprints records on load (not localStorage).
+  // { recId: { status: 'promoted'|'skipped', folderUrl, by, at, reason } }
+  statuses: {},
+
+  // rootId → queue entry, so action handlers can reach the full family to stamp
+  entryByRoot: {},
+
+  // skip reasons only (no Airtable field): { recId: 'reason' }
+  skipReasons: {},
+
+  // ui
+  tab: 'pending',
+  search: '',
+  window: 12   // recency lens: months back on most-recent-reorder date. 0 = All.
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+// DIAGNOSTICS
+// ═════════════════════════════════════════════════════════════════════════════
+
+var diag = { log: [], max: 200 };
+
+function dlog(level, msg) {
+  var entry = { ts: new Date(), level: level, msg: msg };
+  diag.log.push(entry);
+  if (diag.log.length > diag.max) diag.log.shift();
+  console.log('[Pine CP]', msg);
+  refreshDiagIfOpen();
+}
+
+function openDiag() {
+  document.getElementById('diagBg').classList.add('on');
+  refreshDiag();
+}
+function closeDiag() { document.getElementById('diagBg').classList.remove('on'); }
+function refreshDiagIfOpen() {
+  if (document.getElementById('diagBg').classList.contains('on')) refreshDiag();
+}
+function refreshDiag() {
+  var body = document.getElementById('diagBody');
+  if (!diag.log.length) {
+    body.innerHTML = '<span class="dim">(no events yet)</span>';
+    return;
+  }
+  body.innerHTML = diag.log.map(function(e){
+    var cls = e.level;
+    var t = e.ts.toTimeString().slice(0,8);
+    return '<span class="dim">'+t+'</span> <span class="'+cls+'">['+e.level.toUpperCase()+']</span> '+escHtml(e.msg);
+  }).join('\n');
+  body.scrollTop = body.scrollHeight;
+}
+function diagClear() { diag.log = []; refreshDiag(); }
+function diagCopy() {
+  var t = diag.log.map(function(e){ return e.ts.toISOString()+' ['+e.level+'] '+e.msg; }).join('\n');
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ alert('Copied'); });
+  else alert(t);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═════════════════════════════════════════════════════════════════════════════
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escAttr(s) { return escHtml(s); }
+
+function getStr(v) {
+  if (!v) return '';
+  if (Array.isArray(v)) return v.length ? String(v[0] || '') : '';
+  return String(v);
+}
+
+function normalizeRecLinks(val) {
+  if (!val || !Array.isArray(val)) return [];
+  return val.map(function(x) {
+    if (typeof x === 'string') return x;
+    if (x && typeof x === 'object' && x.id) return x.id;
+    return '';
+  }).filter(Boolean);
+}
+
+function getThumb(val) {
+  if (!val || !Array.isArray(val) || !val.length) return '';
+  var first = val[0];
+  if (!first) return '';
+  if (first.thumbnails && first.thumbnails.large && first.thumbnails.large.url) return first.thumbnails.large.url;
+  if (first.thumbnails && first.thumbnails.small && first.thumbnails.small.url) return first.thumbnails.small.url;
+  return '';
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  var then = new Date(dateStr).getTime();
+  if (isNaN(then)) return '';
+  var diff = Date.now() - then;
+  var days = Math.floor(diff / (24*60*60*1000));
+  if (days < 1) return 'today';
+  if (days < 7) return days + 'd ago';
+  if (days < 30) return Math.floor(days/7) + 'w ago';
+  if (days < 365) return Math.floor(days/30) + 'mo ago';
+  return Math.floor(days/365) + 'y ago';
+}
+
+// v2: preview the Canonical ID formula client-side. Production formula will be
+// `"I-" & RIGHT("00000" & {AutoNumber}, 5)` on the Airtable side.
+function formatCanonicalId(autoNumber) {
+  if (autoNumber == null || autoNumber === '') return '';
+  var n = String(autoNumber);
+  while (n.length < 5) n = '0' + n;
+  return 'I-' + n;
+}
+
+function tok() {
+  var v = document.getElementById('tokInp').value.trim();
+  if (!v) {
+    var saved = localStorage.getItem('pine_at_key');
+    if (saved) {
+      document.getElementById('tokInp').value = saved;
+      return saved;
+    }
+    throw new Error('Token required');
+  }
+  try { localStorage.setItem('pine_at_key', v); } catch(e) {}
+  return v;
+}
+
+function hdr() { return { Authorization: 'Bearer ' + tok() }; }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// STATUS HYDRATION + AIRTABLE WRITE LAYER
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Skip reasons (no Airtable field) — local annotation only.
+function loadSkipReasons() {
+  try {
+    var raw = localStorage.getItem(SKIP_REASONS_KEY);
+    state.skipReasons = raw ? (JSON.parse(raw) || {}) : {};
+  } catch(e) { state.skipReasons = {}; }
+}
+function saveSkipReasons() {
+  try { localStorage.setItem(SKIP_REASONS_KEY, JSON.stringify(state.skipReasons || {})); } catch(e) {}
+}
+
+// Build state.statuses from the fetched root records' Canonical Status fields.
+// Only Promoted / Skipped are tracked; empty status = pending (the default for all
+// 13k+ historical imprints, no backfill needed).
+function hydrateStatusesFromRecords() {
+  state.statuses = {};
+  Object.keys(state.rootImprints).forEach(function(id) {
+    var f = state.rootImprints[id].fields || {};
+    var st = getStr(f[I.canonStatus]);
+    if (st === 'Promoted') {
+      state.statuses[id] = {
+        status: 'promoted',
+        folderUrl: getStr(f[I.canonFolder]) || '',
+        by: getStr(f[I.promotedBy]) || '',
+        at: f[I.promotedAt] || ''
+      };
+    } else if (st === 'Skipped') {
+      state.statuses[id] = {
+        status: 'skipped',
+        reason: (state.skipReasons || {})[id] || '',
+        at: f[I.promotedAt] || ''
+      };
+    }
+  });
+  dlog('info', 'hydrated statuses from records: '+Object.keys(state.statuses).length+' non-pending');
+}
+
+// Gated batched PATCH to Airtable v0 REST. records = [{id, fields}]. Max 10/request.
+// In preview mode (WRITES_ENABLED=false) every record is logged, nothing is sent.
+async function atPatch(records) {
+  if (!records || !records.length) return true;
+  if (!WRITES_ENABLED) {
+    dlog('warn', '── PREVIEW: '+records.length+' record(s) would be patched ──');
+    records.forEach(function(r) {
+      dlog('warn', '  PATCH '+r.id+' → '+JSON.stringify(r.fields));
+    });
+    return true;
+  }
+  for (var i = 0; i < records.length; i += 10) {
+    var chunk = records.slice(i, i + 10);
+    var r = await fetch('https://api.airtable.com/v0/'+BASE+'/'+TBL_IMPRINTS, {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + tok(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: chunk })
+    });
+    if (!r.ok) {
+      var t = await r.text();
+      throw new Error('PATCH HTTP '+r.status+': '+t.slice(0,240));
+    }
+    var d = await r.json();
+    dlog('ok', 'patched '+((d.records||[]).length)+' record(s)');
+    if (i + 10 < records.length) await new Promise(function(res){ setTimeout(res, 220); });
+  }
+  return true;
+}
+
+// Every imprint in a design lineage: root + all linkers + all intermediates, deduped.
+// These all get Canonical Design → root stamped on them (root points at itself, so the
+// Master Folder URL / Master Design ID lookups resolve uniformly across the family).
+function familyIds(entry) {
+  var seen = {};
+  if (entry.rootId) seen[entry.rootId] = true;
+  (entry.linkers || []).forEach(function(lk) {
+    if (lk.linker && lk.linker.id) seen[lk.linker.id] = true;
+  });
+  (entry.intermediates || []).forEach(function(im) {
+    if (im && im.id) seen[im.id] = true;
+  });
+  return Object.keys(seen);
+}
+
+// Lightweight busy guard so a double-tap can't fire two write storms.
+function setBusy(b) { window._cpBusy = !!b; document.body.style.cursor = b ? 'progress' : ''; }
+
+function setWritesBadge() {
+  var el = document.querySelector('.preview-badge');
+  if (!el) return;
+  if (WRITES_ENABLED) {
+    el.textContent = 'Writes LIVE';
+    el.style.background = 'var(--red)';
+    el.style.color = '#fff';
+  } else {
+    el.textContent = 'Preview — writes off';
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PAGE INIT
+// ═════════════════════════════════════════════════════════════════════════════
+
+window.addEventListener('load', function() {
+  loadSkipReasons();
+  setWritesBadge();
+  var saved = localStorage.getItem('pine_at_key');
+  if (saved) {
+    document.getElementById('tokInp').value = saved;
+    document.getElementById('tokenRow').classList.add('hide');
+    // Don't auto-load; let user click refresh
+    setStatePanel('🪄', 'Ready to load', 'Click "↻ Refresh" in the topbar to load the promotion queue from Airtable.');
+  }
+});
+
+function saveTokenAndLoad() {
+  try { tok(); } catch(e) { alert('Please enter a valid token'); return; }
+  document.getElementById('tokenRow').classList.add('hide');
+  loadData();
+}
+
+function setStatePanel(icon, title, txt) {
+  document.getElementById('content').innerHTML =
+    '<div class="state-panel"><div class="state-icon">'+icon+'</div>'
+    +'<div class="state-title">'+escHtml(title)+'</div>'
+    +'<div class="state-txt">'+escHtml(txt)+'</div></div>';
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// DATA LOAD
+// ═════════════════════════════════════════════════════════════════════════════
+
+async function loadData() {
+  document.getElementById('tabsBar').style.display = 'none';
+  document.getElementById('filterRow').style.display = 'none';
+  setStatePanel('⌛', 'Loading…', 'Fetching imprints with linked previous references.');
+  dlog('info', '=== LOAD START ===');
+
+  try {
+    // Phase 1: fetch all imprints that have Previous Imprint set
+    // (these are the "new" side of reorder pairs — what we work backward FROM)
+    var linkerFields = [I.id, I.prev, I.created, I.linkedOrd, I.custTxt, I.autoNumber]
+      .map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+    var linkerUrl = 'https://api.airtable.com/v0/'+BASE+'/'+TBL_IMPRINTS+'?'+linkerFields
+      +'&filterByFormula='+encodeURIComponent('NOT({'+I.prev+'}="")')
+      +'&returnFieldsByFieldId=true&pageSize=100';
+
+    var linkers = await fetchAllPaginated(linkerUrl);
+    dlog('ok', 'Phase 1: '+linkers.length+' imprints with Previous Imprint set');
+
+    state.linkerImprints = linkers;
+
+    // Phase 2: extract unique linked-to imprint record IDs
+    var rootIds = new Set();
+    linkers.forEach(function(rec) {
+      var prevLinks = normalizeRecLinks((rec.fields||{})[I.prev]);
+      prevLinks.forEach(function(id) { rootIds.add(id); });
+    });
+    dlog('info', 'Phase 1.5: '+rootIds.size+' unique past imprints linked to');
+
+    // Phase 3: fetch those past imprint records
+    setStatePanel('⌛', 'Loading…', 'Fetching '+rootIds.size+' candidate root imprints.');
+    var rootIdArr = Array.from(rootIds);
+    var rootRecs = await fetchByIds(rootIdArr, TBL_IMPRINTS, ROOT_FIELDS);
+    dlog('ok', 'Phase 3: fetched '+rootRecs.length+' root imprint records');
+
+    // Phase 4: build a map and detect chains (root has its own prev → real root is deeper)
+    state.rootImprints = {};
+    rootRecs.forEach(function(r) { state.rootImprints[r.id] = r; });
+
+    // For chain detection: collect any prev-of-root IDs we don't have yet
+    var deeperIds = new Set();
+    rootRecs.forEach(function(r) {
+      var prev = normalizeRecLinks((r.fields||{})[I.prev]);
+      prev.forEach(function(id) {
+        if (!state.rootImprints[id]) deeperIds.add(id);
+      });
+    });
+    if (deeperIds.size) {
+      dlog('info', 'Phase 4: '+deeperIds.size+' deeper imprints to fetch (chain resolution)');
+      setStatePanel('⌛', 'Loading…', 'Resolving '+deeperIds.size+' chain roots.');
+      var deeperRecs = await fetchByIds(Array.from(deeperIds), TBL_IMPRINTS, ROOT_FIELDS);
+      deeperRecs.forEach(function(r) { state.rootImprints[r.id] = r; });
+      dlog('ok', 'Phase 4: fetched '+deeperRecs.length+' deeper records');
+    }
+
+    // Phase 4.5: derive promotion statuses from the records themselves
+    hydrateStatusesFromRecords();
+
+    // Phase 5: build the promotion queue with chain awareness
+    buildPromotionQueue();
+
+    // Phase 6: render
+    document.getElementById('tabsBar').style.display = 'flex';
+    document.getElementById('filterRow').style.display = 'flex';
+    renderCurrent();
+
+    dlog('ok', '=== LOAD COMPLETE ===');
+  } catch(e) {
+    dlog('err', 'load failed: '+e.message);
+    setStatePanel('⚠️', 'Load failed', e.message);
+  }
+}
+
+// Paginate through all records from a search URL
+async function fetchAllPaginated(baseUrl) {
+  var acc = [];
+  var offset = null;
+  while (true) {
+    var url = baseUrl + (offset ? '&offset=' + encodeURIComponent(offset) : '');
+    var r = await fetch(url, { headers: hdr() });
+    if (!r.ok) {
+      var t = await r.text();
+      throw new Error('HTTP '+r.status+': '+t.slice(0,200));
+    }
+    var d = await r.json();
+    (d.records || []).forEach(function(rec) { acc.push(rec); });
+    if (!d.offset) break;
+    offset = d.offset;
+    await new Promise(function(res){ setTimeout(res, 220); });
+  }
+  return acc;
+}
+
+// Fetch a batch of records by ID via filterByFormula OR()
+async function fetchByIds(ids, tableId, fieldIds) {
+  if (!ids.length) return [];
+  var acc = [];
+  // Chunk into 50s to keep URL reasonable
+  for (var i = 0; i < ids.length; i += 50) {
+    var chunk = ids.slice(i, i + 50);
+    var orParts = chunk.map(function(id){ return "RECORD_ID()='"+id+"'"; }).join(',');
+    var formula = 'OR('+orParts+')';
+    var flds = fieldIds.map(function(f){ return 'fields%5B%5D='+f; }).join('&');
+    var url = 'https://api.airtable.com/v0/'+BASE+'/'+tableId+'?'+flds
+      +'&filterByFormula='+encodeURIComponent(formula)
+      +'&returnFieldsByFieldId=true&pageSize=100';
+    var recs = await fetchAllPaginated(url);
+    recs.forEach(function(r) { acc.push(r); });
+  }
+  return acc;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BUILD PROMOTION QUEUE
+// ═════════════════════════════════════════════════════════════════════════════
+
+function buildPromotionQueue() {
+  // Build a map of: root imprint rec ID → list of linkers (newer imprints pointing at it)
+  var linkersOfRoot = {};
+  state.linkerImprints.forEach(function(rec) {
+    var prevLinks = normalizeRecLinks((rec.fields||{})[I.prev]);
+    prevLinks.forEach(function(rootId) {
+      if (!linkersOfRoot[rootId]) linkersOfRoot[rootId] = [];
+      linkersOfRoot[rootId].push(rec);
+    });
+  });
+
+  // Resolve each root to its TRUE root (follow chain). Map rootId → trueRootId
+  var trueRoot = {};
+  Object.keys(state.rootImprints).forEach(function(id) {
+    trueRoot[id] = followChain(id);
+  });
+
+  // Group linkers by their root's TRUE root
+  var queueMap = {}; // trueRootId → {root, linkers[], chainDepth}
+  Object.keys(linkersOfRoot).forEach(function(rootId) {
+    var tr = trueRoot[rootId] || rootId;
+    if (!queueMap[tr]) {
+      queueMap[tr] = {
+        rootId: tr,
+        root: state.rootImprints[tr],
+        linkers: [],
+        chainDepth: 0,
+        intermediates: []   // any non-root, non-leaf nodes pointing here
+      };
+    }
+    // Linkers are the originally-found linkers, except we need to track if they
+    // pointed at the true root or at an intermediate
+    linkersOfRoot[rootId].forEach(function(lkr) {
+      queueMap[tr].linkers.push({
+        linker: lkr,
+        pointedAt: rootId,
+        isDirect: rootId === tr
+      });
+    });
+    // Track intermediates
+    if (rootId !== tr) {
+      var inter = state.rootImprints[rootId];
+      if (inter) queueMap[tr].intermediates.push(inter);
+    }
+    // Track chain depth
+    var d = chainDepth(rootId);
+    if (d > queueMap[tr].chainDepth) queueMap[tr].chainDepth = d;
+  });
+
+  // Split into pending / promoted / skipped based on status map
+  state.promotionQueue = [];
+  state.promotedItems = [];
+  state.skippedItems = [];
+  state.entryByRoot = {};
+
+  var floored = 0;
+  Object.keys(queueMap).forEach(function(trId) {
+    var entry = queueMap[trId];
+    if (!entry.root) {
+      dlog('warn', 'queue entry has no root record for '+trId+' (lookup gap?)');
+      return;
+    }
+    state.entryByRoot[trId] = entry;
+    var status = (state.statuses[trId] || {}).status;
+    if (status === 'promoted') {
+      state.promotedItems.push(entry);
+    } else if (status === 'skipped') {
+      state.skippedItems.push(entry);
+    } else if (entry.linkers.length >= MIN_REORDERS_TO_CATALOG) {
+      state.promotionQueue.push(entry);
+    } else {
+      // Below the catalog threshold — a one-off repeat, not yet worth a master.
+      floored++;
+    }
+  });
+  if (floored) dlog('info', 'catalog floor: '+floored+' design(s) held back (<'+MIN_REORDERS_TO_CATALOG+' reorders)');
+
+  // Sort each by linker count desc (most-reordered first), then by most recent linker date desc
+  function sortQ(a, b) {
+    if (a.linkers.length !== b.linkers.length) return b.linkers.length - a.linkers.length;
+    var aLast = mostRecentLinkerTs(a);
+    var bLast = mostRecentLinkerTs(b);
+    return bLast - aLast;
+  }
+  state.promotionQueue.sort(sortQ);
+  state.promotedItems.sort(sortQ);
+  state.skippedItems.sort(sortQ);
+
+  dlog('ok', 'queue: '+state.promotionQueue.length+' pending, '+state.promotedItems.length+' promoted, '+state.skippedItems.length+' skipped');
+}
+
+function mostRecentLinkerTs(entry) {
+  var max = 0;
+  entry.linkers.forEach(function(lk) {
+    var c = (lk.linker.fields||{})[I.created];
+    if (c) {
+      var ts = new Date(c).getTime();
+      if (ts > max) max = ts;
+    }
+  });
+  return max;
+}
+
+// Follow Previous Imprint links until we find a record with no Previous (the root)
+function followChain(startId) {
+  var visited = {};
+  var current = startId;
+  while (current && !visited[current]) {
+    visited[current] = true;
+    var rec = state.rootImprints[current];
+    if (!rec) return current; // dead end — use what we have
+    var prev = normalizeRecLinks((rec.fields||{})[I.prev]);
+    if (!prev.length) return current; // this is the root
+    if (prev[0] === current) return current; // self-loop safety
+    current = prev[0];
+  }
+  return current; // cycle detected; return whatever we ended on
+}
+
+function chainDepth(startId) {
+  var depth = 0;
+  var visited = {};
+  var current = startId;
+  while (current && !visited[current]) {
+    visited[current] = true;
+    var rec = state.rootImprints[current];
+    if (!rec) break;
+    var prev = normalizeRecLinks((rec.fields||{})[I.prev]);
+    if (!prev.length) break;
+    depth++;
+    current = prev[0];
+  }
+  return depth;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═════════════════════════════════════════════════════════════════════════════
+
+function setTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.tab').forEach(function(t) {
+    t.classList.toggle('on', t.dataset.tab === tab);
+  });
+  renderCurrent();
+}
+
+function onSearchInput() {
+  state.search = document.getElementById('searchInp').value.trim().toLowerCase();
+  renderCurrent();
+}
+
+// Recency lens. state.window = months back on the most-recent-reorder date.
+// 0 = All (no bound). Anchors on when a design was LAST reordered, not on how
+// old the original design is — keeps Art focused on actively-reordered work.
+function setWindow(months) {
+  state.window = months;
+  document.querySelectorAll('.win-btn').forEach(function(b) {
+    b.classList.toggle('on', String(b.dataset.win) === String(months));
+  });
+  renderCurrent();
+}
+
+// Cutoff timestamp for the active window, or null when window = All.
+// Uses exact calendar months (not a 30-day approximation).
+function windowCutoff() {
+  if (!state.window) return null;
+  var d = new Date();
+  d.setMonth(d.getMonth() - state.window);
+  return d.getTime();
+}
+
+// Filter a queue array down to entries whose newest linker falls in the window.
+function recencyFilter(arr) {
+  var cutoff = windowCutoff();
+  if (cutoff === null) return arr;
+  return arr.filter(function(e) { return mostRecentLinkerTs(e) >= cutoff; });
+}
+
+function renderCurrent() {
+  // Recency window applies first and drives the tab counts, so the numbers
+  // reflect what you'd actually work in the current window.
+  var pend = recencyFilter(state.promotionQueue);
+  var prom = recencyFilter(state.promotedItems);
+  var skip = recencyFilter(state.skippedItems);
+
+  document.getElementById('cnt-pending').textContent = pend.length;
+  document.getElementById('cnt-promoted').textContent = prom.length;
+  document.getElementById('cnt-skipped').textContent = skip.length;
+
+  var items;
+  if (state.tab === 'pending') items = pend;
+  else if (state.tab === 'promoted') items = prom;
+  else items = skip;
+
+  // Search is a secondary, within-tab filter — it does NOT change the counts.
+  if (state.search) {
+    items = items.filter(function(e) {
+      var f = (e.root && e.root.fields) || {};
+      var blob = ((f[I.id]||'')+' '+(f[I.custTxt]||'')+' '+(f[I.loc]||'')+' '+(f[I.nick]||'')).toLowerCase();
+      return blob.indexOf(state.search) !== -1;
+    });
+  }
+
+  if (!items.length) {
+    if (state.search) {
+      setStatePanel('🔍', 'No matches', 'Try a different search.');
+    } else if (state.tab === 'pending' && state.promotionQueue.length === 0) {
+      setStatePanel('✓', 'Nothing pending', 'No designs have hit the 2+ reorder threshold yet. They surface here automatically once reordered a second time.');
+    } else if (state.window) {
+      setStatePanel('🗓', 'Nothing in this window', 'No qualifying designs reordered in the last ' + state.window + ' months. Switch to All to see older ones.');
+    } else {
+      setStatePanel('🔍', 'No matches', 'Nothing in this tab.');
+    }
+    return;
+  }
+
+  var html = items.map(renderCard).join('');
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderCard(entry) {
+  var rec = entry.root;
+  var f = rec.fields || {};
+  var imprintId = f[I.id] || '(no id)';
+  var nick = f[I.nick] || '';
+  var cust = getStr(f[I.custTxt]) || '—';
+  var loc = getStr(f[I.loc]);
+  var type = getStr(f[I.type]);
+  var proofUrl = getThumb(f[I.proofs]);
+  var depth = entry.chainDepth;
+  var status = (state.statuses[entry.rootId] || {});
+  var canonicalId = getStr(f[I.canonId]) || formatCanonicalId(f[I.autoNumber]);
+
+  // Tags
+  var tags = '';
+  if (loc) tags += '<span class="tag tag-loc">'+escHtml(loc)+'</span>';
+  if (type) tags += '<span class="tag tag-type">'+escHtml(type)+'</span>';
+  tags += '<span class="tag tag-count">'+entry.linkers.length+'× reordered</span>';
+  if (depth > 0) tags += '<span class="tag tag-chain">chain '+(depth+1)+' deep</span>';
+
+  // Recent linkers (sorted by most recent first)
+  var linkersSorted = entry.linkers.slice().sort(function(a,b){
+    var aT = new Date((a.linker.fields||{})[I.created] || 0).getTime();
+    var bT = new Date((b.linker.fields||{})[I.created] || 0).getTime();
+    return bT - aT;
+  });
+  var linksHtml = linkersSorted.slice(0, 8).map(function(lk) {
+    var lf = lk.linker.fields || {};
+    var lId = lf[I.id] || '(no id)';
+    var lWhen = timeAgo(lf[I.created]);
+    var notDirect = !lk.isDirect ? ' <span class="tag tag-chain" style="margin-left:4px">via '+escHtml((state.rootImprints[lk.pointedAt]||{fields:{}}).fields[I.id]||'chain')+'</span>' : '';
+    return '<div class="recent-links-row">'
+      + '<div><span class="ln-id">'+escHtml(lId)+'</span>'+notDirect+'</div>'
+      + '<div class="ln-when">'+escHtml(lWhen)+'</div>'
+      + '</div>';
+  }).join('');
+  if (linkersSorted.length > 8) {
+    linksHtml += '<div class="recent-links-row" style="color:var(--muted)"><div>+'+(linkersSorted.length - 8)+' more</div><div></div></div>';
+  }
+
+  // Action panel (right side) — v2 numbered workflow
+  var actionHtml;
+  if (status.status === 'promoted') {
+    actionHtml = '<div class="promo-action" style="background:var(--green-lt)">'
+      + '<h4 style="color:var(--green-dk)">✓ Promoted</h4>'
+      + '<div style="font-size:11px;margin-bottom:6px">By '+escHtml(status.by||'—')+' on '+escHtml(new Date(status.at).toLocaleString())+'</div>'
+      + (status.folderUrl ? '<div style="font-size:11px;margin-bottom:8px"><a href="'+escAttr(status.folderUrl)+'" target="_blank" style="color:var(--green-dk);font-family:var(--mono);word-break:break-all">↗ Open canonical folder</a></div>' : '')
+      + '<div class="btn-row"><button class="btn btn-sm btn-outline" onclick="reopenPromotion(\''+entry.rootId+'\')">Edit</button>'
+      + '<button class="btn btn-sm btn-outline" onclick="undoStatus(\''+entry.rootId+'\')">Move back to pending</button></div>'
+      + '</div>';
+  } else if (status.status === 'skipped') {
+    actionHtml = '<div class="promo-action">'
+      + '<h4>⊘ Skipped</h4>'
+      + '<div style="font-size:11px;margin-bottom:8px">Reason: '+escHtml(status.reason || '(none)')+'</div>'
+      + '<div class="btn-row"><button class="btn btn-sm btn-outline" onclick="undoStatus(\''+entry.rootId+'\')">Move back to pending</button></div>'
+      + '</div>';
+  } else {
+    actionHtml = '<div class="promo-action">'
+      + '<h4>Promote to canonical</h4>'
+
+      // Step 1: Create folder in Drive
+      + '<div class="wf-step">'
+      +   '<div class="wf-step-head"><span class="wf-step-num">1</span><span class="wf-step-title">Create the master folder in Finder</span></div>'
+      +   '<div class="wf-step-body">'
+      +     '<div class="wf-breadcrumb">'+escHtml(DRIVE_BREADCRUMB)+'</div>'
+      +     '<div class="wf-help">If '+escHtml(cust)+' already has a folder here, duplicate the <em>Design Template</em> inside it. Otherwise, duplicate <em>Template/Customer</em> at the top.</div>'
+      +   '</div>'
+      + '</div>'
+
+      // Step 2: Save files there
+      + '<div class="wf-step">'
+      +   '<div class="wf-step-head"><span class="wf-step-num">2</span><span class="wf-step-title">Save the unstamped sep &amp; proof there</span></div>'
+      +   '<div class="wf-step-body">'
+      +     '<div class="wf-help">Open the most recent past order in Drive, strip the order number and imprint ID stamps in Illustrator, save into the new master folder.</div>'
+      +   '</div>'
+      + '</div>'
+
+      // Step 3: Paste the URL
+      + '<div class="wf-step">'
+      +   '<div class="wf-step-head"><span class="wf-step-num">3</span><span class="wf-step-title">Paste the folder URL</span></div>'
+      +   '<div class="wf-step-body">'
+      +     '<input type="url" id="url-'+entry.rootId+'" placeholder="https://drive.google.com/drive/folders/..." class="wf-url-input" />'
+      +   '</div>'
+      + '</div>'
+
+      // Step 4: Save
+      + '<div class="wf-step">'
+      +   '<div class="wf-step-head"><span class="wf-step-num">4</span><span class="wf-step-title">Save</span></div>'
+      +   '<div class="wf-step-body">'
+      +     '<div class="wf-save-row">'
+      +       '<select id="by-'+entry.rootId+'" class="wf-select">'
+      +         ART_DEPT_NAMES.map(function(n){ return '<option>'+escHtml(n)+'</option>'; }).join('')
+      +       '</select>'
+      +       '<button class="btn btn-sm btn-green" onclick="markPromoted(\''+entry.rootId+'\')">✓ Promote</button>'
+      +     '</div>'
+      +   '</div>'
+      + '</div>'
+
+      + '<button class="wf-skip" onclick="markSkipped(\''+entry.rootId+'\')">Skip this design</button>'
+      + '</div>';
+  }
+
+  var cls = 'promo-card';
+  if (status.status === 'promoted') cls += ' promoted';
+  if (status.status === 'skipped') cls += ' skipped';
+
+  return '<div class="'+cls+'">'
+    + '<div class="promo-head">'
+    +   '<div class="promo-thumb"'+(proofUrl ? ' onclick="openZoom(\''+escAttr(proofUrl)+'\')"' : '')+'>'
+    +     (proofUrl ? '<img src="'+escAttr(proofUrl)+'" />' : '<div class="promo-thumb-ph">⌗</div>')
+    +   '</div>'
+    +   '<div class="promo-info">'
+    +     '<div class="promo-id-row">'
+    +       '<div>'
+    +         '<div class="promo-cust">'+escHtml(cust)+'</div>'
+    +         (canonicalId ? '<div class="promo-canon">Canonical: '+escHtml(canonicalId)+'</div>' : '<div class="promo-canon promo-canon-muted">Canonical: (not set)</div>')
+    +       '</div>'
+    +       '<div class="promo-id">'+escHtml(imprintId)+'</div>'
+    +     '</div>'
+    +     (nick ? '<div style="font-size:13px;color:var(--muted);margin-top:2px">'+escHtml(nick)+'</div>' : '')
+    +     '<div class="promo-tags">'+tags+'</div>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="promo-body">'
+    +   '<div class="promo-detail">'
+    +     '<h4>Reorders pointing here ('+entry.linkers.length+')</h4>'
+    +     '<div class="recent-links">'+linksHtml+'</div>'
+    +   '</div>'
+    +   actionHtml
+    + '</div>'
+    + '</div>';
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ACTIONS
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Promote: write the root's promotion fields AND stamp Canonical Design → root onto
+// every imprint in the lineage (root included) so the lookups resolve uniformly.
+async function markPromoted(rootId) {
+  if (window._cpBusy) return;
+  var urlInp = document.getElementById('url-'+rootId);
+  var bySel = document.getElementById('by-'+rootId);
+  var url = urlInp ? urlInp.value.trim() : '';
+  var by = bySel ? bySel.value : '';
+  if (!url) {
+    alert('Please paste the canonical folder URL before saving.');
+    if (urlInp) urlInp.focus();
+    return;
+  }
+  var entry = state.entryByRoot[rootId];
+  if (!entry) { dlog('err', 'promote: no queue entry for '+rootId); return; }
+
+  var fam = familyIds(entry);
+  var nowIso = new Date().toISOString();
+  var writes = fam.map(function(id) {
+    var fields = {};
+    fields[I.canonDesign] = [rootId];               // shared key on every member
+    if (id === rootId) {
+      fields[I.canonStatus] = 'Promoted';
+      fields[I.canonFolder] = url;
+      fields[I.promotedBy]  = by;
+      fields[I.promotedAt]  = nowIso;
+    }
+    return { id: id, fields: fields };
+  });
+
+  try {
+    setBusy(true);
+    dlog('info', 'promoting '+rootId+' — stamping '+fam.length+' family record(s)');
+    await atPatch(writes);
+    state.statuses[rootId] = { status: 'promoted', folderUrl: url, by: by, at: nowIso };
+    dlog('ok', 'promoted '+rootId+' ('+fam.length+' stamped) → '+url+' by '+by);
+    buildPromotionQueue();
+    renderCurrent();
+  } catch(e) {
+    dlog('err', 'promote failed: '+e.message);
+    alert('Promote failed: '+e.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+// Skip: status only (no folder, no family stamp). Reason is a local annotation.
+async function markSkipped(rootId) {
+  if (window._cpBusy) return;
+  var reason = prompt('Why skip this design? (optional)');
+  if (reason === null) return; // cancelled
+  var fields = {};
+  fields[I.canonStatus] = 'Skipped';
+
+  try {
+    setBusy(true);
+    await atPatch([{ id: rootId, fields: fields }]);
+    state.skipReasons[rootId] = reason || '';
+    saveSkipReasons();
+    state.statuses[rootId] = { status: 'skipped', reason: reason || '', at: new Date().toISOString() };
+    dlog('info', 'skipped '+rootId+(reason ? ' — '+reason : ''));
+    buildPromotionQueue();
+    renderCurrent();
+  } catch(e) {
+    dlog('err', 'skip failed: '+e.message);
+    alert('Skip failed: '+e.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+// Shared clear path for "Edit" (reopen) and "Move back to pending" (undo).
+// If the design was promoted, this un-stamps Canonical Design from the whole family
+// and clears the root's promotion fields — promoted == stamped, pending == not.
+async function clearStatus(rootId, confirmMsg) {
+  if (window._cpBusy) return;
+  if (confirmMsg && !confirm(confirmMsg)) return;
+  var entry = state.entryByRoot[rootId];
+  var wasPromoted = (state.statuses[rootId] || {}).status === 'promoted';
+
+  var writes;
+  if (wasPromoted && entry) {
+    writes = familyIds(entry).map(function(id) {
+      var fields = {};
+      fields[I.canonDesign] = [];                    // un-stamp
+      if (id === rootId) {
+        fields[I.canonStatus] = null;
+        fields[I.canonFolder] = null;
+        fields[I.promotedBy]  = null;
+        fields[I.promotedAt]  = null;
+      }
+      return { id: id, fields: fields };
+    });
+  } else {
+    var f = {}; f[I.canonStatus] = null;
+    writes = [{ id: rootId, fields: f }];
+  }
+
+  try {
+    setBusy(true);
+    await atPatch(writes);
+    delete state.statuses[rootId];
+    if (state.skipReasons[rootId]) { delete state.skipReasons[rootId]; saveSkipReasons(); }
+    dlog('info', 'cleared '+rootId+(wasPromoted ? ' (un-stamped '+writes.length+' family record(s))' : ''));
+    buildPromotionQueue();
+    renderCurrent();
+  } catch(e) {
+    dlog('err', 'clear failed: '+e.message);
+    alert('Could not move back to pending: '+e.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function reopenPromotion(rootId) { clearStatus(rootId, null); }
+function undoStatus(rootId) { clearStatus(rootId, 'Move this design back to pending?'); }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// IMAGE ZOOM
+// ═════════════════════════════════════════════════════════════════════════════
+
+function openZoom(url) {
+  document.getElementById('zoomImg').src = url;
+  document.getElementById('zoom').classList.add('on');
+}
+function closeZoom() {
+  document.getElementById('zoom').classList.remove('on');
+}
+
+// v3: copy a text path to clipboard with visual feedback
+function copyToClipboard(text, btn) {
+  function flash() {
+    if (!btn) return;
+    var orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied';
+    btn.style.background = 'var(--green-lt)';
+    btn.style.borderColor = 'var(--green-dk)';
+    btn.style.color = 'var(--green-dk)';
+    setTimeout(function(){
+      btn.innerHTML = orig;
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 1500);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(flash, function(err){
+      dlog('err','clipboard failed: '+err.message);
+      prompt('Copy this path:', text);
+    });
+  } else {
+    prompt('Copy this path:', text);
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('diagBg').classList.contains('on')) closeDiag();
+    else if (document.getElementById('zoom').classList.contains('on')) closeZoom();
+  }
+});
+</script>
+
+</body>
+</html>
