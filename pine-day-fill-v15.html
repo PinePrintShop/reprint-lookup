@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pine Day-Fill v15</title>
+<!--
+  ============================================================================
+  PINE DAY-FILL v5 — order-grouped, platen-aware day-filler (RECOMMEND-ONLY)
+  ============================================================================
+  v9 adds:
+   • GARMENT BUMPER — sweatshirts/fleece run slower on press, so they weight
+     heavier against a press-day budget. Heavy types (Sweatshirt, Pullover
+     Hoodie, Zip Up Hoodie, Youth Fleece) are read per Line Item via the
+     garment-type lookup; each imprint gets a "load" = pieces x weight. Budget
+     math uses LOAD; cards still show raw impressions + a "fleece" tag. Tunable
+     "Fleece weight" (default 1.35) + toggle. Graceful no-op if LI fetch fails.
+   • HARD-DEADLINE 3-DAY BUFFER — HD work already packs first/earliest (max
+     buffer). We now read the Customer Due Date (fldQ6mM0uxdqjw4kr) and flag any
+     HD card whose print day lands <3 days before its deadline (amber), or after
+     it (red), in BOTH views — so close calls surface in current + planned.
+
+  v15 adds:
+   • BANDANA SPOILAGE MULTIPLIER — bandanas run hotter than apparel on average, so
+     bandana-platen imprints take the size-bracket rate × a tunable "Bandana ×"
+     (default 1.5). Apparel/other platens use the base brackets unchanged. Keyed to
+     it.platen==='Bandana'; composes on top of the per-design size ramp. Card % and
+     summary already reflect it (blended per order). One knob, still an average.
+
+  v14 changes:
+   • Spoilage tag now shows the RATE (e.g. "6% spoilage") instead of a piece count,
+     and the summary card leads with the blended plan-level %. The formula is
+     UNCHANGED — load still carries those extra impressions + press-time exactly as
+     in v13; this is a display swap only. Dropped the confusing "won't ship" wording.
+
+  v13 adds:
+   • SPOILAGE BUMPER — big runs misprint more, so on a large run you have to push
+     MORE impressions than the order needs to net the good pieces; those extras
+     are press-time that never ships. Keyed to PER-DESIGN run length (this
+     imprint's pieces), in three tunable brackets (small/mid · large · very-large)
+     so small-to-mid runs stay fast and only large runs reserve real buffer.
+     Applies to LOAD only (multiplies like the fleece weight), so day totals /
+     fill bars already reflect the reserved press-time; cards show raw impressions
+     plus a "+N won't ship" tag, and the summary shows total reserved. Toggle +
+     bracket sliders in Settings. Deliberately NO per-material (bandana) surcharge
+     and NO extra split surcharge — big runs already spill across more days once
+     they reserve more, and split is emergent, so stacking a split penalty would
+     double-count. Recommend-only; writes nothing.
+
+  v11 adds:
+   • Defaults to SCHEDULED-now view on open (was Suggested).
+   • WHOLE TOP BAR FLOATS — title, token, settings, and the Scheduled/Suggested
+     toggle all stick to the top of the page while the board scrolls, so the
+     scheduler can tweak settings or flip views from anywhere. Settings start
+     collapsed (gear) to keep the floating bar compact; click gear to expand in place.
+  v10 adds:
+   • REMOVE → SIDEBAR → MANUAL DATE — when you know something specific about a
+     job, hit × on its card to pull it out of the auto-suggestions into a "Held"
+     panel. Give it a date there and it pins to that day (consuming budget, shown
+     with a 📌 tag) and is excluded from auto-pack. Restore puts it back in auto.
+     All client-side state (held/pin sets persist in localStorage) — no writes.
+  Adds PLATEN BATCHING: each location maps to a platen family (Standard tee /
+  Sleeve / Bandana / Tea Towel). Same-family work clusters onto the same/adjacent
+  press-days, and each day's column is grouped by platen with run-order headers,
+  so the floor mounts a platen once and runs the whole batch before swapping.
+  Still: orders kept whole, complex work leans P1, same-day P1+P2 splits allowed,
+  P2 cooler than P1, Scheduled⇄Suggested toggle (now sticky). Writes nothing.
+
+  PLATEN MAP: Bandana->Bandana · Left/Right Sleeve->Sleeve · Tea Towel->Tea Towel
+              everything else (Front/Back/Chest/Pocket/…)->Standard
+  DATA (Imprints tbln9oAGvz2PNBZLV, base appJkaLk8DykjsgHR, v0 REST) — see field map below.
+  ============================================================================
+-->
+<style>
+  :root{
+    --bg:#F2F2EE;--surface:#fff;--bg-soft:#F8F8F5;--border:#E5E5E0;--border-dk:#D0D0CA;
+    --green:#1e6b45;--green-lt:#e8f5ee;--green-md:#2d8a5a;--green-dk:#144d31;
+    --text:#0D0D0B;--muted:#888880;--muted-lt:#BBBBB5;
+    --yellow:#E8E832;--yellow-border:#E8E83250;
+    --red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+    --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;--sb-bg:#0A0A08;
+    --blue:#2d6cb5;--blue-bg:#eef4fb;--blue-bd:#bcd6ef;
+    --sans:Helvetica,Arial,sans-serif;--mono:Helvetica,Arial,sans-serif;--radius:5px;--radius-lg:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1200px;margin:0 auto;padding:18px 20px 70px}
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .top h1{font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .vbadge{font-size:9px;font-weight:700;color:var(--muted-lt);letter-spacing:.06em}
+  .preview{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text);
+    background:var(--yellow);border:1px solid var(--yellow-border);border-radius:20px;padding:4px 11px}
+  .grow{flex:1}
+  .pill{font-size:10px;font-weight:700;padding:6px 13px;border:1px solid var(--border-dk);border-radius:20px;
+    background:var(--surface);color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;
+    font-family:var(--sans);white-space:nowrap;transition:all .1s}
+  .pill:hover{border-color:var(--text);color:var(--text)}
+  .pill.on{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+  .tokrow{display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:11px;color:var(--muted)}
+  .tokrow input{flex:1;max-width:420px;font-family:var(--mono);font-size:11px;padding:7px 9px;border:1px solid var(--border-dk);border-radius:var(--radius)}
+
+  .ctrls{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;background:var(--surface);
+    border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:14px}
+  .ctrls.hidden{display:none}
+  .fld{display:flex;flex-direction:column;gap:4px}
+  .fld label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-lt)}
+  .fld input,.fld select{font-family:var(--mono);font-size:14px;font-weight:700;width:78px;padding:6px 9px;
+    border:1px solid var(--border-dk);border-radius:var(--radius);background:var(--surface);color:var(--text)}
+  .fld .hint{font-size:9px;color:var(--muted-lt)}
+  .chk{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text);padding-bottom:7px}
+  .chk input{width:16px;height:16px}
+
+  /* floating header — whole top bar sticks while the board scrolls */
+  .header{position:sticky;top:0;z-index:40;background:var(--bg);
+    margin:0 -20px;padding:14px 20px 0;
+    border-bottom:1px solid var(--border);box-shadow:0 5px 9px -7px rgba(0,0,0,.18)}
+  .stickybar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:10px 0 11px;margin-bottom:0}
+  .seg{display:inline-flex;border:1px solid var(--border-dk);border-radius:22px;overflow:hidden;background:var(--surface)}
+  .seg-btn{padding:8px 20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+    background:transparent;color:var(--muted);cursor:pointer;border:none;font-family:var(--sans)}
+  .seg-btn.on{background:var(--sb-bg);color:var(--yellow)}
+  .viewcap{font-size:11px;color:var(--muted);line-height:1.4;min-width:0}
+
+  .sum{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .sumc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 16px;min-width:140px}
+  .sumc .k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-lt)}
+  .sumc .v{font-size:24px;font-weight:700;font-family:var(--mono);line-height:1.1;margin-top:3px}
+  .sumc .s{font-size:10px;color:var(--muted);margin-top:1px}
+
+  .board{display:flex;flex-direction:column;gap:14px;margin-bottom:26px}
+  .dayp{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+  .dayp.today{border-color:var(--green)}
+  .dayp.split{border-color:var(--amb-bd);background:var(--amb-bg)}
+  .dayp.holiday{background:var(--bg-soft);border-style:dashed;border-color:var(--border-dk)}
+  .dayp.holiday .dtot{color:var(--amb);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:10px}
+  .dhdr{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+  .ddate{font-size:16px;font-weight:700;font-family:var(--mono)}
+  .ddow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .dtot{margin-left:auto;font-size:11px;font-family:var(--mono);color:var(--muted)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cols.one{grid-template-columns:1fr;max-width:560px}
+  @media(max-width:660px){.cols{grid-template-columns:1fr}}
+  .col{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--bg-soft)}
+  .colh{padding:9px 13px;display:flex;align-items:center;gap:10px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .colh .cp{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+  .colh .cn{font-size:11px;font-family:var(--mono);margin-left:auto;font-weight:700}
+  .colh .cn.under{color:var(--muted)} .colh .cn.good{color:var(--green)} .colh .cn.over{color:var(--amb)}
+  .fillbar{position:relative;height:9px;background:var(--bg);border-radius:5px;overflow:hidden;flex:1;max-width:150px}
+  .fillbar .f{position:absolute;left:0;top:0;bottom:0;background:var(--green-md);border-radius:5px}
+  .fillbar.over .f{background:var(--amb)}
+  .fillbar .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text);opacity:.45}
+
+  /* platen group */
+  .pgrp{padding:6px 6px 8px}
+  .pgrp+.pgrp{border-top:1px dashed var(--border-dk)}
+  .pgrp-h{display:flex;align-items:center;gap:7px;padding:5px 6px 7px;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.08em;color:var(--text)}
+  .pgrp-h .pn{font-size:10px;font-family:var(--mono);color:var(--muted);font-weight:700;margin-left:auto}
+  .pgrp-h .glyph{font-size:13px;line-height:1}
+
+  .ocard{padding:9px 10px;border-radius:var(--radius);border-left:3px solid transparent}
+  .ocard+.ocard{margin-top:3px}
+  .ocard.hd{border-left-color:var(--red)}
+  .ocard.pinned{border-left-color:var(--yellow);background:#fffdf0}
+  .ocard:hover{background:var(--surface)}
+  .ocard:hover .oc-x{opacity:1}
+  .oc-x{margin-left:4px;border:none;background:transparent;color:var(--muted-lt);font-size:17px;line-height:1;
+    cursor:pointer;padding:0 2px;opacity:.35;transition:opacity .1s,color .1s;font-family:var(--sans)}
+  .oc-x:hover{color:var(--red);opacity:1}
+  .t-pin{background:#fff7d6;color:#8a6d00;border-color:var(--yellow-border)}
+  .oc-top{display:flex;align-items:baseline;gap:10px}
+  .oc-cust{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+  .oc-ord{font-size:14px;font-weight:700;font-family:var(--mono);color:var(--text)}
+  .oc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;align-items:center}
+  .oc-locs{font-size:11px;color:var(--muted);margin-top:5px}
+  .colempty{padding:18px 12px;font-size:11px;color:var(--muted-lt);text-align:center}
+  .dsplit{font-size:12px;font-weight:700;color:var(--amb)}
+
+  .tag{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:3px;border:1px solid;white-space:nowrap}
+  .t-impr{background:var(--sb-bg);color:var(--yellow);border-color:var(--yellow-border);font-size:10px}
+  .t-n{background:var(--surface);color:var(--muted);border-color:var(--border)}
+  .t-hd{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+  .t-asap{background:var(--green-lt);color:var(--green);border-color:#bfe3cf}
+  .t-soon{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+  .t-split{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+  .t-mixed{background:var(--surface);color:var(--amb);border-color:var(--amb-bd)}
+  .t-fleece{background:#f3eefb;color:#6b4ba8;border-color:#d9c9f0}
+  .t-bump{background:#fdecdd;color:#b45309;border-color:#f5c98a}
+  .t-buf{background:var(--green-lt);color:var(--green);border-color:#bfe3cf}
+  .t-tight{background:var(--amb-bg);color:var(--amb);border-color:var(--amb-bd)}
+  .t-late{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+
+  .sec-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 2px 10px}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;font-size:12px;border-bottom:1px solid var(--bg)}
+  th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-lt);background:var(--bg-soft)}
+  td.num{font-family:var(--mono);text-align:right}
+  tr:last-child td{border-bottom:none}
+  .imp{font-family:var(--mono);font-weight:700}
+  .muted{color:var(--muted)}
+  .empty{padding:28px;text-align:center;color:var(--muted);font-size:12px}
+  #err{display:none;background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);padding:9px 13px;border-radius:var(--radius);font-size:12px;margin-bottom:14px}
+  .legend{font-size:10px;color:var(--muted-lt);margin:0 2px 14px;line-height:1.7}
+  /* held / manual placement panel */
+  .heldbox{background:var(--surface);border:1px solid var(--yellow-border);border-left:3px solid var(--yellow);
+    border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:16px}
+  .hp-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text);
+    display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .hp-count{font-family:var(--mono);background:var(--yellow);color:var(--text);border-radius:20px;padding:1px 8px;font-size:10px}
+  .hp-clear{margin-left:auto;border:1px solid var(--border-dk);background:var(--surface);color:var(--muted);
+    font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:20px;padding:4px 11px;cursor:pointer;font-family:var(--sans)}
+  .hp-clear:hover{border-color:var(--text);color:var(--text)}
+  .hp-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 4px;border-top:1px solid var(--bg)}
+  .hp-row:first-of-type{border-top:none}
+  .hp-id{font-size:13px;font-family:var(--mono)} .hp-cust{font-weight:400;color:var(--muted);font-family:var(--sans);text-transform:uppercase;font-size:11px}
+  .hp-meta{font-size:10px;color:var(--muted);font-family:var(--mono)}
+  .hp-date{font-family:var(--mono);font-size:12px;padding:5px 7px;border:1px solid var(--border-dk);border-radius:var(--radius)}
+  .hp-on{font-size:11px;font-weight:700;color:var(--green);font-family:var(--mono)}
+  .hp-note{font-size:11px;color:var(--amb);font-style:italic}
+  .hp-restore{margin-left:auto;border:1px solid var(--border-dk);background:var(--surface);color:var(--text);
+    font-size:10px;font-weight:700;border-radius:20px;padding:5px 12px;cursor:pointer;font-family:var(--sans)}
+  .hp-restore:hover{background:var(--sb-bg);color:var(--yellow);border-color:var(--sb-bg)}
+  .hp-empty{font-size:11px;color:var(--muted)}
+  .foot{margin-top:26px;font-size:10px;color:var(--muted-lt);line-height:1.7}
+
+  /* back room — embroidery + finishing strip inside each day panel (v12) */
+  .bkrow{margin-top:13px;border-top:1px dashed var(--border-dk);padding-top:11px}
+  .bkrow.helper{margin:13px -18px -16px;padding:11px 18px 14px;background:var(--amb-bg);
+    border-top:1px solid var(--amb-bd);border-radius:0 0 var(--radius-lg) var(--radius-lg)}
+  .bk-h{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+  .bk-h .bk-lbl{color:var(--text)}
+  .bk-tot{font-family:var(--mono);color:var(--muted);font-weight:700}
+  .bk-help{margin-left:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--amb);background:var(--surface);border:1px solid var(--amb-bd);border-radius:20px;padding:3px 10px}
+  .bk-jobs{display:flex;flex-wrap:wrap;gap:5px}
+  .bk-job{font-size:10px;font-weight:700;font-family:var(--mono);padding:3px 9px;border-radius:3px;border:1px solid;background:var(--surface)}
+  .bk-job .bj-t{font-family:var(--sans);font-size:9px;text-transform:uppercase;letter-spacing:.05em;opacity:.85}
+  .bk-job.emb{color:#0f6e56;border-color:#9fe1cb;background:#e3f5ee}
+  .bk-job.fold{color:#8a5a0b;border-color:var(--amb-bd);background:var(--amb-bg)}
+  .bk-job.upc{color:#185fa5;border-color:var(--blue-bd);background:var(--blue-bg)}
+  .bk-job.hanger{color:#993556;border-color:#f4c0d1;background:#fbeaf0}
+  .bk-empty{font-size:10px;color:var(--muted-lt)}
+  .seg.anch{margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+  <div class="top">
+    <h1>Pine Day-Fill</h1><span class="vbadge">v15</span>
+    <span class="preview">Recommend-only · no writes</span>
+    <span class="grow"></span>
+    <button class="pill" id="settingsbtn">⚙ Settings</button>
+    <button class="pill" id="refresh">↻ Refresh</button>
+  </div>
+
+  <div class="tokrow">
+    <span>Token</span>
+    <input id="tok" type="password" placeholder="pine_at_key (saved locally)">
+    <button class="pill" id="savetok">Save</button>
+    <span id="tokstate"></span>
+  </div>
+
+  <div id="err"></div>
+
+  <div class="ctrls hidden" id="ctrls">
+    <div class="fld"><label>Weeks</label><input id="weeks" type="number" value="2" min="1" max="6"></div>
+    <div class="fld"><label>P1 target / day</label><input id="t1" type="number" value="1100" step="50"></div>
+    <div class="fld"><label>P2 target / day</label><input id="t2" type="number" value="950" step="50"><span class="hint">cooler than P1</span></div>
+    <div class="fld"><label>Fri factor</label><input id="ff" type="number" value="0.7" step="0.05" min="0.3" max="1"></div>
+    <div class="fld"><label>Fri press</label><select id="frp"><option value="P1">P1</option><option value="P2">P2</option></select></div>
+    <div class="fld"><label>P2 cap · bandana</label><input id="cb" type="number" value="2" min="1" max="8"></div>
+    <div class="fld"><label>P2 cap · garment</label><input id="cg" type="number" value="4" min="1" max="12"></div>
+    <div class="fld"><label>Fleece weight</label><input id="fw" type="number" value="1.35" step="0.05" min="1" max="2"><span class="hint">heavier on press</span></div>
+    <div class="fld"><label>Mid run · to pcs</label><input id="spMid" type="number" value="1500" step="100" min="100"><span class="hint">small/mid ceiling</span></div>
+    <div class="fld"><label>Large run · to pcs</label><input id="spLarge" type="number" value="3000" step="100" min="100"><span class="hint">large ceiling</span></div>
+    <div class="fld"><label>Spoil % · small/mid</label><input id="spR1" type="number" value="2" step="0.5" min="0" max="30"><span class="hint">keeps them fast</span></div>
+    <div class="fld"><label>Spoil % · large</label><input id="spR2" type="number" value="6" step="0.5" min="0" max="30"></div>
+    <div class="fld"><label>Spoil % · very large</label><input id="spR3" type="number" value="10" step="0.5" min="0" max="30"><span class="hint">err cautious</span></div>
+    <div class="fld"><label>Bandana ×</label><input id="spBand" type="number" value="1.5" step="0.1" min="1" max="3"><span class="hint">hotter than apparel</span></div>
+    <div class="fld"><label>ASAP max · biz days</label><input id="asapmax" type="number" value="15" min="1" max="60"><span class="hint">turnaround cap</span></div>
+    <div class="fld"><label>Holidays · skip</label><input id="holidays" type="text" value="2026-07-03" style="width:200px;font-size:11px"><span class="hint">YYYY-MM-DD, comma-sep</span></div>
+    <div class="fld"><label>Fold rate /h</label><input id="rFold" type="number" value="90" step="5"><span class="hint">fold &amp; bag</span></div>
+    <div class="fld"><label>UPC rate /h</label><input id="rUpc" type="number" value="200" step="10"><span class="hint">stickers</span></div>
+    <div class="fld"><label>Hanger rate /h</label><input id="rHang" type="number" value="120" step="5"><span class="hint">bandana</span></div>
+    <div class="fld"><label>Solo finish · h/day</label><input id="soloD" type="number" value="1.5" step="0.5"><span class="hint">tech alone</span></div>
+    <div class="fld"><label>Emb helper · h/wk</label><input id="embTrig" type="number" value="15" step="1"><span class="hint">trigger</span></div>
+    <div class="fld"><label>Big finish · pcs</label><input id="bigJob" type="number" value="300" step="25"><span class="hint">trigger</span></div>
+    <label class="chk"><input type="checkbox" id="allowsplit" checked> Allow same-day P1+P2 splits</label>
+    <label class="chk"><input type="checkbox" id="batchplaten" checked> Batch by platen family</label>
+    <label class="chk"><input type="checkbox" id="wfleece" checked> Weight fleece heavier</label>
+    <label class="chk"><input type="checkbox" id="wspoil" checked> Bumper for spoilage (big runs)</label>
+    <button class="pill" id="recompute">Re-pack</button>
+  </div>
+
+  <div class="stickybar">
+    <div class="seg">
+      <button class="seg-btn on" id="vsch">Scheduled now</button>
+      <button class="seg-btn" id="vsug">Suggested</button>
+    </div>
+    <div class="seg anch">
+      <button class="seg-btn on" id="anext">From next Mon</button>
+      <button class="seg-btn" id="athis">This week</button>
+    </div>
+    <span class="viewcap" id="viewcap"></span>
+  </div>
+  </div><!-- /header -->
+
+  <div class="sum" id="sum"></div>
+  <div class="legend" id="legend"></div>
+  <div id="heldpanel"></div>
+
+  <div class="board" id="board"><div class="empty">Save your token, then ↻ Refresh.</div></div>
+
+  <div class="sec-t" id="taillbl"></div>
+  <div id="tail"><div class="empty muted">—</div></div>
+
+  <div class="foot">
+    Impressions = pieces (locations). <b>Load</b> = press-time-weighted impressions — sweatshirts &amp; fleece (Sweatshirt, Pullover/Zip Hoodie, Youth Fleece) run slower, so each fleece piece counts ~1.35× toward a press-day budget (tunable). Cards show raw impressions plus a <span style="color:#6b4ba8">fleece</span> tag; columns &amp; day totals are in load. Big runs misprint more, so a <b>spoilage bumper</b> reserves extra press-time on large <i>per-design</i> runs — the overs a big run has to print on top of the order count. It scales by run length in three tunable brackets (small/mid stay fast; large and very-large runs reserve more). Bandanas run hotter than apparel, so bandana-platen work takes that rate × a tunable <b>Bandana ×</b> (default 1.5×). It shows as a <span style="color:#b45309">N% spoilage</span> tag on the card, and rolls up as a blended plan-level % in the <b>Spoilage</b> summary. The extra impressions and press-time are built into the day's load either way — the % is just the readout. Off-able in Settings. Work is grouped by <b>platen family</b> so a platen gets mounted once and the whole batch runs before swapping. Orders stay together; complex/large orders lean to P1 and only <span style="color:var(--blue)">split across both presses</span> the same day when they can't fit one. <b>Hard Deadlines</b> pack first and earliest (max lead time); any HD landing &lt;3 days before its Customer Due Date is flagged <span style="color:var(--amb)">tight</span>, and after the date <span style="color:var(--red)">late</span> — in both the current and suggested views. ASAP work is capped at a 15-business-day turnaround. Holidays (e.g. 7/3) are skipped. Recommend-only — nothing is written to Airtable.
+    <br><br><b>Back room</b> (the TAJIMA station): each day also shows embroidery (load = Run Time spindle-hours) and finishing (load = pieces ÷ throughput — Fold &amp; Bag, UPC, Bandana Hanger). A <span style="color:var(--amb)">+ Helper</span> flag appears on any week where embroidery exceeds the weekly trigger, finishing exceeds what one tech absorbs solo (solo h/day × 5), or a single finishing job tops the big-job threshold — all tunable in Settings. <b>This week / From next Mon</b> re-anchors the board to the current Mon–Fri or the next, in both views. Finishing imprints with no Scheduled Start show in the <b>Finishing unscheduled</b> count — give them a start date so they hit the queue.
+  </div>
+</div>
+
+<script>
+const BASE='appJkaLk8DykjsgHR', TBL='tbln9oAGvz2PNBZLV';
+const F={press:'fldv59OGU7EkBVofo',start:'fldfqtIgcEfIlIeQk',pieces:'fldKtGAIDbstJWIgb',
+  colors:'fld8rgkIj1RPO97QU',loc:'fldKQIL0rSJBSeC8S',pri:'fldMCyF3zHshhQLM5',
+  status:'fldNROVFSsBwLUOYW',impid:'fldHjjQ5lzm66ox5j',order:'fldZAIMnXPYF9LiXq',cust:'fldeLMIAC0ABQAjYJ',
+  due:'fldQ6mM0uxdqjw4kr',liLink:'fldsvntAy1QHEoDAg'};
+// Line Items table (for garment-type bumper)
+const LI_TBL='tblJx5UlwO7oMSk5H', LI_TYPE='fldQg3ejR10sADyFV', LI_QTY='fldFfuKAcduwWQp8g';
+const HEAVY={'Sweatshirt':1,'Pullover Hoodie':1,'Zip Up Hoodie':1,'Youth Fleece':1};
+const ACTIVE=['Received & Staged','Scheduled, Screened, & Inbound','Pre-press','Ordered - In Production','Ready to Order'];
+const PRESS_NAME={'Press 1 - ROQ NEXT':'P1','Press 2 - ROQ YOU':'P2','Press 1 & 2 - SPLIT':'SPLIT'};
+const TOL=1.15;
+const PLATEN_ORDER={Standard:0,Sleeve:1,Bandana:2,'Tea Towel':3};
+const PLATEN_ICON={Standard:'▦',Sleeve:'▭',Bandana:'◇','Tea Towel':'▤'};
+function platen(loc){ if(loc==='Bandana')return 'Bandana'; if(loc==='Left Sleeve'||loc==='Right Sleeve')return 'Sleeve'; if(loc==='Tea Towel')return 'Tea Towel'; return 'Standard'; }
+
+/* ---- back room: embroidery + finishing on the one TAJIMA station (v12) ----
+   Different model from the presses: hours-based, not impressions. Embroidery load =
+   Run Time spindle-hours; finishing load = pieces ÷ throughput. Recommend-only. */
+const BR_F={equip:'fldv59OGU7EkBVofo',itype:'fldjNCuaGOkWgzH2K',start:'fldfqtIgcEfIlIeQk',
+  runsecs:'fldvAqPl6Yq3bxASW',liLink:'fldsvntAy1QHEoDAg',impid:'fldHjjQ5lzm66ox5j',cust:'fldeLMIAC0ABQAjYJ'};
+const EMB_EQUIP='Embroidery - TAJIMA 6-Head';
+const FIN_TYPE={'Finishing - Fold & Bag':'fold','Finishing - UPC sticker':'upc','Finishing - Bandana Hanger':'hanger'};
+const FIN_LABEL={fold:'Fold & bag',upc:'UPC',hanger:'Hanger'};
+let BR_POOL=[], BR_UNSCHED=0, BR_BYDAY={}, BR_HELPER={}, ANCHOR='next';
+function gval(id,dflt){ const el=document.getElementById(id); const v=el?+el.value:NaN; return isFinite(v)&&v>0?v:dflt; }
+function finRate(t){ return t==='fold'?gval('rFold',90):t==='upc'?gval('rUpc',200):gval('rHang',120); }
+function SOLO(){ return gval('soloD',1.5); }
+function EMBTRIG(){ return gval('embTrig',15); }
+function BIGJOB(){ return gval('bigJob',300); }
+
+let TOKEN=localStorage.getItem('pine_at_key')||'';
+let POOL=[], PLAN=null, VIEW='sched';
+// client-only overrides (no Airtable writes): HELD = orders pulled out of auto-pack; PIN = held order -> manual day
+let HELD=JSON.parse(localStorage.getItem('pine_df_held')||'{}');
+let PIN=JSON.parse(localStorage.getItem('pine_df_pin')||'{}');
+function saveOverrides(){ localStorage.setItem('pine_df_held',JSON.stringify(HELD)); localStorage.setItem('pine_df_pin',JSON.stringify(PIN)); }
+function holdOrder(ord){ HELD[ord]=1; delete PIN[ord]; saveOverrides(); if(POOL.length)buildPlan(); }
+function pinOrder(ord,day){ if(day){PIN[ord]=day;}else{delete PIN[ord];} HELD[ord]=1; saveOverrides(); if(POOL.length)buildPlan(); }
+function restoreOrder(ord){ delete HELD[ord]; delete PIN[ord]; saveOverrides(); if(POOL.length)buildPlan(); }
+
+/* helpers */
+function selName(v){ if(v==null)return ''; if(typeof v==='string')return v; if(Array.isArray(v))return selName(v[0]); if(v.name)return v.name; return String(v); }
+function lookFirst(v){ if(v==null)return ''; if(Array.isArray(v))return selName(v[0]); return selName(v); }
+function num(v){ const n=Array.isArray(v)?v[0]:v; const x=Number(n); return isFinite(x)?x:0; }
+function dayKey(iso){ return (typeof iso==='string'&&iso.length>=10)?iso.slice(0,10):''; }
+function mtTodayKey(){ return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Denver',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); }
+function addDays(key,d){ const [y,m,dd]=key.split('-').map(Number); const dt=new Date(y,m-1,dd,12,0,0); dt.setDate(dt.getDate()+d);
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
+function dowOf(key){ const [y,m,dd]=key.split('-').map(Number); return new Date(y,m-1,dd,12).getDay(); }
+function nextMonday(key){ let k=addDays(key,1); for(let i=0;i<14;i++){ if(dowOf(k)===1) return k; k=addDays(k,1); } return key; }
+function thisMonday(key){ let k=key; for(let i=0;i<7;i++){ if(dowOf(k)===1) return k; k=addDays(k,-1); } return key; }
+function planStart(){ return ANCHOR==='this' ? thisMonday(mtTodayKey()) : nextMonday(mtTodayKey()); }
+function isoWeekKey(day){ return thisMonday(day); }
+function addBusinessDays(key,n,hol){ hol=hol||{}; let k=key,c=0; while(c<n){ k=addDays(k,1); const dw=dowOf(k); if(dw>=1&&dw<=5&&!hol[k]) c++; } return k; }
+function holidaySet(){ const raw=(document.getElementById('holidays')||{}).value||''; const s={}; raw.split(/[,\s]+/).forEach(x=>{ x=x.trim(); if(/^\d{4}-\d{2}-\d{2}$/.test(x)) s[x]=1; }); return s; }
+const DOW=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+function fmtMD(key){ const [,m,d]=key.split('-'); return (+m)+'/'+(+d); }
+function daysBetween(aKey,bKey){ if(!aKey||!bKey)return null; const A=new Date(aKey+'T12:00:00'),B=new Date(bKey+'T12:00:00');
+  return Math.round((B-A)/86400000); }
+function bufDays(due,dayKeyStr){ return (due&&dayKeyStr)? daysBetween(dayKeyStr,due) : null; } // +N = N days of buffer before deadline
+function err(m){ const e=document.getElementById('err'); if(!m){e.style.display='none';return;} e.style.display='block'; e.textContent=m; }
+function capOK(it){ const cb=+document.getElementById('cb').value||2, cg=+document.getElementById('cg').value||4; return it.loc==='Bandana'? it.colors<=cb : it.colors<=cg; }
+
+/* fetch */
+async function atFetch(formula){
+  let out=[], offset='';
+  do{
+    const u=new URL('https://api.airtable.com/v0/'+BASE+'/'+TBL);
+    u.searchParams.set('returnFieldsByFieldId','true'); u.searchParams.set('pageSize','100');
+    u.searchParams.set('filterByFormula',formula);
+    Object.values(F).forEach(id=>u.searchParams.append('fields[]',id));
+    if(offset)u.searchParams.set('offset',offset);
+    const r=await fetch(u,{headers:{Authorization:'Bearer '+TOKEN}});
+    if(!r.ok) throw new Error('Airtable '+r.status+' '+(await r.text()).slice(0,160));
+    const j=await r.json(); out=out.concat(j.records||[]); offset=j.offset||'';
+  }while(offset);
+  return out;
+}
+async function loadPool(){
+  if(!TOKEN){ err('No token saved. Paste pine_at_key and Save.'); return; }
+  err(''); document.getElementById('board').innerHTML='<div class="empty">Loading…</div>';
+  const today=mtTodayKey(), start=planStart();
+  const weeks=Math.max(1,Math.min(6,+document.getElementById('weeks').value||2));
+  const lo=addDays(ANCHOR==='this'?start:today,-2);
+  const hi=addDays(start, weeks*7+7);
+  const pressOR="OR({Equipment}='Press 1 - ROQ NEXT',{Equipment}='Press 2 - ROQ YOU',{Equipment}='Press 1 & 2 - SPLIT')";
+  const fSched="AND("+pressOR+",IS_AFTER({Scheduled Start Time},DATETIME_PARSE('"+lo+"')),IS_BEFORE({Scheduled Start Time},DATETIME_PARSE('"+hi+"')))";
+  const fUns="AND("+pressOR+",NOT({Scheduled Start Time}))";
+  let recs;
+  try{
+    const [a,b]=await Promise.all([atFetch(fSched),atFetch(fUns)]);
+    const seen={}; recs=[]; [...a,...b].forEach(r=>{ if(!seen[r.id]){seen[r.id]=1;recs.push(r);} });
+  }catch(e){ err(e.message); document.getElementById('board').innerHTML='<div class="empty">Load failed.</div>'; return; }
+  POOL=[];
+  recs.forEach(r=>{
+    const f=r.fields||{};
+    const status=lookFirst(f[F.status]); if(ACTIVE.indexOf(status)<0) return;
+    const pieces=num(f[F.pieces]); if(pieces<=0) return;
+    const press=PRESS_NAME[selName(f[F.press])]||''; if(!press) return;
+    const loc=selName(f[F.loc])||'';
+    const liRaw=f[F.liLink]; const liIds=Array.isArray(liRaw)?liRaw.map(x=>(x&&x.id)||x).filter(s=>typeof s==='string'):[];
+    POOL.push({ id:r.id, impid:selName(f[F.impid])||'?', order:String(num(f[F.order])||lookFirst(f[F.order])||''),
+      cust:selName(f[F.cust])||'—', pieces, colors:num(f[F.colors]), loc, platen:platen(loc),
+      pri:(lookFirst(f[F.pri])==='Hard Deadline')?'HD':'ASAP', status, press, curDay:dayKey(f[F.start])||'',
+      due:dayKey(f[F.due])||'', liIds, heavyFrac:0, load:pieces,
+      ready:(status==='Received & Staged') });
+  });
+  try{ await loadGarmentTypes(); }catch(e){ console.warn('garment-type fetch failed, no fleece weighting:',e); }
+  try{ await loadBackroom(lo,hi); }catch(e){ console.warn('back-room fetch failed:',e); BR_POOL=[]; BR_UNSCHED=0; }
+  buildPlan();
+}
+
+/* Garment bumper: resolve each imprint's heavy (fleece) fraction via its Line Items.
+   We store heavyFrac per imprint (recomputable); actual load weight is applied at
+   plan-build time so the Fleece-weight slider stays live without a refetch. */
+async function loadGarmentTypes(){
+  const ids=[...new Set(POOL.flatMap(it=>it.liIds))];
+  if(!ids.length) return;
+  const liMap={};
+  for(let i=0;i<ids.length;i+=40){
+    const chunk=ids.slice(i,i+40);
+    const formula='OR('+chunk.map(id=>"RECORD_ID()='"+id+"'").join(',')+')';
+    const u=new URL('https://api.airtable.com/v0/'+BASE+'/'+LI_TBL);
+    u.searchParams.set('returnFieldsByFieldId','true'); u.searchParams.set('pageSize','100');
+    u.searchParams.set('filterByFormula',formula);
+    u.searchParams.append('fields[]',LI_TYPE); u.searchParams.append('fields[]',LI_QTY);
+    const r=await fetch(u,{headers:{Authorization:'Bearer '+TOKEN}});
+    if(!r.ok) throw new Error('Line Items '+r.status);
+    (await r.json()).records.forEach(rec=>{ const f=rec.fields||{};
+      liMap[rec.id]={ type:selName(f[LI_TYPE])||'', qty:num(f[LI_QTY]) }; });
+  }
+  POOL.forEach(it=>{
+    let q=0,hq=0;
+    it.liIds.forEach(id=>{ const li=liMap[id]; if(!li)return; const w=li.qty||0; q+=w; if(HEAVY[li.type]) hq+=w; });
+    it.heavyFrac = q>0 ? hq/q : 0;
+  });
+}
+
+/* Back room fetch: embroidery (Equipment=TAJIMA, load=Run Time) + finishing
+   (keyed on Imprint Type — Equipment='Finishing' isn't reliably set). Finishing
+   pieces resolved via linked Line Item Total Qty. Stores raw pcs/secs so the rate
+   sliders stay live (hours recomputed at plan time, like the fleece weight). */
+async function loadBackroom(lo,hi){
+  BR_POOL=[]; BR_UNSCHED=0;
+  const finOR="OR("+Object.keys(FIN_TYPE).map(n=>"{Imprint Type}='"+n+"'").join(',')+")";
+  const win="AND(IS_AFTER({Scheduled Start Time},DATETIME_PARSE('"+lo+"')),IS_BEFORE({Scheduled Start Time},DATETIME_PARSE('"+hi+"')))";
+  const fSched="AND(OR({Equipment}='"+EMB_EQUIP+"',"+finOR+"),"+win+")";
+  const fUns="AND("+finOR+",NOT({Scheduled Start Time}))";
+  async function grab(formula){ let out=[],offset='';
+    do{ const u=new URL('https://api.airtable.com/v0/'+BASE+'/'+TBL);
+      u.searchParams.set('returnFieldsByFieldId','true'); u.searchParams.set('pageSize','100');
+      u.searchParams.set('filterByFormula',formula);
+      Object.values(BR_F).forEach(id=>u.searchParams.append('fields[]',id));
+      if(offset)u.searchParams.set('offset',offset);
+      const r=await fetch(u,{headers:{Authorization:'Bearer '+TOKEN}});
+      if(!r.ok) throw new Error('Back-room '+r.status+' '+(await r.text()).slice(0,140));
+      const j=await r.json(); out=out.concat(j.records||[]); offset=j.offset||'';
+    }while(offset); return out; }
+  const [sch,uns]=await Promise.all([grab(fSched),grab(fUns)]);
+  BR_UNSCHED=uns.length;
+  const embRecs=[], finRecs=[];
+  sch.forEach(r=>{ const f=r.fields||{}; const t=FIN_TYPE[selName(f[BR_F.itype])];
+    if(t) finRecs.push({f,t}); else if(selName(f[BR_F.equip])===EMB_EQUIP) embRecs.push({f}); });
+  // batch Line Item Total Qty for finishing pieces
+  const liIds=[...new Set(finRecs.flatMap(x=>{ const raw=x.f[BR_F.liLink];
+    return Array.isArray(raw)?raw.map(y=>(y&&y.id)||y).filter(s=>typeof s==='string'):[]; }))];
+  const liQ={};
+  for(let i=0;i<liIds.length;i+=40){
+    const chunk=liIds.slice(i,i+40);
+    const formula='OR('+chunk.map(id=>"RECORD_ID()='"+id+"'").join(',')+')';
+    const u=new URL('https://api.airtable.com/v0/'+BASE+'/'+LI_TBL);
+    u.searchParams.set('returnFieldsByFieldId','true'); u.searchParams.set('pageSize','100');
+    u.searchParams.set('filterByFormula',formula); u.searchParams.append('fields[]',LI_QTY);
+    const r=await fetch(u,{headers:{Authorization:'Bearer '+TOKEN}});
+    if(!r.ok) throw new Error('LI '+r.status);
+    (await r.json()).records.forEach(rec=>{ liQ[rec.id]=num((rec.fields||{})[LI_QTY]); });
+  }
+  embRecs.forEach(({f})=>{ BR_POOL.push({kind:'emb', day:dayKey(f[BR_F.start])||'',
+    cust:selName(f[BR_F.cust])||'—', impid:selName(f[BR_F.impid])||'?',
+    secs:num(f[BR_F.runsecs]), pcs:0}); });
+  finRecs.forEach(({f,t})=>{ const raw=f[BR_F.liLink];
+    const ids=Array.isArray(raw)?raw.map(y=>(y&&y.id)||y).filter(s=>typeof s==='string'):[];
+    const pcs=ids.reduce((s,id)=>s+(liQ[id]||0),0);
+    BR_POOL.push({kind:'fin', finType:t, day:dayKey(f[BR_F.start])||'',
+      cust:selName(f[BR_F.cust])||'—', impid:selName(f[BR_F.impid])||'?', pcs, secs:0}); });
+}
+
+/* Turn raw back-room jobs into per-day buckets + per-week helper flags using the
+   current rate / trigger settings. The helper rule IS the scheduling template:
+   pull a second hand when embroidery is heavy, finishing piles up, or a job is big. */
+function computeBR(){
+  BR_BYDAY={}; BR_HELPER={};
+  const weeks={};
+  BR_POOL.forEach(j=>{ if(!j.day) return;
+    const h = j.kind==='emb' ? j.secs/3600 : (finRate(j.finType)>0 ? j.pcs/finRate(j.finType) : 0);
+    j._h=h;
+    const d=BR_BYDAY[j.day]||(BR_BYDAY[j.day]={emb:0,fin:0,jobs:[]});
+    if(j.kind==='emb') d.emb+=h; else d.fin+=h;
+    d.jobs.push(j);
+    const wk=isoWeekKey(j.day), w=weeks[wk]||(weeks[wk]={emb:0,fin:0,big:false});
+    if(j.kind==='emb') w.emb+=h; else { w.fin+=h; if(j.pcs>BIGJOB()) w.big=true; }
+  });
+  const soloWk=SOLO()*5;
+  Object.keys(weeks).forEach(wk=>{ const w=weeks[wk], reasons=[];
+    if(w.emb>EMBTRIG()) reasons.push('emb '+w.emb.toFixed(0)+'h/wk');
+    if(w.fin>soloWk) reasons.push('fin '+w.fin.toFixed(1)+'h/wk');
+    if(w.big) reasons.push('job >'+BIGJOB()+'pc');
+    BR_HELPER[wk]={on:reasons.length>0, reasons}; });
+}
+
+/* day scaffold */
+function makeDays(){
+  const start=planStart();
+  const weeks=Math.max(1,Math.min(6,+document.getElementById('weeks').value||2));
+  const ff=Math.max(.3,Math.min(1,+document.getElementById('ff').value||0.7));
+  const t1=+document.getElementById('t1').value||1100, t2=+document.getElementById('t2').value||950;
+  const fp=(document.getElementById('frp')||{}).value||'P1';
+  const hol=holidaySet();
+  const days=[]; let k=start;
+  for(let i=0;i<weeks*7;i++){
+    const dw=dowOf(k);
+    if(dw>=1&&dw<=5){
+      if(hol[k]){
+        days.push({key:k,dow:dw,holiday:true,presses:[],budget:{P1:0,P2:0},pro:{P1:0,P2:0},cards:{P1:[],P2:[]},split:false,splitJob:null});
+      } else {
+        const fri=(dw===5);
+        const budget=fri?{P1:(fp==='P1'?Math.round(t1*ff):0),P2:(fp==='P2'?Math.round(t2*ff):0)}:{P1:Math.round(t1),P2:Math.round(t2)};
+        days.push({key:k,dow:dw,fri,friPress:fri?fp:null,presses:fri?[fp]:['P1','P2'],budget,
+          pro:{P1:0,P2:0},cards:{P1:[],P2:[]},split:false,splitJob:null});
+      }
+    }
+    k=addDays(k,1);
+  }
+  return {days,start};
+}
+function orderPlaten(imps){ const t={}; imps.forEach(x=>{ const f=platen(x.loc); t[f]=(t[f]||0)+x.pieces; }); const fs=Object.keys(t);
+  fs.sort((a,b)=>t[b]-t[a]); return {primary:fs[0]||'Standard', set:fs, mixed:fs.length>1}; }
+function groupOrders(start){
+  const og={};
+  POOL.filter(it=>it.press!=='SPLIT').forEach(it=>{
+    if(it.curDay && it.curDay<start) return;
+    const o=og[it.order]||(og[it.order]={order:it.order,cust:it.cust,imps:[],impr:0,load:0,maxScr:0,locs:{},pri:'ASAP',allReady:true,earliest:start,p2ok:true,heavy:false,due:''});
+    o.imps.push(it); o.impr+=it.pieces; o.load+=it.load; o.maxScr=Math.max(o.maxScr,it.colors); o.locs[it.loc]=1;
+    if(it.heavyFrac>0) o.heavy=true;
+    if(it.due && (!o.due || it.due<o.due)) o.due=it.due;
+    if(it.pri==='HD') o.pri='HD';
+    if(!it.ready) o.allReady=false;
+    if(!capOK(it)) o.p2ok=false;
+    const e=it.ready?start:(it.curDay&&it.curDay>start?it.curDay:start);
+    if(e>o.earliest) o.earliest=e;
+  });
+  const orders=Object.values(og);
+  orders.forEach(o=>{ o.locList=Object.keys(o.locs); const pl=orderPlaten(o.imps); o.platen=pl.primary; o.platenMixed=pl.mixed;
+    o.complex=(o.maxScr>(+document.getElementById('cg').value||4))||o.locList.length>=3; });
+  return orders;
+}
+function card(o,press,impsSubset,split){
+  const imps=impsSubset||o.imps;
+  const impr=imps.reduce((s,x)=>s+x.pieces,0);
+  const load=imps.reduce((s,x)=>s+x.load,0);
+  const spoilPcs=imps.reduce((s,x)=>s+(x.spoilPcs||0),0);
+  const locs=[...new Set(imps.map(x=>x.loc))];
+  const pl=orderPlaten(imps);
+  return {order:o.order,cust:o.cust,pri:o.pri,allReady:o.allReady,maxScr:Math.max.apply(null,imps.map(x=>x.colors)),
+    impr,load,spoilPcs,nimp:imps.length,locs,split:!!split,platen:pl.primary,platenMixed:pl.mixed,
+    heavy:imps.some(x=>x.heavyFrac>0),due:o.due,buffer:null};
+}
+
+/* place a manually-pinned (held) order on its chosen day — explicit override, may exceed budget */
+function placePin(o,idx,start){
+  const day=PIN[o.order];
+  if(!day){ o.pinNote='set a date'; return; }
+  const dw=dowOf(day); if(dw===0||dw===6){ o.pinNote='weekend — no production'; return; }
+  const d=idx[day];
+  if(!d){ o.pinNote='outside the planning window'; return; }
+  if(d.holiday){ o.pinNote='holiday — no production'; return; }
+  if(d.split){ o.pinNote='day held for a split'; return; }
+  let p;
+  if(d.presses.length===1) p=d.presses[0];
+  else if(o.complex) p='P1';
+  else p=(d.pro.P1/d.budget.P1)<=(d.pro.P2/d.budget.P2)?'P1':'P2';
+  d.pro[p]+=o.load;
+  const cd=card(o,p); cd.buffer=bufDays(o.due,d.key); cd.pinned=true;
+  d.cards[p].push(cd);
+  o.pinnedTo=day; o.pinnedPress=p;
+}
+
+/* SUGGESTED */
+function buildSuggested(){
+  const {days,start}=makeDays();
+  const TODAY=mtTodayKey();
+  const idx={}; days.forEach(d=>idx[d.key]=d);
+  POOL.filter(it=>it.press==='SPLIT').forEach(s=>{ const d=idx[s.curDay]; if(d){d.split=true;d.splitJob=s;} });
+  const allowSplit=document.getElementById('allowsplit').checked;
+  const batch=document.getElementById('batchplaten').checked;
+  const asapMax=Math.max(1,+document.getElementById('asapmax').value||15);
+  const asapLatest=addBusinessDays(mtTodayKey(),asapMax,holidaySet());
+  const allOrders=groupOrders(start);
+  const heldOrders=allOrders.filter(o=>HELD[o.order]);
+  const orders=allOrders.filter(o=>!HELD[o.order]);
+  heldOrders.forEach(o=>{ o.held=true; placePin(o,idx,start); }); // manual pins reserve budget first
+  orders.forEach(o=>{ o.latest = (o.pri==='ASAP') ? asapLatest : null; }); // ASAP can't be pushed past its turnaround cap
+  const PR={HD:0,ASAP:1};
+  orders.sort((a,b)=>(PR[a.pri]-PR[b.pri]) || (a.earliest<b.earliest?-1:a.earliest>b.earliest?1:0)
+    || (batch?((PLATEN_ORDER[a.platen]||0)-(PLATEN_ORDER[b.platen]||0)):0) || (b.impr-a.impr));
+  const leftover=[];
+  orders.forEach(o=>{
+    let done=false;
+    for(const d of days){
+      if(o.latest && d.key>o.latest) break;
+      if(d.key<o.earliest||d.key<TODAY||d.split||d.holiday) continue;
+      const elig=[];
+      d.presses.forEach(p=>{ if(p==='P2'&&!o.p2ok)return; if(d.pro[p]<d.budget[p]*0.98 && d.pro[p]+o.load<=d.budget[p]*TOL) elig.push(p); });
+      if(!elig.length) continue;
+      let p;
+      if(o.complex){ p=elig.indexOf('P1')>=0?'P1':elig[0]; }
+      else { elig.sort((x,y)=>(d.pro[x]/d.budget[x])-(d.pro[y]/d.budget[y])); p=elig[0]; }
+      d.pro[p]+=o.load; const cd=card(o,p); cd.buffer=bufDays(o.due,d.key); d.cards[p].push(cd); done=true; break;
+    }
+    if(done) return;
+    if(allowSplit){
+      for(const d of days){
+        if(o.latest && d.key>o.latest) break;
+        if(d.key<o.earliest||d.key<TODAY||d.split||d.holiday||d.presses.length<2) continue;
+        const room={P1:d.budget.P1*TOL-d.pro.P1, P2:d.budget.P2*TOL-d.pro.P2};
+        if(room.P1<=0&&room.P2<=0) continue;
+        // SPLIT BY PLATEN FAMILY — keep each family whole on one press; never scatter a platen.
+        const fams={}; o.imps.forEach(im=>{ (fams[platen(im.loc)]||(fams[platen(im.loc)]=[])).push(im); });
+        const famKeys=Object.keys(fams).sort((a,b)=> fams[b].reduce((s,x)=>s+x.load,0)-fams[a].reduce((s,x)=>s+x.load,0));
+        const add={P1:0,P2:0}, part={P1:[],P2:[]}; let ok=true;
+        for(const fam of famKeys){
+          const fImps=fams[fam], fPcs=fImps.reduce((s,x)=>s+x.load,0);
+          const pref=(fam==='Standard')?'P1':'P2', other=(fam==='Standard')?'P2':'P1'; // specialty platens -> P2
+          if(add[pref]+fPcs<=room[pref]){ part[pref].push.apply(part[pref],fImps); add[pref]+=fPcs; }
+          else if(add[other]+fPcs<=room[other]){ part[other].push.apply(part[other],fImps); add[other]+=fPcs; }
+          else { // family too big for either press whole -> split THIS family across both (same platen, parallel = fine)
+            const sorted=fImps.slice().sort((a,b)=>b.load-a.load);
+            for(const im of sorted){
+              if(add[pref]+im.load<=room[pref]){ part[pref].push(im); add[pref]+=im.load; }
+              else if(add[other]+im.load<=room[other]){ part[other].push(im); add[other]+=im.load; }
+              else { ok=false; break; }
+            }
+            if(!ok) break;
+          }
+        }
+        if(ok && part.P1.length && part.P2.length){ d.pro.P1+=add.P1; d.pro.P2+=add.P2;
+          const b=bufDays(o.due,d.key);
+          const c1=card(o,'P1',part.P1,true); c1.buffer=b; const c2=card(o,'P2',part.P2,true); c2.buffer=b;
+          d.cards.P1.push(c1); d.cards.P2.push(c2); done=true; break; }
+      }
+    }
+    if(!done){
+      o.reason = (o.pri==='ASAP')
+        ? ('no slot within '+asapMax+' business days (by '+fmtMD(asapLatest)+')')
+        : ((o.load>1100*TOL && !allowSplit)?'too big for one press-day — enable splits':'no open capacity in horizon');
+      leftover.push(o);
+    }
+  });
+  return {days,leftover,orders,held:heldOrders};
+}
+
+/* SCHEDULED */
+function buildScheduled(){
+  const {days,start}=makeDays();
+  const idx={}; days.forEach(d=>idx[d.key]=d);
+  const lastKey=days.length?days[days.length-1].key:start;
+  POOL.filter(it=>it.press==='SPLIT').forEach(s=>{ const d=idx[s.curDay]; if(d){d.split=true;d.splitJob=s;} });
+  const cellm={}; const unsched=[]; let beyond=0;
+  POOL.filter(it=>it.press!=='SPLIT').forEach(it=>{
+    if(it.curDay && it.curDay<start) return;
+    if(!it.curDay){ unsched.push(it); return; }
+    if(it.curDay>lastKey){ beyond++; return; }
+    const d=idx[it.curDay]; if(!d||d.split||d.holiday) return;
+    const key=it.curDay+'|'+it.press+'|'+it.order;
+    (cellm[key]||(cellm[key]={day:it.curDay,press:it.press,order:it.order,imps:[]})).imps.push(it);
+  });
+  Object.values(cellm).forEach(c=>{
+    const d=idx[c.day]; if(!d) return;
+    const due=c.imps.map(x=>x.due).filter(Boolean).sort()[0]||'';
+    const o={order:c.order,cust:c.imps[0].cust,pri:c.imps.some(x=>x.pri==='HD')?'HD':'ASAP',allReady:c.imps.every(x=>x.ready),due};
+    const cd=card(o,c.press,c.imps,false); cd.buffer=bufDays(due,c.day);
+    d.pro[c.press]+=cd.load; d.cards[c.press].push(cd);
+  });
+  return {days,unsched,beyond};
+}
+function buildPlan(){
+  const wf=(document.getElementById('wfleece')||{}).checked;
+  const W=Math.max(1,Math.min(2,+(document.getElementById('fw')||{}).value||1.35));
+  // spoilage bumper — per-design run length drives extra impressions that never ship
+  const ws=(document.getElementById('wspoil')||{}).checked;
+  const spMid=Math.max(1,+(document.getElementById('spMid')||{}).value||1500);
+  const spLarge=Math.max(spMid,+(document.getElementById('spLarge')||{}).value||3000);
+  const spR1=Math.max(0,+(document.getElementById('spR1')||{}).value||0)/100;
+  const spR2=Math.max(0,+(document.getElementById('spR2')||{}).value||0)/100;
+  const spR3=Math.max(0,+(document.getElementById('spR3')||{}).value||0)/100;
+  const spBand=Math.max(1,+(document.getElementById('spBand')||{}).value||1);
+  POOL.forEach(it=>{
+    const fleeceLoad = (wf && it.heavyFrac>0) ? it.pieces*(1+it.heavyFrac*(W-1)) : it.pieces;
+    let sr = !ws ? 0 : (it.pieces<=spMid ? spR1 : it.pieces<=spLarge ? spR2 : spR3);
+    if(sr>0 && it.platen==='Bandana') sr*=spBand;     // bandanas run hotter on average
+    it.spoilRate = sr;
+    it.spoilPcs  = Math.round(it.pieces*sr);          // garments that won't ship
+    it.load      = Math.round(fleeceLoad*(1+sr));     // press-time incl. reprints
+  });
+  computeBR();
+  PLAN={sug:buildSuggested(),sched:buildScheduled()}; render();
+}
+
+/* render */
+function fillbar(pro,budget){
+  if(!budget) return '<span class="muted" style="font-size:10px">—</span>';
+  const pct=pro/budget*100, over=pro>budget*1.001;
+  const tickLeft = over ? (budget/pro*100) : 100;
+  return `<div class="fillbar${over?' over':''}"><div class="f" style="width:${Math.min(100,pct)}%"></div><div class="tick" style="left:${tickLeft}%"></div></div>`;
+}
+function bufTag(c){
+  if(c.pri!=='HD'||c.buffer==null) return '';
+  if(c.buffer<0) return '<span class="tag t-late">⚠ '+(-c.buffer)+'d late</span>';
+  if(c.buffer<3) return '<span class="tag t-tight">⚠ '+c.buffer+'d buffer</span>';
+  return '<span class="tag t-buf">'+c.buffer+'d before due</span>';
+}
+function cardHtml(c){
+  const x=(VIEW==='sug')?`<button class="oc-x" data-hold="${c.order}" title="Remove from suggestions">×</button>`:'';
+  return `<div class="ocard ${c.pri==='HD'?'hd':''}${c.pinned?' pinned':''}">
+    <div class="oc-top"><span class="oc-cust">${c.cust}</span><span class="oc-ord">#${c.order}</span>${x}</div>
+    <div class="oc-tags">
+      ${c.pinned?'<span class="tag t-pin">📌 pinned</span>':''}
+      <span class="tag t-impr">${c.impr.toLocaleString()} impr</span>
+      <span class="tag t-n">${c.nimp} loc · ${c.maxScr} scr</span>
+      <span class="tag ${c.pri==='HD'?'t-hd':'t-asap'}">${c.pri}</span>
+      ${bufTag(c)}
+      ${c.heavy?'<span class="tag t-fleece">fleece</span>':''}
+      ${c.spoilPcs>0?'<span class="tag t-bump" title="est. spoilage on this run — '+c.spoilPcs.toLocaleString()+' extra impressions + press-time reserved">'+(Math.round(c.spoilPcs/c.impr*100)||'<1')+'% spoilage</span>':''}
+      ${c.split?'<span class="tag t-split">P1+P2 split</span>':''}
+      ${c.platenMixed?'<span class="tag t-mixed">multi-platen</span>':''}
+      ${c.allReady?'':'<span class="tag t-soon">not all staged</span>'}
+    </div>
+    <div class="oc-locs">${c.locs.join(' · ')}</div>
+  </div>`;
+}
+function columnHtml(p,d){
+  const list=d.cards[p];
+  let body;
+  if(!list.length){ body='<div class="colempty">— open —</div>'; }
+  else if(!document.getElementById('batchplaten').checked){ body='<div class="pgrp">'+list.map(cardHtml).join('')+'</div>'; }
+  else{
+    const fams={}; list.forEach(c=>{ (fams[c.platen]||(fams[c.platen]=[])).push(c); });
+    const keys=Object.keys(fams).sort((a,b)=>(PLATEN_ORDER[a]||0)-(PLATEN_ORDER[b]||0));
+    body=keys.map(fam=>{
+      const impr=fams[fam].reduce((s,c)=>s+c.impr,0);
+      return `<div class="pgrp"><div class="pgrp-h"><span class="glyph">${PLATEN_ICON[fam]||'▦'}</span> ${fam} platens
+        <span class="pn">${fams[fam].length} job${fams[fam].length>1?'s':''} · ${impr.toLocaleString()} impr</span></div>
+        ${fams[fam].map(cardHtml).join('')}</div>`;
+    }).join('');
+  }
+  const pct=d.budget[p]?Math.round(d.pro[p]/d.budget[p]*100):0;
+  const cls=!d.budget[p]?'under':(d.pro[p]>d.budget[p]*1.001?'over':(d.pro[p]>=d.budget[p]*0.9?'good':'under'));
+  return `<div class="col"><div class="colh"><span class="cp">${p}</span>${fillbar(d.pro[p],d.budget[p])}
+    <span class="cn ${cls}">${d.pro[p].toLocaleString()} / ${d.budget[p].toLocaleString()} · ${pct}%</span></div>${body}</div>`;
+}
+function backroomHtml(dayKeyStr){
+  const d=BR_BYDAY[dayKeyStr], hf=BR_HELPER[isoWeekKey(dayKeyStr)], helper=!!(hf&&hf.on);
+  if(!d && !helper) return '';
+  const emb=d?d.emb:0, fin=d?d.fin:0;
+  const jobs=(d?d.jobs:[]).slice().sort((a,b)=> a.kind===b.kind?(b._h-a._h):(a.kind==='emb'?-1:1));
+  const chips=jobs.map(j=> j.kind==='emb'
+    ? `<span class="bk-job emb"><span class="bj-t">Emb</span> ${j.cust} · ${j._h.toFixed(1)}h</span>`
+    : `<span class="bk-job ${j.finType}"><span class="bj-t">${FIN_LABEL[j.finType]}</span> ${j.cust} · ${j.pcs.toLocaleString()}pc · ${j._h.toFixed(1)}h</span>`
+  ).join('');
+  return `<div class="bkrow${helper?' helper':''}">
+    <div class="bk-h"><span class="bk-lbl">Back room</span>
+      <span class="bk-tot">emb ${emb.toFixed(1)}h · fin ${fin.toFixed(1)}h</span>
+      ${helper?`<span class="bk-help">+ Helper · ${hf.reasons.join(' · ')}</span>`:''}</div>
+    ${chips?`<div class="bk-jobs">${chips}</div>`:'<div class="bk-empty">— no back-room work scheduled —</div>'}</div>`;
+}
+function boardHtml(plan,mode){
+  const REALTODAY=mtTodayKey();
+  return plan.days.map(d=>{
+    if(d.holiday){ return `<div class="dayp holiday"><div class="dhdr"><span class="ddate">${fmtMD(d.key)}</span><span class="ddow">${DOW[d.dow]}</span><span class="dtot">★ Holiday · no production</span></div></div>`; }
+    if(d.split){ const s=d.splitJob;
+      return `<div class="dayp split"><div class="dhdr"><span class="ddate">${fmtMD(d.key)}</span><span class="ddow">${DOW[d.dow]}</span></div>
+        <div class="dsplit">PINNED SPLIT — ${s?s.cust+' · '+s.impid+' · '+s.pieces.toLocaleString()+' pcs':''} — both presses committed all day</div></div>`;
+    }
+    const one=d.presses.length===1, tot=d.pro.P1+d.pro.P2;
+    return `<div class="dayp${d.key===REALTODAY?' today':''}">
+      <div class="dhdr"><span class="ddate">${fmtMD(d.key)}</span>
+        <span class="ddow">${DOW[d.dow]}${d.fri?(' · 7h · '+d.friPress+' only'):''}</span>
+        <span class="dtot">day ${tot.toLocaleString()} load</span></div>
+      <div class="cols${one?' one':''}">${d.presses.map(p=>columnHtml(p,d)).join('')}</div>
+      ${backroomHtml(d.key)}</div>`;
+  }).join('');
+}
+function sumc(k,v,s){ return `<div class="sumc"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s||''}</div></div>`; }
+function brSumCards(){
+  let emb=0,fin=0; Object.values(BR_BYDAY).forEach(d=>{emb+=d.emb;fin+=d.fin;});
+  const hWeeks=Object.values(BR_HELPER).filter(h=>h.on).length;
+  return sumc('Back room',(emb+fin).toFixed(0)+'h',emb.toFixed(0)+'h emb · '+fin.toFixed(0)+'h fin')+
+    sumc('Helper weeks',hWeeks,hWeeks?'flagged by rule':'none needed')+
+    sumc('Finishing unscheduled',BR_UNSCHED,BR_UNSCHED?'no start date — fix first':'all scheduled');
+}
+
+function heldPanelHtml(){
+  const held=(PLAN&&PLAN.sug&&PLAN.sug.held)||[];
+  if(VIEW!=='sug' || (!held.length && !Object.keys(HELD).length)) return '';
+  const rows = held.length ? held.slice().sort((a,b)=>(a.pinnedTo||'~').localeCompare(b.pinnedTo||'~')).map(o=>{
+    const date=PIN[o.order]||'';
+    const status=o.pinnedTo
+      ? `<span class="hp-on">📌 ${fmtMD(o.pinnedTo)} · ${o.pinnedPress}</span>`
+      : `<span class="hp-note">${o.pinNote||'parked'}</span>`;
+    return `<div class="hp-row">
+      <div class="hp-id">#${o.order} <span class="hp-cust">${o.cust}</span></div>
+      <div class="hp-meta">${o.impr.toLocaleString()} impr · ${o.pri}${o.due?' · due '+fmtMD(o.due):''}</div>
+      <input class="hp-date" type="date" data-pin="${o.order}" value="${date}">
+      ${status}
+      <button class="hp-restore" data-restore="${o.order}">↩ restore</button>
+    </div>`;
+  }).join('') : '<div class="hp-empty">Held orders aren’t in the current planning window.</div>';
+  return `<div class="heldbox"><div class="hp-h">Held · manual placement <span class="hp-count">${held.length}</span>
+    <button class="hp-clear" id="hpclear">clear all holds</button></div>${rows}</div>`;
+}
+
+function render(){
+  if(!PLAN)return;
+  document.getElementById('heldpanel').innerHTML=heldPanelHtml();
+  document.getElementById('vsch').classList.toggle('on',VIEW==='sched');
+  document.getElementById('vsug').classList.toggle('on',VIEW==='sug');
+  document.getElementById('legend').innerHTML=
+    '<b>Platen batches:</b> '+Object.keys(PLATEN_ORDER).map(f=>PLATEN_ICON[f]+' '+f).join(' &nbsp; ')+
+    ' &nbsp;|&nbsp; <b>impr</b>=impressions (pieces·locations) · <b>load</b>=press-time-weighted impressions ('+
+    '<span class="tag t-fleece" style="padding:1px 5px">fleece</span> garments count heavier) · '+
+    '<span class="tag t-bump" style="padding:1px 5px">N% spoilage</span> = extra press-time reserved on big runs · '+
+    '<span class="tag t-buf" style="padding:1px 5px">Nd before due</span>/'+
+    '<span class="tag t-tight" style="padding:1px 5px">tight</span>/'+
+    '<span class="tag t-late" style="padding:1px 5px">late</span> = HD deadline buffer · '+
+    '<span class="tag t-split" style="padding:1px 5px">P1+P2 split</span> · '+
+    '<span class="tag t-mixed" style="padding:1px 5px">multi-platen</span>';
+
+  if(VIEW==='sug'){
+    const plan=PLAN.sug;
+    let pP1=0,pP2=0,bP1=0,bP2=0; plan.days.forEach(d=>{pP1+=d.pro.P1;pP2+=d.pro.P2;bP1+=d.budget.P1;bP2+=d.budget.P2;});
+    const placed=plan.orders.length-plan.leftover.length;
+    const splitCount=plan.days.reduce((s,d)=>s+d.cards.P1.filter(c=>c.split).length,0);
+    let bumpTot=0,imprTot=0; plan.days.forEach(d=>d.cards.P1.concat(d.cards.P2).forEach(c=>{bumpTot+=(c.spoilPcs||0);imprTot+=(c.impr||0);}));
+    const bumpPct=imprTot>0?Math.round(bumpTot/imprTot*100):0;
+    document.getElementById('viewcap').textContent='Packed from next Monday — orders whole, batched by platen.';
+    document.getElementById('sum').innerHTML=
+      sumc('Orders to place',plan.orders.length,placed+' placed · '+plan.leftover.length+' left over')+
+      sumc('P1 planned',(bP1?Math.round(pP1/bP1*100):0)+'%',pP1.toLocaleString()+' / '+bP1.toLocaleString())+
+      sumc('P2 planned',(bP2?Math.round(pP2/bP2*100):0)+'%',pP2.toLocaleString()+' / '+bP2.toLocaleString())+
+      sumc('Cross-press splits',splitCount,'orders on both presses')+
+      sumc('Spoilage',bumpPct+'%',bumpTot.toLocaleString()+' impr reserved · press-time in')+brSumCards();
+    document.getElementById('board').innerHTML=boardHtml(plan,'sug');
+    document.getElementById('taillbl').textContent="Didn't fit in the horizon — capacity / demand gap";
+    document.getElementById('tail').innerHTML = plan.leftover.length
+      ? '<table><thead><tr><th>Order</th><th>Customer</th><th class="num">Impr</th><th class="num">Loc</th><th>Pri</th><th>Why</th></tr></thead><tbody>'+
+        plan.leftover.sort((a,b)=>b.impr-a.impr).map(o=>`<tr><td class="imp">#${o.order}</td><td>${o.cust}</td><td class="num">${o.impr.toLocaleString()}</td><td class="num">${o.imps.length}</td><td><span class="tag ${o.pri==='HD'?'t-hd':'t-asap'}">${o.pri}</span></td><td class="muted">${o.reason||''}</td></tr>`).join('')+'</tbody></table>'
+      : '<div class="empty muted">Everything fit.</div>';
+  } else {
+    const plan=PLAN.sched;
+    let pP1=0,pP2=0,bP1=0,bP2=0; plan.days.forEach(d=>{pP1+=d.pro.P1;pP2+=d.pro.P2;bP1+=d.budget.P1;bP2+=d.budget.P2;});
+    document.getElementById('viewcap').textContent='Current Airtable schedule, same window.';
+    document.getElementById('sum').innerHTML=
+      sumc('P1 scheduled',(bP1?Math.round(pP1/bP1*100):0)+'%',pP1.toLocaleString()+' / '+bP1.toLocaleString())+
+      sumc('P2 scheduled',(bP2?Math.round(pP2/bP2*100):0)+'%',pP2.toLocaleString()+' / '+bP2.toLocaleString())+
+      sumc('Not yet scheduled',plan.unsched.length,'imprints, no start date')+
+      sumc('Beyond horizon',plan.beyond,'scheduled past window')+brSumCards();
+    document.getElementById('board').innerHTML=boardHtml(plan,'sched');
+    document.getElementById('taillbl').textContent='Not yet scheduled — in the pool with no start date';
+    document.getElementById('tail').innerHTML = plan.unsched.length
+      ? '<table><thead><tr><th>Imprint</th><th>Customer</th><th class="num">Impr</th><th>Loc</th><th class="num">Scr</th><th>Pri</th><th>Status</th></tr></thead><tbody>'+
+        plan.unsched.sort((a,b)=>b.pieces-a.pieces).map(it=>`<tr><td class="imp">${it.impid}</td><td>${it.cust}</td><td class="num">${it.pieces.toLocaleString()}</td><td>${it.loc}</td><td class="num">${it.colors}</td><td><span class="tag ${it.pri==='HD'?'t-hd':'t-asap'}">${it.pri}</span></td><td class="muted">${it.status}</td></tr>`).join('')+'</tbody></table>'
+      : '<div class="empty muted">Everything in the pool has a start date.</div>';
+  }
+}
+
+/* token + events */
+function refreshTokState(){ document.getElementById('tokstate').textContent=TOKEN?('saved · …'+TOKEN.slice(-4)):'not set'; if(TOKEN)document.getElementById('tok').value=''; }
+document.getElementById('savetok').onclick=()=>{ const v=document.getElementById('tok').value.trim(); if(v){TOKEN=v;localStorage.setItem('pine_at_key',v);} refreshTokState(); };
+document.getElementById('refresh').onclick=loadPool;
+document.getElementById('recompute').onclick=()=>{ if(POOL.length||BR_POOL.length)buildPlan(); };
+document.getElementById('settingsbtn').onclick=()=>{ const c=document.getElementById('ctrls'); c.classList.toggle('hidden'); document.getElementById('settingsbtn').classList.toggle('on',!c.classList.contains('hidden')); };
+document.getElementById('vsch').onclick=()=>{ VIEW='sched'; render(); };
+document.getElementById('vsug').onclick=()=>{ VIEW='sug'; render(); };
+document.getElementById('anext').onclick=()=>{ if(ANCHOR==='next')return; ANCHOR='next';
+  document.getElementById('anext').classList.add('on'); document.getElementById('athis').classList.remove('on');
+  if(TOKEN)loadPool(); };
+document.getElementById('athis').onclick=()=>{ if(ANCHOR==='this')return; ANCHOR='this';
+  document.getElementById('athis').classList.add('on'); document.getElementById('anext').classList.remove('on');
+  if(TOKEN)loadPool(); };
+/* held / manual-placement interactions (client-only, no writes) */
+document.addEventListener('click',e=>{
+  const h=e.target.closest('[data-hold]'); if(h){ holdOrder(h.getAttribute('data-hold')); return; }
+  const r=e.target.closest('[data-restore]'); if(r){ restoreOrder(r.getAttribute('data-restore')); return; }
+  if(e.target.id==='hpclear'){ HELD={}; PIN={}; saveOverrides(); if(POOL.length)buildPlan(); }
+});
+document.addEventListener('change',e=>{
+  const p=e.target.closest('[data-pin]'); if(p){ pinOrder(p.getAttribute('data-pin'), e.target.value); }
+});
+refreshTokState();
+if(TOKEN) loadPool();
+</script>
+</body>
+</html>
