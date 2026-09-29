@@ -166,12 +166,81 @@ Reprints only (Pine's mistakes), never reorders. **Today:** an Airtable view. **
 - Every reprint logs reason, cost (blanks + labor + ink) and links to the order thread.
 - KPI shows the trend by reason, department and machine, so you can see what's causing reprints.
 
+## Press teams
+
+Presses are run by teams (e.g. 3 people on Press 1), not one operator.
+- Today the Imprints table has a single-select **Operator** (one name), so crew credit and stats are wrong.
+- **Station mode:** the tablet at each press is logged in as the station ("Press 1"), and crew
+  members tap in with their PIN at the start of the day. Swaps are one tap.
+- Every scan at that press is credited to the whole crew on shift, which feeds per-crew and
+  per-person stats (impressions/hour, setup time, spoilage).
+- Airtable: replace the single-select Operator with a **Crew** link to Employees (multiple people).
+
+## Scan-driven flow
+
+Principle: **a scan moves the order to the next stage.** The apps stay for details (counts,
+notes, issues), but nobody has to remember to tick a box.
+
+**Hardware:** USB/Bluetooth 2D scanners (~$30–80 each) type like a keyboard, so they work in any
+web app with no setup. A phone camera works as a backup. Each station gets a tablet + scanner.
+
+**What gets a code:** job ticket (per imprint), box labels (the Boxes table already has Box IDs),
+screen tags, inbound receiving labels. Each QR is a short Pine Central link (e.g. `/s/<id>`). A
+phone camera opens the page; a scanner inside the app just reads the ID.
+
+| Station | Scan | Moves to |
+|---|---|---|
+| Receiving | Inbound box / receiving label | Line item received; when all are in, the order becomes **Received & staged** |
+| Screens | Screen tag / job ticket | Imprint **Screens burned** |
+| Ink | Job ticket | **Inks ready** |
+| Press | Job ticket (crew already signed in) | **Setup started** → **Running** → **Run finished**, timestamped and credited to the crew |
+| Catching | Job ticket at the dryer | **Caught** (then enter counts in the app) |
+| Packing | Box label | Box **packed** |
+| Shipping | Box label | ShipStation label created; box **shipped**; order **Completed** when every box ships |
+
+Seps and proofs are desk work, so they stay as buttons in the app, not scans.
+
+## Status cleanup (from the Airtable review, 2026-09-29)
+
+**Found:**
+- **Order Status** has 16 options mixing four different things: stage ("Pre-press"), payment
+  ("Sent - Awaiting Payment"), problems ("Delayed - Mis-Print - Needs Order") and combos
+  ("Scheduled, Screened, & Inbound").
+- Of 212 orders not Completed/Cancelled: **none** are in On-Press, Caught - Awaiting Ship, Shipped
+  or any Delayed status. Orders go straight from "Received & Staged" to Completed, so the shop
+  floor stages aren't really tracked at the order level.
+- About **32 orders created 2022–2025 are still "Awaiting Proof"**, and 8 have no status at all.
+- Real progress lives on **Imprints as ~20 checkboxes** (Sep'd, Screens Burned, CTS Printed, Inks
+  Ready, Setup Started/Finished, Run Started/Finished, Quality Checked, Caught…). Most have no
+  timestamp; only Caught has "Caught At".
+- Reprints are tracked with **duplicate checkboxes** ([REPRINT] Sep'd, [REPRINT] Screens Burned…).
+- **Orders** repeats Sep'd and Burned checkboxes that also exist on Imprints.
+- Mis-ships use **5 checkboxes** on Line Items (Mis-Ship, In Progress, Shipped, Resolved,
+  Replacements Received?), even though an **Order Issues** table with a Status already exists.
+
+**Proposed:**
+1. **Split status into separate fields:**
+   - **Stage** (computed from scans, not set by hand): Awaiting proof → Awaiting payment → Ready to
+     order → Garments ordered → Pre-press → Ready to schedule → Scheduled → On press → Caught →
+     Packed → Shipped → Completed.
+   - **Health**: On track / Blocked (from open blockers such as a garment issue or misprint).
+   - **Payment**: already covered by Payment Received Date.
+2. **Scan Events table:** one row per scan (who/crew, station, imprint or box, event, time). The
+   checkboxes become formulas off this table, so existing views keep working, and every stage gets
+   a timestamp. That gives real durations per stage and shows where orders wait.
+3. **Reprints as their own run records** linked to the original imprint, replacing the [REPRINT]
+   checkbox copies.
+4. **Mis-ships and garment issues go through Order Issues** (with its Status), replacing the 5 checkboxes.
+5. **One-time cleanup:** close or cancel the stale 2022–2025 "Awaiting Proof" orders and fix the 8 blank ones.
+
 ## Open questions
 
 - Login style: PIN on shared tablets, Google sign-in, or both?
 - Devices: shared stations vs. personal phones/computers?
 - Who uses which apps? (Phase 0 inventory)
 - Reprint tracking: what does the current Airtable view track, and what's missing?
+- Scan flow: does Ink come before or after scheduling? Do seps and receiving run in parallel?
+- Station tablets: which stations already have a screen, and which need one?
 
 ## Idea backlog
 
