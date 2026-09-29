@@ -2,6 +2,22 @@
 
 Living document. Update it as decisions are made. Last updated: 2026-09-29.
 
+## Glossary (use these words consistently)
+
+| Term | Meaning |
+|---|---|
+| **Reprint** | Fixing a mistake. Pine redoes work that went wrong (misprint, wrong garment, damage). Costs Pine money and is tracked in KPI. |
+| **Reorder** | A client orders a design they've already printed with Pine. New revenue; reuses existing art, seps and screens info. |
+
+Current usage in the apps (checked 2026-09-29):
+- Operator, Catching, Purchasing and KPI already use **reprint** correctly.
+- Sales Entry already uses **reorder** correctly.
+- **The "Reprint Lookup" app is actually a reorder tool.** It finds a past imprint so a client can
+  print it again ("New Imprint ID (the reorder)"). It becomes **Reorder Lookup** in Pine Central.
+- Receiving's "Reprint Label" button means printing a label again, a third meaning. Rename it
+  to "Print label again" to avoid confusion.
+- The GitHub repo is named `reprint-lookup`; it can be renamed later (GitHub redirects old links).
+
 ## The goal
 
 One app, **Pine Central**, replaces the separate department apps. Every employee logs in and
@@ -47,7 +63,7 @@ write calls. Full fix: require a Pine Central login session on every route.
 |---|---|---|
 | 0. Cleanup | Early Oct 2026, ~1 wk | One current file per app; old versions to `archive/`; Worker code into repo; inventory of who uses which apps |
 | 1. Real login | Oct 2026, ~2–3 wks | Employees table, login (PIN and/or Google), sessions in KV, Worker enforces permissions; secure vendor routes |
-| 2. Shell + easy apps | Nov 2026, ~4 wks | Sidebar shows only permitted apps; migrate Reprint Lookup, Floor Status, Lunch Punchclock, Day Fill, KPI, Shipping. Standalone apps keep working in parallel |
+| 2. Shell + easy apps | Nov 2026, ~4 wks | Sidebar shows only permitted apps; migrate Reorder Lookup (today's "Reprint Lookup"), Floor Status, Lunch Punchclock, Day Fill, KPI, Shipping. Standalone apps keep working in parallel |
 | 2.5 Order messaging pilot | Dec 2026, ~3–4 wks | See below. Pilot with Production + Pre-Press |
 | 3. Heavy apps | Dec 2026 – Jan 2027, ~8 wks | Operator, Production Board, Receiving, Ink Queue, Catching, Seps, Screens, Price-o-matic, Purchasing, Sales Entry; shared code pulled into common files |
 | 4. Cutover | Feb 2027 | Retire standalone apps and browser Airtable keys; audit log of who changed what; per-person home screens; cross-department job timeline |
@@ -84,7 +100,7 @@ The order header shows counts, e.g. "2 open asks · 1 blocker".
 - System events are posted automatically (screens burned, blanks received, printed, shipped),
   so the thread is also the order's timeline.
 - **"My Asks" inbox** across all orders, for a person and their department.
-- Reprints link back to the thread explaining why.
+- Reprints link back to the thread explaining why. Reorders link to the original order's thread.
 
 ### Moving off Slack and Airtable comments (where order talk happens today)
 1. Import existing Airtable record comments into each order's thread.
@@ -113,8 +129,7 @@ for customers, not the team, and anyone who scans a box can see the order's deta
 - **Scan actions:** scanning at a station does the common thing in one tap. Receiving marks
   boxes received, a press starts or stops the job (feeds the Live Floor view), and Shipping
   opens the ShipStation label flow.
-- The customer PandaDoc QR, if still wanted, goes only on customer-facing paperwork
-  (packing slip), not on internal labels.
+- The PandaDoc QR is dropped entirely. It solved a problem that no longer exists (decided 2026-09-29).
 
 ## Feature: Live Floor view
 
@@ -146,7 +161,7 @@ in kiosk mode. One shift, so there is no shift-handoff feature.
 
 ## Feature: Reprint cost tracking
 
-**Today:** an Airtable view. **Idea:** tighten it into KPI.
+Reprints only (Pine's mistakes), never reorders. **Today:** an Airtable view. **Idea:** tighten it into KPI.
 - One standard list of reprint reasons shared by Reprint Lookup, Operator and the garment flag.
 - Every reprint logs reason, cost (blanks + labor + ink) and links to the order thread.
 - KPI shows the trend by reason, department and machine, so you can see what's causing reprints.
@@ -156,7 +171,6 @@ in kiosk mode. One shift, so there is no shift-handoff feature.
 - Login style: PIN on shared tablets, Google sign-in, or both?
 - Devices: shared stations vs. personal phones/computers?
 - Who uses which apps? (Phase 0 inventory)
-- Smart QR: do customers still need a QR to the PandaDoc anywhere, e.g. on the packing slip?
 - Reprint tracking: what does the current Airtable view track, and what's missing?
 
 ## Idea backlog
