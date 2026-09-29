@@ -101,11 +101,63 @@ The order header shows counts, e.g. "2 open asks · 1 blocker".
 - Floor photos (Cloudflare R2).
 - Instant live updates.
 
+## Feature: Smart QR codes (job traveler)
+
+**Today:** QR codes on Receiving labels and job sheets open the order's PandaDoc. That's useful
+for customers, not the team, and anyone who scans a box can see the order's details.
+
+**Idea:** the QR encodes a Pine Central order link, not the PandaDoc.
+- **Logged-in employee scans:** the order opens at its current step, with the thread, open
+  asks and the next action for their department.
+- **Anyone else scans:** they see nothing useful (a "Pine Print Shop" page), and no order data is exposed.
+- **Scan actions:** scanning at a station does the common thing in one tap. Receiving marks
+  boxes received, a press starts or stops the job (feeds the Live Floor view), and Shipping
+  opens the ShipStation label flow.
+- The customer PandaDoc QR, if still wanted, goes only on customer-facing paperwork
+  (packing slip), not on internal labels.
+
+## Feature: Live Floor view
+
+Builds on the existing Floor Status app (machines running). Adds **who** is on each machine
+and **which job**, fed by QR scans at the press and by the Operator app. Can run on a TV
+in kiosk mode. One shift, so there is no shift-handoff feature.
+
+## Feature: Garment issue flag (missing / wrong garments)
+
+**Today:** the issue is entered in Airtable, then a Slack automation pings people.
+
+**Idea:** a **"Flag garment issue"** button on the order (or from a QR scan) that:
+- Captures structured details: missing or wrong, style / color / size, quantity. Operator's
+  existing "Wrong garment" reason feeds the same flow.
+- Automatically opens a **Blocker** in the order thread, assigned to @Receiving / @Purchasing,
+  and turns the order red on the Production Board.
+- Sends the Slack DM "doorbell" (replaces the Airtable to Slack automation).
+- Checks replacement stock at S&S / SanMar / AS Colour / SLC through `pine-workers`,
+  so Purchasing sees availability right away.
+- Is resolved when replacements arrive, which closes the blocker and logs how long the job was held.
+
+## Feature: Personal home screen
+
+- Each person lands on **their** screen: their queue, open asks, today's schedule. There's always
+  a Home button to return to it.
+- Fun and interactive: shop stats for the day (pieces printed, jobs shipped, on-time rate),
+  personal stats, a random fact of the day, maybe birthdays and milestones.
+- The app menu is still one tap away.
+
+## Feature: Reprint cost tracking
+
+**Today:** an Airtable view. **Idea:** tighten it into KPI.
+- One standard list of reprint reasons shared by Reprint Lookup, Operator and the garment flag.
+- Every reprint logs reason, cost (blanks + labor + ink) and links to the order thread.
+- KPI shows the trend by reason, department and machine, so you can see what's causing reprints.
+
 ## Open questions
 
 - Login style: PIN on shared tablets, Google sign-in, or both?
 - Devices: shared stations vs. personal phones/computers?
 - Who uses which apps? (Phase 0 inventory)
+- Smart QR: do customers still need a QR to the PandaDoc anywhere, e.g. on the packing slip?
+- Reprint tracking: what does the current Airtable view track, and what's missing?
 
 ## Idea backlog
 
