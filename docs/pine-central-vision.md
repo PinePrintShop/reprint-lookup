@@ -282,8 +282,14 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
 **Gaps**
 1. **Reprint cost counts blanks only.** No labor, press time, ink, screens, re-shipping, so true cost is understated.
 2. **Damage counts live in two places** ([RP] fields on Order Issues and D fields on Damage Details).
-   Totals and costs only use the [RP] fields, so anything entered only in Damage Details may be
-   missing from spoilage and cost. Needs checking.
+   Checked 2026-09-30: they agree on 762 of 766 issues. Only 2 issues (Aug 2026, 29 pieces) have
+   counts in Damage Details alone, and 4 Damage Details records (1 piece) aren't linked to an issue.
+   Not a real problem, but one place to count is still simpler.
+2b. **The cost formula depends on Total Final Quantity**, which often isn't final when Catching logs
+   an issue per line item. Found: 11 REFUNDs on lines under 50% shipped (~$7.3k, including three in
+   Sep 2026 at $1,050–$1,225), 35 RE-PRINTs under 50% shipped (~$9.5k), 25 issues with a negative
+   Shipped %, and one negative cost. So roughly a third of the computed $49k is suspect. Fix: base
+   cost on the damaged pieces Catching actually reports, and decide refund vs reprint when the order closes.
 3. **Reasons live in four fields** (QC Reasons, QC Reasons - Print Team, QC Reasons - Other,
    Damage Details Reasons); 1,003 issues have none in the first three. Accountability is blank on 1,003.
 4. **Status is loose:** 182 blank, 184 "Awaiting Review".
