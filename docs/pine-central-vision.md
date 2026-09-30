@@ -332,9 +332,10 @@ Pine Central later gives it a better screen, using the same structure.
 |---|---|
 | Issue # | Autonumber |
 | Reported by / Station | Person (Employees) and where: Receiving, Press, Catching, Shipping, Sales |
+| **Caught by** | Us (press, catching, packing) or **the customer**. Customer-caught = an escaped defect |
 | Order · Line Item · Imprint | Links |
 | **Type** | Production · Vendor · Service · Customer complaint (required) |
-| **Reason** | One list, grouped by type (required). Production: Corner, Smudge, Print Error, Light Ink, Out of Square, Dry-in, Dryer Grease. Vendor: Mill Flaw, Mis-ship, Short shipment, Outsourced job wrong. Service: Missed deadline, Customer no longer needs it |
+| **Reason** | One list, grouped by type (required). Production: Corner, Smudge, Print Error, Light Ink, Out of Square, Dry-in, Dryer Grease, **Warping**. Pre-press: **Artwork / file issue**. Vendor: Mill Flaw, Mis-ship, Short shipment, Outsourced job wrong. Service: Missed deadline, Customer no longer needs it |
 | Pieces by size | OSFA, XS…6XL, in **one** place only |
 | Accountable | Suggested from type + reason, can be changed: Print crew, Pre-press, Receiving, Vendor, Outsourcer, Sales, Customer |
 | Crew | Filled from the press scan when available |
@@ -378,6 +379,16 @@ Chart page: https://claude.ai/artifact/Kg2ZsLSxi1pgurqFtueAzD
   Embroidery 0.85%, Tag press 0.67%, Saturn 0.34%.
 - Older issues have no reasons recorded, so why those runs failed isn't in the data. Issues v2
   (required reason + crew from scans) fixes that going forward.
+
+- **Why bandana runs fail (from Stephen, 2026-09-30):** artwork problems, or the client rejects the
+  whole order for errors we didn't catch, or for **warping**.
+- **Checkpoints this suggests:**
+  1. **Art check before screens:** proof vs. sep side by side, sign-off recorded in the thread.
+  2. **First-piece approval at the press:** crew scans the job, prints one, photographs it, compares to
+     the proof, taps approve. Blocks whole-run redos from art or setup errors.
+  3. **Bandana QC at Catching:** a quick warp/square check on a sample from each run, logged.
+- **New KPI: escaped defects** = issues caught by the customer ÷ all issues. Shows how much QC is missing
+  before orders leave the shop.
 
 ## Open questions
 - What is "Jawn"? Is "Wrinkle" a production issue or a vendor one?
