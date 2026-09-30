@@ -232,6 +232,8 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
    checkbox copies.
 4. **Mis-ships and garment issues go through Order Issues** (with its Status), replacing the 5 checkboxes.
 5. **One-time cleanup:** close or cancel the stale 2022–2025 "Awaiting Proof" orders and fix the 8 blank ones.
+   Reviewed 2026-09-30: 59 stale/blank open orders found, grouped as paid-but-stuck (5), unclosed
+   quotes (8), $0 shells (24), likely 2026 test orders (14) and blank (8). Left as-is for now.
 
 ## Open questions
 
@@ -245,3 +247,8 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
 ## Idea backlog
 
 _Add new Pine Central ideas here as they come up._
+
+- **Stuck order watchdog:** a daily check that flags orders that are paid but not moving, past the
+  customer due date, or sitting in one stage too long. It posts a Blocker/Ask on the order and
+  appears on the management home screen. (Prompted by the 2026-09-30 review, which found
+  $6,800+ of paid orders stuck in "Ready to Order".)
