@@ -3724,7 +3724,15 @@ function fetchOnePrevImprint(prevRecId) {
       return res.json();
     })
     .then(function(data) {
-      var f = data.fields || {};
+      var pd = parsePrevImprint(prevRecId, data.fields || {});
+      prevImprintCache[prevRecId] = pd;
+      return pd;
+    });
+}
+
+// v34: shared parser for a previous-imprint record (used by the direct fetch
+// above and by the same-order sibling search below).
+function parsePrevImprint(prevRecId, f) {
       var name = f['fldDFfwFQ9B20n2kT'];
       if (!name) {
         console.warn('[seps] fetchOnePrevImprint: Imprint ID empty for', prevRecId);
@@ -3750,9 +3758,58 @@ function fetchOnePrevImprint(prevRecId) {
         masterId: flatLookup(f[F.masterId])[0] || '',
         _full: true
       };
-      prevImprintCache[prevRecId] = pd;
       return pd;
-    });
+}
+
+// v34: Same-order fallback. When no linked previous imprint shares this job's
+// print location (e.g. 10893-B Back was linked to 9317-A Left Chest), look at
+// the OTHER imprints on the same previous order(s) (9317-*) and return the ones
+// in the matching location. Read-only; results are cached like direct fetches.
+function fetchSameOrderMatches(linkedPrevs, currentLoc) {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) return Promise.resolve([]);
+  var linkedIds = {};
+  linkedPrevs.forEach(function(p){ linkedIds[p.prevRecId] = true; });
+  var prefixes = [];
+  linkedPrevs.forEach(function(p) {
+    var m = /^(\d+)-/.exec(p.name || '');
+    if (m && prefixes.indexOf(m[1]) < 0) prefixes.push(m[1]);
+  });
+  if (!prefixes.length) return Promise.resolve([]);
+  return Promise.all(prefixes.map(function(prefix) {
+    var formula = 'FIND("' + prefix + '-",{fldDFfwFQ9B20n2kT})=1';
+    var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL +
+      '?returnFieldsByFieldId=true&pageSize=100&filterByFormula=' + encodeURIComponent(formula);
+    return fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+      .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(function(data) {
+        return (data.records || []).map(function(r) {
+          var pd = prevImprintCache[r.id] && prevImprintCache[r.id]._full ? prevImprintCache[r.id] : parsePrevImprint(r.id, r.fields || {});
+          prevImprintCache[r.id] = pd;
+          return pd;
+        });
+      })
+      .catch(function(err) { console.warn('[seps] same-order lookup failed for', prefix, err); return []; });
+  })).then(function(lists) {
+    var all = [].concat.apply([], lists);
+    return all.filter(function(p) { return !linkedIds[p.prevRecId] && (p.loc || '') === (currentLoc || ''); })
+      .sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+  });
+}
+
+// v34: Small note above the ink rows explaining where seeded values came from.
+function showPrevNote(currentId, text) {
+  var rowsEl = document.getElementById('inks-rows-' + currentId);
+  if (!rowsEl || !rowsEl.parentNode) return;
+  var el = document.getElementById('prev-note-' + currentId);
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'prev-note-' + currentId;
+    el.className = 'inks-loading-sm';
+    el.style.color = 'var(--amb)';
+    rowsEl.parentNode.insertBefore(el, rowsEl);
+  }
+  el.textContent = text;
 }
 
 // Main entry point called when a repeat card is expanded.
@@ -3793,10 +3850,22 @@ function loadPrevImprintsAndSeed(currentId) {
     if (!matched.length) {
       state[currentId].chosenPrev = allPrevs[0].prevRecId;
       if (labelEl) labelEl.textContent = allPrevs[0].name;
-      var rowsEl2 = document.getElementById('inks-rows-' + currentId);
-      if (rowsEl2 && !rec.inkIds.length) {
-        rowsEl2.innerHTML = '<div class="inks-loading-sm" style="color:var(--amb)">No location match on linked previous run(s) \u2014 fill manually</div>';
-      }
+      // v34: before giving up, look for a location match among the other
+      // imprints on the same previous order(s).
+      fetchSameOrderMatches(allPrevs, currentLoc).then(function(sibs) {
+        if (sibs.length) {
+          applyCherryPickedSeed(currentId, sibs);
+          if (sibs.length > 1) renderPopulateFromDropdown(currentId, sibs);
+          var linkedDesc = allPrevs.map(function(p){ return p.name + (p.loc ? ' (' + p.loc + ')' : ''); }).join(', ');
+          showPrevNote(currentId, 'Linked run ' + linkedDesc + ' is a different location \u2014 matched ' +
+            sibs[0].name + (currentLoc ? ' (' + currentLoc + ')' : '') + ' on the same order. Check before saving.');
+          return;
+        }
+        var rowsEl2 = document.getElementById('inks-rows-' + currentId);
+        if (rowsEl2 && !rec.inkIds.length) {
+          rowsEl2.innerHTML = '<div class="inks-loading-sm" style="color:var(--amb)">No location match on linked previous run(s) or their orders \u2014 fill manually</div>';
+        }
+      });
       return;
     }
 
