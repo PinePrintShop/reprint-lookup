@@ -1,12 +1,12 @@
 /**
- * Pine Central — Vendor Proxy v13
+ * Pine Central - Vendor Proxy v13
  *
  * v13 CHANGE: Mockups route for the receiving-label QR. First route that serves
  *   staff who have NO Airtable login: the QR opens mockups.html on GitHub Pages,
  *   which asks this route for the order's designs.
  *   - ROUTE: GET /proxy/mockups?o=recXXXXXXXXXXXXXX  (Orders RECORD ID)
  *   - KEY: the record ID, not the order number, so nobody can walk
- *     10893 → 10894 and browse other customers' designs.
+ *     10893 -> 10894 and browse other customers' designs.
  *   - AUTH: AIRTABLE_TOKEN (same read-only PAT as /leadtime). No new secrets.
  *   - RETURNS: {ok, order, customer, count, cached, items:[{garment, imprints,
  *     location, total, sizes:[{size, qty}], mockups:[{name, type, image, full}]}]}
@@ -17,7 +17,7 @@
  *   - CACHE: module-level Map, 5 min (well inside the attachment URL lifetime).
  *
  * v12 CHANGE: SanMar product info + inventory added (for Price-O-Matic colors,
- *   photos and stock). Both STREAM SanMar's XML straight through, like SLC —
+ *   photos and stock). Both STREAM SanMar's XML straight through, like SLC -
  *   the browser parses with DOMParser. Deliberate: a full-style product info
  *   response (PC54 = 738 rows with long descriptions) is multiple MB, and
  *   parsing that in the worker risks the CPU limit and the buffering trap.
@@ -54,25 +54,25 @@
  *   - Source: SanMar Web Services Integration Guide v24.6, pp. 66-69.
  *
  * v10 CHANGE: Lead-time endpoint added. First non-vendor route on this worker.
- *   - ROUTE: GET /proxy/leadtime → Airtable Orders, returns computed medians
+ *   - ROUTE: GET /proxy/leadtime -> Airtable Orders, returns computed medians
  *   - AUTH: AIRTABLE_TOKEN secret (read-only PAT). The point of putting this
  *     on the worker is that sales' browsers never hold an Airtable token.
  *   - RETURNS: {inFlight:{median,p75,n}, completed:{median,p75,n}, asOf, windowDays}
  *     Either block is null when its sample is under MIN_SAMPLE. Consumers must
- *     fail closed — a stale lead-time number is worse than none, because sales
+ *     fail closed - a stale lead-time number is worse than none, because sales
  *     keeps quoting from it.
- *   - CACHE: module-level variable, 12h TTL. NOT the Cache API — caches.default
+ *   - CACHE: module-level variable, 12h TTL. NOT the Cache API - caches.default
  *     is a no-op on workers.dev subdomains, so cache.put/match would silently
  *     do nothing and every POM page load would hit Airtable. Same instance-level
  *     pattern as asTokenCache; cold starts recompute.
- *   - Signature change: fetch(request, env) → fetch(request, env, ctx). Nothing
+ *   - Signature change: fetch(request, env) -> fetch(request, env, ctx). Nothing
  *     else uses ctx today; it's there for future waitUntil work.
  *   - Consumed by price-o-matic-v78.html (topbar turnaround chip).
  *
  * v9 CHANGE: ShipStation V1 added alongside S&S, AS Colour, and SLC.
- *   - ROUTE: POST/GET /proxy/shipstation/<v1-path> → ssapi.shipstation.com
+ *   - ROUTE: POST/GET /proxy/shipstation/<v1-path> -> ssapi.shipstation.com
  *   - AUTH: HTTP Basic, base64(SHIPSTATION_KEY:SHIPSTATION_SECRET). NOTE the
- *     distinct secret names — do NOT reuse the SS_ prefix (that's S&S).
+ *     distinct secret names - do NOT reuse the SS_ prefix (that's S&S).
  *   - BODY: small JSON for rates/labels/void; buffered via arrayBuffer (same
  *     approach as the AS Colour handler) so POSTs proxy cleanly. Streamed
  *     through on the response side like every other vendor.
@@ -80,17 +80,17 @@
  *     rates (POST /shipments/getrates), buy (POST /orders/createlabelfororder),
  *     void (POST /shipments/voidlabel).
  *
- * v8 CHANGE: SLC support provided canonical envelopes — mirror them exactly.
+ * v8 CHANGE: SLC support provided canonical envelopes - mirror them exactly.
  *   - PRICING: Reverted alphabroder canonical shape (from v6). SLC's working
  *     envelope uses the SAME shape as productdata: default xmlns on operation
  *     element, <shar:> prefixed children. Localization fields are PRESENT
- *     (we were wrong in v5 to strip them — the real culprit was missing
+ *     (we were wrong in v5 to strip them - the real culprit was missing
  *     configurationType, not localization). Added <shar:configurationType>
  *     as a required field. Element order matches SLC's sample exactly:
  *     wsVersion / id / password / productId / currency / fobId / priceType /
  *     localizationCountry / localizationLanguage / configurationType.
  *   - GETPRODUCTSELLABLE: Restored <shar:> prefix on all filter children
- *     (v7 was wrong to strip it — SLC's sample uses shar: throughout).
+ *     (v7 was wrong to strip it - SLC's sample uses shar: throughout).
  *     Element order matches SLC's sample: wsVersion / id / password /
  *     localization / productId / lineName / isSellable.
  *   - Process learning: PromoStandards "Unexpected subelement" faults can
@@ -99,13 +99,13 @@
  *     elements before it (matching supplier's sample exactly), not removing
  *     or renamespacing.
  *
- * v7 CHANGE (REVERTED in v8): getProductSellable namespace fix — turned
+ * v7 CHANGE (REVERTED in v8): getProductSellable namespace fix - turned
  *   out SLC's parser accepts <shar:> prefix; v7 was a misdiagnosis.
  *
- * v6 CHANGE (PARTIALLY REVERTED in v8): pricing alphabroder canonical shape —
+ * v6 CHANGE (PARTIALLY REVERTED in v8): pricing alphabroder canonical shape -
  *   not needed; SLC uses the same default-xmlns shape as productdata.
  *
- * v5 CHANGE (REVERTED in v8): pricing localization removed — was wrong, SLC
+ * v5 CHANGE (REVERTED in v8): pricing localization removed - was wrong, SLC
  *   requires localization fields. The real fix is adding configurationType.
  *
  * v4 CHANGE: SLC Activewear added alongside S&S and AS Colour.
@@ -115,12 +115,12 @@
  * v2 CHANGE: stream S&S's response body straight through to the browser
  *   instead of reading it into worker memory first. Large product responses
  *   (e.g. Comfort Colors 1717 with 500+ SKU rows) were crashing the worker
- *   on `await ssResponse.text()` — Cloudflare Error 1101.
+ *   on `await ssResponse.text()` - Cloudflare Error 1101.
  *
  * SLC ROUTING:
- *   POST /proxy/slc/productdata    → ProductDataService            (v 2.0.0)
- *   POST /proxy/slc/inventory      → InventoryServiceV2            (v 2.0.0)
- *   POST /proxy/slc/pricing        → PricingAndConfigurationService (v 1.0.0)
+ *   POST /proxy/slc/productdata    -> ProductDataService            (v 2.0.0)
+ *   POST /proxy/slc/inventory      -> InventoryServiceV2            (v 2.0.0)
+ *   POST /proxy/slc/pricing        -> PricingAndConfigurationService (v 1.0.0)
  *
  * SLC PROTOCOL:
  *   Client sends JSON. Worker translates to SOAP 1.1 XML server-side.
@@ -156,27 +156,27 @@
  *   Credentials live in the SOAP body on every request. No session, no token cache.
  *   Worker injects SLC_USER / SLC_PASS into <shar:id>/<shar:password> at envelope build time.
  *
- * REQUIRED SECRETS (Cloudflare Dashboard → pine-workers → Settings → Variables and Secrets):
- *   SS_ACCOUNT             — Pine's S&S account number
- *   SS_API_KEY             — Pine's S&S API key
- *   AS_SUBSCRIPTION_KEY    — Pine's AS Colour API subscription key
- *   AS_EMAIL               — Pine's AS Colour account email
- *   AS_PASSWORD            — Pine's AS Colour account password
- *   SLC_USER               — Pine's SLC PromoStandards user id      (v4)
- *   SLC_PASS               — Pine's SLC PromoStandards password     (v4)
- *   SHIPSTATION_KEY        — Pine's ShipStation V1 API key          (v9)
- *   SHIPSTATION_SECRET     — Pine's ShipStation V1 API secret       (v9)
- *   AIRTABLE_TOKEN         — Airtable PAT, data.records:read on
+ * REQUIRED SECRETS (Cloudflare Dashboard -> pine-workers -> Settings -> Variables and Secrets):
+ *   SS_ACCOUNT             - Pine's S&S account number
+ *   SS_API_KEY             - Pine's S&S API key
+ *   AS_SUBSCRIPTION_KEY    - Pine's AS Colour API subscription key
+ *   AS_EMAIL               - Pine's AS Colour account email
+ *   AS_PASSWORD            - Pine's AS Colour account password
+ *   SLC_USER               - Pine's SLC PromoStandards user id      (v4)
+ *   SLC_PASS               - Pine's SLC PromoStandards password     (v4)
+ *   SHIPSTATION_KEY        - Pine's ShipStation V1 API key          (v9)
+ *   SHIPSTATION_SECRET     - Pine's ShipStation V1 API secret       (v9)
+ *   AIRTABLE_TOKEN         - Airtable PAT, data.records:read on
  *                            appJkaLk8DykjsgHR                      (v10)
- *   SANMAR_CUSTOMER        — Pine's SanMar customer number          (NEW in v11)
- *   SANMAR_USER            — sanmar.com username                    (NEW in v11)
- *   SANMAR_PASS            — sanmar.com password (not FTP password) (NEW in v11)
- *   SANMAR_ENV             — optional plain variable; "edev" = test (NEW in v11)
- *   (v12 adds no secrets — product info + inventory reuse the SANMAR_* set)
- *   (v13 adds no secrets — mockups reuse AIRTABLE_TOKEN)
+ *   SANMAR_CUSTOMER        - Pine's SanMar customer number          (NEW in v11)
+ *   SANMAR_USER            - sanmar.com username                    (NEW in v11)
+ *   SANMAR_PASS            - sanmar.com password (not FTP password) (NEW in v11)
+ *   SANMAR_ENV             - optional plain variable; "edev" = test (NEW in v11)
+ *   (v12 adds no secrets - product info + inventory reuse the SANMAR_* set)
+ *   (v13 adds no secrets - mockups reuse AIRTABLE_TOKEN)
  *
  * DEPLOY:
- *   dash.cloudflare.com → Workers & Pages → pine-workers → Edit Code
+ *   dash.cloudflare.com -> Workers & Pages -> pine-workers -> Edit Code
  *   Paste this entire file. Save and Deploy.
  */
 
@@ -242,7 +242,7 @@ const SLC_SERVICES = {
   },
 };
 
-// Operation registry. Maps operation → which service it lives on + the request element name.
+// Operation registry. Maps operation -> which service it lives on + the request element name.
 // requestElement is the outer XML element name the docs show, e.g. <GetProductRequest>.
 const SLC_OPERATIONS = {
   getProduct:                  { service: 'productdata', requestElement: 'GetProductRequest' },
@@ -251,10 +251,10 @@ const SLC_OPERATIONS = {
   getConfigurationAndPricing:  { service: 'pricing',     requestElement: 'GetConfigurationAndPricingRequest' },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Lead-time config (NEW in v10)
 //
-// SEMANTICS — read before changing anything.
+// SEMANTICS - read before changing anything.
 //
 // Workday counts here are INCLUSIVE, matching Airtable's WORKDAY_DIFF
 // (same day = 1, not 0). Deliberate: the Orders turnaround formula
@@ -263,21 +263,21 @@ const SLC_OPERATIONS = {
 // days and every surface reading turnaround shifts by one.
 //
 // inFlight  = live orders (no completion date) with a payment date and a
-//             scheduled print date, measured payment → last scheduled print,
+//             scheduled print date, measured payment -> last scheduled print,
 //             plus LT_PRINT_TO_DONE for the finishing/ship tail.
 //             Forward-looking, but it only covers orders ALREADY SCHEDULED,
 //             so a job quoted today enters behind them. It is a floor, not a
 //             forecast, and consumer copy must say so.
 //
-// completed = trailing window of finished orders, payment → completion.
+// completed = trailing window of finished orders, payment -> completion.
 //             Sanity check. If the two diverge by more than ~2 days, the
 //             divergence is itself the signal worth looking at.
 //
-// Measured 9/17/26: completed median 17 workdays, in-flight 15–16. Turnaround
-// ran 8 → 17 between April and September 2026, which is why this is computed
-// live rather than hardcoded — anything baked in goes stale within two months,
+// Measured 9/17/26: completed median 17 workdays, in-flight 15-16. Turnaround
+// ran 8 -> 17 between April and September 2026, which is why this is computed
+// live rather than hardcoded - anything baked in goes stale within two months,
 // and stale in the direction that makes sales promise dates the shop can't hit.
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 const LT_BASE   = 'appJkaLk8DykjsgHR';
 const LT_ORDERS = 'tbl8Tf0AeS9gnHOOS';
 
@@ -292,7 +292,7 @@ const LT_WINDOW_DAYS   = 60;      // trailing window for the completed median
 const LT_STALE_BACK    = 14;      // drop live orders whose print date is >14d past (zombies)
 const LT_HORIZON_DAYS  = 120;     // drop live orders scheduled absurdly far out (seasonal pre-books)
 const LT_MIN_SAMPLE    = 15;      // under this, return null rather than a number
-const LT_PRINT_TO_DONE = 1;       // observed tail, last print → completion (stable ~1 workday)
+const LT_PRINT_TO_DONE = 1;       // observed tail, last print -> completion (stable ~1 workday)
 const LT_CACHE_MS      = 12 * 60 * 60 * 1000;
 
 export default {
@@ -319,30 +319,30 @@ export default {
     }
 
     if (firstSegment === 'slc') {
-      // /proxy/slc/<service>  — service is one of: productdata, inventory, pricing
+      // /proxy/slc/<service>  - service is one of: productdata, inventory, pricing
       const service = segments[1] || '';
       return handleSlc(request, env, service);
     }
 
     if (firstSegment === 'shipstation') {
-      // /proxy/shipstation/<v1-path>  → ShipStation V1 API (Basic auth)
+      // /proxy/shipstation/<v1-path>  -> ShipStation V1 API (Basic auth)
       const ssPath = segments.slice(1).join('/');
       return handleShipstation(request, env, ssPath, url.search);
     }
 
     if (firstSegment === 'leadtime') {
-      // /proxy/leadtime → computed turnaround medians from Airtable (v10)
+      // /proxy/leadtime -> computed turnaround medians from Airtable (v10)
       return handleLeadtime(request, env);
     }
 
     if (firstSegment === 'sanmar') {
-      // /proxy/sanmar/<service> → SanMar Web Services, JSON out (v11)
+      // /proxy/sanmar/<service> -> SanMar Web Services, JSON out (v11)
       const service = (segments[1] || '').toLowerCase();
       return handleSanmar(request, env, service, url.searchParams);
     }
 
     if (firstSegment === 'mockups') {
-      // /proxy/mockups?o=recXXXXXXXXXXXXXX → order mockups, sizes, locations (v13)
+      // /proxy/mockups?o=recXXXXXXXXXXXXXX -> order mockups, sizes, locations (v13)
       return handleMockups(request, env, url.searchParams);
     }
 
@@ -351,9 +351,9 @@ export default {
   },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// S&S passthrough — identical to v3 behavior
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
+// S&S passthrough - identical to v3 behavior
+// -----------------------------------------------------------------------------
 async function handleSS(request, env, path, query) {
   const ssUrl = `${SS_BASE}/${path}${query}`;
   const auth = 'Basic ' + btoa(`${env.SS_ACCOUNT}:${env.SS_API_KEY}`);
@@ -380,17 +380,17 @@ async function handleSS(request, env, path, query) {
     return jsonError(`Failed to reach S&S: ${e.message}`, 502);
   }
 
-  console.log(`[pine-ss] ${request.method} ${ssUrl} → ${ssResponse.status}`);
+  console.log(`[pine-ss] ${request.method} ${ssUrl} -> ${ssResponse.status}`);
 
   return streamThrough(ssResponse);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // ShipStation: V1 REST passthrough, HTTP Basic auth (key:secret). (NEW in v9)
 // Mirrors the S&S passthrough shape: GET for order lookup, POST for
 // rates / labels / void. Body buffered via arrayBuffer (same as AS Colour)
 // since the money-path calls are JSON POSTs. Response streamed through.
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 async function handleShipstation(request, env, path, query) {
   if (!path) {
     return jsonError('Missing ShipStation path. Try /proxy/shipstation/orders?orderNumber=9921', 400);
@@ -424,19 +424,19 @@ async function handleShipstation(request, env, path, query) {
     return jsonError(`Failed to reach ShipStation: ${e.message}`, 502);
   }
 
-  console.log(`[pine-shipstation] ${request.method} ${ssUrl} → ${resp.status}`);
+  console.log(`[pine-shipstation] ${request.method} ${ssUrl} -> ${resp.status}`);
 
   return streamThrough(resp);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Lead time: Airtable Orders → turnaround medians in workdays. (NEW in v10)
+// -----------------------------------------------------------------------------
+// Lead time: Airtable Orders -> turnaround medians in workdays. (NEW in v10)
 //
 // The only route here that talks to Airtable rather than a vendor, and the
 // only one that computes rather than proxies. Both are deliberate: the point
 // is that the Airtable token stays server-side and the browser gets four
 // numbers instead of 400 records.
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 async function handleLeadtime(request, env) {
   if (request.method !== 'GET') {
     return jsonError('Lead time is GET only', 405);
@@ -445,7 +445,7 @@ async function handleLeadtime(request, env) {
     return jsonError('AIRTABLE_TOKEN secret is not set on the worker', 500);
   }
 
-  // Instance-level cache. NOT the Cache API — caches.default is a no-op on
+  // Instance-level cache. NOT the Cache API - caches.default is a no-op on
   // workers.dev subdomains, so cache.put/match would silently do nothing.
   const now = Date.now();
   if (leadTimeCache.body && (now - leadTimeCache.at) < LT_CACHE_MS) {
@@ -515,7 +515,7 @@ async function handleLeadtime(request, env) {
   return jsonOk(body);
 }
 
-// Airtable v0 list with pagination. Field IDs are used in filterByFormula —
+// Airtable v0 list with pagination. Field IDs are used in filterByFormula -
 // Airtable's formula parser resolves them, and it avoids quoting field names
 // containing slashes and spaces. If this ever 422s, swap to field names.
 async function ltFetchAll(env, filterFormula) {
@@ -549,7 +549,7 @@ async function ltFetchAll(env, filterFormula) {
 }
 
 // Inclusive business-day count, matching Airtable WORKDAY_DIFF.
-// Same day → 1. Backwards → negative.
+// Same day -> 1. Backwards -> negative.
 function ltWorkdayDiff(from, to) {
   if (!from || !to) return null;
   const a = new Date(from);
@@ -597,10 +597,10 @@ function ltSummarize(values, addTail) {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // AS Colour: subscription-key always, bearer token when available, retry on 401
 // (Identical to v3 behavior.)
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 async function handleAscolour(request, env, path, query) {
   if (!path) {
     return jsonError('Missing AS Colour path. Try /proxy/ascolour/catalog/products/1001', 400);
@@ -615,7 +615,7 @@ async function handleAscolour(request, env, path, query) {
   const asUrl = `${AS_BASE}/${path}${query}`;
 
   // Read body once into a buffer so we can replay it on retry.
-  // (request.body is a ReadableStream — single-use.)
+  // (request.body is a ReadableStream - single-use.)
   let bodyBuf = null;
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     try {
@@ -625,12 +625,12 @@ async function handleAscolour(request, env, path, query) {
     }
   }
 
-  // First attempt — uses cached token if any.
+  // First attempt - uses cached token if any.
   let resp = await ascolourFetch(env, request.method, asUrl, bodyBuf, asTokenCache);
 
   // 401? Clear cache, re-auth, retry once.
   if (resp.status === 401) {
-    console.log(`[pine-as] 401 on ${asUrl} — re-authing`);
+    console.log(`[pine-as] 401 on ${asUrl} - re-authing`);
     asTokenCache = null;
     const newToken = await ascolourLogin(env);
     if (!newToken) {
@@ -640,7 +640,7 @@ async function handleAscolour(request, env, path, query) {
     resp = await ascolourFetch(env, request.method, asUrl, bodyBuf, asTokenCache);
   }
 
-  console.log(`[pine-as] ${request.method} ${asUrl} → ${resp.status}`);
+  console.log(`[pine-as] ${request.method} ${asUrl} -> ${resp.status}`);
 
   return streamThrough(resp);
 }
@@ -662,7 +662,7 @@ async function ascolourFetch(env, method, url, bodyBuf, token) {
   try {
     return await fetch(url, init);
   } catch (e) {
-    // Network-level failure — synthesize a Response so caller treats it uniformly.
+    // Network-level failure - synthesize a Response so caller treats it uniformly.
     return new Response(JSON.stringify({ error: 'Failed to reach AS Colour: ' + e.message }), {
       status: 502,
       headers: { 'Content-Type': 'application/json' },
@@ -708,13 +708,13 @@ async function ascolourLogin(env) {
   return data.token;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // SLC: PromoStandards SOAP/XML (NEW in v4)
 //
 // Client posts JSON like:
 //   {"operation":"getProduct","productId":"31225"}
 // Worker builds the matching SOAP envelope server-side and POSTs to SLC.
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 async function handleSlc(request, env, service) {
   if (request.method !== 'POST') {
     return jsonError('SLC requires POST. Send JSON {operation, productId, ...}.', 405);
@@ -779,7 +779,7 @@ async function handleSlc(request, env, service) {
     return jsonError(`Failed to reach SLC: ${e.message}`, 502);
   }
 
-  console.log(`[pine-slc] POST ${slcUrl} op=${operation} → ${resp.status}`);
+  console.log(`[pine-slc] POST ${slcUrl} op=${operation} -> ${resp.status}`);
 
   return streamThrough(resp);
 }
@@ -787,7 +787,7 @@ async function handleSlc(request, env, service) {
 // Build a SOAP 1.1 envelope wrapping the PromoStandards request body.
 // The docs show only the inner request element; real HTTP-SOAP needs the wrapper.
 //
-// v8: All three services use the SAME envelope shape — default xmlns on the
+// v8: All three services use the SAME envelope shape - default xmlns on the
 // operation element, <shar:> prefixed children throughout. SLC support
 // confirmed this for pricing 4/28/26; previous v6 alphabroder shape was an
 // over-correction based on a fault that was actually about missing fields.
@@ -824,7 +824,7 @@ function buildSlcRequestBody(svc, opMeta, payload, slcUser, slcPass) {
   lines.push(`    <shar:id>${xmlEscape(slcUser)}</shar:id>`);
   lines.push(`    <shar:password>${xmlEscape(slcPass)}</shar:password>`);
 
-  // Operation-specific body — branch on the request element name.
+  // Operation-specific body - branch on the request element name.
   if (reqEl === 'GetProductRequest') {
     if (!payload.productId) {
       throw new Error('getProduct requires productId');
@@ -862,7 +862,7 @@ function buildSlcRequestBody(svc, opMeta, payload, slcUser, slcPass) {
       throw new Error('getInventoryLevels requires productId');
     }
     lines.push(`    <shar:productId>${xmlEscape(String(payload.productId))}</shar:productId>`);
-    // Optional partId filter — docs show a <Filter><partIdArray>...</partIdArray></Filter> wrapper.
+    // Optional partId filter - docs show a <Filter><partIdArray>...</partIdArray></Filter> wrapper.
     if (Array.isArray(payload.partIds) && payload.partIds.length) {
       lines.push(`    <shar:Filter>`);
       lines.push(`      <shar:partIdArray>`);
@@ -881,7 +881,7 @@ function buildSlcRequestBody(svc, opMeta, payload, slcUser, slcPass) {
     //   localizationCountry / localizationLanguage / configurationType
     // Localization comes AFTER priceType (different from getProduct which
     // puts it before productId). configurationType is REQUIRED and was the
-    // real culprit behind the v5/v6 faults — the worker was missing it,
+    // real culprit behind the v5/v6 faults - the worker was missing it,
     // not localization.
     lines.push(`    <shar:productId>${xmlEscape(String(payload.productId))}</shar:productId>`);
     if (payload.partId) {
@@ -983,7 +983,7 @@ async function handleSanmar(request, env, service, params) {
     clearTimeout(timer);
   }
 
-  console.log(`[pine-sanmar] POST ${smUrl} style=${q.style} env=${envName} → ${resp.status}`);
+  console.log(`[pine-sanmar] POST ${smUrl} style=${q.style} env=${envName} -> ${resp.status}`);
 
   if (raw) {
     return new Response(xml, {
@@ -1041,7 +1041,7 @@ async function handleSanmarStream(env, service, params) {
   } catch (e) {
     return jsonError(`Failed to reach SanMar: ${e.message}`, 502);
   }
-  console.log(`[pine-sanmar] POST ${smUrl} ${service} style=${q.style} → ${resp.status}`);
+  console.log(`[pine-sanmar] POST ${smUrl} ${service} style=${q.style} -> ${resp.status}`);
   return streamThrough(resp);
 }
 
@@ -1157,9 +1157,9 @@ function parseSanmarPricing(xml) {
   return { ok: true, items };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Helpers (unchanged from v3)
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 function streamThrough(upstream) {
   // Stream the upstream response body to the client; do NOT buffer with .text().
   // (Large responses crash the worker with CF Error 1101.)
@@ -1196,7 +1196,7 @@ function jsonError(message, status) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Mockups: one order's line items with mockups, sizes and print location. (v13)
 //
 // ROUTE:   GET /proxy/mockups?o=recXXXXXXXXXXXXXX   (Orders record ID)
@@ -1204,14 +1204,14 @@ function jsonError(message, status) {
 // WHY:     anyone on the floor can scan a box and see the designs without an
 //          Airtable login. The Airtable token stays here, read-only.
 // KEY:     the Orders RECORD ID, not the order number, so nobody can walk
-//          10893 → 10894 and browse other customers' designs.
+//          10893 -> 10894 and browse other customers' designs.
 // RETURNS: {ok, order, customer, items:[{garment, imprints, location, total,
 //          sizes:[{size, qty}], mockups:[{name, type, image, full}]}]}
 //          qty = ordered + extras (what physically arrives for that line).
 //          image/full are Airtable attachment URLs; they expire after a few
 //          hours, which is why the page asks this route on every open.
 // CACHE:   module-level Map, 5 min, well inside the attachment URL lifetime.
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 const MK_BASE   = 'appJkaLk8DykjsgHR';
 const MK_ORDERS = 'tbl8Tf0AeS9gnHOOS';
 const MK_LINES  = 'tblJx5UlwO7oMSk5H';
@@ -1223,7 +1223,7 @@ const MK_O = {
 };
 
 const MK_L = {
-  garment:   'fldKhz9uZgXwfeIto', // "" & {Garment Type} → Manufacturer + product - colorway
+  garment:   'fldKhz9uZgXwfeIto', // "" & {Garment Type} -> Manufacturer + product - colorway
   imprints:  'fldmGRcdXyvheWjmv', // Imprint IDs
   location:  'fldOUb7DhzLBv2fC6', // Print Location Rollup
   locActual: 'fldxeFKe9GI4txtHD', // Actual Print Location (fallback)
@@ -1276,7 +1276,7 @@ async function handleMockups(request, env, params) {
     const r = await fetch(`${api}/${MK_ORDERS}/${orderId}?returnFieldsByFieldId=true`, { headers });
     if (r.status === 404) return jsonError('Order not found', 404);
     if (!r.ok) {
-      console.log(`[pine-mockups] order ${orderId} → Airtable ${r.status}`);
+      console.log(`[pine-mockups] order ${orderId} -> Airtable ${r.status}`);
       return jsonError(`Airtable returned ${r.status}`, 502);
     }
     order = await r.json();
@@ -1307,7 +1307,7 @@ async function handleMockups(request, env, params) {
       );
       if (!r.ok) {
         const detail = await r.text();
-        console.log(`[pine-mockups] lines → Airtable ${r.status}: ${detail.slice(0, 200)}`);
+        console.log(`[pine-mockups] lines -> Airtable ${r.status}: ${detail.slice(0, 200)}`);
         return jsonError(`Airtable returned ${r.status}`, 502);
       }
       const j = await r.json();
