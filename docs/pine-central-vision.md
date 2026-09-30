@@ -408,6 +408,31 @@ Chart page: https://claude.ai/artifact/Kg2ZsLSxi1pgurqFtueAzD
 - **New KPI: escaped defects** = issues caught by the customer ÷ all issues. Shows how much QC is missing
   before orders leave the shop.
 
+## Receiving app: ease-of-use review (2026-09-30, v61 with live data)
+
+Walked the full flow in a browser against 400 real waiting lines (writes blocked).
+
+**Friction found**
+- An order row shows up to 8 chips/buttons (status, mis-ship, x/n in, lines, pcs, Label, Box Labels, Job Sheet), so a new person can't tell what to do next.
+- **Mark Received works with every count at 0.** It saves "received" with no actual counts and no warning.
+- A mis-ship is typed from memory, even though the count table already knows the difference.
+- The receiving label pops up after every line, not once per order or box.
+- Filter counts mix units: All / Urgent / Completed count **orders**; Mis-ships / Overdue count **lines** (All 49 vs Overdue 57).
+- "Overdue" chip = vendor arrival date passed; "OVERDUE" section = print date passed. Same word, two meanings.
+- Date headers are bare ("10/2/2026") and don't say they're print dates.
+- Admin controls (Simulate, Token, version) sit next to everyday buttons.
+- Data noise: long internal ref string on each line, supplier names shown in quotes.
+
+**Suggestions (for v62 and Pine Central)**
+1. Scan-first: one big "Scan or type order / PO" box that opens that order.
+2. One clear next step per order, with a plain status word (Waiting · Partly in · All in · Problem). Print buttons move into one "Print" menu.
+3. Guided receive per line: big **"Everything matches"** button, or enter counts. Receiving with nothing counted asks first.
+4. Auto mis-ship: counts that differ from ordered become a pre-filled mis-ship ("Got 7 L, expected 8"), confirmed with one tap.
+5. Print the receiving label when the order is fully in (or ask), not after each line.
+6. Plain-language headers ("Prints Friday, Oct 2 · in 2 days"); rename the vendor "Overdue" to "Late from vendor"; counts all in orders.
+7. Practice mode: rename Simulate to "Practice" for training new hires; hide Token/version behind a gear.
+8. Show the mockup bigger in the line (reuse the mockups route) to confirm garment/color at a glance.
+
 ## Open questions
 
 - Devices: shared stations vs. personal phones/computers?
