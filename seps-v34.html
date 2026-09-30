@@ -304,8 +304,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sep-select{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-family:var(--cond);padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border-dk);background:var(--bg);color:var(--muted);cursor:pointer;outline:none;width:100%;margin-top:5px}
 .sep-select:focus{border-color:var(--green)}
 .sep-select.assigned{background:var(--green-lt);border-color:#b8dfcc;color:var(--green-dk)}
-/* v34: Ink Coverage picker (Light / Medium / Heavy). One tap sets it, tapping the
-   selected option again clears it. Writes fldNNTJQZBV6l7YNU on the imprint. */
+/* v34: Ink Coverage picker (Light / Medium / Heavy), bandanas only. One tap sets it,
+   tapping the selected option again clears it. Writes fldNNTJQZBV6l7YNU on the imprint. */
 .cov-row{display:flex;align-items:center;gap:6px;margin-top:6px}
 .cov-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--cond);color:var(--muted);margin-right:2px}
 .cov-opt{flex:1;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-family:var(--cond);padding:6px 8px;border-radius:var(--radius);border:1px solid var(--border-dk);background:var(--bg);color:var(--muted);cursor:pointer}
@@ -500,6 +500,7 @@ var F = {
   burned:     'fldEL51Nwrxuyn9Zo',
   separator:  'fldTPKgZroX532qER',
   coverage:   'fldNNTJQZBV6l7YNU', // v34: Ink Coverage — Light / Medium / Heavy
+  bandana:    'fldo7l8t4IhhWoeXl', // v34: Bandana Emoji Identifier — non-empty when the garment is Carolina Creative
   schedStart: 'fldfqtIgcEfIlIeQk',
   screens:    'fld8rgkIj1RPO97QU',
   impressions:'fldFipR4ddfqMPeAX',
@@ -784,6 +785,7 @@ function parseRecords(records) {
       sepsUrl: f[F.sepUrl] || '',
       sep: f[F.separator] || '',
       cov: (function(v){ if (!v) return ''; return typeof v === 'object' ? (v.name || '') : String(v); })(f[F.coverage]), // v34
+      bandana: !!f[F.bandana], // v34: coverage picker shows on bandanas only
       due: (f[F.schedStart] || '').slice(0,10),
       qty: f[F.impressions] || null,
       thumbUrl: thumbUrl, largeUrl: largeUrl,
@@ -1282,7 +1284,7 @@ function buildCard(r) {
       '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">' + linkBtns + '</div>' +
       linkInput +
       '<select class="' + selCls + '" id="sep-sel-' + id + '" onclick="event.stopPropagation()" onchange="assignSeparator(&quot;' + id + '&quot;,this)">' + sepOpts + '</select>' +
-      coverageMarkup(id, s.cov) +
+      (r.bandana ? coverageMarkup(id, s.cov) : '') +
       (r.supa ? supaRow : nonSupaRow);
   } else {
     var burnCls = 'ck ck-large' + (s.b ? ' on' : '');
