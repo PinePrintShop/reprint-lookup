@@ -392,6 +392,18 @@ Chart page: https://claude.ai/artifact/Kg2ZsLSxi1pgurqFtueAzD
   2. **First-piece approval at the press:** crew scans the job, prints one, photographs it, compares to
      the proof, taps approve. Blocks whole-run redos from art or setup errors.
   3. **Bandana QC at Catching:** a quick warp/square check on a sample from each run, logged.
+- **Tested Stephen's theory (colors / quantity / ink coverage), bandanas Jun 2025–Sep 2026, 1,658 lines:**
+  - Color count makes little difference: 1–3 colors all ~3.3–3.5% (excluding whole-run redos); 4+ colors 2.5%.
+  - Bigger runs have a **lower** rate: under 100 pcs 4.7%, 1,000+ pcs 1.8%. Setup/test pieces are a
+    bigger share of small runs. But bigger runs are more likely to have *some* damage (75% vs 39%).
+  - **Ink coverage isn't recorded anywhere**, and screen count doesn't capture it (a 1-color flood is heavy).
+    That's likely why the data can't see what the shop floor sees.
+  - Action: record **coverage** at seps (Light / Medium / Heavy, or estimated %). After ~3 months the
+    theory can be confirmed and used to price and schedule heavy-coverage bandanas.
+  - Separate **setup/test pieces** from damage (planned overs) so small runs aren't penalized.
+  - When the shop decides to **push through** a questionable art/setup, record it at first-piece
+    approval ("proceed at risk") so the outcome of those calls can be tracked.
+
 - **New KPI: escaped defects** = issues caught by the customer ÷ all issues. Shows how much QC is missing
   before orders leave the shop.
 
