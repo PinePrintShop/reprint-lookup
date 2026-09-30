@@ -364,7 +364,22 @@ Pine Central later gives it a better screen, using the same structure.
    Old records that are never reviewed stay as "Legacy · unclassified" and don't pollute new reports.
 5. Once the new table has run cleanly for a month, the old fields become read-only.
 
-### Open questions
+### Damage rate vs impressions (analysis, 2026-09-30)
+
+Chart page: https://claude.ai/artifact/Kg2ZsLSxi1pgurqFtueAzD
+
+- Jun–Sep: impressions 170.5k → 220.7k (+29%); damaged pieces 3,652 → 4,071 (+11%);
+  damage per impression 2.14% → 1.84% (14% lower). Jan–May isn't comparable (2025 logging started in March).
+- Spikes were single jobs redone in full on Press 1: Nov 2025 #8811 NDLON (264/250 bandanas; month
+  is 2.3% without it), Feb 2026 #9333 Kate O'Hara (520 of 500 bandanas; month is 2.1% without it).
+- **Bandanas (Carolina Creative 4800): 45% of impressions, 74% of damage, 3.43% rate vs 0.99% for everything else.**
+- **Whole-run redos:** 41 line items damaged at ≥90% of quantity = 2,562 pieces (~18% of all damage); 21 on Press 1.
+- By equipment (Jun 2025–Sep 2026): Press 2 2.82%, Press 1 2.32%, Hat press 2.38%, Finishing 1.15%,
+  Embroidery 0.85%, Tag press 0.67%, Saturn 0.34%.
+- Older issues have no reasons recorded, so why those runs failed isn't in the data. Issues v2
+  (required reason + crew from scans) fixes that going forward.
+
+## Open questions
 - What is "Jawn"? Is "Wrinkle" a production issue or a vendor one?
 - Who decides refund vs. reprint: Stephen, the salesperson, or either?
 - Which outsource partners should be listed for claims?
