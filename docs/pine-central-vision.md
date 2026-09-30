@@ -321,6 +321,54 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
 - People and Slack IDs come from the Employees table, never from formulas.
 - Crew-level spoilage from scan data; trends by reason, press, crew and customer in KPI.
 
+## Issues v2: clean issue tracking (plan, 2026-09-30)
+
+Goal: one clean way to record anything that goes wrong on an order, with the 1,769 existing
+Order Issues brought over as history. Built in Airtable first so it's useful before Pine Central;
+Pine Central later gives it a better screen, using the same structure.
+
+### One table: Issues
+| Field | Notes |
+|---|---|
+| Issue # | Autonumber |
+| Reported by / Station | Person (Employees) and where: Receiving, Press, Catching, Shipping, Sales |
+| Order · Line Item · Imprint | Links |
+| **Type** | Production · Vendor · Service · Customer complaint (required) |
+| **Reason** | One list, grouped by type (required). Production: Corner, Smudge, Print Error, Light Ink, Out of Square, Dry-in, Dryer Grease. Vendor: Mill Flaw, Mis-ship, Short shipment, Outsourced job wrong. Service: Missed deadline, Customer no longer needs it |
+| Pieces by size | OSFA, XS…6XL, in **one** place only |
+| Accountable | Suggested from type + reason, can be changed: Print crew, Pre-press, Receiving, Vendor, Outsourcer, Sales, Customer |
+| Crew | Filled from the press scan when available |
+| **Resolution** | Reprint · Refund · Credit · No action, chosen by a person (the formula only suggests) |
+| Decided by / on | Who made the call and when |
+| Costs | Blanks (auto) · Press time (later, from scans) · Refund amount · Total |
+| Claim | Vendor/outsourcer · Status (none, filed, credited, denied) · Credit received |
+| **Status** | Open → Decided → Done → Closed (never blank) |
+| Photos, Notes | |
+
+### Guardrails (stop bad data at the door)
+- Type and Reason are required to save.
+- Counts can't be negative; final quantity can't be negative or far above ordered.
+- A refund can't be larger than the line's value.
+- Status always has a value; new issues start as Open.
+- Cost is computed from damaged pieces, not from ordered minus final.
+
+### Moving the old data over
+1. Build the Issues table next to Order Issues. Nothing old is deleted.
+2. Point the Catching app at the new table (write to both for a few weeks).
+3. Copy the 1,769 old issues in, mapping fields:
+   - QC Reasons (all three fields) → Reason; Mill Flaw → Vendor, the rest → Production
+   - Category / Originator → Reported by / Station
+   - Resolution / Change Resolution → Resolution; old cost → Refund amount (marked legacy)
+4. Anything that doesn't map cleanly goes to a **Needs review** list rather than being guessed:
+   no reason (~1,000), negative Shipped % (25), refunds on low-shipped lines (11), no status (182).
+   Old records that are never reviewed stay as "Legacy · unclassified" and don't pollute new reports.
+5. Once the new table has run cleanly for a month, the old fields become read-only.
+
+### Open questions
+- What is "Jawn"? Is "Wrinkle" a production issue or a vendor one?
+- Who decides refund vs. reprint: Stephen, the salesperson, or either?
+- Which outsource partners should be listed for claims?
+
 ## Open questions
 
 - Devices: shared stations vs. personal phones/computers?
