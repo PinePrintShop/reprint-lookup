@@ -47,11 +47,17 @@ write calls. Full fix: require a Pine Central login session on every route.
 ## How an order flows today (confirmed 2026-09-30)
 
 1. **Ordered** is clicked. The job appears on the **Seps**, **Ink** and **Receiving** dashboards at the same time.
-2. Three lanes run in parallel:
+2. **Schedule** happens soon after ordering. The print date sets the order of work on every dashboard.
+3. Three lanes work toward the print date in parallel:
    - **Garments:** Purchasing orders blanks, then Receiving. Usually the slow lane.
    - **Art:** Seps. When a sep is done, the job appears on the **Screens** dashboard.
    - **Ink:** Ink Queue.
-3. The lanes meet at **Schedule**, then **Print → Catch → Ship**.
+4. All three lanes must be ready by print day, then **Print → Catch → Ship**.
+
+**Idea: at-risk check.** Every scheduled job shows three lights (garments / art / ink). If a lane
+isn't done a set number of days before the print date (e.g. garments not received 2 days out), the
+job is flagged **at risk**: a Blocker in its thread, highlighted on the schedule and on that lane's
+dashboard. The scheduler sees problems before print day, not on it.
 
 ## Architecture direction
 
