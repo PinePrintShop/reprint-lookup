@@ -1,6 +1,6 @@
 # Pine Central — Vision & Roadmap
 
-Living document. Update it as decisions are made. Last updated: 2026-09-29.
+Living document. Update it as decisions are made. Last updated: 2026-09-30.
 
 ## Glossary (use these words consistently)
 
@@ -44,12 +44,21 @@ Anyone with the URL can use Pine's vendor accounts. The ShipStation route forwar
 including buying and voiding labels. Stopgap: restrict origins and lock down ShipStation
 write calls. Full fix: require a Pine Central login session on every route.
 
+## How an order flows today (confirmed 2026-09-30)
+
+1. **Ordered** is clicked. The job appears on the **Seps**, **Ink** and **Receiving** dashboards at the same time.
+2. Three lanes run in parallel:
+   - **Garments:** Purchasing orders blanks, then Receiving. Usually the slow lane.
+   - **Art:** Seps. When a sep is done, the job appears on the **Screens** dashboard.
+   - **Ink:** Ink Queue.
+3. The lanes meet at **Schedule**, then **Print → Catch → Ship**.
+
 ## Architecture direction
 
 - **Frontend:** Pine Central shell plus one module per department app.
 - **Backend:** `pine-workers` on Cloudflare holds the Airtable key and vendor credentials,
   checks the logged-in user, and enforces what each role may read or write.
-- **People and permissions:** an **Employees** table in Airtable (name, role, PIN or email,
+- **People and permissions:** an **Employees** table in Airtable (name, role, PIN,
   allowed apps). Staff are managed in Airtable, not in code.
 - **Sessions:** Cloudflare KV.
 - **High-volume data** (messaging): Cloudflare D1. Airtable allows about 5 requests/second per
@@ -62,7 +71,7 @@ write calls. Full fix: require a Pine Central login session on every route.
 | Phase | When (target) | What |
 |---|---|---|
 | 0. Cleanup | Early Oct 2026, ~1 wk | One current file per app; old versions to `archive/`; Worker code into repo; inventory of who uses which apps |
-| 1. Real login | Oct 2026, ~2–3 wks | Employees table, login (PIN and/or Google), sessions in KV, Worker enforces permissions; secure vendor routes |
+| 1. Real login | Oct 2026, ~2–3 wks | Employees table, **PIN login** (decided 2026-09-30), sessions in KV, Worker enforces permissions; secure vendor routes |
 | 2. Shell + easy apps | Nov 2026, ~4 wks | Sidebar shows only permitted apps; migrate Reorder Lookup (today's "Reprint Lookup"), Floor Status, Lunch Punchclock, Day Fill, KPI, Shipping. Standalone apps keep working in parallel |
 | 2.5 Order messaging pilot | Dec 2026, ~3–4 wks | See below. Pilot with Production + Pre-Press |
 | 3. Heavy apps | Dec 2026 – Jan 2027, ~8 wks | Operator, Production Board, Receiving, Ink Queue, Catching, Seps, Screens, Price-o-matic, Purchasing, Sales Entry; shared code pulled into common files |
@@ -237,11 +246,9 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
 
 ## Open questions
 
-- Login style: PIN on shared tablets, Google sign-in, or both?
 - Devices: shared stations vs. personal phones/computers?
 - Who uses which apps? (Phase 0 inventory)
 - Reprint tracking: what does the current Airtable view track, and what's missing?
-- Scan flow: does Ink come before or after scheduling? Do seps and receiving run in parallel?
 - Station tablets: which stations already have a screen, and which need one?
 
 ## Idea backlog
