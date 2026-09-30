@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Order Mockups — Pine Print Shop</title>
+<style>
+/* Mockup viewer opened from the receiving-label QR. No Airtable login: data comes
+   from pine-workers /proxy/mockups, keyed on the order's record ID (?o=rec...). */
+:root{
+  --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;
+  --text:#0D0D0B;--muted:#6F6F68;--bar:#0A0A08;--yellow:#E8E832;--red:#c0392b;
+  --sans:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.4;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.top{background:var(--bar);color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.top .ord{font-size:28px;font-weight:900;letter-spacing:-.02em;color:var(--yellow);line-height:1}
+.top .cust{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.top .count{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bdbdb5;white-space:nowrap}
+.track{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;padding:14px 16px 8px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.mock{background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;min-height:220px;max-height:52vh;overflow:hidden;position:relative;text-decoration:none;color:var(--muted)}
+.mock img{max-width:100%;max-height:52vh;display:block;object-fit:contain}
+.mock .open{position:absolute;right:8px;bottom:8px;background:var(--bar);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:14px}
+.mock.none{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.more{display:flex;gap:8px;overflow-x:auto}
+.more a{flex-shrink:0;font-size:12px;font-weight:700;color:var(--text);background:var(--surface);border:1px solid var(--border-dk);border-radius:14px;padding:6px 10px;text-decoration:none}
+.garment{font-size:20px;font-weight:800;line-height:1.2;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.loc{background:var(--bar);color:#fff;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:4px}
+.imp{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.sizes{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.sz{background:var(--surface);border:1px solid var(--border-dk);border-radius:6px;padding:6px 4px;text-align:center}
+.sz b{display:block;font-size:11px;letter-spacing:.06em;color:var(--muted)}
+.sz span{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.total{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.total b{color:var(--text);font-size:16px}
+.nav{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--border)}
+.nav button{font:700 13px var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:12px 18px;border-radius:6px;border:1px solid var(--border-dk);background:var(--bg);color:var(--text);cursor:pointer;min-width:96px}
+.nav button:disabled{opacity:.35;cursor:default}
+.nav button:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--border-dk)}
+.dots i.on{background:var(--text)}
+.msg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 24px;gap:8px;color:var(--muted)}
+.msg b{color:var(--text);font-size:18px}
+.msg.err b{color:var(--red)}
+@media (min-width:900px){.slide{padding:20px max(16px,calc((100vw - 860px)/2)) 12px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="ord" id="ord">Order</div>
+  <div class="cust" id="cust">Loading…</div>
+  <div class="count" id="count"></div>
+</header>
+<div class="msg" id="msg"><b>Loading mockups…</b><span>This takes a second.</span></div>
+<main class="track" id="track" hidden aria-live="polite"></main>
+<nav class="nav" id="nav" hidden>
+  <button type="button" id="prev" aria-label="Previous garment">&#8592; Prev</button>
+  <div class="dots" id="dots"></div>
+  <button type="button" id="next" aria-label="Next garment">Next &#8594;</button>
+</nav>
+<script>
+(function(){
+  var API = 'https://pine-workers.stephen-dab.workers.dev/proxy/mockups?o=';
+  var o = new URLSearchParams(location.search).get('o') || '';
+  var track = document.getElementById('track'), nav = document.getElementById('nav');
+  var dots = document.getElementById('dots'), prev = document.getElementById('prev'), next = document.getElementById('next');
+  var items = [], idx = 0;
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fail(title, detail){
+    var m = document.getElementById('msg');
+    m.className = 'msg err'; m.hidden = false;
+    m.innerHTML = '<b>' + esc(title) + '</b><span>' + esc(detail) + '</span>';
+    document.getElementById('cust').textContent = '';
+  }
+  if (!/^rec[A-Za-z0-9]{14}$/.test(o)) { fail('This link is incomplete', 'Scan the QR code on the label again.'); return; }
+
+  function slide(it, i){
+    var m = it.mockups && it.mockups[0];
+    var img = m && m.image
+      ? '<a class="mock" href="' + esc(m.full || m.image) + '" target="_blank" rel="noopener"><img src="' + esc(m.image) + '" alt="Mockup for ' + esc(it.garment) + '"><span class="open">Open PDF</span></a>'
+      : '<div class="mock none">No mockup uploaded</div>';
+    var extra = (it.mockups || []).slice(1).map(function(x, k){
+      return '<a href="' + esc(x.full || x.image) + '" target="_blank" rel="noopener">Mockup ' + (k + 2) + '</a>';
+    }).join('');
+    var locs = String(it.location || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean)
+      .map(function(l){ return '<span class="loc">' + esc(l) + '</span>'; }).join('');
+    var sizes = (it.sizes || []).map(function(s){ return '<div class="sz"><b>' + esc(s.size) + '</b><span>' + esc(s.qty) + '</span></div>'; }).join('');
+    return '<section class="slide" aria-label="Garment ' + (i + 1) + ' of ' + items.length + '">' + img +
+      (extra ? '<div class="more">' + extra + '</div>' : '') +
+      '<div class="garment">' + esc(it.garment) + '</div>' +
+      '<div class="meta">' + (locs || '<span class="imp">No print location</span>') +
+        (it.imprints && it.imprints.length ? '<span class="imp">' + esc(it.imprints.join(' · ')) + '</span>' : '') + '</div>' +
+      (sizes ? '<div class="sizes">' + sizes + '</div>' : '') +
+      '<div class="total">Total <b>' + esc(it.total || 0) + '</b> pcs</div>' +
+    '</section>';
+  }
+  function show(i){
+    idx = Math.max(0, Math.min(items.length - 1, i));
+    document.getElementById('count').textContent = items.length > 1 ? (idx + 1) + ' of ' + items.length : '1 garment';
+    prev.disabled = idx === 0; next.disabled = idx === items.length - 1;
+    [].forEach.call(dots.children, function(d, k){ d.className = k === idx ? 'on' : ''; });
+  }
+  function go(i){ track.scrollTo({ left: track.clientWidth * i, behavior: 'smooth' }); show(i); }
+  prev.onclick = function(){ go(idx - 1); };
+  next.onclick = function(){ go(idx + 1); };
+  document.addEventListener('keydown', function(e){ if (e.key === 'ArrowLeft') go(idx - 1); if (e.key === 'ArrowRight') go(idx + 1); });
+  var t; track.addEventListener('scroll', function(){ clearTimeout(t); t = setTimeout(function(){ show(Math.round(track.scrollLeft / track.clientWidth)); }, 60); });
+
+  fetch(API + encodeURIComponent(o))
+    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+    .then(function(res){
+      var j = res.j || {};
+      if (!res.ok || !j.ok) { fail('Could not load this order', j.error || 'Try again in a minute.'); return; }
+      document.getElementById('ord').textContent = '#' + (j.order || '');
+      document.getElementById('cust').textContent = j.customer || '';
+      document.title = 'Order ' + (j.order || '') + ' Mockups — Pine Print Shop';
+      items = j.items || [];
+      if (!items.length) { fail('No garments on this order yet', 'Check with the office.'); return; }
+      track.innerHTML = items.map(slide).join('');
+      dots.innerHTML = items.map(function(){ return '<i></i>'; }).join('');
+      document.getElementById('msg').hidden = true;
+      track.hidden = false; nav.hidden = items.length < 2;
+      show(0);
+    })
+    .catch(function(){ fail('No connection', 'Check Wi-Fi and scan again.'); });
+})();
+</script>
+</body>
+</html>
