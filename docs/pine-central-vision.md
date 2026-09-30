@@ -365,7 +365,12 @@ Pine Central later gives it a better screen, using the same structure.
    Old records that are never reviewed stay as "Legacy · unclassified" and don't pollute new reports.
 5. Once the new table has run cleanly for a month, the old fields become read-only.
 
-### Damage rate vs impressions (analysis, 2026-09-30)
+### Open questions
+- What is "Jawn"? Is "Wrinkle" a production issue or a vendor one?
+- Who decides refund vs. reprint: Stephen, the salesperson, or either?
+- Which outsource partners should be listed for claims?
+
+## Damage rate vs impressions (analysis, 2026-09-30)
 
 Chart page: https://claude.ai/artifact/Kg2ZsLSxi1pgurqFtueAzD
 
@@ -389,11 +394,6 @@ Chart page: https://claude.ai/artifact/Kg2ZsLSxi1pgurqFtueAzD
   3. **Bandana QC at Catching:** a quick warp/square check on a sample from each run, logged.
 - **New KPI: escaped defects** = issues caught by the customer ÷ all issues. Shows how much QC is missing
   before orders leave the shop.
-
-## Open questions
-- What is "Jawn"? Is "Wrinkle" a production issue or a vendor one?
-- Who decides refund vs. reprint: Stephen, the salesperson, or either?
-- Which outsource partners should be listed for claims?
 
 ## Open questions
 
