@@ -288,8 +288,13 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
 2b. **The cost formula depends on Total Final Quantity**, which often isn't final when Catching logs
    an issue per line item. Found: 11 REFUNDs on lines under 50% shipped (~$7.3k, including three in
    Sep 2026 at $1,050–$1,225), 35 RE-PRINTs under 50% shipped (~$9.5k), 25 issues with a negative
-   Shipped %, and one negative cost. So roughly a third of the computed $49k is suspect. Fix: base
-   cost on the damaged pieces Catching actually reports, and decide refund vs reprint when the order closes.
+   Shipped %, and one negative cost. Fix: base cost on the damaged pieces Catching actually reports,
+   and decide refund vs reprint when the order closes.
+   **Context from Stephen (2026-09-30):** many low-shipped refunds are real, whole-line refunds that
+   aren't damage at all: a **missed deadline** where the customer no longer needed the items, or an
+   **outsourced job made in the wrong material** (should have been polyester; the Sep 2026 refunds).
+   The formula lands near the right number by accident (0% shipped means refund everything), but the
+   records look like damage. The negative Shipped % ones still need a look.
 3. **Reasons live in four fields** (QC Reasons, QC Reasons - Print Team, QC Reasons - Other,
    Damage Details Reasons); 1,003 issues have none in the first three. Accountability is blank on 1,003.
 4. **Status is loose:** 182 blank, 184 "Awaiting Review".
@@ -301,11 +306,18 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
 8. **Mill flaws are the vendor's fault** but nothing tracks claiming credit back from S&S/SanMar/etc.
 
 **Pine Central direction**
-- One **Issue** record: type (misprint, garment damage, mill flaw, mis-ship, customer complaint),
-  one reason list, one set of per-size counts, accountability (print crew, pre-press, vendor,
+- One **Issue** record with a clear type. Not every refund is damage:
+  - **Production:** misprint, garment damage in the shop
+  - **Vendor:** mill flaw, mis-ship, **outsourced job wrong** (e.g. wrong material)
+  - **Service:** **missed deadline**, customer changed their mind
+  - **Customer complaint** after delivery
+  Type drives who's accountable, whether a vendor/outsourcer claim is opened, and how cost is
+  calculated (damaged pieces for damage; whole-line refund for deadline or spec misses).
+- Missed-deadline refunds feed back into the **at-risk check** so the shop can see what they cost.
+- Each issue record also has one reason list, one set of per-size counts, accountability (print crew, pre-press, vendor,
   shipping, customer), photos, resolution.
 - **Full reprint cost** = blanks + press time (crew × minutes) + screens/ink + re-shipping.
-- **Vendor claims** for mill flaws: tracked from flag to credit received.
+- **Vendor and outsourcer claims** for mill flaws, mis-ships and outsourced jobs done wrong: tracked from flag to credit received.
 - People and Slack IDs come from the Employees table, never from formulas.
 - Crew-level spoilage from scan data; trends by reason, press, crew and customer in KPI.
 
