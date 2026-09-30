@@ -398,8 +398,9 @@ Chart page: https://claude.ai/artifact/Kg2ZsLSxi1pgurqFtueAzD
     bigger share of small runs. But bigger runs are more likely to have *some* damage (75% vs 39%).
   - **Ink coverage isn't recorded anywhere**, and screen count doesn't capture it (a 1-color flood is heavy).
     That's likely why the data can't see what the shop floor sees.
-  - Action: record **coverage** at seps (Light / Medium / Heavy, or estimated %). After ~3 months the
-    theory can be confirmed and used to price and schedule heavy-coverage bandanas.
+  - **Done 2026-09-30:** Airtable field **Ink Coverage** (Imprints, `fldNNTJQZBV6l7YNU`: Light / Medium / Heavy)
+    and a picker on the Seps dash (`seps-v34.html`). After ~3 months, compare bandana damage by coverage.
+  - Bandana damage counts are reliable: they are the blanks pulled from stock to complete the order.
   - Separate **setup/test pieces** from damage (planned overs) so small runs aren't penalized.
   - When the shop decides to **push through** a questionable art/setup, record it at first-piece
     approval ("proceed at risk") so the outcome of those calls can be tracked.
