@@ -250,6 +250,59 @@ Seps and proofs are desk work, so they stay as buttons in the app, not scans.
    Reviewed 2026-09-30: 59 stale/blank open orders found, grouped as paid-but-stuck (5), unclosed
    quotes (8), $0 shells (24), likely 2026 test orders (14) and blank (8). Left as-is for now.
 
+## How errors, damages and reprint costs are tracked today (Airtable review, 2026-09-30)
+
+**Tables**
+- **Order Issues** (1,769 records since late 2024): one record per problem on a line item.
+  Per-size counts ([RP] OSFA, XS…5XL), originator, category, QC reasons, accountability, photos.
+- **Damage Details** (child of Order Issues, used on 766 issues): per-size counts again
+  (D OSFA…6XL), its own reasons + accountability, attachments, AI photo summary.
+- Rolled up to **Line Items** (DMGs per size, Spoilage %, Reprint Qty), **Imprints** (Reprint Qty),
+  **Orders** (Total Damage Refunds) and **Operators** (Spoilage all-time / 30 days / this week).
+
+**Key formulas**
+- **Shipped %** = Total Final Quantity ÷ Line Item Total Quantity.
+- **Resolution** (auto, can be overridden by "Change Resolution"):
+  under 95% shipped → RE-PRINT; 95–100% → REFUND; bandanas have their own 5% rule for
+  customer-initiated issues; otherwise NO ACTION.
+- **Total Refund Due or Bandana Replacements** (the cost number):
+  REFUND → missing pieces × price per piece; RE-PRINT → damaged pieces × **garment purchase cost by size**;
+  bandana NO ACTION → 1.35 × OSFA count.
+- **Spoilage %** = damaged ÷ ordered, rolled up to Operators.
+
+**What the data shows**
+- 2026 so far: 1,063 issues, ~8,300 damaged pieces, ~$25.6k in computed refunds/reprints
+  (2025: 683 issues, ~7,800 pieces, ~$23.6k).
+- Issues jumped from ~60/month to ~200/month in June 2026 (more QC logging, or more problems?).
+- 86% are QC-initiated; 7% customer-initiated.
+- Top reasons: Corner (358), Smudge (282), **Mill Flaw (264)**, Print Error (262), Dryer Grease (257),
+  Wrinkle (151), Light Ink (119).
+- Resolutions: NO ACTION 1,412 · REFUND 227 (~$18.4k) · RE-PRINT 130 (~$17.9k).
+
+**Gaps**
+1. **Reprint cost counts blanks only.** No labor, press time, ink, screens, re-shipping, so true cost is understated.
+2. **Damage counts live in two places** ([RP] fields on Order Issues and D fields on Damage Details).
+   Totals and costs only use the [RP] fields, so anything entered only in Damage Details may be
+   missing from spoilage and cost. Needs checking.
+3. **Reasons live in four fields** (QC Reasons, QC Reasons - Print Team, QC Reasons - Other,
+   Damage Details Reasons); 1,003 issues have none in the first three. Accountability is blank on 1,003.
+4. **Status is loose:** 182 blank, 184 "Awaiting Review".
+5. **People are hardcoded in formulas** (salesperson email and Slack ID switches, Originator list),
+   so every staff change means editing formulas.
+6. **Imprints "Waste Rate" and "Damages (%)" are the same formula**; the reprint emoji depends on
+   the old Order Status "Delayed - Mis-Print - Needs Order".
+7. **Spoilage credits one Operator**, not the press crew.
+8. **Mill flaws are the vendor's fault** but nothing tracks claiming credit back from S&S/SanMar/etc.
+
+**Pine Central direction**
+- One **Issue** record: type (misprint, garment damage, mill flaw, mis-ship, customer complaint),
+  one reason list, one set of per-size counts, accountability (print crew, pre-press, vendor,
+  shipping, customer), photos, resolution.
+- **Full reprint cost** = blanks + press time (crew × minutes) + screens/ink + re-shipping.
+- **Vendor claims** for mill flaws: tracked from flag to credit received.
+- People and Slack IDs come from the Employees table, never from formulas.
+- Crew-level spoilage from scan data; trends by reason, press, crew and customer in KPI.
+
 ## Open questions
 
 - Devices: shared stations vs. personal phones/computers?
