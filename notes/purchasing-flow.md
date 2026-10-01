@@ -46,7 +46,13 @@ He works order by order, batching into vendor carts across orders. When a wareho
   - SanMar `/proxy/sanmar/pricing` → `myPrice` (includes sales)
   - AS Colour `/proxy/ascolour/catalog/pricelist` → contracted price
   - SLC and Carolina Creative have no live price.
-- **Open question:** should a higher live price also update the **Garments** table cost? That cost feeds quoting in Price-o-Matic. For now only the line item cost changes. Ask before writing to Garments.
+- **Writes to Garments (decided Oct 1: "it should write to Airtable so we keep tracking any increase"):**
+  - This happens on **✓ Ordered**, for each line bought at a price different from Airtable's:
+    - **Higher:** PATCH that garment (one record per style + color) with **Cost** `fldRmgDAByrOWcHLO` = the price paid, and **2XL Up-charge** `fldHakcDllb8SFCwz` (3XL–6XL the same way) = 2XL+ paid − cost. Quoting in Price-o-Matic picks up the new cost.
+    - **Lower** (often a SanMar sale): log it only, and never lower the cost automatically, because sales end.
+  - It's done at order time, not when browsing, so only real purchases move the quoting cost.
+- **Price history:** each change (date, garment, vendor/warehouse, was, paid, change, raised or noted, PO, order) shows in **Price changes** under the Invoice check tab.
+  - To keep that history in Airtable, the proposal is a small **Garment Price Changes** table: Garment (link), Vendor, Warehouse, Was, Paid, Change, Date, PO, Line Item (link), Raised?. Not created yet; ask first.
 - A live scan from the build environment was blocked: the network policy denies `pine-workers.stephen-dab.workers.dev` and `api.ssactivewear.com`.
 
 ## Notes (editable, written back to Airtable)
