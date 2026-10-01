@@ -227,26 +227,26 @@ function miles(a,b){ var r=Math.PI/180, h=Math.pow(Math.sin((b[0]-a[0])*r/2),2)+
 function upsDays(ll){ if(!ll) return null; var m=miles(SHOP_LL,ll); return m<250?1:m<750?2:m<1150?3:4; }
 WAREHOUSES.forEach(function(w){ w.days=upsDays(w.ll); w.mi=w.ll?Math.round(miles(SHOP_LL,w.ll)):null; });
 var ORDERS = [
-  {num:'10931', cust:'Peak Running Co', due:'2026-10-08', pri:'Hard Deadline', print:'2026-10-06', rep:'Nicole', ship:'Local Pickup',
-   notes:[{k:'Production',t:'Needs to be on the truck for the race expo Thursday AM.'}],
-   lines:[{id:'L1', g:'Bella Canvas 3001 - Athletic Heather', imp:'10931-A', q:{S:6,M:12,L:12,XL:6}, cost:3.12, up:{}, carriers:['ssftw','ssreno','slcslc','smreno','ssola']}]},
-  {num:'10925', cust:'Boxcar Coffee', due:'2026-10-21', pri:'ASAP', print:'2026-10-15', rep:'Patrick', ship:'Free Shipping',
-   notes:[{k:'Proofing',t:'check out the file: Both-mockups are in the folder, white shirt gets the black ink.'}],
-   lines:[{id:'L2', g:'Comfort Colors 1717 - White', imp:'10925-A', q:{S:12,M:24,L:24,XL:12}, cost:5.40, up:{}, carriers:['ssola','ssreno','ssftw','smreno','slcslc']},
-          {id:'L3', g:'Comfort Colors 1717 - Black', imp:'10925-B', q:{S:12,M:24,L:24,XL:12}, cost:5.40, up:{}, carriers:['ssola','ssreno','ssftw','smreno','slcslc']}]},
-  {num:'10929', cust:'Double Shot Cyclery', due:'2026-10-21', pri:'ASAP', print:'2026-10-15', rep:'Chris', ship:'Free Shipping',
-   notes:[{k:'Proofing',t:'Recommended sizing for this print is in the IMPRINT-B folder.'}],
-   lines:[{id:'L4', g:'Next Level 6051 - Vintage Royal / P. Heather', imp:'10929-A', q:{XS:3,S:6,M:7,L:10,XL:6,'2XL':3}, cost:6.85, up:{'2XL':2}, carriers:['ssreno','ssola','slcslc','smreno']},
-          {id:'L5', g:'Bella Canvas 3001 - Dark Grey', imp:'10929-B', q:{XS:3,S:6,M:7,L:10,XL:6,'2XL':3}, cost:3.12, up:{'2XL':1.5}, carriers:['ssreno','ssftw','slcslc','smreno','ssola']},
-          {id:'L6', g:'Next Level 1540 - Indigo', imp:'10929-C', q:{XS:7,S:9,M:5,L:4}, cost:4.10, up:{}, carriers:['ssreno','ssola','slcslc']},
-          {id:'L7', g:'Bella Canvas 3001 - Pine', imp:'10929-C', q:{S:5,M:7,L:8,XL:4,'2XL':2}, cost:3.12, up:{'2XL':1.5}, carriers:['ssreno','ssftw','slcslc','smreno']}]},
-  {num:'10934', cust:'Intrigue Ink', due:'2026-10-21', pri:'ASAP', print:'2026-10-15', rep:'Patrick', ship:'Free Shipping',
-   notes:[{k:'Sales',t:'Royal Blue Bandanas with white ink, one side only.'}],
-   lines:[{id:'L8', g:'Carolina Creative 4800 - Royal', imp:'10934-A', q:{OSFA:50}, cost:0.80, up:{}, carriers:['ccp']},
-          {id:'L9', g:'Carolina Creative 4800 - Royal', imp:'10934-B', q:{OSFA:50}, cost:0.80, up:{}, carriers:['ccp']}]},
-  {num:'10938', cust:'Sake Fest', due:'2026-10-27', pri:'', print:'2026-10-20', rep:'Chris', ship:'UPS Ground',
+  {num:'90001', cust:'Sample Co A', due:'2026-10-08', pri:'Hard Deadline', print:'2026-10-06', rep:'Rep 1', ship:'Local Pickup',
+   notes:[{k:'Production',t:'Sample production note — shows here so it is seen before buying.'}],
+   lines:[{id:'L1', g:'Bella Canvas 3001 - Athletic Heather', imp:'90001-A', q:{S:6,M:12,L:12,XL:6}, cost:3.12, up:{}, carriers:['ssftw','ssreno','slcslc','smreno','ssola']}]},
+  {num:'90002', cust:'Sample Co B', due:'2026-10-21', pri:'ASAP', print:'2026-10-15', rep:'Rep 2', ship:'Free Shipping',
+   notes:[{k:'Proofing',t:'Sample proofing note.'}],
+   lines:[{id:'L2', g:'Comfort Colors 1717 - White', imp:'90002-A', q:{S:12,M:24,L:24,XL:12}, cost:5.40, up:{}, carriers:['ssola','ssreno','ssftw','smreno','slcslc']},
+          {id:'L3', g:'Comfort Colors 1717 - Black', imp:'90002-B', q:{S:12,M:24,L:24,XL:12}, cost:5.40, up:{}, carriers:['ssola','ssreno','ssftw','smreno','slcslc']}]},
+  {num:'90003', cust:'Sample Co C', due:'2026-10-21', pri:'ASAP', print:'2026-10-15', rep:'Rep 3', ship:'Free Shipping',
+   notes:[{k:'Proofing',t:'Sample proofing note.'}],
+   lines:[{id:'L4', g:'Next Level 6051 - Vintage Royal / P. Heather', imp:'90003-A', q:{XS:3,S:6,M:7,L:10,XL:6,'2XL':3}, cost:6.85, up:{'2XL':2}, carriers:['ssreno','ssola','slcslc','smreno']},
+          {id:'L5', g:'Bella Canvas 3001 - Dark Grey', imp:'90003-B', q:{XS:3,S:6,M:7,L:10,XL:6,'2XL':3}, cost:3.12, up:{'2XL':1.5}, carriers:['ssreno','ssftw','slcslc','smreno','ssola']},
+          {id:'L6', g:'Next Level 1540 - Indigo', imp:'90003-C', q:{XS:7,S:9,M:5,L:4}, cost:4.10, up:{}, carriers:['ssreno','ssola','slcslc']},
+          {id:'L7', g:'Bella Canvas 3001 - Pine', imp:'90003-C', q:{S:5,M:7,L:8,XL:4,'2XL':2}, cost:3.12, up:{'2XL':1.5}, carriers:['ssreno','ssftw','slcslc','smreno']}]},
+  {num:'90004', cust:'Sample Co D', due:'2026-10-21', pri:'ASAP', print:'2026-10-15', rep:'Rep 2', ship:'Free Shipping',
+   notes:[{k:'Sales',t:'Sample sales note.'}],
+   lines:[{id:'L8', g:'Carolina Creative 4800 - Royal', imp:'90004-A', q:{OSFA:50}, cost:0.80, up:{}, carriers:['ccp']},
+          {id:'L9', g:'Carolina Creative 4800 - Royal', imp:'90004-B', q:{OSFA:50}, cost:0.80, up:{}, carriers:['ccp']}]},
+  {num:'90005', cust:'Sample Co E', due:'2026-10-27', pri:'', print:'2026-10-20', rep:'Rep 3', ship:'UPS Ground',
    notes:[],
-   lines:[{id:'L10', g:'AS Colour 5001 - Natural', imp:'10938-A', q:{S:5,M:15,L:10}, cost:6.20, up:{}, carriers:['ascal']}]}
+   lines:[{id:'L10', g:'AS Colour 5001 - Natural', imp:'90005-A', q:{S:5,M:15,L:10}, cost:6.20, up:{}, carriers:['ascal']}]}
 ];
 /* ---------- state ---------- */
 // per line: {extras:{}, allocs:[{wh, q:{}}], cost, cost2, status:'open'|'cart'|'ordered', po}
@@ -448,15 +448,15 @@ function money(n){ return '$'+(+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',
 // recent POs already in Airtable (fake history)
 var POS=[
   {po:'SS-77790', wh:'ssola', date:new Date(2026,8,28), freight:0, inv:'', lines:[
-    {order:'10901', cust:'Topo Designs', g:'Bella Canvas 3001 - Black', q:{S:10,M:20,L:20,XL:10}, pcs:60, c1:3.12, c2:4.62, amt:187.20},
-    {order:'10903', cust:'Ginger & Baker', g:'Bella Canvas 3001 - Black', q:{M:12,L:12,'2XL':4}, pcs:28, c1:3.12, c2:4.62, amt:93.36}]},
+    {order:'90011', cust:'Sample Co F', g:'Bella Canvas 3001 - Black', q:{S:10,M:20,L:20,XL:10}, pcs:60, c1:3.12, c2:4.62, amt:187.20},
+    {order:'90012', cust:'Sample Co G', g:'Bella Canvas 3001 - Black', q:{M:12,L:12,'2XL':4}, pcs:28, c1:3.12, c2:4.62, amt:93.36}]},
   {po:'SLC-4410', wh:'slcslc', date:new Date(2026,8,29), freight:0, inv:'412.80', lines:[
-    {order:'10907', cust:'Sake Fest', g:'Comfort Colors 1717 - Blue Spruce', q:{L:30}, pcs:30, c1:5.40, c2:5.40, amt:162.00},
-    {order:'10911', cust:'Elevation Ale', g:'Comfort Colors 1717 - Moss', q:{S:6,M:18,L:18,XL:6}, pcs:48, c1:5.10, c2:5.10, amt:244.80}], why:'Invoice is $6.00 higher. Common causes: a price change since the cost was saved, freight or a small-order fee not entered, or a short ship.'},
+    {order:'90005', cust:'Sample Co E', g:'Comfort Colors 1717 - Blue Spruce', q:{L:30}, pcs:30, c1:5.40, c2:5.40, amt:162.00},
+    {order:'90013', cust:'Sample Co H', g:'Comfort Colors 1717 - Moss', q:{S:6,M:18,L:18,XL:6}, pcs:48, c1:5.10, c2:5.10, amt:244.80}], why:'Invoice is $6.00 higher. Common causes: a price change since the cost was saved, freight or a small-order fee not entered, or a short ship.'},
   {po:'SM-118204', wh:'smdal', date:new Date(2026,8,30), freight:14.50, inv:'200.50', lines:[
-    {order:'10905', cust:'Rocky Mtn Retro', g:'Port & Company PC54 - Navy', q:{M:24,L:24,XL:12}, pcs:60, c1:3.10, c2:3.10, amt:186.00}]},
+    {order:'90014', cust:'Sample Co I', g:'Port & Company PC54 - Navy', q:{M:24,L:24,XL:12}, pcs:60, c1:3.10, c2:3.10, amt:186.00}]},
   {po:'AS-30117', wh:'ascal', date:new Date(2026,8,30), freight:22.00, inv:'', lines:[
-    {order:'10907', cust:'Sake Fest', g:'AS Colour 5001 - Natural', q:{S:5,M:16,L:11}, pcs:32, c1:6.20, c2:6.20, amt:198.40}]}
+    {order:'90005', cust:'Sample Co E', g:'AS Colour 5001 - Natural', q:{S:5,M:16,L:11}, pcs:32, c1:6.20, c2:6.20, amt:198.40}]}
 ];
 var INV_FILTER='need', OPEN_PO={};
 function poState(p){ if(p.inv==='') return 'wait'; return Math.abs((+p.inv)-poTotal(p))<0.5?'ok':'bad'; }
