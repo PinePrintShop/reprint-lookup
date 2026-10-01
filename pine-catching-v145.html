@@ -3405,7 +3405,7 @@ function lineModel(lr){
 }
 // v145: ship-to block. The Zap sometimes puts the name in front of the street ("Adam Shrewsbury 9208 thumm")
 // and repeats it in Contact / Ship To -- show each name once and strip leading name words off the street.
-function shipBlock(cust,f){
+function shipBlock(cust,f,pickup){
   var t=function(v){return String(txt(v)||'').replace(/\s+/g,' ').trim();},lc=function(x){return x.toLowerCase();};
   var cu=t(cust),names=[t(f[O.shipTo]),t(f[O.contact])].filter(Boolean),street=t(f[O.addr]);
   var nw={};lc([cu].concat(names).join(' ')).split(' ').forEach(function(w){if(w)nw[w]=1;});
@@ -3419,13 +3419,14 @@ function shipBlock(cust,f){
   keep=keep.filter(function(k){if(cu&&lc(k).indexOf(lc(cu))>-1&&head===cu){head=k;return false;}return true;});  // "Adam Shrewsbury" replaces bare "Shrewsbury"
   if(head)out.push('<b>'+esc(head)+'</b>');
   keep.forEach(function(k){out.push(esc(k));});
+  if(pickup)return out.join('<br>');  // pickup: names only, no address
   if(street)out.push(esc(street));
   var csz=([t(f[O.city]),t(f[O.state])].filter(Boolean).join(', ')+(t(f[O.zip])?' '+t(f[O.zip]):'')).trim();
   if(csz)out.push(esc(csz));
   return out.join('<br>');
 }
 function slipHtml(o){
-  var f=o.f;
+  var f=o.f,isPick=/pick\s*-?\s*up/i.test(txt(f[O.method]));  // v145: Pick-Up -> 'Customer' heading, no address
   var body=o.lines.map(function(l){
     var ship=0,ord=0;
     var cells=l.sizes.map(function(s){ord+=l.rows.ord[s];ship+=l.rows.shipped[s];return s;});
@@ -3454,7 +3455,7 @@ function slipHtml(o){
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Packing Slip - '+esc(o.num)+'<\/title><style>'+css+'<\/style><\/head><body>'
     +'<div class="bar"><span>Packing slip · tap any shipped number or the note to change it</span><button onclick="window.print()">&#128424; Print</button></div>'
     +'<div class="pg"><div class="hd"><img src="data:image/png;base64,'+PINE_LOGO_B64+'" alt=""><h1>Packing Slip</h1><div class="n">Order<b>'+esc(o.num)+'</b></div></div>'
-    +'<div class="meta"><div><h4>Ship to</h4><p>'+shipBlock(o.cust,f)+'</p></div>'
+    +'<div class="meta"><div><h4>'+(isPick?'Customer':'Ship to')+'</h4><p>'+shipBlock(o.cust,f,isPick)+'</p></div>'
     +'<div><h4>Shipment</h4><p>'+(txt(f[O.shipDate])?'Ship date: '+esc(fdate(txt(f[O.shipDate])))+'<br>':'')+(txt(f[O.method])?'Method: '+esc(txt(f[O.method]))+'<br>':'')+(txt(f[O.tracking])?'Tracking: '+esc(txt(f[O.tracking])):'')+'</p></div></div>'
     +body
     +'<div class="nt" contenteditable="true">'+(anyShort?'Some items shipped short (underlined above). We’ll follow up about the difference.':'Thank you for your order!')+'</div>'
