@@ -3460,7 +3460,7 @@ function slipHtml(o){
   // v145: the QR opens the Pine reorder page (reorder.html), which offers Gmail / Outlook / Yahoo / mail app / copy,
   // all pre-filled to the rep with these imprint IDs. Short params keep the QR easy to scan.
   var mailto='https://pineprintshop.github.io/reprint-lookup/reorder.html?o='+encodeURIComponent(o.num)
-    +(repName?'&n='+encodeURIComponent(repName):'')+'&t='+encodeURIComponent(repMail)
+    +(repName?'&n='+encodeURIComponent(repName):'')+'&t='+encodeURIComponent(repMail)+(o.id?'&m='+o.id:'')  // m = order record -> mockups on the page
     +ro.map(function(l){return '&l='+encodeURIComponent(l.name+(l.color?' ('+l.color+')':'')+'~'+l.imprints.join(','));}).join('');
   // v145: the QR carries the imprint IDs, so the box is just heading + one line + QR
   var reorder=ro.length?'<div class="ro"><div class="rl"><h4>Need a reorder?</h4><p>Scan the code to send '+esc(repName||'our team')+' your reorder. Your imprint IDs are already filled in, so we can print it exactly the same.</p></div>'

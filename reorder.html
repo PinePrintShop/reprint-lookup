@@ -25,6 +25,15 @@ textarea{width:100%;min-height:96px;border:2px solid var(--ink);border-radius:8p
 .btn{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:10px;border:2px solid var(--ink);background:#fff;color:var(--ink);font:800 15px Arial,Helvetica,sans-serif;text-decoration:none;cursor:pointer;padding:8px}
 .btn.main{background:var(--y)}
 .btn.wide{grid-column:1/-1}
+.mk{display:block;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;margin:4px 0 6px}
+.mk img{display:block;width:100%;height:auto}
+.mkn{font-size:13px;color:var(--muted);text-align:center;padding:24px 8px}
+.mi{padding:10px 0 12px;border-top:1px solid var(--line)}
+.mi:first-of-type{border-top:none;padding-top:0}
+.mi .nm{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.mi .nm b{white-space:nowrap;font-size:17px;letter-spacing:.02em}
+.mi small{display:block;color:var(--muted);font-size:13px}
+.ld{color:var(--muted);font-size:14px}
 .ok{display:none;text-align:center;color:#1e6b45;font-weight:700;margin-top:10px}
 footer{text-align:center;font-size:13px;color:var(--muted);line-height:1.6;padding:8px 16px 28px}
 footer b{color:var(--ink)}
@@ -56,7 +65,8 @@ footer b{color:var(--ink)}
 </footer>
 <script>
 // Reorder page for the packing slip QR. Params: o=order #, n=rep first name, t=rep email,
-// l=item lines (repeatable) as "Item name~ID1,ID2". Only @pineprintshop.com addresses are used.
+// l=item lines (repeatable) as "Item name~ID1,ID2", m=Orders record id (shows mockups via the Pine worker).
+// Only @pineprintshop.com addresses are used.
 (function(){
   var q=new URLSearchParams(location.search);
   var order=(q.get('o')||'').replace(/[^\w-]/g,'').slice(0,20);
@@ -67,8 +77,27 @@ footer b{color:var(--ink)}
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   document.getElementById('title').textContent=order?'Reorder from order '+order:'Reorder';
   document.getElementById('sub').textContent=(rep?rep+' will':'We’ll')+' get it started. We’ll print it exactly the same.';
-  if(lines.length){var c=document.getElementById('items');c.hidden=false;
-    c.insertAdjacentHTML('beforeend',lines.map(function(l){return '<div class="it"><span>'+esc(l.name)+'</span><b>'+esc(l.ids.split(',').join(' · '))+'</b></div>';}).join(''));}
+  var card=document.getElementById('items');
+  function listOnly(){if(!lines.length)return;card.hidden=false;card.innerHTML='<h2>Your imprint IDs</h2>'
+    +lines.map(function(l){return '<div class="it"><span>'+esc(l.name)+'</span><b>'+esc(l.ids.split(',').join(' · '))+'</b></div>';}).join('');}
+  // Mockups: with m=<order record id>, pull each garment's mockup from the same worker the box-label QR uses.
+  var rec=q.get('m')||'';
+  if(/^rec[A-Za-z0-9]{14}$/.test(rec)){
+    card.hidden=false;card.innerHTML='<h2>Your designs</h2><p class="ld">Loading mockups…</p>';
+    fetch('https://pine-workers.stephen-dab.workers.dev/proxy/mockups?o='+rec)
+      .then(function(r){return r.json();})
+      .then(function(j){
+        var its=(j&&j.ok&&j.items)||[];if(!its.length){listOnly();return;}
+        if(!lines.length){lines=its.map(function(it){return {name:it.garment||'',ids:(it.imprints||[]).join(',')};}).filter(function(l){return l.ids;});upd();}
+        card.innerHTML='<h2>Your designs</h2>'+its.map(function(it){
+          var m=it.mockups&&it.mockups[0];
+          var pic=m&&m.image?'<a class="mk" href="'+esc(m.full||m.image)+'" target="_blank" rel="noopener"><img src="'+esc(m.image)+'" alt="Mockup for '+esc(it.garment)+'" loading="lazy"></a>':'<div class="mk mkn">No mockup on file</div>';
+          return '<div class="mi">'+pic+'<div class="nm"><span>'+esc(it.garment||'')+'</span><b>'+esc((it.imprints||[]).join(' · '))+'</b></div>'
+            +(it.location?'<small>'+esc(it.location)+'</small>':'')+'</div>';
+        }).join('')+'<p class="ld" style="margin-top:6px">Tap a mockup to open the full proof.</p>';
+      })
+      .catch(listOnly);
+  }else listOnly();
   var subject='Reorder: Order '+(order||'');
   function body(){
     var qty=document.getElementById('qty').value.trim();
