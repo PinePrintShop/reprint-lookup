@@ -3376,7 +3376,8 @@ var L={ // Line Items: ordered / extra / final per size ('' = no such field)
   ref:'fldU6oLyZnxhhm2kX',order:'fld5r0tFvdpzWV5pA',total:'fldFfuKAcduwWQp8g',totalFinal:'fldwr1D4nF8Y1Tlvt',price:'fldtMZWzA4dfPxEXx',
   type:'fld8LIkrBXv8WoRRb',desc:'fldKpcYiNDhlknPyv',brand:'fld0mdiAcrMmTY7CT',style:'fld9ifT5CjMdlLAYM',garment:'fldQg3ejR10sADyFV',
   color:'fldoXTRyLP4SshFZ0',nick:'fldKb7r8o7uvj1iEd',prodDesc:'fldBGLb39lznbSibX',
-  xSent:'fldCP4NyoHxawZwOt',xSentTot:'fldVcKknIW4cYNkEd',xRec:'fld35LhFoIzYyfDUv',wow:'fldFw7fWOsgqgtc8d'
+  xSent:'fldCP4NyoHxawZwOt',xSentTot:'fldVcKknIW4cYNkEd',xRec:'fld35LhFoIzYyfDUv',wow:'fldFw7fWOsgqgtc8d',
+  imprints:'fldmGRcdXyvheWjmv'  // v145: Imprint IDs (lookup) for the reorder box
 };
 var O={ // Orders
   num:'fld4S3B5yJANKlE7l',cust:'fldoRraeYHsgfeWhj',contact:'fldwO1DrkCebInHlj',shipTo:'fldpHFCU70jZpuKs6',addr:'fldDf4gRxe2NoUVPy',
@@ -3413,7 +3414,8 @@ function lineModel(lr){
   if(!name)name=txt(f[L.nick])||txt(f[L.prodDesc])||txt(f[L.ref]);
   return {id:lr.id,ref:txt(f[L.ref]),name:name,color:color,desc:txt(f[L.desc]),type:txt(f[L.type]),sizes:has,rows:rows,
     total:num(f[L.total]),totalFinal:num(f[L.totalFinal]),price:num(f[L.price]),
-    xRec:xRec,xSent:xSent,xSentTot:num(f[L.xSentTot]),wow:num(f[L.wow])};
+    xRec:xRec,xSent:xSent,xSentTot:num(f[L.xSentTot]),wow:num(f[L.wow]),
+    imprints:(Array.isArray(f[L.imprints])?f[L.imprints]:String(f[L.imprints]||'').split(',')).map(txt).map(function(x){return x.trim();}).filter(Boolean).sort()};
 }
 // v145: ship-to block. The Zap sometimes puts the name in front of the street ("Adam Shrewsbury 9208 thumm")
 // and repeats it in Contact / Ship To -- show each name once and strip leading name words off the street.
@@ -3450,6 +3452,10 @@ function slipHtml(o){
       :'<table class="st"><tr><th></th><th>Total</th></tr><tr><td>Ordered</td><td><b>'+(ord||l.total)+'</b></td></tr><tr><td>Shipped</td><td contenteditable="true"'+(ship<(ord||l.total)?' class="sh"':'')+'><b>'+(l.sizes.length?ship:l.total)+'</b></td></tr></table>';
     return '<div class="it"><div class="in"><b>'+esc(l.name)+(l.color?' — '+esc(l.color):'')+'</b>'+(l.desc&&l.desc!==l.name?'<small>'+esc(l.desc)+'</small>':'')+'</div>'+tbl+'</div>';
   }).join('');
+  // v145: reorder box -- each item with its imprint IDs
+  var ro=o.lines.filter(function(l){return l.imprints&&l.imprints.length;});
+  var reorder=ro.length?'<div class="ro"><h4>Need a reorder?</h4><p>Send us these imprint IDs and we\u2019ll print it exactly the same.</p><table>'
+    +ro.map(function(l){return '<tr><td>'+esc(l.name)+(l.color?' \u2014 '+esc(l.color):'')+'</td><td class="ids">'+l.imprints.map(esc).join(' \u00b7 ')+'</td></tr>';}).join('')+'</table></div>':'';
   var anyShort=o.lines.some(function(l){return l.sizes.some(function(s){return l.rows.shipped[s]<l.rows.ord[s];});});
   // v145: bigger type throughout; line logo; @page margin 0 so the browser prints no header/footer
   // (title, about:blank, date) -- the 0.5in margins come from .pg side padding + thead/tfoot spacers.
@@ -3465,6 +3471,8 @@ function slipHtml(o){
     +'.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}.st th,.st td{border-right:1px solid #ccc;padding:7px 6px;text-align:center;font-size:19px}.st th{font-size:13px;letter-spacing:.06em;border-bottom:1px solid #ccc}'
     +'.st td:first-child,.st th:first-child{text-align:left;width:105px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}.st tr+tr td{border-top:1px solid #ccc}.st td.sh{font-weight:700;text-decoration:underline}'
     +'.nt{margin-top:16px;border:1.5px dashed #000;padding:11px 13px;font-size:16px;line-height:1.45;min-height:44px}'
+    +'.ro{margin-top:16px;border:2px solid #000;padding:12px 14px;page-break-inside:avoid;break-inside:avoid}.ro h4{font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}.ro p{font-size:14px;color:#333;margin-bottom:8px}'
+    +'.ro table{width:100%;border-collapse:collapse}.ro td{padding:5px 0;border-top:1px solid #ccc;font-size:15px;vertical-align:top}.ro td.ids{text-align:right;font-weight:800;font-size:18px;letter-spacing:.03em;white-space:nowrap;padding-left:12px}'
     +'[contenteditable]{outline:none}[contenteditable]:focus{background:#fffbea}'
     +'@page{size:letter;margin:0}@media print{body{background:#fff;padding:0}.bar{display:none}.pg{box-shadow:none;max-width:none;padding:0 .5in}.sp{height:.5in}}';
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Packing Slip - '+esc(o.num)+'<\/title><style>'+css+'<\/style><\/head><body>'
@@ -3473,7 +3481,7 @@ function slipHtml(o){
     +'<div class="hd"><img src="data:image/svg+xml;base64,'+PINE_LINE_LOGO_B64+'" alt="Pine Print Shop"><h1>Packing Slip</h1><div class="n">Order<b>'+esc(o.num)+'</b></div></div>'
     +'<div class="meta"><div><h4>'+(isPick?'Customer':'Ship to')+'</h4><p>'+shipBlock(o.cust,f,isPick)+'</p></div>'
     +'<div><h4>Shipment</h4><p>'+(txt(f[O.shipDate])?'Ship date: '+esc(fdate(txt(f[O.shipDate])))+'<br>':'')+(txt(f[O.method])?'Method: '+esc(txt(f[O.method]))+'<br>':'')+(txt(f[O.tracking])?'Tracking: '+esc(txt(f[O.tracking])):'')+'</p></div></div>'
-    +body
+    +body+reorder
     +'<div class="nt" contenteditable="true">'+(anyShort?'Some items shipped short (underlined above). We’ll follow up about the difference.':'Thank you for your order!')+'</div>'
     +'</td></tr></tbody></table></div><script>document.addEventListener("input",function(e){var tr=e.target.closest&&e.target.closest("tr");if(!tr)return;var s=0;[].forEach.call(tr.querySelectorAll("td[contenteditable]"),function(td){var v=parseInt(td.textContent,10);if(!isNaN(v))s+=v;});var t=tr.querySelector(".stot");if(t)t.textContent=s;});<\/script><\/body><\/html>';
 }
@@ -3485,7 +3493,7 @@ function open(orderRecId,orderNum){
   api(TOR+'/'+orderRecId+'?returnFieldsByFieldId=true').then(function(ord){
     var lids=ids(ord.fields[O.lines]);
     if(!lids.length)throw new Error('No line items on this order');
-    var lf=[L.ref,L.order,L.total,L.totalFinal,L.price,L.type,L.desc,L.brand,L.style,L.garment,L.color,L.nick,L.prodDesc,L.xSent,L.xSentTot,L.xRec]
+    var lf=[L.ref,L.order,L.total,L.totalFinal,L.price,L.type,L.desc,L.brand,L.style,L.garment,L.color,L.nick,L.prodDesc,L.xSent,L.xSentTot,L.xRec,L.imprints]
       .concat(Object.keys(L.ord).map(function(k){return L.ord[k];}),Object.keys(L.ext).map(function(k){return L.ext[k];}),Object.keys(L.fin).map(function(k){return L.fin[k];})).filter(Boolean);
     var chunks=[];for(var i=0;i<lids.length;i+=40)chunks.push(lids.slice(i,i+40));
     return Promise.all(chunks.map(function(ch){
