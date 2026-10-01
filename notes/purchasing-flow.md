@@ -32,7 +32,10 @@ He works order by order, batching into vendor carts across orders. When a wareho
   - It posts a **comment on that line item** that @mentions **Art Department** (`usr8GNzrtN698y03u`, art@pineprintshop.com), so Art gets the normal Airtable notification.
   - Live call: `POST /v0/appJkaLk8DykjsgHR/tblJx5UlwO7oMSk5H/{recordId}/comments` with the text `@[usr8GNzrtN698y03u] Garment issue from purchasing on …`.
   - The comment's author is whoever owns the Airtable token in the app. The token needs the `data.recordComments:write` scope.
-  - The card shows "⚠ Garment issue sent to Art". Adding that line to the cart asks to confirm.
+  - **Send to** is a searchable picker (type to filter, Enter to add, × or Backspace to remove). It starts with Art Department, and anyone can be added. Each person becomes an `@[usr…]` mention in the comment.
+  - The card shows "⚠ Garment issue sent to …". Adding that line to the cart asks to confirm.
+  - **Who's in the picker:** Airtable's API can't list base members (Enterprise only). Recent comments show 8 people and department accounts being tagged; the department accounts are Art, Purchasing and Quality. The names are kept out of this public repo.
+    - For the live app, load the list at start-up from a small **Team** table (Name + an Airtable user field + Active). It's easy to keep current, and nothing is hard-coded. Ask before creating it.
 
 ## Notes (editable, written back to Airtable)
 - Every note column in his view is its own long-text field on the line item, so each line card has a notes row:
