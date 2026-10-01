@@ -234,7 +234,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 </head>
 <body>
 <div class="top">
-  <span class="brand">Pine Purchasing<small>flow mockup · v14</small></span>
+  <span class="brand">Pine Purchasing<small>flow mockup · v15</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
   <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
@@ -620,10 +620,30 @@ function placeCart(k){
   });
   var newLines=items.map(function(it){ return poLine(it.o,it.l,it.q); }), ex=POS.filter(function(x){ return x.po===po && x.wh===k; })[0];
   if(ex) ex.lines=ex.lines.concat(newLines); else POS.unshift({po:po, wh:k, date:TODAY, freight:0, inv:'', lines:newLines});
+  var raised=recordPrices(items,w,po);
   var a=arrival(w,items[0].o);
   DONE.unshift({wh:w.name, po:po, pcs:pcs, orders:Object.keys(ords), arr:a.date?fmtD(a.date):'?'});
-  renderAll(); toast('PO '+po+' saved on '+items.length+' line(s) (mockup — not really)');
+  renderAll(); toast('PO '+po+' saved on '+items.length+' line(s)'+(raised?' · '+raised+' garment cost'+(raised>1?'s':'')+' raised in Airtable':'')+' (mockup — not really)');
 }
+/* ---------- price tracking: what he actually paid vs the Garments table ----------
+   On ✓ Ordered, for each line bought at a different price than Airtable has on file:
+     higher -> PATCH Garments {Cost, 2XL Up-charge} to what was paid + log the change
+     lower  -> log only (sales are temporary; don't lower quoting cost automatically)
+   Garments: Cost fldRmgDAByrOWcHLO · 2XL Up-charge fldHakcDllb8SFCwz (3XL+ the same way) */
+var PRICE_LOG=[];
+function recordPrices(items,w,po){ var n=0, seen={};
+  items.forEach(function(it){ var l=it.l, st=S[l.id]; if(seen[l.g]) return; seen[l.g]=1;
+    var f=onFile(l), paid1=+(st.cost||f[0]), paid2=+(st.cost2||f[1]), d=paid1-f[0];
+    if(Math.abs(d)<0.005) return;
+    var e={date:TODAY, g:l.g, vendor:w.vendor, wh:shortWh(w), old:f[0], paid:paid1, d:d, po:po, order:it.o.num, updated:d>0};
+    PRICE_LOG.unshift(e);
+    if(d>0){ n++;
+      console.log('PATCH Garments/'+l.g, JSON.stringify({fields:{fldRmgDAByrOWcHLO:paid1, fldHakcDllb8SFCwz:+(paid2-paid1).toFixed(2)}}));
+      l.cost=paid1; l.up['2XL']=+(paid2-paid1).toFixed(2);   // future lines quote from the new cost
+    }
+    console.log('LOG price change', JSON.stringify(e));
+  });
+  return n; }
 function renderAll(){ renderOrders(); renderOrder(); renderCarts(); renderInv(); }
 
 /* ---------- Invoice check: Airtable cost per PO vs the vendor invoice ----------
@@ -684,6 +704,11 @@ function renderInv(focusPo){
     }
     h+='</div>';
   });
+  h+='<div class="invtop" style="margin-top:28px"><h1>Price changes</h1><span class="sum">What he paid vs Airtable when ordering. Increases update the garment\'s cost; decreases are only noted.</span></div>';
+  if(!PRICE_LOG.length) h+='<div class="hint">None yet — they show up here when a cart is marked ordered at a different price.</div>';
+  else h+='<div class="po"><div class="pol" style="border-top:none"><table><tr><th>Date</th><th>Garment</th><th>Vendor</th><th class="r">Was</th><th class="r">Paid</th><th class="r">Change</th><th>Airtable</th><th>PO · order</th></tr>'
+    +PRICE_LOG.map(function(e){ return '<tr><td>'+fmtD(e.date)+'</td><td>'+esc(e.g)+'</td><td>'+esc(e.wh)+'</td><td class="r">'+money(e.old)+'</td><td class="r">'+money(e.paid)+'</td>'
+      +'<td class="r" style="font-weight:800;color:var('+(e.d>0?'--red':'--green')+')">'+(e.d>0?'+':'−')+money(Math.abs(e.d))+'</td><td>'+(e.updated?'✓ cost raised':'noted only')+'</td><td>'+esc(e.po)+' · '+e.order+'</td></tr>'; }).join('')+'</table></div></div>';
   $('inv').innerHTML=h;
   if(focusPo){ /* keep the page steady after typing */ }
 }
