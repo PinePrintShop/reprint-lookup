@@ -24,6 +24,23 @@ He works order by order, batching into vendor carts across orders. When a wareho
   5. **Add to cart**
 - **Carts:** one per warehouse, built up across orders. None of the vendor sites has a quick-order / bulk paste, so each cart item gets an **Open on vendor ↗** link and its sizes laid out like the site's size grid, to type in. After checkout, he enters the PO and ticks ✓ Ordered. That writes Ordered, PO, Supplier, extras and costs to every line in the cart.
 
+## Mockup color check
+- Each line card shows the proof thumbnail from **Proof Images** (`flddhvdkKI31tFTdX`). Airtable makes thumbnails for PDF attachments.
+- Tapping the thumbnail opens a popup with the big proof image next to the line item's garment and **color**, plus **✓ Color matches** / **✗ Doesn't match**, and a link to open the full PDF.
+- A mismatch is appended to **Production Notes** and flagged red on the card. Adding that line to the cart asks to confirm first.
+
+## Notes (editable, written back to Airtable)
+- Every note column in his view is its own long-text field on the line item, so each line card has a notes row:
+  - Order Notes `fldF378cgWuOcWNL6`
+  - Production Notes `fld4FjoCQ5bXdwjJj`
+  - Sales Notes `fldG3tzTzUC3QQJ1I`
+  - Proofing Notes `fldWdnT83KLEvBrg4`
+  - Shipping Notes `fld7rY74m37acM2Ik`
+  - Finishing Notes `fldqsj7nZgHrtRbEn`
+- Notes that have text show up already open. **+ Add a note…** opens any of the others.
+- Editing saves on leaving the box: a PATCH of that one field on that line item, then "✓ saved to Airtable".
+- The order header only counts the notes.
+
 ## Ship time
 - **UPS Ground estimate** from the warehouse's city to the shop (Fort Collins 80524), by straight-line distance, in business days:
   - under 250 mi: 1 day

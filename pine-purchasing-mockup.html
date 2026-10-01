@@ -30,8 +30,6 @@ button,input,select{font:inherit;color:inherit}
 .brand{font-weight:700;text-transform:uppercase;letter-spacing:.02em}
 .brand small{font-size:9px;color:var(--muted-lt);margin-left:6px;vertical-align:top}
 .mock{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amb);background:var(--amb-bg);border:1px solid var(--amb-bd);padding:4px 9px;border-radius:20px}
-.steps{margin-left:auto;display:flex;gap:6px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-.steps span{padding:4px 8px}.steps b{color:var(--text)}
 
 .cols{flex:1;display:grid;grid-template-columns:270px minmax(0,1fr) 340px;min-height:0}
 .col{overflow:auto;min-height:0}
@@ -176,6 +174,25 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .pol td.r,.pol th.r{text-align:right}
 .pol tr.tot td{font-weight:800;background:#fff}
 .pol .why{padding:10px 14px;font-size:12px;color:var(--red);border-top:1px solid var(--border);background:var(--red-bg)}
+.thumb{width:44px;height:44px;border:1px solid var(--border-dk);border-radius:6px;overflow:hidden;background:#fff;padding:0;cursor:zoom-in;flex-shrink:0}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.lnotes{border-top:1px solid var(--border);padding:10px 16px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px 14px;align-items:start;background:var(--soft)}
+.nf label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amb);margin-bottom:3px}
+.nf .sv{color:var(--green);text-transform:none;letter-spacing:0;font-weight:700;margin-left:4px}
+.nf textarea{width:100%;border:1px solid var(--amb-bd);background:var(--amb-bg);border-radius:6px;padding:6px 8px;font:inherit;font-size:13px;resize:vertical}
+.nf textarea:focus{outline:none;border-color:var(--amb);background:#fff}
+.addnote{align-self:end;justify-self:start;font-size:12px;border:1px dashed var(--border-dk);border-radius:6px;padding:5px 8px;background:#fff;color:var(--muted)}
+.pv{position:fixed;inset:0;background:rgba(10,10,8,.6);z-index:30;display:flex;align-items:center;justify-content:center;padding:20px}
+.pv-card{background:#fff;border-radius:10px;width:min(1100px,100%);height:min(820px,100%);position:relative;overflow:hidden}
+.pv-x{position:absolute;top:10px;right:12px;border:none;background:#fff;font-size:20px;cursor:pointer;z-index:2}
+.pv-in{display:grid;grid-template-columns:minmax(0,1fr) 300px;height:100%}
+.pv-pdf{background:#525659;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}.pv-pdf img{max-width:100%;max-height:100%;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.pv-side{padding:40px 20px 20px;display:flex;flex-direction:column}
+.pv-k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.pv-g{font-size:20px;font-weight:800;text-transform:uppercase;margin-top:4px}
+.pv-color{margin-top:8px;font-size:15px}.pv-color b{background:var(--yellow);padding:1px 6px;border-radius:3px}
+.pv-open{margin-top:auto;font-size:12px;color:var(--green);font-weight:700;text-decoration:none}
+@media (max-width:800px){ .pv-in{grid-template-columns:1fr;grid-template-rows:60% 40%} }
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
 .toast.show{opacity:1}
 
@@ -185,7 +202,6 @@ table.sz .tot{font-weight:800;padding-left:8px}
   .c-orders,.c-carts{border:none}
   .flow{grid-template-columns:1fr}
   .stage{border-right:none;border-bottom:1px solid var(--border)}
-  .steps{display:none}
 }
 </style>
 </head>
@@ -194,7 +210,6 @@ table.sz .tot{font-weight:800;padding-left:8px}
   <span class="brand">Pine Purchasing<small>flow mockup</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
-  <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
 </div>
 <div class="cols">
   <div class="col c-orders"><h2>Orders <span class="n" id="o-n"></span></h2><div id="orders"></div></div>
@@ -202,6 +217,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
   <div class="col c-carts"><h2>Carts <span class="n" id="c-n"></span></h2><div class="carts" id="carts"></div></div>
 </div>
 <div class="invwrap hidden" id="inv"></div>
+<div class="pv hidden" id="pv" onclick="if(event.target===this)closeProof()"><div class="pv-card"><button class="pv-x" onclick="closeProof()">✕</button><div class="pv-in" id="pv-body"></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -239,7 +255,7 @@ var ORDERS = [
    lines:[{id:'L4', g:'Next Level 6051 - Vintage Royal / P. Heather', imp:'90003-A', q:{XS:3,S:6,M:7,L:10,XL:6,'2XL':3}, cost:6.85, up:{'2XL':2}, carriers:['ssreno','ssola','slcslc','smreno']},
           {id:'L5', g:'Bella Canvas 3001 - Dark Grey', imp:'90003-B', q:{XS:3,S:6,M:7,L:10,XL:6,'2XL':3}, cost:3.12, up:{'2XL':1.5}, carriers:['ssreno','ssftw','slcslc','smreno','ssola']},
           {id:'L6', g:'Next Level 1540 - Indigo', imp:'90003-C', q:{XS:7,S:9,M:5,L:4}, cost:4.10, up:{}, carriers:['ssreno','ssola','slcslc']},
-          {id:'L7', g:'Bella Canvas 3001 - Pine', imp:'90003-C', q:{S:5,M:7,L:8,XL:4,'2XL':2}, cost:3.12, up:{'2XL':1.5}, carriers:['ssreno','ssftw','slcslc','smreno']}]},
+          {id:'L7', g:'Bella Canvas 3001 - Pine', imp:'90003-D', q:{S:5,M:7,L:8,XL:4,'2XL':2}, cost:3.12, up:{'2XL':1.5}, carriers:['ssreno','ssftw','slcslc','smreno']}]},
   {num:'90004', cust:'Sample Co D', due:'2026-10-21', pri:'ASAP', print:'2026-10-15', rep:'Rep 2', ship:'Free Shipping',
    notes:[{k:'Sales',t:'Sample sales note.'}],
    lines:[{id:'L8', g:'Carolina Creative 4800 - Royal', imp:'90004-A', q:{OSFA:50}, cost:0.80, up:{}, carriers:['ccp']},
@@ -251,7 +267,19 @@ var ORDERS = [
 /* ---------- state ---------- */
 // per line: {extras:{}, allocs:[{wh, q:{}}], cost, cost2, status:'open'|'cart'|'ordered', po}
 var S = {}, CUR = null, DONE = [];   // DONE = placed carts
-ORDERS.forEach(function(o){ o.lines.forEach(function(l){ S[l.id]={extras:{}, allocs:[{wh:null,q:null}], cost:'', cost2:'', status:'open', po:''}; }); });
+ORDERS.forEach(function(o){ o.lines.forEach(function(l,i){
+  S[l.id]={extras:{}, allocs:[{wh:null,q:null}], cost:'', cost2:'', status:'open', po:'', color:'', notes:{}, saved:{}};
+  if(i===0) o.notes.forEach(function(n){ S[l.id].notes[n.k.toLowerCase()]=n.t; });
+  l.proof='samples/proof-'+l.imp+'.pdf'; l.thumb='samples/proof-'+l.imp+'.png';
+}); });
+/* Line Items long-text note fields (all editable; saved with a PATCH on that line item) */
+var NOTE_FIELDS=[
+  {k:'order',      label:'Order Notes',      fld:'fldF378cgWuOcWNL6'},
+  {k:'production', label:'Production Notes', fld:'fld4FjoCQ5bXdwjJj'},
+  {k:'sales',      label:'Sales Notes',      fld:'fldG3tzTzUC3QQJ1I'},
+  {k:'proofing',   label:'Proofing Notes',   fld:'fldWdnT83KLEvBrg4'},
+  {k:'shipping',   label:'Shipping Notes',   fld:'fld7rY74m37acM2Ik'},
+  {k:'finishing',  label:'Finishing Notes',  fld:'fldqsj7nZgHrtRbEn'}];
 
 /* ---------- helpers ---------- */
 function $(id){ return document.getElementById(id); }
@@ -320,7 +348,7 @@ function renderOrder(){
   var h='<h2>This order</h2><div class="ohead"><div class="cust">'+esc(o.cust)+'</div><div class="num">'+o.num+'</div>'
     +'<div class="facts">'+pri+'<span>Due <b>'+fmtD(d(o.due))+'</b></span><span class="printd">Prints '+fmtD(d(o.print))+'</span>'
     +'<span>Sales <b>'+esc(o.rep)+'</b></span><span>Ships <b>'+esc(o.ship)+'</b></span></div>'
-    +(o.notes.length?'<div class="notes">'+o.notes.map(function(n){ return '<div class="note"><b>'+esc(n.k)+' note</b>'+esc(n.t)+'</div>'; }).join('')+'</div>':'')
+    +(function(){ var n=0; o.lines.forEach(function(l){ for(var k in S[l.id].notes) if(S[l.id].notes[k]) n++; }); return n?'<div class="notes"><div class="note"><b>'+n+' note'+(n>1?'s':'')+'</b>on this order — see the lines below</div></div>':''; })()
     +'</div>';
   // lines still to buy stay on top; carted, then ordered, drop to the bottom of the stack
   var RANK={open:0,cart:1,ordered:2};
@@ -360,12 +388,60 @@ function lineHtml(o,l){
   else if(st.status==='cart') g='<div class="hint">In the '+st.allocs.map(function(a){return esc(whById(a.wh).name);}).join(' + ')+' cart</div>'+(st.po?'':'<button class="btn ghost" onclick="pullFromCart(\''+l.id+'\')">↩ Take back out</button>');
   else g='<div class="hint">Ordered on PO <b>'+esc(st.po)+'</b></div>';
   return '<div class="line'+(st.status==='cart'?' incart':'')+(st.status==='ordered'?' ordered':'')+'" id="line-'+l.id+'">'
-    +'<div class="lhead"><span class="g">'+esc(l.g)+'</span><span class="imp">'+esc(l.imp)+'</span><span class="st">'+stTag+'</span></div>'
+    +'<div class="lhead"><button class="thumb" title="Open the mockup" onclick="openProof(\''+l.id+'\')"><img src="'+l.thumb+'" alt="mockup"></button>'
+    +'<span class="g">'+esc(l.g)+'</span><span class="imp">'+esc(l.imp)+'</span>'
+    +(st.color==='ok'?'<span class="tag ok">✓ Color checked</span>':st.color==='bad'?'<span class="tag hard">⚠ Color mismatch</span>':'<button class="linkbtn" onclick="openProof(\''+l.id+'\')">Check mockup color</button>')
+    +'<span class="st">'+stTag+'</span></div>'
     +'<div class="flow"><div class="stage"><h4><span class="k">1</span>Sizes · extras</h4>'+t+'</div>'
     +'<div class="stage"><h4><span class="k">2</span>Warehouse · ship time</h4>'+wh+'</div>'
     +'<div class="stage cost"><h4><span class="k">3</span>Blank cost</h4>'+c
-    +'<div class="go"><h4 style="margin:0"><span class="k">4</span>Cart</h4>'+g+'</div></div></div></div>';
+    +'<div class="go"><h4 style="margin:0"><span class="k">4</span>Cart</h4>'+g+'</div></div></div>'
+    +notesHtml(l)+'</div>';
 }
+function notesHtml(l){
+  var st=S[l.id], shown=NOTE_FIELDS.filter(function(f){ return st.notes[f.k]!=null && (st.notes[f.k]!=='' || st.open===f.k); });
+  var rest=NOTE_FIELDS.filter(function(f){ return shown.indexOf(f)<0; });
+  return '<div class="lnotes">'+shown.map(function(f){
+      return '<div class="nf"><label>'+f.label+' <span class="sv" id="sv-'+l.id+'-'+f.k+'">'+(st.saved[f.k]?'✓ saved to Airtable':'')+'</span></label>'
+        +'<textarea rows="2" onfocus="this.dataset.was=this.value" onblur="saveNote(\''+l.id+'\',\''+f.k+'\',this)">'+esc(st.notes[f.k])+'</textarea></div>'; }).join('')
+    +'<select class="addnote" onchange="if(this.value)addNote(\''+l.id+'\',this.value)"><option value="">+ Add a note…</option>'
+    +rest.map(function(f){ return '<option value="'+f.k+'">'+f.label+'</option>'; }).join('')+'</select></div>';
+}
+function addNote(id,k){ var st=S[id]; if(st.notes[k]==null) st.notes[k]=''; st.open=k; refreshLine(id);
+  var k2=NOTE_FIELDS.filter(function(f){return f.k===k;})[0], tas=$('line-'+id).querySelectorAll('.nf');
+  [].forEach.call(tas,function(n){ if(n.querySelector('label').textContent.indexOf(k2.label)===0) n.querySelector('textarea').focus(); }); }
+/* write-back: PATCH the line item's note field (mockup: logged, not sent) */
+function saveNote(id,k,ta){
+  var v=ta.value, st=S[id]; if(v===(st.notes[k]||'') && ta.dataset.was===v) return;
+  st.notes[k]=v; st.saved[k]=true; if(st.open===k) st.open=null;
+  var f=NOTE_FIELDS.filter(function(x){return x.k===k;})[0], body={fields:{}}; body.fields[f.fld]=v;
+  console.log('PATCH Line Items/'+id, JSON.stringify(body));
+  var sv=$('sv-'+id+'-'+k); if(sv) sv.textContent='✓ saved to Airtable';
+  toast(f.label+' saved (mockup — not really)');
+}
+
+/* ---------- mockup / proof popup: check the line item's color against the proof ---------- */
+var PROOF=null;
+function openProof(id){ PROOF=id; var l=lineById(id), st=S[id], o=orderOf(id);
+  var color=(l.g.split(' - ')[1]||'').trim();
+  $('pv-body').innerHTML='<div class="pv-pdf"><img src="'+l.proof.replace('.pdf','-large.png')+'" alt="Mockup"></div>'
+    +'<div class="pv-side"><div class="pv-k">Line item says</div><div class="pv-g">'+esc(l.g)+'</div>'
+    +'<div class="pv-color">Color: <b>'+esc(color||'—')+'</b></div>'
+    +'<div class="pv-k" style="margin-top:14px">Order '+o.num+' · imprint '+esc(l.imp)+'</div>'
+    +'<p class="hint" style="margin:14px 0">Does the shirt color on the mockup match <b>'+esc(color)+'</b>?</p>'
+    +'<button class="btn g" onclick="colorCheck(\'ok\')">✓ Color matches</button>'
+    +'<button class="btn ghost" style="margin-top:8px;border-color:var(--red);color:var(--red)" onclick="colorCheck(\'bad\')">✗ Doesn\'t match</button>'
+    +'<a class="pv-open" href="'+l.proof+'" target="_blank" rel="noopener">Open PDF in a new tab ↗</a></div>';
+  $('pv').classList.remove('hidden');
+}
+function closeProof(){ $('pv').classList.add('hidden'); $('pv-body').innerHTML=''; PROOF=null; }
+function colorCheck(v){ var id=PROOF, st=S[id], l=lineById(id);
+  st.color=v;
+  if(v==='bad'){ var msg='Color check: mockup does not match the line item ('+l.g+'). Confirm with sales before ordering.';
+    st.notes.production=(st.notes.production?st.notes.production+'\n':'')+msg; st.saved.production=true;
+    console.log('PATCH Line Items/'+id, JSON.stringify({fields:{fld4FjoCQ5bXdwjJj:st.notes.production}}));
+    toast('Flagged — added to Production Notes (mockup)'); }
+  closeProof(); refreshLine(id); renderOrder(); }
 function qtxt(q){ return SIZES.filter(function(k){return q[k];}).map(function(k){return k+' '+q[k];}).join(', ')||'nothing'; }
 function whChoices(o,l,i,sel,locked){
   // the vendors that carry this garment, fastest first; the rest go in "More warehouses"
@@ -396,7 +472,7 @@ function refreshLine(id){
 }
 
 /* ---------- column 3: carts ---------- */
-function addToCart(id){ S[id].status='cart'; renderAll(); $('order').scrollTop=0; toast(lineById(id).g+' added to cart — next line is on top'); }
+function addToCart(id){ if(S[id].color==='bad' && !confirm('This line\'s mockup color was flagged as NOT matching. Add it to the cart anyway?')) return; S[id].status='cart'; renderAll(); $('order').scrollTop=0; toast(lineById(id).g+' added to cart — next line is on top'); }
 function pullFromCart(id){ S[id].status='open'; renderAll(); }
 function cartItems(){
   var carts={};
@@ -468,7 +544,7 @@ var INV_FILTER='need', OPEN_PO={};
 function poState(p){ if(p.inv==='') return 'wait'; return Math.abs((+p.inv)-poTotal(p))<0.5?'ok':'bad'; }
 function setTab(t){ $('t-order').classList.toggle('on',t==='order'); $('t-inv').classList.toggle('on',t==='inv');
   document.querySelector('.cols').classList.toggle('hidden',t!=='order'); $('inv').classList.toggle('hidden',t!=='inv');
-  document.querySelector('.steps').classList.toggle('hidden',t!=='order'); renderInv(); }
+  renderInv(); }
 function poKey(p){ return p.po+'|'+p.wh; }
 function setInv(key,v){ var p=POS.filter(function(x){return poKey(x)===key;})[0]; p.inv=v.replace(/[$,\s]/g,''); renderInv(); }
 function renderInv(focusPo){
