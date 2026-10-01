@@ -48,7 +48,8 @@ Status: draft for review. Nothing below has been changed in Airtable yet.
    - The Damage Log shows a "not yet requested" flag so nothing is missed. *(I'd suggest both.)*
 2. **Additional-refund email** when a new refund issue comes in after the first request: yes (suggested) or roll it into a manual step?
 3. **CC/reply-to** on the new email: who should it be?
-4. **Cut-over order**, so nothing double-sends or goes missing:
+4. **Refund receipt email:** Stephen fixed the Zap so the QuickBooks email comes from the invoice. Add a line to the new email: "Send refund receipt to: {email}" + the QuickBooks invoice link (Orders `fldykkdxIu7nqdYct`). Orders has two email lookups through the linked contact, `fldtqZM37i9bKUPaT` and `fldk67LeCepv46n38` (identical on the latest orders). Confirm which one matches the invoice email. The bookkeeper uses **Save and send** on the Refund Receipt / Credit Memo.
+5. **Cut-over order**, so nothing double-sends or goes missing:
    - Ship v17 (test in practice mode).
    - Create the fields.
    - Build the new automation and turn it on.
