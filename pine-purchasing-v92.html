@@ -253,6 +253,18 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .whn small a{font-size:11px}
 .poh.inv2{grid-template-columns:150px minmax(0,1fr) 110px 140px 24px}
 .invq{border:1px solid var(--border-dk);border-radius:16px;padding:5px 12px;font-size:12px;min-width:240px}
+/* v92: black + yellow, same as the carts */
+.mode.live{color:var(--yellow);background:var(--ink);border-color:var(--ink)}
+.invwrap .po{border-color:var(--ink)}
+.invwrap .poh{background:var(--ink);color:#fff}
+.invwrap .poh .pon small,.invwrap .poh .whn small,.invwrap .poh .amt small,.invwrap .poh .chev{color:#aaa}
+.invwrap .poh .amt b{color:var(--yellow)}
+.invwrap .poh .whn small a{color:var(--yellow)}
+.invwrap .pol th{background:#141410;color:#bbb}
+.invwrap .pol tr.tot td{background:var(--yellow);color:var(--ink)}
+.invwrap .invtop h1{background:var(--ink);color:var(--yellow);padding:4px 10px;border-radius:4px}
+.invwrap .seg button{background:var(--ink);color:var(--yellow);border-color:var(--ink)}
+.invq:focus{outline:2px solid var(--yellow);border-color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1124,7 +1136,7 @@ function renderReprints(){
       +'<span>'+pri+' <span class="tag hard">RE-PRINT</span></span>'
       +'<span class="amt"><small>Order to replace</small><b>'+esc(r.dmgSizes||(r.dmgTotal+' pcs'))+'</b></span>'
       +'<span class="amt"><small>Reprint cost</small><b>'+(r.cost?money(r.cost):'—')+'</b></span>'
-      +'<button class="btn g" id="rpbtn-'+r.id+'" onclick="markReplacementOrdered(\''+r.id+'\')">Mark replacement ordered</button></div>'
+      +'<button class="btn y" id="rpbtn-'+r.id+'" onclick="markReplacementOrdered(\''+r.id+'\')">Mark replacement ordered</button></div>'
       +(r.dmgNotes?'<div class="pol"><div style="padding:10px 14px;font-size:13px">'+esc(r.dmgNotes)+'</div></div>':'')+'</div>'; });
   $('rp').innerHTML=h;
 }
