@@ -269,6 +269,8 @@ function productUrl(g,w){
   if(w.vendor==='AS Colour') return 'https://ascolour.com/search.php?search_query='+encodeURIComponent(style);
   return '';
 }
+/* PO # = the day it's ordered, MMDDYYYY (e.g. 10012026). Same PO for every vendor that day. */
+function todayPO(){ function z(n){return (n<10?'0':'')+n;} return z(TODAY.getMonth()+1)+z(TODAY.getDate())+TODAY.getFullYear(); }
 function shortWh(w){ return w.name.replace(' Activewear',''); }
 function whById(id){ return WAREHOUSES.filter(function(w){return w.id===id;})[0]; }
 function orderOf(lid){ return ORDERS.filter(function(o){ return o.lines.some(function(l){return l.id===lid;}); })[0]; }
@@ -320,7 +322,10 @@ function renderOrder(){
     +'<span>Sales <b>'+esc(o.rep)+'</b></span><span>Ships <b>'+esc(o.ship)+'</b></span></div>'
     +(o.notes.length?'<div class="notes">'+o.notes.map(function(n){ return '<div class="note"><b>'+esc(n.k)+' note</b>'+esc(n.t)+'</div>'; }).join('')+'</div>':'')
     +'</div>';
-  o.lines.forEach(function(l){ h+=lineHtml(o,l); });
+  // lines still to buy stay on top; carted, then ordered, drop to the bottom of the stack
+  var RANK={open:0,cart:1,ordered:2};
+  o.lines.map(function(l,i){return {l:l,i:i};}).sort(function(a,b){ return RANK[S[a.l.id].status]-RANK[S[b.l.id].status] || a.i-b.i; })
+    .forEach(function(x){ h+=lineHtml(o,x.l); });
   $('order').innerHTML=h;
 }
 function lineHtml(o,l){
@@ -391,7 +396,7 @@ function refreshLine(id){
 }
 
 /* ---------- column 3: carts ---------- */
-function addToCart(id){ S[id].status='cart'; renderAll(); toast(lineById(id).g+' added to cart'); }
+function addToCart(id){ S[id].status='cart'; renderAll(); $('order').scrollTop=0; toast(lineById(id).g+' added to cart — next line is on top'); }
 function pullFromCart(id){ S[id].status='open'; renderAll(); }
 function cartItems(){
   var carts={};
@@ -411,7 +416,7 @@ function renderCarts(){
         +'<div class="grid">'+SIZES.filter(function(z){return it.q[z];}).map(function(z){ return '<span><i>'+z+'</i><b>'+it.q[z]+'</b></span>'; }).join('')+'</div>'
         +(productUrl(it.l.g,w)?'<a class="open" href="'+productUrl(it.l.g,w)+'" target="_blank" rel="noopener">Open on '+esc(w.vendor)+' ↗</a>':'')+'</div>'; }).join('')
       +'<div class="cfoot"><div class="hint">Open each item, type the sizes into the '+esc(shortWh(w))+' row of the size grid, check out, then enter the PO here.</div>'
-      +'<div class="r"><input id="po-'+k+'" placeholder="PO # from the vendor site"><button class="btn g" onclick="placeCart(\''+k+'\')">✓ Ordered</button></div>'
+      +'<div class="r"><input id="po-'+k+'" value="'+todayPO()+'" title="PO = today\'s date (MMDDYYYY). Change it if needed."><button class="btn g" onclick="placeCart(\''+k+'\')">✓ Ordered</button></div>'
       +'<div class="hint">Saves Ordered, PO, warehouse, extras and costs on '+items.length+' line'+(items.length>1?'s':'')+'.</div></div></div>';
   });
   if(DONE.length) h+='<h2 style="padding-left:0;background:none">Ordered today</h2><div class="done-list">'+DONE.map(function(c){
@@ -428,7 +433,8 @@ function placeCart(k){
     st.placed=st.placed||{}; st.placed[k]=1;
     if(st.allocs.every(function(a,i){ return st.placed[a.wh] || !sum(allocQty(it.l)[i]); })) st.status='ordered';
   });
-  POS.unshift({po:po, wh:k, date:TODAY, freight:0, inv:'', lines:items.map(function(it){ return poLine(it.o,it.l,it.q); })});
+  var newLines=items.map(function(it){ return poLine(it.o,it.l,it.q); }), ex=POS.filter(function(x){ return x.po===po && x.wh===k; })[0];
+  if(ex) ex.lines=ex.lines.concat(newLines); else POS.unshift({po:po, wh:k, date:TODAY, freight:0, inv:'', lines:newLines});
   var a=arrival(w,items[0].o);
   DONE.unshift({wh:w.name, po:po, pcs:pcs, orders:Object.keys(ords), arr:a.date?fmtD(a.date):'?'});
   renderAll(); toast('PO '+po+' saved on '+items.length+' line(s) (mockup — not really)');
@@ -447,15 +453,15 @@ function poTotal(p){ var t=p.freight||0; p.lines.forEach(function(x){ t+=x.amt; 
 function money(n){ return '$'+(+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 // recent POs already in Airtable (fake history)
 var POS=[
-  {po:'SS-77790', wh:'ssola', date:new Date(2026,8,28), freight:0, inv:'', lines:[
+  {po:'09282026', wh:'ssola', date:new Date(2026,8,28), freight:0, inv:'', lines:[
     {order:'90011', cust:'Sample Co F', g:'Bella Canvas 3001 - Black', q:{S:10,M:20,L:20,XL:10}, pcs:60, c1:3.12, c2:4.62, amt:187.20},
     {order:'90012', cust:'Sample Co G', g:'Bella Canvas 3001 - Black', q:{M:12,L:12,'2XL':4}, pcs:28, c1:3.12, c2:4.62, amt:93.36}]},
-  {po:'SLC-4410', wh:'slcslc', date:new Date(2026,8,29), freight:0, inv:'412.80', lines:[
+  {po:'09292026', wh:'slcslc', date:new Date(2026,8,29), freight:0, inv:'412.80', lines:[
     {order:'90005', cust:'Sample Co E', g:'Comfort Colors 1717 - Blue Spruce', q:{L:30}, pcs:30, c1:5.40, c2:5.40, amt:162.00},
     {order:'90013', cust:'Sample Co H', g:'Comfort Colors 1717 - Moss', q:{S:6,M:18,L:18,XL:6}, pcs:48, c1:5.10, c2:5.10, amt:244.80}], why:'Invoice is $6.00 higher. Common causes: a price change since the cost was saved, freight or a small-order fee not entered, or a short ship.'},
-  {po:'SM-118204', wh:'smdal', date:new Date(2026,8,30), freight:14.50, inv:'200.50', lines:[
+  {po:'09302026', wh:'smdal', date:new Date(2026,8,30), freight:14.50, inv:'200.50', lines:[
     {order:'90014', cust:'Sample Co I', g:'Port & Company PC54 - Navy', q:{M:24,L:24,XL:12}, pcs:60, c1:3.10, c2:3.10, amt:186.00}]},
-  {po:'AS-30117', wh:'ascal', date:new Date(2026,8,30), freight:22.00, inv:'', lines:[
+  {po:'09302026', wh:'ascal', date:new Date(2026,8,30), freight:22.00, inv:'', lines:[
     {order:'90005', cust:'Sample Co E', g:'AS Colour 5001 - Natural', q:{S:5,M:16,L:11}, pcs:32, c1:6.20, c2:6.20, amt:198.40}]}
 ];
 var INV_FILTER='need', OPEN_PO={};
@@ -463,7 +469,8 @@ function poState(p){ if(p.inv==='') return 'wait'; return Math.abs((+p.inv)-poTo
 function setTab(t){ $('t-order').classList.toggle('on',t==='order'); $('t-inv').classList.toggle('on',t==='inv');
   document.querySelector('.cols').classList.toggle('hidden',t!=='order'); $('inv').classList.toggle('hidden',t!=='inv');
   document.querySelector('.steps').classList.toggle('hidden',t!=='order'); renderInv(); }
-function setInv(po,v){ var p=POS.filter(function(x){return x.po===po;})[0]; p.inv=v.replace(/[$,\s]/g,''); renderInv(po); }
+function poKey(p){ return p.po+'|'+p.wh; }
+function setInv(key,v){ var p=POS.filter(function(x){return poKey(x)===key;})[0]; p.inv=v.replace(/[$,\s]/g,''); renderInv(); }
 function renderInv(focusPo){
   var need=POS.filter(function(p){return poState(p)!=='ok';}).length;
   $('inv-badge').textContent=need||'';
@@ -471,19 +478,19 @@ function renderInv(focusPo){
   var at=0, iv=0, nchk=0; POS.forEach(function(p){ at+=poTotal(p); if(p.inv!==''){ iv+=+p.inv; nchk++; } });
   var h='<div class="invtop"><h1>Invoice check</h1><span class="sum"><b>'+POS.length+'</b> POs · Airtable <b>'+money(at)+'</b> · <b>'+nchk+'</b> invoices entered ('+money(iv)+')</span>'
     +'<span class="seg"><button class="'+(INV_FILTER==='need'?'on':'')+'" onclick="INV_FILTER=\'need\';renderInv()">To check ('+need+')</button><button class="'+(INV_FILTER==='all'?'on':'')+'" onclick="INV_FILTER=\'all\';renderInv()">All POs</button></span></div>'
-    +'<p class="hint" style="margin-bottom:12px">Type the total from the vendor invoice. Within 50¢ counts as a match. Tap a PO to see its lines.</p>';
+    +'<p class="hint" style="margin-bottom:12px">POs are the order date (MMDDYYYY), so each row is one PO at one warehouse. Type the total from that vendor\'s invoice. Within 50¢ counts as a match. Tap a PO to see its lines.</p>';
   if(!list.length) h+='<div class="empty">Every PO matches its invoice. 🎉</div>';
   list.forEach(function(p){
     var w=whById(p.wh), t=poTotal(p), stt=poState(p), diff=(+p.inv)-t;
     var chip= stt==='wait'?'<span class="stt wait">Not checked</span>' : stt==='ok'?'<span class="stt ok">✓ Matches</span>' : '<span class="stt bad">Invoice '+(diff>0?'+':'−')+money(Math.abs(diff))+'</span>';
     var pcs=0; p.lines.forEach(function(x){pcs+=x.pcs;});
-    h+='<div class="po '+stt+'"><div class="poh" onclick="if(event.target.tagName!==\'INPUT\'){OPEN_PO[\''+p.po+'\']=!OPEN_PO[\''+p.po+'\'];renderInv();}">'
+    h+='<div class="po '+stt+'"><div class="poh" onclick="if(event.target.tagName!==\'INPUT\'){OPEN_PO[\''+poKey(p)+'\']=!OPEN_PO[\''+poKey(p)+'\'];renderInv();}">'
       +'<span class="pon">'+esc(p.po)+'<small>'+fmtD(p.date)+'</small></span>'
       +'<span class="whn">'+esc(shortWh(w))+'<small>'+p.lines.length+' line'+(p.lines.length>1?'s':'')+' · '+pcs+' pcs · orders '+p.lines.map(function(x){return x.order;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ')+'</small></span>'
       +'<span class="amt"><small>Airtable</small><b>'+money(t)+'</b></span>'
-      +'<span><input inputmode="decimal" placeholder="Vendor invoice $" value="'+esc(p.inv)+'" onchange="setInv(\''+p.po+'\',this.value)"></span>'
-      +chip+'<span class="chev">'+(OPEN_PO[p.po]?'▾':'▸')+'</span></div>';
-    if(OPEN_PO[p.po]){
+      +'<span><input inputmode="decimal" placeholder="Vendor invoice $" value="'+esc(p.inv)+'" onchange="setInv(\''+poKey(p)+'\',this.value)"></span>'
+      +chip+'<span class="chev">'+(OPEN_PO[poKey(p)]?'▾':'▸')+'</span></div>';
+    if(OPEN_PO[poKey(p)]){
       h+='<div class="pol"><table><tr><th>Order</th><th>Garment</th><th>Sizes (incl. extras)</th><th class="r">Pcs</th><th class="r">Each</th><th class="r">Line</th></tr>'
         +p.lines.map(function(x){ return '<tr><td>'+x.order+' '+esc(x.cust)+'</td><td>'+esc(x.g)+'</td><td>'+qtxt(x.q)+'</td><td class="r">'+x.pcs+'</td><td class="r">'+money(x.c1)+(x.c2!==x.c1&&Object.keys(x.q).some(function(k){return /^[2-6]XL$/.test(k);})?' / 2XL+ '+money(x.c2):'')+'</td><td class="r">'+money(x.amt)+'</td></tr>'; }).join('')
         +'<tr><td colspan="5">Inbound freight</td><td class="r">'+money(p.freight||0)+'</td></tr>'
