@@ -3447,14 +3447,14 @@ function slipHtml(o){
   var ro=o.lines.filter(function(l){return l.imprints&&l.imprints.length;});
   // v145: 'Scan to reorder' QR -> pre-filled email to the order's sales rep (sales@ if none), with the imprint IDs
   var repMail=txt(f[O.repEmail]).trim()||'sales@pineprintshop.com',repName=txt(f[O.repName]).trim();
-  // plain ASCII only -- fancy dashes/bullets triple in size once URL-encoded and make the QR denser
-  var mailBody='Hi '+(repName||'Pine team')+',\n\nI would like to reorder from order '+o.num+':\n'
-    +ro.map(function(l){return '- '+l.name+(l.color?' ('+l.color+')':'')+': '+l.imprints.join(', ');}).join('\n')
-    +'\n\nQuantities / sizes:\n\n\nThanks!';
-  var mailto='mailto:'+repMail+'?subject='+encodeURIComponent('Reorder: Order '+o.num)+'&body='+encodeURIComponent(mailBody);
+  // v145: the QR opens the Pine reorder page (reorder.html), which offers Gmail / Outlook / Yahoo / mail app / copy,
+  // all pre-filled to the rep with these imprint IDs. Short params keep the QR easy to scan.
+  var mailto='https://pineprintshop.github.io/reprint-lookup/reorder.html?o='+encodeURIComponent(o.num)
+    +(repName?'&n='+encodeURIComponent(repName):'')+'&t='+encodeURIComponent(repMail)
+    +ro.map(function(l){return '&l='+encodeURIComponent(l.name+(l.color?' ('+l.color+')':'')+'~'+l.imprints.join(','));}).join('');
   // v145: the QR carries the imprint IDs, so the box is just heading + one line + QR
-  var reorder=ro.length?'<div class="ro"><div class="rl"><h4>Need a reorder?</h4><p>Scan the code to email '+esc(repName||'our team')+'. Your imprint IDs are already filled in, so we can print it exactly the same.</p></div>'
-    +'<div class="rq"><div class="qr" data-url="'+esc(mailto)+'"></div><b>Scan to reorder</b><small>Emails '+esc(repName||'our team')+'</small></div></div>':'';
+  var reorder=ro.length?'<div class="ro"><div class="rl"><h4>Need a reorder?</h4><p>Scan the code to send '+esc(repName||'our team')+' your reorder. Your imprint IDs are already filled in, so we can print it exactly the same.</p></div>'
+    +'<div class="rq"><div class="qr" data-url="'+esc(mailto)+'"></div><b>Scan to reorder</b><small>Goes to '+esc(repName||'our team')+'</small></div></div>':'';
   var anyShort=o.lines.some(function(l){return l.sizes.some(function(s){return l.rows.shipped[s]<l.rows.ord[s];});});
   // v145: bigger type throughout; line logo; @page margin 0 so the browser prints no header/footer
   // (title, about:blank, date) -- the 0.5in margins come from .pg side padding + thead/tfoot spacers.
