@@ -37,6 +37,18 @@ He works order by order, batching into vendor carts across orders. When a wareho
   - **Who's in the picker:** Airtable's API can't list base members (Enterprise only). Recent comments show 8 people and department accounts being tagged; the department accounts are Art, Purchasing and Quality. The names are kept out of this public repo.
     - For the live app, load the list at start-up from a small **Team** table (Name + an Airtable user field + Active). It's easy to keep current, and nothing is hard-coded. Ask before creating it.
 
+## Live price check (vendor price vs Airtable)
+- Each warehouse option shows that vendor's **live price for the line's exact style + color**: ↑ red if higher than Airtable, ↓ green if lower, grey if the same. SanMar sale prices show their end date.
+- Picking a warehouse **fills the cost with the live price**, unless he typed one. The cost box says how far it is from Airtable ("⚠ Price went up at S&S: $3.29, Airtable $3.12, +$0.17"). The live price is what gets saved to the line when ordered.
+- The orders list shows **Price ↑** on orders where a garment now costs more than Airtable at every vendor that carries it.
+- Sources: the same worker calls Price-o-Matic uses (all GET, already allowed in worker v14):
+  - S&S `/proxy/ss/products` → `customerPrice`
+  - SanMar `/proxy/sanmar/pricing` → `myPrice` (includes sales)
+  - AS Colour `/proxy/ascolour/catalog/pricelist` → contracted price
+  - SLC and Carolina Creative have no live price.
+- **Open question:** should a higher live price also update the **Garments** table cost? That cost feeds quoting in Price-o-Matic. For now only the line item cost changes. Ask before writing to Garments.
+- A live scan from the build environment was blocked: the network policy denies `pine-workers.stephen-dab.workers.dev` and `api.ssactivewear.com`.
+
 ## Notes (editable, written back to Airtable)
 - Every note column in his view is its own long-text field on the line item, so each line card has a notes row:
   - Order Notes `fldF378cgWuOcWNL6`
