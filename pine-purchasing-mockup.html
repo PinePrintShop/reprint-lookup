@@ -130,6 +130,11 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .citem .t b{font-size:12px}
 .citem .t .x{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px}
 .citem .s{color:var(--muted);margin-top:2px}
+.citem .grid{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
+.citem .grid span{border:1px solid var(--border-dk);border-radius:4px;min-width:38px;text-align:center;padding:2px 4px;font-variant-numeric:tabular-nums}
+.citem .grid span i{display:block;font-style:normal;font-size:9px;color:var(--muted);font-weight:700}
+.citem .grid span b{font-size:13px}
+.citem .open{display:inline-block;margin-top:6px;font-weight:800;color:var(--green);text-decoration:none;font-size:12px}
 .cfoot{padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--soft)}
 .cfoot .r{display:flex;gap:6px}
 .cfoot input{flex:1;border:1px solid var(--border-dk);border-radius:6px;padding:8px;font-weight:700;min-width:0}
@@ -165,19 +170,24 @@ table.sz .tot{font-weight:800;padding-left:8px}
 /* ---------- fake data (shaped like the [MGR] Apparel RFO view) ---------- */
 var TODAY = new Date(2026,9,1);   // Thu Oct 1 2026, fixed so the demo reads the same every time
 var SIZES = ['XS','S','M','L','XL','2XL','3XL','OSFA'];
-// Days In Transit from the Suppliers table (business days); null = not filled in yet. hist = median order→received.
+// Ship time = UPS Ground estimate from the warehouse's city to the shop (Fort Collins 80524), by distance:
+// under 250 mi 1 day · under 750 mi 2 · under 1,150 mi 3 · farther 4 (business days). ll = city lat/lon; null = location unknown.
+var SHOP_LL = [40.585,-105.084];
 var WAREHOUSES = [
-  {id:'ssftw', name:'S&S Activewear - Ft. Worth, TX', vendor:'S&S', days:2, hist:8},
-  {id:'ssreno',name:'S&S Activewear - Reno, NV',      vendor:'S&S', days:3, hist:9},
-  {id:'ssola', name:'S&S Activewear - Olathe, KS',    vendor:'S&S', days:null, hist:9},
-  {id:'sslock',name:'S&S Activewear - Lockport, IL',  vendor:'S&S', days:3, hist:10},
-  {id:'slcslc',name:'SLC Activewear - Salt Lake City, UT', vendor:'SLC', days:2, hist:9},
-  {id:'slcphx',name:'SLC Activewear - Phoenix, AZ',   vendor:'SLC', days:2, hist:10},
-  {id:'smreno',name:'Sanmar - Reno, NV',              vendor:'Sanmar', days:2, hist:8},
-  {id:'smdal', name:'Sanmar - Dallas, TX',            vendor:'Sanmar', days:null, hist:9},
-  {id:'ascal', name:'AS Colour - CA',                 vendor:'AS Colour', days:5, hist:10},
-  {id:'ccp',   name:'Carolina Creative Products',     vendor:'Carolina Creative', days:null, hist:8}
+  {id:'ssftw', name:'S&S Activewear - Ft. Worth, TX', vendor:'S&S', ll:[32.75,-97.33]},
+  {id:'ssreno',name:'S&S Activewear - Reno, NV',      vendor:'S&S', ll:[39.53,-119.81]},
+  {id:'ssola', name:'S&S Activewear - Olathe, KS',    vendor:'S&S', ll:[38.88,-94.82]},
+  {id:'sslock',name:'S&S Activewear - Lockport, IL',  vendor:'S&S', ll:[41.59,-88.06]},
+  {id:'slcslc',name:'SLC Activewear - Salt Lake City, UT', vendor:'SLC', ll:[40.76,-111.89]},
+  {id:'slcphx',name:'SLC Activewear - Phoenix, AZ',   vendor:'SLC', ll:[33.45,-112.07]},
+  {id:'smreno',name:'Sanmar - Reno, NV',              vendor:'Sanmar', ll:[39.53,-119.81]},
+  {id:'smdal', name:'Sanmar - Dallas, TX',            vendor:'Sanmar', ll:[32.78,-96.80]},
+  {id:'ascal', name:'AS Colour - CA',                 vendor:'AS Colour', ll:[33.87,-118.21]},
+  {id:'ccp',   name:'Carolina Creative Products',     vendor:'Carolina Creative', ll:null}
 ];
+function miles(a,b){ var r=Math.PI/180, h=Math.pow(Math.sin((b[0]-a[0])*r/2),2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.pow(Math.sin((b[1]-a[1])*r/2),2); return 3959*2*Math.asin(Math.sqrt(h)); }
+function upsDays(ll){ if(!ll) return null; var m=miles(SHOP_LL,ll); return m<250?1:m<750?2:m<1150?3:4; }
+WAREHOUSES.forEach(function(w){ w.days=upsDays(w.ll); w.mi=w.ll?Math.round(miles(SHOP_LL,w.ll)):null; });
 var ORDERS = [
   {num:'10931', cust:'Peak Running Co', due:'2026-10-08', pri:'Hard Deadline', print:'2026-10-06', rep:'Nicole', ship:'Local Pickup',
    notes:[{k:'Production',t:'Needs to be on the truck for the race expo Thursday AM.'}],
@@ -212,6 +222,15 @@ function d(s){ var p=s.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
 function fmtD(dt){ return dt.toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'}); }
 function addBiz(dt,n){ var x=new Date(dt); while(n>0){ x.setDate(x.getDate()+1); if(x.getDay()%6) n--; } return x; }
 function bizBetween(a,b){ var n=0,x=new Date(a); while(x<b){ x.setDate(x.getDate()+1); if(x.getDay()%6) n++; } return n; }
+var SS_SLUG={'bella canvas':'bella','comfort colors':'comfort_colors','next level':'next_level'};
+function productUrl(g,w){
+  var s=g.split(' - ')[0].trim().split(/\s+/), style=s.pop(), brand=s.join(' '), bl=brand.toLowerCase();
+  if(w.vendor==='S&S' && SS_SLUG[bl]) return 'https://www.ssactivewear.com/p/'+SS_SLUG[bl]+'/'+encodeURIComponent(style.toLowerCase());
+  if(w.vendor==='SLC') return 'https://slcactivewear.com/search.html?query='+encodeURIComponent(brand+' '+style);
+  if(w.vendor==='Sanmar') return 'https://www.sanmar.com/search/?text='+encodeURIComponent(brand+' '+style);
+  if(w.vendor==='AS Colour') return 'https://ascolour.com/search.php?search_query='+encodeURIComponent(style);
+  return '';
+}
 function shortWh(w){ return w.name.replace(' Activewear',''); }
 function whById(id){ return WAREHOUSES.filter(function(w){return w.id===id;})[0]; }
 function orderOf(lid){ return ORDERS.filter(function(o){ return o.lines.some(function(l){return l.id===lid;}); })[0]; }
@@ -227,7 +246,7 @@ function allocQty(l){
 }
 function arrival(w,o){
   if(!w) return null;
-  if(w.days==null) return {cls:'unk', txt:'no estimate · usually ~'+w.hist+' days'};
+  if(w.days==null) return {cls:'unk', txt:'location not set'};
   var a=addBiz(TODAY,w.days), pr=d(o.print), gap=bizBetween(a,pr);
   var cls = a>=pr ? 'late' : gap<=1 ? 'tight' : 'ok';
   return {cls:cls, date:a, txt:'arrives '+fmtD(a)+(cls==='late'?' · after print day':cls==='tight'?' · tight':'')};
@@ -309,8 +328,8 @@ function whChoices(o,l,i,sel,locked){
   var cands=l.carriers.map(whById).sort(function(a,b){ return (a.days==null?99:a.days)-(b.days==null?99:b.days); });
   var top=cands.slice(0,3); if(sel && top.indexOf(whById(sel))<0) top.push(whById(sel));
   var h=top.map(function(w){ var a=arrival(w,o);
-    return '<button class="whopt'+(sel===w.id?' on':'')+'" '+(locked?'disabled':'')+' onclick="pickWh(\''+l.id+'\','+i+',\''+w.id+'\')">'
-      +'<span><span class="nm">'+esc(shortWh(w))+'</span><br><span class="tr">'+(w.days!=null?w.days+' business days':'transit not set')+'</span></span>'
+    return '<button class="whopt'+(sel===w.id?' on':'')+'" title="'+(w.mi?w.mi+' miles from the shop':'')+'" '+(locked?'disabled':'')+' onclick="pickWh(\''+l.id+'\','+i+',\''+w.id+'\')">'
+      +'<span><span class="nm">'+esc(shortWh(w))+'</span><br><span class="tr">'+(w.days!=null?'UPS Ground ~'+w.days+' day'+(w.days>1?'s':''):'add warehouse location')+'</span></span>'
       +'<span class="arr '+a.cls+'">'+a.txt+'</span></button>'; }).join('');
   var rest=WAREHOUSES.filter(function(w){ return top.indexOf(w)<0; });
   if(!locked) h+='<select class="more" onchange="if(this.value)pickWh(\''+l.id+'\','+i+',this.value)"><option value="">More warehouses…</option>'
@@ -345,10 +364,12 @@ function renderCarts(){
   if(!keys.length) h+='<div class="empty" style="padding:24px 8px">Lines you add show up here, one cart per warehouse.<br>Keep adding from other orders, then place each cart on the vendor site.</div>';
   keys.forEach(function(k){
     var w=whById(k), items=carts[k], pcs=0; items.forEach(function(it){ pcs+=sum(it.q); });
-    h+='<div class="cartc"><div class="ch"><span class="nm">'+esc(w.name)+'</span><span class="tr">'+(w.days!=null?w.days+'d':'')+'</span><span class="pcs">'+pcs+' pcs</span></div>'
+    h+='<div class="cartc"><div class="ch"><span class="nm">'+esc(w.name)+'</span><span class="tr">'+(w.days!=null?'UPS ~'+w.days+'d':'')+'</span><span class="pcs">'+pcs+' pcs</span></div>'
       +items.map(function(it){ return '<div class="citem"><div class="t"><b>'+esc(it.l.g)+'</b>'+(S[it.l.id].po?'':'<button class="x" title="Take back out" onclick="pullFromCart(\''+it.l.id+'\')">✕</button>')+'</div>'
-        +'<div class="s">'+it.o.num+' '+esc(it.o.cust)+' · '+qtxt(it.q)+'</div></div>'; }).join('')
-      +'<div class="cfoot"><button class="btn ghost" onclick="copyCart(\''+k+'\')">⧉ Copy for '+esc(w.vendor)+' quick order</button>'
+        +'<div class="s">'+it.o.num+' '+esc(it.o.cust)+' · '+sum(it.q)+' pcs</div>'
+        +'<div class="grid">'+SIZES.filter(function(z){return it.q[z];}).map(function(z){ return '<span><i>'+z+'</i><b>'+it.q[z]+'</b></span>'; }).join('')+'</div>'
+        +(productUrl(it.l.g,w)?'<a class="open" href="'+productUrl(it.l.g,w)+'" target="_blank" rel="noopener">Open on '+esc(w.vendor)+' ↗</a>':'')+'</div>'; }).join('')
+      +'<div class="cfoot"><div class="hint">Open each item, type the sizes into the '+esc(shortWh(w))+' row of the size grid, check out, then enter the PO here.</div>'
       +'<div class="r"><input id="po-'+k+'" placeholder="PO # from the vendor site"><button class="btn g" onclick="placeCart(\''+k+'\')">✓ Ordered</button></div>'
       +'<div class="hint">Saves Ordered, PO, warehouse, extras and costs on '+items.length+' line'+(items.length>1?'s':'')+'.</div></div></div>';
   });
@@ -356,12 +377,6 @@ function renderCarts(){
     return '<div class="cartc"><div class="ch"><span class="nm">'+esc(c.wh)+'</span><span class="pcs">PO '+esc(c.po)+'</span></div><div class="citem"><div class="s">'+c.pcs+' pcs · orders '+c.orders.join(', ')+' · arrives '+c.arr+'</div></div></div>';
   }).join('')+'</div>';
   $('carts').innerHTML=h;
-}
-function copyCart(k){
-  var items=cartItems()[k], byG={};
-  items.forEach(function(it){ var g=byG[it.l.g]=byG[it.l.g]||{q:{},o:{}}; for(var s in it.q) g.q[s]=(g.q[s]||0)+it.q[s]; g.o[it.o.num]=1; });
-  var txt=Object.keys(byG).map(function(g){ return g+': '+qtxt(byG[g].q)+'  ('+sum(byG[g].q)+' pcs; '+Object.keys(byG[g].o).join(', ')+')'; }).join('\n');
-  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){ toast('Copied '+Object.keys(byG).length+' garment(s)'); },function(){ window.prompt('Copy this:',txt); });
 }
 function placeCart(k){
   var po=$('po-'+k).value.trim(); if(!po){ alert('Enter the PO # from the vendor site first.'); return; }

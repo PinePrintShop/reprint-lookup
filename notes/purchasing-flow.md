@@ -22,14 +22,22 @@ He works order by order, batching into vendor carts across orders. When a wareho
   3. warehouse, with a ship-time estimate and arrival date, plus **+ split**
   4. cost
   5. **Add to cart**
-- **Carts:** one per warehouse, built up across orders. When an order is placed, he copies the cart, enters the PO and ticks ✓ Ordered. That writes Ordered, PO, Supplier, extras and costs to every line in the cart.
+- **Carts:** one per warehouse, built up across orders. None of the vendor sites has a quick-order / bulk paste, so each cart item gets an **Open on vendor ↗** link and its sizes laid out like the site's size grid, to type in. After checkout, he enters the PO and ticks ✓ Ordered. That writes Ordered, PO, Supplier, extras and costs to every line in the cart.
 
 ## Ship time
-- Source: **Suppliers → Days In Transit** (`fldkxReU8bOwXpQXT`), counted in business days.
-  - Airtable already computes **Expected Blank Arrival** from it.
-  - Missing for some heavily used warehouses: **S&S Olathe**, **Sanmar Dallas**, Carolina Creative.
-- The app shows "arrives Mon 10/6" next to the warehouse. It turns red when that's within a day of the scheduled print date.
-- History (Ordered Timestamp → Received Timestamp, last 180 days, 2,003 lines) has a median of 8–10 business days for every major warehouse. That's because Received marks when the box is processed, not when it lands, so the history isn't used as ship time.
+- **UPS Ground estimate** from the warehouse's city to the shop (Fort Collins 80524), by straight-line distance, in business days:
+  - under 250 mi: 1 day
+  - under 750 mi: 2 days
+  - under 1,150 mi: 3 days
+  - farther: 4 days
+- Results:
+  - **2 days:** SLC (Salt Lake, Phoenix) · S&S Olathe, Ft. Worth, Dallas · Sanmar Phoenix, Dallas, Minneapolis · Bella Canvas Las Vegas.
+  - **3 days:** S&S Reno, Lockport, Bolingbrook, Fresno, West Chester · Sanmar Reno, Seattle, Cincinnati · AS Colour CA.
+  - **4 days:** S&S Georgia, Reading, Orlando, Middleboro · Sanmar Jacksonville, NJ, Richmond · AS Colour NC · Bella Canvas MD.
+- Reno (781 mi) sits on the 2/3-day line.
+- The app needs each warehouse's location; Carolina Creative's is unknown.
+- The Suppliers table's **Days In Transit** field (and so Expected Blank Arrival) disagrees with these numbers. It could be updated to match later; ask first.
+- History (Ordered → Received) isn't used, because Received marks when a box is processed, not when it lands.
 
 ## Splits
 - Supplier links both warehouses.
