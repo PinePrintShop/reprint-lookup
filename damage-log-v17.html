@@ -618,10 +618,10 @@ function requestText(o,list){
     var amt=list.filter(function(x){return x.lineId===l.id;}).reduce(function(s,x){return s+x.refund;},0);
     if(!amt)return;
     var short=Math.max(0,l.total-l.totalFinal);
-    out.push(l.name+(l.color?' '+l.color:'')+': '+money(amt)+' ('+short+' short \u00d7 '+money(l.price)+')');
+    out.push('* '+l.name+(l.color?' '+l.color:'')+': '+money(amt)+' ('+short+' short \u00d7 '+money(l.price)+')');  // Markdown bullet (email body)
   });
   var loose=list.filter(function(x){return !o.lines.some(function(l){return l.id===x.lineId;});}).reduce(function(s,x){return s+x.refund;},0);
-  if(loose)out.push('Other: '+money(loose));
+  if(loose)out.push('* Other: '+money(loose));
   if(prev)out.push('','Additional to '+money(o.refundSent-list.reduce(function(s,x){return s+x.refund;},0))+' already requested.');
   return out.join('\n');
 }
