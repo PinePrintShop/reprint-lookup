@@ -192,6 +192,15 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .iss-b{border:1px solid var(--border-dk);background:#fff;border-radius:20px;padding:8px 14px;font-weight:700;cursor:pointer}
 .iss-b.on{background:var(--red);border-color:var(--red);color:#fff}
 .iss textarea{width:100%;border:1px solid var(--border-dk);border-radius:6px;padding:8px;font:inherit}
+.who{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--border-dk);border-radius:6px;padding:6px;margin-bottom:10px;position:relative}
+.who-c{background:var(--ink);color:#fff;border-radius:14px;padding:4px 6px 4px 10px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:4px}
+.who-c button{background:none;border:none;color:#bbb;font-size:15px;cursor:pointer;line-height:1}
+.who-s{flex:1;min-width:160px;position:relative}
+.who-s input{width:100%;border:none;outline:none;font:inherit;padding:4px}
+.who-l{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:#fff;border:1px solid var(--border-dk);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.15);max-height:220px;overflow:auto;z-index:5}
+.who-o{padding:8px 10px;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.who-o:hover,.who-o.hi{background:var(--soft)}
+.who-o small{color:var(--muted)}.who-o.none{color:var(--muted);cursor:default}
 .iss-prev{margin-top:12px;background:var(--soft);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px}
 .iss-go{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .pv{position:fixed;inset:0;background:rgba(10,10,8,.6);z-index:30;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -220,7 +229,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 </head>
 <body>
 <div class="top">
-  <span class="brand">Pine Purchasing<small>flow mockup · v11</small></span>
+  <span class="brand">Pine Purchasing<small>flow mockup · v12</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
   <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
@@ -404,7 +413,7 @@ function lineHtml(o,l){
   return '<div class="line'+(st.status==='cart'?' incart':'')+(st.status==='ordered'?' ordered':'')+'" id="line-'+l.id+'">'
     +'<div class="lhead"><button class="thumb" title="Open the mockup" onclick="openProof(\''+l.id+'\')"><img src="'+l.thumb+'" alt="mockup"></button>'
     +'<span class="g">'+esc(l.g)+'</span><span class="imp">'+esc(l.imp)+'</span>'
-    +(st.issue?'<span class="tag hard" title="'+esc(st.issue)+'">⚠ Garment issue sent to Art</span>':'<button class="issuebtn" onclick="openIssue(\''+l.id+'\')">⚠ Garment issue</button>')
+    +(st.issue?'<span class="tag hard" title="'+esc(st.issue)+'">⚠ Garment issue sent to '+esc(st.issueTo)+'</span>':'<button class="issuebtn" onclick="openIssue(\''+l.id+'\')">⚠ Garment issue</button>')
     +'<span class="st">'+stTag+'</span></div>'
     +'<div class="flow"><div class="stage"><h4><span class="k">1</span>Sizes · extras</h4>'+t+'</div>'
     +'<div class="stage"><h4><span class="k">2</span>Warehouse · ship time</h4>'+wh+'</div>'
@@ -442,7 +451,7 @@ function openProof(id){ PROOF=id; var l=lineById(id), st=S[id], o=orderOf(id);
     +'<div class="pv-side"><div class="pv-k">Line item says</div><div class="pv-g">'+esc(l.g)+'</div>'
     +'<div class="pv-color">Color: <b>'+esc(color||'—')+'</b></div>'
     +'<div class="pv-k" style="margin-top:14px">Order '+o.num+' · imprint '+esc(l.imp)+'</div>'
-    +(st.issue?'<div class="note" style="margin-top:14px"><b>Sent to Art</b>'+esc(st.issue)+'</div>'
+    +(st.issue?'<div class="note" style="margin-top:14px"><b>Sent to '+esc(st.issueTo)+'</b>'+esc(st.issue)+'</div>'
               :'<button class="btn ghost" style="margin-top:18px;border-color:var(--red);color:var(--red)" onclick="openIssue(\''+id+'\')">⚠ Garment issue</button>')
     +'<a class="pv-open" href="'+l.proof+'" target="_blank" rel="noopener">Open PDF in a new tab ↗</a></div>';
   $('pv').classList.remove('hidden');
@@ -454,26 +463,52 @@ function closeProof(){ $('pv').classList.add('hidden'); $('pv-body').innerHTML='
    Art Department = Airtable user usr8GNzrtN698y03u (art@pineprintshop.com); "@[usr…]" in the text
    is a real @mention, so Art gets the normal Airtable notification. */
 var ART_USER='usr8GNzrtN698y03u';
+/* People / departments you can @mention. Mockup: the department accounts + sample reps.
+   Live app: the full list (people included) is loaded from Airtable at start-up, not written into this public file. */
+var PEOPLE=[
+  {id:'usr8GNzrtN698y03u', name:'Art Department',        email:'art@'},
+  {id:'usriQ9kjDibI4ARAJ', name:'Purchasing Department', email:'purchasing@'},
+  {id:'usr70MsrrRWWqET0I', name:'Quality Department',    email:'quality@'},
+  {id:'usrSAMPLE00000001', name:'Sample Rep 1',          email:''},
+  {id:'usrSAMPLE00000002', name:'Sample Rep 2',          email:''},
+  {id:'usrSAMPLE00000003', name:'Sample Rep 3',          email:''}];
 var ISSUE_REASONS=['Color doesn\'t match the mockup','Garment / style doesn\'t match the mockup','Print size or placement looks off','Other'];
 var ISSUE=null;
-function openIssue(id){ ISSUE={id:id, reason:'', note:''}; var l=lineById(id), o=orderOf(id);
+function openIssue(id){ ISSUE={id:id, reason:'', note:'', to:[ART_USER]}; var l=lineById(id), o=orderOf(id);
   $('pv-body').innerHTML='<div class="iss"><div class="pv-k">Garment issue · order '+o.num+' · '+esc(l.imp)+'</div><div class="pv-g" style="margin-bottom:14px">'+esc(l.g)+'</div>'
     +'<div class="iss-r">'+ISSUE_REASONS.map(function(r,i){ return '<button class="iss-b" id="ir-'+i+'" onclick="pickReason('+i+')">'+esc(r)+'</button>'; }).join('')+'</div>'
-    +'<textarea id="iss-note" rows="3" placeholder="Anything else Art should know (optional)"></textarea>'
+    +'<div class="pv-k" style="margin:4px 0 6px">Send to</div><div class="who" id="who"></div>'
+    +'<textarea id="iss-note" rows="3" placeholder="Anything else they should know (optional)"></textarea>'
     +'<div class="iss-prev" id="iss-prev"></div>'
-    +'<div class="iss-go"><button class="btn ghost" onclick="closeProof()">Cancel</button><button class="btn" id="iss-send" disabled onclick="sendIssue()">Send to @Art Department</button></div></div>';
+    +'<div class="iss-go"><button class="btn ghost" onclick="closeProof()">Cancel</button><button class="btn" id="iss-send" disabled onclick="sendIssue()">Post comment</button></div></div>';
   $('pv-body').className='pv-in iss-wrap'; $('pv').classList.remove('hidden');
-  $('iss-note').oninput=issPreview; issPreview();
+  $('iss-note').oninput=issPreview; renderWho(); issPreview();
 }
-function pickReason(i){ ISSUE.reason=ISSUE_REASONS[i]; [].forEach.call(document.querySelectorAll('.iss-b'),function(b,j){ b.classList.toggle('on',i===j); }); $('iss-send').disabled=false; issPreview(); }
+function personById(id){ return PEOPLE.filter(function(p){return p.id===id;})[0]; }
+function renderWho(q){
+  var chips=ISSUE.to.map(function(id){ var p=personById(id); return '<span class="who-c">@'+esc(p.name)+'<button onclick="rmWho(\''+id+'\')" title="Remove">×</button></span>'; }).join('');
+  $('who').innerHTML=chips+'<span class="who-s"><input id="who-q" placeholder="'+(ISSUE.to.length?'+ add someone…':'Search people…')+'" autocomplete="off" oninput="whoList(this.value)" onfocus="whoList(this.value)" onblur="setTimeout(function(){var l=$(\'who-l\'); if(l) l.classList.add(\'hidden\');},150)" onkeydown="whoKey(event)"><div class="who-l hidden" id="who-l"></div></span>';
+  if(q!=null){ var i=$('who-q'); i.focus(); }
+}
+function whoList(q){ q=(q||'').toLowerCase().trim(); var l=$('who-l');
+  var m=PEOPLE.filter(function(p){ return ISSUE.to.indexOf(p.id)<0 && (!q || (p.name+' '+p.email).toLowerCase().indexOf(q)>=0); });
+  l.innerHTML=m.length?m.map(function(p,i){ return '<div class="who-o'+(i===0?' hi':'')+'" onmousedown="addWho(\''+p.id+'\')"><b>'+esc(p.name)+'</b>'+(p.email?'<small>'+esc(p.email)+'</small>':'')+'</div>'; }).join(''):'<div class="who-o none">No match</div>';
+  l.classList.remove('hidden');
+}
+function whoKey(e){ if(e.key==='Enter'){ e.preventDefault(); var h=document.querySelector('.who-o.hi'); if(h) h.dispatchEvent(new MouseEvent('mousedown')); }
+  if(e.key==='Backspace' && !e.target.value && ISSUE.to.length){ ISSUE.to.pop(); renderWho(''); issPreview(); } }
+function addWho(id){ ISSUE.to.push(id); renderWho(''); issPreview(); }
+function rmWho(id){ ISSUE.to=ISSUE.to.filter(function(x){return x!==id;}); renderWho(); issPreview(); }
+function pickReason(i){ ISSUE.reason=ISSUE_REASONS[i]; [].forEach.call(document.querySelectorAll('.iss-b'),function(b,j){ b.classList.toggle('on',i===j); }); issPreview(); }
 function issueText(display){ var l=lineById(ISSUE.id), o=orderOf(ISSUE.id), note=$('iss-note').value.trim();
-  return (display?'@Art Department':'@['+ART_USER+']')+' Garment issue from purchasing on '+o.num+' ('+l.imp+', '+l.g+'): '+(ISSUE.reason||'…')+'.'+(note?' '+note:'')+' Please check this and make sure it\'s right before we order blanks.'; }
-function issPreview(){ $('iss-prev').innerHTML='<div class="pv-k">Comment that goes on the line item</div>'+esc(issueText(true)); }
+  var tags=ISSUE.to.map(function(id){ return display?'@'+personById(id).name:'@['+id+']'; }).join(' ');
+  return tags+' Garment issue from purchasing on '+o.num+' ('+l.imp+', '+l.g+'): '+(ISSUE.reason||'…')+'.'+(note?' '+note:'')+' Please check this and make sure it\'s right before we order blanks.'; }
+function issPreview(){ $('iss-send').disabled=!(ISSUE.reason && ISSUE.to.length); $('iss-prev').innerHTML='<div class="pv-k">Comment that goes on the line item</div>'+esc(issueText(true)); }
 function sendIssue(){ var id=ISSUE.id, st=S[id];
   console.log('POST Line Items/'+id+'/comments', JSON.stringify({text:issueText(false)}));
-  st.issue=ISSUE.reason+($('iss-note').value.trim()?' — '+$('iss-note').value.trim():'');
+  st.issue=ISSUE.reason+($('iss-note').value.trim()?' — '+$('iss-note').value.trim():''); st.issueTo=ISSUE.to.map(function(x){return personById(x).name;}).join(', ');
   ISSUE=null; $('pv-body').className='pv-in'; closeProof(); refreshLine(id);
-  toast('Comment posted on the line item for @Art Department (mockup — not really)'); }
+  toast('Comment posted for @'+st.issueTo+' (mockup — not really)'); }
 function qtxt(q){ return SIZES.filter(function(k){return q[k];}).map(function(k){return k+' '+q[k];}).join(', ')||'nothing'; }
 function whChoices(o,l,i,sel,locked){
   // the vendors that carry this garment, fastest first; the rest go in "More warehouses"
@@ -504,7 +539,7 @@ function refreshLine(id){
 }
 
 /* ---------- column 3: carts ---------- */
-function addToCart(id){ if(S[id].issue && !confirm('A garment issue was sent to Art for this line. Add it to the cart anyway?')) return; S[id].status='cart'; renderAll(); $('order').scrollTop=0; toast(lineById(id).g+' added to cart — next line is on top'); }
+function addToCart(id){ if(S[id].issue && !confirm('A garment issue was sent to '+S[id].issueTo+' for this line. Add it to the cart anyway?')) return; S[id].status='cart'; renderAll(); $('order').scrollTop=0; toast(lineById(id).g+' added to cart — next line is on top'); }
 function pullFromCart(id){ S[id].status='open'; renderAll(); }
 function cartItems(){
   var carts={};
