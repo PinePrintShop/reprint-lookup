@@ -24,10 +24,15 @@ He works order by order, batching into vendor carts across orders. When a wareho
   5. **Add to cart**
 - **Carts:** one per warehouse, built up across orders. None of the vendor sites has a quick-order / bulk paste, so each cart item gets an **Open on vendor ↗** link and its sizes laid out like the site's size grid, to type in. After checkout, he enters the PO and ticks ✓ Ordered. That writes Ordered, PO, Supplier, extras and costs to every line in the cart.
 
-## Mockup color check
+## Mockup + Garment issue
 - Each line card shows the proof thumbnail from **Proof Images** (`flddhvdkKI31tFTdX`). Airtable makes thumbnails for PDF attachments.
-- Tapping the thumbnail opens a popup with the big proof image next to the line item's garment and **color**, plus **✓ Color matches** / **✗ Doesn't match**, and a link to open the full PDF.
-- A mismatch is appended to **Production Notes** and flagged red on the card. Adding that line to the cart asks to confirm first.
+- Tapping the thumbnail opens the big proof next to the line item's garment and color, for a visual check. (The color-check buttons were dropped: a visual check is enough.)
+- **⚠ Garment issue** (on the card and in the popup):
+  - Pick a reason (color / garment-style / print size-placement / other), plus an optional note.
+  - It posts a **comment on that line item** that @mentions **Art Department** (`usr8GNzrtN698y03u`, art@pineprintshop.com), so Art gets the normal Airtable notification.
+  - Live call: `POST /v0/appJkaLk8DykjsgHR/tblJx5UlwO7oMSk5H/{recordId}/comments` with the text `@[usr8GNzrtN698y03u] Garment issue from purchasing on …`.
+  - The comment's author is whoever owns the Airtable token in the app. The token needs the `data.recordComments:write` scope.
+  - The card shows "⚠ Garment issue sent to Art". Adding that line to the cart asks to confirm.
 
 ## Notes (editable, written back to Airtable)
 - Every note column in his view is its own long-text field on the line item, so each line card has a notes row:
