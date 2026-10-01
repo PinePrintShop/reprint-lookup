@@ -3460,11 +3460,11 @@ function slipHtml(o){
   // plain ASCII only -- fancy dashes/bullets triple in size once URL-encoded and make the QR denser
   var mailBody='Hi '+(repName||'Pine team')+',\n\nI would like to reorder from order '+o.num+':\n'
     +ro.map(function(l){return '- '+l.name+(l.color?' ('+l.color+')':'')+': '+l.imprints.join(', ');}).join('\n')
-    +(o.id?'\n\nMockups: https://pineprintshop.github.io/reprint-lookup/mockups.html?o='+o.id:'')
+    +(o.id?'\n\nMockups:\nhttps://pineprintshop.github.io/reprint-lookup/mockups.html?o='+o.id+'\n':'')  // link alone on its line so mail apps turn it clickable once sent
     +'\n\nQuantities / sizes:\n\n\nThanks!';
   var mailto='mailto:'+repMail+'?subject='+encodeURIComponent('Reorder: Order '+o.num)+'&body='+encodeURIComponent(mailBody);
-  var reorder=ro.length?'<div class="ro"><div class="rl"><h4>Need a reorder?</h4><p>Send us these imprint IDs and we\u2019ll print it exactly the same.</p><table>'
-    +ro.map(function(l){return '<tr><td>'+esc(l.name)+(l.color?' \u2014 '+esc(l.color):'')+'</td><td class="ids">'+l.imprints.map(esc).join(' \u00b7 ')+'</td></tr>';}).join('')+'</table></div>'
+  // v145: the QR carries the imprint IDs, so the box is just heading + one line + QR
+  var reorder=ro.length?'<div class="ro"><div class="rl"><h4>Need a reorder?</h4><p>Scan the code to email '+esc(repName||'our team')+'. Your imprint IDs and mockups are already filled in, so we can print it exactly the same.</p></div>'
     +'<div class="rq"><div class="qr" data-url="'+esc(mailto)+'"></div><b>Scan to reorder</b><small>Emails '+esc(repName||'our team')+'</small></div></div>':'';
   var anyShort=o.lines.some(function(l){return l.sizes.some(function(s){return l.rows.shipped[s]<l.rows.ord[s];});});
   // v145: bigger type throughout; line logo; @page margin 0 so the browser prints no header/footer
@@ -3483,7 +3483,7 @@ function slipHtml(o){
     +'.nt{margin-top:16px;padding:11px 13px;font-size:16px;line-height:1.45;min-height:44px}@media screen{.nt{outline:1px dashed #bbb}}'  // v145: no box on paper; faint outline on screen only (it's editable)
     +'.ro{display:flex;gap:16px;align-items:center}.rl{flex:1;min-width:0}.rq{width:1.5in;flex-shrink:0;text-align:center}.qr{width:1.4in;height:1.4in;margin:0 auto 4px}.qr img,.qr canvas{width:1.4in!important;height:1.4in!important;display:block}.rq b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:.04em}.rq small{display:block;font-size:11px;color:#444}'
     +'.fsp{padding-top:18px}.ft{border-top:1.5px solid #000;padding-top:6px;font-size:11px;line-height:1.5;text-align:center;color:#222}'
-    +'.ro{margin-top:16px;border:2px solid #000;padding:12px 14px;page-break-inside:avoid;break-inside:avoid}.ro h4{font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}.ro p{font-size:14px;color:#333;margin-bottom:8px}'
+    +'.ro{margin-top:16px;border:2px solid #000;padding:12px 14px;page-break-inside:avoid;break-inside:avoid}.ro h4{font-size:20px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}.ro p{font-size:16px;color:#222;line-height:1.45}'
     +'.ro table{width:100%;border-collapse:collapse}.ro td{padding:5px 0;border-top:1px solid #ccc;font-size:15px;vertical-align:top}.ro td.ids{text-align:right;font-weight:800;font-size:18px;letter-spacing:.03em;white-space:nowrap;padding-left:12px}'
     +'[contenteditable]{outline:none}[contenteditable]:focus{background:#fffbea}'
     +'@page{size:letter;margin:0}@media print{body{background:#fff;padding:0}.bar{display:none}.pg{box-shadow:none;max-width:none;padding:0 .5in}.sp{height:.5in}.fsp{height:.6in;padding-top:.1in}}';
