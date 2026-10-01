@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Damage Log v17 — Pine Central</title>
+<link rel="stylesheet" href="pine-design-v1.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+.top{background:var(--sb-bg);color:#fff;display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap}
+.top h1{font-family:var(--cond);font-size:18px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.top h1 span{color:var(--yellow)}
+.ver{font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--yellow);border:1px solid #333;border-radius:3px;padding:2px 6px}
+.top .sp{flex:1}
+.tbtn{background:transparent;border:1px solid #444;color:#ddd;border-radius:var(--radius);font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:7px 11px;cursor:pointer}
+.tbtn:hover{border-color:#fff;color:#fff}
+.tbtn.on{background:var(--amb-bg);border-color:var(--amb-bd);color:var(--amb)}
+.tok{display:flex;gap:8px;align-items:center;padding:10px 16px;background:var(--bg-soft);border-bottom:1px solid var(--border);flex-wrap:wrap;font-size:12px}
+.tok input{flex:1;min-width:220px;padding:7px 9px;border:1px solid var(--border-dk);border-radius:var(--radius);font:13px var(--mono)}
+.bar{display:flex;gap:8px;align-items:center;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tabs{display:flex;gap:4px}
+.tab,.chip{background:var(--bg);border:1px solid var(--border-dk);color:var(--muted);border-radius:16px;font:700 11px var(--cond);letter-spacing:.05em;text-transform:uppercase;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.chip.on{background:var(--text);border-color:var(--text);color:#fff}
+.chip b{font-weight:900;margin-left:4px}
+.bar select,.bar input[type=search]{padding:7px 9px;border:1px solid var(--border-dk);border-radius:var(--radius);font:13px var(--sans);background:var(--surface)}
+.bar input[type=search]{min-width:180px;flex:1;max-width:320px}
+.wrap{max-width:1100px;margin:0 auto;padding:14px 16px 110px}
+.msg{padding:40px 16px;text-align:center;color:var(--muted)}
+.msg b{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
+.msg.err b{color:var(--red)}
+/* order cards */
+.ord{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden}
+.ord-h{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;flex-wrap:wrap}
+.ord-h:hover{background:var(--bg-soft)}
+.onum{font:900 22px var(--cond);letter-spacing:-.01em;min-width:70px}
+.ocust{flex:1;min-width:140px}
+.ocust b{display:block;font-size:14px}
+.ocust small{color:var(--muted);font-size:12px}
+.money{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.m{text-align:right}
+.m small{display:block;font:700 9px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.m span{font:700 15px var(--sans);font-variant-numeric:tabular-nums}
+.m.ref span{font-size:18px}
+.m.zero span{color:var(--muted-lt)}
+.tags{display:flex;gap:5px;flex-wrap:wrap;width:100%}
+.tag{font:700 10px var(--cond);letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:3px;border:1px solid var(--border-dk);color:var(--muted);background:var(--bg)}
+.tag.g{background:var(--green-lt);border-color:#b8dfcc;color:var(--green-dk)}
+.tag.a{background:var(--amb-bg);border-color:var(--amb-bd);color:var(--amb)}
+.tag.r{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+.ord-b{border-top:1px solid var(--border);padding:14px;background:var(--bg-soft)}
+.warn{background:var(--amb-bg);border:1px solid var(--amb-bd);color:#7a5200;border-radius:var(--radius);padding:9px 12px;margin-bottom:10px;font-size:13px}
+.warn.r{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.btn{background:var(--surface);border:1px solid var(--border-dk);border-radius:var(--radius);color:var(--text);font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:9px 13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--text)}
+.btn.p{background:var(--sb-bg);border-color:var(--sb-bg);color:var(--yellow)}
+.btn.g{background:var(--green);border-color:var(--green);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px}
+.li-h{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.li-h b{font-size:14px}
+.li-h small{color:var(--muted);font-size:12px;flex:1}
+.li-h .lr{font:700 14px var(--sans);font-variant-numeric:tabular-nums}
+.szt{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+.szt th,.szt td{padding:5px 8px;text-align:center;border-bottom:1px solid var(--border)}
+.szt th{font:700 10px var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.szt td:first-child,.szt th:first-child{text-align:left;font:700 10px var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);width:90px}
+.szt tr.short td{color:var(--red);font-weight:700}
+.szt tr.dmg td{color:var(--amb)}
+.scroll{overflow-x:auto}
+.iss{padding:8px 12px;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:12px}
+.iss .who{color:var(--muted)}
+.iss .rsn{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.iss .res{text-align:right;white-space:nowrap}
+.iss .res b{display:block;font-size:13px}
+.iss a{color:var(--blu);font-size:11px}
+.mk-strip{display:flex;gap:4px;flex-shrink:0}.mk-strip img{width:44px;height:44px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:4px}
+.li-mk{width:84px;height:84px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:4px;cursor:zoom-in;flex-shrink:0}
+.ord-sel{width:26px;height:26px;border:2px solid var(--border-dk);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:var(--surface);font-weight:900;color:#fff}
+.ord-sel.on{background:var(--green);border-color:var(--green)}
+.btn.sm{padding:6px 10px;font-size:10px}
+.bbar{position:fixed;left:0;right:0;bottom:0;background:var(--sb-bg);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;z-index:40;box-shadow:0 -4px 16px rgba(0,0,0,.2)}
+.bbar span{flex:1;min-width:200px;font-size:13px}
+.bbar .btn{border-color:#444}
+.iss-act{grid-column:1 / -1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.iss-act select{padding:7px 8px;border:1px solid var(--border-dk);border-radius:var(--radius);font:12px var(--sans);background:var(--surface)}
+.tot{display:flex;justify-content:flex-end;gap:18px;padding:10px 4px 0;flex-wrap:wrap}
+/* trends */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+.tile small{display:block;font:700 10px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tile b{font:900 26px var(--sans);font-variant-numeric:tabular-nums}
+.tile i{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:3px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+.card h3{font:900 13px var(--cond);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.card p.sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+.hb{display:grid;grid-template-columns:minmax(90px,34%) 1fr auto;gap:6px 10px;align-items:center;font-size:12px}
+.hb .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .trk{height:14px;position:relative}
+.hb .fill{position:absolute;left:0;top:0;bottom:0;background:var(--green);border-radius:0 4px 4px 0;min-width:2px}
+.hb .val{font-variant-numeric:tabular-nums;color:var(--text);text-align:right;white-space:nowrap}
+.hb .row{display:contents}
+.hb .row:hover .fill{background:var(--green-dk)}
+.cols{display:flex;align-items:flex-end;gap:2px;height:150px;border-bottom:1px solid var(--border-dk);padding-top:18px}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;position:relative}
+.col .cf{width:100%;max-width:38px;background:var(--green);border-radius:4px 4px 0 0;min-height:2px}
+.col:hover .cf{background:var(--green-dk)}
+.col .cv{font-size:10px;color:var(--text);font-variant-numeric:tabular-nums;margin-bottom:3px;white-space:nowrap}
+.colx{display:flex;gap:2px;margin-top:4px}
+.colx span{flex:1;text-align:center;font-size:10px;color:var(--muted);white-space:nowrap}
+.tt{position:fixed;pointer-events:none;background:var(--sb-bg);color:#fff;font-size:12px;padding:6px 9px;border-radius:4px;z-index:50;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--sb-bg);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;z-index:60}
+.toast.err{background:var(--red)}
+@media (max-width:640px){.money{width:100%;justify-content:flex-start}.m{text-align:left}.li-h small{flex-basis:100%;order:3}.li-h b{flex:1}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Damage <span>Log</span></h1><span class="ver" id="ver"></span>
+  <span class="sp"></span>
+  <button class="tbtn" id="practiceBtn" type="button" title="Practice: nothing is saved to Airtable">Practice off</button>
+  <button class="tbtn" id="tokBtn" type="button" aria-label="Airtable token">&#9881;</button>
+</header>
+<div class="tok" id="tokPanel" hidden>
+  <span>Airtable token:</span><input id="tokIn" type="password" placeholder="pat…" autocomplete="off">
+  <button class="btn p" id="tokSave" type="button">Save</button>
+</div>
+<div class="bar">
+  <div class="tabs"><button class="tab on" data-tab="orders" type="button">Orders</button><button class="tab" data-tab="trends" type="button">Trends</button></div>
+  <select id="range" aria-label="Date range">
+    <option value="30">Last 30 days</option><option value="90" selected>Last 90 days</option>
+    <option value="180">Last 6 months</option><option value="365">Last 12 months</option>
+    <option value="mtd">This month</option><option value="ytd">Year to date</option>
+  </select>
+  <span id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+  <input type="search" id="q" placeholder="Order # or customer" aria-label="Search orders">
+</div>
+<main class="wrap" id="main"><div class="msg"><b>Loading damage log…</b></div></main>
+<div class="tt" id="tt" hidden></div>
+<script>
+// Damage Log v1 -- internal view of Order Issues grouped by order, then line item.
+// Reads Airtable directly (token in localStorage pine_at_key, same as the other apps).
+// Dollars come from the Order Issues formulas added 9/30/26 (Refund Amount, Reprint Cost,
+// Bandana Replacement Cost). The only write is Orders > Refund Issued (checkbox).
+// The packing slip shows ordered vs shipped per size with no dollars.
+// v17 -- ONE bookkeeper email per order. Approving refunds (single, Approve all, batch) then writes one
+//        refund request to the Order (Refund Request Amount / Details / Count / At); the 'Refund Request
+//        (one per order)' automation emails finance when Refund Request At changes. Issues included get
+//        'In Refund Request'. Approved refunds not yet requested (e.g. approved in Airtable) are flagged
+//        'Refund not sent' with a Send button. A later refund on the same order sends an '(additional)' request.
+// v16 -- after 'Delete duplicate', re-reads that order's issues + line items from Airtable so the kept
+//        copy's Refund Amount and the line's final counts are current before anyone approves it.
+// v15 -- 'Check these' and 'Rules differ' only count issues still awaiting review; decided (approved / Resolved)
+//        orders drop off them and show a quiet 'already decided' note instead of the red warning.
+// v14 -- '✓ Mark reprint done' on approved, still-open reprints (sets Status = Completed, same as Catching's Complete).
+// v13 -- date dropdown adds This month / Year to date (rolling ranges unchanged).
+// v13 -- Trends: always-visible Apparel vs Bandanas panel + a 'Show:' switch above the charts.
+// v12 -- a reprint counts as finished when its issue is Completed OR Resolved (drops off the Reprints tab).
+// v11 -- mockups: proof thumbnails on the card header (lines with issues) and beside each line; tap for full size.
+// v10 -- 'Reprints' tab: orders with a RE-PRINT issue not yet Completed (awaiting approval or in progress).
+// v10 -- Select all is an on/off switch on every tab (acts on the orders shown, incl. search).
+// v9 -- '🗑 Delete duplicate' on unapproved issues flagged as possible duplicates (issue + its Damage Detail).
+// v9 -- 'No action' tab; '✓ Approve all (N)' on each card; checkbox batch-approve with a bar that
+// spells out refund emails + $ before sending. Approvals go through the same automation.
+// v8 -- Trends split: All / Apparel / Bandanas (Order Issues > Is Bandana). Garment chart shows
+// names (from the line item) instead of record IDs; the 'Other' bar no longer sets the scale.
+// v7 -- close out issues here: 'Change to' sets Change Resolution; 'Approve' checks Approve
+// Resolution, which fires the Order Issue Resolutions automation (refund email / reprint alert / Resolved).
+// v6 -- card header shows REPRINT WOULD COST (true reprint cost of the order's short lines) next
+// to Refund; packing slip moved to the Catching app (this app is the production manager's desk view).
+// v5 -- Phase 1 cost check: each line shows refund vs true reprint cost and the cost-based
+// suggestion next to today's; 'Rules differ' filter. Display only.
+// v4 -- refunds follow the real flow: approving a REFUND issue emails finance (automation), so
+// 'Needs approval' = unapproved REFUND issues; approved = 'Sent to bookkeeper'; the Orders
+// 'Refund Issued' checkbox is an optional QuickBooks confirmation on top.
+// v3 -- slip ships only extras QC marked as sent (Catching v143) when recorded; refund math shown
+// per issue; 'Awaiting review' = not yet approved (matches the Airtable interface); wow cost.
+// v2 -- slip shows extras: shipped = Final (ordered + extras - damages), not capped at ordered.
+var APP_VER='v17';
+var BASE='appJkaLk8DykjsgHR';
+var T_ISS='tblEplYB3mtIBBcpi',T_LI='tblJx5UlwO7oMSk5H',T_ORD='tbl8Tf0AeS9gnHOOS';
+var I={ // Order Issues
+  line:'fldZXHOSnXHsMfO7k',order:'fldMuogkCNFxYc4vk',orderNum:'fldUZqOYeyYjKvlk9',status:'fldfLAjmK6XZqki9S',
+  originator:'fldmhkNWneLhdNPLa',category:'fldl1rfconiE3AS4Z',acct:'fldh1ovXarDpku1Rq',
+  rPrint:'fld7xVRvbFbmUjOXo',rOther:'fld0BAAINhYymg2Zm',rLegacy:'fldRmXGHd5JxFq0gH',
+  changeRes:'fld8MpePrWmTmGjVm',res:'fldAT3sfeVSAqTRvk',refund:'fldvlOAwvSLBHEaVu',reprint:'fldnLgwAcyKzDVEwG',
+  bandana:'fldmCSSVctmyxvra7',dmgTotal:'fldC7uIwyU6QeHbZi',created:'fldYuJudwBRFz50h0',desc:'fldgpnNu2zyw43BFb',
+  photos:'fldV4qgs54Xu83wLL',garment:'fldl5nOI7tgZD02Yl',customer:'fldjAiXJUqTR1bL9Y',
+  approved:'fldpiZYluCb72W1vs',override:'fldDDsGkGtwa95U1q',catAuto:'fldNhJ2sPGMe1nDuD',
+  isBandana:'fldgwCU8xFlZuBxvI',dd:'fld8Y4gCuc9nSOMWl',reprintTrue:'fldHTK3iDWpgBgBiG',refundLine:'fldL96MsyBlDnLJSc',costSug:'fldL9kj7hrjBacwuq',sug:'fldKDNfJu7naIrGpS',
+  inReq:'fldArIjniDdbCvI4R'  // v17
+};
+var RP={OSFA:'fld4nkqV3r2BKiax4',XS:'fldPXEjdEACjLQeyC',S:'flde4uxHizOyXeM8w',M:'fldyMtViREOHsMxlJ',L:'fldSM6FWYBYTPEInQ',XL:'fldYpZJJOm90Bpj08','2XL':'fldbVjymquq9WlIoK','3XL':'fldNf5COqe1TQHGx4','4XL':'fldHoFm077F3ho2vI','5XL':'fldKrcdwQPbZSP1MZ'};
+var SIZES=['OSFA','XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+var L={ // Line Items: ordered / extra / final per size ('' = no such field)
+  ord:{OSFA:'fld2bgIlmPbANgLVK',XS:'fldVA9ZmYxhDxtnYZ',S:'fldCZr5lB6Jx80lfG',M:'fldzTs1qKe9IBxxSn',L:'fldnRLJxjUDa1mQTj',XL:'fldTRgdexcpBXXQPv','2XL':'fldin7j6uGO0uRTec','3XL':'fldpltq9fdRkrvIvt','4XL':'fldrsci7JnToa43Zd','5XL':'fldchnRSKFukouW6N','6XL':'fldI8gTtsEJwg33BI'},
+  ext:{OSFA:'fldKS4Jk6aZvxR4Nn',XS:'fldKcVhxgaclD1csp',S:'fldgf19Xi1VDqro4Q',M:'fldWxiQEIFsqwxFW1',L:'fldclPpJQpcXuT4Wn',XL:'fldWjibddJoIC1JGu','2XL':'fldgd2JZCSS3YBYX2','3XL':'fldbht14x4cRBPRVL','4XL':'fldLyB756Va085UDj','5XL':'fldHZ0WmjhzF34noZ','6XL':''},
+  fin:{OSFA:'fldxF1FDNSZQ4uBZ8',XS:'flde59VyAQmvWQ4Aa',S:'fldVBCBgKID04x7ec',M:'fldyHwPasbPej9YTu',L:'fldK1Q9TR1ESo3zeW',XL:'fldOkmQoWKCGy1peS','2XL':'fld3YQFjjp7lVXhhh','3XL':'fldCbA4usxjjB4tuk','4XL':'fldFHbRpKpvnyXlWC','5XL':'fldGPxvoiMLWzwLVX','6XL':''},
+  ref:'fldU6oLyZnxhhm2kX',order:'fld5r0tFvdpzWV5pA',total:'fldFfuKAcduwWQp8g',totalFinal:'fldwr1D4nF8Y1Tlvt',price:'fldtMZWzA4dfPxEXx',
+  type:'fld8LIkrBXv8WoRRb',desc:'fldKpcYiNDhlknPyv',brand:'fld0mdiAcrMmTY7CT',style:'fld9ifT5CjMdlLAYM',garment:'fldQg3ejR10sADyFV',
+  color:'fldoXTRyLP4SshFZ0',nick:'fldKb7r8o7uvj1iEd',prodDesc:'fldBGLb39lznbSibX',
+  proof:'flddhvdkKI31tFTdX',xSent:'fldCP4NyoHxawZwOt',xSentTot:'fldVcKknIW4cYNkEd',xRec:'fld35LhFoIzYyfDUv',wow:'fldFw7fWOsgqgtc8d'
+};
+var O={ // Orders
+  num:'fld4S3B5yJANKlE7l',cust:'fldoRraeYHsgfeWhj',contact:'fldwO1DrkCebInHlj',shipTo:'fldpHFCU70jZpuKs6',addr:'fldDf4gRxe2NoUVPy',
+  city:'fldh0KVzmy5QsWj2D',state:'fldTlayqsfEWPaph0',zip:'fld4uEiBVeL9w48R3',method:'fldpVCwzNucLLifXD',shipDate:'fldlMlDIr9hLYFfbL',
+  due:'fldphJYdlBNS0dmAK',refundIssued:'fldiyIhGbw9gYk4zS',qbo:'fldykkdxIu7nqdYct',lines:'fldU6fgrz6sU3wyIZ',status:'fldhS4z28CdGmS1j5',
+  tracking:'fldLjGNoUKrxuX0O7',
+  reqAmt:'fldMHMOtegaQYn78p',reqDetails:'fldga8BAM7XzmgDI9',reqAt:'fldvbbN1Mg9DevXHP',reqCount:'fld8XsrUQUxzcwkFq'  // v17
+};
+var PINE_LOGO_B64='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';
+
+var PRACTICE=/[?&]practice=1/.test(location.search);
+var state={sel:{},kind:'all',tab:'orders',filter:'refund',q:'',range:90,issues:[],orders:{},lines:{},open:{}};
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function txt(v){if(v==null)return '';if(Array.isArray(v))return v.map(txt).filter(Boolean).join(', ');if(typeof v==='object')return v.name||v.id||'';return String(v);}
+function num(v){if(Array.isArray(v))return v.reduce(function(s,x){return s+num(x);},0);var n=Number(v);return isFinite(n)?n:0;}
+function ids(v){return Array.isArray(v)?v.map(function(x){return typeof x==='string'?x:(x&&x.id);}).filter(Boolean):[];}
+function money(n){return '$'+(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fdate(v){if(!v)return '';var d=new Date(String(v).length===10?v+'T12:00:00':v);return isNaN(d)?String(v):d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function token(){try{return localStorage.getItem('pine_at_key')||'';}catch(e){return '';}}
+function toast(m,err){var t=document.createElement('div');t.className='toast'+(err?' err':'');t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove();},2600);}
+function atUrl(tbl,id){return 'https://airtable.com/'+BASE+'/'+tbl+'/'+id;}
+
+async function atList(tbl,fields,formula){
+  var out=[],offset=null;
+  do{
+    var p=new URLSearchParams();
+    fields.forEach(function(f){if(f)p.append('fields[]',f);});
+    p.set('returnFieldsByFieldId','true');
+    if(formula)p.set('filterByFormula',formula);
+    if(offset)p.set('offset',offset);
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+tbl+'?'+p,{headers:{Authorization:'Bearer '+token()}});
+    var j=await r.json();
+    if(!r.ok)throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status));
+    out=out.concat(j.records||[]);offset=j.offset;
+  }while(offset);
+  return out;
+}
+async function atById(tbl,fields,idList){
+  var out=[];
+  for(var i=0;i<idList.length;i+=40){
+    var chunk=idList.slice(i,i+40);
+    out=out.concat(await atList(tbl,fields,'OR('+chunk.map(function(id){return "RECORD_ID()='"+id+"'";}).join(',')+')'));
+  }
+  return out;
+}
+function vals(o){return Object.keys(o).map(function(k){return o[k];});}
+
+function sinceFormula(){  // v13
+  var d=new Date(),pad=function(n){return ('0'+n).slice(-2);};
+  if(state.range==='ytd')return "DATEADD(DATETIME_PARSE('"+d.getFullYear()+"-01-01'),-1,'minutes')";
+  if(state.range==='mtd')return "DATEADD(DATETIME_PARSE('"+d.getFullYear()+"-"+pad(d.getMonth()+1)+"-01'),-1,'minutes')";
+  return "DATEADD(TODAY(), -"+state.range+", 'days')";
+}
+function LI_FIELDS(){return [L.proof,L.ref,L.order,L.total,L.totalFinal,L.price,L.type,L.desc,L.brand,L.style,L.garment,L.color,L.nick,L.prodDesc,L.xSent,L.xSentTot,L.xRec,L.wow]
+  .concat(vals(L.ord),vals(L.ext),vals(L.fin));}
+async function load(){
+  if(!token()){$('main').innerHTML='<div class="msg err"><b>Airtable token needed</b>Tap the gear at the top right and paste your token.</div>';$('tokPanel').hidden=false;return;}
+  $('main').innerHTML='<div class="msg"><b>Loading damage log…</b>Issues from the '+esc($('range').selectedOptions[0].text.toLowerCase())+'.</div>';
+  try{
+    var iFields=vals(I).concat(vals(RP));
+    var since=sinceFormula();  // v13: rolling days, this month, or year to date
+    var iss=await atList(T_ISS,iFields,"IS_AFTER({"+I.created+"}, "+since+")");
+    var ordIds={},lineIds={};
+    iss.forEach(function(r){ids(r.fields[I.order]).forEach(function(x){ordIds[x]=1;});ids(r.fields[I.line]).forEach(function(x){lineIds[x]=1;});});
+    var liFields=LI_FIELDS();  // v16
+    // Issues missing Affected Order: find their order through the line item.
+    var li1=await atById(T_LI,liFields,Object.keys(lineIds));
+    li1.forEach(function(r){state.lines[r.id]=r;ids(r.fields[L.order]).forEach(function(x){ordIds[x]=1;});});
+    var ords=await atById(T_ORD,vals(O),Object.keys(ordIds));
+    state.orders={};ords.forEach(function(r){state.orders[r.id]=r;});
+    // Every line item on those orders (the packing slip lists all of them).
+    var need=[];ords.forEach(function(o){ids(o.fields[O.lines]).forEach(function(x){if(!state.lines[x])need.push(x);});});
+    (await atById(T_LI,liFields,need)).forEach(function(r){state.lines[r.id]=r;});
+    state.issues=iss.map(mapIssue);
+    // v3: every line where QC recorded extras sent in this range (for the wow cost tile)
+    try{state.wowLines=await atList(T_LI,[L.xSentTot,L.wow],"AND({"+L.xRec+"}, IS_AFTER(CREATED_TIME(), "+since+"))");}catch(e){state.wowLines=[];}
+    markDupes();
+    render();
+  }catch(e){
+    $('main').innerHTML='<div class="msg err"><b>Couldn’t load from Airtable</b>'+esc(e.message)+'</div>';
+  }
+}
+// Same line item + identical damaged sizes = possible double-log.
+function mapIssue(r){
+      var f=r.fields,oid=ids(f[I.order])[0];
+      if(!oid){var ln=state.lines[ids(f[I.line])[0]];oid=ln&&ids(ln.fields[L.order])[0];}
+      var sizes={};Object.keys(RP).forEach(function(k){var n=num(f[RP[k]]);if(n)sizes[k]=n;});
+      return {id:r.id,f:f,orderId:oid||'',lineId:ids(f[I.line])[0]||'',sizes:sizes,
+        refund:num(f[I.refund]),reprint:num(f[I.reprint]),bandana:num(f[I.bandana]),pcs:num(f[I.dmgTotal]),
+        res:txt(f[I.res]),changed:!!txt(f[I.changeRes]),status:txt(f[I.status]),created:f[I.created]||'',
+        reasons:[].concat(f[I.rPrint]||[],f[I.rOther]||[]).map(txt).filter(Boolean),legacy:(f[I.rLegacy]||[]).map(txt),
+        acct:txt(f[I.acct]),cat:txt(f[I.category])||txt(f[I.catAuto]),who:txt(f[I.originator]),garment:txt(f[I.garment]),
+        approved:f[I.approved]===true,ddIds:ids(f[I.dd]),bandanaLine:num(f[I.isBandana])>0,reprintTrue:num(f[I.reprintTrue]),refundLine:num(f[I.refundLine]),costSug:txt(f[I.costSug]),sug:txt(f[I.sug]),override:(f[I.override]===0||f[I.override])?num(f[I.override]):null,inReq:f[I.inReq]===true};
+}
+function markDupes(){
+  var seen={};
+  state.issues.forEach(function(x){
+    var k=x.lineId+'|'+SIZES.map(function(s){return x.sizes[s]||0;}).join(',');
+    if(!x.pcs)return;
+    (seen[k]=seen[k]||[]).push(x);
+  });
+  Object.keys(seen).forEach(function(k){if(seen[k].length>1)seen[k].forEach(function(x){x.dupe=true;});});
+}
+
+// ---- per-order model ----
+function proofOf(v){  // v11: first proof attachment -> {thumb, full}
+  var a=Array.isArray(v)?v.filter(function(x){return x&&typeof x==='object'&&x.url;})[0]:null;
+  if(!a)return null;
+  var t=a.thumbnails||{};
+  return {thumb:(t.large&&t.large.url)||(t.small&&t.small.url)||a.url,full:(t.full&&t.full.url)||a.url};
+}
+function lineModel(lr){
+  var f=lr.fields,rows={ord:{},ext:{},fin:{},dmg:{},shipped:{}},has=[];
+  SIZES.forEach(function(s){
+    var o=num(f[L.ord[s]]),e=L.ext[s]?num(f[L.ext[s]]):0,fi=L.fin[s]?num(f[L.fin[s]]):o;
+    if(!o&&!e&&!(L.fin[s]&&num(f[L.fin[s]])))return;
+    has.push(s);rows.ord[s]=o;rows.ext[s]=e;rows.fin[s]=fi;rows.dmg[s]=Math.max(0,o+e-fi);
+    rows.shipped[s]=Math.max(0,fi); // v2: extras ship to the customer, so shipped can exceed ordered
+  });
+  // v3: when QC recorded which extras went in the box, ship ordered-or-less plus only those.
+  var xRec=f[L.xRec]===true,xSent={};
+  String(txt(f[L.xSent])||'').split(',').forEach(function(p){var m=/^\s*([A-Z0-9]+)\s*:\s*(\d+)/.exec(p);if(m)xSent[m[1]]=+m[2];});
+  if(xRec)has.forEach(function(s){rows.shipped[s]=Math.max(0,Math.min(rows.fin[s],rows.ord[s]))+(xSent[s]||0);});
+  var name=[txt(f[L.brand]),txt(f[L.style]),txt(f[L.garment])].filter(Boolean).join(' ');
+  var color=txt(f[L.color]);
+  if(!name)name=txt(f[L.nick])||txt(f[L.prodDesc])||txt(f[L.ref]);
+  return {id:lr.id,ref:txt(f[L.ref]),name:name,color:color,desc:txt(f[L.desc]),type:txt(f[L.type]),sizes:has,rows:rows,
+    total:num(f[L.total]),totalFinal:num(f[L.totalFinal]),price:num(f[L.price]),
+    xRec:xRec,xSent:xSent,proof:proofOf(f[L.proof]),xSentTot:num(f[L.xSentTot]),wow:num(f[L.wow])};
+}
+function orderModel(oid){
+  var o=state.orders[oid],f=o?o.fields:{};
+  var iss=state.issues.filter(function(x){return x.orderId===oid;});
+  var lineIds=o?ids(f[O.lines]):[];
+  iss.forEach(function(x){if(x.lineId&&lineIds.indexOf(x.lineId)<0)lineIds.push(x.lineId);});
+  var lines=lineIds.map(function(id){return state.lines[id];}).filter(Boolean).map(lineModel);
+  var sum=function(k){return iss.reduce(function(s,x){return s+x[k];},0);};
+  var r2=function(n){return Math.round(n*100)/100;};
+  return {id:oid,num:txt(f[O.num])||txt(iss[0]&&iss[0].f[I.orderNum]),cust:txt(f[O.cust])||txt(iss[0]&&iss[0].f[I.customer]),f:f,issues:iss,lines:lines,
+    refund:r2(sum('refund')),reprint:r2(sum('reprint')),bandana:r2(sum('bandana')),pcs:sum('pcs'),
+    reprintWould:r2((function(){var seen={},t=0;iss.forEach(function(x){if(x.lineId&&!seen[x.lineId]&&x.reprintTrue){seen[x.lineId]=1;t+=x.reprintTrue;}});return t;})()),  // v6
+    open:iss.filter(function(x){return !x.approved&&x.status!=='Resolved'&&x.status!=='Completed';}).length,  // v3: same as the interface's Awaiting Review tab
+    dupes:iss.filter(function(x){return x.dupe;}).length,
+    dupesOpen:iss.filter(function(x){return x.dupe&&!x.approved&&x.status!=='Resolved'&&x.status!=='Completed';}).length,  // v15
+    differOpen:iss.filter(function(x){return x.costSug&&x.sug&&x.costSug!==x.sug&&!x.approved&&x.status!=='Resolved'&&x.status!=='Completed';}).length,  // v15
+    differ:iss.filter(function(x){return x.costSug&&x.sug&&x.costSug!==x.sug;}).length,
+    negative:lines.some(function(l){return l.totalFinal<0;}),
+    refundIssued:f[O.refundIssued]===true,
+    refundPending:iss.filter(function(x){return x.refund>0&&!x.approved;}).reduce(function(a,x){return a+x.refund;},0),  // v4
+    refundSent:iss.filter(function(x){return x.refund>0&&x.approved;}).reduce(function(a,x){return a+x.refund;},0),
+    refundUnsent:unsentRefunds(iss).reduce(function(a,x){return a+x.refund;},0),  // v17
+    reqAt:f[O.reqAt]||'',reqCount:num(f[O.reqCount]),
+    last:iss.reduce(function(m,x){return x.created>m?x.created:m;},'')};
+}
+function unsentRefunds(iss){return iss.filter(function(x){return x.res==='REFUND'&&x.approved&&x.refund>0&&!x.inReq;});}  // v17
+function reprintOpen(x){return x.res==='RE-PRINT'&&x.status!=='Completed'&&x.status!=='Resolved';}  // v12
+function awaitingIssues(o){return o.issues.filter(function(x){return !x.approved&&x.status!=='Resolved'&&x.status!=='Completed';});}  // v9
+function allOrders(){
+  var byId={};state.issues.forEach(function(x){byId[x.orderId]=1;});
+  return Object.keys(byId).map(orderModel).sort(function(a,b){return a.last<b.last?1:-1;});
+}
+var FILTERS=[
+  ['refund','Refund needs approval',function(o){return o.refundPending>0;}],
+  ['unsent','Not sent to bookkeeper',function(o){return o.refundUnsent>0;}],  // v17
+  ['review','Awaiting review',function(o){return o.open>0;}],
+  ['flags','Check these',function(o){return o.dupesOpen>0||(o.negative&&o.open>0);}],  // v15: only when something is still awaiting review
+  ['differ','Rules differ',function(o){return o.differOpen>0;}],  // v15
+  ['reprint','Reprints',function(o){return o.issues.some(reprintOpen);}],
+  ['noaction','No action',function(o){var a=awaitingIssues(o);return a.length>0&&a.every(function(x){return x.res==='NO ACTION';});}],
+  ['all','All',function(){return true;}]
+];
+
+function render(){
+  var list=allOrders();
+  $('chips').innerHTML=state.tab==='orders'?FILTERS.map(function(F){
+    var n=list.filter(F[2]).length;
+    return '<button type="button" class="chip'+(state.filter===F[0]?' on':'')+'" data-f="'+F[0]+'">'+F[1]+'<b>'+n+'</b></button>';
+  }).join(''):'';  // v13: kind switch lives on the Trends page
+  $('q').hidden=state.tab!=='orders';
+  if(state.tab==='trends'){renderTrends();return;}
+  var F=FILTERS.filter(function(x){return x[0]===state.filter;})[0];
+  var q=state.q.trim().toLowerCase();
+  var shown=list.filter(F[2]).filter(function(o){return !q||String(o.num).indexOf(q)>-1||o.cust.toLowerCase().indexOf(q)>-1;});
+  if(!shown.length){$('main').innerHTML='<div class="msg"><b>Nothing here</b>'+(state.filter==='refund'?'No refunds waiting for approval — everything has been sent to the bookkeeper.':'Try another filter or a longer date range.')+'</div>';return;}
+  // v10: select-all toggle on every tab, over the selectable orders currently shown
+  var selectable=shown.filter(function(o){return awaitingIssues(o).length>0;});
+  state.shownSel=selectable.map(function(o){return o.id;});
+  var allOn=selectable.length>0&&selectable.every(function(o){return state.sel[o.id];});
+  var selAll=selectable.length?'<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn" type="button" data-selall="1" aria-pressed="'+allOn+'">'
+    +(allOn?'&#10005; Unselect all '+selectable.length:'&#9745; Select all '+selectable.length+' shown')+'</button></div>':'';
+  $('main').innerHTML=selAll+shown.map(orderCard).join('')+batchBar(list);
+}
+function orderCard(o){
+  var tags=[];
+  if(o.refundPending>0)tags.push('<span class="tag a">Refund needs approval · '+money(o.refundPending)+'</span>');
+  if(o.refundIssued)tags.push('<span class="tag g">&#10003; Refund issued</span>');
+  else if(o.refundSent>0&&!o.refundUnsent)tags.push('<span class="tag g">Sent to bookkeeper'+(o.reqAt?' \u00b7 '+esc(fdate(o.reqAt)):'')+'</span>');
+  if(o.refundUnsent>0)tags.push('<span class="tag r">Refund not sent \u00b7 '+money(o.refundUnsent)+'</span>');  // v17
+  if(o.open)tags.push('<span class="tag a">'+o.open+' awaiting review</span>');
+  if(o.dupesOpen)tags.push('<span class="tag r">Possible duplicate</span>');
+  else if(o.dupes)tags.push('<span class="tag">Duplicate \u00b7 decided</span>');  // v15
+  if(o.negative)tags.push('<span class="tag r">Negative qty</span>');
+  if(o.differOpen)tags.push('<span class="tag a">Cost rule differs</span>');  // v15: only matters before approval
+  var rp=o.issues.filter(reprintOpen);  // v10/v12
+  if(rp.some(function(x){return !x.approved;}))tags.push('<span class="tag r">Reprint needs approval</span>');
+  if(rp.some(function(x){return x.approved;}))tags.push('<span class="tag a">Reprint in progress</span>');
+  tags.push('<span class="tag">'+o.issues.length+' issue'+(o.issues.length!==1?'s':'')+' · '+o.pcs+' pcs</span>');
+  var m=function(cls,l,v){return '<div class="m '+cls+(v?'':' zero')+'"><small>'+l+'</small><span>'+money(v)+'</span></div>';};
+  var isOpen=!!state.open[o.id];
+  return '<section class="ord" id="o-'+o.id+'">'
+    +'<div class="ord-h" data-open="'+o.id+'" role="button" tabindex="0" aria-expanded="'+isOpen+'">'
+    +(awaitingIssues(o).length?'<span class="ord-sel'+(state.sel[o.id]?' on':'')+'" data-sel="'+o.id+'" role="checkbox" aria-checked="'+!!state.sel[o.id]+'" title="Select for batch approve">'+(state.sel[o.id]?'&#10003;':'')+'</span>':'')
+    +'<div class="onum">'+esc(o.num||'?')+'</div>'
+    +(function(){var th=o.lines.filter(function(l){return l.proof&&o.issues.some(function(x){return x.lineId===l.id;});}).slice(0,3);  // v11
+      return th.length?'<div class="mk-strip">'+th.map(function(l){return '<img src="'+esc(l.proof.thumb)+'" alt="'+esc(l.name)+' mockup" loading="lazy">';}).join('')+'</div>':'';})()
+    +'<div class="ocust"><b>'+esc(o.cust||'Unknown customer')+'</b><small>Last issue '+esc(fdate(o.last))+'</small></div>'
+    +'<div class="money">'+m('ref','Refund',o.refund)+m('','Reprint would cost',o.reprintWould)+m('','Bandanas',o.bandana)+'</div>'
+    +'<div class="tags">'+tags.join('')+(awaitingIssues(o).length?'<button class="btn g sm" type="button" data-apall="'+o.id+'" style="margin-left:auto">&#10003; Approve all ('+awaitingIssues(o).length+')</button>':'')+'</div></div>'
+    +(isOpen?'<div class="ord-b">'+orderBody(o)+'</div>':'')
+    +'</section>';
+}
+function orderBody(o){
+  var h='';
+  if(o.dupes&&!o.dupesOpen)h+='<div class="warn" style="background:transparent"><b>Duplicate already decided.</b> Nothing to review \u2014 both copies are approved/resolved. Remove the extra copy in Airtable only if you want trends exact.</div>';  // v15
+  else if(o.dupes)h+='<div class="warn r"><b>Possible duplicate:</b> '+o.dupes+' issues log the same sizes on the same line item. Check before refunding — the refund may be counted twice.</div>';
+  if(o.open)h+='<div class="warn"><b>'+o.open+' issue'+(o.open>1?'s':'')+' still awaiting review.</b> The total may change once they’re decided.</div>';
+  if(o.negative)h+='<div class="warn r"><b>Negative quantity:</b> more damages are logged than were ordered + extras on a line. Usually a double-log or typo.</div>';
+  var qbo=txt(o.f[O.qbo]);
+  if(o.refundUnsent>0)h+='<div class="warn r"><b>Refund not sent to the bookkeeper:</b> '+money(o.refundUnsent)+' approved but not in a refund request yet'+(o.reqCount?' (this will go as an additional request)':'')+'.</div>';  // v17
+  h+='<div class="acts">'
+    +(o.refundUnsent>0?'<button class="btn g" type="button" data-sendreq="'+o.id+'">&#9993; Send refund to bookkeeper ('+money(o.refundUnsent)+')</button>':'')
+    +(o.refund>0?'<button class="btn" type="button" data-copy="'+o.id+'">Copy refund for QuickBooks</button>':'')
+    +(o.refund>0?(o.refundIssued?'<button class="btn" type="button" data-issued="'+o.id+'" data-v="0">Undo refund issued</button>':'<button class="btn g" type="button" data-issued="'+o.id+'" data-v="1">&#10003; Mark refund issued</button>'):'')
+    +(qbo?'<a class="btn" href="'+esc(qbo)+'" target="_blank" rel="noopener">QuickBooks invoice</a>':'')
+    +'<a class="btn" href="'+atUrl(T_ORD,o.id)+'" target="_blank" rel="noopener">Order in Airtable</a>'
+    +'</div>';
+  o.lines.forEach(function(l){
+    var li=o.issues.filter(function(x){return x.lineId===l.id;});
+    if(!li.length)return; // internal view: only lines with issues (the slip shows all)
+    var lr=li.reduce(function(s,x){return s+x.refund;},0);
+    var short=Math.max(0,l.total-l.totalFinal);
+    var cx=li[0];  // v5: line-level cost check (same on every issue of the line)
+    var cost=(short&&cx&&cx.reprintTrue)?'<div class="warn" style="margin:0;border-radius:0;border-width:0 0 1px;background:'+(cx.costSug===cx.sug?'var(--bg-soft)':'var(--amb-bg)')+'">'
+      +'<b>Cost check:</b> refund '+money(cx.refundLine)+' vs reprint '+money(cx.reprintTrue)+' ('+short+' short)'
+      +' · today suggests <b>'+esc(cx.sug)+'</b> · cost says <b>'+esc(cx.costSug)+'</b>'+(cx.costSug!==cx.sug?' ⚠':'')+'</div>':'';
+    h+='<div class="li"><div class="li-h">'+(l.proof?'<a href="'+esc(l.proof.full)+'" target="_blank" rel="noopener" title="Open mockup"><img class="li-mk" src="'+esc(l.proof.thumb)+'" alt="'+esc(l.name)+' mockup" loading="lazy"></a>':'')+'<b>'+esc(l.name)+(l.color?' — '+esc(l.color):'')+'</b><small>'+esc(l.ref)+(l.price?' · '+money(l.price)+'/pc':'')+(short?' · <b style="color:var(--red)">'+short+' short</b>':'')+'</small>'
+      +(lr?'<span class="lr">Refund '+money(lr)+'</span>':'')+'</div>'
+      +cost+'<div class="scroll"><table class="szt"><tr><th></th>'+l.sizes.map(function(s){return '<th>'+s+'</th>';}).join('')+'<th>Total</th></tr>'
+      +szRow('Ordered',l,'ord')+szRow('+ Extras',l,'ext')+szRow('Damaged',l,'dmg','dmg')+szRow('Final',l,'fin')+(l.xRec?szRow('Shipped',l,'shipped'):'')
+      +'</table></div>'
+      +li.map(issueRow).join('')+'</div>';
+  });
+  h+='<div class="tot"><div class="m ref"><small>Order refund</small><span>'+money(o.refund)+'</span></div><div class="m"><small>Reprint would cost</small><span>'+money(o.reprintWould)+'</span></div><div class="m"><small>Bandanas from stock</small><span>'+money(o.bandana)+'</span></div></div>';
+  return h;
+}
+function szRow(label,l,k,cls){
+  var t=0,cells=l.sizes.map(function(s){var v=l.rows[k][s]||0;t+=v;return '<td>'+(v||(k==='ord'?0:'·'))+'</td>';}).join('');
+  if(k==='fin'&&t<l.total)cls='short';
+  return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+label+'</td>'+cells+'<td><b>'+t+'</b></td></tr>';
+}
+function refundMath(x){  // v3: say which rule produced the refund
+  var line=x.lineId&&state.lines[x.lineId]?lineModel(state.lines[x.lineId]):null,p=line?line.price:0;
+  if(!x.refund)return '';
+  if(x.override!=null)return 'Override: '+x.override+' × '+money(p);
+  if(x.cat==='Customer Initiated'&&String(x.created)>='2026-09-28')return 'Customer-reported: '+x.pcs+' damaged × '+money(p);
+  if(line){var sh=Math.max(0,line.total-line.totalFinal);return 'Short after extras: '+sh+' on line × '+money(p)+(Math.abs(sh*p-x.refund)>0.01?' (this issue’s share)':'');}
+  return '';
+}
+function issueRow(x){
+  var open=!x.approved&&x.status!=='Resolved'&&x.status!=='Completed';
+  var act=open?'<div class="iss-act"><button class="btn g" type="button" data-approve="'+x.id+'">&#10003; Approve '+esc(x.res||'')+'</button>'
+    +'<select data-change="'+x.id+'" aria-label="Change resolution"><option value="">Change to\u2026</option>'+['REFUND','RE-PRINT','NO ACTION'].filter(function(v){return v!==x.res;}).map(function(v){return '<option>'+v+'</option>';}).join('')+'</select></div>':'';
+  if(reprintOpen(x)&&x.approved)act=(act||'<div class="iss-act">').replace(/<\/div>$/,'')+'<button class="btn g" type="button" data-rpdone="'+x.id+'">&#10003; Mark reprint done</button></div>';  // v14
+  if(x.dupe)act=(act||'<div class="iss-act">').replace(/<\/div>$/,'')+(x.approved?'<small style="color:var(--muted)">Duplicate is already approved \u2014 remove it in Airtable if needed</small>':'<button class="btn" type="button" data-deldup="'+x.id+'" style="color:var(--red);border-color:var(--red-bd)">&#128465; Delete duplicate</button>')+'</div>';  // v9
+  var amt=x.refund?money(x.refund)+' refund':x.reprint?money(x.reprint)+' reprint':x.bandana?money(x.bandana)+' bandanas':'$0';
+  var sz=SIZES.filter(function(s){return x.sizes[s];}).map(function(s){return x.sizes[s]+' '+s;}).join(', ');
+  var rs=(x.reasons.length?x.reasons:x.legacy);
+  return '<div class="iss"><div><b>'+esc(fdate(x.created))+'</b> <span class="who">· '+esc([x.who,x.cat,x.acct].filter(Boolean).join(' · '))+'</span><br>'
+    +(sz?esc(sz):'<i style="color:var(--muted)">No sizes entered</i>')
+    +'<div class="rsn">'+rs.map(function(r){return '<span class="tag">'+esc(r)+'</span>';}).join('')
+    +(x.dupe?'<span class="tag r">Duplicate? \u00b7 '+dupeAge(x)+' copy</span>':'')+(!x.approved&&x.status!=='Resolved'&&x.status!=='Completed'?'<span class="tag a">Awaiting review</span>':(x.approved?'<span class="tag g">Approved</span>':(x.status?'<span class="tag">'+esc(x.status)+'</span>':'')))+'</div></div>'
+    +'<div class="res"><b>'+esc(x.res||'—')+(x.changed?' *':'')+'</b>'+esc(amt)+(refundMath(x)?'<br><small style="color:var(--muted)">'+esc(refundMath(x))+'</small>':'')+'<br><a href="'+atUrl(T_ISS,x.id)+'" target="_blank" rel="noopener">Open issue</a></div>'+act+'</div>';
+}
+
+// ---- QuickBooks copy ----
+function qbText(o){
+  var lines=['Order '+o.num+' — '+o.cust,'Damage refund'];
+  o.lines.forEach(function(l){
+    var lr=o.issues.filter(function(x){return x.lineId===l.id;}).reduce(function(s,x){return s+x.refund;},0);
+    if(!lr)return;
+    var short=Math.max(0,l.total-l.totalFinal);
+    lines.push('  '+l.name+(l.color?' '+l.color:'')+': '+short+' short × '+money(l.price)+' = '+money(lr));
+  });
+  lines.push('Total refund: '+money(o.refund));
+  return lines.join('\n');
+}
+async function copyQb(oid){
+  var t=qbText(orderModel(oid));
+  try{await navigator.clipboard.writeText(t);toast('Copied — paste into the QuickBooks refund memo');}
+  catch(e){window.prompt('Copy this:',t);}
+}
+async function atPatch(tbl,id,fields){
+  var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+tbl+'/'+id,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({fields:fields})});
+  if(!r.ok){var j=await r.json().catch(function(){return {};});throw new Error((j.error&&j.error.message)||('HTTP '+r.status));}
+}
+async function refreshIssue(id){
+  var rs=await atList(T_ISS,vals(I).concat(vals(RP)),"RECORD_ID()='"+id+"'");
+  if(!rs[0])return;
+  var fresh=mapIssue(rs[0]);
+  state.issues=state.issues.map(function(x){return x.id===id?fresh:x;});
+  markDupes();
+}
+async function refreshOrder(oid){  // v16: re-read one order's issues and line items
+  var iss=state.issues.filter(function(x){return x.orderId===oid;});
+  var issIds=iss.map(function(x){return x.id;}),lineIds={};
+  iss.forEach(function(x){if(x.lineId)lineIds[x.lineId]=1;});
+  var o=state.orders[oid];if(o)ids(o.fields[O.lines]).forEach(function(x){lineIds[x]=1;});
+  (await atById(T_LI,LI_FIELDS(),Object.keys(lineIds))).forEach(function(r){state.lines[r.id]=r;});
+  if(issIds.length){var fresh={};(await atById(T_ISS,vals(I).concat(vals(RP)),issIds)).forEach(function(r){fresh[r.id]=mapIssue(r);});
+    state.issues=state.issues.map(function(x){return fresh[x.id]||x;});}
+  state.issues.forEach(function(y){y.dupe=false;});markDupes();
+}
+function findIssue(id){return state.issues.filter(function(x){return x.id===id;})[0];}
+// ---- v9: batch approve ----
+function batchSummary(ids){
+  var list=allOrders().filter(function(o){return ids.indexOf(o.id)>-1;}),iss=[];
+  list.forEach(function(o){iss=iss.concat(awaitingIssues(o));});
+  var c={REFUND:0,'RE-PRINT':0,'NO ACTION':0},rf=0;
+  iss.forEach(function(x){c[x.res]=(c[x.res]||0)+1;if(x.res==='REFUND')rf+=x.refund;});
+  return {orders:list.length,issues:iss,c:c,refund:rf};
+}
+function summaryText(b){
+  var parts=[];
+  if(b.c['NO ACTION'])parts.push(b.c['NO ACTION']+' no action');
+  if(b.c.REFUND)parts.push(b.c.REFUND+' refund'+(b.c.REFUND>1?'s':'')+' '+money(b.refund));
+  if(b.c['RE-PRINT'])parts.push(b.c['RE-PRINT']+' reprint'+(b.c['RE-PRINT']>1?'s':''));
+  return plural(b.orders,'order')+' · '+plural(b.issues.length,'issue')+(parts.length?' ('+parts.join(', ')+')':'');
+}
+function batchBar(){
+  var ids=Object.keys(state.sel).filter(function(k){return state.sel[k];});
+  if(!ids.length)return '';
+  return '<div class="bbar"><span><b>'+esc(summaryText(batchSummary(ids)))+'</b></span>'
+    +'<button class="btn" type="button" data-selclear="1" style="background:transparent;color:#fff">Clear</button>'
+    +'<button class="btn g" type="button" data-batch="1">&#10003; Approve selected</button></div>';
+}
+async function approveMany(issues,label){
+  if(!issues.length)return;
+  var b={c:{REFUND:0,'RE-PRINT':0,'NO ACTION':0},refund:0};
+  issues.forEach(function(x){b.c[x.res]=(b.c[x.res]||0)+1;if(x.res==='REFUND')b.refund+=x.refund;});
+  var msg='Approve '+plural(issues.length,'issue')+(label?' on '+label:'')+'?\n';
+  if(b.c['NO ACTION'])msg+='\n• '+b.c['NO ACTION']+' no action → marked Resolved';
+  var rOrders={};issues.forEach(function(x){if(x.res==='REFUND')rOrders[x.orderId]=1;});var nOrd=Object.keys(rOrders).length;  // v17
+  if(b.c.REFUND)msg+='\n• '+b.c.REFUND+' refund'+(b.c.REFUND>1?'s':'')+' → '+nOrd+' email'+(nOrd>1?'s':'')+' to finance (one per order), '+money(b.refund)+' total';
+  if(b.c['RE-PRINT'])msg+='\n• '+b.c['RE-PRINT']+' reprint'+(b.c['RE-PRINT']>1?'s':'')+' → Slack reprint alert + order set to Mis-Print';
+  if(!confirm(msg))return;
+  if(PRACTICE){issues.forEach(function(x){x.approved=true;});state.sel={};toast('Practice: not saved');render();return;}
+  var done=0,fail=0;
+  for(var i=0;i<issues.length;i+=10){
+    var chunk=issues.slice(i,i+10);
+    try{
+      var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ISS,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},
+        body:JSON.stringify({records:chunk.map(function(x){var f={};f[I.approved]=true;return {id:x.id,fields:f};})})});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      chunk.forEach(function(x){x.approved=true;});done+=chunk.length;
+    }catch(e){fail+=chunk.length;}
+    await new Promise(function(res){setTimeout(res,250);});  // stay under Airtable's 5 req/s
+  }
+  state.sel={};render();
+  toast(fail?('Approved '+done+', '+fail+' failed — try again'):('Approved '+done+' — the automation takes it from here'),!!fail);
+  await sendRequestsFor(issues);  // v17
+}
+function dupeAge(x){  // v9: 'older' = the original, 'newer' = the likely double-log
+  var twins=state.issues.filter(function(y){return y.dupe&&y.lineId===x.lineId&&SIZES.every(function(s){return (y.sizes[s]||0)===(x.sizes[s]||0);});});
+  var oldest=twins.reduce(function(m,y){return !m||String(y.created)<String(m.created)?y:m;},null);
+  return oldest&&oldest.id===x.id?'older':'newer';
+}
+async function deleteDuplicate(id){  // v9
+  var x=findIssue(id);if(!x||x.approved)return;
+  var twin=state.issues.filter(function(y){return y.id!==id&&y.dupe&&y.lineId===x.lineId;})[0];
+  var sz=SIZES.filter(function(s){return x.sizes[s];}).map(function(s){return x.sizes[s]+' '+s;}).join(', ');
+  if(!confirm('Delete this duplicate issue?\n\n'+fdate(x.created)+' · '+sz+' · '+(x.acct||'')+'\n'+(twin?'The other copy ('+fdate(twin.created)+') stays.\n':'')+'\nIts Damage Detail record is removed too. Deleted records stay in Airtable’s trash for 7 days.'))return;
+  if(PRACTICE){state.issues=state.issues.filter(function(y){return y.id!==id;});state.issues.forEach(function(y){y.dupe=false;});markDupes();toast('Practice: not deleted');render();return;}
+  try{
+    for(var i=0;i<x.ddIds.length;i++){
+      var rd=await fetch('https://api.airtable.com/v0/'+BASE+'/tblESDoN1UO7KwSee/'+x.ddIds[i],{method:'DELETE',headers:{Authorization:'Bearer '+token()}});
+      if(!rd.ok&&rd.status!==404)throw new Error('Damage Detail: HTTP '+rd.status);
+    }
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ISS+'/'+id,{method:'DELETE',headers:{Authorization:'Bearer '+token()}});
+    if(!r.ok&&r.status!==404){var j=await r.json().catch(function(){return {};});throw new Error((j.error&&j.error.message)||('HTTP '+r.status));}
+    state.issues=state.issues.filter(function(y){return y.id!==id;});
+    state.issues.forEach(function(y){y.dupe=false;});markDupes();
+    toast('Duplicate deleted \u2014 refreshing\u2026');render();
+    await new Promise(function(r){setTimeout(r,1500);});  // v16: give Airtable's formulas a moment to recalc
+    try{await refreshOrder(x.orderId);toast('Duplicate deleted \u00b7 totals updated');}
+    catch(e2){toast('Deleted, but couldn\u2019t refresh \u2014 reload the page before approving',true);}
+    render();
+  }catch(e){toast('Couldn’t delete: '+e.message,true);}
+}
+async function markReprintDone(id){  // v14
+  var x=findIssue(id);if(!x)return;
+  if(!confirm('Mark this reprint done?\n\nSets the issue to Completed (same as tapping Complete in Catching). Use this when the reprint already ran and shipped.'))return;
+  if(PRACTICE){x.status='Completed';toast('Practice: not saved');render();return;}
+  try{var f={};f[I.status]='Completed';await atPatch(T_ISS,id,f);x.status='Completed';toast('Reprint marked done');render();}
+  catch(e){toast('Couldn’t save: '+e.message,true);}
+}
+// ---- v17: one refund request per order ----
+function requestText(o,list){
+  var out=[],prev=o.reqCount>0;
+  o.lines.forEach(function(l){
+    var amt=list.filter(function(x){return x.lineId===l.id;}).reduce(function(s,x){return s+x.refund;},0);
+    if(!amt)return;
+    var short=Math.max(0,l.total-l.totalFinal);
+    out.push(l.name+(l.color?' '+l.color:'')+': '+money(amt)+' ('+short+' short \u00d7 '+money(l.price)+')');
+  });
+  var loose=list.filter(function(x){return !o.lines.some(function(l){return l.id===x.lineId;});}).reduce(function(s,x){return s+x.refund;},0);
+  if(loose)out.push('Other: '+money(loose));
+  if(prev)out.push('','Additional to '+money(o.refundSent-list.reduce(function(s,x){return s+x.refund;},0))+' already requested.');
+  return out.join('\n');
+}
+async function sendRequestsFor(issues){
+  if(PRACTICE)return;
+  var oids={};issues.forEach(function(x){if(x.res==='REFUND'&&x.refund>0&&x.orderId)oids[x.orderId]=1;});
+  for(var oid in oids){await sendRefundRequest(oid,false);}
+}
+async function sendRefundRequest(oid,ask){
+  var o=orderModel(oid),list=unsentRefunds(o.issues);
+  if(!list.length)return;
+  var amt=Math.round(list.reduce(function(s,x){return s+x.refund;},0)*100)/100;
+  if(ask&&!confirm('Send order '+o.num+' refund request to the bookkeeper?\n\n'+money(amt)+(o.reqCount?' (additional)':'')+' \u2014 one email to finance.'))return;
+  if(PRACTICE){list.forEach(function(x){x.inReq=true;});toast('Practice: not sent');render();return;}
+  try{
+    var f={};f[O.reqAmt]=amt;f[O.reqDetails]=requestText(o,list);f[O.reqCount]=o.reqCount+1;f[O.reqAt]=new Date().toISOString();
+    await atPatch(T_ORD,oid,f);
+    if(state.orders[oid])Object.keys(f).forEach(function(k){state.orders[oid].fields[k]=f[k];});
+    for(var i=0;i<list.length;i+=10){
+      var chunk=list.slice(i,i+10);
+      var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ISS,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},
+        body:JSON.stringify({records:chunk.map(function(x){var g={};g[I.inReq]=true;return {id:x.id,fields:g};})})});
+      if(!r.ok)throw new Error('marking issues: HTTP '+r.status);
+      chunk.forEach(function(x){x.inReq=true;});
+    }
+    toast('Refund request sent \u2014 '+money(amt)+' for order '+o.num);render();
+  }catch(e){toast('Refund request didn\u2019t send: '+e.message+' \u2014 use \u2709 Send refund on the order',true);render();}
+}
+async function approveIssue(id){  // v7
+  var x=findIssue(id);if(!x)return;
+  var what=x.res==='REFUND'?'This sends finance one refund request for this order (covering '+money(x.refund)+' plus any other approved, unsent refunds on it) and marks the issue Resolved.'
+    :x.res==='RE-PRINT'?'This posts the RE-PRINT alert in Slack, sets the order to "Delayed - Mis-Print - Needs Order" and marks the issue In progress.'
+    :'This marks the issue Resolved (no refund, no reprint).';
+  if(!confirm('Approve '+x.res+'?\n\n'+what))return;
+  if(PRACTICE){x.approved=true;toast('Practice: not saved');render();return;}
+  try{var f={};f[I.approved]=true;await atPatch(T_ISS,id,f);toast('Approved — the automation takes it from here');
+    setTimeout(function(){refreshIssue(id).then(render).catch(function(){});},4000);
+    x.approved=true;render();
+    await sendRequestsFor([x]);  // v17
+  }catch(e){toast('Couldn’t approve: '+e.message,true);}
+}
+async function changeResolution(id,val){  // v7
+  var x=findIssue(id);if(!x||!val)return;
+  if(!confirm('Change this issue to '+val+'? (Sets Change Resolution; nothing is sent until you Approve.)')){render();return;}
+  if(PRACTICE){x.res=val;x.changed=true;toast('Practice: not saved');render();return;}
+  try{var f={};f[I.changeRes]=val;await atPatch(T_ISS,id,f);await refreshIssue(id);toast('Changed to '+val);render();}
+  catch(e){toast('Couldn’t change: '+e.message,true);render();}
+}
+async function setIssued(oid,v){
+  var o=orderModel(oid);
+  if(v&&!confirm('Mark order '+o.num+' refund ('+money(o.refund)+') as issued in QuickBooks?'))return;
+  if(PRACTICE){toast('Practice: not saved');if(state.orders[oid])state.orders[oid].fields[O.refundIssued]=!!v;render();return;}
+  try{
+    var body={fields:{}};body.fields[O.refundIssued]=!!v;
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ORD+'/'+oid,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){var j=await r.json();throw new Error((j.error&&j.error.message)||r.status);}
+    state.orders[oid].fields[O.refundIssued]=!!v;toast(v?'Marked refund issued':'Refund issued cleared');render();
+  }catch(e){toast('Couldn’t save: '+e.message,true);}
+}
+
+// ---- Packing slip (no dollars) ----
+function slipHtml(o){
+  var f=o.f,addr=[txt(f[O.shipTo]),txt(f[O.addr]),[txt(f[O.city]),txt(f[O.state])].filter(Boolean).join(', ')+(txt(f[O.zip])?' '+txt(f[O.zip]):'')].filter(function(s){return s.trim();});
+  var body=o.lines.map(function(l){
+    var ship=0,ord=0;
+    var cells=l.sizes.map(function(s){ord+=l.rows.ord[s];ship+=l.rows.shipped[s];return s;});
+    var sizeHead=l.sizes.length&&!(l.sizes.length===1&&l.sizes[0]==='OSFA');
+    var tbl=sizeHead
+      ?'<table class="st"><tr><th></th>'+l.sizes.map(function(s){return '<th>'+s+'</th>';}).join('')+'<th>Total</th></tr>'
+        +'<tr><td>Ordered</td>'+l.sizes.map(function(s){return '<td>'+l.rows.ord[s]+'</td>';}).join('')+'<td><b>'+ord+'</b></td></tr>'
+        +'<tr><td>Shipped</td>'+l.sizes.map(function(s){var v=l.rows.shipped[s];return '<td contenteditable="true"'+(v<l.rows.ord[s]?' class="sh"':'')+'>'+v+'</td>';}).join('')+'<td><b class="stot">'+ship+'</b></td></tr></table>'
+      :'<table class="st"><tr><th></th><th>Total</th></tr><tr><td>Ordered</td><td><b>'+(ord||l.total)+'</b></td></tr><tr><td>Shipped</td><td contenteditable="true"'+(ship<(ord||l.total)?' class="sh"':'')+'><b>'+(l.sizes.length?ship:l.total)+'</b></td></tr></table>';
+    return '<div class="it"><div class="in"><b>'+esc(l.name)+(l.color?' — '+esc(l.color):'')+'</b>'+(l.desc&&l.desc!==l.name?'<small>'+esc(l.desc)+'</small>':'')+'</div>'+tbl+'</div>';
+  }).join('');
+  var anyShort=o.lines.some(function(l){return l.sizes.some(function(s){return l.rows.shipped[s]<l.rows.ord[s];});});
+  var css='*{box-sizing:border-box;margin:0;padding:0}body{font:13px Arial,Helvetica,sans-serif;color:#000;background:#e8e8e8;padding:20px}'
+    +'.bar{max-width:8.5in;margin:0 auto 12px;display:flex;gap:10px;align-items:center;background:#0A0A08;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px}.bar span{flex:1}'
+    +'.bar button{background:#E8E832;border:none;border-radius:6px;font-weight:800;padding:9px 14px;cursor:pointer}'
+    +'.pg{max-width:8.5in;margin:0 auto;background:#fff;padding:.5in;box-shadow:0 2px 10px rgba(0,0,0,.15)}'
+    +'.hd{display:flex;align-items:center;gap:14px;border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px}.hd img{width:54px;height:54px}'
+    +'.hd h1{font-size:22px;letter-spacing:.04em;text-transform:uppercase;flex:1}.hd .n{text-align:right}.hd .n b{display:block;font-size:30px;line-height:1}'
+    +'.meta{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}.meta h4{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#555;margin-bottom:3px}.meta p{line-height:1.45}'
+    +'.it{border:1.5px solid #000;margin-bottom:10px;page-break-inside:avoid}.in{padding:7px 10px;border-bottom:1.5px solid #000;background:#f3f3f3;-webkit-print-color-adjust:exact;print-color-adjust:exact}.in small{display:block;color:#444;font-size:11px;margin-top:2px}'
+    +'.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}.st th,.st td{border-right:1px solid #ccc;padding:5px 6px;text-align:center}.st th{font-size:10px;letter-spacing:.06em;border-bottom:1px solid #ccc}'
+    +'.st td:first-child,.st th:first-child{text-align:left;width:90px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}.st tr+tr td{border-top:1px solid #ccc}.st td.sh{font-weight:700;text-decoration:underline}'
+    +'.nt{margin-top:14px;border:1.5px dashed #000;padding:9px 11px;font-size:12px;line-height:1.45;min-height:40px}'
+    +'[contenteditable]{outline:none}[contenteditable]:focus{background:#fffbea}'
+    +'@page{size:letter;margin:0}@media print{body{background:#fff;padding:0}.bar{display:none}.pg{box-shadow:none;max-width:none}}';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Packing Slip - '+esc(o.num)+'<\/title><style>'+css+'<\/style><\/head><body>'
+    +'<div class="bar"><span>Packing slip · tap any shipped number or the note to change it</span><button onclick="window.print()">&#128424; Print</button></div>'
+    +'<div class="pg"><div class="hd"><img src="data:image/png;base64,'+PINE_LOGO_B64+'" alt=""><h1>Packing Slip</h1><div class="n">Order<b>'+esc(o.num)+'</b></div></div>'
+    +'<div class="meta"><div><h4>Ship to</h4><p><b>'+esc(o.cust)+'</b>'+(txt(f[O.contact])?'<br>'+esc(txt(f[O.contact])):'')+addr.map(function(a){return '<br>'+esc(a);}).join('')+'</p></div>'
+    +'<div><h4>Shipment</h4><p>'+(txt(f[O.shipDate])?'Ship date: '+esc(fdate(txt(f[O.shipDate])))+'<br>':'')+(txt(f[O.method])?'Method: '+esc(txt(f[O.method]))+'<br>':'')+(txt(f[O.tracking])?'Tracking: '+esc(txt(f[O.tracking])):'')+'</p></div></div>'
+    +body
+    +'<div class="nt" contenteditable="true">'+(anyShort?'Some items shipped short (underlined above). We’ll follow up about the difference.':'Thank you for your order!')+'</div>'
+    +'</div><script>document.addEventListener("input",function(e){var tr=e.target.closest&&e.target.closest("tr");if(!tr)return;var s=0;[].forEach.call(tr.querySelectorAll("td[contenteditable]"),function(td){var v=parseInt(td.textContent,10);if(!isNaN(v))s+=v;});var t=tr.querySelector(".stot");if(t)t.textContent=s;});<\/script><\/body><\/html>';
+}
+function openSlip(oid){
+  var w=window.open('','_blank','width=900,height=1000');
+  if(!w){toast('Allow pop-ups to open the packing slip',true);return;}
+  w.document.write(slipHtml(orderModel(oid)));w.document.close();
+}
+
+// ---- Trends ----
+function renderTrends(){
+  var iss=state.issues.filter(function(x){return state.kind==='all'||(state.kind==='bandana')===x.bandanaLine;});  // v8
+  if(!state.issues.length){$('main').innerHTML='<div class="msg"><b>No issues in this range</b></div>';return;}
+  if(!iss.length){iss=[];}
+  var sum=function(k,a){return (a||iss).reduce(function(s,x){return s+x[k];},0);};
+  var ords={};iss.forEach(function(x){ords[x.orderId]=1;});
+  // v13: side-by-side split (always shows both, whatever the switch says)
+  var A=state.issues.filter(function(x){return !x.bandanaLine;}),B=state.issues.filter(function(x){return x.bandanaLine;});
+  var S=function(a,k){return a.reduce(function(s,x){return s+x[k];},0);};
+  var col=function(t,a,extra){return '<div class="card" style="flex:1;min-width:240px"><h3>'+t+'</h3><p class="sub">'+plural(a.length,'issue')+'</p>'
+    +'<div style="font:900 30px var(--sans)">'+S(a,'pcs').toLocaleString()+' <small style="font-size:12px;color:var(--muted);font-weight:700">damaged pcs</small></div>'+extra+'</div>';};
+  var h='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">'
+    +col('Apparel',A,'<p style="margin-top:6px;font-size:13px">Refunds <b>'+money(S(A,'refund'))+'</b> · Reprint cost <b>'+money(S(A,'reprint'))+'</b></p>')
+    +col('Bandanas',B,'<p style="margin-top:6px;font-size:13px">From stock <b>'+money(S(B,'bandana'))+'</b> · Refunds <b>'+money(S(B,'refund'))+'</b></p>')
+    +'</div>'
+    +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><b style="font:700 11px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px">Show:</b>'
+    +[['all','All'],['apparel','Apparel'],['bandana','Bandanas']].map(function(k){var n=k[0]==='all'?state.issues.length:(k[0]==='bandana'?B.length:A.length);
+      return '<button type="button" class="chip'+(state.kind===k[0]?' on':'')+'" data-kind="'+k[0]+'">'+k[1]+'<b>'+n+'</b></button>';}).join('')
+    +'</div><div class="tiles">'
+    +tile('Damaged pieces',sum('pcs').toLocaleString(),plural(iss.length,'issue')+' on '+plural(Object.keys(ords).length,'order'))
+    +tile('Refunds',money(sum('refund')),plural(iss.filter(function(x){return x.refund>0;}).length,'issue'))
+    +tile('Reprint cost',money(sum('reprint')),plural(iss.filter(function(x){return x.reprint>0;}).length,'issue'))
+    +(state.kind==='apparel'?'':tile('Bandanas from stock',money(sum('bandana')),plural(iss.filter(function(x){return x.bandana>0;}).length,'issue')))
+    +(state.kind==='bandana'?'':(function(){var w=0,n=0,rec=0;(state.wowLines||[]).forEach(function(r){var lf=r.fields;rec++;w+=num(lf[L.wow]);n+=num(lf[L.xSentTot]);});
+      return tile('Wow cost (extras sent)',money(w),rec?plural(n,'extra')+' sent on '+plural(rec,'recorded line'):'Starts with Catching v143');})())
+    +'</div><div class="grid2">';
+  // pieces by reason (an issue with 2 reasons counts toward both)
+  var byR={};iss.forEach(function(x){var rs=x.reasons.length?x.reasons:(x.legacy.length?x.legacy:['No reason']);rs.forEach(function(r){byR[r]=(byR[r]||0)+x.pcs;});});
+  h+=card('Damaged pieces by reason','An issue with two reasons counts toward both.',hbars(byR,function(v){return v.toLocaleString()+' pcs';}));
+  var byA={};iss.forEach(function(x){var k=x.acct||'Not set';byA[k]=(byA[k]||0)+x.pcs;});
+  h+=card('Damaged pieces by accountability','Print Team vs everything else (mill flaws, grease, wrinkles…).',hbars(byA,function(v){return v.toLocaleString()+' pcs';}));
+  var byM={};iss.forEach(function(x){var k=String(x.created).slice(0,7);if(k)byM[k]=(byM[k]||0)+x.refund+x.reprint+x.bandana;});
+  h+=card('Damage cost by month','Refunds + reprint cost + bandanas from stock.',cols(byM,money));
+  var byG={};iss.forEach(function(x){var k=garmentLabel(x);byG[k]=(byG[k]||0)+x.pcs;});  // v8: names, not record IDs
+  h+=card('Damaged pieces by garment','Top 8 garments in this range.',hbars(byG,function(v){return v.toLocaleString()+' pcs';},8));
+  h+='</div>';
+  $('main').innerHTML=h;
+}
+function plural(n,w){return n+' '+w+(n===1?'':'s');}
+function tile(l,v,sub){return '<div class="tile"><small>'+l+'</small><b>'+v+'</b><i>'+esc(sub)+'</i></div>';}
+function card(t,sub,body){return '<section class="card"><h3>'+t+'</h3><p class="sub">'+sub+'</p>'+body+'</section>';}
+// v8: the issue's Garment field is a link (comes back as record IDs), so name the garment
+// from its line item (brand + style # + garment type), e.g. "BC 3001 SS Tee".
+function garmentLabel(x){
+  var l=x.lineId&&state.lines[x.lineId];
+  if(l){var f=l.fields,n=[txt(f[L.brand]),txt(f[L.style]),txt(f[L.garment])].filter(Boolean).join(' ');if(n)return n;}
+  var g=String(x.garment||'');
+  return (!g||/^rec[A-Za-z0-9]{14}/.test(g))?'Unknown':g;
+}
+function hbars(obj,fmt,top){
+  var e=Object.keys(obj).map(function(k){return [k,obj[k]];}).sort(function(a,b){return b[1]-a[1];});
+  var rolled=false;
+  if(top&&e.length>top){var rest=e.slice(top).reduce(function(s,x){return s+x[1];},0);e=e.slice(0,top);if(rest){e.push(['Other',rest]);rolled=true;}}
+  var max=Math.max.apply(null,e.filter(function(x){return !(rolled&&x[0]==='Other');}).map(function(x){return x[1];}).concat([1]));  // v8: 'Other' doesn't set the scale
+  return '<div class="hb">'+e.map(function(x){
+    return '<div class="row" data-tip="'+esc(x[0]+': '+fmt(x[1]))+'"><span class="lab">'+esc(x[0])+'</span><span class="trk"><span class="fill" style="width:'+Math.min(100,x[1]/max*100)+'%'+(rolled&&x[0]==='Other'?';opacity:.35':'')+'"></span></span><span class="val">'+fmt(x[1])+'</span></div>';
+  }).join('')+'</div>';
+}
+function cols(obj,fmt){
+  var keys=Object.keys(obj).sort(),max=Math.max.apply(null,keys.map(function(k){return obj[k];}).concat([1]));
+  var lab=function(k){var d=new Date(k+'-15');return d.toLocaleDateString('en-US',{month:'short'})+(keys.length>6?'':' '+String(d.getFullYear()).slice(2));};
+  var peak=keys.reduce(function(m,k){return obj[k]>obj[m]?k:m;},keys[0]);
+  return '<div class="cols">'+keys.map(function(k){
+    return '<div class="col" data-tip="'+esc(lab(k)+': '+fmt(obj[k]))+'">'+(k===peak||k===keys[keys.length-1]?'<span class="cv">'+fmt(obj[k])+'</span>':'')+'<span class="cf" style="height:'+(obj[k]/max*100)+'%"></span></div>';
+  }).join('')+'</div><div class="colx">'+keys.map(function(k){return '<span>'+lab(k)+'</span>';}).join('')+'</div>';
+}
+
+// ---- events ----
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-sendreq],[data-rpdone],[data-deldup],[data-sel],[data-apall],[data-selall],[data-selclear],[data-batch],[data-open],[data-slip],[data-copy],[data-issued],[data-f],[data-tab],[data-approve],[data-kind]');if(!t)return;
+  if(t.dataset.kind){state.kind=t.dataset.kind;render();return;}
+  if(t.dataset.approve){approveIssue(t.dataset.approve);return;}
+  if(t.dataset.rpdone){markReprintDone(t.dataset.rpdone);return;}
+  if(t.dataset.deldup){deleteDuplicate(t.dataset.deldup);return;}
+  if(t.dataset.sel){state.sel[t.dataset.sel]=!state.sel[t.dataset.sel];render();return;}
+  if(t.dataset.selclear){state.sel={};render();return;}
+  if(t.dataset.selall){var ids2=state.shownSel||[],on=ids2.length&&ids2.every(function(id){return state.sel[id];});ids2.forEach(function(id){state.sel[id]=!on;});render();return;}  // v10: toggle
+  if(t.dataset.apall){var o=allOrders().filter(function(z){return z.id===t.dataset.apall;})[0];if(o)approveMany(awaitingIssues(o),'order '+o.num);return;}
+  if(t.dataset.batch){var bs=batchSummary(Object.keys(state.sel).filter(function(k){return state.sel[k];}));approveMany(bs.issues,plural(bs.orders,'order'));return;}
+  if(t.dataset.tab){state.tab=t.dataset.tab;[].forEach.call(document.querySelectorAll('.tab'),function(b){b.classList.toggle('on',b===t);});render();return;}
+  if(t.dataset.f){state.filter=t.dataset.f;render();return;}
+  if(t.dataset.slip){openSlip(t.dataset.slip);return;}
+  if(t.dataset.sendreq){sendRefundRequest(t.dataset.sendreq,true);return;}  // v17
+  if(t.dataset.copy){copyQb(t.dataset.copy);return;}
+  if(t.dataset.issued){setIssued(t.dataset.issued,t.dataset.v==='1');return;}
+  if(t.dataset.open){state.open[t.dataset.open]=!state.open[t.dataset.open];render();}
+});
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.open){e.preventDefault();e.target.click();}});
+document.addEventListener('mousemove',function(e){
+  var t=e.target.closest&&e.target.closest('[data-tip]'),tt=$('tt');
+  if(!t){tt.hidden=true;return;}
+  tt.textContent=t.dataset.tip;tt.hidden=false;tt.style.left=Math.min(e.clientX+12,innerWidth-tt.offsetWidth-8)+'px';tt.style.top=(e.clientY+14)+'px';
+});
+$('q').addEventListener('input',function(){state.q=this.value;render();});
+document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.change)changeResolution(t.dataset.change,t.value);});
+$('range').addEventListener('change',function(){state.range=/^\d+$/.test(this.value)?Number(this.value):this.value;load();});
+$('tokBtn').onclick=function(){$('tokPanel').hidden=!$('tokPanel').hidden;$('tokIn').value=token();};
+$('tokSave').onclick=function(){try{localStorage.setItem('pine_at_key',$('tokIn').value.trim());}catch(e){}$('tokPanel').hidden=true;load();};
+function syncPractice(){$('practiceBtn').textContent=PRACTICE?'Practice on':'Practice off';$('practiceBtn').classList.toggle('on',PRACTICE);}
+$('practiceBtn').onclick=function(){PRACTICE=!PRACTICE;syncPractice();toast(PRACTICE?'Practice on — nothing will be saved':'Practice off — changes save to Airtable');};
+$('ver').textContent=APP_VER;syncPractice();
+load();
+</script>
+</body>
+</html>
