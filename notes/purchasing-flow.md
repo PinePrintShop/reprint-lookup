@@ -14,6 +14,11 @@ v90's "By vendor" checkbox screen didn't fit how purchasing actually works. This
 
 He works order by order, batching into vendor carts across orders. When a warehouse is short, he splits a line across warehouses. Supplier is a multi-link, so one line can carry two warehouses.
 
+## Status
+- **v91 is live:** `pine-purchasing-v91.html`; `?practice=1` = nothing is saved. Built from the mockup on v90's Airtable code. v90 is untouched.
+- Kept on this computer only, until their Airtable tables are approved: invoice totals (Vendor Invoices), the price-change history (Garment Price Changes), and the people list for @mentions (Team). In-progress carts are also kept on this computer.
+- **Bandana-only orders:** an **Add all to cart** bar in the order header puts every open bandana line in one warehouse's cart at the tier price. It defaults to Carolina Creative.
+
 ## New flow (left → right)
 - **Orders:** sorted by due date. Each shows ASAP / Hard Deadline and the print date.
 - **This order:** the context goes in a header (salesperson, print date, shipping method, flagged notes). Each line runs:
