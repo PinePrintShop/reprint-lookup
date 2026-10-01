@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pine Purchasing v92</title>
+<style>
+/* ============================================================
+   PINE PURCHASING v91 — live (styles from the flow mockup)
+   Left → right: Orders (by due date) → This order (sizes, extras,
+   warehouse + arrival, split, cost) → Carts per warehouse → PO + Ordered.
+   Plan: notes/purchasing-flow.md
+   ============================================================ */
+:root{
+  --bg:#F2F2EE; --surface:#fff; --soft:#F8F8F5;
+  --border:#E5E5E0; --border-dk:#D0D0CA;
+  --green:#1e6b45; --green-lt:#e8f5ee; --green-dk:#144d31;
+  --text:#0D0D0B; --muted:#888880; --muted-lt:#BBBBB5;
+  --yellow:#E8E832;
+  --red:#c0392b; --red-bg:#fdf2f2; --red-bd:#f5c6c6;
+  --amb:#b7791f; --amb-bg:#fffbeb; --amb-bd:#fde68a;
+  --ink:#0A0A08;
+  --sans:Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+button,input,select{font:inherit;color:inherit}
+.top{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.brand{font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.brand small{font-size:9px;color:var(--muted-lt);margin-left:6px;vertical-align:top}
+.mock{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amb);background:var(--amb-bg);border:1px solid var(--amb-bd);padding:4px 9px;border-radius:20px}
+
+.cols{flex:1;display:grid;grid-template-columns:270px minmax(0,1fr) 340px;min-height:0}
+.col{overflow:auto;min-height:0}
+.col h2{position:sticky;top:0;z-index:2;background:var(--bg);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:14px 16px 8px;display:flex;align-items:center;gap:8px}
+.col h2 .n{margin-left:auto;color:var(--text)}
+.c-orders{border-right:1px solid var(--border)}
+.c-carts{border-left:1px solid var(--border);background:#EDEDE8}
+.c-carts h2{background:#EDEDE8}
+
+/* ---- orders list ---- */
+.duehdr{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 16px 4px}
+.ord{display:block;width:100%;text-align:left;border:none;background:var(--surface);border-left:4px solid transparent;padding:10px 14px 10px 12px;cursor:pointer;border-bottom:1px solid var(--border)}
+.ord:hover{background:var(--soft)}
+.ord.on{border-left-color:var(--ink);background:#fff;box-shadow:inset 0 0 0 1px var(--border-dk)}
+.ord.done{opacity:.55}
+.ord .r1{display:flex;gap:6px;align-items:baseline}
+.ord .num{font-weight:800}
+.ord .cust{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ord .r2{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
+.ord .prog{margin-left:auto;font-size:11px;color:var(--muted);font-weight:700}
+.tag{font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:4px;text-transform:uppercase;white-space:nowrap;border:1px solid var(--border)}
+.tag.asap{background:var(--amb-bg);border-color:var(--amb-bd);color:var(--amb)}
+.tag.hard{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+.tag.ok{background:var(--green-lt);border-color:#bfe0cd;color:var(--green)}
+.tag.cart{background:#fffbd6;border-color:#ecec7a;color:#6b6b00}
+.tag.grey{color:var(--muted)}
+
+/* ---- this order ---- */
+.c-order{padding:0 20px 40px}
+.c-order h2{padding-left:0;padding-right:0}
+.ohead{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 16px}
+.ohead .cust{font-size:22px;font-weight:800;text-transform:uppercase}
+.ohead .num{font-size:30px;font-weight:800;grid-row:span 2;align-self:center}
+.facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.facts b{color:var(--text)}
+.facts .printd{color:var(--text);background:var(--yellow);padding:1px 6px;border-radius:3px;font-weight:800}
+.notes{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.note{font-size:12px;background:var(--amb-bg);border:1px solid var(--amb-bd);border-radius:4px;padding:6px 8px}
+.note b{color:var(--amb);text-transform:uppercase;font-size:10px;letter-spacing:.06em;margin-right:6px}
+
+.line{background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-top:12px}
+.line.incart{border-color:#d9d96a}
+.line.ordered{opacity:.7}
+.lhead{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.lhead .g{font-weight:800;text-transform:uppercase}
+.lhead .imp{font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:2px 6px}
+.lhead .st{margin-left:auto}
+.flow{display:grid;grid-template-columns:auto minmax(230px,1fr) 190px;gap:0;align-items:stretch}
+.stage{padding:12px 16px;border-right:1px solid var(--border)}
+.stage:last-child{border-right:none}
+.stage h4{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;gap:6px;align-items:center}
+.stage h4 .k{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--ink);color:#fff;font-size:9px}
+table.sz{border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.sz th{font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 4px;text-align:center}
+table.sz td{padding:2px;text-align:center}
+table.sz td.lbl{font-size:10px;font-weight:700;color:var(--muted);text-align:left;padding-right:6px;text-transform:uppercase}
+table.sz .q{font-weight:800;font-size:15px;min-width:34px;display:inline-block}
+table.sz input{width:38px;text-align:center;border:1px solid var(--border);border-radius:4px;padding:3px 0;font-size:12px}
+table.sz input:not(:placeholder-shown){border-color:var(--green);color:var(--green);font-weight:700}
+table.sz .xb{width:38px;height:28px;border:1px dashed var(--border-dk);border-radius:6px;background:#fff;color:var(--muted);font-weight:800;cursor:pointer}
+table.sz .xb:hover{border-color:var(--green);color:var(--green)}
+table.sz .xb.on{border:1px solid var(--green);background:var(--green-lt);color:var(--green)}
+table.sz .xb:disabled{cursor:default}
+table.sz .tot{font-weight:800;padding-left:8px}
+.wh{display:flex;flex-direction:column;gap:6px}
+.whopt{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:6px;padding:6px 9px;cursor:pointer;background:#fff;text-align:left;width:100%}
+.whopt:hover{border-color:var(--border-dk)}
+.whopt.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.whopt>span:first-child{min-width:0}.whopt .nm{font-weight:700;font-size:13px;white-space:nowrap}
+.whopt .tr{font-size:11px;color:var(--muted)}
+.whopt .arr{margin-left:auto;font-size:11px;font-weight:800;white-space:nowrap}
+.arr.ok{color:var(--green)}.arr.tight{color:var(--amb)}.arr.late{color:var(--red)}.arr.unk{color:var(--muted)}
+.more{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:5px;background:#fff;width:100%}
+.split{margin-top:10px;border-top:1px dashed var(--border-dk);padding-top:10px}
+.split .sh{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:6px}
+.linkbtn{background:none;border:none;color:var(--green);font-weight:700;font-size:12px;cursor:pointer;padding:0}
+.linkbtn.red{color:var(--red)}
+.cost label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:0 0 3px}
+.cost input{width:74px;border:1px solid var(--border-dk);border-radius:4px;padding:6px 8px;font-size:14px;font-weight:700;text-align:right}
+.cost .row{display:flex;gap:8px;margin-bottom:8px}
+.cost .onfile{font-size:10px;color:var(--green);font-weight:700}
+.go{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.btn{border:none;border-radius:6px;font-weight:800;padding:10px 14px;cursor:pointer;background:var(--ink);color:#fff;white-space:nowrap}
+.btn.y{background:var(--yellow);color:var(--ink)}
+.btn.g{background:var(--green);color:#fff}
+.btn:disabled{background:var(--border);color:var(--muted-lt);cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border-dk)}
+.hint{font-size:11px;color:var(--muted)}
+.empty{padding:40px 16px;color:var(--muted);text-align:center}
+
+/* ---- carts ---- */
+.carts{padding:0 12px 30px;display:flex;flex-direction:column;gap:12px}
+.cartc{background:#fff;border-radius:6px;border:1px solid var(--border);overflow:hidden}
+.cartc .ch{background:var(--ink);color:#fff;padding:10px 12px;display:flex;align-items:baseline;gap:8px}
+.cartc .ch .nm{font-weight:800;text-transform:uppercase;font-size:13px}
+.cartc .ch .tr{font-size:11px;color:#bbb}
+.cartc .ch .pcs{margin-left:auto;font-weight:800;color:var(--yellow)}
+.citem{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px}
+.citem .t{display:flex;gap:6px;align-items:baseline}
+.citem .t b{font-size:12px}
+.citem .t .x{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px}
+.citem .s{color:var(--muted);margin-top:2px}
+.citem .grid{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
+.citem .grid span{border:1px solid var(--border-dk);border-radius:4px;min-width:38px;text-align:center;padding:2px 4px;font-variant-numeric:tabular-nums}
+.citem .grid span i{display:block;font-style:normal;font-size:9px;color:var(--muted);font-weight:700}
+.citem .grid span b{font-size:13px}
+.citem .open{display:inline-block;margin-top:6px;font-weight:800;color:var(--green);text-decoration:none;font-size:12px}
+.cfoot{padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--soft)}
+.cfoot .r{display:flex;gap:6px}
+.cfoot input{flex:1;border:1px solid var(--border-dk);border-radius:6px;padding:8px;font-weight:700;min-width:0}
+.done-list .cartc .ch{background:var(--green)}
+.done-list .cartc .ch .pcs{color:#fff}
+.tabs{display:flex;gap:4px;background:var(--bg);border-radius:20px;padding:3px;margin-left:12px}
+.tab{border:none;background:none;padding:6px 14px;border-radius:16px;font-weight:800;font-size:12px;cursor:pointer;color:var(--muted)}
+.tab.on{background:var(--ink);color:#fff}
+.tab span:not(:empty){background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px}
+.hidden{display:none!important}
+.steps{margin-left:auto;display:flex;gap:6px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.steps span{padding:4px 8px}.steps b{color:var(--text)}
+.invwrap{flex:1;overflow:auto;padding:16px 20px 40px}
+.invtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.invtop h1{font-size:18px;text-transform:uppercase}
+.invtop .sum{color:var(--muted);font-size:13px}
+.invtop .sum b{color:var(--text)}
+.seg{display:flex;gap:4px;margin-left:auto}
+.seg button{border:1px solid var(--border-dk);background:#fff;border-radius:16px;padding:5px 12px;font-weight:700;font-size:12px;cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.po{background:#fff;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden}
+.po.ok{border-color:#bfe0cd}.po.bad{border-color:var(--red-bd)}
+.poh{display:grid;grid-template-columns:150px minmax(0,1fr) 120px 150px 170px 24px;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
+.poh .pon{font-weight:800;font-size:15px}
+.poh .pon small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.poh .whn{font-weight:700}.poh .whn small{display:block;color:var(--muted);font-weight:400;font-size:11px}
+.poh .amt{text-align:right}.poh .amt small{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700}
+.poh .amt b{font-size:16px;font-variant-numeric:tabular-nums}
+.poh input{width:100%;border:1px solid var(--border-dk);border-radius:6px;padding:7px 8px;font-weight:800;text-align:right;font-size:15px}
+.poh .chev{color:var(--muted)}
+.stt{font-size:11px;font-weight:800;padding:4px 8px;border-radius:4px;text-align:center}
+.stt.ok{background:var(--green-lt);color:var(--green)}.stt.bad{background:var(--red-bg);color:var(--red)}.stt.wait{background:var(--soft);color:var(--muted)}
+.pol{border-top:1px solid var(--border);background:var(--soft)}
+.pol table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.pol th{font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:8px 14px 4px}
+.pol td{padding:6px 14px;border-top:1px solid var(--border)}
+.pol td.r,.pol th.r{text-align:right}
+.pol tr.tot td{font-weight:800;background:#fff}
+.pol .why{padding:10px 14px;font-size:12px;color:var(--red);border-top:1px solid var(--border);background:var(--red-bg)}
+.thumb{width:44px;height:44px;border:1px solid var(--border-dk);border-radius:6px;overflow:hidden;background:#fff;padding:0;cursor:zoom-in;flex-shrink:0}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.lnotes{border-top:1px solid var(--border);padding:10px 16px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px 14px;align-items:start;background:var(--soft)}
+.nf label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amb);margin-bottom:3px}
+.nf .sv{color:var(--green);text-transform:none;letter-spacing:0;font-weight:700;margin-left:4px}
+.nf textarea{width:100%;border:1px solid var(--amb-bd);background:var(--amb-bg);border-radius:6px;padding:6px 8px;font:inherit;font-size:13px;resize:vertical}
+.nf textarea:focus{outline:none;border-color:var(--amb);background:#fff}
+.addnote{align-self:end;justify-self:start;font-size:12px;border:1px dashed var(--border-dk);border-radius:6px;padding:5px 8px;background:#fff;color:var(--muted)}
+.issuebtn{border:1px solid var(--border-dk);background:var(--soft);color:var(--muted);font-weight:800;font-size:11px;border-radius:4px;padding:3px 8px;cursor:pointer}
+.issuebtn:hover{border-color:var(--muted);color:var(--text)}
+.iss-wrap{display:block!important;height:auto!important}
+.pv-card:has(.iss-wrap){height:auto;width:min(680px,100%)}
+.iss{padding:34px 28px 24px;max-width:640px}
+.iss-r{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.iss-b{border:1px solid var(--border-dk);background:#fff;border-radius:20px;padding:8px 14px;font-weight:700;cursor:pointer}
+.iss-b.on{background:var(--red);border-color:var(--red);color:#fff}
+.iss textarea{width:100%;border:1px solid var(--border-dk);border-radius:6px;padding:8px;font:inherit}
+.who{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--border-dk);border-radius:6px;padding:6px;margin-bottom:10px;position:relative}
+.who-c{background:var(--ink);color:#fff;border-radius:14px;padding:4px 6px 4px 10px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:4px}
+.who-c button{background:none;border:none;color:#bbb;font-size:15px;cursor:pointer;line-height:1}
+.who-s{flex:1;min-width:160px;position:relative}
+.who-s input{width:100%;border:none;outline:none;font:inherit;padding:4px}
+.who-l{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:#fff;border:1px solid var(--border-dk);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.15);max-height:220px;overflow:auto;z-index:5}
+.who-o{padding:8px 10px;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.who-o:hover,.who-o.hi{background:var(--soft)}
+.who-o small{color:var(--muted)}.who-o.none{color:var(--muted);cursor:default}
+.iss-prev{margin-top:12px;background:var(--soft);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px}
+.iss-go{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.lp{display:inline-block;margin:3px 0 0 6px;font-size:11px;font-weight:800;border-radius:4px;padding:1px 6px}
+.lp.same{background:var(--soft);color:var(--muted)}.lp.up{background:var(--red-bg);color:var(--red)}.lp.down{background:var(--green-lt);color:var(--green)}.lp.none{color:var(--muted-lt);font-weight:600;padding-left:0}
+.pchg{font-size:11px;font-weight:800;border-radius:4px;padding:5px 7px;margin-top:2px}
+.pchg.up{background:var(--red-bg);color:var(--red)}.pchg.down{background:var(--green-lt);color:var(--green)}
+.frt{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.frt label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.frt-in{display:inline-flex;align-items:center;gap:2px;font-weight:700;margin-left:auto}
+.frt input{width:74px;border:1px solid var(--border-dk);border-radius:4px;padding:6px 8px;font-size:14px;font-weight:700;text-align:right}
+.frt .sv{flex-basis:100%;text-align:right;font-size:10px;font-weight:700;color:var(--green)}
+.frt .sv:empty{display:none}
+.pv{position:fixed;inset:0;background:rgba(10,10,8,.6);z-index:30;display:flex;align-items:center;justify-content:center;padding:20px}
+.pv-card{background:#fff;border-radius:10px;width:min(1100px,100%);height:min(820px,100%);position:relative;overflow:hidden}
+.pv-x{position:absolute;top:10px;right:12px;border:none;background:#fff;font-size:20px;cursor:pointer;z-index:2}
+.pv-in{display:grid;grid-template-columns:minmax(0,1fr) 300px;height:100%}
+.pv-pdf{background:#525659;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}.pv-pdf img{max-width:100%;max-height:100%;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.pv-side{padding:40px 20px 20px;display:flex;flex-direction:column}
+.pv-k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.pv-g{font-size:20px;font-weight:800;text-transform:uppercase;margin-top:4px}
+.pv-color{margin-top:8px;font-size:15px}.pv-color b{background:var(--yellow);padding:1px 6px;border-radius:3px}
+.pv-open{margin-top:auto;font-size:12px;color:var(--green);font-weight:700;text-decoration:none}
+@media (max-width:800px){ .pv-in{grid-template-columns:1fr;grid-template-rows:60% 40%} }
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.show{opacity:1}
+
+@media (max-width:1100px){
+  .steps{display:none}
+  .cols{grid-template-columns:1fr;overflow:auto}
+  .col{overflow:visible}
+  .c-orders,.c-carts{border:none}
+  .flow{grid-template-columns:1fr}
+  .stage{border-right:none;border-bottom:1px solid var(--border)}
+}
+.mode{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:20px;border:1px solid}
+.mode.live{color:#fff;background:var(--red);border-color:var(--red)}
+.mode.practice{color:var(--amb);background:var(--amb-bg);border-color:var(--amb-bd)}
+.pill{font-size:10px;font-weight:700;padding:5px 12px;border:1px solid var(--border-dk);border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase}
+.pill:hover{border-color:var(--text);color:var(--text)}
+.pill.ok{color:var(--green);border-color:#bfe0cd;background:var(--green-lt)}
+.topr{margin-left:12px;display:flex;gap:8px;align-items:center}
+.msg{padding:16px;color:var(--muted)}.msg.err{color:var(--red)}
+.thumb.none{display:inline-grid;place-items:center;font-size:9px;color:var(--muted-lt);text-transform:uppercase;border:1px dashed var(--border-dk);cursor:default}
+.banall{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#fffbd6;border:1px solid #ecec7a;border-radius:6px;padding:10px 12px;margin-top:8px}
+.banall select{border:1px solid var(--border-dk);border-radius:6px;padding:7px;background:#fff;max-width:260px}
+.banall .btn{margin-left:auto}
+.rph{grid-template-columns:56px minmax(0,1fr) auto 150px 120px auto!important;cursor:default!important}
+.rpthumb{width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border)}
+.whn small a{font-size:11px}
+.poh.inv2{grid-template-columns:150px minmax(0,1fr) 110px 140px 24px}
+.invq{border:1px solid var(--border-dk);border-radius:16px;padding:5px 12px;font-size:12px;min-width:240px}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="brand">Pine Purchasing<small>v92</small></span>
+  <span class="mode" id="modeBadge">—</span>
+  <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check</button><button class="tab" id="t-rp" onclick="setTab('rp')">Reprints</button></span>
+  <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
+  <span class="topr"><span class="pill" id="tokChip" onclick="setToken()">Token</span><span class="pill" onclick="refreshAll()">↻ Refresh</span></span>
+</div>
+<div class="cols">
+  <div class="col c-orders"><h2>Orders <span class="n" id="o-n"></span></h2><div id="orders"></div></div>
+  <div class="col c-order" id="order"></div>
+  <div class="col c-carts"><h2>Carts <span class="n" id="c-n"></span></h2><div class="carts" id="carts"></div></div>
+</div>
+<div class="invwrap hidden" id="inv"></div>
+<div class="invwrap hidden" id="rp"></div>
+<div class="pv hidden" id="pv" onclick="if(event.target===this)closeProof()"><div class="pv-card"><button class="pv-x" onclick="closeProof()">✕</button><div class="pv-in" id="pv-body"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   PINE PURCHASING v92 — live version of the left→right flow mockup.
+   v92: Invoice check is a read-only quick view (PO totals to compare against the vendor invoice; nothing typed or stored).
+   Orders (RFO view, by due date) → This order (sizes, extras, warehouse +
+   ship time + live price, split, cost, freight, notes, garment issue) →
+   Carts per warehouse → PO (MMDDYY) + ✓ Ordered.  Plan: notes/purchasing-flow.md
+   ?practice=1 = nothing is saved (every write is logged to the console instead).
+   ============================================================ */
+var VERSION='v92';
+var WRITES_ENABLED = !/[?&]practice=1/.test(location.search);
+var BASE='appJkaLk8DykjsgHR', T_LI='tblJx5UlwO7oMSk5H', T_SUP='tbldewW9XDeW7Yruf', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV';
+var PROXY='https://pine-workers.stephen-dab.workers.dev/proxy';
+var RFO_VIEW='viwvFnJ0HqsbFYzNT';     // Line Items view "[MGR] Apparel RFO" — the queue
+var EXCLUDE_BRANDS=['Alphabroder','TSC Apparel','TSF Sportswear'];
+
+/* ---- Line Items field IDs ---- */
+var F={
+  name:'fldU6oLyZnxhhm2kX', garmentLink:'fldZbOdGIoCk3Gan2', cust:'fldB4mKfMl2Lp9UK0',
+  orderNum:'fldRNXpvna5jpa1v5', due:'fldgWlu3jLaabJZ6i', priority:'fldteo6bY0vMBnlFK',
+  status:'fldpCv8bxptGJ1gty', ptype:'fld8LIkrBXv8WoRRb', proof:'flddhvdkKI31tFTdX',
+  garmentCost:'fldVtBTv42HG6WYs1', supplier:'fldoboa9QhrHbEe8A', po:'fldIUAnkNscvEVDjU',
+  ordered:'fldBnjGyTLLjzz97l', freight:'fldi2RmXxYgckvHfd', orderNotes:'fldF378cgWuOcWNL6',
+  created:'fldl02e7TiLPg4v47', rep:'fldrMQ5wci8x90j5z', printAt:'fld34UoE5FnSsHn35',
+  ship:'fldKxvC8ldq0IAQ54', imprints:'fldTFz4ZzfOthqkg6', lineTotal:'fldC9tGPAuJuyYtTL',
+  orderedAt:'fldhDUejzo0Q4X92k'
+};
+var NOTE_FIELDS=[
+  {k:'order',      label:'Order Notes',      fld:'fldF378cgWuOcWNL6'},
+  {k:'production', label:'Production Notes', fld:'fld4FjoCQ5bXdwjJj'},
+  {k:'sales',      label:'Sales Notes',      fld:'fldG3tzTzUC3QQJ1I'},
+  {k:'proofing',   label:'Proofing Notes',   fld:'fldWdnT83KLEvBrg4'},
+  {k:'shipping',   label:'Shipping Notes',   fld:'fld7rY74m37acM2Ik'},
+  {k:'finishing',  label:'Finishing Notes',  fld:'fldqsj7nZgHrtRbEn'}];
+/* size defs: k=label, q=qty field, x=extra field (null if none), b=cost bracket */
+var SIZE_DEFS=[
+  {k:'OS', q:'fld2bgIlmPbANgLVK', x:'fldKS4Jk6aZvxR4Nn', b:'XS-XL'},
+  {k:'XS', q:'fldVA9ZmYxhDxtnYZ', x:'fldKcVhxgaclD1csp', b:'XS-XL'},
+  {k:'S',  q:'fldCZr5lB6Jx80lfG', x:'fldgf19Xi1VDqro4Q', b:'XS-XL'},
+  {k:'M',  q:'fldzTs1qKe9IBxxSn', x:'fldWxiQEIFsqwxFW1', b:'XS-XL'},
+  {k:'L',  q:'fldnRLJxjUDa1mQTj', x:'fldclPpJQpcXuT4Wn', b:'XS-XL'},
+  {k:'XL', q:'fldTRgdexcpBXXQPv', x:'fldWjibddJoIC1JGu', b:'XS-XL'},
+  {k:'2XL',q:'fldin7j6uGO0uRTec', x:'fldgd2JZCSS3YBYX2', b:'2XL'},
+  {k:'3XL',q:'fldpltq9fdRkrvIvt', x:'fldbht14x4cRBPRVL', b:'3XL'},
+  {k:'4XL',q:'fldrsci7JnToa43Zd', x:'fldLyB756Va085UDj', b:'4XL'},
+  {k:'5XL',q:'fldchnRSKFukouW6N', x:'fldHZ0WmjhzF34noZ', b:'5XL'},
+  {k:'6XL',q:'fldI8gTtsEJwg33BI', x:null,                b:'6XL'}];
+var BASE_BRACKET='XS-XL', BRACKETS=['XS-XL','2XL','3XL','4XL','5XL','6XL'];
+var BRACKET_COST={'XS-XL':'fld6aEQmg93tBX18h','2XL':'fldv2GCifJ5wCiCyP','3XL':'fldlx8WRqPlslePyS','4XL':'fldxcAIPOhFZnkKO0','5XL':'fldabJR7hUUsrPm6A','6XL':'fldIfIKnwQqwcZW9Y'};
+var BRACKET_UP={'2XL':'fldvseddfE2dsigZ1','3XL':'fld6fTNCf7E6oS17E','4XL':'fldxNe2sNT78KOE67','5XL':'fldllYzKwMdvYorO0','6XL':'fldblQlWFLr8E302P'};
+/* Garments table: Cost + up-charges (quoting in Price-o-Matic reads these) */
+var GAR={name:'fldT4jfh2XV9lERef', cost:'fldRmgDAByrOWcHLO', ssColor:'fldUnCYQgAx8AhsMZ',
+  up:{'2XL':'fldHakcDllb8SFCwz','3XL':'fldEXqJi6mii9bpoJ','4XL':'fldBWmLGzqtjXM0zm','5XL':'fldlF7ZOqCNYr8hi2','6XL':'fldy1xKWETybI1DQT'}};
+/* Reprints tab (from v90) */
+var REPLACEMENT_FIELD='fldEZmyBBJzI4mrOb';
+var RF={resolution:'fld4tW1w8HbBYBJJ0', dmgSizes:'fldfBFFMj0gDIxkXz', dmgTotal:'fldljgGU5m8iybblH', cost:'fldYsSFY81YdvmmhZ', dmgNotes:'fldUDK8YNKNJQT36W'};
+/* @mentions: department accounts are fixed; people are learned from comments on the
+   line items (never written into this public file) and remembered on this computer. */
+var ART_USER='usr8GNzrtN698y03u';
+var DEPT_PEOPLE=[
+  {id:'usr8GNzrtN698y03u', name:'Art Department',        email:'art@pineprintshop.com'},
+  {id:'usriQ9kjDibI4ARAJ', name:'Purchasing Department', email:'purchasing@pineprintshop.com'},
+  {id:'usr70MsrrRWWqET0I', name:'Quality Department',    email:'quality@pineprintshop.com'}];
+/* Bandanas (from v90): Carolina Creative blanks, tier price on the order's total bandana pcs */
+var BANDANA_BRANDS=['carolina creative'];
+function isBandana(g){ return BANDANA_BRANDS.indexOf(normBrand(parseGarment(g).brand))>=0; }
+function bandanaTier(qty){ return qty<300?1.60:(qty<1200?1.50:1.45); }
+
+/* ---- vendor brand lists + product links (from v90) ---- */
+/* ---- S&S product deep-link ----
+   S&S product page: https://www.ssactivewear.com/p/{brandSlug}/{style}
+   Map from S&S's own brand list (slugs aren't always obvious). Also acts as
+   the "S&S carries this brand" gate — no link shown for AS Colour / SLC-only
+   garments. Keys are normalized (lowercase, punctuation stripped). */
+var SS_BRAND_SLUG = {
+  '47 brand':'47_brand','adams headwear':'adams_headwear','adidas':'adidas',
+  'alleson athletic':'alleson_athletic','allpro':'allpro','alpine fleece':'alpine_fleece',
+  'american apparel':'american_apparel','anetik':'anetik',
+  'artisan collection by reprime':'artisan_collection_by_reprime','atlantis headwear':'atlantis_headwear',
+  'augusta':'augusta_sportswear','augusta sportswear':'augusta_sportswear','authentic pigment':'authentic_pigment',
+  'badger':'badger','bagedge':'bagedge','bayside':'bayside',
+  'bella':'bella','bella canvas':'bella','bella + canvas':'bella','bellacanvas':'bella',
+  'berne apparel':'berne_apparel','big accessories':'big_accessories','boxercraft':'boxercraft',
+  'bulwark':'bulwark','c2 sport':'c2_sport','carmel towel company':'carmel_towel_company',
+  'champion':'champion','chef designs':'chef_designs','classic caps':'classic_caps','code five':'code_five',
+  'colortone':'colortone','columbia':'columbia','comfort colors':'comfort_colors',
+  'comfortwash':'comfortwash_by_hanes','comfortwash by hanes':'comfortwash_by_hanes','core365':'core365',
+  'devon jones':'devon_jones','devon and jones':'devon_jones','dickies':'dickies','doggie skins':'doggie_skins',
+  'dri duck':'dri_duck','econscious':'econscious','fairway greene':'fairway_and_greene',
+  'flexfit':'flexfit','gildan':'gildan','hanes':'hanes','harriton':'harriton','holloway':'holloway','huk':'huk',
+  'imperial':'imperial','independent trading':'independent_trading_co','independent trading co':'independent_trading_co',
+  'infinity her':'infinity_her','j america':'j_america','jaanuu':'jaanuu','jerzees':'jerzees',
+  'kastlfel':'kastlfel','kati':'kati','kishigo':'kishigo','lane seven':'lane_seven',
+  'lat':'lat_sportswear','lat apparel':'lat_sportswear','legacy':'legacy','liberty bags':'liberty_bags',
+  'locale':'locale','los angeles apparel':'los_angeles_apparel','mo':'m_o','m o':'m_o','marmot':'marmot',
+  'meret':'meret','mv sport':'mv_sport','nautica':'nautica','next level':'next_level','next level apparel':'next_level',
+  'ninja transfers':'ninja_transfers','nomadix':'nomadix','north end':'north_end','oad':'oad','oakley':'oakley',
+  'onna':'onna','outdoor cap':'outdoor_cap','paragon':'paragon','pukka':'pukka','puma golf':'puma_golf',
+  'qtees':'q_tees','q tees':'q_tees','rabbit skins':'rabbit_skins','realtree':'realtree','recover':'recover',
+  'red kap':'red_kap','richardson':'richardson','russell athletic':'russell_athletic','shaka wear':'shaka_wear',
+  'shaka':'shaka_wear','softshirts':'softshirts','sportsman':'sportsman','spyder':'spyder','sublivie':'sublivie',
+  'swannies':'swannies','tasc performance inc':'tasc_performance_inc','tasc':'tasc_performance_inc',
+  'team 365':'team_365','the game':'the_game','threadfast':'threadfast_apparel','threadfast apparel':'threadfast_apparel',
+  'top of the world':'top_of_the_world','tridri':'tri_dri','tultex':'tultex','ultraclub':'ultraclub',
+  'under armour':'under_armour','unionwear':'unionwear','us blanks':'us_blanks','valucap':'valucap',
+  'vineyard vines':'vineyard_vines','weatherproof':'weatherproof','yp classics':'yp_classics','zero restriction':'zero_restriction'
+};
+function normBrand(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim(); }
+/* parse "{Brand} {Style} - {Color}" -> {brand, style} */
+function parseGarment(name){
+  var s = String(name||'').split(' - ')[0].trim();   // drop color
+  var toks = s.split(/\s+/);
+  if(toks.length<2) return {brand:'', style:toks[0]||''};
+  var style = toks[toks.length-1];
+  var brand = toks.slice(0,-1).join(' ');
+  return {brand:brand, style:style};
+}
+
+/* ---- other vendors carry many of the same brands; gate jump pills by brand ----
+   S&S = exact product page (best). AS Colour / SLC / Sanmar = style search
+   ("land on results"). Search URLs flagged for a quick browser check — a wrong
+   search path is a harmless miss, not a 404, and a one-line fix here. */
+function setOf(list){ var m={}; list.forEach(function(k){ m[k]=true; }); return m; }
+var SLC_BRANDS = setOf(['atlantis headwear','bella canvas','burnside','cap america','classic caps',
+  'code v','comfort colors','decky','doggie skins','dri duck','dyenomite','flexfit','yupoong','gildan',
+  'imperial','independent trading','infinity her','kati','lat','legacy','mega cap','next level',
+  'outdoor cap','peter grimm','qtees','q tees','rabbit skins','richardson','shaka','shaka wear',
+  'sierra pacific','sportsman','sublivie','the game','valucap']);
+var SANMAR_BRANDS = setOf(['port company','port authority','sport tek','district','new era','nike','ogio',
+  'eddie bauer','carhartt','the north face','gildan','hanes','jerzees','bella canvas','next level',
+  'comfort colors','allmade','champion','fruit of the loom','anvil','alternative',
+  'cornerstone','red house','rabbit skins','volunteer knitwear','tultex','russell athletic','red kap','bulwark']);
+
+/* returns [{label, url, primary}] for every top-4 vendor that carries this brand */
+function vendorJumps(garment){
+  var p = parseGarment(garment);
+  if(!p.style) return [];
+  var bn = normBrand(p.brand), style = p.style, out = [];
+  if(SS_BRAND_SLUG[bn]) out.push({ label:'S&S', primary:true,
+    url:'https://www.ssactivewear.com/p/'+SS_BRAND_SLUG[bn]+'/'+encodeURIComponent(style.toLowerCase()) });
+  if(bn==='as colour' || bn==='ascolour') out.push({ label:'AS Colour', primary:false,
+    url:'https://ascolour.com/search.php?search_query='+encodeURIComponent(style) });
+  if(SLC_BRANDS[bn]) out.push({ label:'SLC', primary:false,
+    url:'https://slcactivewear.com/search.html?query='+encodeURIComponent(p.brand+' '+style) });
+  if(SANMAR_BRANDS[bn]) out.push({ label:'Sanmar', primary:false,
+    url:'https://www.sanmar.com/search/?text='+encodeURIComponent(p.brand+' '+style) });
+  return out;
+}
+
+/* ============ STATE ============ */
+var TOKEN=lsGet('pine_at_key')||'';
+var TODAY=new Date(); TODAY.setHours(0,0,0,0);
+var WAREHOUSES=[], ORDERS=[], REPRINTS=[], S={}, CUR=null, DONE=[], TAB='order';
+var GARMENTS={};          // garment record id -> {name, cost, up:{bk}, ssColor}
+var LIVE={};              // line id -> {vendor: {c:{bk:price}, note, exact}} once fetched
+var LIVE_REQ={};          // style-level request cache
+var PEOPLE=loadPeople();
+var CART_KEY='pine_purch_v91_cart', PLOG_KEY='pine_purch_v91_pricelog';
+
+/* ============ HELPERS ============ */
+function $(id){ return document.getElementById(id); }
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function lsJSON(k,d){ try{ var v=JSON.parse(lsGet(k)||'null'); return v==null?d:v; }catch(e){ return d; } }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function flat(v){
+  if(v==null) return null;
+  if(Array.isArray(v)) return v.length?flat(v[0]):null;
+  if(typeof v==='object'){
+    if(v.valuesByLinkedRecordId){ var ks=Object.keys(v.valuesByLinkedRecordId); return ks.length?flat(v.valuesByLinkedRecordId[ks[0]]):null; }
+    if('name' in v) return v.name;
+    if('id' in v) return v.id;
+  }
+  return v;
+}
+function num(v){ var n=parseFloat(flat(v)); return isNaN(n)?0:n; }
+function linkIds(v){ return Array.isArray(v)?v.map(function(a){ return typeof a==='string'?a:(a&&a.id)||''; }).filter(Boolean):[]; }
+function money(n){ return '$'+(+n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+function dOnly(s){ if(!s) return null; var x=new Date(String(s).length<=10?s+'T12:00:00':s); if(isNaN(x)) return null; x.setHours(0,0,0,0); return x; }
+function fmtD(dt){ return dt?dt.toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'}):'—'; }
+function addBiz(dt,n){ var x=new Date(dt); while(n>0){ x.setDate(x.getDate()+1); if(x.getDay()%6) n--; } return x; }
+function bizBetween(a,b){ var n=0,x=new Date(a); while(x<b){ x.setDate(x.getDate()+1); if(x.getDay()%6) n++; } return n; }
+function sum(q){ var t=0; for(var k in q) t+=(+q[k]||0); return t; }
+function brandOf(name){ return String(name||'').split(' - ')[0].trim(); }
+function colorOf(g){ return String(g||'').split(' - ').slice(1).join(' - ').trim(); }
+function sizeLabel(k){ return k==='OS'?'OSFA':k; }
+function bracketOfSize(k){ for(var i=0;i<SIZE_DEFS.length;i++) if(SIZE_DEFS[i].k===k) return SIZE_DEFS[i].b; return BASE_BRACKET; }
+function prRank(p){ p=String(p||''); if(/hard/i.test(p))return 0; if(/asap/i.test(p))return 1; return 2; }
+function todayPO(){ function z(n){return (n<10?'0':'')+n;} return z(TODAY.getMonth()+1)+z(TODAY.getDate())+String(TODAY.getFullYear()).slice(2); }
+function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(function(){t.classList.remove('show');},2800); }
+function proofUrls(v){
+  if(Array.isArray(v)&&v.length){ var a=v[0], t=a.thumbnails||{};
+    return { thumb:(t.large&&t.large.url)||(t.small&&t.small.url)||'', big:(t.full&&t.full.url)||(t.large&&t.large.url)||'', raw:a.url||'', isImg:/^image\//.test(a.type||'') }; }
+  return null;
+}
+
+/* ============ AIRTABLE ============ */
+function atUrl(tbl,qs){ return 'https://api.airtable.com/v0/'+BASE+'/'+tbl+'?returnFieldsByFieldId=true'+(qs?'&'+qs:''); }
+function fieldsParam(ids){ return ids.map(function(f){ return 'fields%5B%5D='+f; }).join('&'); }
+async function atFetchAll(tbl,qs){
+  var out=[], offset=null, guard=0;
+  do{ var r=await fetch(atUrl(tbl, qs+(offset?'&offset='+encodeURIComponent(offset):'')), {headers:{Authorization:'Bearer '+TOKEN}});
+    if(!r.ok){ var t=''; try{t=await r.text();}catch(e){} throw new Error('Airtable '+r.status+' on '+tbl+' '+t.slice(0,160)); }
+    var d=await r.json(); out=out.concat(d.records||[]); offset=d.offset||null; guard++;
+  } while(offset && guard<40);
+  return out;
+}
+async function atSend(method,url,body,label){
+  if(!WRITES_ENABLED){ console.log('PRACTICE would '+method, label||url, JSON.stringify(body).slice(0,600)); return {preview:true}; }
+  var r=await fetch(url,{method:method, headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  if(!r.ok){ var t=''; try{t=await r.text();}catch(e){} throw new Error(method+' '+r.status+' '+t.slice(0,240)); }
+  return r.json();
+}
+function atPatch(tbl,id,fields){ return atSend('PATCH','https://api.airtable.com/v0/'+BASE+'/'+tbl+'/'+id,{fields:fields},tbl+'/'+id); }
+async function atPatchMany(tbl,records){ for(var i=0;i<records.length;i+=10) await atSend('PATCH','https://api.airtable.com/v0/'+BASE+'/'+tbl,{records:records.slice(i,i+10)},tbl+' ×'+records.slice(i,i+10).length); }
+function atComment(recId,text){ return atSend('POST','https://api.airtable.com/v0/'+BASE+'/'+T_LI+'/'+recId+'/comments',{text:text},'comment on '+recId); }
+async function namesById(tbl,fld,ids){
+  var uniq=ids.filter(function(v,i,a){ return v && a.indexOf(v)===i; }), map={};
+  for(var i=0;i<uniq.length;i+=40){
+    var f='OR('+uniq.slice(i,i+40).map(function(id){ return "RECORD_ID()='"+id+"'"; }).join(',')+')';
+    (await atFetchAll(tbl,'filterByFormula='+encodeURIComponent(f)+'&pageSize=100&'+fieldsParam([fld]))).forEach(function(r){ map[r.id]=(r.cellValuesByFieldId||r.fields||{})[fld]||''; });
+  }
+  return map;
+}
+
+/* ============ WAREHOUSES: vendor + location -> UPS Ground estimate ============ */
+var SHOP_LL=[40.585,-105.084];   // Fort Collins 80524
+var CITY_LL={'ft. worth,tx':[32.75,-97.33],'fort worth,tx':[32.75,-97.33],'dallas,tx':[32.78,-96.80],'reno,nv':[39.53,-119.81],
+  'olathe,ks':[38.88,-94.82],'lockport,il':[41.59,-88.06],'bolingbrook,il':[41.70,-88.07],'fresno,ca':[36.74,-119.79],
+  'west chester,oh':[39.33,-84.41],'mcdonough,ga':[33.45,-84.15],'duluth,ga':[34.00,-84.14],'reading,pa':[40.34,-75.93],
+  'orlando,fl':[28.54,-81.38],'middleboro,ma':[41.89,-70.91],'salt lake city,ut':[40.76,-111.89],'phoenix,az':[33.45,-112.07],
+  'seattle,wa':[47.61,-122.33],'minneapolis,mn':[44.98,-93.27],'cincinnati,oh':[39.10,-84.51],'cinncinnati,oh':[39.10,-84.51],
+  'jacksonville,fl':[30.33,-81.66],'robbinsville,nj':[40.21,-74.62],'richmond,va':[37.54,-77.44],'las vegas,nv':[36.17,-115.14],
+  'northeast,md':[39.60,-75.94],'sugar land,tx':[29.62,-95.63],'memphis,tn':[35.15,-90.05],'houston,tx':[29.76,-95.37],
+  'gastonia,nc':[35.26,-81.19],'kansas city,ks':[39.11,-94.63],'spanish fork,ut':[40.11,-111.65],'sidney,oh':[40.28,-84.16],
+  'coburg,or':[44.14,-123.07],'eden,nc':[36.49,-79.77],'scope,tx':[29.76,-95.37]};
+function whLL(name){
+  if(/^as colou?r\s*-\s*ca\b/i.test(name)) return [33.87,-118.21];
+  if(/^as colou?r\s*-\s*nc\b/i.test(name)) return [35.23,-80.84];
+  var m=/-\s*([^,()-]+),\s*([A-Za-z]{2})\b/.exec(name); if(!m) return null;
+  return CITY_LL[m[1].trim().toLowerCase()+','+m[2].toLowerCase()]||null;
+}
+function whVendor(name){ var n=String(name).toLowerCase();
+  if(/^s&s|^ss activewear/.test(n)) return 'S&S'; if(/^sanmar/.test(n)) return 'SanMar'; if(/^slc/.test(n)) return 'SLC';
+  if(/^as colou?r/.test(n)) return 'AS Colour'; if(/carolina creative/.test(n)) return 'Carolina Creative'; return brandOf(name); }
+function miles(a,b){ var r=Math.PI/180, h=Math.pow(Math.sin((b[0]-a[0])*r/2),2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.pow(Math.sin((b[1]-a[1])*r/2),2); return 3959*2*Math.asin(Math.sqrt(h)); }
+function upsDays(ll){ if(!ll) return null; var m=miles(SHOP_LL,ll); return m<250?1:m<750?2:m<1150?3:4; }
+function shortWh(w){ return w?w.name.replace(' Activewear',''):'(none)'; }
+function whById(id){ for(var i=0;i<WAREHOUSES.length;i++) if(WAREHOUSES[i].id===id) return WAREHOUSES[i]; return null; }
+async function loadSuppliers(){
+  var recs=await atFetchAll(T_SUP, fieldsParam(['fldsLqqLgIySfvNNg'])+'&pageSize=100');
+  WAREHOUSES=recs.map(function(r){ var f=r.cellValuesByFieldId||r.fields||{}, name=f['fldsLqqLgIySfvNNg']||'', ll=whLL(name);
+      return {id:r.id, name:name, brand:brandOf(name), vendor:whVendor(name), ll:ll, days:upsDays(ll), mi:ll?Math.round(miles(SHOP_LL,ll)):null}; })
+    .filter(function(w){ return w.name && EXCLUDE_BRANDS.indexOf(w.brand)<0; })
+    .sort(function(a,b){ return a.name.localeCompare(b.name); });
+}
+/* the vendors that carry this garment (brand lists from v90) */
+function carrierVendors(l){
+  if(isBandana(l.garment)) return ['Carolina Creative'];
+  return vendorJumps(l.garment).map(function(j){ return j.label==='Sanmar'?'SanMar':j.label; });
+}
+function arrival(w,o){
+  if(!w) return null;
+  if(w.days==null) return {cls:'unk', txt:'add location for ship time'};
+  var a=addBiz(TODAY,w.days), pr=o.printAt||o.dueD;
+  if(!pr) return {cls:'ok', date:a, txt:'arrives '+fmtD(a)};
+  var gap=bizBetween(a,pr), cls=a>=pr?'late':gap<=1?'tight':'ok';
+  return {cls:cls, date:a, txt:'arrives '+fmtD(a)+(cls==='late'?' · after print day':cls==='tight'?' · tight':'')};
+}
+
+/* ============ LOAD ============ */
+var LI_FIELDS=[F.name,F.garmentLink,F.cust,F.orderNum,F.due,F.priority,F.status,F.ptype,F.proof,F.garmentCost,F.supplier,F.po,
+  F.ordered,F.freight,F.rep,F.printAt,F.ship,F.imprints]
+  .concat(NOTE_FIELDS.map(function(n){return n.fld;}))
+  .concat(SIZE_DEFS.map(function(s){return s.q;})).concat(SIZE_DEFS.map(function(s){return s.x;}).filter(Boolean))
+  .concat(BRACKETS.map(function(b){return BRACKET_COST[b];})).concat(Object.keys(BRACKET_UP).map(function(b){return BRACKET_UP[b];}));
+async function loadAll(){
+  paintTok(); paintMode();
+  if(!TOKEN){ $('orders').innerHTML='<div class="msg err">No Airtable token — click <b>Token</b> at the top right.</div>'; $('order').innerHTML=''; return; }
+  $('orders').innerHTML='<div class="msg">Loading orders…</div>';
+  try{
+    await loadSuppliers();
+    await loadLineItems();
+    restoreCart();
+    if(!ORDERS.some(function(o){return o.num===CUR;})) CUR=ORDERS.length?ORDERS[0].num:null;
+    renderAll();
+    prefetchLive();
+  }catch(e){ $('orders').innerHTML='<div class="msg err">'+esc(e.message||e)+'</div>'; }
+}
+async function loadLineItems(){
+  var recs=await atFetchAll(T_LI,'view='+RFO_VIEW+'&pageSize=100&'+fieldsParam(LI_FIELDS));
+  var groups={}, gids=[], iids=[];
+  recs.forEach(function(r){
+    var f=r.cellValuesByFieldId||r.fields||{};
+    var qty={}; SIZE_DEFS.forEach(function(s){ var q=num(f[s.q]); if(q>0) qty[s.k]=q; });
+    if(!Object.keys(qty).length) return;
+    var gid=linkIds(f[F.garmentLink])[0]||'', imp=linkIds(f[F.imprints])[0]||'';
+    var l={ id:r.id, ref:String(flat(f[F.name])||'').replace(/^"+|"+$/g,''), garmentId:gid, garment:'', imprintId:imp, imp:'',
+      qty:qty, proof:proofUrls(f[F.proof]), suppliers:linkIds(f[F.supplier]), po:flat(f[F.po])||'', ordered:!!flat(f[F.ordered]),
+      freight:(f[F.freight]!=null&&f[F.freight]!=='')?num(f[F.freight]):null, onfile:{}, savedCost:{}, savedExtras:{}, notes:{}, rawOrderNotes:'' };
+    var base=(f[F.garmentCost]!=null)?num(f[F.garmentCost]):null;
+    BRACKETS.forEach(function(b){ if(base!=null) l.onfile[b]=base+(b===BASE_BRACKET?0:num(f[BRACKET_UP[b]])); var c=f[BRACKET_COST[b]]; if(c!=null&&c!=='') l.savedCost[b]=num(c); });
+    SIZE_DEFS.forEach(function(s){ if(s.x){ var x=num(f[s.x]); if(x>0) l.savedExtras[s.k]=x; } });
+    NOTE_FIELDS.forEach(function(n){ var v=flat(f[n.fld]); if(v) l.notes[n.k]=String(v); });
+    l.rawOrderNotes=l.notes.order||'';
+    var six=/6X extras:\s*(\d+)/i.exec(l.rawOrderNotes); if(six) l.savedExtras['6XL']=parseInt(six[1],10);
+    l.notes.order=userNotes(l.rawOrderNotes); if(!l.notes.order) delete l.notes.order;
+    var num_=String(flat(f[F.orderNum])||'');
+    var o=groups[num_]||(groups[num_]={num:num_, cust:flat(f[F.cust])||'', due:flat(f[F.due])||'', pri:flat(f[F.priority])||'',
+      rep:flat(f[F.rep])||'', ship:flat(f[F.ship])||'', printAt:null, lines:[]});
+    var pa=dOnly(flat(f[F.printAt])); if(pa && (!o.printAt || pa<o.printAt)) o.printAt=pa;
+    o.lines.push(l); if(gid) gids.push(gid); if(imp) iids.push(imp);
+  });
+  ORDERS=Object.keys(groups).map(function(k){ var o=groups[k]; o.dueD=dOnly(o.due); return o; })
+    .sort(function(a,b){ return String(a.due||'9').localeCompare(String(b.due||'9')) || prRank(a.pri)-prRank(b.pri) || a.num.localeCompare(b.num); });
+  await loadGarments(gids);
+  var imap=await namesById(T_IMP,'fldDFfwFQ9B20n2kT',iids);
+  S={};
+  ORDERS.forEach(function(o){ o.lines.forEach(function(l){ var g=GARMENTS[l.garmentId]; l.garment=(g&&g.name)||l.ref||'Garment'; l.imp=imap[l.imprintId]||''; seed(l); }); });
+  // bandana tier price, on the order's total bandana pieces (v90 rule)
+  ORDERS.forEach(function(o){ var ban=o.lines.filter(function(l){ return isBandana(l.garment); }); if(!ban.length) return;
+    var tot=ban.reduce(function(a,l){ return a+sum(l.qty); },0), p=bandanaTier(tot);
+    ban.forEach(function(l){ var st=S[l.id]; st.bandana=tot; if(l.savedCost[BASE_BRACKET]==null) st.cost[BASE_BRACKET]=p; }); });
+}
+async function loadGarments(ids){
+  var uniq=ids.filter(function(v,i,a){ return v && a.indexOf(v)===i && !GARMENTS[v]; });
+  var fl=[GAR.name,GAR.cost,GAR.ssColor].concat(Object.keys(GAR.up).map(function(b){return GAR.up[b];}));
+  for(var i=0;i<uniq.length;i+=40){
+    var f='OR('+uniq.slice(i,i+40).map(function(id){ return "RECORD_ID()='"+id+"'"; }).join(',')+')';
+    (await atFetchAll(T_GAR,'filterByFormula='+encodeURIComponent(f)+'&pageSize=100&'+fieldsParam(fl))).forEach(function(r){
+      var g=r.cellValuesByFieldId||r.fields||{}, up={}; Object.keys(GAR.up).forEach(function(b){ up[b]=num(g[GAR.up[b]]); });
+      GARMENTS[r.id]={name:g[GAR.name]||'', cost:(g[GAR.cost]!=null)?num(g[GAR.cost]):null, up:up, ssColor:g[GAR.ssColor]||''}; });
+  }
+}
+/* Order Notes keeps two app-managed lines ("6X extras: …", "Split: …"); the notes box shows the rest */
+function isManaged(line){ return /^\s*(6X extras:|Split:)/i.test(line); }
+function userNotes(s){ return String(s||'').split('\n').filter(function(x){ return !isManaged(x); }).join('\n').trim(); }
+function seed(l){
+  var cost={}; BRACKETS.forEach(function(b){ cost[b]=l.savedCost[b]!=null?l.savedCost[b]:(l.onfile[b]!=null?+l.onfile[b].toFixed(2):null); });
+  S[l.id]={ extras:Object.assign({},l.savedExtras), allocs:[{wh:l.suppliers[0]||null, q:null}], cost:cost, typed:false, autoCost:false,
+    status:l.ordered?'ordered':'open', po:l.po, freight:l.freight, notes:Object.assign({},l.notes), saved:{}, open:null, issue:'', issueTo:'', placed:{}, bandana:0 };
+}
+/* in-progress carts survive a reload (this computer only) */
+function saveCart(){ var c={}; Object.keys(S).forEach(function(id){ var st=S[id]; if(st.status==='cart'||st.touched) c[id]={status:st.status, allocs:st.allocs, extras:st.extras, cost:st.cost, typed:st.typed, autoCost:st.autoCost, placed:st.placed, po:st.po}; }); lsSet(CART_KEY,JSON.stringify(c)); }
+function restoreCart(){ var c=lsJSON(CART_KEY,{});
+  Object.keys(c).forEach(function(id){ var st=S[id], x=c[id]; if(!st || st.status==='ordered') return;
+    st.allocs=x.allocs||st.allocs; st.extras=x.extras||st.extras; if(x.typed||x.autoCost) st.cost=x.cost||st.cost; st.typed=!!x.typed; st.autoCost=!!x.autoCost;
+    st.placed=x.placed||{}; if(x.status==='cart'){ st.status='cart'; if(x.po) st.po=x.po; } st.touched=true; });
+  saveCart(); }
+function touch(id){ S[id].touched=true; saveCart(); }
+
+/* ============ LINE HELPERS ============ */
+function allLines(){ var a=[]; ORDERS.forEach(function(o){ o.lines.forEach(function(l){ a.push(l); }); }); return a; }
+function orderOf(id){ for(var i=0;i<ORDERS.length;i++) for(var j=0;j<ORDERS[i].lines.length;j++) if(ORDERS[i].lines[j].id===id) return ORDERS[i]; return null; }
+function lineById(id){ var o=orderOf(id); return o?o.lines.filter(function(l){return l.id===id;})[0]:null; }
+function sizesOf(l){ return SIZE_DEFS.map(function(s){return s.k;}).filter(function(k){ return l.qty[k]; }); }
+function bracketsOf(l){ var b=[]; sizesOf(l).forEach(function(k){ var x=bracketOfSize(k); if(b.indexOf(x)<0) b.push(x); }); return BRACKETS.filter(function(x){ return b.indexOf(x)>=0; }); }
+function want(l){ var st=S[l.id], out={}; sizesOf(l).forEach(function(k){ out[k]=(l.qty[k]||0)+(+st.extras[k]||0); }); return out; }
+function allocQty(l){ var st=S[l.id], rest=Object.assign({},want(l)), res=[];
+  st.allocs.forEach(function(a,i){ if(i===0) return; var q={}; for(var k in a.q){ var n=Math.min(+a.q[k]||0,rest[k]||0); if(n){ q[k]=n; rest[k]-=n; } } res[i]=q; });
+  res[0]=rest; return res; }
+function lineAmount(l,q){ var st=S[l.id], t=0; for(var k in q){ t+=q[k]*(+st.cost[bracketOfSize(k)]||0); } return Math.round(t*100)/100; }
+function qtxt(q){ return SIZE_DEFS.map(function(s){return s.k;}).filter(function(k){return q[k];}).map(function(k){return sizeLabel(k)+' '+q[k];}).join(', ')||'nothing'; }
+
+/* ============ LIVE VENDOR PRICES (same worker routes Price-o-Matic uses) ============
+   S&S /products -> customerPrice · SanMar /sanmar/pricing -> myPrice (includes sales) ·
+   AS Colour /ascolour/catalog/pricelist (contract price by SKU). Price = this exact color. */
+var SIZE_NORM={XXL:'2XL',XXXL:'3XL',XXXXL:'4XL','2X':'2XL','3X':'3XL','4X':'4XL','5X':'5XL','6X':'6XL','ONE SIZE':'OS',OSFA:'OS',OSFM:'OS'};
+function normSize(s){ s=String(s||'').toUpperCase().trim(); return SIZE_NORM[s]||s; }
+function colorKey(s){ return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+function tiersFor(rows,color){
+  var ck=colorKey(color), use=rows.filter(function(r){ return colorKey(r.color)===ck; }), exact=true;
+  if(!use.length && ck) use=rows.filter(function(r){ var k=colorKey(r.color); return k && (k.indexOf(ck)===0||ck.indexOf(k)===0); });
+  if(!use.length){ use=rows; exact=false; }
+  var c={}, note='';
+  use.forEach(function(r){ var p=+r.price; if(!(p>0)) return; var b=bracketOfSize(normSize(r.size)); if(c[b]==null||p<c[b]){ c[b]=p; if(b===BASE_BRACKET) note=r.note||''; } });
+  return c[BASE_BRACKET]!=null?{c:c, exact:exact, note:note}:null;
+}
+function once(key,fn){ return LIVE_REQ[key]||(LIVE_REQ[key]=fn().catch(function(e){ console.warn('[live price]',key,e.message); return null; })); }
+function ssRows(brand,style){ return once('ss|'+brand+'|'+style, async function(){
+  var fl='styleName,brandName,sizeName,colorName,customerPrice,piecePrice';
+  var r=await fetch(PROXY+'/products/?style='+encodeURIComponent(style)+'&fields='+fl), d=await r.json();
+  if(!Array.isArray(d)) return null;
+  var nb=normBrand(brand), mine=d.filter(function(p){ var b=normBrand(p.brandName); return b===nb || (b && (b.indexOf(nb)>=0||nb.indexOf(b)>=0)); });
+  return mine.map(function(p){ return {color:p.colorName, size:p.sizeName, price:p.customerPrice||p.piecePrice}; }); }); }
+var SANMAR_HOUSE=/^(port (and |& )?co(mpany)?|port authority|district|sport ?tek)$/;
+function sanmarCode(brand,style){ var b=normBrand(brand), s=String(style).toUpperCase();
+  if(SANMAR_HOUSE.test(b)) return s; if(b==='bella canvas') return s.indexOf('BC')===0?s:'BC'+s; return null; }   // only codes verified in Price-o-Matic
+function sanmarRows(code){ return once('sm|'+code, async function(){
+  var d=await (await fetch(PROXY+'/sanmar/pricing?style='+encodeURIComponent(code))).json();
+  if(!d||!d.ok||!Array.isArray(d.items)) return null;
+  return d.items.map(function(it){ var p=Number(it.myPrice)||Number(it.casePrice)||0, sale=it.salePrice!=null&&Number(it.salePrice)===p&&it.saleEndDate;
+    return {color:it.color, size:it.size, price:p, note:sale?'sale thru '+new Date(it.saleEndDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}; }); }); }
+function ascPricelist(){ return once('asc|pricelist', async function(){
+  var c=lsJSON('pine_asc_pricelist_v1',null); if(c && c.ts && Date.now()-c.ts<864e5 && c.map) return c.map;   // shared with Price-o-Matic
+  var map={}; for(var page=1;page<=80;page++){ var r=await fetch(PROXY+'/ascolour/catalog/pricelist?pageSize=250&pageNumber='+page); if(!r.ok) throw new Error('AS Colour '+r.status);
+    var rows=((await r.json())||{}).data||[]; rows.forEach(function(x){ if(x.sku&&x.price!=null) map[String(x.sku).toUpperCase()]=Number(x.price); }); if(rows.length<250) break; }
+  lsSet('pine_asc_pricelist_v1',JSON.stringify({ts:Date.now(),map:map})); return map; }); }
+function ascRows(code){ return once('asc|'+code, async function(){
+  var pl=await ascPricelist(); if(!pl) return null; var out=[];
+  for(var page=1;page<=10;page++){ var r=await fetch(PROXY+'/ascolour/catalog/products/'+encodeURIComponent(code)+'/variants?pageSize=250&pageNumber='+page); if(!r.ok) break;
+    var rows=((await r.json())||{}).data||[]; rows.forEach(function(v){ if(!v.discontinued) out.push({color:v.colour, size:v.sizeCode, price:pl[String(v.sku||'').toUpperCase()]}); }); if(rows.length<250) break; }
+  return out; }); }
+async function fetchLive(l){
+  if(LIVE[l.id]) return LIVE[l.id];
+  var p=parseGarment(l.garment), color=(GARMENTS[l.garmentId]&&GARMENTS[l.garmentId].ssColor)||colorOf(l.garment), vs=carrierVendors(l), out={}, jobs=[];
+  if(!p.style){ LIVE[l.id]=out; return out; }
+  if(vs.indexOf('S&S')>=0) jobs.push(ssRows(p.brand,p.style).then(function(rows){ if(rows&&rows.length){ var t=tiersFor(rows,color); if(t) out['S&S']=t; } }));
+  var smc=sanmarCode(p.brand,p.style);
+  if(smc) jobs.push(sanmarRows(smc).then(function(rows){ if(rows&&rows.length){ var t=tiersFor(rows,colorOf(l.garment)); if(t) out['SanMar']=t; } }));
+  if(vs.indexOf('AS Colour')>=0) jobs.push(ascRows(p.style).then(function(rows){ if(rows&&rows.length){ var t=tiersFor(rows,colorOf(l.garment)); if(t) out['AS Colour']=t; } }));
+  await Promise.all(jobs); LIVE[l.id]=out; applyLiveDefault(l); return out;
+}
+/* warehouse already set in Airtable, nothing typed or saved yet -> start from that vendor's live price */
+function applyLiveDefault(l){ var st=S[l.id], w=st.allocs[0].wh&&whById(st.allocs[0].wh);
+  if(!w || st.typed || st.bandana || st.status!=='open' || l.savedCost[BASE_BRACKET]!=null) return;
+  var lp=livePrice(l,w.vendor); if(!lp) return;
+  bracketsOf(l).forEach(function(b){ if(lp.c[b]!=null) st.cost[b]=lp.c[b]; }); st.autoCost=true; }
+async function prefetchLive(){
+  var ls=allLines().filter(function(l){ return S[l.id].status!=='ordered' && !LIVE[l.id]; }), i=0;
+  async function worker(){ while(i<ls.length){ var l=ls[i++]; await fetchLive(l); if(CUR===orderOf(l.id).num) refreshLine(l.id); renderOrders(); } }
+  await Promise.all([worker(),worker(),worker()]);
+}
+function livePrice(l,vendor){ var v=LIVE[l.id]; return v&&v[vendor]?v[vendor]:null; }
+/* flag only when every vendor with a live price is above Airtable */
+function priceUp(l){ var v=LIVE[l.id], f=l.onfile[BASE_BRACKET]; if(!v||f==null||S[l.id].bandana) return null; var ks=Object.keys(v); if(!ks.length) return null;
+  if(ks.some(function(k){ return v[k].c[BASE_BRACKET]<=f+0.004; })) return null;
+  var best=null; ks.forEach(function(k){ if(!best||v[k].c[BASE_BRACKET]<best.p) best={vendor:k,p:v[k].c[BASE_BRACKET]}; }); return best; }
+
+/* ============ RENDER: ORDERS ============ */
+function renderOrders(){
+  var open=ORDERS.filter(function(o){ return o.lines.some(function(l){ return S[l.id].status!=='ordered'; }); }).length;
+  $('o-n').textContent=open+' to order';
+  if(!ORDERS.length){ $('orders').innerHTML='<div class="msg">Nothing in Apparel RFO right now.</div>'; return; }
+  var lastDue=null, h='';
+  ORDERS.forEach(function(o){
+    if(o.due!==lastDue){ lastDue=o.due; h+='<div class="duehdr">Due '+(o.dueD?fmtD(o.dueD):'—')+'</div>'; }
+    var n=o.lines.length, ord=o.lines.filter(function(l){return S[l.id].status==='ordered';}).length, cart=o.lines.filter(function(l){return S[l.id].status==='cart';}).length;
+    var pri=/hard/i.test(o.pri)?'<span class="tag hard">Hard Deadline</span>':/asap/i.test(o.pri)?'<span class="tag asap">ASAP</span>':'';
+    var st=ord===n?'<span class="tag ok">✓ Ordered</span>':cart||ord?'<span class="tag cart">'+(cart+ord)+'/'+n+' in cart</span>':'';
+    if(o.lines.some(function(l){ return S[l.id].status!=='ordered' && priceUp(l); })) st+='<span class="tag hard">Price ↑</span>';
+    h+='<button class="ord'+(CUR===o.num?' on':'')+(ord===n?' done':'')+'" onclick="openOrder(\''+esc(o.num)+'\')">'
+      +'<div class="r1"><span class="num">'+esc(o.num)+'</span><span class="cust">'+esc(o.cust)+'</span></div>'
+      +'<div class="r2">'+pri+(o.printAt?'<span class="tag grey">Prints '+fmtD(o.printAt)+'</span>':'')+st+'<span class="prog">'+n+' line'+(n>1?'s':'')+'</span></div></button>';
+  });
+  $('orders').innerHTML=h;
+}
+function openOrder(num){ CUR=num; renderOrders(); renderOrder(); $('order').scrollTop=0;
+  var o=ORDERS.filter(function(x){return x.num===num;})[0]; if(o) o.lines.forEach(function(l){ if(!LIVE[l.id]) fetchLive(l).then(function(){ refreshLine(l.id); renderOrders(); }); }); }
+
+/* ============ RENDER: THIS ORDER ============ */
+function renderOrder(){
+  var o=ORDERS.filter(function(x){return x.num===CUR;})[0];
+  if(!o){ $('order').innerHTML='<h2>This order</h2><div class="empty">Pick an order on the left.</div>'; return; }
+  var pri=/hard/i.test(o.pri)?'<span class="tag hard">Hard Deadline</span>':/asap/i.test(o.pri)?'<span class="tag asap">ASAP</span>':'';
+  var nn=0; o.lines.forEach(function(l){ for(var k in S[l.id].notes) if(S[l.id].notes[k]) nn++; });
+  var h='<h2>This order</h2><div class="ohead"><div class="cust">'+esc(o.cust)+'</div><div class="num">'+esc(o.num)+'</div>'
+    +'<div class="facts">'+pri+'<span>Due <b>'+(o.dueD?fmtD(o.dueD):'—')+'</b></span>'+(o.printAt?'<span class="printd">Prints '+fmtD(o.printAt)+'</span>':'')
+    +(o.rep?'<span>Sales <b>'+esc(o.rep)+'</b></span>':'')+(o.ship?'<span>Ships <b>'+esc(o.ship)+'</b></span>':'')+'</div>'
+    +(nn?'<div class="notes"><div class="note"><b>'+nn+' note'+(nn>1?'s':'')+'</b>on this order — see the lines below</div></div>':'')
+    +bandanaAllHtml(o)+'</div>';
+  var RANK={open:0,cart:1,ordered:2};
+  o.lines.map(function(l,i){return {l:l,i:i};}).sort(function(a,b){ return RANK[S[a.l.id].status]-RANK[S[b.l.id].status] || a.i-b.i; })
+    .forEach(function(x){ h+=lineHtml(o,x.l); });
+  $('order').innerHTML=h;
+}
+/* every open line on the order is a bandana -> one button puts them all in one warehouse's cart */
+function bandanaAllHtml(o){
+  var openL=o.lines.filter(function(l){ return S[l.id].status==='open'; });
+  if(!openL.length || !o.lines.every(function(l){ return isBandana(l.garment); })) return '';
+  var cur=openL.map(function(l){ return S[l.id].allocs[0].wh; }).filter(Boolean)[0]
+    || (WAREHOUSES.filter(function(w){ return w.vendor==='Carolina Creative'; })[0]||{}).id || '';
+  var pcs=openL.reduce(function(a,l){ return a+sum(want(l)); },0);
+  return '<div class="banall"><span>🧣 All bandanas — <b>'+openL.length+' line'+(openL.length>1?'s':'')+' · '+pcs+' pcs</b> at '+money(S[openL[0].id].cost[BASE_BRACKET])+' (tier)</span>'
+    +'<select id="banall-wh">'+WAREHOUSES.map(function(w){ return '<option value="'+w.id+'"'+(w.id===cur?' selected':'')+'>'+esc(shortWh(w))+'</option>'; }).join('')+'</select>'
+    +'<button class="btn y" onclick="bandanaAll(\''+esc(o.num)+'\')">Add all to cart →</button></div>';
+}
+function bandanaAll(num){
+  var o=ORDERS.filter(function(x){return x.num===num;})[0], wh=$('banall-wh').value; if(!o||!wh) return;
+  var openL=o.lines.filter(function(l){ return S[l.id].status==='open'; });
+  if(openL.some(function(l){ return S[l.id].issue; }) && !confirm('A garment issue was sent for one of these lines. Add them all anyway?')) return;
+  openL.forEach(function(l){ var st=S[l.id]; st.allocs=[{wh:wh,q:null}]; st.status='cart'; touch(l.id); });
+  renderAll(); toast(openL.length+' bandana line(s) added to the '+shortWh(whById(wh))+' cart');
+}
+function lineHtml(o,l){
+  var st=S[l.id], locked=st.status!=='open', sz=sizesOf(l), w=want(l), al=allocQty(l);
+  var stTag=st.status==='ordered'?'<span class="tag ok">✓ Ordered'+(st.po?' · PO '+esc(st.po):'')+'</span>':st.status==='cart'?(Object.keys(st.placed).length?'<span class="tag cart">Part ordered · PO '+esc(st.po)+'</span>':'<span class="tag cart">In cart</span>'):'';
+  var t='<table class="sz"><tr><th></th>'+sz.map(function(k){return '<th>'+sizeLabel(k)+'</th>';}).join('')+'<th></th></tr>'
+    +'<tr><td class="lbl">Ordered</td>'+sz.map(function(k){return '<td><span class="q">'+l.qty[k]+'</span></td>';}).join('')+'<td class="tot">'+sum(l.qty)+'</td></tr>'
+    +'<tr><td class="lbl">Extras</td>'+sz.map(function(k){ var n=st.extras[k]||0; return '<td><button class="xb'+(n?' on':'')+'" '+(locked?'disabled':'')+' title="Tap to add one extra '+sizeLabel(k)+'" onclick="bumpExtra(\''+l.id+'\',\''+k+'\')">'+(n?'+'+n:'+')+'</button></td>'; }).join('')
+    +'<td class="tot">'+(sum(w)-sum(l.qty)?'+'+(sum(w)-sum(l.qty)):'')+'</td></tr></table>'
+    +(sum(w)-sum(l.qty)&&!locked?'<button class="linkbtn red" style="margin-top:6px" onclick="clearExtras(\''+l.id+'\')">clear extras</button>':'');
+  var wh='';
+  st.allocs.forEach(function(a,i){
+    if(i>0) wh+='<div class="split"><div class="sh">Split '+i+' — sizes from a second warehouse '+(locked?'':'<button class="linkbtn red" onclick="rmSplit(\''+l.id+'\','+i+')">remove</button>')+'</div>'
+      +'<table class="sz"><tr>'+sz.map(function(k){return '<th>'+sizeLabel(k)+'</th>';}).join('')+'</tr><tr>'
+      +sz.map(function(k){return '<td><input placeholder="0" value="'+((a.q&&a.q[k])||'')+'" '+(locked?'disabled':'')+' oninput="setSplit(\''+l.id+'\','+i+',\''+k+'\',this.value)"></td>';}).join('')+'</tr></table>';
+    if(i===0 && st.allocs.length>1) wh+='<div class="hint" style="margin-bottom:4px">Main warehouse gets the rest: '+qtxt(al[0])+'</div>';
+    wh+='<div class="wh">'+whChoices(o,l,i,a.wh,locked)+'</div>';
+    if(i>0) wh+='</div>';
+  });
+  if(!locked) wh+='<div style="margin-top:8px"><button class="linkbtn" onclick="addSplit(\''+l.id+'\')">+ split to another warehouse</button></div>';
+  var bks=bracketsOf(l);
+  var c='<div class="row">'+bks.map(function(b){ var ph=l.onfile[b]!=null?l.onfile[b].toFixed(2):'0.00';
+      return '<div><label>'+(b===BASE_BRACKET?(sz.length===1&&sz[0]==='OS'?'Each':'XS–XL'):b)+'</label><input inputmode="decimal" value="'+(st.cost[b]!=null?(+st.cost[b]).toFixed(2):'')+'" placeholder="'+ph+'" '+(locked?'disabled':'')+' onchange="setCost(\''+l.id+'\',\''+b+'\',this.value)"></div>'; }).join('')+'</div>'
+    +costNote(l,st);
+  var ready=st.allocs.every(function(a){return a.wh;}), g;
+  if(st.status==='open') g='<button class="btn y" '+(ready?'':'disabled')+' onclick="addToCart(\''+l.id+'\')">Add to cart →</button><div class="hint">'+(ready?sum(w)+' pcs → '+st.allocs.map(function(a){return esc(shortWh(whById(a.wh)));}).join(' + ')+' · '+money(lineAmount(l,w)):'Pick a warehouse first')+'</div>';
+  else if(st.status==='cart') g='<div class="hint">In the '+st.allocs.map(function(a){return esc(shortWh(whById(a.wh)));}).join(' + ')+' cart</div>'+(Object.keys(st.placed).length?'':'<button class="btn ghost" onclick="pullFromCart(\''+l.id+'\')">↩ Take back out</button>');
+  else g='<div class="hint">Ordered'+(st.po?' on PO <b>'+esc(st.po)+'</b>':'')+'</div>';
+  var thumb=l.proof&&l.proof.thumb?'<button class="thumb" title="Open the mockup" onclick="openProof(\''+l.id+'\')"><img src="'+esc(l.proof.thumb)+'" alt="mockup" onerror="this.parentNode.outerHTML=\'<span class=&quot;thumb none&quot;>no proof</span>\'"></button>':'<span class="thumb none">no proof</span>';
+  return '<div class="line'+(st.status==='cart'?' incart':'')+(st.status==='ordered'?' ordered':'')+'" id="line-'+l.id+'">'
+    +'<div class="lhead">'+thumb+'<span class="g">'+esc(l.garment)+'</span>'+(l.imp?'<span class="imp">'+esc(l.imp)+'</span>':'')
+    +(st.issue?'<span class="tag hard" title="'+esc(st.issue)+'">⚠ Garment issue sent to '+esc(st.issueTo)+'</span>':'<button class="issuebtn" onclick="openIssue(\''+l.id+'\')">⚠ Garment issue</button>')
+    +'<span class="st">'+stTag+'</span></div>'
+    +'<div class="flow"><div class="stage"><h4><span class="k">1</span>Sizes · extras</h4>'+t+'</div>'
+    +'<div class="stage"><h4><span class="k">2</span>Warehouse · ship time</h4>'+wh+'</div>'
+    +'<div class="stage cost"><h4><span class="k">3</span>Blank cost</h4>'+c
+    +'<div class="go"><h4 style="margin:0"><span class="k">4</span>Cart</h4>'+g+'</div>'
+    +'<div class="frt"><label for="frt-'+l.id+'">Inbound freight</label><span class="frt-in">$<input id="frt-'+l.id+'" inputmode="decimal" placeholder="0.00" value="'+(st.freight!=null?(+st.freight).toFixed(2):'')+'" onfocus="this.dataset.was=this.value" onblur="saveFreight(\''+l.id+'\',this)"></span>'
+    +'<span class="sv" id="frt-sv-'+l.id+'">'+(st.freightSaved?'✓ saved':'')+'</span></div></div></div>'
+    +notesHtml(l)+'</div>';
+}
+function whChoices(o,l,i,sel,locked){
+  var vs=carrierVendors(l), cands=WAREHOUSES.filter(function(w){ return vs.indexOf(w.vendor)>=0; })
+    .sort(function(a,b){ return (a.days==null?99:a.days)-(b.days==null?99:b.days) || a.name.localeCompare(b.name); });
+  var top=cands.slice(0,3), sw=sel&&whById(sel); if(sw && top.indexOf(sw)<0) top.push(sw);
+  var h=top.map(function(w){ var a=arrival(w,o);
+    return '<button class="whopt'+(sel===w.id?' on':'')+'" title="'+(w.mi?w.mi+' miles from the shop':'')+'" '+(locked?'disabled':'')+' onclick="pickWh(\''+l.id+'\','+i+',\''+w.id+'\')">'
+      +'<span><span class="nm">'+esc(shortWh(w))+'</span><br><span class="tr">'+(w.days!=null?'UPS Ground ~'+w.days+' day'+(w.days>1?'s':''):'ship time unknown')+'</span>'+livePill(l,w.vendor)+'</span>'
+      +'<span class="arr '+a.cls+'">'+a.txt+'</span></button>'; }).join('');
+  if(!top.length) h+='<div class="hint">No suggested warehouse for this brand — pick one below.</div>';
+  if(!locked){ var byV={}; WAREHOUSES.forEach(function(w){ if(top.indexOf(w)<0) (byV[w.vendor]=byV[w.vendor]||[]).push(w); });
+    h+='<select class="more" onchange="if(this.value)pickWh(\''+l.id+'\','+i+',this.value)"><option value="">More warehouses…</option>'
+      +Object.keys(byV).sort().map(function(v){ return '<optgroup label="'+esc(v)+'">'+byV[v].map(function(w){ var a=arrival(w,o); return '<option value="'+w.id+'">'+esc(shortWh(w))+(a?' — '+a.txt:'')+'</option>'; }).join('')+'</optgroup>'; }).join('')+'</select>'; }
+  return h;
+}
+function livePill(l,vendor){
+  if(['S&S','SanMar','AS Colour'].indexOf(vendor)<0) return '<span class="lp none">no live price</span>';
+  if(!LIVE[l.id]) return '<span class="lp none">checking price…</span>';
+  var lp=livePrice(l,vendor), f=l.onfile[BASE_BRACKET]; if(!lp) return '<span class="lp none">no live price</span>';
+  var p=lp.c[BASE_BRACKET], d=f==null?0:p-f, cls=f==null?'same':d>0.004?'up':d<-0.004?'down':'same';
+  return '<span class="lp '+cls+'" title="'+(lp.exact?'price for this color':'style price — color not matched')+'">$'+p.toFixed(2)+(cls==='up'?' ↑':cls==='down'?' ↓':'')+(lp.exact?'':'*')+(lp.note?' · '+esc(lp.note):'')+'</span>';
+}
+function costNote(l,st){
+  var f=l.onfile[BASE_BRACKET], w=st.allocs[0].wh&&whById(st.allocs[0].wh), lp=w&&livePrice(l,w.vendor);
+  if(st.bandana) return '<div class="onfile">◆ bandana tier '+money(st.cost[BASE_BRACKET])+' · '+st.bandana+' pcs on the order</div>';
+  var onf='On file '+(f!=null?money(f):'— none');
+  if(!w){ var up=priceUp(l); return '<div class="onfile">'+onf+'</div>'+(up?'<div class="pchg up">⚠ Every vendor is above Airtable now — '+esc(up.vendor)+' '+money(up.p)+'</div>':''); }
+  if(!lp) return '<div class="onfile">'+onf+(LIVE[l.id]?' · no live price for '+esc(w.vendor):'')+'</div>';
+  var p=lp.c[BASE_BRACKET], d=f==null?0:p-f;
+  if(f!=null && Math.abs(d)<0.005) return '<div class="onfile">✓ '+esc(w.vendor)+' live '+money(p)+' matches Airtable</div>';
+  return '<div class="pchg '+(d>0?'up':'down')+'">'+(d>0?'⚠ Price went up':'Price is lower')+' at '+esc(w.vendor)+': '+money(p)+(f!=null?' (Airtable '+money(f)+', '+(d>0?'+':'−')+money(Math.abs(d))+')':'')+(lp.note?' · '+esc(lp.note):'')+'</div>'
+    +(st.autoCost?'<div class="hint">Filled in the live price — saved to the line when ordered'+(d>0?', and the garment\'s cost goes up in Airtable':'')+'.</div>':'');
+}
+function notesHtml(l){
+  var st=S[l.id], shown=NOTE_FIELDS.filter(function(f){ return st.notes[f.k]!=null && (st.notes[f.k]!=='' || st.open===f.k); }), rest=NOTE_FIELDS.filter(function(f){ return shown.indexOf(f)<0; });
+  return '<div class="lnotes">'+shown.map(function(f){
+      return '<div class="nf"><label>'+f.label+' <span class="sv" id="sv-'+l.id+'-'+f.k+'">'+(st.saved[f.k]?'✓ saved to Airtable':'')+'</span></label>'
+        +'<textarea rows="2" data-k="'+f.k+'" onfocus="this.dataset.was=this.value" onblur="saveNote(\''+l.id+'\',\''+f.k+'\',this)">'+esc(st.notes[f.k])+'</textarea></div>'; }).join('')
+    +'<select class="addnote" onchange="if(this.value)addNote(\''+l.id+'\',this.value)"><option value="">+ Add a note…</option>'
+    +rest.map(function(f){ return '<option value="'+f.k+'">'+f.label+'</option>'; }).join('')+'</select></div>';
+}
+/* re-render one line, keeping the cursor where it was */
+function refreshLine(id){
+  var el=$('line-'+id); if(!el) return; var f=document.activeElement, idx=-1;
+  if(f && el.contains(f) && f.tagName==='INPUT') idx=[].indexOf.call(el.querySelectorAll('input'),f);
+  var tmp=document.createElement('div'); tmp.innerHTML=lineHtml(orderOf(id),lineById(id)); el.replaceWith(tmp.firstChild);
+  if(idx>=0){ var inp=$('line-'+id).querySelectorAll('input')[idx]; if(inp){ inp.focus(); var v=inp.value; inp.value=''; inp.value=v; } }
+}
+
+/* ============ LINE ACTIONS ============ */
+function bumpExtra(id,k){ S[id].extras[k]=(S[id].extras[k]||0)+1; touch(id); refreshLine(id); }
+function clearExtras(id){ S[id].extras={}; touch(id); refreshLine(id); }
+function setSplit(id,i,k,v){ var a=S[id].allocs[i]; a.q=a.q||{}; var n=parseInt(v,10); if(n>0) a.q[k]=n; else delete a.q[k]; touch(id); refreshLine(id); }
+function addSplit(id){ S[id].allocs.push({wh:null,q:{}}); touch(id); refreshLine(id); }
+function rmSplit(id,i){ S[id].allocs.splice(i,1); touch(id); refreshLine(id); }
+function setCost(id,b,v){ var st=S[id], n=parseFloat(String(v).replace(/[$,\s]/g,'')); st.cost[b]=isNaN(n)?null:Math.round(n*100)/100; st.typed=true; st.autoCost=false; touch(id); refreshLine(id); }
+/* picking the main warehouse fills cost with that vendor's live price, unless he typed one */
+function pickWh(id,i,wh){
+  var st=S[id], l=lineById(id); st.allocs[i].wh=wh;
+  if(i===0 && !st.typed && !st.bandana){ var lp=livePrice(l,whById(wh).vendor);
+    if(lp){ bracketsOf(l).forEach(function(b){ if(lp.c[b]!=null) st.cost[b]=lp.c[b]; }); st.autoCost=true; }
+    else if(st.autoCost){ BRACKETS.forEach(function(b){ st.cost[b]=l.savedCost[b]!=null?l.savedCost[b]:(l.onfile[b]!=null?+l.onfile[b].toFixed(2):null); }); st.autoCost=false; } }
+  touch(id); refreshLine(id);
+}
+function addToCart(id){ if(S[id].issue && !confirm('A garment issue was sent to '+S[id].issueTo+' for this line. Add it to the cart anyway?')) return;
+  S[id].status='cart'; touch(id); renderAll(); $('order').scrollTop=0; toast(lineById(id).garment+' added to cart — next line is on top'); }
+function pullFromCart(id){ S[id].status='open'; touch(id); renderAll(); }
+
+/* Inbound Freight -> Line Items (editable even after ordering; blank clears) */
+async function saveFreight(id,inp){
+  var raw=inp.value.replace(/[$,\s]/g,''); if(raw===String(inp.dataset.was||'').replace(/[$,\s]/g,'')) return;
+  var v=raw===''?null:Math.round(parseFloat(raw)*100)/100;
+  if(raw!=='' && !(v>=0)){ alert('Freight must be a dollar amount.'); inp.value=inp.dataset.was||''; return; }
+  var fields={}; fields[F.freight]=v;
+  try{ await atPatch(T_LI,id,fields); S[id].freight=v; S[id].freightSaved=true; inp.value=v==null?'':v.toFixed(2);
+    var sv=$('frt-sv-'+id); if(sv) sv.textContent='✓ saved'; toast('Inbound freight saved'+(WRITES_ENABLED?'':' (practice — not saved)')); }
+  catch(e){ alert('Could not save freight:\n'+(e.message||e)); inp.value=inp.dataset.was||''; }
+}
+/* Notes -> that one long-text field on the line item. Order Notes keeps the app's managed lines. */
+function addNote(id,k){ var st=S[id]; if(st.notes[k]==null) st.notes[k]=''; st.open=k; refreshLine(id);
+  var ta=document.querySelector('#line-'+id+' textarea[data-k="'+k+'"]'); if(ta) ta.focus(); }
+async function saveNote(id,k,ta){
+  var v=ta.value, st=S[id], l=lineById(id); if(v===(ta.dataset.was||'')) { if(st.open===k && !v){ st.open=null; delete st.notes[k]; refreshLine(id); } return; }
+  var f=NOTE_FIELDS.filter(function(x){return x.k===k;})[0], fields={}, val=v;
+  if(k==='order'){ var managed=String(l.rawOrderNotes||'').split('\n').filter(isManaged); val=[v.trim()].concat(managed).filter(Boolean).join('\n'); }
+  fields[f.fld]=val;
+  try{ await atPatch(T_LI,id,fields); st.notes[k]=v; st.saved[k]=true; if(st.open===k) st.open=null; if(k==='order') l.rawOrderNotes=val;
+    var sv=$('sv-'+id+'-'+k); if(sv) sv.textContent='✓ saved to Airtable'; toast(f.label+' saved'+(WRITES_ENABLED?'':' (practice — not saved)')); }
+  catch(e){ alert('Could not save '+f.label+':\n'+(e.message||e)); }
+}
+
+/* ============ CARTS ============ */
+function cartItems(){
+  var carts={};
+  ORDERS.forEach(function(o){ o.lines.forEach(function(l){ var st=S[l.id]; if(st.status!=='cart') return;
+    var al=allocQty(l); st.allocs.forEach(function(a,i){ if(!a.wh || !sum(al[i]) || st.placed[a.wh]) return; (carts[a.wh]=carts[a.wh]||[]).push({o:o,l:l,q:al[i]}); }); }); });
+  return carts;
+}
+function productUrl(l,w){ var want=w.vendor==='SanMar'?'Sanmar':w.vendor; var j=vendorJumps(l.garment).filter(function(x){ return x.label===want; })[0]; return j?j.url:''; }
+function renderCarts(){
+  var carts=cartItems(), keys=Object.keys(carts), h='';
+  $('c-n').textContent=keys.length?keys.length+' open':'';
+  keys.forEach(function(k){
+    var w=whById(k), items=carts[k], pcs=0, amt=0; items.forEach(function(it){ pcs+=sum(it.q); amt+=lineAmount(it.l,it.q); });
+    h+='<div class="cartc"><div class="ch"><span class="nm">'+esc(w?w.name:k)+'</span><span class="tr">'+(w&&w.days!=null?'UPS ~'+w.days+'d':'')+'</span><span class="pcs">'+pcs+' pcs</span></div>'
+      +items.map(function(it){ var u=w&&productUrl(it.l,w); return '<div class="citem"><div class="t"><b>'+esc(it.l.garment)+'</b>'+(Object.keys(S[it.l.id].placed).length?'':'<button class="x" title="Take back out" onclick="pullFromCart(\''+it.l.id+'\')">✕</button>')+'</div>'
+        +'<div class="s">'+esc(it.o.num)+' '+esc(it.o.cust)+' · '+sum(it.q)+' pcs · '+money(lineAmount(it.l,it.q))+'</div>'
+        +'<div class="grid">'+SIZE_DEFS.filter(function(s){return it.q[s.k];}).map(function(s){ return '<span><i>'+sizeLabel(s.k)+'</i><b>'+it.q[s.k]+'</b></span>'; }).join('')+'</div>'
+        +(u?'<a class="open" href="'+esc(u)+'" target="_blank" rel="noopener">Open on '+esc(w.vendor)+' ↗</a>':'')+'</div>'; }).join('')
+      +'<div class="cfoot"><div class="hint">Cart total '+money(amt)+'. Open each item, type the sizes into the '+esc(shortWh(w))+' row, check out, then mark it ordered.</div>'
+      +'<div class="r"><input id="po-'+k+'" value="'+todayPO()+'" title="PO = today\'s date (MMDDYY). Change it if needed."><button class="btn g" id="place-'+k+'" onclick="placeCart(\''+k+'\')">✓ Ordered</button></div>'
+      +'<div class="hint">Saves Ordered, PO, warehouse, extras and costs on '+items.length+' line'+(items.length>1?'s':'')+'.</div></div></div>';
+  });
+  if(DONE.length) h+='<h2 style="padding-left:0;background:none">Ordered today</h2><div class="done-list">'+DONE.map(function(c){
+    return '<div class="cartc"><div class="ch"><span class="nm">'+esc(c.wh)+'</span><span class="pcs">PO '+esc(c.po)+'</span></div><div class="citem"><div class="s">'+c.pcs+' pcs · orders '+esc(c.orders.join(', '))+(c.arr?' · arrives '+c.arr:'')+'</div></div></div>'; }).join('')+'</div>';
+  $('carts').innerHTML=h;
+}
+/* Order Notes managed lines: 6X extras (no Extra 6X field) + split sizes */
+function managedNotes(l,st){
+  var out=[], six=st.extras['6XL']||0; if(six>0) out.push('6X extras: '+six+' (purchasing)');
+  if(st.allocs.length>1){ var al=allocQty(l); out.push('Split: '+st.allocs.map(function(a,i){ return shortWh(whById(a.wh))+' '+qtxt(al[i]); }).join(' · ')); }
+  return out;
+}
+function lineFields(l,st,fully){
+  var fields={}, whs=st.allocs.map(function(a){return a.wh;}).filter(function(v,i,a){ return v && a.indexOf(v)===i; });
+  fields[F.supplier]=whs; fields[F.po]=st.po||'';
+  bracketsOf(l).forEach(function(b){ if(st.cost[b]!=null) fields[BRACKET_COST[b]]=st.cost[b]; });
+  SIZE_DEFS.forEach(function(s){ if(s.x) fields[s.x]=st.extras[s.k]?st.extras[s.k]:null; });
+  var notes=[userNotes(l.rawOrderNotes)].concat(managedNotes(l,st)).filter(Boolean).join('\n');
+  if(notes!==(l.rawOrderNotes||'')) fields[F.orderNotes]=notes;
+  if(fully) fields[F.ordered]=true;
+  return fields;
+}
+async function placeCart(k){
+  var po=$('po-'+k).value.trim(); if(!po){ alert('Enter the PO # first.'); return; }
+  var items=cartItems()[k], w=whById(k); if(!items||!items.length) return;
+  if(!confirm('Mark '+items.length+' line(s) ORDERED at '+shortWh(w)+' on PO '+po+'?')) return;
+  var btn=$('place-'+k); if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+  var seen={}, recs=[], plan=[];
+  items.forEach(function(it){ var l=it.l; if(seen[l.id]) return; seen[l.id]=1; var st=S[l.id];
+    var placed=Object.assign({},st.placed); placed[k]=1; var al=allocQty(l);
+    var fully=st.allocs.every(function(a,i){ return placed[a.wh] || !sum(al[i]); });
+    var prev=Object.keys(st.placed).length?st.po:'', newPo=prev?(prev.split(' / ').indexOf(po)<0?prev+' / '+po:prev):po;
+    var tmp=Object.assign({},st,{po:newPo}); recs.push({id:l.id, fields:lineFields(l,tmp,fully)}); plan.push({it:it, st:st, placed:placed, fully:fully, po:newPo}); });
+  try{
+    await atPatchMany(T_LI,recs);
+    var raised=await raiseGarmentCosts(plan.map(function(p){return p.it;}), w, po);
+    var pcs=0, ords={};
+    plan.forEach(function(p){ var l=p.it.l, st=p.st; st.placed=p.placed; st.po=p.po; if(p.fully) st.status='ordered'; l.po=p.po;
+      var nf=recs.filter(function(r){return r.id===l.id;})[0].fields; if(nf[F.orderNotes]!=null) l.rawOrderNotes=nf[F.orderNotes]; touch(l.id); });
+    items.forEach(function(it){ pcs+=sum(it.q); ords[it.o.num]=1; });
+    var a=arrival(w,items[0].o); DONE.unshift({wh:w.name, po:po, pcs:pcs, orders:Object.keys(ords), arr:a&&a.date?fmtD(a.date):''});
+    saveCart(); renderAll();
+    toast('PO '+po+' saved on '+recs.length+' line(s)'+(raised?' · '+raised+' garment cost'+(raised>1?'s':'')+' raised':'')+(WRITES_ENABLED?'':' (practice — not saved)'));
+  }catch(e){ if(btn){ btn.disabled=false; btn.textContent='✓ Ordered'; } alert('Could not save the order:\n'+(e.message||e)+'\n\nNothing was marked ordered in the app — try again.'); }
+}
+/* Price tracking: bought above Airtable -> raise the garment's Cost + up-charges to what was paid.
+   Lower (often a sale) -> noted only, never lowered automatically. Bandanas use tier pricing: skipped. */
+async function raiseGarmentCosts(items,w,po){
+  var n=0, done={}, log=lsJSON(PLOG_KEY,[]), recs=[];
+  items.forEach(function(it){ var l=it.l, st=S[l.id], g=GARMENTS[l.garmentId]; if(!g || st.bandana || done[l.garmentId]) return; done[l.garmentId]=1;
+    var paid=st.cost[BASE_BRACKET], was=g.cost; if(paid==null || was==null) return; var d=Math.round((paid-was)*100)/100; if(Math.abs(d)<0.005) return;
+    var e={date:TODAY.toISOString().slice(0,10), g:l.garment, wh:shortWh(w), old:was, paid:paid, d:d, po:po, order:it.o.num, raised:d>0};
+    log.unshift(e);
+    if(d>0){ var fields={}; fields[GAR.cost]=paid;
+      bracketsOf(l).forEach(function(b){ if(b!==BASE_BRACKET && st.cost[b]!=null) fields[GAR.up[b]]=Math.round((st.cost[b]-paid)*100)/100; });
+      recs.push({id:l.garmentId, fields:fields}); n++; }
+  });
+  if(recs.length){ await atPatchMany(T_GAR,recs);
+    recs.forEach(function(r){ var g=GARMENTS[r.id]; g.cost=r.fields[GAR.cost]; Object.keys(GAR.up).forEach(function(b){ if(r.fields[GAR.up[b]]!=null) g.up[b]=r.fields[GAR.up[b]]; });
+      allLines().forEach(function(l){ if(l.garmentId===r.id){ l.onfile[BASE_BRACKET]=g.cost; Object.keys(GAR.up).forEach(function(b){ l.onfile[b]=g.cost+(g.up[b]||0); }); } }); }); }
+  if(WRITES_ENABLED) lsSet(PLOG_KEY,JSON.stringify(log.slice(0,300)));   // practice runs don't add to the history
+  return n;
+}
+
+/* ============ MOCKUP POPUP + GARMENT ISSUE (comment @mentions) ============ */
+function openProof(id){ var l=lineById(id), st=S[id], o=orderOf(id); if(!l.proof) return;
+  var big=l.proof.big||l.proof.thumb;
+  $('pv-body').className='pv-in';
+  $('pv-body').innerHTML='<div class="pv-pdf">'+(big?'<img src="'+esc(big)+'" alt="Mockup">':'<div class="hint" style="color:#fff">No preview — open the file →</div>')+'</div>'
+    +'<div class="pv-side"><div class="pv-k">Line item says</div><div class="pv-g">'+esc(l.garment)+'</div>'
+    +'<div class="pv-color">Color: <b>'+esc(colorOf(l.garment)||'—')+'</b></div>'
+    +'<div class="pv-k" style="margin-top:14px">Order '+esc(o.num)+(l.imp?' · imprint '+esc(l.imp):'')+'</div>'
+    +(st.issue?'<div class="note" style="margin-top:14px"><b>Sent to '+esc(st.issueTo)+'</b>'+esc(st.issue)+'</div>'
+              :'<button class="btn ghost" style="margin-top:18px;color:var(--muted)" onclick="openIssue(\''+id+'\')">⚠ Garment issue</button>')
+    +(l.proof.raw?'<a class="pv-open" href="'+esc(l.proof.raw)+'" target="_blank" rel="noopener">Open the file in a new tab ↗</a>':'')+'</div>';
+  $('pv').classList.remove('hidden');
+}
+function closeProof(){ $('pv').classList.add('hidden'); $('pv-body').innerHTML=''; $('pv-body').className='pv-in'; ISSUE=null; }
+var ISSUE_REASONS=['Color doesn\'t match the mockup','Garment / style doesn\'t match the mockup','Print size or placement looks off','Other'], ISSUE=null;
+function loadPeople(){ var m={}; DEPT_PEOPLE.concat(lsJSON('pine_people_v1',[])).forEach(function(p){ if(p&&p.id&&p.name) m[p.id]=p; }); return Object.keys(m).map(function(k){return m[k];}); }
+function learnPeople(list){ var m={}; PEOPLE.forEach(function(p){ m[p.id]=p; }); list.forEach(function(p){ if(p&&p.id&&p.name&&/^usr/.test(p.id)) m[p.id]={id:p.id,name:p.name,email:p.email||''}; });
+  PEOPLE=Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){ return a.name.localeCompare(b.name); });
+  lsSet('pine_people_v1',JSON.stringify(PEOPLE.filter(function(p){ return !DEPT_PEOPLE.some(function(d){return d.id===p.id;}); }))); }
+/* learn who's taggable from comments already on this order's line items */
+async function discoverPeople(o){
+  var found=[];
+  await Promise.all(o.lines.slice(0,12).map(async function(l){ try{
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_LI+'/'+l.id+'/comments?pageSize=100',{headers:{Authorization:'Bearer '+TOKEN}}); if(!r.ok) return;
+    ((await r.json()).comments||[]).forEach(function(c){ if(c.author) found.push({id:c.author.id,name:c.author.name,email:c.author.email});
+      Object.keys(c.mentioned||{}).forEach(function(k){ var m=c.mentioned[k]; if(m.type==='user') found.push({id:m.id,name:m.displayName,email:m.email}); }); });
+  }catch(e){} }));
+  learnPeople(found); if(ISSUE) whoList(($('who-q')||{}).value||'');
+}
+function personById(id){ return PEOPLE.filter(function(p){return p.id===id;})[0]||{id:id,name:id}; }
+function openIssue(id){ ISSUE={id:id, reason:'', to:[ART_USER]}; var l=lineById(id), o=orderOf(id);
+  $('pv-body').innerHTML='<div class="iss"><div class="pv-k">Garment issue · order '+esc(o.num)+(l.imp?' · '+esc(l.imp):'')+'</div><div class="pv-g" style="margin-bottom:14px">'+esc(l.garment)+'</div>'
+    +'<div class="iss-r">'+ISSUE_REASONS.map(function(r,i){ return '<button class="iss-b" onclick="pickReason('+i+')">'+esc(r)+'</button>'; }).join('')+'</div>'
+    +'<div class="pv-k" style="margin:4px 0 6px">Send to</div><div class="who" id="who"></div>'
+    +'<textarea id="iss-note" rows="3" placeholder="Anything else they should know (optional)"></textarea>'
+    +'<div class="iss-prev" id="iss-prev"></div>'
+    +'<div class="iss-go"><button class="btn ghost" onclick="closeProof()">Cancel</button><button class="btn" id="iss-send" disabled onclick="sendIssue()">Post comment</button></div></div>';
+  $('pv-body').className='pv-in iss-wrap'; $('pv').classList.remove('hidden');
+  $('iss-note').oninput=issPreview; renderWho(); issPreview(); discoverPeople(o);
+}
+function renderWho(focus){
+  $('who').innerHTML=ISSUE.to.map(function(id){ return '<span class="who-c">@'+esc(personById(id).name)+'<button onclick="rmWho(\''+id+'\')" title="Remove">×</button></span>'; }).join('')
+    +'<span class="who-s"><input id="who-q" placeholder="'+(ISSUE.to.length?'+ add someone…':'Search people…')+'" autocomplete="off" oninput="whoList(this.value)" onfocus="whoList(this.value)" onblur="setTimeout(function(){var l=$(\'who-l\'); if(l) l.classList.add(\'hidden\');},150)" onkeydown="whoKey(event)"><div class="who-l hidden" id="who-l"></div></span>';
+  if(focus) $('who-q').focus();
+}
+function whoList(q){ var l=$('who-l'); if(!l) return; q=(q||'').toLowerCase().trim();
+  var m=PEOPLE.filter(function(p){ return ISSUE.to.indexOf(p.id)<0 && (!q || (p.name+' '+p.email).toLowerCase().indexOf(q)>=0); });
+  l.innerHTML=m.length?m.map(function(p,i){ return '<div class="who-o'+(i===0?' hi':'')+'" onmousedown="addWho(\''+p.id+'\')"><b>'+esc(p.name)+'</b>'+(p.email?'<small>'+esc(p.email)+'</small>':'')+'</div>'; }).join(''):'<div class="who-o none">No match</div>';
+  if(document.activeElement===$('who-q')) l.classList.remove('hidden'); }
+function whoKey(e){ if(e.key==='Enter'){ e.preventDefault(); var h=document.querySelector('.who-o.hi'); if(h&&!h.classList.contains('none')) h.dispatchEvent(new MouseEvent('mousedown')); }
+  if(e.key==='Backspace' && !e.target.value && ISSUE.to.length){ ISSUE.to.pop(); renderWho(true); issPreview(); } }
+function addWho(id){ ISSUE.to.push(id); renderWho(true); issPreview(); }
+function rmWho(id){ ISSUE.to=ISSUE.to.filter(function(x){return x!==id;}); renderWho(); issPreview(); }
+function pickReason(i){ ISSUE.reason=ISSUE_REASONS[i]; [].forEach.call(document.querySelectorAll('.iss-b'),function(b,j){ b.classList.toggle('on',i===j); }); issPreview(); }
+function issueText(display){ var l=lineById(ISSUE.id), o=orderOf(ISSUE.id), note=$('iss-note').value.trim();
+  var tags=ISSUE.to.map(function(id){ return display?'@'+personById(id).name:'@['+id+']'; }).join(' ');
+  return tags+' Garment issue from purchasing on '+o.num+' ('+(l.imp?l.imp+', ':'')+l.garment+'): '+(ISSUE.reason||'…')+'.'+(note?' '+note:'')+' Please check this and make sure it\'s right before we order blanks.'; }
+function issPreview(){ $('iss-send').disabled=!(ISSUE.reason && ISSUE.to.length); $('iss-prev').innerHTML='<div class="pv-k">Comment that goes on the line item</div>'+esc(issueText(true)); }
+async function sendIssue(){ var id=ISSUE.id, st=S[id], b=$('iss-send'); b.disabled=true; b.textContent='Posting…';
+  try{ await atComment(id,issueText(false));
+    st.issue=ISSUE.reason+($('iss-note').value.trim()?' — '+$('iss-note').value.trim():''); st.issueTo=ISSUE.to.map(function(x){return personById(x).name;}).join(', ');
+    closeProof(); refreshLine(id); toast('Comment posted for @'+st.issueTo+(WRITES_ENABLED?'':' (practice — not posted)')); }
+  catch(e){ b.disabled=false; b.textContent='Post comment'; alert('Could not post the comment:\n'+(e.message||e)+'\n\nThe Airtable token needs the "data.recordComments:write" scope.'); }
+}
+
+/* ============ INVOICE CHECK: Airtable total per PO + warehouse vs the vendor invoice ============
+   Airtable total = sum of Total Line Cost (qty+extras × bracket cost + freight) on lines ordered in the
+   last 45 days. Read-only: purchasing compares it to the vendor invoice by eye. */
+var INV={rows:null, loading:false, err:'', q:'', open:{}};
+async function loadInvoices(){
+  INV.loading=true; INV.err=''; renderInv();
+  try{
+    var fl=[F.name,F.garmentLink,F.cust,F.orderNum,F.po,F.supplier,F.lineTotal,F.freight,F.orderedAt].concat(SIZE_DEFS.map(function(s){return s.q;})).concat(SIZE_DEFS.map(function(s){return s.x;}).filter(Boolean));
+    var formula="AND({Ordered},IS_AFTER({Ordered Timestamp},DATEADD(TODAY(),-45,'days')))";
+    var recs=await atFetchAll(T_LI,'filterByFormula='+encodeURIComponent(formula)+'&pageSize=100&'+fieldsParam(fl));
+    var gids=[], groups={};
+    recs.forEach(function(r){ var f=r.cellValuesByFieldId||r.fields||{}; var po=String(flat(f[F.po])||'').trim()||'(no PO)', sup=linkIds(f[F.supplier]);
+      var q={}; SIZE_DEFS.forEach(function(s){ var n=num(f[s.q])+(s.x?num(f[s.x]):0); if(n>0) q[s.k]=n; });
+      var key=po+'|'+sup.join('+'), g=groups[key]||(groups[key]={key:key, po:po, sup:sup, date:null, lines:[]});
+      var at=f[F.orderedAt]?new Date(f[F.orderedAt]):null; if(at&&(!g.date||at>g.date)) g.date=at;
+      var gid=linkIds(f[F.garmentLink])[0]; if(gid) gids.push(gid);
+      g.lines.push({order:String(flat(f[F.orderNum])||''), cust:flat(f[F.cust])||'', gid:gid, ref:String(flat(f[F.name])||''), q:q, pcs:sum(q), total:num(f[F.lineTotal]), freight:num(f[F.freight])}); });
+    await loadGarments(gids);
+    INV.rows=Object.keys(groups).map(function(k){ var g=groups[k]; g.lines.forEach(function(x){ x.g=(GARMENTS[x.gid]&&GARMENTS[x.gid].name)||x.ref; }); return g; })
+      .sort(function(a,b){ return (b.date||0)-(a.date||0); });
+  }catch(e){ INV.err=e.message||String(e); }
+  INV.loading=false; renderInv();
+}
+function invTotal(g){ var t=0; g.lines.forEach(function(x){ t+=x.total; }); return Math.round(t*100)/100; }
+function supName(ids){ return ids.length?ids.map(function(id){ return shortWh(whById(id))||id; }).join(' + '):'(no warehouse)'; }
+/* quick view only: what Airtable says each PO at each warehouse should cost — compare it to the vendor
+   invoice and fix the line in Airtable if something's off. Nothing about invoices is entered or stored. */
+function renderInv(){
+  var el=$('inv'); if(!el || TAB!=='inv') return;
+  var rows=INV.rows||[], q=(INV.q||'').toLowerCase().trim(), at=0; rows.forEach(function(g){ at+=invTotal(g); });
+  var h='<div class="invtop"><h1>Invoice check</h1><span class="sum"><b>'+rows.length+'</b> POs ordered in the last 45 days · Airtable <b>'+money(at)+'</b></span>'
+    +'<span class="seg"><input class="invq" id="invq" placeholder="Find a PO, order or warehouse" value="'+esc(INV.q||'')+'" oninput="INV.q=this.value;renderInv();var i=$(\'invq\');i.focus();i.setSelectionRange(i.value.length,i.value.length)"><button onclick="loadInvoices()">↻</button></span></div>'
+    +'<p class="hint" style="margin-bottom:12px">What Airtable says each PO should cost at each warehouse (qty + extras × cost, plus freight). Compare it to the vendor invoice — if something\'s off, fix the cost or freight on that line.</p>';
+  if(INV.loading) h+='<div class="empty">Loading ordered lines…</div>';
+  else if(INV.err) h+='<div class="msg err">'+esc(INV.err)+'</div>';
+  else {
+    var list=rows.filter(function(g){ return !q || (g.po+' '+supName(g.sup)+' '+g.lines.map(function(x){ return x.order+' '+x.cust+' '+x.g; }).join(' ')).toLowerCase().indexOf(q)>=0; });
+    if(!list.length) h+='<div class="empty">'+(rows.length?'No PO matches “'+esc(INV.q)+'”.':'No ordered lines in the last 45 days.')+'</div>';
+    list.forEach(function(g){ var t=invTotal(g), pcs=0, fr=0; g.lines.forEach(function(x){ pcs+=x.pcs; fr+=x.freight; });
+      var ords=g.lines.map(function(x){return x.order;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+      h+='<div class="po"><div class="poh inv2" onclick="INV.open[\''+esc(g.key)+'\']=!INV.open[\''+esc(g.key)+'\'];renderInv();">'
+        +'<span class="pon">'+esc(g.po)+'<small>'+(g.date?fmtD(g.date):'')+'</small></span>'
+        +'<span class="whn">'+esc(supName(g.sup))+'<small>'+g.lines.length+' line'+(g.lines.length>1?'s':'')+' · '+pcs+' pcs · orders '+esc(ords.join(', '))+'</small></span>'
+        +'<span class="amt"><small>Freight</small><b>'+money(fr)+'</b></span>'
+        +'<span class="amt"><small>Airtable total</small><b>'+money(t)+'</b></span>'
+        +'<span class="chev">'+(INV.open[g.key]?'▾':'▸')+'</span></div>';
+      if(INV.open[g.key]) h+='<div class="pol"><table><tr><th>Order</th><th>Garment</th><th>Sizes (incl. extras)</th><th class="r">Pcs</th><th class="r">Freight</th><th class="r">Line total</th></tr>'
+        +g.lines.map(function(x){ return '<tr><td>'+esc(x.order)+' '+esc(x.cust)+'</td><td>'+esc(x.g)+'</td><td>'+qtxt(x.q)+'</td><td class="r">'+x.pcs+'</td><td class="r">'+money(x.freight)+'</td><td class="r">'+money(x.total)+'</td></tr>'; }).join('')
+        +'<tr class="tot"><td colspan="5">Airtable total</td><td class="r">'+money(t)+'</td></tr></table></div>';
+      h+='</div>'; });
+  }
+  var log=lsJSON(PLOG_KEY,[]);
+  h+='<div class="invtop" style="margin-top:28px"><h1>Price changes</h1><span class="sum">What was paid vs Airtable when ordering. Increases raised the garment\'s cost; decreases are only noted. (This computer.)</span></div>';
+  if(!log.length) h+='<div class="hint">None yet.</div>';
+  else h+='<div class="po"><div class="pol" style="border-top:none"><table><tr><th>Date</th><th>Garment</th><th>Warehouse</th><th class="r">Was</th><th class="r">Paid</th><th class="r">Change</th><th>Airtable</th><th>PO · order</th></tr>'
+    +log.map(function(e){ return '<tr><td>'+esc(e.date)+'</td><td>'+esc(e.g)+'</td><td>'+esc(e.wh)+'</td><td class="r">'+money(e.old)+'</td><td class="r">'+money(e.paid)+'</td><td class="r" style="font-weight:800;color:var('+(e.d>0?'--red':'--green')+')">'+(e.d>0?'+':'−')+money(Math.abs(e.d))+'</td><td>'+(e.raised?'✓ cost raised':'noted only')+'</td><td>'+esc(e.po)+' · '+esc(e.order)+'</td></tr>'; }).join('')+'</table></div></div>';
+  el.innerHTML=h;
+}
+
+/* ============ REPRINTS (v90 behavior) ============ */
+async function loadReprints(){
+  $('rp').innerHTML='<div class="empty">Loading reprints…</div>';
+  try{
+    var fields=[F.name,F.garmentLink,F.cust,F.orderNum,F.due,F.priority,F.status,F.proof,REPLACEMENT_FIELD,RF.resolution,RF.dmgSizes,RF.dmgTotal,RF.cost,RF.dmgNotes];
+    var formula="AND(OR({Product Type}='Printed Apparel',{Product Type}='Embroidered Apparel'),IS_AFTER({Created Timestamp},DATEADD(TODAY(),-180,'days')))";
+    var recs=await atFetchAll(T_LI,'filterByFormula='+encodeURIComponent(formula)+'&pageSize=100&'+fieldsParam(fields)), out=[], gids=[];
+    recs.forEach(function(r){ var f=r.cellValuesByFieldId||r.fields||{};
+      if(String(flat(f[RF.resolution])||'').toUpperCase()!=='RE-PRINT') return;
+      if(String(flat(f[F.status])||'').toLowerCase().indexOf('delayed')<0) return;
+      if(flat(f[REPLACEMENT_FIELD])) return;
+      var gid=linkIds(f[F.garmentLink])[0]; if(gid) gids.push(gid);
+      out.push({id:r.id, gid:gid, ref:String(flat(f[F.name])||''), cust:flat(f[F.cust])||'', orderNum:String(flat(f[F.orderNum])||''), due:flat(f[F.due])||'', pri:flat(f[F.priority])||'',
+        proof:proofUrls(f[F.proof]), dmgSizes:flat(f[RF.dmgSizes])||'', dmgTotal:num(f[RF.dmgTotal]), cost:num(f[RF.cost]), dmgNotes:flat(f[RF.dmgNotes])||''}); });
+    await loadGarments(gids);
+    REPRINTS=out.map(function(x){ x.garment=(GARMENTS[x.gid]&&GARMENTS[x.gid].name)||x.ref; return x; })
+      .sort(function(a,b){ return prRank(a.pri)-prRank(b.pri) || String(a.due).localeCompare(String(b.due)); });
+    renderReprints();
+  }catch(e){ $('rp').innerHTML='<div class="msg err">'+esc(e.message||e)+'</div>'; }
+}
+function renderReprints(){
+  var h='<div class="invtop"><h1>Reprints</h1><span class="sum"><b>'+REPRINTS.length+'</b> replacement'+(REPRINTS.length!==1?'s':'')+' to order</span><span class="seg"><button onclick="loadReprints()">↻</button></span></div>';
+  if(!REPRINTS.length) h+='<div class="empty">No reprints awaiting order.</div>';
+  REPRINTS.forEach(function(r){ var jumps=vendorJumps(r.garment).map(function(j){ return '<a class="open" style="margin-right:10px" href="'+esc(j.url)+'" target="_blank" rel="noopener">'+esc(j.label)+' ↗</a>'; }).join('');
+    var pri=/hard/i.test(r.pri)?'<span class="tag hard">Hard Deadline</span>':/asap/i.test(r.pri)?'<span class="tag asap">ASAP</span>':'';
+    h+='<div class="po"><div class="poh rph">'+(r.proof&&r.proof.thumb?'<img class="rpthumb" src="'+esc(r.proof.thumb)+'" alt="">':'<span></span>')
+      +'<span class="whn">'+esc(r.garment)+'<small>Order '+esc(r.orderNum)+' · '+esc(r.cust)+(r.due?' · due '+fmtD(dOnly(r.due)):'')+'</small>'+(jumps?'<small>'+jumps+'</small>':'')+'</span>'
+      +'<span>'+pri+' <span class="tag hard">RE-PRINT</span></span>'
+      +'<span class="amt"><small>Order to replace</small><b>'+esc(r.dmgSizes||(r.dmgTotal+' pcs'))+'</b></span>'
+      +'<span class="amt"><small>Reprint cost</small><b>'+(r.cost?money(r.cost):'—')+'</b></span>'
+      +'<button class="btn g" id="rpbtn-'+r.id+'" onclick="markReplacementOrdered(\''+r.id+'\')">Mark replacement ordered</button></div>'
+      +(r.dmgNotes?'<div class="pol"><div style="padding:10px 14px;font-size:13px">'+esc(r.dmgNotes)+'</div></div>':'')+'</div>'; });
+  $('rp').innerHTML=h;
+}
+async function markReplacementOrdered(id){
+  var r=REPRINTS.filter(function(x){return x.id===id;})[0]; if(!r) return;
+  if(!confirm('Mark replacement garments ORDERED for order '+r.orderNum+'?\n\n'+r.garment+'\n'+(r.dmgSizes||r.dmgTotal+' pcs')+'\n\nThis hands off to the Receiving dashboard.')) return;
+  var btn=$('rpbtn-'+id); if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+  try{ var f={}; f[REPLACEMENT_FIELD]=true; await atPatch(T_LI,id,f); REPRINTS=REPRINTS.filter(function(x){return x.id!==id;}); renderReprints(); toast('Replacement marked ordered'+(WRITES_ENABLED?'':' (practice — not saved)')); }
+  catch(e){ if(btn){ btn.disabled=false; btn.textContent='Mark replacement ordered'; } alert('Failed to mark ordered:\n'+(e.message||e)); }
+}
+
+/* ============ SHELL ============ */
+function setTab(t){ TAB=t; ['order','inv','rp'].forEach(function(x){ $('t-'+x).classList.toggle('on',x===t); });
+  document.querySelector('.cols').classList.toggle('hidden',t!=='order'); $('inv').classList.toggle('hidden',t!=='inv'); $('rp').classList.toggle('hidden',t!=='rp');
+  document.querySelector('.steps').classList.toggle('hidden',t!=='order');
+  if(t==='inv'){ if(!INV.rows&&!INV.loading&&TOKEN) loadInvoices(); else renderInv(); }
+  if(t==='rp' && TOKEN) loadReprints(); }
+function renderAll(){ renderOrders(); renderOrder(); renderCarts(); renderInv(); }
+function setToken(){ var t=window.prompt('Paste the Airtable token (saved on this computer as pine_at_key):',TOKEN||''); if(t==null) return; TOKEN=t.trim(); lsSet('pine_at_key',TOKEN); INV.rows=null; loadAll(); }
+function paintTok(){ var c=$('tokChip'); c.classList.toggle('ok',!!TOKEN); c.textContent=TOKEN?'Token ✓':'Set token'; }
+function paintMode(){ var b=$('modeBadge'); b.textContent=WRITES_ENABLED?'Live':'🧪 Practice — not saved'; b.title=WRITES_ENABLED?'Changes save to Airtable':'Practice mode: nothing is saved (remove ?practice=1 to go live)'; b.className='mode '+(WRITES_ENABLED?'live':'practice'); }
+function refreshAll(){ LIVE={}; LIVE_REQ={}; INV.rows=null; loadAll(); if(TAB==='inv') loadInvoices(); if(TAB==='rp') loadReprints(); }
+loadAll();
+
+</script>
+</body>
+</html>
