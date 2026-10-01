@@ -67,6 +67,11 @@ He works order by order, batching into vendor carts across orders. When a wareho
 - Editing saves on leaving the box: a PATCH of that one field on that line item, then "✓ saved to Airtable".
 - The order header only counts the notes.
 
+## Inbound freight
+- Each line card has an **Inbound freight** box at the bottom right. Leaving the box saves it to Line Items **Inbound Freight** `fldi2RmXxYgckvHfd` (currency, PATCH that one field); a blank box clears it.
+- It stays editable after ordering, because freight usually arrives later, on the vendor invoice.
+- Airtable's Total Line Cost already adds freight, and so does the Invoice check total for each PO.
+
 ## Ship time
 - **UPS Ground estimate** from the warehouse's city to the shop (Fort Collins 80524), by straight-line distance, in business days:
   - under 250 mi: 1 day

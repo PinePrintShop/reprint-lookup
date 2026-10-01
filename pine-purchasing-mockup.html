@@ -208,6 +208,12 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .lp.same{background:var(--soft);color:var(--muted)}.lp.up{background:var(--red-bg);color:var(--red)}.lp.down{background:var(--green-lt);color:var(--green)}.lp.none{color:var(--muted-lt);font-weight:600;padding-left:0}
 .pchg{font-size:11px;font-weight:800;border-radius:4px;padding:5px 7px;margin-top:2px}
 .pchg.up{background:var(--red-bg);color:var(--red)}.pchg.down{background:var(--green-lt);color:var(--green)}
+.frt{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.frt label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.frt-in{display:inline-flex;align-items:center;gap:2px;font-weight:700;margin-left:auto}
+.frt input{width:74px;border:1px solid var(--border-dk);border-radius:4px;padding:6px 8px;font-size:14px;font-weight:700;text-align:right}
+.frt .sv{flex-basis:100%;text-align:right;font-size:10px;font-weight:700;color:var(--green)}
+.frt .sv:empty{display:none}
 .pv{position:fixed;inset:0;background:rgba(10,10,8,.6);z-index:30;display:flex;align-items:center;justify-content:center;padding:20px}
 .pv-card{background:#fff;border-radius:10px;width:min(1100px,100%);height:min(820px,100%);position:relative;overflow:hidden}
 .pv-x{position:absolute;top:10px;right:12px;border:none;background:#fff;font-size:20px;cursor:pointer;z-index:2}
@@ -234,7 +240,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 </head>
 <body>
 <div class="top">
-  <span class="brand">Pine Purchasing<small>flow mockup · v15</small></span>
+  <span class="brand">Pine Purchasing<small>flow mockup · v16</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
   <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
@@ -446,7 +452,9 @@ function lineHtml(o,l){
     +'<div class="flow"><div class="stage"><h4><span class="k">1</span>Sizes · extras</h4>'+t+'</div>'
     +'<div class="stage"><h4><span class="k">2</span>Warehouse · ship time</h4>'+wh+'</div>'
     +'<div class="stage cost"><h4><span class="k">3</span>Blank cost</h4>'+c
-    +'<div class="go"><h4 style="margin:0"><span class="k">4</span>Cart</h4>'+g+'</div></div></div>'
+    +'<div class="go"><h4 style="margin:0"><span class="k">4</span>Cart</h4>'+g+'</div>'
+    +'<div class="frt"><label for="frt-'+l.id+'">Inbound freight</label><span class="frt-in">$<input id="frt-'+l.id+'" inputmode="decimal" placeholder="0.00" value="'+(st.freight!=null?(+st.freight).toFixed(2):'')+'" onfocus="this.dataset.was=this.value" onblur="saveFreight(\''+l.id+'\',this)"></span>'
+    +'<span class="sv" id="frt-sv-'+l.id+'">'+(st.freightSaved?'✓ saved':'')+'</span></div></div></div>'
     +notesHtml(l)+'</div>';
 }
 function notesHtml(l){
@@ -457,6 +465,17 @@ function notesHtml(l){
         +'<textarea rows="2" onfocus="this.dataset.was=this.value" onblur="saveNote(\''+l.id+'\',\''+f.k+'\',this)">'+esc(st.notes[f.k])+'</textarea></div>'; }).join('')
     +'<select class="addnote" onchange="if(this.value)addNote(\''+l.id+'\',this.value)"><option value="">+ Add a note…</option>'
     +rest.map(function(f){ return '<option value="'+f.k+'">'+f.label+'</option>'; }).join('')+'</select></div>';
+}
+/* Inbound Freight -> Line Items fldi2RmXxYgckvHfd (currency). Editable even after ordering:
+   freight usually shows up later on the vendor invoice. Blank clears the field. */
+function saveFreight(id,inp){
+  var raw=inp.value.replace(/[$,\s]/g,''); if(raw===inp.dataset.was.replace(/[$,\s]/g,'')) return;
+  var v=raw===''?null:Math.round(parseFloat(raw)*100)/100;
+  if(raw!=='' && !(v>=0)){ alert('Freight must be a dollar amount.'); inp.value=inp.dataset.was; return; }
+  S[id].freight=v; S[id].freightSaved=true; inp.value=v==null?'':v.toFixed(2);
+  console.log('PATCH Line Items/'+id, JSON.stringify({fields:{fldi2RmXxYgckvHfd:v}}));
+  var sv=$('frt-sv-'+id); if(sv) sv.textContent='✓ saved';
+  renderInv(); toast('Inbound freight saved (mockup — not really)');
 }
 function addNote(id,k){ var st=S[id]; if(st.notes[k]==null) st.notes[k]=''; st.open=k; refreshLine(id);
   var k2=NOTE_FIELDS.filter(function(f){return f.k===k;})[0], tas=$('line-'+id).querySelectorAll('.nf');
@@ -652,9 +671,10 @@ function renderAll(){ renderOrders(); renderOrder(); renderCarts(); renderInv();
 function poLine(o,l,q){
   var st=S[l.id]||{}, c1=+(st.cost||l.cost), c2=+(st.cost2||(l.cost+(l.up['2XL']||0))), amt=0, pcs=0;
   for(var k in q){ var c=/^[2-6]XL$/.test(k)?c2:c1; amt+=q[k]*c; pcs+=q[k]; }
-  return {order:o.num, cust:o.cust, g:l.g, q:q, pcs:pcs, c1:c1, c2:c2, amt:Math.round(amt*100)/100};
+  return {lid:l.id, order:o.num, cust:o.cust, g:l.g, q:q, pcs:pcs, c1:c1, c2:c2, amt:Math.round(amt*100)/100};
 }
-function poTotal(p){ var t=p.freight||0; p.lines.forEach(function(x){ t+=x.amt; }); return Math.round(t*100)/100; }
+function poFreight(p){ var f=p.freight||0, seen={}; p.lines.forEach(function(x){ if(x.lid && !seen[x.lid]){ seen[x.lid]=1; f+=(S[x.lid]&&S[x.lid].freight)||0; } }); return Math.round(f*100)/100; }
+function poTotal(p){ var t=poFreight(p); p.lines.forEach(function(x){ t+=x.amt; }); return Math.round(t*100)/100; }
 function money(n){ return '$'+(+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 // recent POs already in Airtable (fake history)
 var POS=[
@@ -698,7 +718,7 @@ function renderInv(focusPo){
     if(OPEN_PO[poKey(p)]){
       h+='<div class="pol"><table><tr><th>Order</th><th>Garment</th><th>Sizes (incl. extras)</th><th class="r">Pcs</th><th class="r">Each</th><th class="r">Line</th></tr>'
         +p.lines.map(function(x){ return '<tr><td>'+x.order+' '+esc(x.cust)+'</td><td>'+esc(x.g)+'</td><td>'+qtxt(x.q)+'</td><td class="r">'+x.pcs+'</td><td class="r">'+money(x.c1)+(x.c2!==x.c1&&Object.keys(x.q).some(function(k){return /^[2-6]XL$/.test(k);})?' / 2XL+ '+money(x.c2):'')+'</td><td class="r">'+money(x.amt)+'</td></tr>'; }).join('')
-        +'<tr><td colspan="5">Inbound freight</td><td class="r">'+money(p.freight||0)+'</td></tr>'
+        +'<tr><td colspan="5">Inbound freight</td><td class="r">'+money(poFreight(p))+'</td></tr>'
         +'<tr class="tot"><td colspan="5">Airtable total</td><td class="r">'+money(t)+'</td></tr></table>'
         +(stt==='bad'?'<div class="why">'+(p.why||('Off by '+money(Math.abs(diff))+'. Check for a price change, freight or a fee not entered, or a short ship.'))+' Fix the cost or freight on the line in the Ordering tab.</div>':'')+'</div>';
     }
