@@ -3445,16 +3445,15 @@ function slipHtml(o){
   }).join('');
   // v145: reorder box -- each item with its imprint IDs
   var ro=o.lines.filter(function(l){return l.imprints&&l.imprints.length;});
-  // v145: 'Scan to reorder' QR -> pre-filled email to the order's sales rep (sales@ if none), with IDs + mockup link
+  // v145: 'Scan to reorder' QR -> pre-filled email to the order's sales rep (sales@ if none), with the imprint IDs
   var repMail=txt(f[O.repEmail]).trim()||'sales@pineprintshop.com',repName=txt(f[O.repName]).trim();
   // plain ASCII only -- fancy dashes/bullets triple in size once URL-encoded and make the QR denser
   var mailBody='Hi '+(repName||'Pine team')+',\n\nI would like to reorder from order '+o.num+':\n'
     +ro.map(function(l){return '- '+l.name+(l.color?' ('+l.color+')':'')+': '+l.imprints.join(', ');}).join('\n')
-    +(o.id?'\n\nMockups:\nhttps://pineprintshop.github.io/reprint-lookup/mockups.html?o='+o.id+'\n':'')  // link alone on its line so mail apps turn it clickable once sent
     +'\n\nQuantities / sizes:\n\n\nThanks!';
   var mailto='mailto:'+repMail+'?subject='+encodeURIComponent('Reorder: Order '+o.num)+'&body='+encodeURIComponent(mailBody);
   // v145: the QR carries the imprint IDs, so the box is just heading + one line + QR
-  var reorder=ro.length?'<div class="ro"><div class="rl"><h4>Need a reorder?</h4><p>Scan the code to email '+esc(repName||'our team')+'. Your imprint IDs and mockups are already filled in, so we can print it exactly the same.</p></div>'
+  var reorder=ro.length?'<div class="ro"><div class="rl"><h4>Need a reorder?</h4><p>Scan the code to email '+esc(repName||'our team')+'. Your imprint IDs are already filled in, so we can print it exactly the same.</p></div>'
     +'<div class="rq"><div class="qr" data-url="'+esc(mailto)+'"></div><b>Scan to reorder</b><small>Emails '+esc(repName||'our team')+'</small></div></div>':'';
   var anyShort=o.lines.some(function(l){return l.sizes.some(function(s){return l.rows.shipped[s]<l.rows.ord[s];});});
   // v145: bigger type throughout; line logo; @page margin 0 so the browser prints no header/footer
