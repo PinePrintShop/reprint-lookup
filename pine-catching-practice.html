@@ -3171,7 +3171,7 @@ function smClose(){
 // instead of creating a second set (10671 on 9/10 was counted twice this way).
 // A bucket cleared to zero since the last submit has its own records removed.
 // Entries expire after 36h so a later reprint run of the same card logs fresh issues.
-var WRITTEN_KEY='pine_catch_written_practice'  // practice: own memory, never mixes fake ids into the live app's,WRITTEN_TTL=36*3600*1000;
+var WRITTEN_KEY='pine_catch_written_practice',WRITTEN_TTL=36*3600*1000;  // practice: own memory, never mixes fake ids into the live app's
 function writtenAll(){
   var all={};try{all=JSON.parse(localStorage.getItem(WRITTEN_KEY)||'{}')||{};}catch(e){all={};}
   var now=Date.now();Object.keys(all).forEach(function(k){if(!all[k]||now-(all[k].ts||0)>WRITTEN_TTL)delete all[k];});
