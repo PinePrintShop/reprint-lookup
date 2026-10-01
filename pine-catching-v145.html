@@ -2685,20 +2685,22 @@ function atPatchIssues(recIds,fields){
 // Reads are read-after-write consistent on the records we just PATCHed, so no
 // rollup-lag race.
 function getOrderCaughtState(orderRecId){
-  return api(TOR+'/'+orderRecId+'?returnFieldsByFieldId=true&fields%5B%5D='+O.prints+'&fields%5B%5D='+O.totalLinkedImprints)
+  // v145 fix: fields[] made Airtable reject this read, so markComplete never set a status (since v126).
+  return api(TOR+'/'+orderRecId+'?returnFieldsByFieldId=true')
     .then(function(od){
       if(!od||!od.fields)return null;
+      var cur=od.fields[O.status];cur=(cur&&cur.name)||cur||'';
       var prints=od.fields[O.prints]||[];
       var impIds=prints.map(function(x){return (typeof x==='string')?x:(x&&x.id)||'';}).filter(Boolean);
       var total=od.fields[O.totalLinkedImprints]||impIds.length;
-      if(!impIds.length)return {caught:0,total:total};
+      if(!impIds.length)return {caught:0,total:total,status:cur};
       var orF=impIds.map(function(id){return "RECORD_ID()='"+id+"'";}).join(',');
       var url=TI+'?filterByFormula='+encodeURIComponent('OR('+orF+')')
         +'&fields%5B%5D='+F.caught+'&returnFieldsByFieldId=true&pageSize=100';
       return api(url).then(function(impData){
         var caught=0;
         (impData&&impData.records||[]).forEach(function(r){if(r.fields&&r.fields[F.caught])caught++;});
-        return {caught:caught,total:total};
+        return {caught:caught,total:total,status:cur};
       });
     }).catch(function(e){console.warn('[getOrderCaughtState error]',orderRecId,e);return null;});
 }
@@ -3401,8 +3403,29 @@ function lineModel(lr){
     total:num(f[L.total]),totalFinal:num(f[L.totalFinal]),price:num(f[L.price]),
     xRec:xRec,xSent:xSent,xSentTot:num(f[L.xSentTot]),wow:num(f[L.wow])};
 }
+// v145: ship-to block. The Zap sometimes puts the name in front of the street ("Adam Shrewsbury 9208 thumm")
+// and repeats it in Contact / Ship To -- show each name once and strip leading name words off the street.
+function shipBlock(cust,f){
+  var t=function(v){return String(txt(v)||'').replace(/\s+/g,' ').trim();},lc=function(x){return x.toLowerCase();};
+  var cu=t(cust),names=[t(f[O.shipTo]),t(f[O.contact])].filter(Boolean),street=t(f[O.addr]);
+  var nw={};lc([cu].concat(names).join(' ')).split(' ').forEach(function(w){if(w)nw[w]=1;});
+  var parts=street.split(' '),cut=0;
+  while(cut<parts.length-1&&nw[lc(parts[cut])]&&!/\d/.test(parts[cut]))cut++;
+  var stripped=parts.slice(0,cut).join(' ');street=parts.slice(cut).join(' ');
+  // every distinct name once: drop blanks, the customer itself, and names contained in a longer one
+  var cand=[stripped].concat(names).filter(function(x){return x&&lc(x)!==lc(cu);}),keep=[];
+  cand.forEach(function(x){if(!cand.some(function(y){return y!==x&&y.length>x.length&&lc(y).indexOf(lc(x))>-1;})&&!keep.some(function(k){return lc(k)===lc(x);}))keep.push(x);});
+  var out=[],head=cu;
+  keep=keep.filter(function(k){if(cu&&lc(k).indexOf(lc(cu))>-1&&head===cu){head=k;return false;}return true;});  // "Adam Shrewsbury" replaces bare "Shrewsbury"
+  if(head)out.push('<b>'+esc(head)+'</b>');
+  keep.forEach(function(k){out.push(esc(k));});
+  if(street)out.push(esc(street));
+  var csz=([t(f[O.city]),t(f[O.state])].filter(Boolean).join(', ')+(t(f[O.zip])?' '+t(f[O.zip]):'')).trim();
+  if(csz)out.push(esc(csz));
+  return out.join('<br>');
+}
 function slipHtml(o){
-  var f=o.f,addr=[txt(f[O.shipTo]),txt(f[O.addr]),[txt(f[O.city]),txt(f[O.state])].filter(Boolean).join(', ')+(txt(f[O.zip])?' '+txt(f[O.zip]):'')].filter(function(s){return s.trim();});
+  var f=o.f;
   var body=o.lines.map(function(l){
     var ship=0,ord=0;
     var cells=l.sizes.map(function(s){ord+=l.rows.ord[s];ship+=l.rows.shipped[s];return s;});
@@ -3431,7 +3454,7 @@ function slipHtml(o){
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Packing Slip - '+esc(o.num)+'<\/title><style>'+css+'<\/style><\/head><body>'
     +'<div class="bar"><span>Packing slip · tap any shipped number or the note to change it</span><button onclick="window.print()">&#128424; Print</button></div>'
     +'<div class="pg"><div class="hd"><img src="data:image/png;base64,'+PINE_LOGO_B64+'" alt=""><h1>Packing Slip</h1><div class="n">Order<b>'+esc(o.num)+'</b></div></div>'
-    +'<div class="meta"><div><h4>Ship to</h4><p><b>'+esc(o.cust)+'</b>'+(txt(f[O.contact])?'<br>'+esc(txt(f[O.contact])):'')+addr.map(function(a){return '<br>'+esc(a);}).join('')+'</p></div>'
+    +'<div class="meta"><div><h4>Ship to</h4><p>'+shipBlock(o.cust,f)+'</p></div>'
     +'<div><h4>Shipment</h4><p>'+(txt(f[O.shipDate])?'Ship date: '+esc(fdate(txt(f[O.shipDate])))+'<br>':'')+(txt(f[O.method])?'Method: '+esc(txt(f[O.method]))+'<br>':'')+(txt(f[O.tracking])?'Tracking: '+esc(txt(f[O.tracking])):'')+'</p></div></div>'
     +body
     +'<div class="nt" contenteditable="true">'+(anyShort?'Some items shipped short (underlined above). We’ll follow up about the difference.':'Thank you for your order!')+'</div>'
@@ -3649,6 +3672,7 @@ async function markComplete(jobId,quiet){
   var cs=await getOrderCaughtState(orderRec);
   if(!cs){
     console.warn('[markComplete] could not read caught state for order',job.orderNum,'— skipping status write');
+    showToast('Order '+job.orderNum+': couldn\u2019t check the order \u2014 status not changed','warn');  // v145: no longer silent
     return;
   }
 
@@ -3670,6 +3694,13 @@ async function markComplete(jobId,quiet){
   // else: nothing caught (shouldn't happen right after a catch) — no write.
 
   if(!newStatus)return;
+  // v145: only ever move the status FORWARD. People also set it by hand (and Completed emails the
+  // customer), so never pull Completed/Shipped back to Caught, or Caught back to Partially Completed.
+  var RANK={'Partially Completed':1,'Caught - Awaiting Ship':2,'Shipped':3,'Completed':4,'Cancelled / Voided':5};
+  if((RANK[cs.status]||0)>=(RANK[newStatus]||0)){
+    console.log('[markComplete] order',job.orderNum,'already',cs.status,'— leaving it (would have set',newStatus+')');
+    return cs.status;
+  }
 
   var ok=await atPatchOrder(orderRec,{[O.status]:newStatus});
   // v141: completeOrder() suppresses these per-card toasts and shows one line
