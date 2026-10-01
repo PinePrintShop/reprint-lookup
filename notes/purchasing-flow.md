@@ -44,6 +44,17 @@ He works order by order, batching into vendor carts across orders. When a wareho
 - PO # holds both, e.g. `1234 / 5678`, unless told otherwise.
 - The split sizes are written into Order Notes, e.g. `Split: S&S Reno M 10, L 10 · S&S Olathe 2XL 4`.
 
+## Invoice check tab (reporting)
+- One row per PO with:
+  - warehouse, date, lines, pieces and orders
+  - the **Airtable total** (sum of Total Line Cost: (ordered + extras) × bracket cost, plus Inbound Freight)
+  - a box to type the **vendor invoice total**
+- Status: Not checked / ✓ Matches (within 50¢) / Invoice ±$X.
+- "To check" (default) hides POs that match. Tap a PO to see its lines, so you can find what's off.
+- **Open question: where the invoice total is saved.** Nothing in Airtable holds it today. The suggestion is a small new **Vendor Invoices** table (PO #, warehouse, invoice #, invoice total, date, checked by, matched), linked to the line items. Ask before creating it.
+- Split lines (PO `1234 / 5678`) need care: Airtable has one cost per line, so the app splits it by the sizes that went to each warehouse.
+- Later: pull invoice totals automatically (the S&S API has invoices; check SanMar / AS Colour) instead of typing them.
+
 ## Later phases
 - **Live stock/price** per warehouse, from S&S / SanMar / AS Colour through the worker. This drives splits.
 - **Truck scan:** scan the UPS 1Z label when boxes come off the truck, match it to the line item's **Tracking Number** (`fldb48U3afClKC6p4`) and so the PO, and log a real arrival time.
