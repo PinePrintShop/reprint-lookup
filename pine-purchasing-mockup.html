@@ -147,6 +147,8 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .tab.on{background:var(--ink);color:#fff}
 .tab span:not(:empty){background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px}
 .hidden{display:none!important}
+.steps{margin-left:auto;display:flex;gap:6px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.steps span{padding:4px 8px}.steps b{color:var(--text)}
 .invwrap{flex:1;overflow:auto;padding:16px 20px 40px}
 .invtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .invtop h1{font-size:18px;text-transform:uppercase}
@@ -197,6 +199,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .toast.show{opacity:1}
 
 @media (max-width:1100px){
+  .steps{display:none}
   .cols{grid-template-columns:1fr;overflow:auto}
   .col{overflow:visible}
   .c-orders,.c-carts{border:none}
@@ -207,9 +210,10 @@ table.sz .tot{font-weight:800;padding-left:8px}
 </head>
 <body>
 <div class="top">
-  <span class="brand">Pine Purchasing<small>flow mockup · v9</small></span>
+  <span class="brand">Pine Purchasing<small>flow mockup · v10</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
+  <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
 </div>
 <div class="cols">
   <div class="col c-orders"><h2>Orders <span class="n" id="o-n"></span></h2><div id="orders"></div></div>
@@ -483,7 +487,6 @@ function cartItems(){
 function renderCarts(){
   var carts=cartItems(), keys=Object.keys(carts), h='';
   $('c-n').textContent=keys.length?keys.length+' open':'';
-  if(!keys.length) h+='<div class="empty" style="padding:24px 8px">Lines you add show up here, one cart per warehouse.<br>Keep adding from other orders, then place each cart on the vendor site.</div>';
   keys.forEach(function(k){
     var w=whById(k), items=carts[k], pcs=0; items.forEach(function(it){ pcs+=sum(it.q); });
     h+='<div class="cartc"><div class="ch"><span class="nm">'+esc(w.name)+'</span><span class="tr">'+(w.days!=null?'UPS ~'+w.days+'d':'')+'</span><span class="pcs">'+pcs+' pcs</span></div>'
@@ -544,7 +547,7 @@ var INV_FILTER='need', OPEN_PO={};
 function poState(p){ if(p.inv==='') return 'wait'; return Math.abs((+p.inv)-poTotal(p))<0.5?'ok':'bad'; }
 function setTab(t){ $('t-order').classList.toggle('on',t==='order'); $('t-inv').classList.toggle('on',t==='inv');
   document.querySelector('.cols').classList.toggle('hidden',t!=='order'); $('inv').classList.toggle('hidden',t!=='inv');
-  renderInv(); }
+  document.querySelector('.steps').classList.toggle('hidden',t!=='order'); renderInv(); }
 function poKey(p){ return p.po+'|'+p.wh; }
 function setInv(key,v){ var p=POS.filter(function(x){return poKey(x)===key;})[0]; p.inv=v.replace(/[$,\s]/g,''); renderInv(); }
 function renderInv(focusPo){
