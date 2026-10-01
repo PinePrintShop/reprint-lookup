@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catching PRACTICE (v145) · Pine Central</title>
+<title>Catching Queue v145 · Pine Central</title>
 <style>
 :root{
   --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;
@@ -613,8 +613,6 @@ body.writes-on .act-row{bottom:0}
    to avoid iOS Safari tap-swallowing on the Submit button. */
 .sm-ftr button.working{pointer-events:none;opacity:.55}
 
-/* practice: banner is an in-flow strip at the top, never over buttons */
-body.practice .preview-badge{display:block!important;position:static!important;order:-1;flex-shrink:0;font-size:12px;background:#E8E832;color:#0A0A08;border:none;border-bottom:2px solid #0A0A08;padding:6px 14px;pointer-events:none}
 </style>
 </head>
 <body>
@@ -688,7 +686,7 @@ body.practice .preview-badge{display:block!important;position:static!important;o
 </div>
 
 <!-- Persistent statusbar: writes off -->
-<div class="preview-badge" id="previewBadge">🧪 PRACTICE — live orders, nothing is saved (copy of v145)</div>
+<div class="preview-badge" id="previewBadge">👁 Preview Mode — Writes Disabled</div>
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────
@@ -751,9 +749,7 @@ var SKIP_PRESS=['heat','sewing','finishing','bartacker','post-bed','tag press','
 //      - Pickup orders → "Completed"
 //      - Ship orders   → "Caught - Awaiting Ship"
 //      - Partial day   → "Partially Completed" (when today's caught but more remain)
-// PRACTICE COPY of v145 -- every Airtable save goes through the WRITES_ENABLED helpers, so this
-// reads live orders but never writes. Re-copy from the live version when Catching gets a new one.
-var WRITES_ENABLED=false;
+var WRITES_ENABLED=true;
 
 // ─── STATE ───────────────────────────────────────────────────────────
 var pat=null,jobs=[],completedJobs=[],qcState={},activePress='p1',activeJobId=null,viewMode='active';
@@ -777,12 +773,6 @@ window.onload=function(){
     pb.style.display='none';
     document.body.style.paddingBottom='56px';
     document.body.classList.add('writes-on');
-  }
-  // practice: same bottom layout as live (nothing reserved at the bottom), banner moved to a strip at the TOP
-  if(pb&&!WRITES_ENABLED){
-    document.body.style.paddingBottom='56px';
-    document.body.classList.add('writes-on','practice');
-    document.body.insertBefore(pb,document.body.firstChild);
   }
   pat=localStorage.getItem('pine_at_key');
   syncTokenBtn();
@@ -3169,7 +3159,7 @@ function smClose(){
 // instead of creating a second set (10671 on 9/10 was counted twice this way).
 // A bucket cleared to zero since the last submit has its own records removed.
 // Entries expire after 36h so a later reprint run of the same card logs fresh issues.
-var WRITTEN_KEY='pine_catch_written_practice'  // practice: own memory, never mixes fake ids into the live app's,WRITTEN_TTL=36*3600*1000;
+var WRITTEN_KEY='pine_catch_written_v1',WRITTEN_TTL=36*3600*1000;
 function writtenAll(){
   var all={};try{all=JSON.parse(localStorage.getItem(WRITTEN_KEY)||'{}')||{};}catch(e){all={};}
   var now=Date.now();Object.keys(all).forEach(function(k){if(!all[k]||now-(all[k].ts||0)>WRITTEN_TTL)delete all[k];});
