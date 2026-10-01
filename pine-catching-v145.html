@@ -3451,7 +3451,7 @@ function slipHtml(o){
     +'.st td:first-child,.st th:first-child{text-align:left;width:90px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}.st tr+tr td{border-top:1px solid #ccc}.st td.sh{font-weight:700;text-decoration:underline}'
     +'.nt{margin-top:14px;border:1.5px dashed #000;padding:9px 11px;font-size:12px;line-height:1.45;min-height:40px}'
     +'[contenteditable]{outline:none}[contenteditable]:focus{background:#fffbea}'
-    +'@page{size:letter;margin:0}@media print{body{background:#fff;padding:0}.bar{display:none}.pg{box-shadow:none;max-width:none}}';
+    +'@page{size:letter;margin:.5in}@media print{body{background:#fff;padding:0}.bar{display:none}.pg{box-shadow:none;max-width:none;padding:0}}';  // v145: real page margins so page 2+ isn't printed to the paper edge
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Packing Slip - '+esc(o.num)+'<\/title><style>'+css+'<\/style><\/head><body>'
     +'<div class="bar"><span>Packing slip · tap any shipped number or the note to change it</span><button onclick="window.print()">&#128424; Print</button></div>'
     +'<div class="pg"><div class="hd"><img src="data:image/png;base64,'+PINE_LOGO_B64+'" alt=""><h1>Packing Slip</h1><div class="n">Order<b>'+esc(o.num)+'</b></div></div>'
