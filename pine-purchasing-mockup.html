@@ -184,6 +184,16 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .nf textarea{width:100%;border:1px solid var(--amb-bd);background:var(--amb-bg);border-radius:6px;padding:6px 8px;font:inherit;font-size:13px;resize:vertical}
 .nf textarea:focus{outline:none;border-color:var(--amb);background:#fff}
 .addnote{align-self:end;justify-self:start;font-size:12px;border:1px dashed var(--border-dk);border-radius:6px;padding:5px 8px;background:#fff;color:var(--muted)}
+.issuebtn{border:1px solid var(--red-bd);background:var(--red-bg);color:var(--red);font-weight:800;font-size:11px;border-radius:4px;padding:3px 8px;cursor:pointer}
+.iss-wrap{display:block!important;height:auto!important}
+.pv-card:has(.iss-wrap){height:auto;width:min(680px,100%)}
+.iss{padding:34px 28px 24px;max-width:640px}
+.iss-r{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.iss-b{border:1px solid var(--border-dk);background:#fff;border-radius:20px;padding:8px 14px;font-weight:700;cursor:pointer}
+.iss-b.on{background:var(--red);border-color:var(--red);color:#fff}
+.iss textarea{width:100%;border:1px solid var(--border-dk);border-radius:6px;padding:8px;font:inherit}
+.iss-prev{margin-top:12px;background:var(--soft);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px}
+.iss-go{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .pv{position:fixed;inset:0;background:rgba(10,10,8,.6);z-index:30;display:flex;align-items:center;justify-content:center;padding:20px}
 .pv-card{background:#fff;border-radius:10px;width:min(1100px,100%);height:min(820px,100%);position:relative;overflow:hidden}
 .pv-x{position:absolute;top:10px;right:12px;border:none;background:#fff;font-size:20px;cursor:pointer;z-index:2}
@@ -210,7 +220,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 </head>
 <body>
 <div class="top">
-  <span class="brand">Pine Purchasing<small>flow mockup · v10</small></span>
+  <span class="brand">Pine Purchasing<small>flow mockup · v11</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
   <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
@@ -272,7 +282,7 @@ var ORDERS = [
 // per line: {extras:{}, allocs:[{wh, q:{}}], cost, cost2, status:'open'|'cart'|'ordered', po}
 var S = {}, CUR = null, DONE = [];   // DONE = placed carts
 ORDERS.forEach(function(o){ o.lines.forEach(function(l,i){
-  S[l.id]={extras:{}, allocs:[{wh:null,q:null}], cost:'', cost2:'', status:'open', po:'', color:'', notes:{}, saved:{}};
+  S[l.id]={extras:{}, allocs:[{wh:null,q:null}], cost:'', cost2:'', status:'open', po:'', issue:'', notes:{}, saved:{}};
   if(i===0) o.notes.forEach(function(n){ S[l.id].notes[n.k.toLowerCase()]=n.t; });
   l.proof='samples/proof-'+l.imp+'.pdf'; l.thumb='samples/proof-'+l.imp+'.png';
 }); });
@@ -394,7 +404,7 @@ function lineHtml(o,l){
   return '<div class="line'+(st.status==='cart'?' incart':'')+(st.status==='ordered'?' ordered':'')+'" id="line-'+l.id+'">'
     +'<div class="lhead"><button class="thumb" title="Open the mockup" onclick="openProof(\''+l.id+'\')"><img src="'+l.thumb+'" alt="mockup"></button>'
     +'<span class="g">'+esc(l.g)+'</span><span class="imp">'+esc(l.imp)+'</span>'
-    +(st.color==='ok'?'<span class="tag ok">✓ Color checked</span>':st.color==='bad'?'<span class="tag hard">⚠ Color mismatch</span>':'<button class="linkbtn" onclick="openProof(\''+l.id+'\')">Check mockup color</button>')
+    +(st.issue?'<span class="tag hard" title="'+esc(st.issue)+'">⚠ Garment issue sent to Art</span>':'<button class="issuebtn" onclick="openIssue(\''+l.id+'\')">⚠ Garment issue</button>')
     +'<span class="st">'+stTag+'</span></div>'
     +'<div class="flow"><div class="stage"><h4><span class="k">1</span>Sizes · extras</h4>'+t+'</div>'
     +'<div class="stage"><h4><span class="k">2</span>Warehouse · ship time</h4>'+wh+'</div>'
@@ -424,7 +434,7 @@ function saveNote(id,k,ta){
   toast(f.label+' saved (mockup — not really)');
 }
 
-/* ---------- mockup / proof popup: check the line item's color against the proof ---------- */
+/* ---------- mockup popup: eyeball the garment against the proof ---------- */
 var PROOF=null;
 function openProof(id){ PROOF=id; var l=lineById(id), st=S[id], o=orderOf(id);
   var color=(l.g.split(' - ')[1]||'').trim();
@@ -432,20 +442,38 @@ function openProof(id){ PROOF=id; var l=lineById(id), st=S[id], o=orderOf(id);
     +'<div class="pv-side"><div class="pv-k">Line item says</div><div class="pv-g">'+esc(l.g)+'</div>'
     +'<div class="pv-color">Color: <b>'+esc(color||'—')+'</b></div>'
     +'<div class="pv-k" style="margin-top:14px">Order '+o.num+' · imprint '+esc(l.imp)+'</div>'
-    +'<p class="hint" style="margin:14px 0">Does the shirt color on the mockup match <b>'+esc(color)+'</b>?</p>'
-    +'<button class="btn g" onclick="colorCheck(\'ok\')">✓ Color matches</button>'
-    +'<button class="btn ghost" style="margin-top:8px;border-color:var(--red);color:var(--red)" onclick="colorCheck(\'bad\')">✗ Doesn\'t match</button>'
+    +(st.issue?'<div class="note" style="margin-top:14px"><b>Sent to Art</b>'+esc(st.issue)+'</div>'
+              :'<button class="btn ghost" style="margin-top:18px;border-color:var(--red);color:var(--red)" onclick="openIssue(\''+id+'\')">⚠ Garment issue</button>')
     +'<a class="pv-open" href="'+l.proof+'" target="_blank" rel="noopener">Open PDF in a new tab ↗</a></div>';
   $('pv').classList.remove('hidden');
 }
-function closeProof(){ $('pv').classList.add('hidden'); $('pv-body').innerHTML=''; PROOF=null; }
-function colorCheck(v){ var id=PROOF, st=S[id], l=lineById(id);
-  st.color=v;
-  if(v==='bad'){ var msg='Color check: mockup does not match the line item ('+l.g+'). Confirm with sales before ordering.';
-    st.notes.production=(st.notes.production?st.notes.production+'\n':'')+msg; st.saved.production=true;
-    console.log('PATCH Line Items/'+id, JSON.stringify({fields:{fld4FjoCQ5bXdwjJj:st.notes.production}}));
-    toast('Flagged — added to Production Notes (mockup)'); }
-  closeProof(); refreshLine(id); renderOrder(); }
+function closeProof(){ $('pv').classList.add('hidden'); $('pv-body').innerHTML=''; $('pv-body').className='pv-in'; PROOF=null; ISSUE=null; }
+
+/* ---------- Garment issue -> comment on the line item, @mentioning Art Department ----------
+   Live app: POST /v0/{base}/tblJx5UlwO7oMSk5H/{recordId}/comments  {text}
+   Art Department = Airtable user usr8GNzrtN698y03u (art@pineprintshop.com); "@[usr…]" in the text
+   is a real @mention, so Art gets the normal Airtable notification. */
+var ART_USER='usr8GNzrtN698y03u';
+var ISSUE_REASONS=['Color doesn\'t match the mockup','Garment / style doesn\'t match the mockup','Print size or placement looks off','Other'];
+var ISSUE=null;
+function openIssue(id){ ISSUE={id:id, reason:'', note:''}; var l=lineById(id), o=orderOf(id);
+  $('pv-body').innerHTML='<div class="iss"><div class="pv-k">Garment issue · order '+o.num+' · '+esc(l.imp)+'</div><div class="pv-g" style="margin-bottom:14px">'+esc(l.g)+'</div>'
+    +'<div class="iss-r">'+ISSUE_REASONS.map(function(r,i){ return '<button class="iss-b" id="ir-'+i+'" onclick="pickReason('+i+')">'+esc(r)+'</button>'; }).join('')+'</div>'
+    +'<textarea id="iss-note" rows="3" placeholder="Anything else Art should know (optional)"></textarea>'
+    +'<div class="iss-prev" id="iss-prev"></div>'
+    +'<div class="iss-go"><button class="btn ghost" onclick="closeProof()">Cancel</button><button class="btn" id="iss-send" disabled onclick="sendIssue()">Send to @Art Department</button></div></div>';
+  $('pv-body').className='pv-in iss-wrap'; $('pv').classList.remove('hidden');
+  $('iss-note').oninput=issPreview; issPreview();
+}
+function pickReason(i){ ISSUE.reason=ISSUE_REASONS[i]; [].forEach.call(document.querySelectorAll('.iss-b'),function(b,j){ b.classList.toggle('on',i===j); }); $('iss-send').disabled=false; issPreview(); }
+function issueText(display){ var l=lineById(ISSUE.id), o=orderOf(ISSUE.id), note=$('iss-note').value.trim();
+  return (display?'@Art Department':'@['+ART_USER+']')+' Garment issue from purchasing on '+o.num+' ('+l.imp+', '+l.g+'): '+(ISSUE.reason||'…')+'.'+(note?' '+note:'')+' Please check this and make sure it\'s right before we order blanks.'; }
+function issPreview(){ $('iss-prev').innerHTML='<div class="pv-k">Comment that goes on the line item</div>'+esc(issueText(true)); }
+function sendIssue(){ var id=ISSUE.id, st=S[id];
+  console.log('POST Line Items/'+id+'/comments', JSON.stringify({text:issueText(false)}));
+  st.issue=ISSUE.reason+($('iss-note').value.trim()?' — '+$('iss-note').value.trim():'');
+  ISSUE=null; $('pv-body').className='pv-in'; closeProof(); refreshLine(id);
+  toast('Comment posted on the line item for @Art Department (mockup — not really)'); }
 function qtxt(q){ return SIZES.filter(function(k){return q[k];}).map(function(k){return k+' '+q[k];}).join(', ')||'nothing'; }
 function whChoices(o,l,i,sel,locked){
   // the vendors that carry this garment, fastest first; the rest go in "More warehouses"
@@ -476,7 +504,7 @@ function refreshLine(id){
 }
 
 /* ---------- column 3: carts ---------- */
-function addToCart(id){ if(S[id].color==='bad' && !confirm('This line\'s mockup color was flagged as NOT matching. Add it to the cart anyway?')) return; S[id].status='cart'; renderAll(); $('order').scrollTop=0; toast(lineById(id).g+' added to cart — next line is on top'); }
+function addToCart(id){ if(S[id].issue && !confirm('A garment issue was sent to Art for this line. Add it to the cart anyway?')) return; S[id].status='cart'; renderAll(); $('order').scrollTop=0; toast(lineById(id).g+' added to cart — next line is on top'); }
 function pullFromCart(id){ S[id].status='open'; renderAll(); }
 function cartItems(){
   var carts={};
