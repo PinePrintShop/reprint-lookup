@@ -34,6 +34,28 @@ textarea{width:100%;min-height:96px;border:2px solid var(--ink);border-radius:8p
 .mi .nm b{white-space:nowrap;font-size:17px;letter-spacing:.02em}
 .mi small{display:block;color:var(--muted);font-size:13px}
 .ld{color:var(--muted);font-size:14px}
+.item{background:#fff;border:2px solid var(--ink);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.item.off{border-style:dashed;border-color:#aaa;background:transparent}
+.item.off .body{display:none}
+.ih{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ih .nm{font-weight:700;font-size:17px}
+.ih .ids{display:block;font-weight:800;letter-spacing:.02em;font-size:15px;margin-top:2px}
+.ih small{display:block;color:var(--muted);font-size:13px}
+.rm{background:none;border:none;color:#b3261e;font:700 14px Arial,Helvetica,sans-serif;text-decoration:underline;cursor:pointer;padding:4px 0;white-space:nowrap}
+.item.off .rm{color:#1e6b45}
+.pic{margin:10px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.pic img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-select:none;user-select:none}
+.pic.none{font-size:13px;color:var(--muted);text-align:center;padding:24px 8px}
+.szl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:4px 0 6px}
+.szg{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.szg label{display:block;margin:0;text-align:center;font:800 13px Arial,Helvetica,sans-serif;color:var(--ink);letter-spacing:.04em;text-transform:none}
+.szg input{width:100%;margin-top:3px;border:2px solid var(--ink);border-radius:8px;padding:9px 4px;font:700 18px Arial,Helvetica,sans-serif;text-align:center}
+.szg input::placeholder{color:#b9b9b0;font-weight:400}
+.tot{text-align:right;font-size:14px;color:var(--muted);margin-top:8px}
+.tot b{color:var(--ink);font-size:16px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.warn{color:#b3261e;font-weight:700;margin-bottom:8px}
+.btns.dis{opacity:.4;pointer-events:none}
 .ok{display:none;text-align:center;color:#1e6b45;font-weight:700;margin-top:10px}
 footer{text-align:center;font-size:13px;color:var(--muted);line-height:1.6;padding:8px 16px 28px}
 footer b{color:var(--ink)}
@@ -44,11 +66,12 @@ footer b{color:var(--ink)}
 <main>
   <h1 id="title">Reorder</h1>
   <p class="sub" id="sub">We'll print it exactly the same.</p>
-  <div class="card" id="items" hidden><h2>Your imprint IDs</h2></div>
-  <label for="qty">Quantities &amp; sizes (optional)</label>
-  <textarea id="qty" placeholder="e.g. 50 tees: 10 S, 15 M, 15 L, 10 XL"></textarea>
+  <div id="items"><p class="ld">Loading your order…</p></div>
+  <label for="note">Anything else? (optional)</label>
+  <textarea id="note" placeholder="Other sizes, colors, a date you need it by…"></textarea>
   <p class="how">Send with</p>
-  <div class="btns">
+  <p class="warn" id="none" hidden>Add at least one item back to send a reorder.</p>
+  <div class="btns" id="btns">
     <a class="btn main" id="gmail" target="_blank" rel="noopener">Gmail</a>
     <a class="btn main" id="outlook" target="_blank" rel="noopener">Outlook</a>
     <a class="btn" id="yahoo" target="_blank" rel="noopener">Yahoo Mail</a>
@@ -65,7 +88,7 @@ footer b{color:var(--ink)}
 </footer>
 <script>
 // Reorder page for the packing slip QR. Params: o=order #, n=rep first name, t=rep email,
-// l=item lines (repeatable) as "Item name~ID1,ID2", m=Orders record id (shows mockups via the Pine worker).
+// m=Orders record id (mockups + sizes via the Pine worker), l=item lines "Item name~ID1,ID2" (fallback).
 // Only @pineprintshop.com addresses are used.
 (function(){
   var q=new URLSearchParams(location.search);
@@ -73,47 +96,63 @@ footer b{color:var(--ink)}
   var rep=(q.get('n')||'').replace(/[^A-Za-z .'-]/g,'').slice(0,40);
   var to=(q.get('t')||'').trim().toLowerCase();
   if(!/^[a-z0-9._%+-]+@pineprintshop\.com$/.test(to))to='sales@pineprintshop.com';
-  var lines=q.getAll('l').slice(0,30).map(function(x){var i=x.lastIndexOf('~');return {name:(i>-1?x.slice(0,i):x).slice(0,120),ids:(i>-1?x.slice(i+1):'').slice(0,200)};});
-  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  var ORDER=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+  // items: {name, ids, loc, pic, sizes:[{size,last}], qty:{size:n}, off}
+  var items=q.getAll('l').slice(0,30).map(function(x){var i=x.lastIndexOf('~');
+    return {name:(i>-1?x.slice(0,i):x).slice(0,120),ids:(i>-1?x.slice(i+1):'').split(',').filter(Boolean),loc:'',pic:null,sizes:[],qty:{},off:false};});
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   document.getElementById('title').textContent=order?'Reorder from order '+order:'Reorder';
   document.getElementById('sub').textContent=(rep?rep+' will':'We’ll')+' get it started. We’ll print it exactly the same.';
-  var card=document.getElementById('items');
-  function listOnly(){if(!lines.length)return;card.hidden=false;card.innerHTML='<h2>Your imprint IDs</h2>'
-    +lines.map(function(l){return '<div class="it"><span>'+esc(l.name)+'</span><b>'+esc(l.ids.split(',').join(' · '))+'</b></div>';}).join('');}
-  // Mockups: with m=<order record id>, pull each garment's mockup from the same worker the box-label QR uses.
-  var rec=q.get('m')||'';
-  if(/^rec[A-Za-z0-9]{14}$/.test(rec)){
-    card.hidden=false;card.innerHTML='<h2>Your designs</h2><p class="ld">Loading mockups…</p>';
-    fetch('https://pine-workers.stephen-dab.workers.dev/proxy/mockups?o='+rec)
-      .then(function(r){return r.json();})
-      .then(function(j){
-        var its=(j&&j.ok&&j.items)||[];if(!its.length){listOnly();return;}
-        if(!lines.length){lines=its.map(function(it){return {name:it.garment||'',ids:(it.imprints||[]).join(',')};}).filter(function(l){return l.ids;});upd();}
-        card.innerHTML='<h2>Your designs</h2>'+its.map(function(it){
-          var m=it.mockups&&it.mockups[0];
-          var pic=m&&m.image?'<a class="mk" href="'+esc(m.full||m.image)+'" target="_blank" rel="noopener"><img src="'+esc(m.image)+'" alt="Mockup for '+esc(it.garment)+'" loading="lazy"></a>':'<div class="mk mkn">No mockup on file</div>';
-          return '<div class="mi">'+pic+'<div class="nm"><span>'+esc(it.garment||'')+'</span><b>'+esc((it.imprints||[]).join(' · '))+'</b></div>'
-            +(it.location?'<small>'+esc(it.location)+'</small>':'')+'</div>';
-        }).join('')+'<p class="ld" style="margin-top:6px">Tap a mockup to open the full proof.</p>';
-      })
-      .catch(listOnly);
-  }else listOnly();
+  var box=document.getElementById('items');
+  function sizeList(it){
+    if(it.sizes.length)return it.sizes;
+    return [{size:'Qty',last:''}];  // no size info -> one quantity box
+  }
+  function render(){
+    if(!items.length){box.innerHTML='';return;}
+    box.innerHTML=items.map(function(it,i){
+      var sz=sizeList(it),tot=sz.reduce(function(a,s){return a+(parseInt(it.qty[s.size],10)||0);},0);
+      return '<div class="item'+(it.off?' off':'')+'" data-i="'+i+'">'
+        +'<div class="ih"><div><span class="nm">'+esc(it.name)+'</span><span class="ids">'+esc(it.ids.join(' · '))+'</span>'+(it.loc?'<small>'+esc(it.loc)+'</small>':'')+'</div>'
+        +'<button class="rm" type="button" data-rm="'+i+'">'+(it.off?'+ Add back':'✕ Remove')+'</button></div>'
+        +'<div class="body">'
+        +(it.pic===null?'':it.pic?'<div class="pic"><img src="'+esc(it.pic)+'" alt="Mockup for '+esc(it.name)+'" draggable="false"></div>':'<div class="pic none">No mockup on file</div>')
+        +'<div class="szl">How many this time?</div><div class="szg">'
+        +sz.map(function(s){return '<label>'+esc(s.size)+'<input inputmode="numeric" pattern="[0-9]*" data-i="'+i+'" data-sz="'+esc(s.size)+'" value="'+esc(it.qty[s.size]||'')+'"'+(s.last?' placeholder="'+esc(s.last)+'"':'')+'></label>';}).join('')
+        +'</div><div class="tot">Total <b class="t" data-i="'+i+'">'+tot+'</b></div>'
+        +(sz.some(function(s){return s.last;})?'<div class="hint">Grey numbers are what you ordered last time.</div>':'')
+        +'</div></div>';
+    }).join('');
+    upd();
+  }
+  box.addEventListener('click',function(e){var b=e.target.closest('[data-rm]');if(!b)return;var it=items[+b.getAttribute('data-rm')];it.off=!it.off;render();});
+  box.addEventListener('input',function(e){var t=e.target;if(!t.hasAttribute('data-sz'))return;
+    t.value=t.value.replace(/\D/g,'').slice(0,5);var it=items[+t.getAttribute('data-i')];it.qty[t.getAttribute('data-sz')]=t.value;
+    var tot=sizeList(it).reduce(function(a,s){return a+(parseInt(it.qty[s.size],10)||0);},0);
+    var el=box.querySelector('.t[data-i="'+t.getAttribute('data-i')+'"]');if(el)el.textContent=tot;upd();});
   var subject='Reorder: Order '+(order||'');
   function body(){
-    var qty=document.getElementById('qty').value.trim();
+    var on=items.filter(function(it){return !it.off;});
+    var note=document.getElementById('note').value.trim();
     return 'Hi '+(rep||'Pine team')+',\n\nI would like to reorder from order '+order+':\n'
-      +lines.map(function(l){return '- '+l.name+': '+l.ids.split(',').join(', ');}).join('\n')
-      +'\n\nQuantities / sizes:\n'+(qty||'')+'\n\nThanks!';
+      +on.map(function(it){
+        var sz=sizeList(it),parts=sz.filter(function(s){return parseInt(it.qty[s.size],10)>0;}).map(function(s){return s.size+' '+parseInt(it.qty[s.size],10);});
+        var tot=sz.reduce(function(a,s){return a+(parseInt(it.qty[s.size],10)||0);},0);
+        return '\n- '+it.name+': '+it.ids.join(', ')+'\n  '+(parts.length?parts.join(', ')+(sz.length>1?' (total '+tot+')':''):'Quantities: TBD');
+      }).join('\n')
+      +(note?'\n\nNotes:\n'+note:'')+'\n\nThanks!';
   }
   var E=encodeURIComponent;
   function upd(){
+    var none=items.length>0&&items.every(function(it){return it.off;});
+    document.getElementById('none').hidden=!none;document.getElementById('btns').className='btns'+(none?' dis':'');
     var b=body();
     document.getElementById('gmail').href='https://mail.google.com/mail/?view=cm&fs=1&to='+E(to)+'&su='+E(subject)+'&body='+E(b);
     document.getElementById('outlook').href='https://outlook.live.com/mail/0/deeplink/compose?to='+E(to)+'&subject='+E(subject)+'&body='+E(b);
     document.getElementById('yahoo').href='https://compose.mail.yahoo.com/?to='+E(to)+'&subject='+E(subject)+'&body='+E(b);
     document.getElementById('mailapp').href='mailto:'+to+'?subject='+E(subject)+'&body='+E(b);
   }
-  document.getElementById('qty').addEventListener('input',upd);upd();
+  document.getElementById('note').addEventListener('input',upd);
   document.getElementById('okTo').textContent=to;
   document.getElementById('copy').addEventListener('click',function(){
     var t='To: '+to+'\nSubject: '+subject+'\n\n'+body(),ok=document.getElementById('ok');
@@ -121,6 +160,27 @@ footer b{color:var(--ink)}
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,function(){window.prompt('Copy this:',t);});
     else window.prompt('Copy this:',t);
   });
+  // Mockups + last order's sizes from the same worker the box-label QR uses.
+  var rec=q.get('m')||'';
+  if(/^rec[A-Za-z0-9]{14}$/.test(rec)){
+    render();box.insertAdjacentHTML('afterbegin','<p class="ld" id="ldm">Loading mockups…</p>');
+    fetch('https://pine-workers.stephen-dab.workers.dev/proxy/mockups?o='+rec)
+      .then(function(r){return r.json();})
+      .then(function(j){
+        var its=(j&&j.ok&&j.items)||[];
+        if(its.length){
+          items=its.map(function(it){
+            var sz=(it.sizes||[]).filter(function(s){return s&&s.size;}).map(function(s){return {size:String(s.size),last:String(s.qty||'')};})
+              .sort(function(a,b){return (ORDER.indexOf(a.size)+99)%99-(ORDER.indexOf(b.size)+99)%99;});
+            if(sz.length===1&&/^(OSFA|ONE SIZE)$/i.test(sz[0].size))sz=[{size:'Qty',last:sz[0].last}];
+            var m=it.mockups&&it.mockups[0];
+            return {name:String(it.garment||''),ids:(it.imprints||[]).map(String),loc:String(it.location||''),pic:m&&m.image?m.image:'',sizes:sz,qty:{},off:false};
+          }).filter(function(it){return it.ids.length||it.name;});
+        }
+        render();
+      })
+      .catch(function(){render();});
+  }else render();
 })();
 </script>
 </body>
