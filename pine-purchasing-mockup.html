@@ -269,8 +269,8 @@ function productUrl(g,w){
   if(w.vendor==='AS Colour') return 'https://ascolour.com/search.php?search_query='+encodeURIComponent(style);
   return '';
 }
-/* PO # = the day it's ordered, MMDDYYYY (e.g. 10012026). Same PO for every vendor that day. */
-function todayPO(){ function z(n){return (n<10?'0':'')+n;} return z(TODAY.getMonth()+1)+z(TODAY.getDate())+TODAY.getFullYear(); }
+/* PO # = the day it's ordered, MMDDYY (e.g. 100126). Same PO for every vendor that day. */
+function todayPO(){ function z(n){return (n<10?'0':'')+n;} return z(TODAY.getMonth()+1)+z(TODAY.getDate())+String(TODAY.getFullYear()).slice(2); }
 function shortWh(w){ return w.name.replace(' Activewear',''); }
 function whById(id){ return WAREHOUSES.filter(function(w){return w.id===id;})[0]; }
 function orderOf(lid){ return ORDERS.filter(function(o){ return o.lines.some(function(l){return l.id===lid;}); })[0]; }
@@ -416,7 +416,7 @@ function renderCarts(){
         +'<div class="grid">'+SIZES.filter(function(z){return it.q[z];}).map(function(z){ return '<span><i>'+z+'</i><b>'+it.q[z]+'</b></span>'; }).join('')+'</div>'
         +(productUrl(it.l.g,w)?'<a class="open" href="'+productUrl(it.l.g,w)+'" target="_blank" rel="noopener">Open on '+esc(w.vendor)+' ↗</a>':'')+'</div>'; }).join('')
       +'<div class="cfoot"><div class="hint">Open each item, type the sizes into the '+esc(shortWh(w))+' row of the size grid, check out, then enter the PO here.</div>'
-      +'<div class="r"><input id="po-'+k+'" value="'+todayPO()+'" title="PO = today\'s date (MMDDYYYY). Change it if needed."><button class="btn g" onclick="placeCart(\''+k+'\')">✓ Ordered</button></div>'
+      +'<div class="r"><input id="po-'+k+'" value="'+todayPO()+'" title="PO = today\'s date (MMDDYY). Change it if needed."><button class="btn g" onclick="placeCart(\''+k+'\')">✓ Ordered</button></div>'
       +'<div class="hint">Saves Ordered, PO, warehouse, extras and costs on '+items.length+' line'+(items.length>1?'s':'')+'.</div></div></div>';
   });
   if(DONE.length) h+='<h2 style="padding-left:0;background:none">Ordered today</h2><div class="done-list">'+DONE.map(function(c){
@@ -453,15 +453,15 @@ function poTotal(p){ var t=p.freight||0; p.lines.forEach(function(x){ t+=x.amt; 
 function money(n){ return '$'+(+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 // recent POs already in Airtable (fake history)
 var POS=[
-  {po:'09282026', wh:'ssola', date:new Date(2026,8,28), freight:0, inv:'', lines:[
+  {po:'092826', wh:'ssola', date:new Date(2026,8,28), freight:0, inv:'', lines:[
     {order:'90011', cust:'Sample Co F', g:'Bella Canvas 3001 - Black', q:{S:10,M:20,L:20,XL:10}, pcs:60, c1:3.12, c2:4.62, amt:187.20},
     {order:'90012', cust:'Sample Co G', g:'Bella Canvas 3001 - Black', q:{M:12,L:12,'2XL':4}, pcs:28, c1:3.12, c2:4.62, amt:93.36}]},
-  {po:'09292026', wh:'slcslc', date:new Date(2026,8,29), freight:0, inv:'412.80', lines:[
+  {po:'092926', wh:'slcslc', date:new Date(2026,8,29), freight:0, inv:'412.80', lines:[
     {order:'90005', cust:'Sample Co E', g:'Comfort Colors 1717 - Blue Spruce', q:{L:30}, pcs:30, c1:5.40, c2:5.40, amt:162.00},
     {order:'90013', cust:'Sample Co H', g:'Comfort Colors 1717 - Moss', q:{S:6,M:18,L:18,XL:6}, pcs:48, c1:5.10, c2:5.10, amt:244.80}], why:'Invoice is $6.00 higher. Common causes: a price change since the cost was saved, freight or a small-order fee not entered, or a short ship.'},
-  {po:'09302026', wh:'smdal', date:new Date(2026,8,30), freight:14.50, inv:'200.50', lines:[
+  {po:'093026', wh:'smdal', date:new Date(2026,8,30), freight:14.50, inv:'200.50', lines:[
     {order:'90014', cust:'Sample Co I', g:'Port & Company PC54 - Navy', q:{M:24,L:24,XL:12}, pcs:60, c1:3.10, c2:3.10, amt:186.00}]},
-  {po:'09302026', wh:'ascal', date:new Date(2026,8,30), freight:22.00, inv:'', lines:[
+  {po:'093026', wh:'ascal', date:new Date(2026,8,30), freight:22.00, inv:'', lines:[
     {order:'90005', cust:'Sample Co E', g:'AS Colour 5001 - Natural', q:{S:5,M:16,L:11}, pcs:32, c1:6.20, c2:6.20, amt:198.40}]}
 ];
 var INV_FILTER='need', OPEN_PO={};
@@ -478,7 +478,7 @@ function renderInv(focusPo){
   var at=0, iv=0, nchk=0; POS.forEach(function(p){ at+=poTotal(p); if(p.inv!==''){ iv+=+p.inv; nchk++; } });
   var h='<div class="invtop"><h1>Invoice check</h1><span class="sum"><b>'+POS.length+'</b> POs · Airtable <b>'+money(at)+'</b> · <b>'+nchk+'</b> invoices entered ('+money(iv)+')</span>'
     +'<span class="seg"><button class="'+(INV_FILTER==='need'?'on':'')+'" onclick="INV_FILTER=\'need\';renderInv()">To check ('+need+')</button><button class="'+(INV_FILTER==='all'?'on':'')+'" onclick="INV_FILTER=\'all\';renderInv()">All POs</button></span></div>'
-    +'<p class="hint" style="margin-bottom:12px">POs are the order date (MMDDYYYY), so each row is one PO at one warehouse. Type the total from that vendor\'s invoice. Within 50¢ counts as a match. Tap a PO to see its lines.</p>';
+    +'<p class="hint" style="margin-bottom:12px">POs are the order date (MMDDYY), so each row is one PO at one warehouse. Type the total from that vendor\'s invoice. Within 50¢ counts as a match. Tap a PO to see its lines.</p>';
   if(!list.length) h+='<div class="empty">Every PO matches its invoice. 🎉</div>';
   list.forEach(function(p){
     var w=whById(p.wh), t=poTotal(p), stt=poState(p), diff=(+p.inv)-t;
