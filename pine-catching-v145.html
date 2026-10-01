@@ -3441,8 +3441,8 @@ function open(orderRecId,orderNum){
   var w=window.open('','_blank','width=900,height=1000');
   if(!w){alert('Allow pop-ups to open the packing slip');return;}
   w.document.write('<p style="font:16px Arial;padding:30px;color:#666">Loading packing slip for '+esc(orderNum)+'…</p>');
-  var ofields=Object.keys(O).map(function(k){return 'fields%5B%5D='+O[k];}).join('&');
-  api(TOR+'/'+orderRecId+'?returnFieldsByFieldId=true&'+ofields).then(function(ord){
+  // v145 fix: the single-record endpoint rejects fields[] ("parameter validation failed") -- fetch the whole record.
+  api(TOR+'/'+orderRecId+'?returnFieldsByFieldId=true').then(function(ord){
     var lids=ids(ord.fields[O.lines]);
     if(!lids.length)throw new Error('No line items on this order');
     var lf=[L.ref,L.order,L.total,L.totalFinal,L.price,L.type,L.desc,L.brand,L.style,L.garment,L.color,L.nick,L.prodDesc,L.xSent,L.xSentTot,L.xRec]
