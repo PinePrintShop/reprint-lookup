@@ -1,6 +1,6 @@
 # Plan: one bookkeeper email per order (Damage Log v17)
 
-Status: draft for review. Nothing below has been changed in Airtable yet.
+Status: LIVE as of Oct 1, 2026. Fields created, new automation on, per-issue email step removed, Slack repointed to Refund Amount, 211 past approved refunds backfilled In Refund Request. Team switches to Damage Log v17.
 
 ## Today
 - Automation **Order Issue Resolutions** runs when an issue's **Approve Resolution** box is checked.
