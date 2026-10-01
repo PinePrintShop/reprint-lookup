@@ -184,7 +184,8 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .nf textarea{width:100%;border:1px solid var(--amb-bd);background:var(--amb-bg);border-radius:6px;padding:6px 8px;font:inherit;font-size:13px;resize:vertical}
 .nf textarea:focus{outline:none;border-color:var(--amb);background:#fff}
 .addnote{align-self:end;justify-self:start;font-size:12px;border:1px dashed var(--border-dk);border-radius:6px;padding:5px 8px;background:#fff;color:var(--muted)}
-.issuebtn{border:1px solid var(--red-bd);background:var(--red-bg);color:var(--red);font-weight:800;font-size:11px;border-radius:4px;padding:3px 8px;cursor:pointer}
+.issuebtn{border:1px solid var(--border-dk);background:var(--soft);color:var(--muted);font-weight:800;font-size:11px;border-radius:4px;padding:3px 8px;cursor:pointer}
+.issuebtn:hover{border-color:var(--muted);color:var(--text)}
 .iss-wrap{display:block!important;height:auto!important}
 .pv-card:has(.iss-wrap){height:auto;width:min(680px,100%)}
 .iss{padding:34px 28px 24px;max-width:640px}
@@ -229,7 +230,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 </head>
 <body>
 <div class="top">
-  <span class="brand">Pine Purchasing<small>flow mockup · v12</small></span>
+  <span class="brand">Pine Purchasing<small>flow mockup · v13</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
   <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
@@ -452,7 +453,7 @@ function openProof(id){ PROOF=id; var l=lineById(id), st=S[id], o=orderOf(id);
     +'<div class="pv-color">Color: <b>'+esc(color||'—')+'</b></div>'
     +'<div class="pv-k" style="margin-top:14px">Order '+o.num+' · imprint '+esc(l.imp)+'</div>'
     +(st.issue?'<div class="note" style="margin-top:14px"><b>Sent to '+esc(st.issueTo)+'</b>'+esc(st.issue)+'</div>'
-              :'<button class="btn ghost" style="margin-top:18px;border-color:var(--red);color:var(--red)" onclick="openIssue(\''+id+'\')">⚠ Garment issue</button>')
+              :'<button class="btn ghost" style="margin-top:18px;color:var(--muted)" onclick="openIssue(\''+id+'\')">⚠ Garment issue</button>')
     +'<a class="pv-open" href="'+l.proof+'" target="_blank" rel="noopener">Open PDF in a new tab ↗</a></div>';
   $('pv').classList.remove('hidden');
 }
