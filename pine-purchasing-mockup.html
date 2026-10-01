@@ -204,6 +204,10 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .who-o small{color:var(--muted)}.who-o.none{color:var(--muted);cursor:default}
 .iss-prev{margin-top:12px;background:var(--soft);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px}
 .iss-go{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.lp{display:inline-block;margin:3px 0 0 6px;font-size:11px;font-weight:800;border-radius:4px;padding:1px 6px}
+.lp.same{background:var(--soft);color:var(--muted)}.lp.up{background:var(--red-bg);color:var(--red)}.lp.down{background:var(--green-lt);color:var(--green)}.lp.none{color:var(--muted-lt);font-weight:600;padding-left:0}
+.pchg{font-size:11px;font-weight:800;border-radius:4px;padding:5px 7px;margin-top:2px}
+.pchg.up{background:var(--red-bg);color:var(--red)}.pchg.down{background:var(--green-lt);color:var(--green)}
 .pv{position:fixed;inset:0;background:rgba(10,10,8,.6);z-index:30;display:flex;align-items:center;justify-content:center;padding:20px}
 .pv-card{background:#fff;border-radius:10px;width:min(1100px,100%);height:min(820px,100%);position:relative;overflow:hidden}
 .pv-x{position:absolute;top:10px;right:12px;border:none;background:#fff;font-size:20px;cursor:pointer;z-index:2}
@@ -230,7 +234,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 </head>
 <body>
 <div class="top">
-  <span class="brand">Pine Purchasing<small>flow mockup · v13</small></span>
+  <span class="brand">Pine Purchasing<small>flow mockup · v14</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
   <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
   <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
@@ -296,6 +300,28 @@ ORDERS.forEach(function(o){ o.lines.forEach(function(l,i){
   if(i===0) o.notes.forEach(function(n){ S[l.id].notes[n.k.toLowerCase()]=n.t; });
   l.proof='samples/proof-'+l.imp+'.pdf'; l.thumb='samples/proof-'+l.imp+'.png';
 }); });
+/* ---------- live vendor prices (sample) ----------
+   Live app: same worker calls Price-o-Matic uses, for the line's exact style + color:
+     S&S       /proxy/ss/products?style=…  -> customerPrice (Pine's negotiated price)
+     SanMar    /proxy/sanmar/pricing?style=… -> myPrice (includes active sales; saleEndDate)
+     AS Colour /proxy/ascolour/catalog/pricelist -> contracted price by SKU
+   SLC isn't connected yet, Carolina Creative has no API -> "no live price". */
+var LIVE={
+  L1:{'S&S':[3.29,4.79],'Sanmar':[3.18,4.68,'sale ends Wed 10/7']},
+  L2:{'S&S':[5.40,6.90],'Sanmar':[5.62,7.12]},
+  L3:{'S&S':[5.40,6.90],'Sanmar':[5.62,7.12]},
+  L4:{'S&S':[7.10,9.10]},
+  L5:{'S&S':[3.12,4.62],'Sanmar':[2.98,4.48,'sale ends Wed 10/7']},
+  L6:{'S&S':[4.10,5.60]},
+  L7:{'S&S':[3.29,4.79],'Sanmar':[3.29,4.79]},
+  L10:{'AS Colour':[6.45,6.45]}};
+function onFile(l){ return [l.cost, l.cost+(l.up['2XL']||0)]; }
+function livePrice(l,vendor){ var x=(LIVE[l.id]||{})[vendor]; return x?{c1:x[0],c2:x[1],note:x[2]||''}:null; }
+/* the cheapest live price across vendors that carry it, vs what Airtable has on file */
+function priceUp(l){ var f=onFile(l)[0], v=LIVE[l.id]||{}, up=null;
+  Object.keys(v).forEach(function(k){ if(v[k][0]>f+0.004 && (!up||v[k][0]<up.c1)) up={vendor:k,c1:v[k][0]}; });
+  var any=Object.keys(v).some(function(k){ return v[k][0]<=f+0.004; });
+  return any?null:up; }   // only flag when no carrier still sells at (or under) the price on file
 /* Line Items long-text note fields (all editable; saved with a PATCH on that line item) */
 var NOTE_FIELDS=[
   {k:'order',      label:'Order Notes',      fld:'fldF378cgWuOcWNL6'},
@@ -356,6 +382,7 @@ function renderOrders(){
     var n=o.lines.length, ord=o.lines.filter(function(l){return S[l.id].status==='ordered';}).length, cart=o.lines.filter(function(l){return S[l.id].status==='cart';}).length;
     var pri=/hard/i.test(o.pri)?'<span class="tag hard">Hard Deadline</span>':/asap/i.test(o.pri)?'<span class="tag asap">ASAP</span>':'';
     var st= ord===n?'<span class="tag ok">✓ Ordered</span>' : cart||ord?'<span class="tag cart">'+(cart+ord)+'/'+n+' in cart</span>':'';
+    if(o.lines.some(function(l){ return priceUp(l) && S[l.id].status!=='ordered'; })) st+='<span class="tag hard">Price ↑</span>';
     h+='<button class="ord'+(CUR===o.num?' on':'')+(ord===n?' done':'')+'" onclick="openOrder(\''+o.num+'\')">'
       +'<div class="r1"><span class="num">'+o.num+'</span><span class="cust">'+esc(o.cust)+'</span></div>'
       +'<div class="r2">'+pri+'<span class="tag grey">Prints '+fmtD(d(o.print))+'</span>'+st+'<span class="prog">'+n+' line'+(n>1?'s':'')+'</span></div></button>';
@@ -403,9 +430,9 @@ function lineHtml(o,l){
   if(!locked) wh+='<div style="margin-top:8px"><button class="linkbtn" onclick="addSplit(\''+l.id+'\')">+ split to another warehouse</button></div>';
   // 3 cost
   var has2=sz.some(function(k){ return /XL$/.test(k) && k!=='XL'; });
-  var c='<div class="row"><div><label>'+(sz.length===1&&sz[0]==='OSFA'?'Each':'XS–XL')+'</label><input value="'+(st.cost!==''?st.cost:'')+'" placeholder="'+l.cost.toFixed(2)+'" '+(locked?'disabled':'')+' oninput="S[\''+l.id+'\'].cost=this.value"></div>'
-    +(has2?'<div><label>2XL+</label><input value="'+(st.cost2!==''?st.cost2:'')+'" placeholder="'+(l.cost+(l.up['2XL']||0)).toFixed(2)+'" '+(locked?'disabled':'')+' oninput="S[\''+l.id+'\'].cost2=this.value"></div>':'')+'</div>'
-    +'<div class="onfile">✓ on file $'+l.cost.toFixed(2)+' — leave blank to keep</div>';
+  var c='<div class="row"><div><label>'+(sz.length===1&&sz[0]==='OSFA'?'Each':'XS–XL')+'</label><input value="'+(st.cost!==''?st.cost:'')+'" placeholder="'+l.cost.toFixed(2)+'" '+(locked?'disabled':'')+' oninput="S[\''+l.id+'\'].cost=this.value;S[\''+l.id+'\'].autoCost=false"></div>'
+    +(has2?'<div><label>2XL+</label><input value="'+(st.cost2!==''?st.cost2:'')+'" placeholder="'+(l.cost+(l.up['2XL']||0)).toFixed(2)+'" '+(locked?'disabled':'')+' oninput="S[\''+l.id+'\'].cost2=this.value;S[\''+l.id+'\'].autoCost=false"></div>':'')+'</div>'
+    +costNote(l,st);
   // 4 go
   var ready=st.allocs.every(function(a){return a.wh;}), g;
   if(st.status==='open') g='<button class="btn y" '+(ready?'':'disabled')+' onclick="addToCart(\''+l.id+'\')">Add to cart →</button><div class="hint">'+(ready?sum(w)+' pcs → '+st.allocs.map(function(a){return shortWh(whById(a.wh));}).join(' + '):'Pick a warehouse first')+'</div>';
@@ -517,18 +544,33 @@ function whChoices(o,l,i,sel,locked){
   var top=cands.slice(0,3); if(sel && top.indexOf(whById(sel))<0) top.push(whById(sel));
   var h=top.map(function(w){ var a=arrival(w,o);
     return '<button class="whopt'+(sel===w.id?' on':'')+'" title="'+(w.mi?w.mi+' miles from the shop':'')+'" '+(locked?'disabled':'')+' onclick="pickWh(\''+l.id+'\','+i+',\''+w.id+'\')">'
-      +'<span><span class="nm">'+esc(shortWh(w))+'</span><br><span class="tr">'+(w.days!=null?'UPS Ground ~'+w.days+' day'+(w.days>1?'s':''):'add warehouse location')+'</span></span>'
+      +'<span><span class="nm">'+esc(shortWh(w))+'</span><br><span class="tr">'+(w.days!=null?'UPS Ground ~'+w.days+' day'+(w.days>1?'s':''):'add warehouse location')+'</span>'+livePill(l,w.vendor)+'</span>'
       +'<span class="arr '+a.cls+'">'+a.txt+'</span></button>'; }).join('');
   var rest=WAREHOUSES.filter(function(w){ return top.indexOf(w)<0; });
   if(!locked) h+='<select class="more" onchange="if(this.value)pickWh(\''+l.id+'\','+i+',this.value)"><option value="">More warehouses…</option>'
     +rest.map(function(w){ var a=arrival(w,o); return '<option value="'+w.id+'">'+esc(shortWh(w))+' — '+a.txt+'</option>'; }).join('')+'</select>';
   return h;
 }
+function costNote(l,st){
+  var f=onFile(l), w=st.allocs[0].wh&&whById(st.allocs[0].wh), lp=w&&livePrice(l,w.vendor);
+  if(!w) { var up=priceUp(l); return '<div class="onfile">On file $'+f[0].toFixed(2)+'</div>'+(up?'<div class="pchg up">⚠ Every vendor is above Airtable now — '+esc(up.vendor)+' $'+up.c1.toFixed(2)+'</div>':''); }
+  if(!lp) return '<div class="onfile">On file $'+f[0].toFixed(2)+' · no live price for '+esc(w.vendor)+'</div>';
+  var d=lp.c1-f[0];
+  if(Math.abs(d)<0.005) return '<div class="onfile">✓ '+esc(w.vendor)+' live $'+lp.c1.toFixed(2)+' matches Airtable</div>';
+  return '<div class="pchg '+(d>0?'up':'down')+'">'+(d>0?'⚠ Price went up':'Price is lower')+' at '+esc(w.vendor)+': $'+lp.c1.toFixed(2)+' (Airtable $'+f[0].toFixed(2)+', '+(d>0?'+':'−')+'$'+Math.abs(d).toFixed(2)+')'+(lp.note?' · '+esc(lp.note):'')+'</div>'
+    +(st.autoCost?'<div class="hint">Filled in the live price — it saves to this line when ordered.</div>':'');
+}
+function livePill(l,vendor){ var lp=livePrice(l,vendor), f=onFile(l)[0];
+  if(!lp) return '<span class="lp none">no live price</span>';
+  var d=lp.c1-f, cls=d>0.004?'up':d<-0.004?'down':'same';
+  return '<span class="lp '+cls+'">$'+lp.c1.toFixed(2)+(cls==='up'?' ↑':cls==='down'?' ↓':'')+(lp.note?' · '+esc(lp.note):'')+'</span>'; }
 function bumpExtra(id,k){ S[id].extras[k]=(S[id].extras[k]||0)+1; refreshLine(id); }
 function clearExtras(id){ S[id].extras={}; refreshLine(id); }
 function setExtra(id,k,v){ var n=parseInt(v,10); if(n>0) S[id].extras[k]=n; else delete S[id].extras[k]; refreshLine(id); }
 function setSplit(id,i,k,v){ var a=S[id].allocs[i]; a.q=a.q||{}; var n=parseInt(v,10); if(n>0) a.q[k]=n; else delete a.q[k]; refreshLine(id); }
-function pickWh(id,i,wh){ S[id].allocs[i].wh=wh; refreshLine(id); }
+function pickWh(id,i,wh){ var st=S[id], l=lineById(id); st.allocs[i].wh=wh;
+  if(i===0){ var lp=livePrice(l,whById(wh).vendor); if(lp && (st.cost===''||st.autoCost)){ st.cost=lp.c1.toFixed(2); st.cost2=lp.c2.toFixed(2); st.autoCost=true; } }
+  refreshLine(id); }
 function addSplit(id){ S[id].allocs.push({wh:null,q:{}}); refreshLine(id); }
 function rmSplit(id,i){ S[id].allocs.splice(i,1); refreshLine(id); }
 /* re-render one line but keep focus in the box being typed in */
