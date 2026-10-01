@@ -144,6 +144,38 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .cfoot input{flex:1;border:1px solid var(--border-dk);border-radius:6px;padding:8px;font-weight:700;min-width:0}
 .done-list .cartc .ch{background:var(--green)}
 .done-list .cartc .ch .pcs{color:#fff}
+.tabs{display:flex;gap:4px;background:var(--bg);border-radius:20px;padding:3px;margin-left:12px}
+.tab{border:none;background:none;padding:6px 14px;border-radius:16px;font-weight:800;font-size:12px;cursor:pointer;color:var(--muted)}
+.tab.on{background:var(--ink);color:#fff}
+.tab span:not(:empty){background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px}
+.hidden{display:none!important}
+.invwrap{flex:1;overflow:auto;padding:16px 20px 40px}
+.invtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.invtop h1{font-size:18px;text-transform:uppercase}
+.invtop .sum{color:var(--muted);font-size:13px}
+.invtop .sum b{color:var(--text)}
+.seg{display:flex;gap:4px;margin-left:auto}
+.seg button{border:1px solid var(--border-dk);background:#fff;border-radius:16px;padding:5px 12px;font-weight:700;font-size:12px;cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.po{background:#fff;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden}
+.po.ok{border-color:#bfe0cd}.po.bad{border-color:var(--red-bd)}
+.poh{display:grid;grid-template-columns:150px minmax(0,1fr) 120px 150px 170px 24px;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
+.poh .pon{font-weight:800;font-size:15px}
+.poh .pon small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.poh .whn{font-weight:700}.poh .whn small{display:block;color:var(--muted);font-weight:400;font-size:11px}
+.poh .amt{text-align:right}.poh .amt small{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700}
+.poh .amt b{font-size:16px;font-variant-numeric:tabular-nums}
+.poh input{width:100%;border:1px solid var(--border-dk);border-radius:6px;padding:7px 8px;font-weight:800;text-align:right;font-size:15px}
+.poh .chev{color:var(--muted)}
+.stt{font-size:11px;font-weight:800;padding:4px 8px;border-radius:4px;text-align:center}
+.stt.ok{background:var(--green-lt);color:var(--green)}.stt.bad{background:var(--red-bg);color:var(--red)}.stt.wait{background:var(--soft);color:var(--muted)}
+.pol{border-top:1px solid var(--border);background:var(--soft)}
+.pol table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.pol th{font-size:10px;color:var(--muted);text-transform:uppercase;text-align:left;padding:8px 14px 4px}
+.pol td{padding:6px 14px;border-top:1px solid var(--border)}
+.pol td.r,.pol th.r{text-align:right}
+.pol tr.tot td{font-weight:800;background:#fff}
+.pol .why{padding:10px 14px;font-size:12px;color:var(--red);border-top:1px solid var(--border);background:var(--red-bg)}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
 .toast.show{opacity:1}
 
@@ -161,6 +193,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 <div class="top">
   <span class="brand">Pine Purchasing<small>flow mockup</small></span>
   <span class="mock">🧪 Mockup — fake data, nothing saved</span>
+  <span class="tabs"><button class="tab on" id="t-order" onclick="setTab('order')">Ordering</button><button class="tab" id="t-inv" onclick="setTab('inv')">Invoice check <span id="inv-badge"></span></button></span>
   <span class="steps"><span><b>1</b> Pick order</span>→<span><b>2</b> Sizes · extras</span>→<span><b>3</b> Warehouse</span>→<span><b>4</b> Cost</span>→<span><b>5</b> Cart</span>→<span><b>6</b> PO ✓</span></span>
 </div>
 <div class="cols">
@@ -168,6 +201,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
   <div class="col c-order" id="order"></div>
   <div class="col c-carts"><h2>Carts <span class="n" id="c-n"></span></h2><div class="carts" id="carts"></div></div>
 </div>
+<div class="invwrap hidden" id="inv"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -394,11 +428,73 @@ function placeCart(k){
     st.placed=st.placed||{}; st.placed[k]=1;
     if(st.allocs.every(function(a,i){ return st.placed[a.wh] || !sum(allocQty(it.l)[i]); })) st.status='ordered';
   });
+  POS.unshift({po:po, wh:k, date:TODAY, freight:0, inv:'', lines:items.map(function(it){ return poLine(it.o,it.l,it.q); })});
   var a=arrival(w,items[0].o);
   DONE.unshift({wh:w.name, po:po, pcs:pcs, orders:Object.keys(ords), arr:a.date?fmtD(a.date):'?'});
   renderAll(); toast('PO '+po+' saved on '+items.length+' line(s) (mockup — not really)');
 }
-function renderAll(){ renderOrders(); renderOrder(); renderCarts(); }
+function renderAll(){ renderOrders(); renderOrder(); renderCarts(); renderInv(); }
+
+/* ---------- Invoice check: Airtable cost per PO vs the vendor invoice ----------
+   Airtable total per PO = sum of Total Line Cost on its lines:
+   (ordered + extras) × that size bracket's blank cost, + inbound freight. */
+function poLine(o,l,q){
+  var st=S[l.id]||{}, c1=+(st.cost||l.cost), c2=+(st.cost2||(l.cost+(l.up['2XL']||0))), amt=0, pcs=0;
+  for(var k in q){ var c=/^[2-6]XL$/.test(k)?c2:c1; amt+=q[k]*c; pcs+=q[k]; }
+  return {order:o.num, cust:o.cust, g:l.g, q:q, pcs:pcs, c1:c1, c2:c2, amt:Math.round(amt*100)/100};
+}
+function poTotal(p){ var t=p.freight||0; p.lines.forEach(function(x){ t+=x.amt; }); return Math.round(t*100)/100; }
+function money(n){ return '$'+(+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+// recent POs already in Airtable (fake history)
+var POS=[
+  {po:'SS-77790', wh:'ssola', date:new Date(2026,8,28), freight:0, inv:'', lines:[
+    {order:'10901', cust:'Topo Designs', g:'Bella Canvas 3001 - Black', q:{S:10,M:20,L:20,XL:10}, pcs:60, c1:3.12, c2:4.62, amt:187.20},
+    {order:'10903', cust:'Ginger & Baker', g:'Bella Canvas 3001 - Black', q:{M:12,L:12,'2XL':4}, pcs:28, c1:3.12, c2:4.62, amt:93.36}]},
+  {po:'SLC-4410', wh:'slcslc', date:new Date(2026,8,29), freight:0, inv:'412.80', lines:[
+    {order:'10907', cust:'Sake Fest', g:'Comfort Colors 1717 - Blue Spruce', q:{L:30}, pcs:30, c1:5.40, c2:5.40, amt:162.00},
+    {order:'10911', cust:'Elevation Ale', g:'Comfort Colors 1717 - Moss', q:{S:6,M:18,L:18,XL:6}, pcs:48, c1:5.10, c2:5.10, amt:244.80}], why:'Invoice is $6.00 higher. Common causes: a price change since the cost was saved, freight or a small-order fee not entered, or a short ship.'},
+  {po:'SM-118204', wh:'smdal', date:new Date(2026,8,30), freight:14.50, inv:'200.50', lines:[
+    {order:'10905', cust:'Rocky Mtn Retro', g:'Port & Company PC54 - Navy', q:{M:24,L:24,XL:12}, pcs:60, c1:3.10, c2:3.10, amt:186.00}]},
+  {po:'AS-30117', wh:'ascal', date:new Date(2026,8,30), freight:22.00, inv:'', lines:[
+    {order:'10907', cust:'Sake Fest', g:'AS Colour 5001 - Natural', q:{S:5,M:16,L:11}, pcs:32, c1:6.20, c2:6.20, amt:198.40}]}
+];
+var INV_FILTER='need', OPEN_PO={};
+function poState(p){ if(p.inv==='') return 'wait'; return Math.abs((+p.inv)-poTotal(p))<0.5?'ok':'bad'; }
+function setTab(t){ $('t-order').classList.toggle('on',t==='order'); $('t-inv').classList.toggle('on',t==='inv');
+  document.querySelector('.cols').classList.toggle('hidden',t!=='order'); $('inv').classList.toggle('hidden',t!=='inv');
+  document.querySelector('.steps').classList.toggle('hidden',t!=='order'); renderInv(); }
+function setInv(po,v){ var p=POS.filter(function(x){return x.po===po;})[0]; p.inv=v.replace(/[$,\s]/g,''); renderInv(po); }
+function renderInv(focusPo){
+  var need=POS.filter(function(p){return poState(p)!=='ok';}).length;
+  $('inv-badge').textContent=need||'';
+  var list=POS.filter(function(p){ return INV_FILTER==='all' || poState(p)!=='ok'; });
+  var at=0, iv=0, nchk=0; POS.forEach(function(p){ at+=poTotal(p); if(p.inv!==''){ iv+=+p.inv; nchk++; } });
+  var h='<div class="invtop"><h1>Invoice check</h1><span class="sum"><b>'+POS.length+'</b> POs · Airtable <b>'+money(at)+'</b> · <b>'+nchk+'</b> invoices entered ('+money(iv)+')</span>'
+    +'<span class="seg"><button class="'+(INV_FILTER==='need'?'on':'')+'" onclick="INV_FILTER=\'need\';renderInv()">To check ('+need+')</button><button class="'+(INV_FILTER==='all'?'on':'')+'" onclick="INV_FILTER=\'all\';renderInv()">All POs</button></span></div>'
+    +'<p class="hint" style="margin-bottom:12px">Type the total from the vendor invoice. Within 50¢ counts as a match. Tap a PO to see its lines.</p>';
+  if(!list.length) h+='<div class="empty">Every PO matches its invoice. 🎉</div>';
+  list.forEach(function(p){
+    var w=whById(p.wh), t=poTotal(p), stt=poState(p), diff=(+p.inv)-t;
+    var chip= stt==='wait'?'<span class="stt wait">Not checked</span>' : stt==='ok'?'<span class="stt ok">✓ Matches</span>' : '<span class="stt bad">Invoice '+(diff>0?'+':'−')+money(Math.abs(diff))+'</span>';
+    var pcs=0; p.lines.forEach(function(x){pcs+=x.pcs;});
+    h+='<div class="po '+stt+'"><div class="poh" onclick="if(event.target.tagName!==\'INPUT\'){OPEN_PO[\''+p.po+'\']=!OPEN_PO[\''+p.po+'\'];renderInv();}">'
+      +'<span class="pon">'+esc(p.po)+'<small>'+fmtD(p.date)+'</small></span>'
+      +'<span class="whn">'+esc(shortWh(w))+'<small>'+p.lines.length+' line'+(p.lines.length>1?'s':'')+' · '+pcs+' pcs · orders '+p.lines.map(function(x){return x.order;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ')+'</small></span>'
+      +'<span class="amt"><small>Airtable</small><b>'+money(t)+'</b></span>'
+      +'<span><input inputmode="decimal" placeholder="Vendor invoice $" value="'+esc(p.inv)+'" onchange="setInv(\''+p.po+'\',this.value)"></span>'
+      +chip+'<span class="chev">'+(OPEN_PO[p.po]?'▾':'▸')+'</span></div>';
+    if(OPEN_PO[p.po]){
+      h+='<div class="pol"><table><tr><th>Order</th><th>Garment</th><th>Sizes (incl. extras)</th><th class="r">Pcs</th><th class="r">Each</th><th class="r">Line</th></tr>'
+        +p.lines.map(function(x){ return '<tr><td>'+x.order+' '+esc(x.cust)+'</td><td>'+esc(x.g)+'</td><td>'+qtxt(x.q)+'</td><td class="r">'+x.pcs+'</td><td class="r">'+money(x.c1)+(x.c2!==x.c1&&Object.keys(x.q).some(function(k){return /^[2-6]XL$/.test(k);})?' / 2XL+ '+money(x.c2):'')+'</td><td class="r">'+money(x.amt)+'</td></tr>'; }).join('')
+        +'<tr><td colspan="5">Inbound freight</td><td class="r">'+money(p.freight||0)+'</td></tr>'
+        +'<tr class="tot"><td colspan="5">Airtable total</td><td class="r">'+money(t)+'</td></tr></table>'
+        +(stt==='bad'?'<div class="why">'+(p.why||('Off by '+money(Math.abs(diff))+'. Check for a price change, freight or a fee not entered, or a short ship.'))+' Fix the cost or freight on the line in the Ordering tab.</div>':'')+'</div>';
+    }
+    h+='</div>';
+  });
+  $('inv').innerHTML=h;
+  if(focusPo){ /* keep the page steady after typing */ }
+}
 CUR=ORDERS.slice().sort(function(a,b){return a.due.localeCompare(b.due);})[0].num;
 renderAll();
 </script>
