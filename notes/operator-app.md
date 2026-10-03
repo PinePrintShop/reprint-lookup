@@ -158,3 +158,11 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
 - Practice completions vanish from the heat press / embroidery / flatstock open queue.
 - `pine_op_order` is never pruned.
 - Log writes aren't retried after a failure.
+
+## v121 — phone width fix (Oct 3)
+- **Bug:** once heads were set, the one-line heads summary (`white-space:nowrap`) gave the Now panel a huge minimum width. On the phone the page laid out ~680px wide, so it slid sideways and the header got cut off. Reported from Stephen's iPhone; reproduced on a 390px viewport.
+- **Fix:**
+  - `min-width:0` down the Now panel chain.
+  - The heads summary wraps to 2 lines.
+  - The phone work view clamps to `100vw`.
+- iPad and desktop layouts are unchanged (re-measured).
