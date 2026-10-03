@@ -147,6 +147,46 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   .side{gap:8px}
   .big{min-width:0;flex:1}
 }
+/* phone: one column that scrolls; crew on one line; big button full width */
+@media (max-width:640px){
+  html,body{overflow:auto;height:auto}
+  body{height:auto;min-height:100dvh}
+  .hd{flex-wrap:wrap;gap:6px 10px;padding:8px 12px;position:sticky;top:0;z-index:30}
+  .press{font-size:15px;gap:6px}.press b{font-size:12px;padding:2px 6px}
+  .crew{order:3;flex-basis:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto}
+  .cp{font-size:12px;padding:3px 9px;white-space:nowrap}
+  .mock{font-size:9px;padding:2px 6px}.sync{font-size:0}.sync i{font-size:12px}.clock{font-size:12px}
+  .main{display:flex;flex-direction:column;padding:10px 12px;gap:12px}
+  .now{display:flex;flex-direction:column}
+  .nowhd{flex-wrap:wrap;gap:2px 10px;padding:10px 12px}
+  .nowhd .imp{font-size:22px}.nowhd .ord{font-size:22px}.nowhd .cust{flex-basis:100%;order:3;font-size:13px}
+  .nowbody{display:flex;flex-direction:column}
+  .mockimg{height:34vh}
+  .act{grid-template-columns:1fr;gap:8px;padding:10px 12px;position:sticky;bottom:0;z-index:20;box-shadow:0 -6px 16px rgba(0,0,0,.12)}
+  .now{overflow:visible}
+  .timer{min-width:0;display:flex;align-items:baseline;gap:10px}.timer .t{font-size:34px}
+  .btns{flex-direction:column;align-items:stretch}
+  .big,.sec{width:100%;min-width:0;padding:14px;font-size:18px}
+  .btns{flex-direction:row}.btns .sec{width:auto;flex:0 0 34%}
+  .btns:has(.sum){flex-direction:column}
+  .long{display:none}
+  .big,.sec{white-space:nowrap}
+  .timer .t{font-size:26px}.timer .tl{margin:0}
+  .step{font-size:9px;padding:3px 2px}
+  .act{gap:6px;padding:8px 12px}
+  .act.ph-done .steps,.act.ph-done .timer{display:none}
+  .sum div{padding:6px 8px}.sum b{font-size:16px}
+  .sum{width:100%}.sum div{flex:1;padding:8px 10px}.sum b{font-size:18px}
+  .step{font-size:10px;padding:5px 2px}
+  .queue{grid-template-columns:1fr}
+  .side{max-height:none}
+  .run .runbar{flex-wrap:wrap}.run .runbar .t{font-size:36px}
+  .rb{min-width:0;flex:1;padding:16px;font-size:18px}
+  .runhd{flex-wrap:wrap;gap:4px 10px}.runhd .imp{font-size:18px}
+  .card{padding:16px}.chip{padding:10px 14px;font-size:15px}
+}
+/* desktop: keep the iPad layout, just cap the width so it doesn't stretch */
+@media (min-width:1500px){ .main{max-width:1500px;margin:0 auto;width:100%} }
 </style>
 </head>
 <body>
@@ -220,21 +260,21 @@ function renderNow(){
   var b='';
   if(S.phase==='idle') b='<button class="big" onclick="startSetup()">⚙ Start setup</button>';
   if(S.phase==='setup') b='<button class="big" onclick="go(\'review\')">✓ Setup done</button>';
-  if(S.phase==='review') b='<button class="sec red" onclick="go(\'fix\')">✗ Fix needed</button><button class="big" onclick="approve()">✓ Approved — start run ▸</button>';
-  if(S.phase==='fix') b='<button class="big" onclick="go(\'setup\')">↻ Fixed — back to setup</button>';
+  if(S.phase==='review') b='<button class="sec red" onclick="go(\'fix\')">✗ Fix<span class="long"> needed</span></button><button class="big" onclick="approve()">✓ Approved<span class="long"> — start run</span> ▸</button>';
+  if(S.phase==='fix') b='<button class="big" onclick="go(\'setup\')">↻ Fixed<span class="long"> — back to setup</span></button>';
   if(S.phase==='paused'||S.phase==='run') b='<button class="big" onclick="openRun()">▶ Back to run screen</button>';
   if(S.phase==='done'){ var n=nextJob(); b='<div class="sum"><div><small>Setup</small><b>'+fmt(S.setupMs)+'</b></div><div><small>Run</small><b>'+fmt(S.runMs)+'</b></div><div><small>Pieces</small><b>'+j.qty+'</b></div></div>'
-      +(n?'<button class="big" onclick="startNext()">Next: '+esc(n.imp)+' — start setup ▸</button>':'<button class="big" onclick="startNext()">Finish for today ✓</button>'); }
+      +(n?'<button class="big" onclick="startNext()">Next: '+esc(n.imp)+'<span class="long"> — start setup</span> ▸</button>':'<button class="big" onclick="startNext()">Finish for today ✓</button>'); }
   $('now').innerHTML='<div class="nowhd"><div><div class="lbl">Now · '+esc(j.time)+'</div><div class="imp">'+esc(j.imp)+'</div></div><div class="cust">'+esc(j.cust)+'</div><div class="ord">'+esc(j.ord)+'</div></div>'
     +'<div class="nowbody"><div class="mockimg"><img src="'+j.img+'" alt="mockup"><span class="tap">tap to zoom</span></div>'
     +'<div class="facts"><div class="fact"><span>Pieces</span><b>'+j.qty+'</b></div><div class="fact"><span>Screens</span><b>'+j.scr+'</b></div><div class="fact"><span>Location</span><b>'+esc(j.loc)+'</b></div>'
     +'<div class="fact"><span>Inks</span><b class="inks">'+j.inks.map(function(k){return '<i class="ink" title="'+esc(k)+'" style="background:'+INKS[k]+'"></i>';}).join('')+'</b></div>'
     +headsInfo+(j.note?'<div class="note"><b>Note</b>'+esc(j.note)+'</div>':'')+'</div></div>'
-    +'<div class="act">'+stepper()+'<div class="timer"><div class="t" id="tmain">'+fmt(tval)+'</div><div class="tl">'+tl+'</div></div><div class="btns">'+b+'</div></div>';
+    +'<div class="act ph-'+S.phase+'">'+stepper()+'<div class="timer"><div class="t" id="tmain">'+fmt(tval)+'</div><div class="tl">'+tl+'</div></div><div class="btns">'+b+'</div></div>';
 }
 function renderSide(){
   var q=queue(), doneN=Object.keys(S.done).length, pcs=0; Object.keys(S.done).forEach(function(id){ pcs+=job(id).qty; });
-  var lim=innerWidth<1000?4:6, shown=q.slice(0,lim);
+  var lim=innerWidth<640?3:innerWidth<1000?4:6, shown=q.slice(0,lim);
   $('side').innerHTML='<div class="sidehd"><h3>Up next</h3><span>'+q.length+' job'+(q.length!==1?'s':'')+'</span></div><div class="queue">'
     +shown.map(function(j,i){ return '<button class="q'+(i===0?' next':'')+'" onclick="pickJob(\''+j.id+'\')"><img src="'+j.img+'" alt=""><span><span class="a">'+esc(j.imp)+(i===0?'<span class="tagnext">NEXT</span>':'')+'</span><br><span class="b">'+esc(j.cust)+' · '+j.scr+'C · '+esc(j.loc)+'</span></span><span class="c">'+j.qty+'<small>'+esc(j.time)+'</small></span></button>'; }).join('')
     +(q.length>lim?'<button class="q more" onclick="allJobs()">+ '+(q.length-lim)+' more</button>':'')+'</div>'
