@@ -92,3 +92,11 @@
   - Edit made during a refresh: v116 lost; v117 kept.
   - Cleared note: v116 stayed in Airtable; v117 cleared.
 - **Not done:** records saved by older versions after an operator edited shifted values may hold wrong values. No automatic cleanup; check jobs that have flash heads.
+
+## v118 — practice day picker (Oct 3)
+`pine-operator-v118.html`, which is v117 plus this. It only changes practice mode.
+- In practice, the jobs come from the day picked in the yellow practice pill: Today or any of the next 14 days.
+- With nothing picked, it uses today, or **the next day that has jobs** if today has none (e.g. on a weekend).
+- `&day=YYYY-MM-DD` in the link picks a day too.
+- The query matches `DATETIME_FORMAT({Scheduled Start Time},'YYYY-MM-DD')` to the day. Scheduled times are stored as shop-local clock times (08:30Z = 8:30 am).
+- The live app still uses `{Is Today (Local)}`.
