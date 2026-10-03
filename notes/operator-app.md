@@ -42,3 +42,21 @@
   - **iPad:** landscape and portrait, no scrolling.
   - **Desktop:** the iPad layout, capped at 1500px wide.
   - **Phone:** one scrolling column. The progress bar, timer and main button are pinned to the bottom of the screen, and labels shorten ("✓ Approved ▸", "✗ Fix").
+
+## v115 — new flow (Oct 3)
+`pine-operator-v115.html`. v114 stays as the fallback.
+- **The iPad remembers its press.** Once today's crew is set, it opens straight to the work screen. **⇄ Switch** in the header changes the machine. The crew shows in the header with **Change crew**, once per shift.
+- **One work screen.** The job you're on is on the left: proof, then the facts / timer / buttons / head settings beside it. **Up next** is on the right.
+  - iPad portrait: Up next is a 2-column strip under the job.
+  - Phone: one column, with the buttons stuck to the bottom.
+  - Desktop: capped width.
+- **Up next is reorderable** with ▲▼. The order is kept on that iPad, per press, and it sets which job opens next. NOW and NEXT are tagged, and finished jobs go under "Done today" (hold to reopen).
+- **Head settings are asked at Start Setup**, for jobs with none saved: "Start setup + set heads" / "Start setup". There's no nag at End Run or Mark complete.
+- **Approved · Start Run** is one tap.
+- **After End Run**, Done becomes **Next: X ▸**. The Done panel on the job also has the Next button.
+- **One live job per press:**
+  - Running: "Pause the run first".
+  - Paused: confirm, and the job can be picked back up later (rebuilt from the log).
+  - Setup / approved / fix: confirm with "Switch anyway".
+- A log reopen (`REOPENED`) now rebuilds as Paused, not Done.
+- Tested with mock data at 1180×820, 1024×768, 820×1180 and 1680×1000: no page scroll and no inner scroll with 6 jobs. Up next scrolls inside its own panel if a press has a lot of jobs.
