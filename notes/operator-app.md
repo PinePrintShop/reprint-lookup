@@ -12,7 +12,7 @@
 - Undo after End Run puts the press back in Paused (it stayed "done" with no way to finish).
 - saveState can't throw.
 
-## Still to fix (needs real head-settings data to test)
+## Head-settings bugs (all fixed in v117, see below)
 1. **Head values shift onto the wrong heads**: head-setting lookups drop blanks, so a Flash head (blank color/PSI/…) shifts every later head's values by one; editing then writes them back shifted. Fix: read values from the Head Settings records by id (like `enrichHeadsFromHsRecords`) for every field.
 2. **Head-setting save race / duplicates**: `origCards` reset to current cards after the awaits (edits during a save are lost); a half-failed save re-creates records. Snapshot at save start; treat any card with `hsRecId` as existing.
 3. **Press Setup refresh** can overwrite edits made during its fetch; `F.hsAngle` isn't loaded so the angle can be blanked.
@@ -68,3 +68,27 @@
   - Server-side filters don't see practice saves; for example, a job finished in practice still comes back from the "today" query, but it shows as finished.
 - Press, crew, timers and the Up next order use separate `pine_practice_op_*` keys, so practice can't disturb the real app on the same iPad. The Airtable token is shared.
 - The yellow **Practice · nothing saves** pill is in the header, and **↺ Reset** clears all practice state.
+
+## v117 — head settings fixed (Oct 3)
+`pine-operator-v117.html`, built on v116, so `?practice=1` works too.
+1. **Values on the wrong head:** confirmed on real data. On 10707-B (8 heads, with 3 flashes), Airtable's REST lookups drop blanks, so 5 colors / PSIs slid onto the first heads.
+   - Fix: heads are now read straight from the Head Settings records by id: `fetchHsRecordsById`, `headFromHsRecord`, `headsFromHsLink`.
+   - This applies on load (one batched read for all of today's jobs), when Press Setup opens, and in the previous-imprint pre-fill.
+   - The lookup parse is only a fallback if that read fails.
+2. **Save race / duplicates:** saves work from a snapshot, and only the snapshot is marked saved, so edits made during a save get saved next.
+   - A card with a record id is always updated, never re-created.
+   - Progress is recorded step by step, so a half-failed save retries without duplicates.
+   - A delete that hits 404 counts as done.
+3. **Refresh clobbering:** the Press Setup refresh is skipped while a save is pending, and its result is discarded if edits or a save happened during the fetch. The angle is read from the record.
+4. **Values not clearing:** notes, stroke count and color order are always written, so clearing them clears Airtable. Flash/Stamp heads blank the print fields, and print heads blank the flash fields. The save links to the job being saved, not whatever job is open.
+5. One state slot per press: handled by v115's one-live-job rule.
+6. **Pagination and retries:**
+   - Operators and today's jobs are paged.
+   - The lightbox refreshes an expired link once instead of looping.
+- **Same mock test on v116 vs v117**:
+  - Heads shown: v116 wrong (shifted); v117 right.
+  - Duplicate record after a failed save: v116 yes; v117 no.
+  - Edit made during a save: v116 lost; v117 saved.
+  - Edit made during a refresh: v116 lost; v117 kept.
+  - Cleared note: v116 stayed in Airtable; v117 cleared.
+- **Not done:** records saved by older versions after an operator edited shifted values may hold wrong values. No automatic cleanup; check jobs that have flash heads.
