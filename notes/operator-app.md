@@ -109,3 +109,52 @@ v119 practice works like this:
 - The practice pill shows what loaded ("23 jobs" / "no jobs that day") or the exact Airtable error.
 
 Live mode is unchanged.
+
+## v120 — bug sweep (Oct 3)
+Three reviews (run flow, Press Setup, work screen/practice). Each fix was verified with a targeted mock test.
+
+**Run flow**
+- **Wrong job:** if the live job dropped off today's list (rescheduled or moved), Pause / End Run hit the next job.
+  - Live jobs now always load by record id, and `activeJob()` never pairs a live timer with another job.
+  - This also makes "pause today, resume tomorrow" work for Press 1/2.
+- **Split jobs** ("Press 1 & 2 - SPLIT", one record on both presses):
+  - Done is tracked per press.
+  - Run Finished is only set once both presses have logged RUN COMPLETE.
+  - The timer rebuild only reads that press's log lines.
+- **Setup rebuild:** a stopped setup, a fix, or a teardown came back as a setup clock running for hours.
+  - Stop Setup now logs `SETUP STOP`, and the rebuild understands SETUP STOP / FIX START / Tear Down / SETUP COMPLETE.
+- **Late rebuild:** a rebuild finishing after the operator moved on can no longer pull the screen back to the old job.
+- **Double taps:**
+  - Phase guards on start/stop setup, approve, start run, pause and resume.
+  - A 450ms lock after buttons change. A double tap on Stop Setup used to approve and start the run.
+- **Undo:**
+  - Undo in run mode refreshes the overlay to Paused (the stale "Complete / Next" was left up).
+  - Reopen waits for its saves before rebuilding, so it no longer snaps back to Done.
+  - A rebuilt Done shows real times.
+- **Overnight:** a run frozen by the next-day reload logs an automatic RUN PAUSE.
+
+**Press Setup**
+- **Pre-fill from the previous run:**
+  - It is saved even if nothing is edited.
+  - It only runs after Airtable confirms the job has no heads, and never over existing cards.
+  - Changing the donor asks first and deletes the records the old pre-fill made.
+- **Removing a card:** removing another card while the detail sheet is open no longer moves edits to the wrong head.
+- **Saving:**
+  - The save queue is per job.
+  - A failed save retries on its own (5s, 10s … up to 6 times).
+  - The editing paths never fall back to the shifted lookups.
+- **Dragging and colors:**
+  - iPad drag: no callout or text select, and no scroll once a drag starts. Still needs a check on a device.
+  - The same ink can go on two heads.
+
+**Work screen / practice**
+- A stale proof load can't destroy the current proof.
+- The error banner clears on the next successful refresh.
+- The lightbox opens on the page you were viewing.
+- The practice day picker overrides `?day=`.
+
+**Not done (low):**
+- Drop-ramp saved only on Done.
+- Practice completions vanish from the heat press / embroidery / flatstock open queue.
+- `pine_op_order` is never pruned.
+- Log writes aren't retried after a failure.
