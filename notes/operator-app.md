@@ -60,3 +60,11 @@
   - Setup / approved / fix: confirm with "Switch anyway".
 - A log reopen (`REOPENED`) now rebuilds as Paused, not Done.
 - Tested with mock data at 1180×820, 1024×768, 820×1180 and 1680×1000: no page scroll and no inner scroll with 6 jobs. Up next scrolls inside its own panel if a press has a lot of jobs.
+
+## v116 — practice mode (Oct 3)
+`pine-operator-v116.html?practice=1`. Without `?practice=1`, v116 is the same as v115.
+- It reads **live Airtable data**, but every POST/PATCH/DELETE to Airtable is answered inside the browser with a fake success. Nothing reaches Airtable.
+- What practice "saved" goes into a local overlay (`pine_practice_overlay`) and is merged back into what Airtable returns. So refresh, reload and reopen behave as if it really saved.
+  - Server-side filters don't see practice saves; for example, a job finished in practice still comes back from the "today" query, but it shows as finished.
+- Press, crew, timers and the Up next order use separate `pine_practice_op_*` keys, so practice can't disturb the real app on the same iPad. The Airtable token is shared.
+- The yellow **Practice · nothing saves** pill is in the header, and **↺ Reset** clears all practice state.
