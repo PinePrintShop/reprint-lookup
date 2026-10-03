@@ -100,3 +100,12 @@
 - `&day=YYYY-MM-DD` in the link picks a day too.
 - The query matches `DATETIME_FORMAT({Scheduled Start Time},'YYYY-MM-DD')` to the day. Scheduled times are stored as shop-local clock times (08:30Z = 8:30 am).
 - The live app still uses `{Is Today (Local)}`.
+
+## v119 — practice jobs load more reliably (Oct 3)
+v118 picked the practice day with a `DATETIME_FORMAT` filter and still showed no jobs on the real base.
+v119 practice works like this:
+- It loads today's jobs.
+- If there are none, or a day is picked, it loads the upcoming scheduled jobs and groups them by date in the app. The filter is `IS_AFTER({Scheduled Start Time}, DATEADD(TODAY(),-2,'days'))`, the same syntax the live open-queue query already uses. Up to 4 pages.
+- The practice pill shows what loaded ("23 jobs" / "no jobs that day") or the exact Airtable error.
+
+Live mode is unchanged.
