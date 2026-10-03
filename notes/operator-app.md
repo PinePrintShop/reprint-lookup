@@ -24,3 +24,16 @@
 - Machines, crew, press view (every phase), run mode, Press Setup fit without scrolling with test data.
 - Job list scrolls in landscape once there are 6+ jobs (61px with 6).
 - Real jobs add colorway proofs, notes and head previews — need a screenshot of the screens that scroll on the iPads to pin those down.
+
+## Proposed flow (mockup: `pine-operator-mockup.html`, sample data)
+- **The iPad knows its press**: picked once, then it opens straight to it (with a small "switch").
+- **Crew in the header**, set once per shift ("Alex, Sam · QC Jo · Change"), kept through refresh/sleep.
+- **One screen per press**, no scrolling (landscape and portrait):
+  - **Left, Now**: the current job (big mockup, pieces/screens/location/inks, head-settings status, notes), a stepper Setup → Approve → Run → Done, the timer, and **one big yellow next-step button**. Secondary actions (Fix needed, Pause) sit beside it.
+  - **Right, Up next**: today's queue in order, NEXT highlighted, "+ N more", and Done today (jobs + pieces).
+- **Fewer taps**: "Setup done" → "Approved — start run ▸" opens the run screen in one tap (Fix needed is the alternative).
+- **Head settings at Start Setup** (when they're being set), never at End Run.
+- **Run screen** as today (mockup, timer, Pause with reasons, End run); ✕ goes back to the press screen without stopping the run.
+- **After End Run**, the summary (setup / run / pieces) stays in Now with "Next: 90002-A — start setup ▸".
+- **One live job per press**: switching while a job is live asks to finish or pause first (fixes the "opening another job wipes progress" bug).
+- **Picks up where it left off** after a reload/sleep (state + crew saved on the iPad).
