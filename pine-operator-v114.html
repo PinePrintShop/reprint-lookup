@@ -692,7 +692,7 @@ body.fm-open{overflow:hidden;}
   <div class="jl-wrap">
     <div class="jl-back-row" style="display: flex; align-items: center; justify-content: space-between;">
       <button class="btn-back" onclick="goBack()">← Back</button>
-      <div class="jl-heading" id="jlHeading" style="flex: 1; text-align: center;">Today's jobs <span style="font-size:9px;color:var(--text3);vertical-align:middle;letter-spacing:0.05em;">v113</span></div>
+      <div class="jl-heading" id="jlHeading" style="flex: 1; text-align: center;">Today's jobs <span style="font-size:9px;color:var(--text3);vertical-align:middle;letter-spacing:0.05em;">v114</span></div>
       <button class="btn-refresh" id="btnRefreshJobs" onclick="refreshView(this)"><span class="rf-icon">↻</span><span>Refresh</span></button>
     </div>
     <div class="jl-stats" id="jlStats"></div>
@@ -2682,6 +2682,8 @@ function resetPAT(){
 // -- v47 SAVE TOAST --------------------------------------------------------
 // Surfaces success/failure of background writes (e.g. auto-save of head settings on focus-mode close).
 // Success: green, auto-dismisses after 2.5s. Error: red, sticks until manual close.
+// v114 — status flags (Setup/Run Started/Finished…) used to fail silently
+function flagFail(e){ console.error(e); showSaveToast('Didn\u2019t save to Airtable: '+((e&&e.message)||'error')+' — check wifi and try again.',true); }
 function showSaveToast(msg, isError){
   const t=document.getElementById('saveToast');
   const tm=document.getElementById('saveToastMsg');
@@ -2719,7 +2721,11 @@ function undoComplete(jobId){
       .catch(function(e){showSaveToast('Reopen FAILED: '+((e&&e.message)||'error'),true);});
   }
   job.runFinished=false;
-  // clear any local machine state echo so the card returns to a normal state
+  // v114 — put the machine back in Paused for this job so it can be resumed or ended again
+  Object.keys(mState).forEach(function(mid){ var st=mState[mid];
+    if(st && st.jobId===jobId && st.phase==='done') mState[mid]={phase:'run-paused', jobId:jobId, elapsed:st.doneRunMs||0, setupElapsed:st.doneSetupMs||0, startedAt:null, stopReason:'Reopened', stopStartedAt:Date.now()}; });
+  saveState();
+  if($('viewPress').classList.contains('active')) renderPressView();
   renderJobList();
 }
 
@@ -2784,8 +2790,19 @@ function attachHoldReopen(btn, fill, lbl, jobId){
 }
 
 // -- API -------------------------------------------------------------------
+// v114 — retry on 429 (Airtable's 5 req/s limit) and on a dropped connection (iPad just woke), with backoff.
+async function fetchRetry(url, opts){
+  var wait=700;
+  for(var i=0;;i++){
+    try{
+      var res=await fetch(url, opts);
+      if(res.status===429 && i<4){ await new Promise(function(r){setTimeout(r,wait);}); wait*=2; continue; }
+      return res;
+    }catch(e){ if(i>=3)throw e; await new Promise(function(r){setTimeout(r,wait);}); wait*=2; }
+  }
+}
 async function api(path){
-  const res=await fetch('https://api.airtable.com/v0/'+BASE+'/'+path,{headers:{'Authorization':'Bearer '+pat}});
+  const res=await fetchRetry('https://api.airtable.com/v0/'+BASE+'/'+path,{headers:{'Authorization':'Bearer '+pat}});
   if(!res.ok){
     let m='Airtable '+res.status;
     if(res.status===401||res.status===403)m='Invalid PAT. Tap ⚙ to re-enter.';
@@ -2795,7 +2812,7 @@ async function api(path){
   return res.json();
 }
 async function apiPatch(recordId,fields){
-  const res=await fetch('https://api.airtable.com/v0/'+BASE+'/'+TI+'/'+recordId,{
+  const res=await fetchRetry('https://api.airtable.com/v0/'+BASE+'/'+TI+'/'+recordId,{
     method:'PATCH',
     headers:{'Authorization':'Bearer '+pat,'Content-Type':'application/json'},
     body:JSON.stringify({fields})
@@ -2805,7 +2822,7 @@ async function apiPatch(recordId,fields){
 }
 // v29 — generic PATCH against any table (used for Line Items operator back-write)
 async function apiPatchAny(tableId,recordId,fields){
-  const res=await fetch('https://api.airtable.com/v0/'+BASE+'/'+tableId+'/'+recordId,{
+  const res=await fetchRetry('https://api.airtable.com/v0/'+BASE+'/'+tableId+'/'+recordId,{
     method:'PATCH',
     headers:{'Authorization':'Bearer '+pat,'Content-Type':'application/json'},
     body:JSON.stringify({fields})
@@ -3340,7 +3357,7 @@ function renderJobList(){
   const mj=jobsFor(m);
   // v112 — Heat Press / Embroidery / Flatstock run an open queue, not a day sheet.
   const openQ=isOpenQueueMid(activeMid);
-  $('jlHeading').innerHTML=(m.name+' — '+mj.length+' job'+(mj.length!==1?'s':'')+(openQ?' in queue':' today'))+' <span style="font-size:9px;color:var(--text3);letter-spacing:0.05em;">v113</span>';
+  $('jlHeading').innerHTML=(m.name+' — '+mj.length+' job'+(mj.length!==1?'s':'')+(openQ?' in queue':' today'))+' <span style="font-size:9px;color:var(--text3);letter-spacing:0.05em;">v114</span>';
   const items=$('jlItems');items.innerHTML='';
   const statsEl=$('jlStats');if(statsEl)statsEl.innerHTML='';
   if(mj.length===0){el_(items,'div','no-jobs').textContent=openQ?'Nothing open in the queue.':'No jobs scheduled today.';return;}
@@ -3690,6 +3707,8 @@ function renderPressView(){
           pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
           const doc=await pdfjsLib.getDocument(url).promise;
           if(tok!==loadTok){try{doc.destroy();}catch(_){}return;}
+          if(window._pvPdfDoc && window._pvPdfDoc!==doc){ try{window._pvPdfDoc.destroy();}catch(_){} }   // v114 — free the last proof (memory leak → Safari reloads the page)
+          window._pvPdfDoc=doc;
           pdfDoc=doc;
           pageCount=doc.numPages||1;
           pageNav.style.display=pageCount>1?'flex':'none';
@@ -5304,13 +5323,19 @@ async function deleteHsRecord(recId){
 // Central log writer — appends a structured entry to Additional Notes
 // v47 — single-record GET no longer uses fields[] filter (can 422 per PINE-CENTRAL-REFERENCE).
 //       Fetch whole record + pluck client-side. Costs a small amount of bandwidth, gains reliability.
-async function writeLog(jobId, entry){
-  if(!WRITES_ENABLED)return;
+// v114 — queued per job: two quick events used to read the same notes and the second PATCH wiped the first.
+var LOG_Q={};
+function writeLog(jobId, entry){
+  if(!WRITES_ENABLED)return Promise.resolve();
+  LOG_Q[jobId]=(LOG_Q[jobId]||Promise.resolve()).then(function(){ return writeLogNow(jobId, entry); });
+  return LOG_Q[jobId];
+}
+async function writeLogNow(jobId, entry){
   try{
     const r=await api(TI+'/'+jobId+'?returnFieldsByFieldId=true');
     const existing=(r.fields&&r.fields[F.addlNotes])||'';
     await apiPatch(jobId,{[F.addlNotes]:existing?existing+'\n'+entry:entry});
-  }catch(e){console.error('Log write failed:',e);}
+  }catch(e){console.error('Log write failed:',e); showSaveToast('Log entry didn\u2019t save to Airtable ('+((e&&e.message)||'error')+'). Check wifi.',true);}
 }
 
 function logEntry(type, detail, durationSec){
@@ -5349,11 +5374,11 @@ function startSetup(){
     fixElapsed:fixElapsedTotal,
     fixReason:st.fixReason||''
   };
-  if(WRITES_ENABLED&&!(st.setupElapsed))apiPatch(job.id,{[F.setupStarted]:true}).catch(console.error);
+  if(WRITES_ENABLED&&!(st.setupElapsed))apiPatch(job.id,{[F.setupStarted]:true}).catch(flagFail);
   // v29 — TEAM-BASED OPERATOR ATTRIBUTION: link checked-in Press Ops to Imprint + its Line Items.
   // Fires only on FIRST setup-start (not on restart-after-fix), matching the setupStarted gate above.
   // Helper handles WRITES_ENABLED gating internally — preview-mode logs the planned writes to console.
-  if(!(st.setupElapsed))linkOperatorsToJob(job).catch(console.error);
+  if(!(st.setupElapsed))linkOperatorsToJob(job).catch(flagFail);
   writeLog(job.id, logEntry('SETUP START', st.fixReason?'Restart after '+st.fixReason:null, null));
   saveState();renderPressView();startTimer();
 }
@@ -5513,7 +5538,7 @@ function approveSetup(){
   const totalSetup=(st.setupElapsed||0)+(st.elapsed||0);
   writeLog(job.id,logEntry('SETUP COMPLETE','Approved',Math.round(totalSetup/1000)));
   mState[activeMid]={...st,phase:'approved',setupElapsed:totalSetup,elapsed:0,startedAt:null};
-  if(WRITES_ENABLED)apiPatch(job.id,{[F.setupFinished]:true}).catch(console.error);
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.setupFinished]:true}).catch(flagFail);
   saveState();renderPressView();
 }
 
@@ -5521,7 +5546,7 @@ function startRun(){
   const job=activeJob(),st=mState[activeMid]||{};
   writeLog(job.id,logEntry('RUN START',null,null));
   mState[activeMid]={...st,phase:'run',startedAt:Date.now(),elapsed:0};
-  if(WRITES_ENABLED)apiPatch(job.id,{[F.runStarted]:true}).catch(console.error);
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.runStarted]:true}).catch(flagFail);
   saveState();renderPressView();startTimer();
   rmEnter(job);  // v31 — enter focus mode on run start
 }
@@ -5612,7 +5637,7 @@ async function applyRunStartOverride(Tms){
   else if(phase==='run-paused'){ mState[activeMid]={...st,phase:'run-paused',elapsed:activeMs,startedAt:null}; }
   else { mState[activeMid]={...st,phase:'done',doneRunMs:activeMs}; }
   saveState();
-  if(WRITES_ENABLED)apiPatch(job.id,{[F.runStartOverride]:new Date(Tms).toISOString()}).catch(console.error);
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.runStartOverride]:new Date(Tms).toISOString()}).catch(flagFail);
   writeLog(job.id,logEntry('RUN START ADJUSTED','to '+fmtWhen(Tms),Math.round(activeMs/1000)));
   renderPressView();
   if((mState[activeMid]||{}).phase==='run')startTimer();else updateTimer();
@@ -5631,7 +5656,7 @@ async function applyRunEndOverride(Tms,startRef,pausedMs){
   var activeMs=(startRef!=null)?Math.max(0,(Tms-startRef)-(pausedMs||0)):(st.doneRunMs||0);
   mState[activeMid]={...st,phase:'done',doneRunMs:activeMs,doneEndMs:Tms};
   saveState();
-  if(WRITES_ENABLED)apiPatch(job.id,{[F.runEndOverride]:new Date(Tms).toISOString()}).catch(console.error);
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.runEndOverride]:new Date(Tms).toISOString()}).catch(flagFail);
   writeLog(job.id,logEntry('RUN END ADJUSTED','to '+fmtWhen(Tms),Math.round(activeMs/1000)));
   renderPressView();
   updateTimer();
@@ -5797,7 +5822,7 @@ function markCompleted(wrap, jobIdOverride, force){
   // Write Run Finished = TRUE to Airtable
   if(WRITES_ENABLED){
     writeLog(job.id, logEntry('COMPLETED',null,null));
-    apiPatch(job.id,{[F.runFinished]:true}).catch(console.error);
+    apiPatch(job.id,{[F.runFinished]:true}).catch(flagFail);
   }
   // v80 — keep the job in the list (greyed, sorted to bottom) instead of removing it,
   // so operators can still see/open it today to add missed print notes.
@@ -5837,14 +5862,14 @@ function needsHeadGuard(job){
 }
 // Before nagging, double-check Airtable (the in-memory copy can be stale if heads were
 // added on another device). Only if it's genuinely empty do we show the friendly prompt.
-function maybeWarnHeads(job, proceed){
+function maybeWarnHeads(job, proceed, onDone){
   // v114 — time-boxed: right after the iPad wakes the request can hang, and End Run looked like it did nothing
   var timeout=new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); },5000); });
   Promise.race([fetchImprintFull(job.id), timeout]).then(function(rec){
     var hs=rec && rec.fields && rec.fields[F.headSettings];
     if(Array.isArray(hs) && hs.length){ proceed(); return; }
-    showHeadWarnModal(job, proceed);
-  }).catch(function(){ showHeadWarnModal(job, proceed); });
+    if(onDone)onDone(); showHeadWarnModal(job, proceed);
+  }).catch(function(){ if(onDone)onDone(); showHeadWarnModal(job, proceed); });
 }
 function showHeadWarnModal(job, onProceed){
   var ex=document.getElementById('headWarnOverlay'); if(ex)ex.remove();
@@ -5858,7 +5883,7 @@ function showHeadWarnModal(job, onProceed){
   var p=document.createElement('div'); p.style.cssText='font:400 14px/1.45 var(--sans);color:var(--muted);margin-bottom:20px;';
   p.textContent='This job ('+(job.imprintId||'this run')+') doesn\u2019t have any head settings saved yet. Want to add them before marking it complete?';
   var b1=document.createElement('button'); b1.className='btn-start'; b1.style.width='100%'; b1.textContent='\u2699 Add head settings';
-  b1.onclick=function(){ ov.remove(); if($('viewRunMode').classList.contains('on'))rmExit(); try{enterJob(job.id);}catch(e){} openFocusedMode(job, activeMid); }; // v114 — leave run mode so head settings aren't hidden behind it
+  b1.onclick=function(){ ov.remove(); if($('viewRunMode').classList.contains('on'))rmExit(); try{enterJob(job.id);}catch(e){} openFocusedMode(job, MACHINES.find(function(x){return x.id===activeMid;})); }; // v114 — leave run mode so head settings aren't hidden behind it
   var b2=document.createElement('button'); b2.className='btn-complete'; b2.style.cssText='width:100%;margin-top:10px;'; b2.textContent='Complete anyway';
   b2.onclick=function(){ ov.remove(); onProceed(); };
   var b3=document.createElement('button'); b3.className='btn-ghost'; b3.style.cssText='width:100%;margin-top:10px;border:none;'; b3.textContent='Cancel';
@@ -5871,14 +5896,16 @@ function showHeadWarnModal(job, onProceed){
 function endRun(force){
   const job=activeJob(),st=mState[activeMid]||{};
   if(!job||!activeMid){ alert('This run lost track of its job (the app may have reloaded). Go back to the job list, open the job and tap End Run again.'); rmExit(); return; } // v114
-  if(!force && needsHeadGuard(job)){ maybeWarnHeads(job, function(){endRun(true);}); return; }
+  if(st.phase!=='run' && st.phase!=='run-paused') return;   // v114 — a second tap used to log another RUN COMPLETE with 0 run time
+  if(!force && endRun._checking) return;                     // v114 — head-settings check already in flight
+  if(!force && needsHeadGuard(job)){ endRun._checking=true; maybeWarnHeads(job, function(){ endRun._checking=false; endRun(true); }, function(){ endRun._checking=false; }); return; }
   const elapsed=(st.elapsed||0)+(Date.now()-(st.startedAt||Date.now()));
   const setupMs=st.setupElapsed||0; // v72 — stashed by approveSetup
   writeLog(job.id,logEntry('RUN COMPLETE','End of run',Math.round(elapsed/1000)));
   // v105 — keep a Done state (with stats) so re-opening shows the summary, not Start Setup.
   mState[activeMid]={phase:'done',jobId:job.id,doneRunMs:elapsed,doneSetupMs:setupMs,doneEndMs:Date.now()};
   job.runFinished=true; // grey + sink the list card immediately, no refresh needed
-  if(WRITES_ENABLED)apiPatch(job.id,{[F.runFinished]:true}).catch(console.error);
+  if(WRITES_ENABLED)apiPatch(job.id,{[F.runFinished]:true}).catch(flagFail);
   clearTimer();saveState();renderPressView();
   // v72 — show run/setup totals on a clean completion screen. rmExit happens on Done.
   rmShowComplete(elapsed, setupMs);
@@ -6398,6 +6425,7 @@ function clearTimer(){if(timerId){clearInterval(timerId);timerId=null;}}
 function updateTimer(){
   const el=document.getElementById('timerDisplay');
   const st=mState[activeMid];
+  if(st && (st.phase==='run'||st.phase==='setup'||st.phase==='fix') && Date.now()-(updateTimer._saved||0)>30000){ updateTimer._saved=Date.now(); saveState(); } // v114
   if(!st||st.phase==='idle'){if(el)el.textContent='0:00:00';return;}
   if(st.phase==='done'){if(el){const ds=Math.floor((st.doneRunMs||0)/1000);el.textContent=Math.floor(ds/3600)+':'+pad(Math.floor((ds%3600)/60))+':'+pad(ds%60);}return;}
   const isActive=st.phase==='run'||st.phase==='setup'||st.phase==='fix';
@@ -6714,8 +6742,10 @@ function pad(n){return String(n).padStart(2,'0');}
 function saveCrew(){ try{ localStorage.setItem('pine_op_crew',JSON.stringify({day:new Date().toDateString(),crew:crewAssign})); }catch(e){} }
 function loadCrew(){ try{ var c=JSON.parse(localStorage.getItem('pine_op_crew')||'null'); if(c && c.day===new Date().toDateString() && c.crew && typeof c.crew==='object') return c.crew; }catch(e){} return {}; }
 function saveState(){
-  localStorage.setItem('pine_op_state',JSON.stringify(mState));
-  localStorage.setItem('pine_op_savedAt',String(Date.now())); // v102 — drives the load-time staleness guard
+  try{
+    localStorage.setItem('pine_op_state',JSON.stringify(mState));
+    localStorage.setItem('pine_op_savedAt',String(Date.now())); // v102 — drives the load-time staleness guard
+  }catch(e){ console.warn('[v114] saveState failed', e); }
 }
 // v103 — Restore the timer state across an iOS PWA reload, PHASE-AWARE.
 // Frozen phases (run-paused / setup-review / approved / idle) carry no live clock,
