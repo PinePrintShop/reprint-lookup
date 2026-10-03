@@ -37,3 +37,8 @@
 - **After End Run**, the summary (setup / run / pieces) stays in Now with "Next: 90002-A — start setup ▸".
 - **One live job per press**: switching while a job is live asks to finish or pause first (fixes the "opening another job wipes progress" bug).
 - **Picks up where it left off** after a reload/sleep (state + crew saved on the iPad).
+- **One iPad per press** (confirmed Oct 3), so "the iPad knows its press" holds.
+- **Works on all three sizes:**
+  - **iPad:** landscape and portrait, no scrolling.
+  - **Desktop:** the iPad layout, capped at 1500px wide.
+  - **Phone:** one scrolling column. The progress bar, timer and main button are pinned to the bottom of the screen, and labels shorten ("✓ Approved ▸", "✗ Fix").
