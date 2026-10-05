@@ -136,3 +136,15 @@ Each fact now shows once, where it's used:
   - The heat press Done writes Scorched → Print Team and Bad Transfer (vendor) → Other.
   - The embroidery Unsure resolve pop-up offers the embroidery reasons.
   - The v148 flow and layout tests and the v146 data tests all still pass.
+
+## v150 — "Line Item" instead of "pile" (Oct 5)
+- "Pile" sounded odd said out loud. Every on-screen use now says **Line Item**, which matches the Airtable wording:
+  - the list header "Line Items" and its ⇄ tooltip
+  - "Pick a line item"
+  - "✓ Done with line item"
+  - the toast "✓ Line item saved · N more in order …"
+  - "Next line item ▸" on the order-complete card
+  - the absorbed-caught tooltip
+- Code names (`donePile`, `cw-pile`) are unchanged.
+- **Tabs:** the six press tabs (Heat Press was added in v149) were cut off on a landscape iPad (1180px). Below 1300px wide they're now a little tighter, and all of them fit. Portrait still scrolls sideways.
+- **Tests:** the v148 flow and layout tests pass unchanged. The toast and order card show the new wording.
