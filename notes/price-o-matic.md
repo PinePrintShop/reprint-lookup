@@ -60,3 +60,18 @@ Stephen: v1 "still feels a little loud and a lot to look at". Sales quotes on la
   - Selected states are a white "pill" or a pale yellow tint, not solid black.
   - Labels are sentence case.
 - **Right rail:** price per piece (type to adjust), breaks at roughly 1×, 1.5×, 2× and 3× (tap one to switch), Add to quote, then the quote and one PDF button.
+
+## Mockup v3 — buttons back, room to breathe (Oct 5) · `price-o-matic-mockup-v3.html`
+Stephen on v2: "a little too compressed", the desktop screen is mostly empty, and he still likes buttons for moving through quickly. So v3:
+- **Guided column:** 1 Garment → 2 Quantity → 3 Prints, each its own panel with more space (15px base type, 22–26px padding, max width 1560).
+- **Buttons are the main input again:** 44px tall, white with a light border; **selected = Pine yellow**. Black only for the top bar and Find.
+  - **Quantity:** quick buttons 24 / 36 / 48 / 72 / 100 / 144 / 250, plus "other" (typical line is about 40; 80% are under 100).
+  - **Garment:** recent garments as buttons with their cost; add-ons (Fleece +$0.50, Shipping, AS Colour order under $500) as buttons.
+  - **Each print:**
+    - Where: Front / Back / Left chest / Left sleeve / Size tag + More…
+    - How: Screen print / Embroidery / Supacolor / Decopress
+    - Colors: 1–6 + 7+… and a "+ Underbase" button
+    - Embroidery stitch bands, Supa sizes and recipes, and Deco material and size are buttons too, with the common ones first.
+  - Ink changes / fleece / mixed run are behind one link (90% of jobs have no ink changes).
+- **Add a print:** dashed buttons + Back / + Left chest / + Left sleeve / + Size tag / + Other.
+- The right rail stays put while scrolling: big price (type to adjust), four breaks you can tap, Add to quote, then the quote and one PDF button.
