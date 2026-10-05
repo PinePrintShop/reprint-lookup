@@ -66,3 +66,11 @@ The mockup:
 - **Landscape:** the reason buttons stretch to fill the lane, so there's no dead gap between the reasons and Done.
 - **Portrait:** the lane stays compact in the bottom half (thumb zone), and the pile list takes the spare room above it.
 - **Phone:** one column, with locations and Done stuck to the bottom.
+
+### Mockup v3: big proof (Oct 5)
+- **Landscape:** the proof is a tall column on the far left of the work area (about 40% of the panel, full height). That's away from a right hand tapping the lane, so the hand never covers it.
+  - ‹ › step through the locations (Front / Back / Sleeve), and a tap zooms to full screen.
+  - The tap lane sits right next to the proof, and the pile list stays on the right.
+  - ⇄ Side mirrors the layout for a left-handed setup.
+- **Portrait:** pile strip on top, then the proof filling the spare height, then the compact tap lane at the bottom.
+- **Phone:** a 300px proof above the lane.
