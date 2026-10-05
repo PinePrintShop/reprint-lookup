@@ -110,7 +110,7 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
   </div>
 </div>
 <script>
-const REPS=['Garrett','Patrick','Chris','Josh','Stephen'];
+const REPS=['Patrick','Chris'], REPS_MORE=['Garrett','Stephen']; let REP_MORE=false;   // Josh removed (Oct 5)
 const SHIPS=['Free Shipping','Pick-Up','Delivery','Customer Account - UPS','Fulfillment'];
 const SHIPS_MORE=['Customer Account - FedEx','2-Day Air Shipping','Next Day Air Shipping','Blind Shipping','Multiple Shipping Locations','International Shipping','FREIGHT','Address TBD On Ship Date'];
 const SOURCES=['Repeat','Referral','Word-of-mouth','Google','Social Media'];
@@ -145,7 +145,7 @@ function addImp(){ S.imps.push({id:'N'+S.imps.length,loc:'Front',method:'Screen 
 function impName(m){ return m.loc+' · '+(m.method==='Screen print'?m.screens+'c'+(m.ub?' + UB':''):m.method.toLowerCase()); }
 function sum(o){ return Object.values(o).reduce((a,b)=>a+(Number(b)||0),0); }
 function renderOrder(){
-  $('rep').innerHTML=REPS.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join('');
+  $('rep').innerHTML=REPS.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join('')+(REP_MORE||REPS_MORE.includes(S.rep)?REPS_MORE.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join(''):B('+',false,'REP_MORE=true;render()','dash'));
   const d=new Date(); const add=n=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
   $('dueQuick').innerHTML=[['1 week',7],['2 weeks',14],['3 weeks',21]].map(([l,n])=>B(l,S.due===add(n),`S.due='${add(n)}';document.getElementById('due').value=S.due;render()`)).join('');
   $('ship').innerHTML=SHIPS.map(s=>B(s.replace('Customer Account - ','Their ').replace(' Shipping',''),S.ship.includes(s),`tgShip('${s}')`)).join('')+`<select class="t" onchange="if(this.value)tgShip(this.value)"><option value="">More…</option>${SHIPS_MORE.map(s=>`<option ${S.ship.includes(s)?'selected':''}>${s}</option>`).join('')}</select>`;

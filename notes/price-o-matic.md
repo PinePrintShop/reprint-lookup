@@ -140,3 +140,24 @@ The goal: replace the Airtable **Imprint Creator** and **Line Item Creator** int
 - POM location names need to map to Airtable's Location choices: "Left chest" → "Left Chest", "Size tag" → "Size Tag", "Back neck" / "Other" have no Airtable choice yet.
 - Airtable Imprint Type has no "Decopress - Suede", but POM offers Suede.
 - The build reuses Sales Entry v23's field map (Orders / Line Items / Imprints field IDs).
+
+## Create order — mockup v2 on real data (Oct 5) · `pom-create-order-live.html`
+**What Stephen explained:** when a deal moves to *approved customer* in Pipedrive, the **Order already exists** in Airtable, with Invoice / Order # (autonumber + 2040), Customer, Sales Person, Source, Shipping, status Awaiting Proof, and sometimes a due date. So Create order **finds that order and adds to it**; it doesn't make a new one.
+- **Imprint IDs** are Airtable's: `Imprint ID Generator` = order # + "-" + a letter by the imprint's position on the order, and an automation copies it into Imprint ID when the record is created. The screen only needs to create imprints in order. It previews the IDs, continuing after any imprints already on the order (10960-A exists → B, C, D).
+- **Reads (GET only):**
+  - the Price-O-Matic quote from this browser (`pom_cart_v1`, same site)
+  - Customers (search by Company Name)
+  - that customer's 8 most recent Orders. It auto-picks the newest Awaiting Proof with no line items.
+  - existing Imprint IDs on the order
+  - Garments by Product Number (style from the quote line) and Colorway (color after " - ").
+- **Token:** the same `pine_at_key` the other Pine apps save in this browser. If it's missing, it asks once.
+- **Imprints:** quote prints with the same location / method / colors / underbase (and recipe, size or stitches) across lines become **one imprint linked to all of them**. Screens = colors + underbase.
+  - **Imprint Type mapped from the quote:** Supacolor recipe → "Supacolor - <recipe>"; Decopress material → "Decopress - …" (no Suede in Airtable); Embroidery (incl. applications); Size tag → "Supacolor - 1C Wearable".
+  - Screen prints need the ink system picked.
+  - **Location mapped** to Airtable's choices. "Back neck" / "Other" ask for a pick.
+- **Sales person:** Patrick, Chris; **+** shows Garrett, Stephen. Josh removed (also in the first mockup).
+- **Create order (practice)** lists the exact writes: PATCH the Order (rep, due, shipping, source), CREATE Imprints linked to the order, CREATE Line Items linked to the order, garment and imprints (with sizes and price). Nothing is sent.
+- **Still to decide for the build:**
+  - 2XL+ upcharges: Airtable takes one price per line.
+  - Whether the build writes Proofing Notes or leaves them to the linked imprints.
+  - The Location / Imprint Type gaps above.
