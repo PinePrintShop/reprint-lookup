@@ -119,3 +119,20 @@ Each fact now shows once, where it's used:
 - **Sharper proof:** page 1 of the proof PDF is rendered once per line item at the panel's real size (×2 pixel density) and cached; up to 12 are kept. Before, it used Airtable's small preview image. The preview shows until the render is ready, and stays if the render fails.
 - **Practice pill moved into the top bar**, shortened to "Practice ↺ Reset". It was covering Done with pile.
 - Not testable here: PDF.js loads from cdnjs, which this environment blocks. The fallback (the preview image) is what the tests saw.
+
+## v149 — damage reasons per machine + heat press comes through catching (Oct 5)
+- **Reason buttons depend on the job's press** (`dmgSet(press)`):
+  - **Screen print** (P1 / P2 / Flatstock): unchanged.
+  - **Embroidery team:** Thread Break / Skipped Stitch, Puckering, Outline / Registration Off, Wrong Thread Color, Hoop Burn, Needle Hole / Snag, Off-Center, Backing Showing. **Other:** Mill Flaw, Stain, Jawn.
+  - **Heat press team:** Not Sticking / Lifting, Scorched, Crooked / Off-Center, Wrong Placement, Ghosting / Double Image, Press Marks. **Other:** Bad Transfer (vendor), Mill Flaw, Stain, Jawn.
+- **Accountability still saves as "Print Team" / "Other"**, in the same Order Issue and Damage Detail fields. Only the label changes: on screen, in the Unsure resolve pop-up, and in the issue description ("1 damaged (Heat Press Team) [1M]: Scorched").
+- **Airtable (Oct 5):** the 16 new names were added as choices on Order Issues (QC Reasons - Print Team / Other / legacy QC Reasons) and on Damage Details (Damage Reasons). No existing choices were changed.
+  - The metadata tool can't edit select choices. On Damage Details, a temporary record created them and was then deleted.
+  - On Order Issues, a record create sends an email, so the choices came from a write to one old resolved record (rec04g98siaSkOxBs), which was then cleared back to empty. Only the 3 reason fields were touched; no automation watches them.
+- **Heat press jobs now come through catching:** Heat press, D3, Hat Press and Tag Press have a new **Heat Press** tab, which matches any equipment containing "heat press". SKIP_PRESS is now sewing / finishing / bartacker / post-bed only. The order-caught count needs heat press imprints to be truly caught now.
+- With 8 embroidery team reasons, that grid goes 4 across in landscape. Each half of the lane is sized by its number of rows.
+- **Tests (mock Airtable):**
+  - Heat, embroidery and P1 each show the right lists, and sewing stays out.
+  - The heat press Done writes Scorched → Print Team and Bad Transfer (vendor) → Other.
+  - The embroidery Unsure resolve pop-up offers the embroidery reasons.
+  - The v148 flow and layout tests and the v146 data tests all still pass.
