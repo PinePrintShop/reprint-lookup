@@ -166,3 +166,12 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
   - The heads summary wraps to 2 lines.
   - The phone work view clamps to `100vw`.
 - iPad and desktop layouts are unchanged (re-measured).
+
+## v122 — stale paused jobs + full ink names (Oct 5)
+**XMPLR 10647-A showed up on Monday**
+- Its Airtable record has Run Started ✓ and Run Finished ✗. It was printed Sep 3 (RUN COMPLETE 2:09 PM), then **reopened** with "Undo mark-complete" at 3:44 PM to adjust the times, and never completed again.
+- The press iPad still had that paused state saved locally. v120's "a live job always loads" brought it back.
+- v122 only brings back a live job scheduled in the last 4 days (covers a weekend) that isn't finished. Older local state is dropped.
+- **Airtable data:** 93 imprints have Run Started ✓ / Run Finished ✗ with a start more than 3 days ago (most are old). They don't show in the app, but they skew reporting. Cleanup is pending Stephen's OK.
+
+**Ink names in full:** the swatch row wraps long names (it was "Red Ru…"), and the heads summary shows every head (no 2-line clamp).
