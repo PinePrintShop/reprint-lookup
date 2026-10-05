@@ -108,3 +108,35 @@ Built from v93; all of v93's logic is kept: vendor lookup and banner, minimum au
   - The cart and recent garments survive a reload.
   - No page errors at 1990 / 1440 / phone widths and no sideways scroll.
 - Not testable here: the PDF itself (jsPDF loads from cdnjs, which this environment blocks).
+
+## Create order — mockup (Oct 5) · `pom-create-order-mockup.html`
+The goal: replace the Airtable **Imprint Creator** and **Line Item Creator** interface forms (and the Garment Creator detour) with one screen that writes Order + Line Items + Imprints together, all linked.
+
+**Two ways in (Stephen):**
+- **From a quote:** the best case. Everything Price-O-Matic knows is filled in.
+- **Start empty:** add line items and imprints by hand, or "Copy from a past order…".
+
+**1 Order** (once): Customer (search + new) · Sales person, Due date (1/2/3-week buttons + date), Shipping and Source as buttons (rarer choices in More…) · Order notes. Status starts at **Awaiting Proof**, as today.
+
+**2 Imprints** (one per location; the artwork):
+- **Ink type** buttons for screen prints: Discharge / No Base W/B / EZP Base + W/B / Bleed Blocker + W/B, which cover over 80% of 2026 imprints.
+- **Filled in automatically** from the quote for Supacolor (recipe), Decopress (material) and Embroidery (incl. patch / woven / hem label application).
+- **Screens** = colors + underbase from the quote.
+- Plus ink changes, location, nickname, notes, and **Repeat art**, which picks the previous imprint.
+- **"Goes on"** chips link each imprint to its line items. This replaces typing "which imprints go where" into Proofing Notes; the same front print on two garments is one imprint linked to both.
+
+**3 Line items** (one per garment + color):
+- Garment matched to Airtable Garments, or **+ Add garment** right there.
+- **Sizes XS–6XL + OSFA** with 2XL/3XL upcharges shown, a "sizes 120 of 144" check against the quoted qty, and a typical-run fill button.
+- Price / pc from the quote.
+- Imprints linked, **Proofing notes written for you** (editable).
+- Women's / Youth.
+- Production, finishing and shipping notes and the proof upload / Ready for 2nd Eyes sit behind one link.
+- From empty: product type buttons, garment search, price.
+
+**Right column:** what will be created (1 order · N line items · N imprints), a live checklist of what's missing, the quote total, **Create order** (in practice mode it shows the exact records it would write) and Save for later.
+
+**Mapping notes for the build:**
+- POM location names need to map to Airtable's Location choices: "Left chest" → "Left Chest", "Size tag" → "Size Tag", "Back neck" / "Other" have no Airtable choice yet.
+- Airtable Imprint Type has no "Decopress - Suede", but POM offers Suede.
+- The build reuses Sales Entry v23's field map (Orders / Line Items / Imprints field IDs).
