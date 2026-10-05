@@ -81,12 +81,24 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .qrow:first-child{border-top:none}.qrow .auto{grid-column:1/-1;margin-left:0}
 .dd{position:absolute;left:0;right:0;top:46px;background:#fff;border:1px solid var(--line2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:20}
 .dd:empty{display:none}.ddr{padding:10px 12px;cursor:pointer;font-size:14px}.ddr:hover{background:var(--soft)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pc2{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:4px;font-size:12px}
+.pc2:hover{border-color:var(--text)}.pc2.on{border-color:var(--ydk);box-shadow:inset 0 0 0 1px var(--ydk);background:var(--ytint)}
+.pc2 .th{height:96px;border-radius:6px;background:var(--soft);display:flex;align-items:center;justify-content:center;overflow:hidden;gap:2px}
+.pc2 .th img{max-width:100%;max-height:96px;object-fit:contain}.pc2 .th.multi img{max-width:33%}
+.pc2 b{font:700 13px var(--mono)}.pc2 .m{color:var(--muted)}
+.search{height:40px;border:1px solid var(--line2);border-radius:8px;padding:0 12px;width:100%;margin-bottom:12px;font-size:14px}
+.picker{grid-column:1/-1;border:1px dashed var(--ydk);border-radius:8px;padding:12px;background:#fffef0}
+.rep{display:flex;align-items:center;gap:10px}.rep img{height:44px;border-radius:4px;background:var(--soft)}
+.detail{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.rail{position:static}}
+@media (max-width:600px){.ch{flex-wrap:wrap}.idtag{white-space:nowrap}.grid{grid-template-columns:minmax(0,1fr);gap:6px}.grid>.k{margin-top:8px}.sizes{grid-template-columns:repeat(6,minmax(0,1fr))}.pgrid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
 </style>
 </head>
 <body>
-<div class="mk-note"><b>Mockup v2 — real data, read-only.</b> Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write. Nothing is saved.</div>
+<div class="mk-note"><b>Mockup v3 — real data, read-only.</b> Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write. Nothing is saved.</div>
 <div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Practice — read-only</span><a class="ghost" href="price-o-matic-v95.html" style="text-decoration:none">← Back to quote</a></div>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
@@ -100,7 +112,7 @@ a.ghost{display:inline-block}
       <div class="grid">
         <span class="k req">Customer</span>
         <div style="position:relative"><div class="cust"><input class="t" id="cust" placeholder="Start typing the customer name…" autocomplete="off"></div><div id="custList" class="dd"></div><div class="found" id="custFound"></div></div>
-        <span class="k req">Order</span><div id="orders" class="chips"><span class="auto" style="margin-left:0">Pick a customer to see their open orders.</span></div>
+        <span class="k req">Order</span><div id="orders" class="chips"><span class="auto" style="margin-left:0">Pick a customer to see their Awaiting Proof order.</span></div>
       </div>
       <div class="grid" id="orderFields" style="margin-top:16px;display:none">
         <span class="k req">Sales person</span><div class="bts" id="rep"></div>
@@ -108,6 +120,12 @@ a.ghost{display:inline-block}
         <span class="k req">Shipping</span><div class="bts" id="ship"></div>
         <span class="k">Source</span><div class="bts" id="src"></div>
       </div>
+    </div>
+    <div class="panel" id="pastPanel" style="display:none">
+      <div class="sec"><span class="n">↺</span><h2>Past orders</h2><span class="hint">Reorder? Find it here and copy it in</span></div>
+      <input class="search" id="pastQ" placeholder="Search past orders — order #, location, ink, nickname, date…" oninput="renderPast()">
+      <div class="pgrid" id="pastGrid"></div>
+      <div id="pastDetail"></div>
     </div>
     <div class="panel">
       <div class="sec"><span class="n">2</span><h2>Imprints</h2><span class="hint">IDs come from the order number — Airtable assigns them in this order</span></div>
@@ -182,7 +200,11 @@ const INKS=['Discharge','No Base W/B','EZP Base + W/B','Bleed Blocker + W/B'];
 const LOCS=['Front','Back','Left Chest','Left Sleeve','Right Sleeve','Size Tag','Pocket','Hood','Right Chest','Back Hem','Front Hem','Multiple Locations'];
 const SIZES=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','OSFA'];
 const CART=readQuote();
-const S=Object.assign({cust:null,orders:[],order:null,existingImps:[],repMore:false,rep:'',due:'',ship:[],src:''},fromQuote(CART));
+const S=Object.assign({cust:null,orders:[],order:null,existingImps:[],repMore:false,rep:'',due:'',ship:[],src:'',pastOrders:[],pastImps:[],pastOpen:null,pastLines:{}},fromQuote(CART));
+const P={proofLook:'fldzdj6DTD2TrACCf'};
+const IP={id:'fldDFfwFQ9B20n2kT',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',proofs:'fldUOIfCd22MxevRm',created:'fldc7aezBfzoVPeAY',nick:'fldyGOHRKNz00MaYQ',inksTxt:'fldMM5hp8kEpo3KKT',inks:'fldpNCCXTgHyDhvak',order:'flds9F80ZDkTH1M1t',cust:'fldeLMIAC0ABQAjYJ'};
+const LI={name:'fldU6oLyZnxhhm2kX',garment:'fldZbOdGIoCk3Gan2',ptype:'fld8LIkrBXv8WoRRb',price:'fldtMZWzA4dfPxEXx',imprints:'fldTFz4ZzfOthqkg6',proof:'flddhvdkKI31tFTdX'};
+const thumb=a=>a?((a.thumbnails&&(a.thumbnails.large||a.thumbnails.small)||{}).url||a.url):'';
 const $=id=>document.getElementById(id);
 const money=n=>'$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -207,12 +229,25 @@ async function searchCust(v){
 async function pickCust(id,name){
   S.cust={id,name}; $('cust').value=name; $('custList').innerHTML=''; $('custFound').textContent='Loading orders…';
   try{
-    const d=await at(T_ORD,`maxRecords=8&${flds(Object.values(O))}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent(`{[TEXT] Customer Name}="${fq(name)}"`)}`);
-    S.orders=(d.records||[]).map(r=>{const f=r.fields;return {id:r.id,num:f[O.num],status:sel(f[O.status]),due:f[O.due]||'',rep:sel(f[O.rep]),ship:(f[O.ship]||[]).map(sel),src:sel(f[O.src]),created:f[O.created]||'',lines:(f[O.lines]||[]).length,imps:f[O.imps]||[]};});
-    $('custFound').textContent=S.orders.length?'✓ '+S.orders.length+' recent order'+(S.orders.length>1?'s':''):'No orders yet — the Pipedrive deal may not be marked approved yet.';
-    const pick=S.orders.find(o=>o.status==='Awaiting Proof'&&!o.lines)||S.orders.find(o=>o.status==='Awaiting Proof')||S.orders[0];
+    const sortQ=`&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc`;
+    const mapO=r=>{const f=r.fields;return {id:r.id,num:f[O.num],status:sel(f[O.status]),due:f[O.due]||'',rep:sel(f[O.rep]),ship:(f[O.ship]||[]).map(sel),src:sel(f[O.src]),created:f[O.created]||'',lines:(f[O.lines]||[]).length,lineIds:f[O.lines]||[],imps:f[O.imps]||[],thumbs:(f[P.proofLook]||[]).map(thumb).filter(Boolean)};};
+    // only the order(s) waiting for this step
+    const d=await at(T_ORD,`maxRecords=6&${flds(Object.values(O))}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}="Awaiting Proof")`)}`);
+    S.orders=(d.records||[]).map(mapO);
+    $('custFound').textContent=S.orders.length?'✓ '+S.orders.length+' order'+(S.orders.length>1?'s':'')+' awaiting proof':'No Awaiting Proof order for '+name+' — has the Pipedrive deal been moved to approved customer?';
+    loadPast(name, mapO, sortQ);
+    const pick=S.orders.find(o=>!o.lines)||S.orders[0];
     if(pick) await pickOrder(pick.id); else render();
   }catch(e){ $('custFound').textContent=e.message; }
+}
+async function loadPast(name,mapO,sortQ){
+  try{
+    const d=await at(T_ORD,`maxRecords=40&${flds(Object.values(O).concat([P.proofLook]))}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}!="Awaiting Proof",{Order Status}!="Cancelled / Voided")`)}`);
+    S.pastOrders=(d.records||[]).map(mapO);
+    const di=await at(T_IMP,`maxRecords=80&${flds(Object.values(IP))}&sort%5B0%5D%5Bfield%5D=${IP.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent(`FIND(LOWER("${fq(name)}"),LOWER({Customer Name Search}))`)}`);
+    S.pastImps=(di.records||[]).map(r=>{const f=r.fields;return {rid:r.id,id:f[IP.id]||'',type:sel(f[IP.type]),loc:sel(f[IP.loc]),screens:f[IP.screens]||0,nick:f[IP.nick]||'',inks:f[IP.inksTxt]||'',inkIds:f[IP.inks]||[],created:(f[IP.created]||'').slice(0,10),thumbs:(f[IP.proofs]||[]).map(thumb).filter(Boolean),order:(f[IP.order]||[])[0]};});
+  }catch(e){ S.pastOrders=[]; S.pastImps=[]; }
+  render();
 }
 async function pickOrder(id){
   const o=S.orders.find(x=>x.id===id); S.order=o; S.rep=o.rep; S.due=o.due; S.ship=o.ship.slice(); S.src=o.src; S.repMore=REPS_MORE.includes(o.rep);
@@ -221,7 +256,7 @@ async function pickOrder(id){
   render();
 }
 function renderOrder(){
-  $('orders').innerHTML=S.orders.length?S.orders.map(o=>`<button class="chip${S.order&&S.order.id===o.id?' on':''}" onclick="pickOrder('${o.id}')"><b>${o.num}</b> · ${esc(o.status)} · ${o.created}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':''):' · empty'}</button>`).join(''):$('orders').innerHTML;
+  if(S.cust) $('orders').innerHTML=S.orders.length?S.orders.map(o=>`<button class="chip${S.order&&S.order.id===o.id?' on':''}" onclick="pickOrder('${o.id}')"><b>${o.num}</b> · created ${o.created}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':'')+' already':' · empty'}</button>`).join(''):'<span class="tag need">none awaiting proof</span>';
   $('orderFields').style.display=S.order?'':'none'; if(!S.order) return;
   $('rep').innerHTML=REPS_MAIN.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join('')+(S.repMore?REPS_MORE.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join(''):B('+',false,'S.repMore=true;render()','dash'));
   $('due').value=S.due||''; $('due').onchange=e=>{S.due=e.target.value;render();};
@@ -229,6 +264,39 @@ function renderOrder(){
   $('dueQuick').innerHTML=[['1 week',7],['2 weeks',14],['3 weeks',21]].map(([l,n])=>B(l,S.due===add(n),`S.due='${add(n)}';render()`)).join('');
   $('ship').innerHTML=SHIPS.map(s=>B(s.replace('Customer Account - ','Their ').replace(' Shipping',''),S.ship.includes(s),`tgShip('${s}')`)).join('')+`<select class="t" onchange="if(this.value)tgShip(this.value)"><option value="">More…</option>${SHIPS_MORE.map(s=>`<option ${S.ship.includes(s)?'selected':''}>${s}</option>`).join('')}</select>`;
   $('src').innerHTML=SOURCES.map(s=>B(s,S.src===s,`S.src='${s}';render()`)).join('')+(S.src&&!SOURCES.includes(S.src)?B(esc(S.src),true,''):'');
+}
+/* ---------- past orders (search + small proofs) ---------- */
+function renderPast(){
+  $('pastPanel').style.display=S.cust?'':'none'; if(!S.cust) return;
+  const q=($('pastQ').value||'').toLowerCase().trim();
+  const impsByOrder={}; S.pastImps.forEach(m=>{(impsByOrder[m.order]=impsByOrder[m.order]||[]).push(m);});
+  const list=S.pastOrders.filter(o=>{ if(!q) return true; const hay=[o.num,o.created,o.status].concat((impsByOrder[o.id]||[]).map(m=>m.id+' '+m.loc+' '+m.type+' '+m.inks+' '+m.nick)).join(' ').toLowerCase(); return hay.includes(q); });
+  $('pastGrid').innerHTML=list.length?list.map(o=>`<button class="pc2${S.pastOpen===o.id?' on':''}" onclick="openPast('${o.id}')"><div class="th${o.thumbs.length>1?' multi':''}">${o.thumbs.slice(0,3).map(u=>`<img src="${esc(u)}" loading="lazy" alt="">`).join('')||'<span class="m">no proof</span>'}</div><b>${o.num}</b><span class="m">${o.created} · ${o.lines} line${o.lines!==1?'s':''}</span><span class="m">${esc((impsByOrder[o.id]||[]).map(m=>m.loc+' '+(m.screens?m.screens+'c':m.type)).join(' · '))}</span></button>`).join(''):'<span class="auto" style="margin-left:0">No past orders match.</span>';
+  const o=S.pastOrders.find(x=>x.id===S.pastOpen); let h='';
+  if(o){
+    const lines=S.pastLines[o.id];
+    h+=`<div class="detail"><div class="ch"><span class="t1">Order ${o.num}</span><span class="t2">${o.created} · ${esc(o.status)}</span><div class="right"><button class="b on" onclick="copyPast('${o.id}')" ${lines?'':'disabled'}>Copy into this order</button><button class="link" onclick="S.pastOpen=null;render()">close</button></div></div>`;
+    h+=`<div class="pgrid">${(impsByOrder[o.id]||[]).map(m=>`<div class="pc2"><div class="th">${m.thumbs[0]?`<img src="${esc(m.thumbs[0])}" alt="">`:'<span class="m">—</span>'}</div><b>${esc(m.id)}</b><span class="m">${esc(m.loc)} · ${esc(m.type)}${m.screens?' · '+m.screens+' screens':''}</span><span class="m">${esc(m.inks)}</span></div>`).join('')}</div>`;
+    h+=lines?`<div style="margin-top:10px">${lines.map(l=>`<div class="qrow"><b>${esc(l.name)}</b><span>${l.qty} × ${money(l.price)}</span></div>`).join('')}</div>`:'<div class="auto" style="margin:10px 0 0">Loading line items…</div>';
+    h+='</div>';
+  }
+  $('pastDetail').innerHTML=h;
+}
+async function openPast(id){
+  S.pastOpen=id; render(); const o=S.pastOrders.find(x=>x.id===id); if(S.pastLines[id]||!o.lineIds.length){ S.pastLines[id]=S.pastLines[id]||[]; render(); return; }
+  try{ const d=await at('tblJx5UlwO7oMSk5H',`${flds(Object.values(LI).concat(SIZES.map(z=>window.LF[z])))}&filterByFormula=${encodeURIComponent('OR('+o.lineIds.map(x=>`RECORD_ID()='${x}'`).join(',')+')')}`);
+    S.pastLines[id]=(d.records||[]).map(r=>{const f=r.fields,sz={};SIZES.forEach(z=>{const v=Number(f[window.LF[z]])||0;if(v)sz[z]=v;});return {rid:r.id,name:f[LI.name]||'',garmentId:(f[LI.garment]||[])[0]||null,ptype:sel(f[LI.ptype]),price:Number(f[LI.price])||0,sizes:sz,qty:sum(sz),imprints:f[LI.imprints]||[]};});
+  }catch(e){ S.pastLines[id]=[]; }
+  render();
+}
+// Reorder: each past line item comes in as a new line (same garment, sizes, price); each past imprint comes in as a Repeat of it.
+function copyPast(id){
+  const lines=S.pastLines[id]||[], imps=S.pastImps.filter(m=>m.order===id);
+  const base=S.lines.length;
+  lines.forEach(l=>S.lines.push({qname:l.name.replace(/^\d+-[^-]*-/,''),style:'',color:'',ptype:l.ptype||'Printed Apparel',qty:l.qty,price:l.price,up:null,sizes:Object.assign({},l.sizes),garment:l.garmentId?{id:l.garmentId,name:l.name.replace(/^\d+-[^-]*-/,'')}:null,cands:[],nick:'',womens:false,youth:false,fromPast:true}));
+  imps.forEach(m=>{ const li=lines.map((l,k)=>l.imprints.includes(m.rid)?base+k:-1).filter(k=>k>=0);
+    S.imps.push({key:'past'+m.rid,loc:m.loc,qloc:m.loc,method:/^Supacolor|^Decopress|Embroidery|Application/.test(m.type)?m.type.split(' - ')[0]:'Screenprint',screens:m.screens,ub:false,colors:m.screens,inkChanges:0,ink:m.type,nick:m.nick,repeat:true,prev:m,lines:li}); });
+  S.pastOpen=null; render();
 }
 function tgShip(s){ const i=S.ship.indexOf(s); if(i>=0)S.ship.splice(i,1); else S.ship.push(s); render(); }
 /* ---------- imprints ---------- */
@@ -245,11 +313,18 @@ function renderImps(){
     } else h+=`<span class="k req">Imprint type</span><div class="bts">${m.ink?`<span class="tag ok">${esc(m.ink)}</span><span class="auto">from the quote</span>`:`<span class="tag need">no matching Airtable type</span><span class="auto">(e.g. Decopress Suede) — pick one when building</span>`}</div>`;
     h+=`<span class="k req">Location</span><div class="bts">${LOCS.slice(0,6).map(l=>B(l,m.loc===l,`S.imps[${i}].loc='${l}';render()`)).join('')}<select class="t" onchange="if(this.value){S.imps[${i}].loc=this.value;render()}"><option value="">More…</option>${LOCS.slice(6).map(l=>`<option ${m.loc===l?'selected':''}>${l}</option>`).join('')}</select>${!LOC_MAP[m.qloc]&&m.qloc&&m.qloc!=='Bandana'?`<span class="auto">quote said "${esc(m.qloc)}"</span>`:''}</div>`;
     h+=`<span class="k">Goes on</span><div class="chips">${S.lines.map((L,li)=>`<button class="chip${m.lines.includes(li)?' on':''}" onclick="tgLine(${i},${li})">${m.lines.includes(li)?'✓ ':''}${esc(L.garment?L.garment.name:(L.qname||'Line '+(li+1)))}</button>`).join('')}</div>`;
-    h+=`<span class="k">Nickname</span><div class="bts"><input class="t" style="flex:1" placeholder="e.g. Hop logo" value="${esc(m.nick)}" oninput="S.imps[${i}].nick=this.value"><button class="b${m.repeat?' on':''}" onclick="S.imps[${i}].repeat=!S.imps[${i}].repeat;render()">Repeat art</button></div></div></div>`;
+    h+=`<span class="k">Nickname</span><div class="bts"><input class="t" style="flex:1" placeholder="e.g. Hop logo" value="${esc(m.nick)}" oninput="S.imps[${i}].nick=this.value"><button class="b${m.prev?' on':''}" onclick="S.imps[${i}].pick=!S.imps[${i}].pick;render()">${m.prev?'Repeat of '+esc(m.prev.id):'Repeat art…'}</button></div>`;
+    if(m.prev) h+=`<span class="k">Repeat of</span><div class="rep">${m.prev.thumbs[0]?`<img src="${esc(m.prev.thumbs[0])}" alt="">`:''}<b style="font-family:var(--mono)">${esc(m.prev.id)}</b><span class="auto">${esc(m.prev.loc)} · ${esc(m.prev.type)} · ${m.prev.screens} screens · ${esc(m.prev.inks)}</span><button class="link" onclick="S.imps[${i}].prev=null;S.imps[${i}].repeat=false;render()">remove</button></div>`;
+    if(m.pick){ const q=(m.q||'').toLowerCase(); const list=S.pastImps.filter(p=>!q||[p.id,p.loc,p.type,p.inks,p.nick,p.created].join(' ').toLowerCase().includes(q));
+      h+=`<div class="picker"><input class="search" placeholder="Search ${esc(S.cust?S.cust.name:'this customer')}'s past imprints — ID, location, ink, nickname…" value="${esc(m.q||'')}" id="pq${i}" oninput="pickQ(${i},this.value)"><div class="pgrid">${S.cust?(list.slice(0,24).map(p=>`<button class="pc2${m.prev&&m.prev.rid===p.rid?' on':''}" onclick="pickPrev(${i},'${p.rid}')"><div class="th">${p.thumbs[0]?`<img src="${esc(p.thumbs[0])}" loading="lazy" alt="">`:'<span class="m">no proof</span>'}</div><b>${esc(p.id)}</b><span class="m">${esc(p.loc)} · ${p.screens?p.screens+' scr · ':''}${esc(p.created)}</span><span class="m">${esc(p.inks||p.type)}</span></button>`).join('')||'<span class="auto" style="margin-left:0">No past imprints match.</span>'):'<span class="auto" style="margin-left:0">Pick the customer first.</span>'}</div></div>`; }
+    h+=`</div></div>`;
   });
   if(!S.imps.length) h+='<div class="auto" style="margin-left:0">No prints in the quote.</div>';
   $('imps').innerHTML=h;
 }
+function pickQ(i,v){ S.imps[i].q=v; renderImps(); const e=$('pq'+i); if(e){ e.focus(); e.setSelectionRange(v.length,v.length); } }
+function pickPrev(i,rid){ const p=S.pastImps.find(x=>x.rid===rid), m=S.imps[i]; if(!p) return;
+  m.prev=p; m.repeat=true; m.pick=false; if(p.loc) m.loc=p.loc; if(p.type) m.ink=p.type; if(p.screens&&m.method==='Screenprint') m.screens=p.screens; if(!m.nick&&p.nick) m.nick=p.nick; render(); }
 function tgLine(i,li){ const a=S.imps[i].lines,k=a.indexOf(li); if(k>=0)a.splice(k,1); else a.push(li); render(); }
 /* ---------- line items + real garment matching ---------- */
 async function matchGarments(){
@@ -303,16 +378,16 @@ function renderSum(){
 function preview(){
   const ids=nextIds(), o=S.order;
   const orderPatch={id:o.id,fields:{[O.rep]:S.rep,[O.due]:S.due,[O.ship]:S.ship,[O.src]:S.src||undefined}};
-  const imps=S.imps.map((m,i)=>({_willBe:ids[i],fields:{[IF.order]:[o.id],[IF.type]:m.ink,[IF.loc]:m.loc,[IF.screens]:m.screens,[IF.inkChanges]:m.inkChanges,[IF.nick]:m.nick||undefined,[IF.repeat]:m.repeat||undefined}}));
+  const imps=S.imps.map((m,i)=>({_willBe:ids[i],fields:{[IF.order]:[o.id],[IF.type]:m.ink,[IF.loc]:m.loc,[IF.screens]:m.screens,[IF.inkChanges]:m.inkChanges,[IF.nick]:m.nick||undefined,[IF.repeat]:m.repeat||undefined,'fldAEQvMAAZX9gnhl':m.prev?[m.prev.rid]:undefined,'fldpNCCXTgHyDhvak':m.prev&&m.prev.inkIds.length?m.prev.inkIds:undefined}}));
   const LF=window.LF;
   const lines=S.lines.map((ln,i)=>{ const f={[LF.order]:[o.id],[LF.ptype]:ln.ptype,[LF.garment]:ln.garment?[ln.garment.id]:undefined,[LF.imprints]:S.imps.map((m,k)=>m.lines.includes(i)?'(new '+ids[k]+')':null).filter(Boolean),[LF.price]:ln.price,[LF.womens]:ln.womens||undefined,[LF.youth]:ln.youth||undefined}; Object.keys(ln.sizes).forEach(z=>f[LF[z]]=ln.sizes[z]); return {fields:f}; });
   const names=x=>JSON.stringify(x,null,1).replace(/"(fld\w{14})"/g,(m,id)=>'"'+(FN[id]||id)+'"');
   $('out').textContent='PATCH Orders\n'+names(orderPatch)+'\n\nCREATE Imprints ('+imps.length+')\n'+names(imps)+'\n\nCREATE Line Items ('+lines.length+')\n'+names(lines);
   $('outBox').style.display='';
 }
-const FN={}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k);
+const FN={fldAEQvMAAZX9gnhl:'Imprint.previousImprint',fldpNCCXTgHyDhvak:'Imprint.inks (copied from the repeat)'}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k);
 window.LF=L;
-function render(){ renderQuote(); renderOrder(); renderImps(); renderLines(); renderSum(); }
+function render(){ renderQuote(); renderOrder(); renderPast(); renderImps(); renderLines(); renderSum(); }
 render(); matchGarments();
 </script>
 </body>
