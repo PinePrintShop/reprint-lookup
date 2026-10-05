@@ -43,61 +43,67 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-
 .pc .st{margin-left:auto;font:700 9px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:3px;background:var(--bg);color:var(--muted);white-space:nowrap}
 .pc .st.dmg{background:var(--red-bg);color:var(--red)}
 .pc .st.ok{background:var(--green-lt);color:var(--green)}
-/* pile */
+/* pile — ONE VERTICAL LANE: sizes → reasons → locations → Done (finger only moves down) */
 .pile{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border-dk);border-radius:10px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.ph{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);align-items:flex-start}
-.ph .proof{width:84px;height:84px;border-radius:6px;background:#ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#777;cursor:pointer}
+.ph{display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);align-items:center;flex-shrink:0}
+.ph .proof{width:52px;height:52px;border-radius:6px;background:#ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#777;cursor:pointer}
 .ph .info{flex:1;min-width:0}
-.ph .ord{font:700 11px var(--cond);letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
-.ph .ttl{font:700 21px/1.1 var(--cond);text-transform:uppercase;margin:3px 0}
-.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.ph .ord{font:700 10px var(--cond);letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.ph .ttl{font:700 18px/1.1 var(--cond);text-transform:uppercase;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0;justify-content:flex-end}
 .chip{font:700 10px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:3px;border:1px solid var(--border);color:var(--muted);background:var(--surface)}
 .chip.k{background:var(--ink);color:var(--yellow);border-color:var(--ink)}
 .chip.ship{background:#fff3e0;color:#9a5a00;border-color:#f3d19c}
 .chip.pick{background:var(--green-lt);color:var(--green);border-color:#b8dfcc}
-.locs{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
-.locs .lh{font:700 9px var(--cond);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
-.loc{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;border-radius:16px;border:1px solid var(--border-dk);background:var(--surface);color:var(--muted);min-width:110px;text-align:left}
-.loc.on{background:var(--green-lt);color:var(--green);border-color:#b8dfcc}
-.pb{flex:1;min-height:0;overflow-y:auto;padding:12px 14px}
-.lbl{font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
-.sizes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.sz{min-width:66px;padding:9px 10px;border-radius:8px;border:2px solid var(--border-dk);background:var(--surface);text-align:center}
-.sz b{display:block;font:700 19px var(--cond)}
+.pb{flex:1;min-height:0;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.lbl{font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px;display:flex;justify-content:space-between}
+.sizes{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px}
+.sz{min-height:66px;padding:6px 8px;border-radius:9px;border:2px solid var(--border-dk);background:var(--surface);text-align:center}
+.sz b{display:block;font:700 20px var(--cond)}
 .sz span{font:400 11px var(--cond);color:var(--muted)}
 .sz span i{font-style:normal;color:var(--green);font-weight:700}
 .sz.on{background:var(--ink);border-color:var(--ink);color:var(--yellow)}
 .sz.on span{color:#ccc}
-.sz .dm{display:block;font:700 10px var(--cond);color:var(--red);margin-top:2px}
+.sz .dm{display:block;font:700 10px var(--cond);color:var(--red);margin-top:1px}
 .sz.on .dm{color:#ff8c7a}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.rb{position:relative;text-align:left;padding:10px 12px;border-radius:9px;border:2px solid var(--red-bd);background:var(--surface);min-height:62px}
-.rb .n{font:700 13px var(--cond);letter-spacing:.04em;text-transform:uppercase;color:var(--red)}
-.rb .c{font:700 22px var(--cond);color:#efc2bd;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+/* reasons stretch to fill the lane: bigger targets, no dead gap above Locations/Done */
+.rz{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.rz>div{flex:1;min-height:0;display:flex;flex-direction:column}
+.rz .grid{flex:1;grid-auto-rows:minmax(70px,1fr);max-height:250px}
+.rb{position:relative;text-align:left;padding:9px 10px;border-radius:9px;border:2px solid var(--red-bd);background:var(--surface);min-height:70px}
+.rb .n{font:700 13px/1.1 var(--cond);letter-spacing:.03em;text-transform:uppercase;color:var(--red)}
+.rb .c{font:700 26px var(--cond);color:#efc2bd;margin-top:3px}
 .rb.has{background:var(--red);border-color:var(--red)}
-.rb.has .n,.rb.has .c{color:#fff}
-.rb.o{border-color:var(--amb-bd)}
-.rb.o .n{color:var(--amb)}.rb.o .c{color:#f1dca5}
+.rb.o{border-color:var(--amb-bd)}.rb.o .n{color:var(--amb)}.rb.o .c{color:#f1dca5}
 .rb.o.has{background:var(--amb);border-color:var(--amb)}
-.rb.u{border-color:var(--border-dk)}
-.rb.u .n{color:#555}.rb.u .c{color:#ccc}
+.rb.u{border-color:var(--border-dk)}.rb.u .n{color:#555}.rb.u .c{color:#ccc}
 .rb.u.has{background:#555;border-color:#555}
+.rb.undo{border:2px dashed var(--border-dk);background:var(--bg)}.rb.undo .n{color:var(--muted)}
 .rb.has .n,.rb.has .c{color:#fff!important}
-.rb .sub{display:block;font:400 10px var(--cond);color:var(--muted);margin-top:2px;text-transform:none;letter-spacing:0}
+.rb .sub{display:block;font:400 9px/1.2 var(--cond);color:var(--muted);margin-top:2px;text-transform:none;letter-spacing:0}
 .rb.has .sub{color:#eee}
-.minus{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--red);font:700 20px/30px var(--cond);text-align:center;border:none}
+.minus{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:#fff;color:var(--red);font:700 19px/28px var(--cond);text-align:center;border:none}
 .rb.o .minus{color:var(--amb)}.rb.u .minus{color:#555}
-.pick{padding:30px 10px;text-align:center;color:var(--muted);font:700 12px var(--cond);letter-spacing:.08em;text-transform:uppercase;border:2px dashed var(--border-dk);border-radius:9px;margin-bottom:12px}
-/* footer */
-.pf{border-top:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:12px;background:#fafaf7;flex-shrink:0}
-.sum{flex:1;min-width:0}
-.sum .l1{font:700 14px var(--cond)}
-.sum .l1 .bad{color:var(--red)}.sum .l1 .ok{color:var(--green)}
-.sum .l2{font:400 12px/1.35 var(--cond);color:var(--muted);margin-top:2px}
-.sum .l2 b{color:var(--text)}
-.rev{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:12px 12px;border-radius:8px;border:1px solid var(--border-dk);background:var(--surface);white-space:nowrap}
-.done{font:700 15px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:16px 22px;border-radius:9px;border:none;background:var(--ink);color:var(--yellow);white-space:nowrap}
+.grp{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.grp span:first-child{grid-column:span 6}
+.grp2{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.grp2 .a{grid-column:span 4}.grp2 .b{grid-column:span 1}.grp2 .c{grid-column:span 1}
+.hint{padding:8px 10px;text-align:center;color:var(--muted);font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;border:2px dashed var(--border-dk);border-radius:9px}
+/* bottom of the lane: locations then Done, full width */
+.lane-end{border-top:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:#fafaf7;flex-shrink:0}
+.locs{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.loc{font:700 13px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:13px 10px;border-radius:9px;border:2px solid var(--border-dk);background:var(--surface);color:var(--muted)}
+.loc.on{background:var(--green-lt);color:var(--green);border-color:#7cc3a0}
+.endrow{display:flex;gap:8px;align-items:stretch}
+.rev{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:0 14px;border-radius:9px;border:1px solid var(--border-dk);background:var(--surface);white-space:nowrap}
+.done{flex:1;font:700 16px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:14px 18px;border-radius:10px;border:none;background:var(--ink);color:var(--yellow);text-align:center}
+.done small{display:block;font:700 11px var(--cond);letter-spacing:.04em;text-transform:none;color:#cfcfc8;margin-top:3px}
+.done small .bad{color:#ff8c7a}
 .undo{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:12px;border-radius:8px;border:1px dashed var(--border-dk);background:transparent;color:var(--muted)}
+/* pile list on the RIGHT (like Operator); ⇄ flips it for a left-hand setup */
+.main{flex-direction:row-reverse}
+body.flip .main{flex-direction:row}
 /* review drawer */
 .drawer{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 .drawer.on{display:flex}
@@ -135,7 +141,15 @@ td.r{color:var(--red);font-weight:700}td.g{color:var(--green);font-weight:700}
   .rail{width:auto;max-height:200px}
   .rail-l{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;align-items:flex-start}
   .og{min-width:260px}
-  .grid{grid-template-columns:repeat(3,1fr)}
+  .main,body.flip .main{flex-direction:column}
+  /* portrait: the work lane stays compact at the BOTTOM (thumb zone); the pile list takes the spare room on top */
+  .rail{max-height:none;flex:1;min-height:150px}
+  .rail-l{display:block;overflow-y:auto}
+  .og{min-width:0}
+  .pile{flex:none}
+  .pb{flex:none;overflow:visible}
+  .rz,.rz>div{flex:none}
+  .rz .grid{max-height:none;grid-auto-rows:92px}
 }
 /* phone: one column, piles behind a button */
 @media(max-width:640px){
@@ -146,10 +160,11 @@ td.r{color:var(--red);font-weight:700}td.g{color:var(--green);font-weight:700}
   .piles-btn{display:inline-block}
   .ph{flex-wrap:wrap}.locs{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%}
   .loc{min-width:0}
-  .grid{grid-template-columns:repeat(2,1fr)}
-  .pf{position:sticky;bottom:0;flex-wrap:wrap}
-  .pf .sum{flex-basis:100%}
-  .pf .done{flex:1}
+  .main,body.flip .main{flex-direction:column}
+  .grid,.grp,.grp2{grid-template-columns:repeat(3,1fr)}
+  .grp span:first-child,.grp2 .a{grid-column:span 3}.grp2 .b,.grp2 .c{display:none}
+  .lane-end{position:sticky;bottom:0;box-shadow:0 -4px 12px rgba(0,0,0,.08)}
+  .rz,.rz>div,.rz .grid{flex:none;max-height:none}
 }
 </style>
 </head>
@@ -196,7 +211,7 @@ function render(){
   PRESSES.forEach(function(pr){var n=0;DATA.forEach(function(o){if(o.press===pr.id)o.piles.forEach(function(p){if(!ps(p.id).done)n++})});
     h+='<button class="tab'+(S.press===pr.id?' on':'')+'" onclick="setPress(\''+pr.id+'\')">'+pr.l+'<span class="ct">'+n+'</span></button>'});
   h+='<button class="tab piles-btn" onclick="document.getElementById(\'rail\').classList.toggle(\'open\')">☰ Piles</button>';
-  h+='<span class="sp"></span><span class="ipad">This iPad remembers its press</span>';
+  h+='<span class="sp"></span><span class="ipad">This iPad remembers its press</span><button class="tab" onclick="flipSide()" title="Pile list left or right">⇄ Side</button>';
   hd.innerHTML=h;
   // rail
   var r='<div class="rail-h"><span>Piles</span><span style="color:var(--muted)">'+(PRESSES.find(function(x){return x.id===S.press}).l)+'</span></div><div class="rail-l">';
@@ -220,40 +235,46 @@ function render(){
   var q=0;for(var k in p.sizes)q+=p.sizes[k];
   var x2=0;for(var k2 in p.extras)x2+=p.extras[k2];
   var s='<div class="ph"><div class="proof" onclick="alert(\'Opens the full proof (same viewer as today)\')">PROOF</div><div class="info">';
-  s+='<div class="ord">Order '+o.order+' · '+o.cust+'</div><div class="ttl">'+p.name+' — '+p.color+'</div>';
+  s+='<div class="ord">Order '+o.order+' · '+o.cust+'</div><div class="ttl">'+p.name+' — '+p.color+'</div></div>';
   s+='<div class="chips"><span class="chip k">'+q+' pcs</span>'+(x2?'<span class="chip k">+'+x2+' extras</span>':'')+'<span class="chip '+(o.ship==='Pick-Up'?'pick':'ship')+'">'+(o.ship==='Pick-Up'?'🤝 ':'📦 ')+o.ship+'</span>'+(st.done?'<span class="chip" style="color:var(--green);border-color:#b8dfcc">✓ Done</span>':'')+'</div></div>';
-  if(p.locs.length>1){s+='<div class="locs"><span class="lh">Checked · '+Object.keys(st.locs).filter(function(k){return st.locs[k]}).length+'/'+p.locs.length+'</span>';
-    p.locs.forEach(function(l){s+='<button class="loc'+(st.locs[l]?' on':'')+'" onclick="togLoc(\''+l+'\')">'+(st.locs[l]?'✓ ':'○ ')+l+'</button>'});s+='</div>'}
-  s+='</div><div class="pb">';
-  s+='<div class="lbl">Size</div><div class="sizes">';
+  s+='<div class="pb">';
+  // 1 — sizes (top of the lane)
+  s+='<div><div class="lbl"><span>1 · Size</span><span>'+(t.all?t.all+' damaged so far':'tap a size when you find a bad one')+'</span></div><div class="sizes">';
   sizesOf(p).forEach(function(sz){var d=dmgFor(st,sz),e=(p.extras||{})[sz]||0;
     s+='<button class="sz'+(st.size===sz?' on':'')+'" onclick="pickSize(\''+sz+'\')"><b>'+sz+'</b><span>'+p.sizes[sz]+(e?' <i>+'+e+'</i>':'')+'</span>'+(d?'<span class="dm">'+d+' dmg</span>':'')+'</button>'});
-  s+='</div>';
-  if(!st.size&&sizesOf(p).length>1){s+='<div class="pick">Pile looks clean? Tap <b>Done with pile</b>.<br>Found a bad one? Tap its size first.</div>'}
+  s+='</div></div>';
+  // 2 — reasons, directly under the sizes
   var sz=st.size||(sizesOf(p).length===1?sizesOf(p)[0]:null);
   if(sz){var d=st.dmg[sz]||{};
-    s+='<div class="lbl">Print team · '+sz+'</div><div class="grid">';PRINT.forEach(function(r){s+=rb(r,d[r]||0,'')});s+='</div>';
-    s+='<div class="lbl">Other · '+sz+'</div><div class="grid">';OTHER.forEach(function(r){s+=rb(r,d[r]||0,'o')});s+='</div>';
-    s+='<div class="lbl">Not sure</div><div class="grid">'+rb('Unsure',d['Unsure']||0,'u','Production manager decides in Damage Log')+'</div>'}
+    s+='<div class="rz"><div><div class="grp"><span>2 · Print team · '+sz+'</span></div><div class="grid">';PRINT.forEach(function(r){s+=rb(r,d[r]||0,'')});s+='</div></div>';
+    s+='<div><div class="grp2"><span class="a">Other · '+sz+'</span><span class="b">Not sure</span><span class="c"></span></div><div class="grid">';OTHER.forEach(function(r){s+=rb(r,d[r]||0,'o')});
+    s+=rb('Unsure',d['Unsure']||0,'u','PM decides');
+    s+='<button class="rb undo" onclick="undoTap()"><div class="n">↩ Undo</div><span class="sub">last tap</span></button></div></div></div>'}
+  else s+='<div class="hint">Clean pile? Just tap Done below. Found a bad one? Tap its size above.</div>';
   s+='</div>';
-  // footer
+  // 3 + 4 — locations, then Done, full width at the bottom of the same lane
   var caught=q-t.all;
-  s+='<div class="pf"><div class="sum"><div class="l1">'+(t.all?'<span class="bad">'+t.all+' damaged</span> · ':'<span class="ok">Clean pile</span> · ')+caught+' of '+q+' caught</div>';
-  var l2=[];if(t.pr)l2.push(t.pr+' print');if(t.ot)l2.push(t.ot+' other');if(t.un)l2.push(t.un+' unsure → PM');
-  if(x2)l2.push('Extras: <b>'+x.cover+'</b> replace damage · <b>'+x.bonus+'</b> bonus in box'+(x.keep?' · '+x.keep+' kept':''));
-  s+='<div class="l2">'+(l2.join(' · ')||'No damage logged')+'</div></div>';
-  s+='<button class="rev" onclick="openReview()">Review</button>';
-  s+=st.done?'<button class="done" onclick="reopen()">↺ Reopen</button>':'<button class="done" onclick="donePile()">✓ Done with pile</button>';
-  s+='</div>';
+  s+='<div class="lane-end">';
+  if(p.locs.length>1){s+='<div class="lbl" style="margin:0"><span>3 · Checked locations</span><span>'+Object.keys(st.locs).filter(function(k){return st.locs[k]}).length+'/'+p.locs.length+' · tracking only</span></div><div class="locs">';
+    p.locs.forEach(function(l){s+='<button class="loc'+(st.locs[l]?' on':'')+'" onclick="togLoc(\''+l+'\')">'+(st.locs[l]?'✓ ':'○ ')+l+'</button>'});s+='</div>'}
+  var l2=[];if(t.pr)l2.push(t.pr+' print');if(t.ot)l2.push(t.ot+' other');if(t.un)l2.push(t.un+' unsure→PM');
+  if(x2)l2.push(x.cover+' extras replace dmg · '+x.bonus+' bonus in box');
+  s+='<div class="endrow"><button class="rev" onclick="openReview()">Review</button>';
+  s+=st.done?'<button class="done" onclick="reopen()">↺ Reopen pile</button>'
+    :'<button class="done" onclick="donePile()">✓ Done with pile<small>'+(t.all?'<span class="bad">'+t.all+' damaged</span> · ':'Clean · ')+caught+'/'+q+' caught'+(l2.length?' · '+l2.join(' · '):'')+'</small></button>';
+  s+='</div></div>';
   el.innerHTML=s;save();
 }
 function rb(r,c,cls,sub){return '<button class="rb '+cls+(c?' has':'')+'" onclick="tap(\''+r+'\',1)"><div class="n">'+r+'</div><div class="c">'+c+'</div>'+(sub?'<span class="sub">'+sub+'</span>':'')+(c?'<span class="minus" onclick="event.stopPropagation();tap(\''+r+'\',-1)">−</span>':'')+'</button>'}
+function flipSide(){S.flip=!S.flip;document.body.classList.toggle('flip',!!S.flip);save()}
+var _hist=[];
+function undoTap(){var h=_hist.pop();if(!h)return;var st=ps(h.id);st.dmg[h.sz][h.r]=Math.max(0,(st.dmg[h.sz][h.r]||0)-h.n);S.active=h.id;st.size=h.sz;render()}
 function setPress(id){S.press=id;S.active=null;render()}
 function openPile(id){S.active=id;document.getElementById('rail').classList.remove('open');render()}
 function pickSize(sz){ps(S.active).size=sz;render()}
 function togLoc(l){var st=ps(S.active);st.locs[l]=!st.locs[l];render()}
 function tap(r,n){var f=findPile(S.active),st=ps(S.active),sz=st.size||(sizesOf(f.p).length===1?sizesOf(f.p)[0]:null);if(!sz)return;
-  st.dmg[sz]=st.dmg[sz]||{};st.dmg[sz][r]=Math.max(0,(st.dmg[sz][r]||0)+n);render()}
+  st.dmg[sz]=st.dmg[sz]||{};var before=st.dmg[sz][r]||0;st.dmg[sz][r]=Math.max(0,before+n);if(st.dmg[sz][r]!==before)_hist.push({id:S.active,sz:sz,r:r,n:st.dmg[sz][r]-before});render()}
 function openReview(){var f=findPile(S.active),p=f.p,st=ps(p.id);
   var h='<h3>'+p.color+' — review</h3><table><tr><th>Size</th><th>Ordered</th><th>Damaged</th><th>Caught</th><th>Extras</th></tr>';
   sizesOf(p).forEach(function(sz){var d=dmgFor(st,sz),e=(p.extras||{})[sz]||0;h+='<tr><td>'+sz+'</td><td>'+p.sizes[sz]+'</td><td class="'+(d?'r':'')+'">'+(d||'—')+'</td><td>'+(p.sizes[sz]-d)+'</td><td class="'+(e?'g':'')+'">'+(e||'—')+'</td></tr>'});
@@ -286,6 +307,7 @@ function closeOrderDone(){document.getElementById('oc').classList.remove('on');S
 function toast(m){var t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on')},6000)}
 function undoDone(){if(!S.last)return;ps(S.last).done=false;S.active=S.last;S.last=null;document.getElementById('toast').classList.remove('on');render()}
 function reopen(){ps(S.active).done=false;render()}
+document.body.classList.toggle('flip',!!S.flip);
 render();
 </script>
 </body>
