@@ -18,3 +18,20 @@ Normal quotes come out the same as v92; only the broken cases changed.
 - **Decopress grids:** vendor pricing, left as is (10/5). Two cells look odd if anyone checks the Decopress sheet:
   - Reflective 100–199 @ 1.5×1.5 is $2.64 (Metallic is $1.64).
   - Metallic and Reflective 5000+ rows cost more than the 2500–4999 rows.
+
+## Mockup — flow and layout (Oct 5) · `price-o-matic-mockup.html`
+Built on the real v93 rates and apparel math (copied in unchanged; same quote gives the same price, $12.25 @ 144). The garment search is mocked (3001 / 5000 / PC54). Apparel only.
+- **Order of steps:**
+  1. **Garment:** search first; the result shows name, vendor, sale end and 2XL/3XL upcharges, and fills the cost, which stays editable.
+  2. **Quantity:** one big box; "Min 55 pcs" on one line.
+  3. **Prints.**
+- **Add-ons** (Fleece, Shipping, AS Colour < $500) replace "Delivery options".
+- **Each print has a location** (Front / Back / L chest / R chest / Sleeve / Neck / Other). The card is titled "Front 3C".
+- **Compact print card:** underbase is a No/Yes toggle, ink changes is a − / + stepper, and print type is a Tee / Fleece / Combo toggle. About half the old height.
+- **Right column always visible:** price per piece (type over it to adjust), price breaks (tap a qty to switch to it, add another qty), one **Add to quote** button, and the quote below it.
+- **Quote lines are short:** "Front 3c · Back 1c · S&S $3.29" plus the size upcharges. One **Quote PDF** button for the whole quote.
+- **Not offered:** a red-amber note on the card and in the price panel, and Add is off.
+- **Phone:**
+  - Quick quote ▾ menu instead of five buttons.
+  - A sticky bottom bar with the price and **+ Add**.
+  - Search, vendor and Find wrap onto two rows.
