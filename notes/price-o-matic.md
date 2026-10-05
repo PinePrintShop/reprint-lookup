@@ -75,3 +75,36 @@ Stephen on v2: "a little too compressed", the desktop screen is mostly empty, an
   - Ink changes / fleece / mixed run are behind one link (90% of jobs have no ink changes).
 - **Add a print:** dashed buttons + Back / + Left chest / + Left sleeve / + Size tag / + Other.
 - The right rail stays put while scrolling: big price (type to adjust), four breaks you can tap, Add to quote, then the quote and one PDF button.
+
+## v94 — the v3 layout on the real app (Oct 5)
+Built from v93; all of v93's logic is kept: vendor lookup and banner, minimum auto-bump and Override, price override, cart (saved locally), proposal PDF, and the bandana, import bandana, flatstock and patch tabs. Element IDs and `data-*` attributes are unchanged, so the existing listeners still drive it. The look comes from one v94 style block added after the v93 CSS.
+- **Top bar:** brand · product tabs (selected = yellow) · **Start from ▾** (presets) · **New quote**.
+  - Presets now match the common 2026 jobs: tee front 1c / 2c, front + back, **left chest + back (new)**, **embroidered cap (new)**, hoodie 3c, hem label.
+- **Two columns:** the builder on the left; on the right a column that stays put while scrolling, holding the price card (big editable price, **Add to quote**), price breaks, then the quote with **Quote PDF**. The PDF button on the price card is gone; the PDF comes from the quote, which v93 already required.
+- **1 Garment:**
+  - Find (search + vendor + Find) with a light vendor banner. The old one was a black block.
+  - Garment cost, then **Recent** garments as buttons. The last 6 found on this computer re-run the lookup instantly from cache.
+  - Add-ons as buttons.
+- **2 Quantity:** quick buttons **24 / 36 / 48 / 72 / 100 / 144 / 250** plus "other".
+  - Buttons below the minimum are struck through.
+  - The minimum note and Override sit under them.
+  - The v93 bump still applies: e.g. 2 colors + Underbase → qty goes to 45.
+- **3 Prints:** each print is a panel titled by location ("Front · 3 colors incl. underbase") with its price per piece.
+  - **Where:** Front / Back / Left chest / Left sleeve / Size tag + More… (Right chest, Right sleeve, Pocket, Back neck, Hood, Other). Size tag switches the method to Tag.
+  - **How:** Screen print / Embroidery / Supacolor / Decopress / Tag. The buttons select; they no longer toggle off.
+  - **Screen:** Colors 1–6 + 7+… and a **+ Underbase** toggle. Ink changes, printed on (Tees / Fleece / Mixed run) and fleece pcs are under one "extras" link, which opens on its own if any of them are set.
+  - **Embroidery:** stitch bands as buttons, plus patch / woven / hem label application.
+  - **Supa:** common recipes and sizes as buttons, the full lists in a dropdown, and per-sheet buttons.
+  - **Deco:** material, size and applied-by buttons.
+  - **Add a print:** + Back / + Left chest / + Left sleeve / + Size tag / + Other. A new print uses the same method as the first one.
+- **Quote and PDF text** now lead with the location: "Front · Screen Print: 2 screens + underbase · Tees / Totes" (was "Imp 1 - Imprint Type (Screen Print): …").
+- Other tabs use the same buttons and panels.
+- Price breaks titles are short ("Price breaks · tap a quantity to change it", "Bandana price tiers").
+- **Tests (mock vendor):**
+  - The same quote gives the same price as v93 ($12.25).
+  - The min bump: 2c + UB → 45, with 24 and 36 struck through.
+  - All presets and all five tabs work; Start from is hidden off Apparel.
+  - The not-offered case blocks Add.
+  - The cart and recent garments survive a reload.
+  - No page errors at 1990 / 1440 / phone widths and no sideways scroll.
+- Not testable here: the PDF itself (jsPDF loads from cdnjs, which this environment blocks).
