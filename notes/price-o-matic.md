@@ -167,3 +167,15 @@ The goal: replace the Airtable **Imprint Creator** and **Line Item Creator** int
 - v95 adds **Create order → (preview)** at the bottom of the quote, above Quote PDF, which is now a white secondary button. It saves the quote and opens `pom-create-order-live.html`, which reads it.
 - The Create order page's "Back to quote" now points at v95.
 - Otherwise identical to v94.
+
+## Create order — mockup v3: Awaiting Proof only, past orders, repeat art (Oct 5) · `pom-create-order-live.html`
+Stephen: "focus on the awaiting proof ones", add a past-print section with small mockups to find a client's old orders quickly, and let **Repeat** search the client's past Imprint IDs and attach one.
+- **Order:** only the customer's **Awaiting Proof** orders are listed. With none, it says so and asks whether the Pipedrive deal has been moved to approved customer.
+- **Past orders panel** (between Order and Imprints):
+  - Up to 40 of the client's past orders (not Awaiting Proof, not Cancelled / Voided), newest first, as cards with the order's proof thumbnails (`Proof Image Lookup`), date, line count and prints ("Front 3c · Back 1c").
+  - One search box: order #, location, ink, nickname, date.
+  - Click a card to see its imprints (proof, ID, location, type, screens, inks) and line items (qty × price).
+  - **Copy into this order** adds its line items as new lines (same garment, sizes, price) and its imprints as **repeats** of the old ones, linked to the right lines.
+- **Repeat art… on each imprint:** opens a search of the client's past imprints (up to 80, via `Customer Name Search`) with proof thumbnails. Picking one fills location, type, screens and nickname, and shows "Repeat of 10612-A" with its proof. The preview adds **Previous Imprint** and copies its **Inks**.
+- **Layout:** the summary rail stacks under the page below 900px wide; labels sit above buttons on phones.
+- Still read-only: tested with mocked Airtable, 0 writes. This file stays the one mockup page (v95's Create order button links to it); the real build will get its own versioned file.
