@@ -226,15 +226,15 @@ function render(){
   PRESSES.forEach(function(pr){var n=0;DATA.forEach(function(o){if(o.press===pr.id)o.piles.forEach(function(p){if(!ps(p.id).done)n++})});
     h+='<button class="tab'+(S.press===pr.id?' on':'')+'" onclick="setPress(\''+pr.id+'\')">'+pr.l+'<span class="ct">'+n+'</span></button>'});
   h+='<button class="tab piles-btn" onclick="document.getElementById(\'rail\').classList.toggle(\'open\')">☰ Piles</button>';
-  h+='<span class="sp"></span><span class="ipad">This iPad remembers its press</span><button class="tab" onclick="flipSide()" title="Pile list left or right">⇄ Side</button>';
+  h+='<span class="sp"></span><button class="tab" onclick="flipSide()" title="Pile list left or right">⇄ Side</button>';
   hd.innerHTML=h;
   // rail
-  var r='<div class="rail-h"><span>Piles</span><span style="color:var(--muted)">'+(PRESSES.find(function(x){return x.id===S.press}).l)+'</span></div><div class="rail-l">';
+  var r='<div class="rail-h"><span>Piles</span></div><div class="rail-l">';
   var list=pileList();
   if(!list.length)r+='<div style="padding:20px;text-align:center;color:var(--muted);font:700 11px var(--cond);text-transform:uppercase">Nothing on this press</div>';
   list.forEach(function(o){
     var done=o.piles.filter(function(p){return ps(p.id).done}).length;
-    r+='<div class="og"><div class="og-h"><span class="num">'+o.order+'</span><span class="cust">'+o.cust+'</span><span class="prog'+(done===o.piles.length?' done':'')+'">'+done+'/'+o.piles.length+' piles</span></div>';
+    r+='<div class="og"><div class="og-h"><span class="num">'+o.order+'</span><span class="cust">'+o.cust+'</span><span class="prog'+(done===o.piles.length?' done':'')+'">'+done+'/'+o.piles.length+'</span></div>';
     o.piles.forEach(function(p){var st=ps(p.id),t=totals(p,st),q=0;for(var k in p.sizes)q+=p.sizes[k];
       var cls='pc'+(S.active===p.id?' on':'')+(st.done?' done':'');
       var tag=st.done?'<span class="st ok">✓ Done</span>':(t.all?'<span class="st dmg">'+t.all+' dmg</span>':'');
@@ -252,34 +252,34 @@ function render(){
   var pg=(S.page&&S.page[p.id])||0, pages=p.locs.length;
   var s='<div class="ph"><div class="info">';
   s+='<div class="ord">Order '+o.order+' · '+o.cust+'</div><div class="ttl">'+p.name+' — '+p.color+'</div></div>';
-  s+='<div class="chips"><span class="chip k">'+q+' pcs</span>'+(x2?'<span class="chip k">+'+x2+' extras</span>':'')+'<span class="chip '+(o.ship==='Pick-Up'?'pick':'ship')+'">'+(o.ship==='Pick-Up'?'🤝 ':'📦 ')+o.ship+'</span>'+(st.done?'<span class="chip" style="color:var(--green);border-color:#b8dfcc">✓ Done</span>':'')+'</div></div>';
+  s+='<div class="chips"><span class="chip '+(o.ship==='Pick-Up'?'pick':'ship')+'">'+(o.ship==='Pick-Up'?'🤝 ':'📦 ')+o.ship+'</span>'+(st.done?'<span class="chip" style="color:var(--green);border-color:#b8dfcc">✓ Done</span>':'')+'</div></div>';
   s+='<div class="wk"><div class="bigproof"><div class="img" onclick="zoomProof()">'+proofSvg(p,pg)+'</div>';
-  s+='<div class="pnav">'+(pages>1?'<button onclick="pageProof(-1)">‹</button>':'')+'<span>'+p.locs[pg]+(pages>1?' · '+(pg+1)+'/'+pages:'')+' · tap to zoom</span>'+(pages>1?'<button onclick="pageProof(1)">›</button>':'')+'</div></div>';
+  s+='<div class="pnav">'+(pages>1?'<button onclick="pageProof(-1)">‹</button>':'')+'<span>'+p.locs[pg]+(pages>1?' · '+(pg+1)+'/'+pages:'')+' 🔍</span>'+(pages>1?'<button onclick="pageProof(1)">›</button>':'')+'</div></div>';
   s+='<div class="lane"><div class="pb">';
   // 1 — sizes (top of the lane)
-  s+='<div><div class="lbl"><span>1 · Size</span><span>'+(t.all?t.all+' damaged so far':'tap a size when you find a bad one')+'</span></div><div class="sizes">';
+  s+='<div><div class="lbl"><span>Size</span></div><div class="sizes">';
   sizesOf(p).forEach(function(sz){var d=dmgFor(st,sz),e=(p.extras||{})[sz]||0;
     s+='<button class="sz'+(st.size===sz?' on':'')+'" onclick="pickSize(\''+sz+'\')"><b>'+sz+'</b><span>'+p.sizes[sz]+(e?' <i>+'+e+'</i>':'')+'</span>'+(d?'<span class="dm">'+d+' dmg</span>':'')+'</button>'});
   s+='</div></div>';
   // 2 — reasons, directly under the sizes
   var sz=st.size||(sizesOf(p).length===1?sizesOf(p)[0]:null);
   if(sz){var d=st.dmg[sz]||{};
-    s+='<div class="rz"><div><div class="grp"><span>2 · Print team · '+sz+'</span></div><div class="grid">';PRINT.forEach(function(r){s+=rb(r,d[r]||0,'')});s+='</div></div>';
-    s+='<div><div class="grp2"><span class="a">Other · '+sz+'</span><span class="b">Not sure</span><span class="c"></span></div><div class="grid">';OTHER.forEach(function(r){s+=rb(r,d[r]||0,'o')});
-    s+=rb('Unsure',d['Unsure']||0,'u','PM decides');
-    s+='<button class="rb undo" onclick="undoTap()"><div class="n">↩ Undo</div><span class="sub">last tap</span></button></div></div></div>'}
-  else s+='<div class="hint">Clean pile? Just tap Done below. Found a bad one? Tap its size above.</div>';
+    s+='<div class="rz"><div><div class="grp"><span>Print team</span></div><div class="grid">';PRINT.forEach(function(r){s+=rb(r,d[r]||0,'')});s+='</div></div>';
+    s+='<div><div class="grp2"><span class="a">Other</span><span class="b"></span><span class="c"></span></div><div class="grid">';OTHER.forEach(function(r){s+=rb(r,d[r]||0,'o')});
+    s+=rb('Unsure',d['Unsure']||0,'u');
+    s+='<button class="rb undo" onclick="undoTap()"><div class="n">↩ Undo</div></button></div></div></div>'}
+  else s+='<div class="hint">Tap a size to log damage</div>';
   s+='</div>';
   // 3 + 4 — locations, then Done, full width at the bottom of the same lane
   var caught=q-t.all;
   s+='<div class="lane-end">';
-  if(p.locs.length>1){s+='<div class="lbl" style="margin:0"><span>3 · Checked locations</span><span>'+Object.keys(st.locs).filter(function(k){return st.locs[k]}).length+'/'+p.locs.length+' · tracking only</span></div><div class="locs">';
+  if(p.locs.length>1){s+='<div class="lbl" style="margin:0"><span>Checked</span></div><div class="locs">';
     p.locs.forEach(function(l){s+='<button class="loc'+(st.locs[l]?' on':'')+'" onclick="togLoc(\''+l+'\')">'+(st.locs[l]?'✓ ':'○ ')+l+'</button>'});s+='</div>'}
   var l2=[];if(t.pr)l2.push(t.pr+' print');if(t.ot)l2.push(t.ot+' other');if(t.un)l2.push(t.un+' unsure→PM');
   if(x2)l2.push(x.cover+' extras replace dmg · '+x.bonus+' bonus in box');
   s+='<div class="endrow"><button class="rev" onclick="openReview()">Review</button>';
   s+=st.done?'<button class="done" onclick="reopen()">↺ Reopen pile</button>'
-    :'<button class="done" onclick="donePile()">✓ Done with pile<small>'+(t.all?'<span class="bad">'+t.all+' damaged</span> · ':'Clean · ')+caught+'/'+q+' caught'+(l2.length?' · '+l2.join(' · '):'')+'</small></button>';
+    :'<button class="done" onclick="donePile()">✓ Done with pile<small>'+caught+'/'+q+' caught'+(t.all?' · <span class="bad">'+t.all+' damaged</span>':'')+(x.bonus?' · '+x.bonus+' bonus extra'+(x.bonus>1?'s':''):'')+'</small></button>';
   s+='</div></div></div></div>';
   el.innerHTML=s;save();
 }
@@ -287,12 +287,12 @@ function rb(r,c,cls,sub){return '<button class="rb '+cls+(c?' has':'')+'" onclic
 var SHIRT={Black:'#1b1b1b','Heather Navy':'#3b4a66',Natural:'#efe7d6',Red:'#c62828'};
 function proofSvg(p,pg){
   var c=SHIRT[p.color]||'#999',ink=(p.color==='Natural'?'#1b1b1b':'#E8E832'),loc=p.locs[pg]||'Front';
-  if(loc==='Bandana')return '<svg viewBox="0 0 400 400"><rect x="40" y="40" width="320" height="320" fill="'+c+'" rx="6"/><rect x="60" y="60" width="280" height="280" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="14 10"/><circle cx="200" cy="200" r="70" fill="none" stroke="#fff" stroke-width="10"/><text x="200" y="214" font-family="Helvetica" font-weight="700" font-size="40" fill="#fff" text-anchor="middle">CO C</text><text x="200" y="385" font-family="Helvetica" font-size="13" fill="#777" text-anchor="middle">SAMPLE PROOF · BANDANA</text></svg>';
+  if(loc==='Bandana')return '<svg viewBox="0 0 400 400"><rect x="40" y="40" width="320" height="320" fill="'+c+'" rx="6"/><rect x="60" y="60" width="280" height="280" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="14 10"/><circle cx="200" cy="200" r="70" fill="none" stroke="#fff" stroke-width="10"/><text x="200" y="214" font-family="Helvetica" font-weight="700" font-size="40" fill="#fff" text-anchor="middle">CO C</text><text x="200" y="385" font-family="Helvetica" font-size="13" fill="#777" text-anchor="middle">SAMPLE PROOF</text></svg>';
   var art=loc==='Front'?'<text x="200" y="170" font-family="Helvetica" font-weight="700" font-size="30" fill="'+ink+'" text-anchor="middle">SAMPLE CO</text><rect x="150" y="185" width="100" height="6" fill="'+ink+'"/>'
     :loc==='Back'?'<circle cx="200" cy="200" r="62" fill="none" stroke="'+ink+'" stroke-width="7"/><text x="200" y="212" font-family="Helvetica" font-weight="700" font-size="30" fill="'+ink+'" text-anchor="middle">2026</text>'
     :'<text x="318" y="128" font-family="Helvetica" font-weight="700" font-size="16" fill="'+ink+'" text-anchor="middle" transform="rotate(-28 318 128)">CO</text>';
   return '<svg viewBox="0 0 400 420"><path d="M120 40 L160 25 Q200 55 240 25 L280 40 L360 95 L330 150 L295 130 L295 380 L105 380 L105 130 L70 150 L40 95 Z" fill="'+c+'" stroke="#0003" stroke-width="2"/>'+art
-    +'<text x="200" y="408" font-family="Helvetica" font-size="13" fill="#777" text-anchor="middle">SAMPLE PROOF · '+loc.toUpperCase()+'</text></svg>';
+    +'<text x="200" y="408" font-family="Helvetica" font-size="13" fill="#777" text-anchor="middle">SAMPLE PROOF</text></svg>';
 }
 function pageProof(d){var f=findPile(S.active);S.page=S.page||{};var n=f.p.locs.length;S.page[f.p.id]=(((S.page[f.p.id]||0)+d)%n+n)%n;render()}
 function zoomProof(){var f=findPile(S.active),pg=(S.page&&S.page[f.p.id])||0;var z=document.getElementById('zoom');z.innerHTML=proofSvg(f.p,pg);z.classList.add('on')}
@@ -329,7 +329,7 @@ function donePile(){var f=findPile(S.active),st=ps(f.p.id);st.done=true;S.last=f
 function showOrderDone(o){document.getElementById('toast').classList.remove('on');var pick=o.ship==='Pick-Up';var dmg=0;o.piles.forEach(function(p){dmg+=totals(p,ps(p.id)).all});
   document.getElementById('occ').innerHTML='<div style="font-size:34px">✓</div><div class="ord" style="font:700 11px var(--cond);letter-spacing:.1em;color:var(--muted);text-transform:uppercase">Order complete</div><div class="big">'+o.order+'</div><div style="font:700 15px var(--cond);text-transform:uppercase">'+o.cust+'</div>'
    +'<span class="stat '+(pick?'pick':'ship')+'">'+(pick?'→ Completed · ready for pick-up':'→ Caught – Awaiting Ship')+'</span>'
-   +'<p>'+o.piles.length+' pile'+(o.piles.length>1?'s':'')+' · '+(dmg?dmg+' damaged piece'+(dmg>1?'s':'')+' logged for the production manager':'no damage')+'</p>'
+   +'<p>'+o.piles.length+' pile'+(o.piles.length>1?'s':'')+' · '+(dmg?dmg+' damaged':'no damage')+'</p>'
    +'<div class="row"><button class="rev" onclick="alert(\'Opens the packing slip (same as today)\')">🖨 Packing slip</button><button class="done" onclick="closeOrderDone()">Next pile ▸</button></div>'
    +'<button class="undo" style="margin-top:10px;width:100%" onclick="closeOrderDone();undoDone()">↺ Undo — not done yet</button>';
   document.getElementById('oc').classList.add('on')}

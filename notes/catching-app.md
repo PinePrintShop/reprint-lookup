@@ -74,3 +74,17 @@ The mockup:
   - ⇄ Side mirrors the layout for a left-handed setup.
 - **Portrait:** pile strip on top, then the proof filling the spare height, then the compact tap lane at the bottom.
 - **Phone:** a 300px proof above the lane.
+
+### Mockup v4: less repeated text (Oct 5)
+Each fact now shows once, where it's used:
+- **Press:** only on the top tab. The pile-list header and "This iPad remembers its press" are gone.
+- **Damage:**
+  - per size on the size chips;
+  - the total on Done;
+  - "3 dmg" on the pile card in the list.
+  - Removed "damaged so far".
+- **Selected size:** only the highlighted chip. Removed "· L" from the group labels.
+- **Pieces:** shown as "57/60 caught" on Done. Removed the "60 pcs" chip.
+- **Extras:** "+n" on the size chips and "1 bonus extra" on Done. Removed the "+3 extras" chip and the long extras sentence.
+- **Locations:** the "Checked" chips. Removed "1/3 · tracking only".
+- **Labels:** cut down to Size / Print team / Other / Checked. Removed the step numbers, "Not sure", "PM decides", "last tap", "tap to zoom" (now a 🔍), and "/2 piles" → "0/2".
