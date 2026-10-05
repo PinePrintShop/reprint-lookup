@@ -51,3 +51,18 @@ The mockup:
 - **Needs Airtable / Damage Log work for unsure → PM:**
   - a "TBD" accountability option on Order Issues and Damage Details;
   - Damage Log being able to set Print Team / Other on a TBD issue.
+
+### Mockup v2: finger-path layout (Oct 5)
+- **Mirrors the new Operator:** the pile list is on the RIGHT and the work is on the left. **⇄ Side** flips this per iPad, for a left-handed catcher.
+- **Everything tapped sits in one vertical lane, in tap order:**
+  1. Sizes: a big row at the top of the lane.
+  2. Reasons: 2 rows of 6 right under the sizes.
+     - Print Team on the first row.
+     - Other ×4, Unsure and Undo on the second.
+  3. Checked locations: full-width chips under the reasons. They're tracking only.
+  4. **Done with pile:** full width at the bottom, with the totals printed on the button.
+- **The finger only moves down.** Size → reason is about 1–2 inches. Nothing tapped is in a corner any more: before, sizes were top-left, locations tiny top-right, and Done bottom-right.
+- **Read-only info is a slim strip on top:** proof, order, chips.
+- **Landscape:** the reason buttons stretch to fill the lane, so there's no dead gap between the reasons and Done.
+- **Portrait:** the lane stays compact in the bottom half (thumb zone), and the pile list takes the spare room above it.
+- **Phone:** one column, with locations and Done stuck to the bottom.
