@@ -148,3 +148,20 @@ Each fact now shows once, where it's used:
 - Code names (`donePile`, `cw-pile`) are unchanged.
 - **Tabs:** the six press tabs (Heat Press was added in v149) were cut off on a landscape iPad (1180px). Below 1300px wide they're now a little tighter, and all of them fit. Portrait still scrolls sideways.
 - **Tests:** the v148 flow and layout tests pass unchanged. The toast and order card show the new wording.
+
+## v151 — say it once (Oct 5)
+Trimmed wording that repeated itself:
+- **Done button:** "✓ Done with line item" → **"✓ Done"**; the line item is already on screen. The review sheet says "Review" and "✓ Done".
+- **Toast:** "✓ Line item saved · 1 more in order 90010" → **"✓ Saved · 1 more in 90010"**.
+- **Order card:** "Next line item ▸" → **"Next ▸"**; "↺ Undo — not done yet" → **"↺ Undo"**.
+- **Review sheet:**
+  - "Additional notes (optional)" → **"Notes"**.
+  - The extras line reads "**1 in the box · 2 replaced damage**".
+  - Each damage issue was 5 lines (team tag, garment, "1 damaged (Print Team) [1M]: Smudge", "1 damaged", "Smudge"). It's now one line: **team · count · reasons**, under "Damage to report". The garment shows only if the job has more than one.
+  - The table column "TBD" now says **Unsure**, like the button.
+- **Unsure pop-up:**
+  - Title "**Sort the unsure pieces**". The warning banner is gone.
+  - Rows read "Black · M · 1 piece", with no "(no note)" lines.
+  - "Bucket" → **Team**. "Resolve all & continue" → **"Save & finish"**.
+- **Completed tab:** "today" appeared three times; the date is already in the header.
+- What gets saved to Airtable is unchanged. The issue description still reads "1 damaged (Print Team) [1M]: Smudge".

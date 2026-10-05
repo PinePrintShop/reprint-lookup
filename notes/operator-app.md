@@ -198,3 +198,7 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
   - Desktop, landscape and portrait: the card is in run, not in idle.
   - Moving the next job down switches the card to the job after it.
   - No overflow and no errors.
+
+## v125 — Get ready card, shorter (Oct 5)
+- The header is just **"Get ready"**. "· next up" and "follows Up next" repeated the Up next column next to it.
+- With nothing left in the queue it says **"Last job — nothing to stage."**
