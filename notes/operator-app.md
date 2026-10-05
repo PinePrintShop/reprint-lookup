@@ -188,3 +188,13 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
 - Split-press jobs are skipped; they have their own per-press done check.
 
 **Tests (mock):** the same scenario in v122 shows the clock ticking at 5:00:07 → 5:00:09 with Setup/Run 0:00:00. v123 shows the clock stopped at 1:00:07, Setup 0:00:05, Run 1:00:07. The full v122 flow test gives the same result on v123.
+
+## v124 — "Get ready · next up" card (Oct 5)
+- **What it is:** while the press is running or paused, the empty middle column shows the **next job in the Up next list**, so the crew can stage while the press runs: proof thumbnail, customer, order #, pcs, screen count, location, garment, inks (swatch, Pantone and type, in print order) and the job's print notes.
+- **Follows the Up next order:** moving a job up or down on the right updates the card right away. With nothing else queued, it says "Nothing else queued on this press."
+- It isn't shown in idle, setup, review or done; those screens already fill the column.
+- Inks use the same lookup and colors as the main swatch row. If a job has no linked inks, the ink names show as chips.
+- **Tests (mock, practice):**
+  - Desktop, landscape and portrait: the card is in run, not in idle.
+  - Moving the next job down switches the card to the job after it.
+  - No overflow and no errors.
