@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Order mockup — Pine Central</title>
+<style>
+:root{--bg:#F2F2EE;--surface:#fff;--line:#E6E6E0;--line2:#D4D4CC;--text:#141412;--muted:#80807A;--soft:#F7F7F4;--yellow:#E8E832;--ydk:#C9C92A;--ytint:#FBFBDC;--green:#1e6b45;--gtint:#e9f4ee;--red:#b3261e;--rtint:#fdf0ee;--amb:#a96b12;
+  --sans:Helvetica,Arial,sans-serif;--mono:'Courier New',monospace;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px}
+body{padding:16px 28px 60px;max-width:1560px;margin:0 auto}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+.mk-note{font-size:12px;color:var(--muted);margin-bottom:12px}.mk-note b{color:var(--text)}
+.top{background:var(--text);border-radius:var(--r);padding:10px 12px 10px 22px;display:flex;align-items:center;gap:18px;color:#ddd}
+.brand{font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:var(--yellow)}
+.crumb{font-size:14px}.crumb b{color:#fff}
+.prac{margin-left:auto;background:var(--yellow);color:var(--text);font-weight:700;font-size:12px;padding:6px 10px;border-radius:20px}
+.ghost{background:none;border:1px solid #4a4a44;color:#ddd;border-radius:8px;padding:8px 14px;font-size:13px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;margin-top:20px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 26px}
+.panel+.panel{margin-top:18px}
+.sec{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec .n{width:24px;height:24px;border-radius:50%;background:var(--text);color:var(--yellow);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sec h2{font-size:16px}.sec .hint{margin-left:auto;font-size:13px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px 18px;align-items:center}
+.k{font-size:13px;color:var(--muted)}.k.req::after{content:" *";color:var(--red)}
+.bts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.b{height:38px;padding:0 13px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-size:14px;font-weight:600}
+.b:hover{border-color:var(--text)}
+.b.on{background:var(--yellow);border-color:var(--ydk);box-shadow:inset 0 0 0 1px var(--ydk)}
+.b small{font-weight:400;color:var(--muted);font-size:12px;margin-left:4px}
+.b.dash{border-style:dashed;color:var(--muted);font-weight:500}
+input.t,select.t,textarea.t{height:40px;border:1px solid var(--line2);border-radius:8px;padding:0 12px;background:#fff;outline:none}
+textarea.t{height:auto;min-height:64px;padding:10px 12px;width:100%;resize:vertical}
+input.t:focus,textarea.t:focus{border-color:var(--text)}
+.cust{display:flex;gap:8px;align-items:center}
+.cust input{flex:1;height:44px;font-size:16px}
+.found{font-size:13px;color:var(--green)}
+.auto{font-size:12px;color:var(--muted);margin-left:6px}
+.card{border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-top:14px}
+.card:first-of-type{margin-top:0}
+.ch{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ch .t1{font-size:17px;font-weight:700}
+.ch .t2{font-size:13px;color:var(--muted)}
+.ch .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.tag{font-size:12px;padding:4px 9px;border-radius:20px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.tag.ok{background:var(--gtint);border-color:#bfe0cc;color:var(--green)}
+.tag.need{background:var(--rtint);border-color:#f2c9c4;color:var(--red)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line2);background:#fff;border-radius:20px;padding:5px 11px;font-size:13px}
+.chip.on{background:var(--ytint);border-color:var(--ydk)}
+.sizes{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:6px}
+.sizes label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);text-align:center}
+.sizes input{height:40px;border:1px solid var(--line2);border-radius:8px;text-align:center;font:700 15px var(--mono);width:100%}
+.sizes input:focus{border-color:var(--text);outline:none}
+.sizes .up{font-size:10px;color:var(--amb);height:12px}
+.tot{font:700 14px var(--mono)}
+.link{border:none;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:13px}
+.more{display:none}.more.open{display:contents}
+.merge{background:var(--ytint);border:1px solid var(--ydk);border-radius:8px;padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.merge button{margin-left:auto}
+/* rail */
+.rail{position:sticky;top:16px;display:flex;flex-direction:column;gap:18px}
+.sum h3{font-size:16px;margin-bottom:10px}
+.will{font-size:14px;line-height:1.7}
+.will b{font-family:var(--mono)}
+.checks{margin-top:14px;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.checks .c{display:flex;gap:8px;align-items:flex-start}
+.checks .c.ok{color:var(--green)}.checks .c.bad{color:var(--red)}
+.money{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:14px;padding-top:12px;font-weight:700}
+.money span:last-child{font:700 20px var(--mono)}
+.go{margin-top:14px;width:100%;height:54px;background:var(--yellow);border:1px solid var(--ydk);border-radius:var(--r);font-weight:900;font-size:16px}
+.go:disabled{opacity:.4;cursor:default}
+.sub2{margin-top:8px;width:100%;height:42px;background:#fff;border:1px solid var(--line2);border-radius:var(--r);font-size:14px}
+.out{font:12px/1.5 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:12px;max-height:420px;overflow:auto;white-space:pre-wrap}
+.drop{border:1px dashed var(--line2);border-radius:8px;padding:12px;font-size:13px;color:var(--muted);text-align:center;flex:1}
+</style>
+</head>
+<body>
+<div class="mk-note"><span class="bts" style="float:right;gap:6px"><button class="b on" id="mFromQ" onclick="startFrom(true)">From a quote</button><button class="b" id="mEmpty" onclick="startFrom(false)">Start empty</button></span><b>Mockup: Create order.</b> It opens from Price-O-Matic's quote with everything the quote already knows filled in. Nothing saves. <b>Create order</b> shows the exact Airtable records it would write (practice mode).</div>
+<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Practice — nothing saves</span><button class="ghost" onclick="alert('Back to the quote (mockup)')">← Back to quote</button></div>
+<div class="wrap">
+  <div>
+    <div class="panel">
+      <div class="sec"><span class="n">1</span><h2>Order</h2><span class="hint">Once per order</span></div>
+      <div class="grid">
+        <span class="k req">Customer</span>
+        <div><div class="cust"><input class="t" id="cust" value="Sample Brewing Co" oninput="render()"><button class="b" onclick="alert('Mockup: opens a short New customer form')">+ New customer</button></div><div class="found" id="custFound">✓ Found in Airtable · 6 past orders · last: Front 1c on Bella 3001 (Aug)</div></div>
+        <span class="k req">Sales person</span><div class="bts" id="rep"></div>
+        <span class="k req">Due date</span><div class="bts"><input class="t" type="date" id="due" onchange="S.due=this.value;render()"><span id="dueQuick" class="bts"></span></div>
+        <span class="k req">Shipping</span><div class="bts" id="ship"></div>
+        <span class="k">Source</span><div class="bts" id="src"></div>
+        <span class="k">Order notes</span><textarea class="t" placeholder="Anything for the whole order"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="sec"><span class="n">2</span><h2>Imprints</h2><span class="hint">The artwork — one per location</span></div>
+      <div id="imps"></div>
+    </div>
+    <div class="panel">
+      <div class="sec"><span class="n">3</span><h2>Line items</h2><span class="hint">One per garment + color</span></div>
+      <div id="lines"></div>
+    </div>
+  </div>
+  <div class="rail">
+    <div class="panel sum" id="sum"></div>
+    <div class="panel" id="outBox" style="display:none"><h3 style="font-size:15px;margin-bottom:10px">Would write to Airtable</h3><div class="out" id="out"></div></div>
+  </div>
+</div>
+<script>
+const REPS=['Garrett','Patrick','Chris','Josh','Stephen'];
+const SHIPS=['Free Shipping','Pick-Up','Delivery','Customer Account - UPS','Fulfillment'];
+const SHIPS_MORE=['Customer Account - FedEx','2-Day Air Shipping','Next Day Air Shipping','Blind Shipping','Multiple Shipping Locations','International Shipping','FREIGHT','Address TBD On Ship Date'];
+const SOURCES=['Repeat','Referral','Word-of-mouth','Google','Social Media'];
+const INKS=['Discharge','No Base W/B','EZP Base + W/B','Bleed Blocker + W/B'];
+const SIZES=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','OSFA'];
+// what Price-O-Matic hands over (the quote)
+const S={rep:'Patrick',due:'',ship:['Free Shipping'],src:'Repeat',
+ imps:[
+  {id:'A',loc:'Front',method:'Screen print',screens:3,ub:true,ink:'',inkChanges:0,nick:'',repeat:false,lines:[0,1]},
+  {id:'B',loc:'Back',method:'Screen print',screens:1,ub:false,ink:'',inkChanges:0,nick:'',repeat:false,lines:[0]},
+  {id:'C',loc:'Front',method:'Embroidery',screens:0,ub:false,ink:'Embroidery',inkChanges:0,nick:'',repeat:false,lines:[2],auto:true}],
+ lines:[
+  {garment:'Bella + Canvas 3001 - Black',match:true,ptype:'Printed Apparel',qty:144,price:12.25,up:{'2XL':1.50,'3XL':2.61},sizes:{},nick:'',womens:false,youth:false,open:false},
+  {garment:'Bella + Canvas 3001 - Heather Navy',match:true,ptype:'Printed Apparel',qty:48,price:13.85,up:{'2XL':1.50},sizes:{},nick:'',womens:false,youth:false,open:false},
+  {garment:'Richardson 112 - Khaki/Loden',match:false,ptype:'Embroidered Apparel',qty:48,price:14.40,up:{},sizes:{OSFA:48},nick:'',womens:false,youth:false,open:false}]};
+const $=id=>document.getElementById(id);
+const money=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const B=(l,on,fn,cls)=>`<button class="b${cls?' '+cls:''}${on?' on':''}" onclick="${fn}">${l}</button>`;
+const PTYPES=['Printed Apparel','Embroidered Apparel','Flatstock Printing','Embroidered Patches (100%)','Woven Patches','Stickers','Promo Product','Misc.'];
+const QUOTE=JSON.parse(JSON.stringify({imps:null,lines:null}));
+let FROM_QUOTE=true, SAVED=null;
+function startFrom(q){
+  if(!SAVED) SAVED=JSON.parse(JSON.stringify({imps:S.imps,lines:S.lines}));
+  FROM_QUOTE=q;
+  if(q){ S.imps=JSON.parse(JSON.stringify(SAVED.imps)); S.lines=JSON.parse(JSON.stringify(SAVED.lines)); }
+  else { S.imps=[]; S.lines=[]; }
+  document.getElementById('mFromQ').classList.toggle('on',q); document.getElementById('mEmpty').classList.toggle('on',!q);
+  document.getElementById('outBox').style.display='none'; render();
+}
+function addLine(){ S.lines.push({garment:'',match:false,manual:true,ptype:'',qty:0,price:0,up:{},sizes:{},nick:'',womens:false,youth:false,open:false}); render(); }
+function addImp(){ S.imps.push({id:'N'+S.imps.length,loc:'Front',method:'Screen print',screens:1,ub:false,ink:'',inkChanges:0,nick:'',repeat:false,lines:S.lines.length?[S.lines.length-1]:[],manual:true}); render(); }
+function impName(m){ return m.loc+' · '+(m.method==='Screen print'?m.screens+'c'+(m.ub?' + UB':''):m.method.toLowerCase()); }
+function sum(o){ return Object.values(o).reduce((a,b)=>a+(Number(b)||0),0); }
+function renderOrder(){
+  $('rep').innerHTML=REPS.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join('');
+  const d=new Date(); const add=n=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
+  $('dueQuick').innerHTML=[['1 week',7],['2 weeks',14],['3 weeks',21]].map(([l,n])=>B(l,S.due===add(n),`S.due='${add(n)}';document.getElementById('due').value=S.due;render()`)).join('');
+  $('ship').innerHTML=SHIPS.map(s=>B(s.replace('Customer Account - ','Their ').replace(' Shipping',''),S.ship.includes(s),`tgShip('${s}')`)).join('')+`<select class="t" onchange="if(this.value)tgShip(this.value)"><option value="">More…</option>${SHIPS_MORE.map(s=>`<option ${S.ship.includes(s)?'selected':''}>${s}</option>`).join('')}</select>`;
+  $('src').innerHTML=SOURCES.map(s=>B(s,S.src===s,`S.src='${s}';render()`)).join('')+`<select class="t"><option>Outbound…</option><option>Outbound - Patrick</option><option>Outbound - Chris</option><option>Outbound - Josh</option><option>Outbound - Stephen</option></select>`;
+}
+function tgShip(s){ const i=S.ship.indexOf(s); if(i>=0)S.ship.splice(i,1); else S.ship.push(s); render(); }
+function renderImps(){
+  let h='';
+  const fronts=S.imps.filter(m=>m.method==='Screen print'&&m.loc==='Front');
+  h+='';
+  S.imps.forEach((m,i)=>{
+    const used=m.lines.map(li=>S.lines[li].garment.split(' - ')[1]||S.lines[li].garment);
+    h+=`<div class="card"><div class="ch"><span class="t1">${impName(m)}</span><span class="t2">on ${used.join(' + ')}</span><div class="right">${m.ink?'<span class="tag ok">ready</span>':'<span class="tag need">pick an ink type</span>'}</div></div><div class="grid">`;
+    if(m.manual){
+      h+=`<span class="k req">How</span><div class="bts">${['Screen print','Embroidery','Supacolor','Decopress'].map(k=>B(k,m.method===k,`S.imps[${i}].method='${k}';S.imps[${i}].ink=('${k}'==='Embroidery'?'Embroidery':'');render()`)).join('')}</div>`;
+      if(m.method==='Screen print') h+=`<span class="k req">Colors</span><div class="bts">${[1,2,3,4,5,6].map(n=>B(String(n),m.screens===n,`S.imps[${i}].screens=${n};render()`)).join('')}${B('+ Underbase',m.ub,`S.imps[${i}].ub=!S.imps[${i}].ub;render()`)}</div>`;
+      if(m.method==='Supacolor'||m.method==='Decopress') h+=`<span class="k req">Type</span><div class="bts">${(m.method==='Supacolor'?['Supacolor - Wearable','Supacolor - 1C Wearable','Supacolor - Headwear','Supacolor - Blocker']:['Decopress - Woven / Twill','Decopress - Leather','Decopress - Metallic','Decopress - Reflective']).map(k=>B(k.split(' - ')[1],m.ink===k,`S.imps[${i}].ink='${k}';render()`)).join('')}</div>`;
+    }
+    if(m.method==='Screen print'){
+      h+=`<span class="k req">Ink type</span><div class="bts">${INKS.map(k=>B(k,m.ink===k,`S.imps[${i}].ink='${k}';render()`)).join('')}</div>`;
+      h+=`<span class="k req">Screens</span><div class="bts"><input class="t" style="width:70px;text-align:center" value="${m.screens+(m.ub?1:0)}" onchange="S.imps[${i}].screens=Number(this.value)-(S.imps[${i}].ub?1:0);render()"><span class="auto">from the quote: ${m.screens} color${m.screens>1?'s':''}${m.ub?' + underbase':''}</span><span class="k" style="margin-left:14px">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
+    } else if(!m.manual){
+      h+=`<span class="k req">Imprint type</span><div class="bts"><span class="tag ok">${m.ink}</span><span class="auto">set from the quote</span></div>`;
+    }
+    h+=`<span class="k req">Location</span><div class="bts">${['Front','Back','Left Chest','Left Sleeve','Size Tag'].map(l=>B(l,m.loc===l,`S.imps[${i}].loc='${l}';render()`)).join('')}</div>`;
+    h+=`<span class="k">Goes on</span><div class="chips">${S.lines.map((L,li)=>`<button class="chip${m.lines.includes(li)?' on':''}" onclick="tgLine(${i},${li})">${m.lines.includes(li)?'✓ ':''}${L.garment}</button>`).join('')}</div>`;
+    h+=`<span class="k">Nickname</span><div class="bts"><input class="t" style="flex:1" placeholder="e.g. Hop logo" value="${m.nick}" oninput="S.imps[${i}].nick=this.value;renderSum()"><button class="b${m.repeat?' on':''}" onclick="S.imps[${i}].repeat=!S.imps[${i}].repeat;render()">Repeat art</button></div>`;
+    if(m.repeat) h+=`<span class="k">Previous</span><div class="bts"><select class="t"><option>10612-A · Front 3c · Hop logo (Aug 12)</option><option>10477-B · Back 1c (Jun 3)</option></select><span class="auto">screens & inks copied from it</span></div>`;
+    h+=`<span class="k">Notes</span><input class="t" placeholder="Imprint notes / special instructions"></div></div>`;
+  });
+  if(!S.imps.length) h+=`<div class="auto" style="margin-left:0">No imprints yet. Add one for each print location.</div>`;
+  h+=`<div class="bts" style="margin-top:12px"><button class="b dash" onclick="addImp()">+ Add imprint</button></div>`;
+  $('imps').innerHTML=h;
+}
+function tgLine(i,li){ const a=S.imps[i].lines, k=a.indexOf(li); if(k>=0)a.splice(k,1); else a.push(li); render(); }
+function renderLines(){
+  let h='';
+  S.lines.forEach((L,i)=>{
+    if(L.manual) L.qty=sum(L.sizes);
+    const got=sum(L.sizes), ok=L.manual?got>0:got===L.qty;
+    const imps=S.imps.filter(m=>m.lines.includes(i));
+    h+=`<div class="card"><div class="ch"><span class="t1">${L.garment||'New line item'}</span><span class="t2">${L.ptype}</span><div class="right"><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">'+(L.manual?'add sizes':'sizes '+got+' of '+L.qty)+'</span>'}</div></div><div class="grid">`;
+    if(L.manual){
+      h+=`<span class="k req">Product type</span><div class="bts">${PTYPES.map(t=>B(t.replace(' (100%)','').replace(' Printing',''),L.ptype===t,`S.lines[${i}].ptype='${t}';render()`,'')).join('')}</div>`;
+      h+=`<span class="k req">Garment</span><div class="bts"><input class="t" style="flex:1" placeholder="Search Airtable garments — style or name" value="${L.garment}" onchange="S.lines[${i}].garment=this.value;S.lines[${i}].match=!!this.value;render()"><button class="b" onclick="alert('Mockup: + New garment (replaces the Garment Creator)')">+ New garment</button></div>`;
+      h+=`<span class="k req">Price / pc</span><div class="bts"><span class="tot">$</span><input class="t" style="width:110px" inputmode="decimal" value="${L.price||''}" onchange="S.lines[${i}].price=Number(this.value)||0;render()"><span class="auto">or price it in Price-O-Matic first</span></div>`;
+    } else
+    h+=`<span class="k req">Garment</span><div class="bts">${L.match?`<span class="tag ok">✓ ${L.garment}</span><span class="auto">matched in Airtable Garments</span>`:`<span class="tag need">not in Airtable yet</span><button class="b" onclick="S.lines[${i}].match=true;render()">+ Add garment</button><span class="auto">(replaces the Garment Creator step)</span>`}</div>`;
+    h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" onchange="setSz(${i},'${z}',this.value)"><span class="up">${L.up[z]?'+$'+L.up[z].toFixed(2):''}</span></label>`).join('')}</div><div class="bts" style="margin-top:8px"><button class="link" onclick="spread(${i})">Typical run (S 15% · M 30% · L 30% · XL 15% · 2XL 10%)</button><button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button></div></div>`;
+    if(!L.manual) h+=`<span class="k">Price / pc</span><div class="bts"><span class="tot">${money(L.price)}</span><span class="auto">from the quote${Object.keys(L.up).length?' · size upcharges shown above':''}</span></div>`;
+    h+=`<span class="k">Imprints</span><div class="chips">${imps.map(m=>`<span class="chip on">${impName(m)}</span>`).join('')||'<span class="auto">none linked</span>'}</div>`;
+    h+=`<span class="k req">Proofing notes</span><textarea class="t" oninput="">${imps.map(m=>impName(m)+(m.nick?' ('+m.nick+')':'')).join('\n')}</textarea>`;
+    h+=`<span class="k">Nickname</span><div class="bts"><input class="t" style="flex:1" placeholder="Line item nickname"><button class="b${L.womens?' on':''}" onclick="S.lines[${i}].womens=!S.lines[${i}].womens;render()">Women's</button><button class="b${L.youth?' on':''}" onclick="S.lines[${i}].youth=!S.lines[${i}].youth;render()">Youth</button></div>`;
+    h+=`<span class="k"></span><div><button class="link" onclick="S.lines[${i}].open=!S.lines[${i}].open;render()">${L.open?'Hide':'Production, finishing & shipping notes · proof upload…'}</button></div>`;
+    if(L.open) h+=`<span class="k">Production</span><textarea class="t"></textarea><span class="k">Finishing</span><textarea class="t" placeholder="Fold & bag, tags…"></textarea><span class="k">Shipping</span><textarea class="t"></textarea><span class="k">Proof</span><div class="bts"><div class="drop">Drop proof images here</div><button class="b">Ready for 2nd eyes</button></div>`;
+    h+='</div></div>';
+  });
+  if(!S.lines.length) h+=`<div class="auto" style="margin-left:0">No line items yet. Add one per garment + color.</div>`;
+  h+=`<div class="bts" style="margin-top:12px"><button class="b dash" onclick="addLine()">+ Add line item</button><button class="b dash" onclick="alert('Mockup: copy line items + imprints from a past order of this customer')">Copy from a past order…</button></div>`;
+  $('lines').innerHTML=h;
+}
+function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
+function spread(i){ const L=S.lines[i],q=L.qty||48,p={S:.15,M:.30,L:.30,XL:.15,'2XL':.10}; const s={}; let t=0; Object.keys(p).forEach(z=>{s[z]=Math.round(q*p[z]);t+=s[z];}); s.L+=q-t; L.sizes=s; render(); }
+function problems(){
+  const p=[];
+  if(!$('cust').value.trim())p.push('Customer');
+  if(!S.due)p.push('Due date');
+  if(!S.ship.length)p.push('Shipping method');
+  S.imps.forEach(m=>{ if(!m.ink)p.push(impName(m)+': ink type'); if(!m.lines.length)p.push(impName(m)+': not on any garment'); });
+  if(!S.lines.length)p.push('At least one line item');
+  S.lines.forEach((L,i)=>{ const nm=L.garment?(L.garment.split(' - ')[1]||L.garment):'Line '+(i+1);
+    if(L.manual){ if(!L.ptype)p.push(nm+': product type'); if(!L.garment)p.push(nm+': garment'); if(!(sum(L.sizes)>0))p.push(nm+': sizes'); if(!(L.price>0))p.push(nm+': price'); return; }
+    if(!L.match)p.push(L.garment+': add the garment'); const g=sum(L.sizes); if(g!==L.qty)p.push(nm+': sizes '+g+' of '+L.qty); });
+  return p;
+}
+function renderSum(){
+  const p=problems(), tot=S.lines.reduce((a,L)=>a+L.qty*L.price,0);
+  let h=`<h3>${FROM_QUOTE?'From quote · Sample Brewing Co':'New order'}</h3><div class="will">1 order · <b>${S.lines.length}</b> line items · <b>${S.imps.length}</b> imprints<br><span style="color:var(--muted);font-size:13px">Status starts at <b style="font-family:var(--sans)">Awaiting Proof</b>, same as today.</span></div>`;
+  h+='<div class="checks">'+(p.length?p.map(x=>`<div class="c bad">○ ${x}</div>`).join(''):'<div class="c ok">✓ Everything needed is filled in</div>')+'</div>';
+  h+=`<div class="money"><span>Quote total</span><span>${money(tot)}</span></div>`;
+  h+=`<button class="go" ${p.length?'disabled':''} onclick="preview()">Create order</button><button class="sub2" onclick="alert('Mockup: keeps this as a draft on this computer')">Save for later</button>`;
+  $('sum').innerHTML=h;
+}
+function preview(){
+  const ord={'Customer':$('cust').value,'Sales Person':S.rep,'Customer Due Date':S.due,'Shipping Method':S.ship,'Order Source':S.src,'Order Status':'Awaiting Proof'};
+  const imps=S.imps.map(m=>({'Linked Orders':['(new order)'],'Imprint Type':m.ink,'Location':m.loc,'Screen Count':m.method==='Screen print'?m.screens+(m.ub?1:0):0,'Ink Changes':m.inkChanges,'Imprint Nickname':m.nick||undefined,'Repeat?':m.repeat||undefined}));
+  const lines=S.lines.map((L,i)=>Object.assign({'Orders':['(new order)'],'Product Type':L.ptype,'Garment Type':['('+L.garment+')'],'Imprints':S.imps.map((m,k)=>m.lines.includes(i)?'(imprint '+(k+1)+')':null).filter(Boolean),'Price Input':L.price},L.sizes,{"Women's Garment":L.womens||undefined,'Youth Garment':L.youth||undefined}));
+  $('out').textContent='ORDER\n'+JSON.stringify(ord,null,1)+'\n\nIMPRINTS ('+imps.length+')\n'+JSON.stringify(imps,null,1)+'\n\nLINE ITEMS ('+lines.length+')\n'+JSON.stringify(lines,null,1);
+  $('outBox').style.display='';
+}
+function render(){ renderOrder(); renderImps(); renderLines(); renderSum(); }
+render();
+</script>
+</body>
+</html>
