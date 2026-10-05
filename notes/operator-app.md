@@ -175,3 +175,16 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
 - **Airtable data:** 93 imprints have Run Started ✓ / Run Finished ✗ with a start more than 3 days ago (most are old). They don't show in the app, but they skew reporting. Cleanup is pending Stephen's OK.
 
 **Ink names in full:** the swatch row wraps long names (it was "Red Ru…"), and the heads summary shows every head (no 2-line clamp).
+
+## v123 — clock kept running on a finished job (Oct 5)
+**What happened:** Poudre Valley 10836-A showed ✓ Complete, but the big clock read 5:09:11 and was still counting from "Started 8:32 AM". Setup and Run both read 0:00:00.
+- The log shows the press iPad ran it from 8:32 to 9:32 (Run 60m 06s) and finished it.
+- The screen with the ticking clock was a computer that had opened the job mid-run. It saved "running since 8:32" locally and never learned the job was finished: v104's rebuild-from-Airtable only runs when there's no local state, and good local state always won.
+- The card showed Complete (from Run Finished), but the clock and summary came from that stale local state.
+
+**Fix:** after every load or refresh, if a job is Run Finished in Airtable but this device still has it as live (setup / run / paused / fix), Airtable wins.
+- The local timer is dropped.
+- The Done summary (setup and run time) is rebuilt from the job's log.
+- Split-press jobs are skipped; they have their own per-press done check.
+
+**Tests (mock):** the same scenario in v122 shows the clock ticking at 5:00:07 → 5:00:09 with Setup/Run 0:00:00. v123 shows the clock stopped at 1:00:07, Setup 0:00:05, Run 1:00:07. The full v122 flow test gives the same result on v123.
