@@ -119,3 +119,16 @@ He works order by order, batching into vendor carts across orders. When a wareho
   - Tracking can come from the S&S orders API and SanMar ship notices.
   - This gives true ship time per warehouse and flags late boxes before print day.
 - **S&S API ordering:** needs a worker POST route with auth.
+
+## v94 — blank (shipping-charge) line items (Oct 5)
+- **What they are:** sales adds a blank line item to charge extra shipping: Product Type **Misc.**, no garment, usually 1 in OS. These lines were showing up in the purchasing queue. Before v94, the Ordered box was ticked by hand, or not at all; e.g. one created Oct 1 was still unchecked on a Ready to Order order.
+- **v94:** a line with Product Type Misc. **and** no garment is kept out of the queue. An order with nothing but a blank line doesn't show either.
+- **Checked off with the order:** when ✓ Ordered leaves every real line on an order ordered, the order's blank line(s) get Ordered ✓ plus the same PO in the same step. The toast says "shipping-charge line checked off". If that save fails, the toast says to tick it in Airtable.
+- **Catch-up on load:** an order in the RFO view whose real lines are all already ordered, but whose blank line isn't, gets the blank checked off when the app opens.
+- Practice mode logs these writes and doesn't send them.
+- **Tests (mock):**
+  - Blank lines are hidden, and a blank-only order isn't listed.
+  - The blank line on a fully ordered order is checked off on load (with that order's PO).
+  - Ordering 90010 checks off its blank line with PO 100526.
+  - 90012 (not ordered yet) is left alone.
+  - Practice mode: 0 writes sent.
