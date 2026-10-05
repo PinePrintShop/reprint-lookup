@@ -29,3 +29,25 @@
 9. Packing slip.
 
 That's roughly 6–8 taps of overhead per pile, on top of the damage taps.
+
+## Proposed flow (mockup: `pine-catching-mockup.html`, sample data) — Oct 5
+Stephen's answers:
+- Location chips were an idea for tracking where you're at (3-location orders), not a gate.
+- The production manager uses the Damage Log, so unsure pieces go there.
+- Extras not used to replace damage go in the box as bonus (tracked).
+- Catching has 2 iPads.
+
+The mockup:
+- **One screen per press.** A pile list (grouped by order, "x/y piles") sits next to the open pile. The press tab is remembered per iPad.
+- **A clean pile is 2 taps:** open it, then **✓ Done with pile**.
+- **Damage:** tap a size, then a reason, as today; the size stays selected.
+- **Unsure:** "Unsure — production manager decides in Damage Log", with no pop-up at submit.
+- **Location chips are tracking only** ("Checked 1/3") and don't block anything.
+- **Footer summary replaces the submit pop-ups:** damage, caught count, and extras worked out automatically (cover damage first, the rest go in the box as bonus).
+  - **Review** opens a sheet with the size table, extras exceptions ("keep out of the box") and notes. It's optional.
+- **Done with pile** saves the issues, marks the pile caught and moves the order on, all in one step.
+  - If the order has more piles, the next one opens, with a toast and Undo.
+  - On the last pile, an "Order complete" card shows the new status (Caught – Awaiting Ship or Completed) and buttons for 🖨 Packing slip, Next pile and Undo.
+- **Needs Airtable / Damage Log work for unsure → PM:**
+  - a "TBD" accountability option on Order Issues and Damage Details;
+  - Damage Log being able to set Print Team / Other on a TBD issue.
