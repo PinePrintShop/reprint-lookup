@@ -161,3 +161,9 @@ The goal: replace the Airtable **Imprint Creator** and **Line Item Creator** int
   - 2XL+ upcharges: Airtable takes one price per line.
   - Whether the build writes Proofing Notes or leaves them to the linked imprints.
   - The Location / Imprint Type gaps above.
+
+## v95 — Create order button (Oct 5)
+- Stephen couldn't get from a filled-out quote to Create order. v94 had no way there.
+- v95 adds **Create order → (preview)** at the bottom of the quote, above Quote PDF, which is now a white secondary button. It saves the quote and opens `pom-create-order-live.html`, which reads it.
+- The Create order page's "Back to quote" now points at v95.
+- Otherwise identical to v94.
