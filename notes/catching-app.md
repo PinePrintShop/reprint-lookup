@@ -111,3 +111,11 @@ Each fact now shows once, where it's used:
   - Done → next pile → last pile → order card → caught written on Next. Undo writes nothing.
   - The Unsure → resolve → Done path works, and extras default to the box.
   - All v146 data tests still pass.
+
+## v148 — fill the lane, bigger proof (Oct 5)
+- **No empty lane before a size is picked.** The reason buttons are always on screen, faded, with each one showing the pile's total for that reason. Tapping a faded button flashes the size row ("pick a size first"). The layout no longer jumps when a size is picked.
+- **Reasons are 3 across in landscape and desktop**, so each button is bigger and they fill the lane top to bottom. Portrait keeps 6 across.
+- **Bigger proof:** half the work area (no max width), and the pile list goes from 250 to 215px.
+- **Sharper proof:** page 1 of the proof PDF is rendered once per line item at the panel's real size (×2 pixel density) and cached; up to 12 are kept. Before, it used Airtable's small preview image. The preview shows until the render is ready, and stays if the render fails.
+- **Practice pill moved into the top bar**, shortened to "Practice ↺ Reset". It was covering Done with pile.
+- Not testable here: PDF.js loads from cdnjs, which this environment blocks. The fallback (the preview image) is what the tests saw.
