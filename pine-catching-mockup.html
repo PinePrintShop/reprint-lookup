@@ -24,7 +24,7 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-
 .hd .ipad{font:700 10px var(--cond);letter-spacing:.08em;color:var(--muted-lt);text-transform:uppercase;white-space:nowrap}
 /* body: piles rail + pile */
 .main{flex:1;min-height:0;display:flex;gap:10px;padding:10px}
-.rail{width:270px;flex-shrink:0;background:var(--surface);border:1px solid var(--border-dk);border-radius:10px;display:flex;flex-direction:column;min-height:0}
+.rail{width:240px;flex-shrink:0;background:var(--surface);border:1px solid var(--border-dk);border-radius:10px;display:flex;flex-direction:column;min-height:0}
 .rail-h{padding:10px 12px;border-bottom:1px solid var(--border);font:700 11px var(--cond);letter-spacing:.1em;text-transform:uppercase;display:flex;justify-content:space-between}
 .rail-l{flex:1;overflow-y:auto;padding:8px}
 .og{margin-bottom:10px}
@@ -57,7 +57,7 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-
 .chip.pick{background:var(--green-lt);color:var(--green);border-color:#b8dfcc}
 .pb{flex:1;min-height:0;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .lbl{font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px;display:flex;justify-content:space-between}
-.sizes{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px}
+.sizes{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,1fr));gap:8px}
 .sz{min-height:66px;padding:6px 8px;border-radius:9px;border:2px solid var(--border-dk);background:var(--surface);text-align:center}
 .sz b{display:block;font:700 20px var(--cond)}
 .sz span{font:400 11px var(--cond);color:var(--muted)}
@@ -90,6 +90,16 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-
 .grp2{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .grp2 .a{grid-column:span 4}.grp2 .b{grid-column:span 1}.grp2 .c{grid-column:span 1}
 .hint{padding:8px 10px;text-align:center;color:var(--muted);font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;border:2px dashed var(--border-dk);border-radius:9px}
+/* big proof on the far side from the tapping hand; the tap lane sits next to it */
+.wk{flex:1;min-height:0;display:flex}
+.bigproof{width:40%;max-width:420px;flex-shrink:0;border-right:1px solid var(--border);background:#fff;display:flex;flex-direction:column;min-height:0}
+.bigproof .img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:10px;cursor:zoom-in}
+.bigproof .img svg{max-width:100%;max-height:100%;width:100%;height:100%}
+.pnav{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px;border-top:1px solid var(--border);font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pnav button{width:44px;height:36px;border-radius:8px;border:1px solid var(--border-dk);background:var(--surface);font:700 18px var(--cond)}
+.lane{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+.zoom{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:80;padding:20px}
+.zoom.on{display:flex}.zoom svg{max-width:100%;max-height:100%;width:min(900px,100%);height:auto;background:#fff;border-radius:10px}
 /* bottom of the lane: locations then Done, full width */
 .lane-end{border-top:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:#fafaf7;flex-shrink:0}
 .locs{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
@@ -143,10 +153,13 @@ td.r{color:var(--red);font-weight:700}td.g{color:var(--green);font-weight:700}
   .og{min-width:260px}
   .main,body.flip .main{flex-direction:column}
   /* portrait: the work lane stays compact at the BOTTOM (thumb zone); the pile list takes the spare room on top */
-  .rail{max-height:none;flex:1;min-height:150px}
-  .rail-l{display:block;overflow-y:auto}
-  .og{min-width:0}
-  .pile{flex:none}
+  .rail{max-height:150px;flex:none}
+  .rail-l{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;align-items:flex-start}
+  .og{min-width:250px}
+  .pile{flex:1}
+  .wk{flex-direction:column}
+  .bigproof{width:auto;max-width:none;flex:1;min-height:220px;border-right:none;border-bottom:1px solid var(--border)}
+  .lane{flex:none}
   .pb{flex:none;overflow:visible}
   .rz,.rz>div{flex:none}
   .rz .grid{max-height:none;grid-auto-rows:92px}
@@ -164,6 +177,7 @@ td.r{color:var(--red);font-weight:700}td.g{color:var(--green);font-weight:700}
   .grid,.grp,.grp2{grid-template-columns:repeat(3,1fr)}
   .grp span:first-child,.grp2 .a{grid-column:span 3}.grp2 .b,.grp2 .c{display:none}
   .lane-end{position:sticky;bottom:0;box-shadow:0 -4px 12px rgba(0,0,0,.08)}
+  .wk{flex-direction:column}.bigproof{width:auto;max-width:none;height:300px;flex:none;border-right:none;border-bottom:1px solid var(--border)}
   .rz,.rz>div,.rz .grid{flex:none;max-height:none}
 }
 </style>
@@ -179,6 +193,7 @@ td.r{color:var(--red);font-weight:700}td.g{color:var(--green);font-weight:700}
 </div>
 <div class="drawer" id="drawer" onclick="if(event.target===this)closeReview()"><div class="dc" id="dc"></div></div>
 <div class="oc" id="oc"><div class="occ" id="occ"></div></div>
+<div class="zoom" id="zoom" onclick="this.classList.remove('on')"></div>
 <div class="toast" id="toast"><span id="toastMsg"></span><button onclick="undoDone()">Undo</button></div>
 <script>
 var PRINT=['Print Error','Corner','Out of Square','Smudge','Dry-in','Light Ink'];
@@ -234,10 +249,13 @@ function render(){
   var o=f.o,p=f.p,st=ps(p.id),t=totals(p,st),x=extrasPlan(p,st);
   var q=0;for(var k in p.sizes)q+=p.sizes[k];
   var x2=0;for(var k2 in p.extras)x2+=p.extras[k2];
-  var s='<div class="ph"><div class="proof" onclick="alert(\'Opens the full proof (same viewer as today)\')">PROOF</div><div class="info">';
+  var pg=(S.page&&S.page[p.id])||0, pages=p.locs.length;
+  var s='<div class="ph"><div class="info">';
   s+='<div class="ord">Order '+o.order+' · '+o.cust+'</div><div class="ttl">'+p.name+' — '+p.color+'</div></div>';
   s+='<div class="chips"><span class="chip k">'+q+' pcs</span>'+(x2?'<span class="chip k">+'+x2+' extras</span>':'')+'<span class="chip '+(o.ship==='Pick-Up'?'pick':'ship')+'">'+(o.ship==='Pick-Up'?'🤝 ':'📦 ')+o.ship+'</span>'+(st.done?'<span class="chip" style="color:var(--green);border-color:#b8dfcc">✓ Done</span>':'')+'</div></div>';
-  s+='<div class="pb">';
+  s+='<div class="wk"><div class="bigproof"><div class="img" onclick="zoomProof()">'+proofSvg(p,pg)+'</div>';
+  s+='<div class="pnav">'+(pages>1?'<button onclick="pageProof(-1)">‹</button>':'')+'<span>'+p.locs[pg]+(pages>1?' · '+(pg+1)+'/'+pages:'')+' · tap to zoom</span>'+(pages>1?'<button onclick="pageProof(1)">›</button>':'')+'</div></div>';
+  s+='<div class="lane"><div class="pb">';
   // 1 — sizes (top of the lane)
   s+='<div><div class="lbl"><span>1 · Size</span><span>'+(t.all?t.all+' damaged so far':'tap a size when you find a bad one')+'</span></div><div class="sizes">';
   sizesOf(p).forEach(function(sz){var d=dmgFor(st,sz),e=(p.extras||{})[sz]||0;
@@ -262,10 +280,22 @@ function render(){
   s+='<div class="endrow"><button class="rev" onclick="openReview()">Review</button>';
   s+=st.done?'<button class="done" onclick="reopen()">↺ Reopen pile</button>'
     :'<button class="done" onclick="donePile()">✓ Done with pile<small>'+(t.all?'<span class="bad">'+t.all+' damaged</span> · ':'Clean · ')+caught+'/'+q+' caught'+(l2.length?' · '+l2.join(' · '):'')+'</small></button>';
-  s+='</div></div>';
+  s+='</div></div></div></div>';
   el.innerHTML=s;save();
 }
 function rb(r,c,cls,sub){return '<button class="rb '+cls+(c?' has':'')+'" onclick="tap(\''+r+'\',1)"><div class="n">'+r+'</div><div class="c">'+c+'</div>'+(sub?'<span class="sub">'+sub+'</span>':'')+(c?'<span class="minus" onclick="event.stopPropagation();tap(\''+r+'\',-1)">−</span>':'')+'</button>'}
+var SHIRT={Black:'#1b1b1b','Heather Navy':'#3b4a66',Natural:'#efe7d6',Red:'#c62828'};
+function proofSvg(p,pg){
+  var c=SHIRT[p.color]||'#999',ink=(p.color==='Natural'?'#1b1b1b':'#E8E832'),loc=p.locs[pg]||'Front';
+  if(loc==='Bandana')return '<svg viewBox="0 0 400 400"><rect x="40" y="40" width="320" height="320" fill="'+c+'" rx="6"/><rect x="60" y="60" width="280" height="280" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="14 10"/><circle cx="200" cy="200" r="70" fill="none" stroke="#fff" stroke-width="10"/><text x="200" y="214" font-family="Helvetica" font-weight="700" font-size="40" fill="#fff" text-anchor="middle">CO C</text><text x="200" y="385" font-family="Helvetica" font-size="13" fill="#777" text-anchor="middle">SAMPLE PROOF · BANDANA</text></svg>';
+  var art=loc==='Front'?'<text x="200" y="170" font-family="Helvetica" font-weight="700" font-size="30" fill="'+ink+'" text-anchor="middle">SAMPLE CO</text><rect x="150" y="185" width="100" height="6" fill="'+ink+'"/>'
+    :loc==='Back'?'<circle cx="200" cy="200" r="62" fill="none" stroke="'+ink+'" stroke-width="7"/><text x="200" y="212" font-family="Helvetica" font-weight="700" font-size="30" fill="'+ink+'" text-anchor="middle">2026</text>'
+    :'<text x="318" y="128" font-family="Helvetica" font-weight="700" font-size="16" fill="'+ink+'" text-anchor="middle" transform="rotate(-28 318 128)">CO</text>';
+  return '<svg viewBox="0 0 400 420"><path d="M120 40 L160 25 Q200 55 240 25 L280 40 L360 95 L330 150 L295 130 L295 380 L105 380 L105 130 L70 150 L40 95 Z" fill="'+c+'" stroke="#0003" stroke-width="2"/>'+art
+    +'<text x="200" y="408" font-family="Helvetica" font-size="13" fill="#777" text-anchor="middle">SAMPLE PROOF · '+loc.toUpperCase()+'</text></svg>';
+}
+function pageProof(d){var f=findPile(S.active);S.page=S.page||{};var n=f.p.locs.length;S.page[f.p.id]=(((S.page[f.p.id]||0)+d)%n+n)%n;render()}
+function zoomProof(){var f=findPile(S.active),pg=(S.page&&S.page[f.p.id])||0;var z=document.getElementById('zoom');z.innerHTML=proofSvg(f.p,pg);z.classList.add('on')}
 function flipSide(){S.flip=!S.flip;document.body.classList.toggle('flip',!!S.flip);save()}
 var _hist=[];
 function undoTap(){var h=_hist.pop();if(!h)return;var st=ps(h.id);st.dmg[h.sz][h.r]=Math.max(0,(st.dmg[h.sz][h.r]||0)-h.n);S.active=h.id;st.size=h.sz;render()}
