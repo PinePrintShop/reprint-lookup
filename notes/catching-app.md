@@ -88,3 +88,26 @@ Each fact now shows once, where it's used:
 - **Extras:** "+n" on the size chips and "1 bonus extra" on Done. Removed the "+3 extras" chip and the long extras sentence.
 - **Locations:** the "Checked" chips. Removed "1/3 · tracking only".
 - **Labels:** cut down to Size / Print team / Other / Checked. Removed the step numbers, "Not sure", "PM decides", "last tap", "tap to zoom" (now a 🔍), and "/2 piles" → "0/2".
+
+## v147 — the new screen on real data (Oct 5)
+`pine-catching-v147.html`. v146 stays as the fallback, and `?practice=1` works.
+- **Layout:** the mockup on v146's data layer.
+  - Proof big on the left; tap it for the full viewer with pages and zoom.
+  - One tap lane: size → reason (Print team ×6 / Other ×4 + Unsure + Undo) → Checked locations → **Done with pile**.
+  - Piles on the right, grouped by order with done/total. ⇄ flips the side, and the iPad remembers its side and its press.
+- **Done with pile:**
+  - Saves the damage through the v146 write path, without the modal. All the v146 protections still apply: no duplicates, never deletes reviewed issues, tallies survive reloads.
+  - Opens the next pile in the order, with a 6-second **Undo** toast.
+  - Marks the previous pile caught (and moves the order status on) when the Undo window ends, the next Done is tapped, or the app is backgrounded.
+  - On the last pile of the order, an **Order complete** card shows the expected status and the next step (readyCopy), with 🖨 Packing slip / Next pile / Undo. Packing slip or Next commits right away.
+- **Unsure:** one tap, no note pop-up. Until the Damage Log can assign TBD, Done still asks Print team / Other for unsure pieces (the existing pop-up), then carries on.
+- **Extras:** by default, every extra that didn't replace damage goes in the box (bonus). Review → tap an extra to keep it out. This is written to Extras Sent like v143.
+- **+ caught (absorbed)** is next to the Size label when a size is selected; the size chip shows "+1 caught".
+- **Bandanas:** a "N more to print" bar at the top of the lane.
+- **Review:** the old submit sheet (size table, extras, notes, the issues that will be created), with a Done button.
+- **Completed tab:** unchanged.
+- **Tests (mock Airtable):**
+  - Layouts: landscape and portrait have no scroll.
+  - Done → next pile → last pile → order card → caught written on Next. Undo writes nothing.
+  - The Unsure → resolve → Done path works, and extras default to the box.
+  - All v146 data tests still pass.
