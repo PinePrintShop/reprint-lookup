@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catching — New Flow Mockup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F2F2EE;--surface:#fff;--border:#E5E5E0;--border-dk:#D0D0CA;--text:#0D0D0B;--muted:#888880;--muted-lt:#BBBBB5;
+  --yellow:#E8E832;--ink:#0A0A08;--green:#1e6b45;--green-lt:#e8f5ee;--red:#c0392b;--red-bg:#fdf2f2;--red-bd:#f5c6c6;
+  --amb:#b7791f;--amb-bg:#fffbeb;--amb-bd:#fde68a;--cond:Helvetica,Arial,sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--cond);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.mock-note{background:var(--yellow);color:var(--ink);font:700 11px/1.3 var(--cond);letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:5px 10px}
+.app{display:flex;flex-direction:column;height:calc(100vh - 24px);height:calc(100dvh - 24px)}
+/* header */
+.hd{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--ink);color:#fff;flex-shrink:0;overflow-x:auto}
+.tab{font:700 12px/1 var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;border-radius:22px;border:1px solid #3a3a36;background:transparent;color:#ddd;white-space:nowrap}
+.tab.on{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
+.tab .ct{display:inline-block;margin-left:6px;font-size:11px;opacity:.7}
+.hd .sp{flex:1}
+.hd .ipad{font:700 10px var(--cond);letter-spacing:.08em;color:var(--muted-lt);text-transform:uppercase;white-space:nowrap}
+/* body: piles rail + pile */
+.main{flex:1;min-height:0;display:flex;gap:10px;padding:10px}
+.rail{width:270px;flex-shrink:0;background:var(--surface);border:1px solid var(--border-dk);border-radius:10px;display:flex;flex-direction:column;min-height:0}
+.rail-h{padding:10px 12px;border-bottom:1px solid var(--border);font:700 11px var(--cond);letter-spacing:.1em;text-transform:uppercase;display:flex;justify-content:space-between}
+.rail-l{flex:1;overflow-y:auto;padding:8px}
+.og{margin-bottom:10px}
+.og-h{display:flex;align-items:center;gap:6px;font:700 11px var(--cond);letter-spacing:.04em;margin:2px 4px 6px}
+.og-h .num{font-size:14px}
+.og-h .cust{color:var(--muted);text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.og-h .prog{font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:2px 7px;white-space:nowrap}
+.og-h .prog.done{background:var(--green-lt);color:var(--green);border-color:#b8dfcc}
+.pc{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:6px}
+.pc.on{background:var(--ink);color:#fff;border-color:var(--ink);box-shadow:inset 4px 0 0 var(--yellow)}
+.pc.done{opacity:.55;background:var(--bg)}
+.pc .th{width:40px;height:40px;border-radius:5px;background:#ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#777}
+.pc .nm{font:700 13px/1.15 var(--cond);text-transform:uppercase}
+.pc .mt{font:400 11px/1.2 var(--cond);color:var(--muted);margin-top:2px}
+.pc.on .mt{color:var(--muted-lt)}
+.pc .st{margin-left:auto;font:700 9px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:3px;background:var(--bg);color:var(--muted);white-space:nowrap}
+.pc .st.dmg{background:var(--red-bg);color:var(--red)}
+.pc .st.ok{background:var(--green-lt);color:var(--green)}
+/* pile */
+.pile{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border-dk);border-radius:10px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.ph{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);align-items:flex-start}
+.ph .proof{width:84px;height:84px;border-radius:6px;background:#ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#777;cursor:pointer}
+.ph .info{flex:1;min-width:0}
+.ph .ord{font:700 11px var(--cond);letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.ph .ttl{font:700 21px/1.1 var(--cond);text-transform:uppercase;margin:3px 0}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.chip{font:700 10px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:3px;border:1px solid var(--border);color:var(--muted);background:var(--surface)}
+.chip.k{background:var(--ink);color:var(--yellow);border-color:var(--ink)}
+.chip.ship{background:#fff3e0;color:#9a5a00;border-color:#f3d19c}
+.chip.pick{background:var(--green-lt);color:var(--green);border-color:#b8dfcc}
+.locs{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
+.locs .lh{font:700 9px var(--cond);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.loc{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;border-radius:16px;border:1px solid var(--border-dk);background:var(--surface);color:var(--muted);min-width:110px;text-align:left}
+.loc.on{background:var(--green-lt);color:var(--green);border-color:#b8dfcc}
+.pb{flex:1;min-height:0;overflow-y:auto;padding:12px 14px}
+.lbl{font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.sizes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.sz{min-width:66px;padding:9px 10px;border-radius:8px;border:2px solid var(--border-dk);background:var(--surface);text-align:center}
+.sz b{display:block;font:700 19px var(--cond)}
+.sz span{font:400 11px var(--cond);color:var(--muted)}
+.sz span i{font-style:normal;color:var(--green);font-weight:700}
+.sz.on{background:var(--ink);border-color:var(--ink);color:var(--yellow)}
+.sz.on span{color:#ccc}
+.sz .dm{display:block;font:700 10px var(--cond);color:var(--red);margin-top:2px}
+.sz.on .dm{color:#ff8c7a}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.rb{position:relative;text-align:left;padding:10px 12px;border-radius:9px;border:2px solid var(--red-bd);background:var(--surface);min-height:62px}
+.rb .n{font:700 13px var(--cond);letter-spacing:.04em;text-transform:uppercase;color:var(--red)}
+.rb .c{font:700 22px var(--cond);color:#efc2bd;margin-top:2px}
+.rb.has{background:var(--red);border-color:var(--red)}
+.rb.has .n,.rb.has .c{color:#fff}
+.rb.o{border-color:var(--amb-bd)}
+.rb.o .n{color:var(--amb)}.rb.o .c{color:#f1dca5}
+.rb.o.has{background:var(--amb);border-color:var(--amb)}
+.rb.u{border-color:var(--border-dk)}
+.rb.u .n{color:#555}.rb.u .c{color:#ccc}
+.rb.u.has{background:#555;border-color:#555}
+.rb.has .n,.rb.has .c{color:#fff!important}
+.rb .sub{display:block;font:400 10px var(--cond);color:var(--muted);margin-top:2px;text-transform:none;letter-spacing:0}
+.rb.has .sub{color:#eee}
+.minus{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--red);font:700 20px/30px var(--cond);text-align:center;border:none}
+.rb.o .minus{color:var(--amb)}.rb.u .minus{color:#555}
+.pick{padding:30px 10px;text-align:center;color:var(--muted);font:700 12px var(--cond);letter-spacing:.08em;text-transform:uppercase;border:2px dashed var(--border-dk);border-radius:9px;margin-bottom:12px}
+/* footer */
+.pf{border-top:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:12px;background:#fafaf7;flex-shrink:0}
+.sum{flex:1;min-width:0}
+.sum .l1{font:700 14px var(--cond)}
+.sum .l1 .bad{color:var(--red)}.sum .l1 .ok{color:var(--green)}
+.sum .l2{font:400 12px/1.35 var(--cond);color:var(--muted);margin-top:2px}
+.sum .l2 b{color:var(--text)}
+.rev{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:12px 12px;border-radius:8px;border:1px solid var(--border-dk);background:var(--surface);white-space:nowrap}
+.done{font:700 15px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:16px 22px;border-radius:9px;border:none;background:var(--ink);color:var(--yellow);white-space:nowrap}
+.undo{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:12px;border-radius:8px;border:1px dashed var(--border-dk);background:transparent;color:var(--muted)}
+/* review drawer */
+.drawer{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.drawer.on{display:flex}
+.dc{background:var(--surface);width:min(760px,100%);max-height:86vh;overflow-y:auto;border-radius:14px 14px 0 0;padding:18px}
+.dc h3{font:700 16px var(--cond);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font:400 13px var(--cond);margin-bottom:14px}
+th{font:700 10px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:6px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:7px 6px;border-bottom:1px solid var(--border)}
+td.r{color:var(--red);font-weight:700}td.g{color:var(--green);font-weight:700}
+.xrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.xc{padding:9px 12px;border-radius:7px;border:2px solid var(--green);background:var(--green);color:#fff;font:700 13px var(--cond)}
+.xc.keep{background:#fff;color:#555;border-color:var(--border-dk)}
+.xc.used{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.dc textarea{width:100%;min-height:60px;border:1px solid var(--border-dk);border-radius:8px;padding:8px;font:400 14px var(--cond)}
+.dc .close{margin-top:12px;width:100%}
+/* order complete */
+.oc{position:fixed;inset:0;background:rgba(10,10,8,.72);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.oc.on{display:flex}
+.occ{background:var(--surface);border-radius:16px;max-width:460px;width:100%;padding:26px;text-align:center}
+.occ .big{font:700 40px var(--cond);margin:6px 0}
+.occ .stat{display:inline-block;font:700 13px var(--cond);letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;border-radius:20px;margin:8px 0}
+.occ .stat.ship{background:#fff3e0;color:#9a5a00}
+.occ .stat.pick{background:var(--green-lt);color:var(--green)}
+.occ p{font:400 14px/1.45 var(--cond);color:var(--muted);margin:6px 0 16px}
+.occ .row{display:flex;gap:10px}
+.occ .row button{flex:1}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;font:700 13px var(--cond);padding:12px 16px;border-radius:10px;z-index:70;display:none;align-items:center;gap:14px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast.on{display:flex}
+.toast button{background:none;border:1px solid var(--yellow);color:var(--yellow);border-radius:16px;padding:6px 12px;font:700 11px var(--cond);text-transform:uppercase}
+.piles-btn{display:none}
+/* portrait iPad: rail becomes a strip on top */
+@media(max-width:1000px) and (orientation:portrait){
+  .main{flex-direction:column}
+  .rail{width:auto;max-height:200px}
+  .rail-l{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;align-items:flex-start}
+  .og{min-width:260px}
+  .grid{grid-template-columns:repeat(3,1fr)}
+}
+/* phone: one column, piles behind a button */
+@media(max-width:640px){
+  .app{height:auto}
+  .main{flex-direction:column;padding:8px}
+  .rail{display:none;width:auto}
+  .rail.open{display:flex}
+  .piles-btn{display:inline-block}
+  .ph{flex-wrap:wrap}.locs{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%}
+  .loc{min-width:0}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .pf{position:sticky;bottom:0;flex-wrap:wrap}
+  .pf .sum{flex-basis:100%}
+  .pf .done{flex:1}
+}
+</style>
+</head>
+<body>
+<div class="mock-note">Mockup · sample data · nothing saves · <a href="#" onclick="resetMock();return false" style="color:inherit">reset</a></div>
+<div class="app">
+  <div class="hd" id="hd"></div>
+  <div class="main">
+    <div class="rail" id="rail"></div>
+    <div class="pile" id="pile"></div>
+  </div>
+</div>
+<div class="drawer" id="drawer" onclick="if(event.target===this)closeReview()"><div class="dc" id="dc"></div></div>
+<div class="oc" id="oc"><div class="occ" id="occ"></div></div>
+<div class="toast" id="toast"><span id="toastMsg"></span><button onclick="undoDone()">Undo</button></div>
+<script>
+var PRINT=['Print Error','Corner','Out of Square','Smudge','Dry-in','Light Ink'];
+var OTHER=['Dryer Grease','Mill Flaw','Wrinkle','Jawn'];
+var ORD=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','OSFA'];
+var DATA=[
+ {order:'90010',cust:'Sample Co A',ship:'UPS Ground',press:'p1',piles:[
+   {id:'a1',name:'Bella Canvas 3001',color:'Black',sizes:{S:10,M:20,L:20,XL:10},extras:{S:1,M:2},locs:['Front','Back','Sleeve']},
+   {id:'a2',name:'Bella Canvas 3001',color:'Heather Navy',sizes:{S:5,M:10,L:10},extras:{},locs:['Front']}]},
+ {order:'90011',cust:'Sample Co B',ship:'Pick-Up',press:'p1',piles:[
+   {id:'b1',name:'AS Colour 5001',color:'Natural',sizes:{M:24,L:24,'4XL':3},extras:{M:1,L:1},locs:['Front','Back']}]},
+ {order:'90012',cust:'Sample Co C',ship:'UPS Ground',press:'p2',piles:[
+   {id:'c1',name:'Bandana',color:'Red',sizes:{OSFA:50},extras:{},locs:['Bandana']}]}
+];
+var PRESSES=[{id:'p1',l:'P1 · ROQ NEXT'},{id:'p2',l:'P2 · ROQ YOU'},{id:'fs',l:'Flatstock'},{id:'em',l:'Embroidery'}];
+var S=load()||{press:'p1',active:null,piles:{},last:null};
+function load(){try{return JSON.parse(localStorage.getItem('catmock'))}catch(e){return null}}
+function save(){try{localStorage.setItem('catmock',JSON.stringify(S))}catch(e){}}
+function resetMock(){localStorage.removeItem('catmock');location.reload()}
+function ps(id){if(!S.piles[id])S.piles[id]={size:null,dmg:{},locs:{},keep:{},notes:'',done:false};return S.piles[id]}
+function findPile(id){for(var o of DATA)for(var p of o.piles)if(p.id===id)return {o:o,p:p};return null}
+function sizesOf(p){return Object.keys(p.sizes).sort(function(a,b){return ORD.indexOf(a)-ORD.indexOf(b)})}
+function dmgFor(st,sz){var d=st.dmg[sz]||{},t=0;for(var k in d)t+=d[k];return t}
+function totals(p,st){var pr=0,ot=0,un=0;sizesOf(p).forEach(function(sz){var d=st.dmg[sz]||{};for(var k in d){if(PRINT.indexOf(k)>=0)pr+=d[k];else if(OTHER.indexOf(k)>=0)ot+=d[k];else un+=d[k]}});return {pr:pr,ot:ot,un:un,all:pr+ot+un}}
+// extras: cover damage first, the rest go in the box as bonus (unless marked kept)
+function extrasPlan(p,st){var cover=0,bonus=0,keep=0;sizesOf(p).forEach(function(sz){var e=(p.extras||{})[sz]||0,d=dmgFor(st,sz),c=Math.min(e,d),k=Math.min(st.keep[sz]||0,e-c);cover+=c;keep+=k;bonus+=e-c-k});return {cover:cover,bonus:bonus,keep:keep}}
+function pileList(){var out=[];DATA.forEach(function(o){if(o.press===S.press)out.push(o)});return out}
+function render(){
+  var hd=document.getElementById('hd'),h='';
+  PRESSES.forEach(function(pr){var n=0;DATA.forEach(function(o){if(o.press===pr.id)o.piles.forEach(function(p){if(!ps(p.id).done)n++})});
+    h+='<button class="tab'+(S.press===pr.id?' on':'')+'" onclick="setPress(\''+pr.id+'\')">'+pr.l+'<span class="ct">'+n+'</span></button>'});
+  h+='<button class="tab piles-btn" onclick="document.getElementById(\'rail\').classList.toggle(\'open\')">☰ Piles</button>';
+  h+='<span class="sp"></span><span class="ipad">This iPad remembers its press</span>';
+  hd.innerHTML=h;
+  // rail
+  var r='<div class="rail-h"><span>Piles</span><span style="color:var(--muted)">'+(PRESSES.find(function(x){return x.id===S.press}).l)+'</span></div><div class="rail-l">';
+  var list=pileList();
+  if(!list.length)r+='<div style="padding:20px;text-align:center;color:var(--muted);font:700 11px var(--cond);text-transform:uppercase">Nothing on this press</div>';
+  list.forEach(function(o){
+    var done=o.piles.filter(function(p){return ps(p.id).done}).length;
+    r+='<div class="og"><div class="og-h"><span class="num">'+o.order+'</span><span class="cust">'+o.cust+'</span><span class="prog'+(done===o.piles.length?' done':'')+'">'+done+'/'+o.piles.length+' piles</span></div>';
+    o.piles.forEach(function(p){var st=ps(p.id),t=totals(p,st),q=0;for(var k in p.sizes)q+=p.sizes[k];
+      var cls='pc'+(S.active===p.id?' on':'')+(st.done?' done':'');
+      var tag=st.done?'<span class="st ok">✓ Done</span>':(t.all?'<span class="st dmg">'+t.all+' dmg</span>':'');
+      r+='<button class="'+cls+'" onclick="openPile(\''+p.id+'\')"><span class="th">PROOF</span><span><div class="nm">'+p.color+'</div><div class="mt">'+p.name+' · '+q+' pcs</div></span>'+tag+'</button>'});
+    r+='</div>'});
+  r+='</div>';document.getElementById('rail').innerHTML=r;
+  // pile
+  var el=document.getElementById('pile');
+  var f=S.active&&findPile(S.active);
+  if(!f||f.o.press!==S.press){var first=null;list.forEach(function(o){o.piles.forEach(function(p){if(!first&&!ps(p.id).done)first=p.id})});
+    if(first){S.active=first;f=findPile(first)}else{el.innerHTML='<div style="margin:auto;text-align:center;color:var(--muted);font:700 13px var(--cond);text-transform:uppercase;letter-spacing:.08em">All piles caught on this press ✓</div>';save();return}}
+  var o=f.o,p=f.p,st=ps(p.id),t=totals(p,st),x=extrasPlan(p,st);
+  var q=0;for(var k in p.sizes)q+=p.sizes[k];
+  var x2=0;for(var k2 in p.extras)x2+=p.extras[k2];
+  var s='<div class="ph"><div class="proof" onclick="alert(\'Opens the full proof (same viewer as today)\')">PROOF</div><div class="info">';
+  s+='<div class="ord">Order '+o.order+' · '+o.cust+'</div><div class="ttl">'+p.name+' — '+p.color+'</div>';
+  s+='<div class="chips"><span class="chip k">'+q+' pcs</span>'+(x2?'<span class="chip k">+'+x2+' extras</span>':'')+'<span class="chip '+(o.ship==='Pick-Up'?'pick':'ship')+'">'+(o.ship==='Pick-Up'?'🤝 ':'📦 ')+o.ship+'</span>'+(st.done?'<span class="chip" style="color:var(--green);border-color:#b8dfcc">✓ Done</span>':'')+'</div></div>';
+  if(p.locs.length>1){s+='<div class="locs"><span class="lh">Checked · '+Object.keys(st.locs).filter(function(k){return st.locs[k]}).length+'/'+p.locs.length+'</span>';
+    p.locs.forEach(function(l){s+='<button class="loc'+(st.locs[l]?' on':'')+'" onclick="togLoc(\''+l+'\')">'+(st.locs[l]?'✓ ':'○ ')+l+'</button>'});s+='</div>'}
+  s+='</div><div class="pb">';
+  s+='<div class="lbl">Size</div><div class="sizes">';
+  sizesOf(p).forEach(function(sz){var d=dmgFor(st,sz),e=(p.extras||{})[sz]||0;
+    s+='<button class="sz'+(st.size===sz?' on':'')+'" onclick="pickSize(\''+sz+'\')"><b>'+sz+'</b><span>'+p.sizes[sz]+(e?' <i>+'+e+'</i>':'')+'</span>'+(d?'<span class="dm">'+d+' dmg</span>':'')+'</button>'});
+  s+='</div>';
+  if(!st.size&&sizesOf(p).length>1){s+='<div class="pick">Pile looks clean? Tap <b>Done with pile</b>.<br>Found a bad one? Tap its size first.</div>'}
+  var sz=st.size||(sizesOf(p).length===1?sizesOf(p)[0]:null);
+  if(sz){var d=st.dmg[sz]||{};
+    s+='<div class="lbl">Print team · '+sz+'</div><div class="grid">';PRINT.forEach(function(r){s+=rb(r,d[r]||0,'')});s+='</div>';
+    s+='<div class="lbl">Other · '+sz+'</div><div class="grid">';OTHER.forEach(function(r){s+=rb(r,d[r]||0,'o')});s+='</div>';
+    s+='<div class="lbl">Not sure</div><div class="grid">'+rb('Unsure',d['Unsure']||0,'u','Production manager decides in Damage Log')+'</div>'}
+  s+='</div>';
+  // footer
+  var caught=q-t.all;
+  s+='<div class="pf"><div class="sum"><div class="l1">'+(t.all?'<span class="bad">'+t.all+' damaged</span> · ':'<span class="ok">Clean pile</span> · ')+caught+' of '+q+' caught</div>';
+  var l2=[];if(t.pr)l2.push(t.pr+' print');if(t.ot)l2.push(t.ot+' other');if(t.un)l2.push(t.un+' unsure → PM');
+  if(x2)l2.push('Extras: <b>'+x.cover+'</b> replace damage · <b>'+x.bonus+'</b> bonus in box'+(x.keep?' · '+x.keep+' kept':''));
+  s+='<div class="l2">'+(l2.join(' · ')||'No damage logged')+'</div></div>';
+  s+='<button class="rev" onclick="openReview()">Review</button>';
+  s+=st.done?'<button class="done" onclick="reopen()">↺ Reopen</button>':'<button class="done" onclick="donePile()">✓ Done with pile</button>';
+  s+='</div>';
+  el.innerHTML=s;save();
+}
+function rb(r,c,cls,sub){return '<button class="rb '+cls+(c?' has':'')+'" onclick="tap(\''+r+'\',1)"><div class="n">'+r+'</div><div class="c">'+c+'</div>'+(sub?'<span class="sub">'+sub+'</span>':'')+(c?'<span class="minus" onclick="event.stopPropagation();tap(\''+r+'\',-1)">−</span>':'')+'</button>'}
+function setPress(id){S.press=id;S.active=null;render()}
+function openPile(id){S.active=id;document.getElementById('rail').classList.remove('open');render()}
+function pickSize(sz){ps(S.active).size=sz;render()}
+function togLoc(l){var st=ps(S.active);st.locs[l]=!st.locs[l];render()}
+function tap(r,n){var f=findPile(S.active),st=ps(S.active),sz=st.size||(sizesOf(f.p).length===1?sizesOf(f.p)[0]:null);if(!sz)return;
+  st.dmg[sz]=st.dmg[sz]||{};st.dmg[sz][r]=Math.max(0,(st.dmg[sz][r]||0)+n);render()}
+function openReview(){var f=findPile(S.active),p=f.p,st=ps(p.id);
+  var h='<h3>'+p.color+' — review</h3><table><tr><th>Size</th><th>Ordered</th><th>Damaged</th><th>Caught</th><th>Extras</th></tr>';
+  sizesOf(p).forEach(function(sz){var d=dmgFor(st,sz),e=(p.extras||{})[sz]||0;h+='<tr><td>'+sz+'</td><td>'+p.sizes[sz]+'</td><td class="'+(d?'r':'')+'">'+(d||'—')+'</td><td>'+(p.sizes[sz]-d)+'</td><td class="'+(e?'g':'')+'">'+(e||'—')+'</td></tr>'});
+  h+='</table>';
+  var any=false;sizesOf(p).forEach(function(sz){if((p.extras||{})[sz])any=true});
+  if(any){h+='<div class="lbl">Extras — tap one to keep it out of the box</div><div class="xrow">';
+    sizesOf(p).forEach(function(sz){var e=(p.extras||{})[sz]||0,d=dmgFor(st,sz),c=Math.min(e,d),k=Math.min(st.keep[sz]||0,e-c);
+      for(var i=0;i<e;i++){var cls=i<c?'used':(i<c+k?'keep':'');var lab=i<c?'replaces dmg':(i<c+k?'kept':'in box');
+        h+='<button class="xc '+cls+'" '+(i<c?'disabled':'onclick="togKeep(\''+sz+'\','+(i<c+k?-1:1)+')"')+'>'+sz+' · '+lab+'</button>'}});
+    h+='</div>'}
+  h+='<div class="lbl">Notes (optional)</div><textarea oninput="ps(S.active).notes=this.value;save()">'+(st.notes||'')+'</textarea>';
+  h+='<button class="done close" onclick="closeReview()">Close</button>';
+  document.getElementById('dc').innerHTML=h;document.getElementById('drawer').classList.add('on')}
+function togKeep(sz,n){var st=ps(S.active);st.keep[sz]=Math.max(0,(st.keep[sz]||0)+n);openReview();render()}
+function closeReview(){document.getElementById('drawer').classList.remove('on')}
+var toastT=null;
+function donePile(){var f=findPile(S.active),st=ps(f.p.id);st.done=true;S.last=f.p.id;
+  var left=f.o.piles.filter(function(p){return !ps(p.id).done});
+  if(!left.length){showOrderDone(f.o);render();return}
+  S.active=left[0].id;render();
+  toast('✓ Pile saved · Order '+f.o.order+': '+left.length+' pile'+(left.length>1?'s':'')+' left')}
+function showOrderDone(o){document.getElementById('toast').classList.remove('on');var pick=o.ship==='Pick-Up';var dmg=0;o.piles.forEach(function(p){dmg+=totals(p,ps(p.id)).all});
+  document.getElementById('occ').innerHTML='<div style="font-size:34px">✓</div><div class="ord" style="font:700 11px var(--cond);letter-spacing:.1em;color:var(--muted);text-transform:uppercase">Order complete</div><div class="big">'+o.order+'</div><div style="font:700 15px var(--cond);text-transform:uppercase">'+o.cust+'</div>'
+   +'<span class="stat '+(pick?'pick':'ship')+'">'+(pick?'→ Completed · ready for pick-up':'→ Caught – Awaiting Ship')+'</span>'
+   +'<p>'+o.piles.length+' pile'+(o.piles.length>1?'s':'')+' · '+(dmg?dmg+' damaged piece'+(dmg>1?'s':'')+' logged for the production manager':'no damage')+'</p>'
+   +'<div class="row"><button class="rev" onclick="alert(\'Opens the packing slip (same as today)\')">🖨 Packing slip</button><button class="done" onclick="closeOrderDone()">Next pile ▸</button></div>'
+   +'<button class="undo" style="margin-top:10px;width:100%" onclick="closeOrderDone();undoDone()">↺ Undo — not done yet</button>';
+  document.getElementById('oc').classList.add('on')}
+function closeOrderDone(){document.getElementById('oc').classList.remove('on');S.active=null;render()}
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on')},6000)}
+function undoDone(){if(!S.last)return;ps(S.last).done=false;S.active=S.last;S.last=null;document.getElementById('toast').classList.remove('on');render()}
+function reopen(){ps(S.active).done=false;render()}
+render();
+</script>
+</body>
+</html>
