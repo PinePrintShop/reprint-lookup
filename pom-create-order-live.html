@@ -93,6 +93,8 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .picker{grid-column:1/-1;border:1px dashed var(--ydk);border-radius:8px;padding:12px;background:#fffef0}
 .rep{display:flex;align-items:center;gap:10px}.rep img{height:44px;border-radius:4px;background:var(--soft)}
 .detail{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.tag.new{background:var(--ytint);border-color:var(--ydk);color:var(--text);font-weight:700}
+.gfix{flex-basis:100%;font-size:12px;color:var(--muted)}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
 .fbrk{display:none}.ich{margin-left:14px}
@@ -102,7 +104,7 @@ a.ghost{display:inline-block}
 .mbar button.wait{background:#2a2a26;color:#ddd;border-color:#4a4a44}
 @media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.rail{position:static}}
 @media (max-width:600px){
-  body{padding:10px 10px 90px}
+  body{padding:10px 10px calc(100px + env(safe-area-inset-bottom, 0px))}
   .mk-note .long{display:none}
   .top{padding:8px 8px 8px 14px;gap:10px}.crumb{display:none}.brand{font-size:13px;letter-spacing:1.5px;white-space:nowrap}
   .prac{font-size:11px;padding:5px 8px;white-space:nowrap}.ghost{padding:7px 10px;white-space:nowrap}
@@ -122,7 +124,7 @@ a.ghost{display:inline-block}
 </head>
 <body>
 <div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved.</div>
-<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v99.html" style="text-decoration:none">← Quote</a></div>
+<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v100.html" style="text-decoration:none">← Quote</a></div>
 <div class="mbar" id="mbar"></div>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
@@ -169,7 +171,15 @@ a.ghost{display:inline-block}
 /* ---------- Airtable (read-only) ---------- */
 const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_CUST='tblXToEJONa3VELp2', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV';
 const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',due:'fldphJYdlBNS0dmAK',rep:'fldSPnWlnzz48ZZDD',ship:'fldrjFuIBn45ewFU5',src:'fldE1muKiijQchB0h',lines:'fldU6fgrz6sU3wyIZ',imps:'fldShbb1tOR0zwGIt',created:'fldXUjQHSeRaW5per'};
-const G={name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO'};
+const G={name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO',ssColor:'fldUnCYQgAx8AhsMZ',mfr:'fldtL6paVNlfMRDj4'};
+// Garment fields written when the vendor's naming fixes or adds a Garment
+const GW={mfr:'fldtL6paVNlfMRDj4',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',ssColor:'fldUnCYQgAx8AhsMZ',cost:'fldRmgDAByrOWcHLO',up2:'fldHakcDllb8SFCwz',up3:'fldEXqJi6mii9bpoJ',up4:'fldBWmLGzqtjXM0zm',up5:'fldlF7ZOqCNYr8hi2',
+  XS:'fldqtCiqDEcvbp5NY',S:'fldDnig5xvHwBEp47',M:'fldFfI2Bz6Zd901fV',L:'fldxddv4SOBQ79jLU',XL:'flduZZd9EqXf5Ntxf','2XL':'fldZpjXegFmPwGExL','3XL':'fldaVCBI9azZ2fzCk','4XL':'fldEm0sh0qVbR8qqw','5XL':'fld221OWblbVqYZeY','6XL':'fldmHuYBdqOdaXTmv',OSFA:'fldsBR0uVhjpEHyJh'};
+// Airtable's Manufacturer choices (vendor brand → choice). A brand not on the list is flagged, never invented.
+const MFRS=['Carolina Creative','Bella Canvas','AS Colour','Comfort Colors','Next Level','Independent','Gildan','Lane Seven','ComfortWash','Allmade','Econscious','Royal Apparel','American Apparel','Yupoong','District Made','All Sport','Flexfit','Richardson','C2 Sport','Liberty Bags','Q-Tees','Tultex','Alternative Apparel','Fruit of the Loom','Rabbit Skins','Badger','Carhartt','Ouray Sportswear','Anvil','Augusta','Jerzees','Prim + Preux','Hanes','ML Kishigo','Value Cap','Champion','Cali Headwear','Port Authority','Boxercraft','Columbia','New Era','Red Kap','Weatherproof','Eddie Bauer','LAT','FAME','LA Apparel','Star Tee','Sportsman','J. America','Alstyle','Cornerstone','US Blanks','Dickies','Original Favorites','Sport-Tek','Dyenomite','Port & Company','OTTO Cap','Adams','Mega Cap','Paragon','Outdoor Cap','Cap America','Pacific Headwear','Known Supply','Los Angeles Apparel','Adidas','Bayside','Authentic','Colortone','Nike','Holloway','Shakawear','Big Accessories','Decky','Kati','Legacy','Atlantis Headwear','Burnside','Ogio','Dri-Duck','Threadfast Apparel','CORE365','TriDri','Alleson','Cotton Heritage','Stanley/Stella','A4','MV Sport','47 Brand','Under Armour','BAGedge','Harriton','North Face','Charles River','Ultraclub','Berne','Nautica','Devon & Jones','TEAM365','Imperial','Pukka','Alpine Fleece','Spectra USA','Atonal'];
+const mkey=s=>String(s||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]/g,'');
+function mapMfr(brand){ const k=mkey(brand); if(!k) return null; return MFRS.find(m=>mkey(m)===k)||MFRS.find(m=>k.startsWith(mkey(m))||mkey(m).startsWith(k))||null; }
+const titleCase=s=>String(s||'').toLowerCase().replace(/\b([a-z])/g,c=>c.toUpperCase());
 const I={id:'fldDFfwFQ9B20n2kT'};
 const L={ptype:'fld8LIkrBXv8WoRRb',garment:'fldZbOdGIoCk3Gan2',imprints:'fldTFz4ZzfOthqkg6',proof:'fldWdnT83KLEvBrg4',nick:'fldKb7r8o7uvj1iEd',womens:'fld65C13J5BbKIWoI',youth:'fldLHtzJ3peAtr4X1',price:'fldtMZWzA4dfPxEXx',order:'fldckT7oPYh1rrBCI',
   XS:'fldVA9ZmYxhDxtnYZ',S:'fldCZr5lB6Jx80lfG',M:'fldzTs1qKe9IBxxSn',L:'fldnRLJxjUDa1mQTj',XL:'fldTRgdexcpBXXQPv','2XL':'fldin7j6uGO0uRTec','3XL':'fldpltq9fdRkrvIvt','4XL':'fldrsci7JnToa43Zd','5XL':'fldchnRSKFukouW6N','6XL':'fldI8gTtsEJwg33BI',OSFA:'fld2bgIlmPbANgLVK'};
@@ -203,8 +213,9 @@ function fromQuote(cart){
     const p=c.product, snap=c.snap||{};
     const ptype = p==='flatstock'?'Flatstock Printing':p==='patches'?(snap.patches&&snap.patches.type==='Woven'?'Woven Patches':'Embroidered Patches (100%)')
       : (snap.impressions||[]).every(i=>!i.type||i.type==='Embroidery')&&(snap.impressions||[]).some(i=>i.type)?'Embroidered Apparel':'Printed Apparel';
-    const nm=String(c.name||''); const color=(nm.split(' - ')[1]||'').trim(); const style=(nm.match(/\b([A-Z]{0,4}\d{2,6}[A-Z]{0,4})\b/i)||[])[1]||'';
-    lines.push({qname:nm,style,color,ptype,qty:Number(c.qty)||0,price:Number(c.quotedUnit)||0,up:c.ssTiers||null,sizes:{},garment:null,cands:null,nick:'',womens:false,youth:false,bandana:p==='bandana'});
+    const nm=String(c.name||''); const vg=c.vg||null;
+    const color=(vg&&vg.color)||(nm.split(' - ')[1]||'').trim(); const style=(vg&&vg.style)||(nm.match(/\b([A-Z]{0,4}\d{2,6}[A-Z]{0,4})\b/i)||[])[1]||'';
+    lines.push({qname:nm,style,color,vg,ptype,qty:Number(c.qty)||0,price:Number(c.quotedUnit)||0,up:c.ssTiers||null,sizes:{},garment:null,cands:null,nick:'',womens:false,youth:false,bandana:p==='bandana'});
     (snap.impressions||[]).filter(i=>i.type).forEach(i=>{
       const key=[i.loc,i.type,i.screens,!!i.underbase,i.supRecipe,i.supSize,i.decoMaterial,i.embStitchBand].join('|');
       let m=imps.find(x=>x.key===key);
@@ -240,7 +251,7 @@ function nextIds(){ const n=S.order?S.order.num:null, start=S.existingImps.lengt
 function renderQuote(){
   $('qHint').textContent=CART.length?CART.length+' line'+(CART.length>1?'s':'')+' from Price-O-Matic on this computer':'';
   $('quote').innerHTML=CART.length?CART.map(c=>`<div class="qrow"><b>${esc(c.name)}</b><span>${c.qty} × ${money(c.quotedUnit)}</span><span class="auto">${esc((c.scopeLines||[]).slice(1).join(' · '))}</span></div>`).join('')
-    :`<div class="auto" style="margin-left:0">No quote on this computer yet. Build one in <a href="price-o-matic-v99.html">Price-O-Matic</a> and press <b>Add to quote</b> — or add line items by hand below.</div>`;
+    :`<div class="auto" style="margin-left:0">No quote on this computer yet. Build one in <a href="price-o-matic-v100.html">Price-O-Matic</a> and press <b>Add to quote</b> — or add line items by hand below.</div>`;
 }
 /* ---------- customer + orders (real) ---------- */
 let custTimer=null;
@@ -358,26 +369,48 @@ async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(
 async function matchGarments(){
   for(const L of S.lines){
     if(L.cands||L.bandana||!L.style) continue;
-    const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:r.fields[G.cost]});
+    const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:r.fields[G.cost],raw:{product:r.fields[G.product]||'',color:r.fields[G.color]||'',ssColor:r.fields[G.ssColor]||'',mfr:r.fields[G.mfr]||[]}});
     try{
       const st=`TRIM({Product Number})="${fq(L.style)}"`;
-      if(L.color){ const d=await at(T_GAR,`maxRecords=1&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`AND(${st},LOWER(TRIM({Colorway}))="${fq(normC(L.color))}")`)}`);
+      if(L.color){ const d=await at(T_GAR,`maxRecords=1&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`AND(${st},OR(LOWER(TRIM({Colorway}))="${fq(normC(L.color))}",LOWER(TRIM({[S&S] Color Name}))="${fq(normC(L.color))}"))`)}`);
         if(d.records&&d.records[0]) L.garment=mapG(d.records[0]); }
       L.cands=(await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&sort%5B0%5D%5Bfield%5D=${G.color}&filterByFormula=${encodeURIComponent(st)}`,300)).map(mapG);
-      if(!L.garment&&L.color){ const w=normC(L.color); L.garment=L.cands.find(c=>normC(c.color)===w)||null; }
+      if(!L.garment&&L.color){ const w=normC(L.color); L.garment=L.cands.find(c=>normC(c.color)===w||normC(c.raw.ssColor)===w)||null; }
     }catch(e){ L.cands=L.cands||[]; }
   }
   render();
+}
+// Vendor naming wins: a matched Garment gets its Product Number / Colorway / [S&S] Color Name set to the vendor's,
+// and a garment that isn't in Airtable yet is added from the vendor (no more adding them by hand).
+function gplan(L){
+  const v=L.vg; if(!v||!v.style||!v.color) return null;
+  if(L.garment){ const r=L.garment.raw||{}, f={};
+    if(r.product!==v.style) f[GW.product]=v.style;
+    if(r.color!==v.color) f[GW.color]=v.color;
+    if(r.ssColor!==v.color) f[GW.ssColor]=v.color;
+    const m=mapMfr(v.brand); if(m&&!(r.mfr||[]).includes(m)&&!(r.mfr||[]).length) f[GW.mfr]=[m];
+    return Object.keys(f).length?{kind:'fix',id:L.garment.id,fields:f,from:r}:null; }
+  if(L.chg) return null;
+  const m=mapMfr(v.brand), t=v.tiers||{}, f={[GW.product]:v.style,[GW.color]:v.color,[GW.ssColor]:v.color};
+  if(m) f[GW.mfr]=[m];
+  if(t.c1) f[GW.cost]=t.c1;
+  [['c2','up2'],['c3','up3'],['c4','up4']].forEach(([c,u])=>{ if(t[c]&&t.c1&&t[c]>t.c1) f[GW[u]]=Math.round((t[c]-t.c1)*100)/100; });
+  if(t.c4&&t.c1&&t.c4>t.c1) f[GW.up5]=Math.round((t.c4-t.c1)*100)/100;
+  (v.sizes||[]).forEach(z=>{ const k=z==='2X'?'2XL':z==='3X'?'3XL':z; if(GW[k]&&SIZES.includes(k)) f[GW[k]]=true; });
+  return {kind:'new',fields:f,name:(m||titleCase(v.brand))+' '+v.style+' - '+v.color,mfrMissing:!m,brand:v.brand,vendor:v.vendor};
 }
 function renderLines(){
   let h='';
   S.lines.forEach((L,i)=>{
     const got=sum(L.sizes), ok=got===L.qty&&L.qty>0, sg=suggest(L);
     const imps=S.imps.filter(m=>m.lines.includes(i)); const ids=nextIds();
-    h+=`<div class="card"><div class="ch"><span class="t1">${esc(L.garment?L.garment.name:L.qname)}</span><span class="t2">${esc(L.ptype)}</span><div class="right"><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">sizes '+got+' of '+L.qty+'</span>'}</div></div><div class="grid">`;
+    h+=`<div class="card"><div class="ch"><span class="t1">${esc(L.garment?L.garment.name:((gplan(L)||{}).name||L.qname))}</span><span class="t2">${esc(L.ptype)}</span><div class="right"><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">sizes '+got+' of '+L.qty+'</span>'}</div></div><div class="grid">`;
     if(L.bandana) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">Bandana — pick the bandana garment when building</span></div>`;
     else if(L.cands==null) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">${L.style?'Looking up '+esc(L.style)+' in Airtable…':'No style number in the quote line'}</span></div>`;
-    else if(L.garment&&!L.chg) h+=`<span class="k req">Garment</span><div class="bts"><span class="tag ok">✓ ${esc(L.garment.name)}</span><span class="auto">matched from the quote</span><button class="link" onclick="S.lines[${i}].chg=true;render()">change</button></div>`;
+    else if(L.garment&&!L.chg){ const gp=gplan(L), fx=gp&&gp.kind==='fix'?Object.keys(gp.fields).map(k=>GN[k]||k).join(', '):'';
+      h+=`<span class="k req">Garment</span><div class="bts"><span class="tag ok">✓ ${esc(L.garment.name)}</span><span class="auto">matched from the quote</span><button class="link" onclick="S.lines[${i}].chg=true;render()">change</button>${fx?`<div class="gfix">Fixes ${esc(fx)} in Airtable to ${esc((L.vg&&L.vg.vendor)||'vendor')}'s naming</div>`:''}</div>`; }
+    else if(!L.chg&&gplan(L)&&gplan(L).kind==='new'){ const gp=gplan(L);
+      h+=`<span class="k req">Garment</span><div class="bts"><span class="tag new">+ new</span><b>${esc(gp.name)}</b><span class="auto">not in Airtable yet — adds it from ${esc(gp.vendor||'the vendor')} (cost, upcharges, sizes)</span>${gp.mfrMissing?`<span class="tag need">Manufacturer "${esc(gp.brand)}" isn't an Airtable choice — ask Stephen</span>`:''}${L.cands&&L.cands.length?`<button class="link" onclick="S.lines[${i}].chg=true;render()">pick an existing one instead</button>`:''}</div>`; }
     else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?(L.color?'"'+esc(L.color)+'" isn\'t in Airtable for '+esc(L.style)+' — pick the color':'pick the color'):'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.color||c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}</div>`;
     h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" placeholder="${sg[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px">${Object.keys(sg).length?`<button class="b sug" onclick="spread(${i})">${got?'Fill the other '+(L.qty-got):'Use these '+L.qty}</button>`:''}<button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
     h+=`<span class="k">Price / pc</span><div class="bts"><span class="tot">${money(L.price)}</span><span class="auto">from the quote</span></div>`;
@@ -409,7 +442,7 @@ function problems(){
   if(!S.order)p.push('Pick the customer + order');
   else { if(!S.rep)p.push('Sales person'); if(!S.due)p.push('Due date'); if(!S.ship.length)p.push('Shipping'); }
   S.imps.forEach(m=>{ if(!m.ink)p.push(impName(m)+': '+(m.method==='Screenprint'?'ink type':'imprint type')); if(!m.loc)p.push(impName(m)+': location'); if(!m.lines.length)p.push(impName(m)+': not on any garment'); });
-  S.lines.forEach((L,i)=>{ const nm=L.color||('Line '+(i+1)); if(!L.garment&&!L.bandana)p.push(nm+': garment'); if(sum(L.sizes)!==L.qty)p.push(nm+': sizes '+sum(L.sizes)+' of '+L.qty); });
+  S.lines.forEach((L,i)=>{ const nm=L.color||('Line '+(i+1)); if(!L.garment&&!L.bandana&&!(gplan(L)&&gplan(L).kind==='new'))p.push(nm+': garment'); if(sum(L.sizes)!==L.qty)p.push(nm+': sizes '+sum(L.sizes)+' of '+L.qty); });
   if(!S.lines.length)p.push('At least one line item');
   return p;
 }
@@ -426,12 +459,14 @@ function preview(){
   const orderPatch={id:o.id,fields:{[O.rep]:S.rep,[O.due]:S.due,[O.ship]:S.ship,[O.src]:S.src||undefined}};
   const imps=S.imps.map((m,i)=>({_willBe:ids[i],fields:{[IF.order]:[o.id],[IF.type]:m.ink,[IF.loc]:m.loc,[IF.screens]:m.screens,[IF.inkChanges]:m.inkChanges,[IF.nick]:m.nick||undefined,[IF.repeat]:m.repeat||undefined,'fldAEQvMAAZX9gnhl':m.prev?[m.prev.rid]:undefined,'fldpNCCXTgHyDhvak':m.prev&&m.prev.inkIds.length?m.prev.inkIds:undefined}}));
   const LF=window.LF;
-  const lines=S.lines.map((ln,i)=>{ const f={[LF.order]:[o.id],[LF.ptype]:ln.ptype,[LF.garment]:ln.garment?[ln.garment.id]:undefined,[LF.imprints]:S.imps.map((m,k)=>m.lines.includes(i)?'(new '+ids[k]+')':null).filter(Boolean),[LF.price]:ln.price,[LF.womens]:ln.womens||undefined,[LF.youth]:ln.youth||undefined}; Object.keys(ln.sizes).forEach(z=>f[LF[z]]=ln.sizes[z]); return {fields:f}; });
+  const gps=S.lines.map(gplan), gNew=gps.filter(g=>g&&g.kind==='new'), gFix=gps.filter(g=>g&&g.kind==='fix');
+  const lines=S.lines.map((ln,i)=>{ const f={[LF.order]:[o.id],[LF.ptype]:ln.ptype,[LF.garment]:ln.garment?[ln.garment.id]:(gps[i]&&gps[i].kind==='new'?['(new garment '+gps[i].name+')']:undefined),[LF.imprints]:S.imps.map((m,k)=>m.lines.includes(i)?'(new '+ids[k]+')':null).filter(Boolean),[LF.price]:ln.price,[LF.womens]:ln.womens||undefined,[LF.youth]:ln.youth||undefined}; Object.keys(ln.sizes).forEach(z=>f[LF[z]]=ln.sizes[z]); return {fields:f}; });
   const names=x=>JSON.stringify(x,null,1).replace(/"(fld\w{14})"/g,(m,id)=>'"'+(FN[id]||id)+'"');
-  $('out').textContent='PATCH Orders\n'+names(orderPatch)+'\n\nCREATE Imprints ('+imps.length+')\n'+names(imps)+'\n\nCREATE Line Items ('+lines.length+')\n'+names(lines);
+  $('out').textContent=(gNew.length?'CREATE Garments ('+gNew.length+') — from the vendor\n'+names(gNew.map(g=>({_willBe:g.name,fields:g.fields})))+'\n\n':'')+(gFix.length?'PATCH Garments ('+gFix.length+') — vendor naming\n'+names(gFix.map(g=>({id:g.id,fields:g.fields})))+'\n\n':'')+'PATCH Orders\n'+names(orderPatch)+'\n\nCREATE Imprints ('+imps.length+')\n'+names(imps)+'\n\nCREATE Line Items ('+lines.length+')\n'+names(lines);
   $('outBox').style.display='';
 }
-const FN={fldAEQvMAAZX9gnhl:'Imprint.previousImprint',fldpNCCXTgHyDhvak:'Imprint.inks (copied from the repeat)'}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k);
+const GN={fldtL6paVNlfMRDj4:'Manufacturer',fldJlvS5vcBkzx3hG:'Product Number',flduMprMvRlAHAiCh:'Colorway',fldUnCYQgAx8AhsMZ:'[S&S] Color Name',fldRmgDAByrOWcHLO:'Cost',fldHakcDllb8SFCwz:'2XL Up-charge',fldEXqJi6mii9bpoJ:'3XL Up-charge',fldBWmLGzqtjXM0zm:'4XL Up-charge',fldlF7ZOqCNYr8hi2:'5XL Up-charge'};
+const FN={fldAEQvMAAZX9gnhl:'Imprint.previousImprint',fldpNCCXTgHyDhvak:'Imprint.inks (copied from the repeat)'}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k); Object.entries(GW).forEach(([k,v])=>FN[v]='Garment.'+(GN[v]||k));
 window.LF=L;
 function render(){ renderQuote(); renderOrder(); renderPast(); renderImps(); renderLines(); renderSum(); }
 render(); matchGarments();

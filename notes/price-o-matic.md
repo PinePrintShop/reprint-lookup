@@ -228,3 +228,17 @@ Stephen: "Why does it ask me to pick a color when I already did in the quote?"
 - The quote line carries the color (e.g. "… 3001 … - Black"), but Create order asked Airtable for only the first **12** Garments of the style. The 3001 has ~100 colors in Airtable (238 records containing "3001" incl. CVC / Y / T variants), so Black usually wasn't in those 12 → "pick the color".
 - Now: one query for the exact style + color (`TRIM({Product Number})` and `LOWER(TRIM({Colorway}))`, since some records have trailing spaces like "3001 " and "Dark Grey Heather "), then every color of the style (paged) for the dropdown.
 - A matched garment shows as **✓ Bella Canvas 3001 - Black · matched from the quote · change**, no dropdown. If the color really isn't in Airtable it says so: *"Black" isn't in Airtable for 3001 — pick the color*. Dropdown lists color names only.
+
+## v100 — Start from on iPhone, bottom bar, vendor garment on each quote line (Oct 6)
+- **Start from** still didn't open on Stephen's iPhone (v99's fix worked in Chromium, which is all we can test here). On touch screens it's now the phone's own picker: an invisible `<select>` over the button. Laptops keep the pop-up menu.
+- **Bottom bar covered buttons:** the v90 code that adds room under the page for the bar ran before the bar existed, so it never did anything. And the page scrolls inside `<body>`, which ignores bottom padding anyway. Now a spacer after the content is sized to the bar's real height (iPhone home bar included). Quote PDF / Create order clear the bar when scrolled to the bottom.
+- **Vendor garment on each quote line** (`vg`): vendor, brand, style #, color, sizes offered, price tiers, so Create order works from the vendor's own naming instead of parsing the line name.
+
+## Create order — vendor naming wins over Airtable (Oct 6) · `pom-create-order-live.html`
+Stephen: "Feel free to start using the vendor naming to override Airtable so we start cleaning that up. Right now we manually add those."
+- Match on Product Number + Colorway **or** `[S&S] Color Name` (trimmed, case-insensitive).
+- **Matched but named differently** → preview shows **PATCH Garments**: Product Number / Colorway / [S&S] Color Name set to the vendor's exact text (e.g. "Heather Navy " → "Heather Navy", "3001 " → "3001"); Manufacturer filled only if empty. On screen: "Fixes Colorway, [S&S] Color Name in Airtable to S&S's naming". Cost is not touched on existing garments.
+- **Not in Airtable** → preview shows **CREATE Garments** from the vendor: Manufacturer (mapped to the existing Airtable choice, e.g. "BELLA + CANVAS" → Bella Canvas), Product Number, Colorway, [S&S] Color Name, Cost = vendor price, 2XL–5XL up-charges from the vendor tiers, size checkboxes from the sizes the vendor stocks. The line item links to it. "pick an existing one instead" still offers the dropdown.
+- A brand that isn't an Airtable Manufacturer choice is flagged ("ask Stephen"), never added.
+- Still a read-only preview: nothing is written until the real build. Garment Name is a formula (Manufacturer + Product Number + " - " + Colorway), so it follows automatically.
+- Phone bottom padding now includes the iPhone home-bar area.
