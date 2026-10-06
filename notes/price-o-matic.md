@@ -276,3 +276,15 @@ Stephen: "When a past order has a few imprint ids can we select multiples as wel
 - In an opened past order, the imprint cards are now tick-boxes (✓ in the corner), plus "select all". **Repeat N imprints in this order** brings in just those.
 - Each pick attaches to a print already on this order with the same location **and** method (e.g. 10612-A Front discharge → your Front screen print), setting Repeat of / ink type / screens / nickname. If there's no such print it's added as a new repeat imprint on every line (untick under "Goes on"). A green line says where each one went.
 - "Copy whole order" (now the white secondary button) still brings in all line items + imprints.
+
+## Create order — repeat plan with quote checks (Oct 6)
+Stephen saw picked past imprints merge into the quote's prints and asked to walk through it. Merging stays, but it's now visible and checkable first:
+- **Repeat N imprints** opens **Where each one goes**: one row per pick (proof, ID, location · type · screens) → a dropdown of this order's prints (default: same location + method, not already a repeat; two picks can't land on the same print) or **Add as a new imprint**. Nothing changes until **Apply**; cancel backs out.
+- **Checks against what the quote priced** (shown on the plan and, after Apply, under "Repeat of" on the imprint card):
+  - screen count differs: "Quote priced 3 screens; this art has 4"
+  - underbase: quote priced one but the art's ink type has none (No Base W/B, Discharge), or the art uses EZP Base / Bleed Blocker and the quote didn't price one
+  - method differs (e.g. quote embroidery, art screen print)
+  - new imprint: "not priced in the quote — re-quote or price it by hand"
+  - otherwise ✓ "Matches the quote (3 screens)"
+- Warnings don't block Create order; they're for sales to re-quote if needed. On Apply the print keeps its location, garments and quoted price; Repeat of, ink type, screens, inks and (if blank) nickname come from the past imprint.
+- "Goes on" chips use the short garment name for vendor-added garments.
