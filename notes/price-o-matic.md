@@ -242,3 +242,12 @@ Stephen: "Feel free to start using the vendor naming to override Airtable so we 
 - A brand that isn't an Airtable Manufacturer choice is flagged ("ask Stephen"), never added.
 - Still a read-only preview: nothing is written until the real build. Garment Name is a formula (Manufacturer + Product Number + " - " + Colorway), so it follows automatically.
 - Phone bottom padding now includes the iPhone home-bar area.
+
+## Create order — easier customer search (Oct 6) · `pom-create-order-live.html`
+Stephen: "Can we make the customer search more intuitive?"
+- **Before typing**, the box lists the orders **waiting for proof** (all customers, newest first): order #, customer, sales person, "created 2 days ago", and "2 lines already" when the order isn't empty. 8 shown, "Show all N". One tap picks the customer *and* that order.
+- **Typing** filters that list instantly by customer name or order # — words in any order, partial words, "&" = "and" ("tree ban" finds Banshee Tree, "10958" finds the order). Matches are highlighted.
+- Below, **Other customers · no order waiting for proof** from the Customers table (every typed word must appear), so a customer whose Pipedrive deal hasn't moved yet is still findable and the page explains why there's no order.
+- Keyboard: ↓ ↑ Enter, Esc clears. Placeholder: "Customer or order #".
+- Once picked, the customer shows as a yellow chip with **change**; the Order row only appears then. Order chips say "created today / 3 days ago" instead of raw dates.
+- Same Airtable reads as before plus one: Orders where Order Status = Awaiting Proof (paged, up to 300). Still read-only.
