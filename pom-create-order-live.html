@@ -54,6 +54,8 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .sizes{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:6px}
 .sizes label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);text-align:center}
 .sizes input{height:40px;border:1px solid var(--line2);border-radius:8px;text-align:center;font:700 15px var(--mono);width:100%}
+.sizes input::placeholder{color:#b9b9b2;font-weight:700}
+.b.sug{height:32px;font-size:13px;background:var(--ytint);border-color:var(--ydk)}
 .sizes input:focus{border-color:var(--text);outline:none}
 .sizes .up{font-size:10px;color:var(--amb);height:12px}
 .tot{font:700 14px var(--mono)}
@@ -362,13 +364,13 @@ async function matchGarments(){
 function renderLines(){
   let h='';
   S.lines.forEach((L,i)=>{
-    const got=sum(L.sizes), ok=got===L.qty&&L.qty>0;
+    const got=sum(L.sizes), ok=got===L.qty&&L.qty>0, sg=suggest(L);
     const imps=S.imps.filter(m=>m.lines.includes(i)); const ids=nextIds();
     h+=`<div class="card"><div class="ch"><span class="t1">${esc(L.garment?L.garment.name:L.qname)}</span><span class="t2">${esc(L.ptype)}</span><div class="right"><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">sizes '+got+' of '+L.qty+'</span>'}</div></div><div class="grid">`;
     if(L.bandana) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">Bandana — pick the bandana garment when building</span></div>`;
     else if(L.cands==null) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">${L.style?'Looking up '+esc(L.style)+' in Airtable…':'No style number in the quote line'}</span></div>`;
     else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?'pick the color':'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}</div>`;
-    h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px"><button class="link" onclick="spread(${i})">Typical run</button><button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
+    h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" placeholder="${sg[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px">${Object.keys(sg).length?`<button class="b sug" onclick="spread(${i})">${got?'Fill the other '+(L.qty-got):'Use these '+L.qty}</button>`:''}<button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
     h+=`<span class="k">Price / pc</span><div class="bts"><span class="tot">${money(L.price)}</span><span class="auto">from the quote</span></div>`;
     h+=`<span class="k">Imprints</span><div class="chips">${imps.map(m=>`<span class="chip on">${ids[S.imps.indexOf(m)]} · ${esc(impName(m))}</span>`).join('')||'<span class="auto">none linked</span>'}</div>`;
     h+=`<span class="k req">Proofing notes</span><textarea class="t">${esc(imps.map(m=>ids[S.imps.indexOf(m)]+' '+impName(m)).join('\n'))}</textarea>`;
@@ -379,7 +381,19 @@ function renderLines(){
 }
 function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; render(); }
 function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
-function spread(i){ const L=S.lines[i],q=L.qty; if(L.bandana){L.sizes={OSFA:q};render();return;} const p={S:.15,M:.30,L:.30,XL:.15,'2XL':.10}; const s={}; let t=0; Object.keys(p).forEach(z=>{s[z]=Math.round(q*p[z]);t+=s[z];}); s.L+=q-t; L.sizes=s; render(); }
+// Grey size suggestions: the line's qty (or what's left of it) spread over a typical run. Hats/totes/bandanas go to OSFA.
+const RUN={S:.15,M:.30,L:.30,XL:.15,'2XL':.10};
+const oneSize=L=>L.bandana||/\b(cap|hat|beanie|trucker|snapback|visor|tote|bag|bandana|koozie|towel)\b/i.test((L.garment&&L.garment.name)||L.qname||'');
+function suggest(L){
+  const left=L.qty-sum(L.sizes); if(left<=0) return {};
+  if(oneSize(L)) return L.sizes.OSFA?{}:{OSFA:left};
+  const open=Object.keys(RUN).filter(z=>!L.sizes[z]); if(!open.length) return {};
+  const w=open.reduce((a,z)=>a+RUN[z],0), s={}; let t=0;
+  open.forEach(z=>{s[z]=Math.floor(left*RUN[z]/w);t+=s[z];});
+  open.slice().sort((a,b)=>(left*RUN[b]/w%1)-(left*RUN[a]/w%1)).slice(0,left-t).forEach(z=>s[z]++);
+  Object.keys(s).forEach(z=>{if(!s[z])delete s[z];}); return s;
+}
+function spread(i){ const L=S.lines[i]; Object.assign(L.sizes,suggest(L)); render(); }
 /* ---------- summary + practice preview ---------- */
 function problems(){
   const p=[];
