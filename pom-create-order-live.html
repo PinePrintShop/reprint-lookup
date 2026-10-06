@@ -123,6 +123,7 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .prow .arr{color:var(--muted)}.prow select{width:100%;min-width:0}
 .pchk{grid-column:2/-1;font-size:12px}.pchk.ok{color:var(--green)}.pchk.warn{color:var(--amb);font-weight:600}
 @media (max-width:600px){.prow{grid-template-columns:44px minmax(0,1fr)}.prow .arr{display:none}.prow select{grid-column:1/-1}}
+.addb{margin-top:12px}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
 .fbrk{display:none}.ich{margin-left:14px}
@@ -186,10 +187,12 @@ a.ghost{display:inline-block}
     <div class="panel">
       <div class="sec"><span class="n">2</span><h2>Imprints</h2><span class="hint">IDs come from the order number — Airtable assigns them in this order</span></div>
       <div id="imps"></div>
+      <button class="b dash addb" onclick="addImp()">+ Add imprint</button>
     </div>
     <div class="panel">
       <div class="sec"><span class="n">3</span><h2>Line items</h2><span class="hint">One per garment + color</span></div>
       <div id="lines"></div>
+      <button class="b dash addb" onclick="addLine()">+ Add line item</button>
     </div>
   </div>
   <div class="rail">
@@ -432,6 +435,7 @@ const famOf=t=>/^Supacolor|^Decopress|Embroidery|Application/.test(t||'')?String
 const hasBase=t=>/Base|Blocker/i.test(t||'')&&!/No Base/i.test(t||'');
 function repCheck(m,p){
   if(!m) return {ok:false,msg:'New imprint — not priced in the quote. Re-quote or price it by hand.'};
+  if(m.manual) return {ok:true,msg:'Added by hand — price it on the line items'};
   if(!m.priced) return {ok:false,msg:'Not priced in the quote.'};
   const w=[];
   if(m.method==='Screenprint'&&famOf(p.type)==='Screenprint'){
@@ -481,13 +485,16 @@ function renderImps(){
   S.imps.forEach((m,i)=>{
     const on=m.lines.map(li=>S.lines[li]&&(S.lines[li].color||S.lines[li].qname)).filter(Boolean);
     const need=!m.ink||!m.loc;
-    h+=`<div class="card"><div class="ch"><span class="idtag">${ids[i]}</span><span class="t1">${impName(m)}</span><span class="t2">${on.length?'on '+esc(on.join(' + ')):''}</span><div class="right">${need?'<span class="tag need">'+(!m.loc?'pick a location':'pick an ink type')+'</span>':'<span class="tag ok">ready</span>'}</div></div><div class="grid">`;
+    h+=`<div class="card"><div class="ch"><span class="idtag">${ids[i]}</span><span class="t1">${impName(m)}</span><span class="t2">${on.length?'on '+esc(on.join(' + ')):''}</span><div class="right"><button class="link" onclick="rmImp(${i})">remove</button>${need?'<span class="tag need">'+(!m.loc?'pick a location':'pick an ink type')+'</span>':'<span class="tag ok">ready</span>'}</div></div><div class="grid">`;
+    if(m.manual) h+=`<span class="k req">Method</span><div class="bts">${Object.keys(FAM_TYPES).map(f=>B(f,m.method===f,`setFam(${i},'${f}')`)).join('')}</div>`;
     if(m.method==='Screenprint'){
       h+=`<span class="k req">Ink type</span><div class="bts">${INKS.map(k=>B(k,m.ink===k,`S.imps[${i}].ink='${k}';render()`)).join('')}</div>`;
-      h+=`<span class="k req">Screens</span><div class="bts"><input class="t" style="width:70px;text-align:center" value="${m.screens}" onchange="S.imps[${i}].screens=Number(this.value)||1;render()"><span class="auto">${m.colors} color${m.colors>1?'s':''}${m.ub?' + underbase':''} from the quote</span><span class="fbrk"></span><span class="k ich">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
-    } else h+=`<span class="k req">Imprint type</span><div class="bts">${m.ink?`<span class="tag ok">${esc(m.ink)}</span><span class="auto">from the quote</span>`:`<span class="tag need">no matching Airtable type</span><span class="auto">(e.g. Decopress Suede) — pick one when building</span>`}</div>`;
+      h+=`<span class="k req">Screens</span><div class="bts"><input class="t" style="width:70px;text-align:center" value="${m.screens}" onchange="S.imps[${i}].screens=Number(this.value)||1;if(S.imps[${i}].manual)S.imps[${i}].colors=S.imps[${i}].screens;render()">${m.manual?'':`<span class="auto">${m.colors} color${m.colors>1?'s':''}${m.ub?' + underbase':''} from the quote</span>`}<span class="fbrk"></span><span class="k ich">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
+    } else if(m.manual||!m.ink){ const opts=FAM_TYPES[m.method]||[].concat(...Object.values(FAM_TYPES));
+      h+=`<span class="k req">Imprint type</span><div class="bts">${opts.length<=4?opts.map(t=>B(t.replace(/^\w+ - /,''),m.ink===t,`S.imps[${i}].ink=${JSON.stringify(t).replace(/"/g,"'")};render()`)).join(''):`<select class="t" onchange="S.imps[${i}].ink=this.value;render()"><option value="">Pick a type…</option>${opts.map(t=>`<option ${m.ink===t?'selected':''}>${esc(t)}</option>`).join('')}</select>`}${!m.manual?'<span class="auto">quote had no matching Airtable type (e.g. Decopress Suede)</span>':''}</div>`; }
+    else h+=`<span class="k req">Imprint type</span><div class="bts"><span class="tag ok">${esc(m.ink)}</span><span class="auto">from the quote</span></div>`;
     h+=`<span class="k req">Location</span><div class="bts">${LOCS.slice(0,6).map(l=>B(l,m.loc===l,`S.imps[${i}].loc='${l}';render()`)).join('')}<select class="t" onchange="if(this.value){S.imps[${i}].loc=this.value;render()}"><option value="">More…</option>${LOCS.slice(6).map(l=>`<option ${m.loc===l?'selected':''}>${l}</option>`).join('')}</select>${!LOC_MAP[m.qloc]&&m.qloc&&m.qloc!=='Bandana'?`<span class="auto">quote said "${esc(m.qloc)}"</span>`:''}</div>`;
-    h+=`<span class="k">Goes on</span><div class="chips">${S.lines.map((L,li)=>`<button class="chip${m.lines.includes(li)?' on':''}" onclick="tgLine(${i},${li})">${m.lines.includes(li)?'✓ ':''}${esc(L.garment?L.garment.name:((gplan(L)||{}).name||L.qname||'Line '+(li+1)))}</button>`).join('')}</div>`;
+    h+=`<span class="k">Goes on</span><div class="chips">${S.lines.map((L,li)=>`<button class="chip${m.lines.includes(li)?' on':''}" onclick="tgLine(${i},${li})">${m.lines.includes(li)?'✓ ':''}${esc(L.garment?L.garment.name:((gplan(L)||{}).name||L.qname||(L.manual&&!isApparel(L)?L.ptype:(L.style||'Line '+(li+1)))))}</button>`).join('')}</div>`;
     h+=`<span class="k">Nickname</span><div class="bts"><input class="t nick" style="flex:1" placeholder="e.g. Hop logo" value="${esc(m.nick)}" oninput="S.imps[${i}].nick=this.value"><button class="b${m.prev?' on':''}" onclick="S.imps[${i}].pick=!S.imps[${i}].pick;render()">${m.prev?'Repeat of '+esc(m.prev.id):'Repeat art…'}</button></div>`;
     if(m.prev) h+=`<span class="k">Repeat of</span><div class="rep">${m.prev.thumbs[0]?`<img src="${esc(m.prev.thumbs[0])}" alt="">`:''}<b style="font-family:var(--mono)">${esc(m.prev.id)}</b><span class="auto">${esc(m.prev.loc)} · ${esc(m.prev.type)} · ${m.prev.screens} screens · ${esc(m.prev.inks)}</span><button class="link" onclick="S.imps[${i}].prev=null;S.imps[${i}].repeat=false;render()">remove</button></div>`;
     if(m.prev){ const c=repCheck(m,m.prev); h+=`<span></span><div class="pchk ${c.ok?'ok':'warn'}">${c.ok?'✓':'⚠'} ${esc(c.msg)}</div>`; }
@@ -545,23 +552,42 @@ function renderLines(){
   S.lines.forEach((L,i)=>{
     const got=sum(L.sizes), ok=got===L.qty&&L.qty>0, sg=suggest(L);
     const imps=S.imps.filter(m=>m.lines.includes(i)); const ids=nextIds();
-    h+=`<div class="card"><div class="ch"><span class="t1">${esc(L.garment?L.garment.name:((gplan(L)||{}).name||L.qname))}</span><span class="t2">${esc(L.ptype)}</span><div class="right"><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">sizes '+got+' of '+L.qty+'</span>'}</div></div><div class="grid">`;
-    if(L.bandana) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">Bandana — pick the bandana garment when building</span></div>`;
+    h+=`<div class="card"><div class="ch"><span class="t1">${esc(L.garment?L.garment.name:((gplan(L)||{}).name||L.qname||(L.style?L.style+' — pick the color':(L.manual&&!isApparel(L)?L.ptype:'New line item'))))}</span><span class="t2">${esc(L.ptype)}</span><div class="right"><button class="link" onclick="rmLine(${i})">remove</button><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">sizes '+got+' of '+L.qty+'</span>'}</div></div><div class="grid">`;
+    if(L.manual){
+      h+=`<span class="k req">Type</span><div class="bts">${PT_MAIN.map(t=>B(t,L.ptype===t,`setPT(${i},'${t}')`)).join('')}<select class="t" onchange="if(this.value)setPT(${i},this.value)"><option value="">More…</option>${PT_MORE.map(t=>`<option ${L.ptype===t?'selected':''}>${t}</option>`).join('')}</select></div>`;
+      h+=`<span class="k req">Qty · price</span><div class="bts"><input class="t" inputmode="numeric" style="width:90px;text-align:center" placeholder="qty" value="${L.qty||''}" onchange="setQty(${i},this.value)"><span class="auto">×</span><input class="t" inputmode="decimal" style="width:100px;text-align:center" placeholder="$ / pc" value="${L.price||''}" onchange="S.lines[${i}].price=Number(String(this.value).replace(/[^0-9.]/g,''))||0;render()"><span class="auto">${L.qty&&L.price?'= '+money(L.qty*L.price):'price by hand — no quote'}</span></div>`;
+    }
+    if(L.manual&&!isApparel(L)) h+=`<span class="k">Garment</span><div class="bts"><span class="auto" style="margin-left:0">none needed for ${esc(L.ptype)}</span></div>`;
+    else if(L.manual&&!L.style) h+=`<span class="k req">Garment</span><div class="bts"><input class="t" id="gs${i}" style="width:180px" placeholder="Style # — 3001, 5000…" onkeydown="if(event.key==='Enter')findStyle(${i})"><button class="b" onclick="findStyle(${i})">Find</button><span class="auto">then pick the color</span></div>`;
+    else if(L.bandana) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">Bandana — pick the bandana garment when building</span></div>`;
     else if(L.cands==null) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">${L.style?'Looking up '+esc(L.style)+' in Airtable…':'No style number in the quote line'}</span></div>`;
     else if(L.garment&&!L.chg){ const gp=gplan(L), fx=gp&&gp.kind==='fix'?Object.keys(gp.fields).map(k=>GN[k]||k).join(', '):'';
-      h+=`<span class="k req">Garment</span><div class="bts"><span class="tag ok">✓ ${esc(L.garment.name)}</span><span class="auto">matched from the quote</span><button class="link" onclick="S.lines[${i}].chg=true;render()">change</button>${fx?`<div class="gfix">Fixes ${esc(fx)} in Airtable to ${esc((L.vg&&L.vg.vendor)||'vendor')}'s naming</div>`:''}</div>`; }
+      h+=`<span class="k req">Garment</span><div class="bts"><span class="tag ok">✓ ${esc(L.garment.name)}</span>${L.manual?'':'<span class="auto">matched from the quote</span>'}<button class="link" onclick="S.lines[${i}].chg=true;render()">change</button>${fx?`<div class="gfix">Fixes ${esc(fx)} in Airtable to ${esc((L.vg&&L.vg.vendor)||'vendor')}'s naming</div>`:''}</div>`; }
     else if(!L.chg&&gplan(L)&&gplan(L).kind==='new'){ const gp=gplan(L);
       h+=`<span class="k req">Garment</span><div class="bts"><span class="tag new">+ new</span><b>${esc(gp.name)}</b><span class="auto">not in Airtable yet — adds it from ${esc(gp.vendor||'the vendor')} (cost, upcharges, sizes)</span>${gp.mfrMissing?`<span class="tag need">Manufacturer "${esc(gp.brand)}" isn't an Airtable choice — ask Stephen</span>`:''}${L.cands&&L.cands.length?`<button class="link" onclick="S.lines[${i}].chg=true;render()">pick an existing one instead</button>`:''}</div>`; }
-    else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?(L.color?'"'+esc(L.color)+'" isn\'t in Airtable for '+esc(L.style)+' — pick the color':'pick the color'):'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.color||c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}</div>`;
-    h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" placeholder="${sg[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px">${Object.keys(sg).length?`<button class="b sug" onclick="spread(${i})">${got?'Fill the other '+(L.qty-got):'Use these '+L.qty}</button>`:''}<button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
-    h+=`<span class="k">Price / pc</span><div class="bts"><span class="tot">${money(L.price)}</span><span class="auto">from the quote</span></div>`;
-    h+=`<span class="k">Imprints</span><div class="chips">${imps.map(m=>`<span class="chip on">${ids[S.imps.indexOf(m)]} · ${esc(impName(m))}</span>`).join('')||'<span class="auto">none linked</span>'}</div>`;
+    else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?(L.color?'"'+esc(L.color)+'" isn\'t in Airtable for '+esc(L.style)+' — pick the color':'pick the color'):'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.color||c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}${L.manual?`<button class="link" onclick="S.lines[${i}].style='';S.lines[${i}].cands=[];S.lines[${i}].garment=null;render()">other style</button>`:''}</div>`;
+    if(!(L.manual&&!isApparel(L))) h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" placeholder="${sg[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px">${Object.keys(sg).length?`<button class="b sug" onclick="spread(${i})">${got?'Fill the other '+(L.qty-got):'Use these '+L.qty}</button>`:''}<button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
+    if(!L.manual) h+=`<span class="k">Price / pc</span><div class="bts"><span class="tot">${money(L.price)}</span><span class="auto">${L.fromPast?'from the past order':'from the quote'}</span></div>`;
+    h+=`<span class="k">Imprints</span><div class="chips">${S.imps.map((m,k)=>`<button class="chip${m.lines.includes(i)?' on':''}" onclick="tgLine(${k},${i})">${m.lines.includes(i)?'✓ ':''}${ids[k]} · ${esc(impName(m))}</button>`).join('')||'<span class="auto">no imprints yet</span>'}</div>`;
     h+=`<span class="k req">Proofing notes</span><textarea class="t">${esc(imps.map(m=>ids[S.imps.indexOf(m)]+' '+impName(m)).join('\n'))}</textarea>`;
     h+=`<span class="k">Nickname</span><div class="bts"><input class="t nick" style="flex:1" placeholder="Line item nickname"><button class="b${L.womens?' on':''}" onclick="S.lines[${i}].womens=!S.lines[${i}].womens;render()">Women's</button><button class="b${L.youth?' on':''}" onclick="S.lines[${i}].youth=!S.lines[${i}].youth;render()">Youth</button></div></div></div>`;
   });
-  if(!S.lines.length) h+='<div class="auto" style="margin-left:0">No line items yet — copy a past order from <b>Past orders</b>.</div>';
+  if(!S.lines.length) h+='<div class="auto" style="margin-left:0">No line items yet — add one below, or copy a past order from <b>Past orders</b>.</div>';
   $('lines').innerHTML=h;
 }
+// ---------- adding by hand (no quote, or extras the quote didn't have) ----------
+const PT_MAIN=['Printed Apparel','Embroidered Apparel','Flatstock Printing','Woven Patches','Embroidered Patches (100%)'];
+const PT_MORE=['Artwork','Stickers','Embroidered Patches (50%)','Embroidered Patches (75%)','Woven Clip Labels','Sublimated Patches','DecoPress Patches','Leather Patches','Silicon Patches','Pins','Live Printing','Promo Product','Contract Printing','Pre-Order Setup Fees','Finishing','Misc.'];
+const FAM_TYPES={'Screenprint':INKS,'Embroidery':['Embroidery'],'Supacolor':SUPA_OK.map(x=>'Supacolor - '+x),'Decopress':Object.values(DECO_MAP),'Patch & label':['Patch Application','Hem Label Application','Woven Label Application','Patch/Label ONLY'],'Flatstock':['Flatstock'],'Finishing':['Finishing - Fold & Bag','Finishing - UPC sticker','Finishing - Bandana Hanger']};
+const isApparel=L=>/Apparel|Contract Printing|Live Printing/.test(L.ptype||'');
+function addLine(){ S.lines.push({manual:true,qname:'',style:'',color:'',ptype:'Printed Apparel',qty:0,price:0,up:null,sizes:{},garment:null,cands:[],nick:'',womens:false,youth:false}); render(); setTimeout(()=>{ const e=$('gs'+(S.lines.length-1)); if(e){ e.scrollIntoView({block:'center'}); e.focus(); } },0); }
+function setPT(i,t){ const L=S.lines[i]; L.ptype=t; if(!isApparel(L)){ L.sizes=L.qty?{OSFA:L.qty}:{}; } render(); }
+function setQty(i,v){ const L=S.lines[i]; L.qty=Math.max(0,parseInt(v)||0); if(L.manual&&!isApparel(L)) L.sizes=L.qty?{OSFA:L.qty}:{}; render(); }
+function findStyle(i){ const v=($('gs'+i).value||'').trim(); if(!v) return; const L=S.lines[i]; L.style=v; L.cands=null; L.garment=null; L.chg=true; render(); matchGarments(); }
+function rmLine(i){ S.lines.splice(i,1); S.imps.forEach(m=>{ m.lines=m.lines.filter(x=>x!==i).map(x=>x>i?x-1:x); }); render(); }
+function addImp(){ S.imps.push({key:'hand'+Date.now(),manual:true,loc:'',qloc:'',method:'Screenprint',screens:1,ub:false,colors:1,inkChanges:0,ink:'',nick:'',repeat:false,lines:S.lines.map((L,k)=>L.bandana?-1:k).filter(k=>k>=0),priced:false}); render(); }
+function setFam(i,f){ const m=S.imps[i]; m.method=f; const o=FAM_TYPES[f]||[]; m.ink=o.length===1?o[0]:''; if(f!=='Screenprint'){ m.screens=0; } else if(!m.screens){ m.screens=1; m.colors=1; } render(); }
+function rmImp(i){ S.imps.splice(i,1); render(); }
 function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); }
 function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
 // Grey size suggestions: the line's qty (or what's left of it) spread over a typical run. Hats/totes/bandanas go to OSFA.
@@ -583,7 +609,7 @@ function problems(){
   if(!S.order)p.push('Pick the customer + order');
   else { if(!S.rep)p.push('Sales person'); if(!S.due)p.push('Due date'); if(!S.ship.length)p.push('Shipping'); }
   S.imps.forEach(m=>{ if(!m.ink)p.push(impName(m)+': '+(m.method==='Screenprint'?'ink type':'imprint type')); if(!m.loc)p.push(impName(m)+': location'); if(!m.lines.length)p.push(impName(m)+': not on any garment'); });
-  S.lines.forEach((L,i)=>{ const nm=L.color||('Line '+(i+1)); if(!L.garment&&!L.bandana&&!(gplan(L)&&gplan(L).kind==='new'))p.push(nm+': garment'); if(sum(L.sizes)!==L.qty)p.push(nm+': sizes '+sum(L.sizes)+' of '+L.qty); });
+  S.lines.forEach((L,i)=>{ const nm=L.color||('Line '+(i+1)); if(L.manual&&!L.qty)p.push((L.color||L.style||'New line')+': qty'); if(L.manual&&!L.price)p.push((L.color||L.style||'New line')+': price'); if(!L.garment&&!L.bandana&&!(L.manual&&!isApparel(L))&&!(gplan(L)&&gplan(L).kind==='new'))p.push(nm+': garment'); if(sum(L.sizes)!==L.qty)p.push(nm+': sizes '+sum(L.sizes)+' of '+L.qty); });
   if(!S.lines.length)p.push('At least one line item');
   return p;
 }
