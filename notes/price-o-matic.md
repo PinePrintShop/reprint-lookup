@@ -310,3 +310,10 @@ Stephen: screens is a typed box; explore buttons.
 - Screen-print imprints now have **Colors** buttons 1–6 + a 7+ list (to 12) and a **+ Underbase** toggle. **Screens** is worked out (colors + underbase) and shown with "as quoted", or an amber **quote priced N** when it no longer matches what the quote priced.
 - Picking the **ink type sets the underbase**: EZP Base / Bleed Blocker → on, Discharge / No Base W/B → off (Discharge = no underbase, per Stephen). The toggle still overrides it.
 - Repeats fill colors + underbase from the old art (its screens minus 1 if its ink type has a base).
+
+## Create order — prices that were missing (Oct 6)
+Stephen: price isn't showing up in Create order.
+- Quote lines carry their price (checked: a 72-pc quote line arrives at $14.20). The gap was **past-order lines**: 601 Line Items with a qty have no **Price Input** (older orders, patch lines), so Past orders showed "× $0.00" and "Copy whole order" brought them in at $0.
+- Past line price now falls back: **Price Input** → **Line Total ÷ Total Quantity** → Airtable **Autoprice**. The card says which ("from the past order (its line total ÷ qty)").
+- Any line still without a price shows a **$ / pc** box with "no price on the old order — enter it", and the checklist lists it. A price can also be changed by hand ("change").
+- Past order detail marks lines with "no price" or where the price came from.
