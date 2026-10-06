@@ -259,3 +259,8 @@ Stephen: "Can we make the customer search more intuitive?"
 ## Is "Awaiting Proof" set by Pipedrive? (Oct 6)
 - Checked the last 200 Orders: all 27 now at **Awaiting Proof** had Order Status set within 60 seconds of the record being created (`Order Status Last Modified Time` ≈ `createdTime`) and never changed since. Every other order had its status changed later. No Airtable automation sets Awaiting Proof. So the status arrives **with the order**, from whatever creates it (the Pipedrive → Airtable connection), not from a later step. Can't see the Zap itself from here; if it ever needs proving, the create step's Order Status field should read "Awaiting Proof" (or the Order Status field has it as its default).
 - Safety net in Create order: orders that arrive with a **blank** status also show in the waiting list, tagged "no status yet", so a missed status never hides an order. Past orders exclude blank-status ones.
+
+## Create order — only recent Awaiting Proof orders (Oct 6)
+- 75 Orders sit at Awaiting Proof; only ~29 are from the last 60 days. The rest (2022 → Jun 2026) were never moved on or cancelled.
+- The waiting list now shows Awaiting Proof orders created in the **last 45 days** (`RECENT_DAYS`). Searching still finds older ones, in their own section "Older than 45 days · probably stale", so nothing is unreachable. A customer's Order chips also ignore stale ones when a recent one exists.
+- Checked before any cleanup: no Airtable automation fires on **Cancelled / Voided** (customer emails fire only on Completed / Ready to Order), so cancelling stale orders sends nothing.
