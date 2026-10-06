@@ -95,6 +95,19 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .detail{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .tag.new{background:var(--ytint);border-color:var(--ydk);color:var(--text);font-weight:700}
 .gfix{flex-basis:100%;font-size:12px;color:var(--muted)}
+.clist{margin-top:8px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.clist:empty{display:none}
+.clh{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px 4px;background:var(--soft)}
+.cr{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);cursor:pointer;font-size:14px;background:#fff;width:100%;text-align:left;border-left:none;border-right:none;border-bottom:none}
+.clh+.cr{border-top:none}
+.cr:hover,.cr.kb{background:var(--ytint)}
+.cr .on{font:700 13px var(--mono)}.cr .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cr .mt{grid-column:2/-1;font-size:12px;color:var(--muted)}
+.cr .rt{font-size:12px;color:var(--muted);white-space:nowrap}
+.cr mark{background:var(--yellow);padding:0 1px;border-radius:2px}
+.cr.dim .nm{font-weight:600;color:var(--muted)}
+.cmore{display:block;width:100%;padding:9px 12px;border:none;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:13px;text-align:left;cursor:pointer}
+.cpick{display:flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 14px;border:1px solid var(--ydk);background:var(--ytint);border-radius:8px;font-size:16px;font-weight:700}
+.cpick .link{margin-left:auto}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
 .fbrk{display:none}.ich{margin-left:14px}
@@ -134,11 +147,11 @@ a.ghost{display:inline-block}
       <div id="quote"></div>
     </div>
     <div class="panel">
-      <div class="sec"><span class="n">1</span><h2>Order</h2><span class="hint">Pipedrive already made it when the deal became an approved customer</span></div>
+      <div class="sec"><span class="n">1</span><h2>Order</h2><span class="hint">Orders appear here once the Pipedrive deal is an approved customer</span></div>
       <div class="grid">
-        <span class="k req">Customer</span>
-        <div style="position:relative"><div class="cust"><input class="t" id="cust" placeholder="Start typing the customer name…" autocomplete="off"></div><div id="custList" class="dd"></div><div class="found" id="custFound"></div></div>
-        <span class="k req">Order</span><div id="orders" class="chips"><span class="auto" style="margin-left:0">Pick a customer to see their Awaiting Proof order.</span></div>
+        <span class="k req" style="align-self:start;padding-top:13px">Customer</span>
+        <div><div class="cust" id="custBox"><input class="t" id="cust" placeholder="Customer or order #" autocomplete="off" enterkeyhint="search"></div><div id="custPicked"></div><div id="custList" class="clist"></div><div class="found" id="custFound"></div></div>
+        <span class="k req" id="ordersK">Order</span><div id="orders" class="chips"></div>
       </div>
       <div class="grid" id="orderFields" style="margin-top:16px;display:none">
         <span class="k req">Sales person</span><div class="bts" id="rep"></div>
@@ -185,7 +198,7 @@ const L={ptype:'fld8LIkrBXv8WoRRb',garment:'fldZbOdGIoCk3Gan2',imprints:'fldTFz4
   XS:'fldVA9ZmYxhDxtnYZ',S:'fldCZr5lB6Jx80lfG',M:'fldzTs1qKe9IBxxSn',L:'fldnRLJxjUDa1mQTj',XL:'fldTRgdexcpBXXQPv','2XL':'fldin7j6uGO0uRTec','3XL':'fldpltq9fdRkrvIvt','4XL':'fldrsci7JnToa43Zd','5XL':'fldchnRSKFukouW6N','6XL':'fldI8gTtsEJwg33BI',OSFA:'fld2bgIlmPbANgLVK'};
 const IF={order:'flds9F80ZDkTH1M1t',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',inkChanges:'fld6Tv0llCxjjyyHJ',nick:'fldyGOHRKNz00MaYQ',repeat:'flda9L7041ahNZT0b'};
 let TOKEN=''; try{ TOKEN=localStorage.getItem('pine_at_key')||''; }catch(e){}
-function saveTok(){ TOKEN=document.getElementById('tok').value.trim(); try{localStorage.setItem('pine_at_key',TOKEN);}catch(e){} document.getElementById('tokBox').style.display='none'; }
+function saveTok(){ TOKEN=document.getElementById('tok').value.trim(); try{localStorage.setItem('pine_at_key',TOKEN);}catch(e){} document.getElementById('tokBox').style.display='none'; loadAwaiting(); }
 async function at(table,params){   // GET only — this mockup never writes
   if(!TOKEN){ document.getElementById('tokBox').style.display=''; throw new Error('no token'); }
   const r=await fetch(`https://api.airtable.com/v0/${BASE}/${table}?returnFieldsByFieldId=true&${params}`,{headers:{Authorization:'Bearer '+TOKEN}});
@@ -254,24 +267,67 @@ function renderQuote(){
     :`<div class="auto" style="margin-left:0">No quote on this computer yet. Build one in <a href="price-o-matic-v100.html">Price-O-Matic</a> and press <b>Add to quote</b> — or add line items by hand below.</div>`;
 }
 /* ---------- customer + orders (real) ---------- */
-let custTimer=null;
-$('cust').addEventListener('input',()=>{ clearTimeout(custTimer); const v=$('cust').value.trim(); if(v.length<2){ $('custList').innerHTML=''; return; } custTimer=setTimeout(()=>searchCust(v),250); });
-async function searchCust(v){
-  try{ const d=await at(T_CUST,`maxRecords=8&${flds(['fld47twOIwW053ihT'])}&filterByFormula=${encodeURIComponent(`SEARCH(LOWER("${fq(v)}"),LOWER({Company Name}))`)}`);
-    $('custList').innerHTML=(d.records||[]).map(r=>`<div class="ddr" onclick="pickCust('${r.id}','${esc(r.fields['fld47twOIwW053ihT']||'').replace(/'/g,"\\'")}')">${esc(r.fields['fld47twOIwW053ihT']||'')}</div>`).join('')||'<div class="ddr auto">No customer by that name</div>';
-  }catch(e){ $('custList').innerHTML=`<div class="ddr" style="color:var(--red)">${esc(e.message)}</div>`; }
+// Customer search: before typing, the Awaiting Proof orders (one tap picks customer + order). Typing filters them
+// by customer or order # (any word order) and also finds other customers in Airtable.
+let custTimer=null, custKb=-1, custAll=false; S.awaiting=null; S.custOthers=[];
+const nrm=t=>String(t||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+const words=q=>nrm(q).split(' ').filter(Boolean);
+function hl(text,q){ let h=esc(text); words(q).forEach(w=>{ if(w.length<2) return; h=h.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<mark>$1</mark>'); }); return h; }
+const ago=d=>{ if(!d) return ''; const n=Math.round((Date.now()-new Date(d))/864e5); return n<=0?'today':n===1?'yesterday':n<7?n+' days ago':new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}); };
+async function loadAwaiting(){
+  if(!TOKEN) return;
+  try{ const recs=await atAll(T_ORD,`pageSize=100&${flds([O.num,O.cust,O.custName,O.created,O.rep,O.lines,O.due])}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent('{Order Status}="Awaiting Proof"')}`,300);
+    S.awaiting=recs.map(r=>{const f=r.fields;return {oid:r.id,num:f[O.num],cid:(f[O.cust]||[])[0]||'',name:String(f[O.custName]||'').trim(),created:f[O.created]||'',rep:sel(f[O.rep]),lines:(f[O.lines]||[]).length};}).filter(o=>o.name);
+  }catch(e){ S.awaiting=[]; }
+  renderCust();
 }
-async function pickCust(id,name){
-  S.cust={id,name}; $('cust').value=name; $('custList').innerHTML=''; $('custFound').textContent='Loading orders…';
+function custRows(){
+  const q=$('cust').value.trim(), ws=words(q), A=S.awaiting||[];
+  const hit=o=>ws.every(w=>nrm(o.name).includes(w)||String(o.num).startsWith(w));
+  const aw=q?A.filter(hit):A;
+  const awNames=new Set(A.map(o=>nrm(o.name)));
+  const others=q?S.custOthers.filter(c=>!awNames.has(nrm(c.name))):[];
+  return {q,aw,others};
+}
+function renderCust(){
+  $('custBox').style.display=S.cust?'none':''; $('ordersK').style.display=$('orders').style.display=S.cust?'':'none';
+  $('custPicked').innerHTML=S.cust?`<div class="cpick">${esc(S.cust.name)}<button class="link" onclick="unpickCust()">change</button></div>`:'';
+  if(S.cust){ $('custList').innerHTML=''; return; }
+  if(S.awaiting==null){ $('custList').innerHTML=TOKEN?'<div class="clh">Loading orders waiting for proof…</div>':''; return; }
+  const {q,aw,others}=custRows(), lim=custAll||q?aw.length:8; let h='', k=0;
+  h+=`<div class="clh">${q?'Waiting for proof':'Waiting for proof · newest first'}</div>`;
+  h+=aw.slice(0,lim).map(o=>`<button class="cr${k===custKb?' kb':''}" data-k="${k++}" onclick="pickAwaiting('${o.oid}')"><span class="on">${hl(String(o.num),q)}</span><span class="nm">${hl(o.name,q)}</span><span class="rt">${esc(o.rep||'')}</span><span class="mt">created ${ago(o.created)}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':'')+' already':''}</span></button>`).join('')||`<div class="cr dim" style="cursor:default"><span></span><span class="nm">No order waiting for proof matches "${esc(q)}"</span></div>`;
+  if(!q&&aw.length>lim) h+=`<button class="cmore" onclick="custAll=true;renderCust()">Show all ${aw.length} waiting for proof</button>`;
+  if(others.length){ h+='<div class="clh">Other customers · no order waiting for proof</div>'+others.map(c=>`<button class="cr dim${k===custKb?' kb':''}" data-k="${k++}" onclick="pickCust('${c.id}',${JSON.stringify(c.name).replace(/"/g,'&quot;')})"><span class="on">—</span><span class="nm">${hl(c.name,q)}</span><span class="rt"></span></button>`).join(''); }
+  $('custList').innerHTML=h;
+}
+function pickAwaiting(oid){ const o=(S.awaiting||[]).find(x=>x.oid===oid); if(o) pickCust(o.cid||null,o.name,oid); }
+function unpickCust(){ S.cust=null; S.order=null; S.orders=[]; S.pastOrders=[]; S.pastImps=[]; S.pastOpen=null; $('custFound').textContent=''; $('cust').value=''; render(); setTimeout(()=>$('cust').focus(),0); }
+$('cust').addEventListener('input',()=>{ custKb=-1; custAll=false; renderCust(); clearTimeout(custTimer); const v=$('cust').value.trim(); S.custOthers=[]; if(v.length>=2) custTimer=setTimeout(()=>searchCust(v),250); });
+$('cust').addEventListener('keydown',e=>{ const n=$('custList').querySelectorAll('.cr[data-k]').length;
+  if(e.key==='ArrowDown'){ e.preventDefault(); custKb=Math.min(n-1,custKb+1); renderCust(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); custKb=Math.max(0,custKb-1); renderCust(); }
+  else if(e.key==='Enter'){ e.preventDefault(); const r=$('custList').querySelector(`.cr[data-k="${custKb<0?0:custKb}"]`); if(r) r.click(); }
+  else if(e.key==='Escape'){ $('cust').value=''; custKb=-1; renderCust(); } });
+async function searchCust(v){
+  try{ const f='AND('+words(v).map(w=>`SEARCH("${fq(w)}",LOWER({Company Name}))`).join(',')+')';
+    const d=await at(T_CUST,`maxRecords=8&${flds(['fld47twOIwW053ihT'])}&filterByFormula=${encodeURIComponent(f)}`);
+    if($('cust').value.trim()!==v) return;
+    S.custOthers=(d.records||[]).map(r=>({id:r.id,name:String(r.fields['fld47twOIwW053ihT']||'').trim()})).filter(c=>c.name);
+  }catch(e){ S.custOthers=[]; }
+  renderCust();
+}
+async function pickCust(id,name,wantOid){
+  S.cust={id,name}; renderCust(); $('custFound').textContent='Loading orders…';
   try{
     const sortQ=`&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc`;
     const mapO=r=>{const f=r.fields;return {id:r.id,num:f[O.num],status:sel(f[O.status]),due:f[O.due]||'',rep:sel(f[O.rep]),ship:(f[O.ship]||[]).map(sel),src:sel(f[O.src]),created:f[O.created]||'',lines:(f[O.lines]||[]).length,lineIds:f[O.lines]||[],imps:f[O.imps]||[],thumbs:(f[P.proofLook]||[]).map(thumb).filter(Boolean)};};
     // only the order(s) waiting for this step
     const d=await at(T_ORD,`maxRecords=6&${flds(Object.values(O))}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}="Awaiting Proof")`)}`);
     S.orders=(d.records||[]).map(mapO);
-    $('custFound').textContent=S.orders.length?'✓ '+S.orders.length+' order'+(S.orders.length>1?'s':'')+' awaiting proof':'No Awaiting Proof order for '+name+' — has the Pipedrive deal been moved to approved customer?';
+    $('custFound').textContent=S.orders.length?(S.orders.length>1?S.orders.length+' orders waiting for proof — pick one':''):'No Awaiting Proof order for '+name+' — has the Pipedrive deal been moved to approved customer?';
     loadPast(name, mapO, sortQ);
-    const pick=S.orders.find(o=>!o.lines)||S.orders[0];
+    const pick=S.orders.find(o=>o.id===wantOid)||S.orders.find(o=>!o.lines)||S.orders[0];
     if(pick) await pickOrder(pick.id); else render();
   }catch(e){ $('custFound').textContent=e.message; }
 }
@@ -291,7 +347,7 @@ async function pickOrder(id){
   render();
 }
 function renderOrder(){
-  if(S.cust) $('orders').innerHTML=S.orders.length?S.orders.map(o=>`<button class="chip${S.order&&S.order.id===o.id?' on':''}" onclick="pickOrder('${o.id}')"><b>${o.num}</b> · created ${o.created}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':'')+' already':' · empty'}</button>`).join(''):'<span class="tag need">none awaiting proof</span>';
+  if(S.cust) $('orders').innerHTML=S.orders.length?S.orders.map(o=>`<button class="chip${S.order&&S.order.id===o.id?' on':''}" onclick="pickOrder('${o.id}')"><b>${o.num}</b> · created ${ago(o.created)}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':'')+' already':' · empty'}</button>`).join(''):'<span class="tag need">none awaiting proof</span>';
   $('orderFields').style.display=S.order?'':'none'; if(!S.order) return;
   $('rep').innerHTML=REPS_MAIN.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join('')+(S.repMore?REPS_MORE.map(r=>B(r,S.rep===r,`S.rep='${r}';render()`)).join(''):B('+',false,'S.repMore=true;render()','dash'));
   $('due').value=S.due||''; $('due').onchange=e=>{S.due=e.target.value;render();};
@@ -468,8 +524,8 @@ function preview(){
 const GN={fldtL6paVNlfMRDj4:'Manufacturer',fldJlvS5vcBkzx3hG:'Product Number',flduMprMvRlAHAiCh:'Colorway',fldUnCYQgAx8AhsMZ:'[S&S] Color Name',fldRmgDAByrOWcHLO:'Cost',fldHakcDllb8SFCwz:'2XL Up-charge',fldEXqJi6mii9bpoJ:'3XL Up-charge',fldBWmLGzqtjXM0zm:'4XL Up-charge',fldlF7ZOqCNYr8hi2:'5XL Up-charge'};
 const FN={fldAEQvMAAZX9gnhl:'Imprint.previousImprint',fldpNCCXTgHyDhvak:'Imprint.inks (copied from the repeat)'}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k); Object.entries(GW).forEach(([k,v])=>FN[v]='Garment.'+(GN[v]||k));
 window.LF=L;
-function render(){ renderQuote(); renderOrder(); renderPast(); renderImps(); renderLines(); renderSum(); }
-render(); matchGarments();
+function render(){ renderQuote(); renderCust(); renderOrder(); renderPast(); renderImps(); renderLines(); renderSum(); }
+render(); matchGarments(); loadAwaiting();
 </script>
 </body>
 </html>
