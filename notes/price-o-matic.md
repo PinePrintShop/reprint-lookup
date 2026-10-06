@@ -317,3 +317,14 @@ Stephen: price isn't showing up in Create order.
 - Past line price now falls back: **Price Input** → **Line Total ÷ Total Quantity** → Airtable **Autoprice**. The card says which ("from the past order (its line total ÷ qty)").
 - Any line still without a price shows a **$ / pc** box with "no price on the old order — enter it", and the checklist lists it. A price can also be changed by hand ("change").
 - Past order detail marks lines with "no price" or where the price came from.
+
+## Create order — vendor price check (Oct 6)
+Stephen: pull in pricing from vendors (or Airtable) and scan vendors so we aren't under-charging.
+- Runs on its own once garments are matched (and again after Copy whole order / picking a garment; "re-check" in the rail). Uses the same worker the POM uses (`pine-workers…/proxy`): S&S `/products` (customerPrice; rows from another brand with the same style # are dropped), SanMar `/sanmar/pricing`, AS Colour variants + the AS Colour pricelist the POM caches in this browser. Vendor price = **cheapest across colors**, per size tier, cheapest vendor wins — the same rule quotes use.
+- Each garment line gets a **Price check** row:
+  - **Garment up since it was priced**: vendor XS–XL today vs the garment cost the quote used (`snap.garmentCost`), or Airtable Garment Cost for past / hand-added lines → "$0.40/pc … about $19.20 less margin".
+  - **2XL+ not covered**: the line has one price, so 2XL/3XL/4XL+ pieces × (their vendor price − XS–XL price) → "14 pcs in 2XL+ cost $21.00 more — add about $0.15/pc". (This is the open 2XL+ upcharge question, now with a number.) Recomputes as sizes are typed.
+  - Info lines: Airtable Garment Cost out of date vs vendor today; vendor prices when there's nothing to compare against.
+  - ✓ "Not under S&S's price today" only when there was a basis to compare.
+- Rail: "⚠ 3 lines may be under-charging · ~$50.70" or "✓ Prices check out against vendors today".
+- Read-only: nothing is written (Airtable Garment Cost is shown, not changed).

@@ -124,6 +124,7 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .pchk{grid-column:2/-1;font-size:12px}.pchk.ok{color:var(--green)}.pchk.warn{color:var(--amb);font-weight:600}
 @media (max-width:600px){.prow{grid-template-columns:44px minmax(0,1fr)}.prow .arr{display:none}.prow select{grid-column:1/-1}}
 .addb{margin-top:12px}
+.pcsum{margin-top:12px;font-size:13px}.pcsum .warn{color:var(--amb)}.pcsum .ok{color:var(--green)}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
 .fbrk{display:none}.ich{margin-left:14px}
@@ -248,7 +249,7 @@ function fromQuote(cart){
       : (snap.impressions||[]).every(i=>!i.type||i.type==='Embroidery')&&(snap.impressions||[]).some(i=>i.type)?'Embroidered Apparel':'Printed Apparel';
     const nm=String(c.name||''); const vg=c.vg||null;
     const color=(vg&&vg.color)||(nm.split(' - ')[1]||'').trim(); const style=(vg&&vg.style)||(nm.match(/\b([A-Z]{0,4}\d{2,6}[A-Z]{0,4})\b/i)||[])[1]||'';
-    lines.push({qname:nm,style,color,vg,ptype,qty:Number(c.qty)||0,price:Number(c.quotedUnit)||0,up:c.ssTiers||null,sizes:{},garment:null,cands:null,nick:'',womens:false,youth:false,bandana:p==='bandana'});
+    lines.push({qname:nm,style,color,vg,ptype,qty:Number(c.qty)||0,price:Number(c.quotedUnit)||0,up:c.ssTiers||null,qCost:Number(snap.garmentCost)||null,sizes:{},garment:null,cands:null,nick:'',womens:false,youth:false,bandana:p==='bandana'});
     (snap.impressions||[]).filter(i=>i.type).forEach(i=>{
       const key=[i.loc,i.type,i.screens,!!i.underbase,i.supRecipe,i.supSize,i.decoMaterial,i.embStitchBand].join('|');
       let m=imps.find(x=>x.key===key);
@@ -427,7 +428,7 @@ function copyPast(id){
   lines.forEach(l=>S.lines.push({qname:l.name.replace(/^\d+-[^-]*-/,''),style:'',color:'',ptype:l.ptype||'Printed Apparel',qty:l.qty,price:l.price,priceSrc:l.priceSrc,up:null,sizes:Object.assign({},l.sizes),garment:l.garmentId?{id:l.garmentId,name:l.name.replace(/^\d+-[^-]*-/,'')}:null,cands:[],nick:'',womens:false,youth:false,fromPast:true}));
   imps.forEach(m=>{ const li=lines.map((l,k)=>l.imprints.includes(m.rid)?base+k:-1).filter(k=>k>=0);
     S.imps.push({key:'past'+m.rid,loc:m.loc,qloc:m.loc,method:/^Supacolor|^Decopress|Embroidery|Application/.test(m.type)?m.type.split(' - ')[0]:'Screenprint',screens:m.screens,ub:false,colors:m.screens,inkChanges:0,ink:m.type,nick:m.nick,repeat:true,prev:m,lines:li,priced:true,qScreens:m.screens,qUb:hasBase(m.type)}); });
-  S.pastOpen=null; render();
+  S.pastOpen=null; render(); priceCheck();
 }
 function tgPastSel(rid){ S.pastSel.has(rid)?S.pastSel.delete(rid):S.pastSel.add(rid); S.pastMsg=''; render(); }
 function pi_all(oid){ S.pastImps.filter(m=>m.order===oid).forEach(m=>S.pastSel.add(m.rid)); S.pastMsg=''; render(); }
@@ -577,6 +578,7 @@ function renderLines(){
       h+=`<span class="k req">Garment</span><div class="bts"><span class="tag new">+ new</span><b>${esc(gp.name)}</b><span class="auto">not in Airtable yet — adds it from ${esc(gp.vendor||'the vendor')} (cost, upcharges, sizes)</span>${gp.mfrMissing?`<span class="tag need">Manufacturer "${esc(gp.brand)}" isn't an Airtable choice — ask Stephen</span>`:''}${L.cands&&L.cands.length?`<button class="link" onclick="S.lines[${i}].chg=true;render()">pick an existing one instead</button>`:''}</div>`; }
     else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?(L.color?'"'+esc(L.color)+'" isn\'t in Airtable for '+esc(L.style)+' — pick the color':'pick the color'):'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.color||c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}${L.manual?`<button class="link" onclick="S.lines[${i}].style='';S.lines[${i}].cands=[];S.lines[${i}].garment=null;render()">other style</button>`:''}</div>`;
     if(!(L.manual&&!isApparel(L))) h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" placeholder="${sg[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px">${Object.keys(sg).length?`<button class="b sug" onclick="spread(${i})">${got?'Fill the other '+(L.qty-got):'Use these '+L.qty}</button>`:''}<button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
+    { const pc=pcHtml(L); if(pc) h+=`<span class="k">Price check</span><div>${pc}</div>`; }
     if(!L.manual) h+=`<span class="k${L.price?'':' req'}">Price / pc</span><div class="bts">${L.price&&!L.editPrice?`<span class="tot">${money(L.price)}</span><span class="auto">${L.fromPast?'from the past order'+(L.priceSrc==='line total'?' (its line total ÷ qty)':L.priceSrc==='autoprice'?' (Airtable autoprice)':''):'from the quote'}</span><button class="link" onclick="S.lines[${i}].editPrice=true;render()">change</button>`:`<input class="t" inputmode="decimal" style="width:110px;text-align:center" placeholder="$ / pc" value="${L.price||''}" onchange="S.lines[${i}].price=Number(String(this.value).replace(/[^0-9.]/g,''))||0;S.lines[${i}].editPrice=false;render()">${L.price?'':`<span class="tag need">${L.fromPast?'no price on the old order — enter it':'enter a price'}</span>`}`}</div>`;
     h+=`<span class="k">Imprints</span><div class="chips">${S.imps.map((m,k)=>`<button class="chip${m.lines.includes(i)?' on':''}" onclick="tgLine(${k},${i})">${m.lines.includes(i)?'✓ ':''}${ids[k]} · ${esc(impName(m))}</button>`).join('')||'<span class="auto">no imprints yet</span>'}</div>`;
     h+=`<span class="k req">Proofing notes</span><textarea class="t">${esc(imps.map(m=>ids[S.imps.indexOf(m)]+' '+impName(m)).join('\n'))}</textarea>`;
@@ -598,7 +600,7 @@ function rmLine(i){ S.lines.splice(i,1); S.imps.forEach(m=>{ m.lines=m.lines.fil
 function addImp(){ S.imps.push({key:'hand'+Date.now(),manual:true,loc:'',qloc:'',method:'Screenprint',screens:1,ub:false,colors:1,inkChanges:0,ink:'',nick:'',repeat:false,lines:S.lines.map((L,k)=>L.bandana?-1:k).filter(k=>k>=0),priced:false}); render(); }
 function setFam(i,f){ const m=S.imps[i]; m.method=f; const o=FAM_TYPES[f]||[]; m.ink=o.length===1?o[0]:''; if(f!=='Screenprint'){ m.screens=0; } else if(!m.screens){ m.screens=1; m.colors=1; } render(); }
 function rmImp(i){ S.imps.splice(i,1); render(); }
-function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); }
+function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); if(S.pcDone) priceCheck(); }
 function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
 // Grey size suggestions: the line's qty (or what's left of it) spread over a typical run. Hats/totes/bandanas go to OSFA.
 const RUN={S:.15,M:.30,L:.30,XL:.15,'2XL':.10};
@@ -623,10 +625,67 @@ function problems(){
   if(!S.lines.length)p.push('At least one line item');
   return p;
 }
+/* ---------- price check: is any line under-charging against what the vendor charges today? ----------
+   Vendor price = cheapest across colors (S&S customerPrice, SanMar, AS Colour), the same rule quotes use.
+   Basis = the garment cost the quote was priced on, or Airtable's Garment Cost for past / hand-added lines. */
+const PROXY='https://pine-workers.stephen-dab.workers.dev/proxy';
+const TIER_OF=z=>({'2XL':'c2','XXL':'c2','3XL':'c3','XXXL':'c3','4XL':'c4','5XL':'c4','6XL':'c4'})[String(z||'').toUpperCase()]||'c1';
+const VCACHE={};
+function styleOf(L){ if(L.style) return L.style; const n=(L.garment&&L.garment.name)||L.qname||''; return (n.match(/\b([A-Z]{0,4}\d{2,6}[A-Z]{0,4})\b/i)||[])[1]||''; }
+function brandOf(L){ if(L.vg&&L.vg.brand) return L.vg.brand; const n=(L.garment&&L.garment.name)||L.qname||'', st=styleOf(L); return st?n.slice(0,n.indexOf(st)).trim():''; }
+function minTiers(rows){ const t={c1:0,c2:0,c3:0,c4:0}; rows.forEach(([sz,pr])=>{ const k=TIER_OF(sz); if(pr>0&&(!t[k]||pr<t[k])) t[k]=pr; }); return t.c1?t:null; }
+async function vendorNow(style,brand){
+  const key=(brand+'|'+style).toUpperCase(); if(VCACHE[key]) return VCACHE[key];
+  const out={};
+  const bk=mkey(brand), isASC=/ascolour|^as$/.test(bk)||/^as\s?colour/i.test(brand);
+  const tasks=[];
+  if(!isASC) tasks.push((async()=>{ const r=await fetch(`${PROXY}/products/?style=${encodeURIComponent(style)}&fields=styleName,brandName,sizeName,customerPrice,piecePrice`); const j=await r.json(); if(!Array.isArray(j)||!j.length) return;
+    const mine=bk?j.filter(x=>{const b=mkey(x.brandName);return b&&(b.includes(bk)||bk.includes(b));}):j; const use=mine.length?mine:j;
+    const t=minTiers(use.map(x=>[x.sizeName,Number(x.customerPrice)||Number(x.piecePrice)||0])); if(t) out['S&S']=t; })().catch(()=>{}));
+  if(!isASC) tasks.push((async()=>{ const r=await fetch(`${PROXY}/sanmar/pricing?style=${encodeURIComponent(style)}`); const j=await r.json(); if(!j||!j.ok||!Array.isArray(j.items)) return;
+    const t=minTiers(j.items.map(it=>[it.size,Number(it.myPrice)||Number(it.casePrice)||0])); if(t) out['SanMar']=t; })().catch(()=>{}));
+  if(isASC) tasks.push((async()=>{ let map=null; try{ const o=JSON.parse(localStorage.getItem('pine_asc_pricelist_v1')||'null'); if(o&&o.map) map=o.map; }catch(e){}
+    if(!map) return; const rows=[]; for(let pg=1;pg<=5;pg++){ const r=await fetch(`${PROXY}/ascolour/catalog/products/${encodeURIComponent(style)}/variants?pageSize=250&pageNumber=${pg}`); if(!r.ok) break; const j=await r.json(); const d=(j&&j.data)||[]; d.forEach(v=>{ if(!v.discontinued) rows.push([v.sizeCode,Number(map[String(v.sku||'').toUpperCase()])||0]); }); if(d.length<250) break; }
+    const t=minTiers(rows); if(t) out['AS Colour']=t; })().catch(()=>{}));
+  await Promise.all(tasks);
+  const names=Object.keys(out); if(!names.length) return VCACHE[key]={none:true};
+  const best=names.reduce((a,b)=>out[b].c1<out[a].c1?b:a);
+  return VCACHE[key]={vendor:best,t:out[best],all:out};
+}
+async function priceCheck(){
+  S.pcRunning=true; render();
+  await Promise.all(S.lines.map(async L=>{
+    L.pv=null; if(L.bandana||(L.manual&&!isApparel(L))||!/Apparel|Contract|Live/.test(L.ptype||'Printed Apparel')) return;
+    const st=styleOf(L); if(!st){ L.pv={skip:'no style # to check'}; return; }
+    const v=await vendorNow(st,brandOf(L)); if(v.none){ L.pv={skip:`no vendor price found for ${st}`}; return; }
+    L.pv=v;
+  }));
+  S.pcRunning=false; S.pcDone=true; render();
+}
+function pcFor(L,v){
+  const t=v.t, at=L.garment&&Number(L.garment.cost)||0, basis=L.qCost||at||0, basisSrc=L.qCost?'the quote':at?'Airtable':'';
+  const up=Math.round((t.c1-basis)*100)/100, flags=[], info=[];
+  let gap=0;
+  if(basis&&up>0.02){ gap+=up*L.qty; flags.push(`Garment up $${up.toFixed(2)}/pc since it was priced ($${basis.toFixed(2)} on ${basisSrc} → $${t.c1.toFixed(2)} at ${v.vendor}) — about $${(up*L.qty).toFixed(2)} less margin`); }
+  let big=0, bigPcs=0; Object.entries(L.sizes||{}).forEach(([z,n])=>{ const k=TIER_OF(z); if(k!=='c1'&&t[k]>t.c1){ big+=n*(t[k]-t.c1); bigPcs+=n; } });
+  if(big>0.01){ gap+=big; flags.push(`${bigPcs} pcs in 2XL+ cost $${big.toFixed(2)} more from ${v.vendor} and the line has one price — add about $${(big/L.qty).toFixed(2)}/pc to cover it`); }
+  if(at&&Math.abs(at-t.c1)>0.05) info.push(`Airtable Garment Cost $${at.toFixed(2)} vs ${v.vendor} today $${t.c1.toFixed(2)}`);
+  if(!basis) info.push(`Garment ~ $${t.c1.toFixed(2)}/pc today at ${v.vendor}`+(t.c2?` · 2XL $${t.c2.toFixed(2)}`:'')+(t.c3?` · 3XL $${t.c3.toFixed(2)}`:''));
+  return {vendor:v.vendor,t,flags,info,gap:Math.round(gap*100)/100,ok:!flags.length&&!!basis};
+}
+const pcOf=L=>!L.pv?null:L.pv.skip?{skip:L.pv.skip}:pcFor(L,L.pv);
+function pcHtml(L){
+  if(S.pcRunning&&!L.pv) return '<span class="auto" style="margin-left:0">Checking vendor prices…</span>';
+  const c=pcOf(L); if(!c) return '';
+  if(c.skip) return `<span class="auto" style="margin-left:0">${esc(c.skip)}</span>`;
+  return (c.ok||!c.flags.length?(c.ok?`<div class="pchk ok">✓ Not under ${esc(c.vendor)}'s price today ($${c.t.c1.toFixed(2)} XS–XL)</div>`:''):c.flags.map(f=>`<div class="pchk warn">⚠ ${esc(f)}</div>`).join(''))+c.info.map(f=>`<div class="gfix">${esc(f)}</div>`).join('');
+}
 function renderSum(){
   const p=problems(), tot=S.lines.reduce((a,L)=>a+L.qty*L.price,0);
   let h=`<h3>${S.order?'Order '+S.order.num+' · '+esc(S.cust.name):'Create order'}</h3><div class="will">${S.order?'Updates order <b>'+S.order.num+'</b>':'Finds the order Pipedrive made'} · adds <b>${S.lines.length}</b> line items · <b>${S.imps.length}</b> imprints${S.imps.length?' ('+nextIds().join(', ')+')':''}</div>`;
   h+='<div class="checks">'+(p.length?p.map(x=>`<div class="c bad">○ ${esc(x)}</div>`).join(''):'<div class="c ok">✓ Everything needed is filled in</div>')+'</div>';
+  { const pcs=S.lines.map(pcOf), g=pcs.reduce((a,c)=>a+((c&&c.gap)||0),0), n=pcs.filter(c=>c&&c.flags&&c.flags.length).length;
+    h+=`<div class="pcsum">${S.pcRunning?'Checking vendor prices…':S.pcDone?(n?`<b class="warn">⚠ ${n} line${n>1?'s':''} may be under-charging · ~${money(g)}</b>`:'<span class="ok">✓ Prices check out against vendors today</span>'):''} <button class="link" onclick="priceCheck()">${S.pcDone?'re-check':'check vendor prices'}</button></div>`; }
   h+=`<div class="money"><span>Quote total</span><span>${money(tot)}</span></div><button class="go" ${p.length?'disabled':''} onclick="preview()">Create order</button>`;
   $('mbar').innerHTML=`<div class="mt"><b>${money(tot)}</b>${S.order?'Order '+S.order.num+' · ':''}${p.length?p.length+' thing'+(p.length>1?'s':'')+' left':'ready'}</div>`+(p.length?`<button class="wait" onclick="$('sum').scrollIntoView({behavior:'smooth'})">What's left</button>`:`<button onclick="preview();$('sum').scrollIntoView({behavior:'smooth'})">Create order</button>`);
   $('sum').innerHTML=h;
@@ -646,7 +705,7 @@ const GN={fldtL6paVNlfMRDj4:'Manufacturer',fldJlvS5vcBkzx3hG:'Product Number',fl
 const FN={fldAEQvMAAZX9gnhl:'Imprint.previousImprint',fldpNCCXTgHyDhvak:'Imprint.inks (copied from the repeat)'}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k); Object.entries(GW).forEach(([k,v])=>FN[v]='Garment.'+(GN[v]||k));
 window.LF=L;
 function render(){ renderQuote(); renderCust(); renderOrder(); renderPast(); renderImps(); renderLines(); renderSum(); }
-render(); matchGarments(); loadAwaiting();
+render(); matchGarments().then(()=>priceCheck()); loadAwaiting();
 </script>
 </body>
 </html>
