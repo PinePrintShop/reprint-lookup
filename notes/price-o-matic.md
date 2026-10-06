@@ -270,3 +270,9 @@ Stephen OK'd: switch the Awaiting Proof orders created before July 2026 to **Can
 - Changed (order #): 2026-06: 10201, 10172 · 2026-04: 9959, 9958, 9942, 9941, 9940, 9939, 9938, 9937, 9914, 9832, 9831, 9830 · 2025: 9009, 8878, 8768 · 2024: 7153, 7108, 6533, 6527, 6318, 6064, 5995, 5936 · 2023: 5587, 5461, 5361, 5280, 5051, 5029, 5007, 4995, 4986, 4967, 4945, 4943, 4897, 4883, 4847, 4843, 4817, 4743, 4708, 4627 · 2022: 4609.
 - To undo one: set its Order Status back to Awaiting Proof.
 - Left for sales to check: 10627 Subculture Cyclery (Aug 13, 6 lines), 10569 Cheba Hut HQ (Aug 4, 2 lines), and the September ones (oldest 10804 West Kill Brewing, Sep 8).
+
+## Create order — pick several imprints from a past order (Oct 6)
+Stephen: "When a past order has a few imprint ids can we select multiples as well."
+- In an opened past order, the imprint cards are now tick-boxes (✓ in the corner), plus "select all". **Repeat N imprints in this order** brings in just those.
+- Each pick attaches to a print already on this order with the same location **and** method (e.g. 10612-A Front discharge → your Front screen print), setting Repeat of / ink type / screens / nickname. If there's no such print it's added as a new repeat imprint on every line (untick under "Goes on"). A green line says where each one went.
+- "Copy whole order" (now the white secondary button) still brings in all line items + imprints.
