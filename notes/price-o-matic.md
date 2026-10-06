@@ -255,3 +255,7 @@ Stephen: "Can we make the customer search more intuitive?"
 ## Create order — Past orders folded by default (Oct 6)
 - Stephen: make past orders an optional dropdown. The Past orders panel is now one line: "Past orders · 3 orders · last 10612, Jun 12, 2026 — reorder or repeat art ▾". Tap to open the search + proofs; tap again to fold. Open/closed is remembered on this computer.
 - "Repeat art…" on imprints still searches past imprints whether the panel is open or not.
+
+## Is "Awaiting Proof" set by Pipedrive? (Oct 6)
+- Checked the last 200 Orders: all 27 now at **Awaiting Proof** had Order Status set within 60 seconds of the record being created (`Order Status Last Modified Time` ≈ `createdTime`) and never changed since. Every other order had its status changed later. No Airtable automation sets Awaiting Proof. So the status arrives **with the order**, from whatever creates it (the Pipedrive → Airtable connection), not from a later step. Can't see the Zap itself from here; if it ever needs proving, the create step's Order Status field should read "Awaiting Proof" (or the Order Status field has it as its default).
+- Safety net in Create order: orders that arrive with a **blank** status also show in the waiting list, tagged "no status yet", so a missed status never hides an order. Past orders exclude blank-status ones.
