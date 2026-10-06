@@ -122,7 +122,7 @@ a.ghost{display:inline-block}
 </head>
 <body>
 <div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved.</div>
-<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v95.html" style="text-decoration:none">← Quote</a></div>
+<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v96.html" style="text-decoration:none">← Quote</a></div>
 <div class="mbar" id="mbar"></div>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
@@ -240,7 +240,7 @@ function nextIds(){ const n=S.order?S.order.num:null, start=S.existingImps.lengt
 function renderQuote(){
   $('qHint').textContent=CART.length?CART.length+' line'+(CART.length>1?'s':'')+' from Price-O-Matic on this computer':'';
   $('quote').innerHTML=CART.length?CART.map(c=>`<div class="qrow"><b>${esc(c.name)}</b><span>${c.qty} × ${money(c.quotedUnit)}</span><span class="auto">${esc((c.scopeLines||[]).slice(1).join(' · '))}</span></div>`).join('')
-    :`<div class="auto" style="margin-left:0">No quote on this computer yet. Build one in <a href="price-o-matic-v95.html">Price-O-Matic</a> and press <b>Add to quote</b> — or add line items by hand below.</div>`;
+    :`<div class="auto" style="margin-left:0">No quote on this computer yet. Build one in <a href="price-o-matic-v96.html">Price-O-Matic</a> and press <b>Add to quote</b> — or add line items by hand below.</div>`;
 }
 /* ---------- customer + orders (real) ---------- */
 let custTimer=null;
