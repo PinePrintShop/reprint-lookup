@@ -108,6 +108,10 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .cmore{display:block;width:100%;padding:9px 12px;border:none;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:13px;text-align:left;cursor:pointer}
 .cpick{display:flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 14px;border:1px solid var(--ydk);background:var(--ytint);border-radius:8px;font-size:16px;font-weight:700}
 .cpick .link{margin-left:auto}
+.ptog{width:100%;background:none;border:none;padding:0;margin:0;text-align:left;cursor:pointer;color:inherit}
+.ptog .chev{margin-left:10px;font-size:14px;color:var(--muted);transition:transform .15s}
+.ptog.open .chev{transform:rotate(180deg)}.ptog.open{margin-bottom:16px}
+#pastPanel:has(.ptog:not(.open)){padding-top:16px;padding-bottom:16px}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
 .fbrk{display:none}.ich{margin-left:14px}
@@ -161,10 +165,12 @@ a.ghost{display:inline-block}
       </div>
     </div>
     <div class="panel" id="pastPanel" style="display:none">
-      <div class="sec"><span class="n">↺</span><h2>Past orders</h2><span class="hint">Reorder? Find it here and copy it in</span></div>
+      <button class="sec ptog" id="pastTog" onclick="togglePast()"><span class="n">↺</span><h2>Past orders</h2><span class="hint" id="pastSum"></span><span class="chev" id="pastChev">▾</span></button>
+      <div id="pastBody" style="display:none">
       <input class="search" id="pastQ" placeholder="Search past orders — order #, location, ink, nickname, date…" oninput="renderPast()">
       <div class="pgrid" id="pastGrid"></div>
       <div id="pastDetail"></div>
+      </div>
     </div>
     <div class="panel">
       <div class="sec"><span class="n">2</span><h2>Imprints</h2><span class="hint">IDs come from the order number — Airtable assigns them in this order</span></div>
@@ -318,7 +324,7 @@ async function searchCust(v){
   renderCust();
 }
 async function pickCust(id,name,wantOid){
-  S.cust={id,name}; renderCust(); $('custFound').textContent='Loading orders…';
+  S.cust={id,name}; S.pastLoaded=false; renderCust(); $('custFound').textContent='Loading orders…';
   try{
     const sortQ=`&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc`;
     const mapO=r=>{const f=r.fields;return {id:r.id,num:f[O.num],status:sel(f[O.status]),due:f[O.due]||'',rep:sel(f[O.rep]),ship:(f[O.ship]||[]).map(sel),src:sel(f[O.src]),created:f[O.created]||'',lines:(f[O.lines]||[]).length,lineIds:f[O.lines]||[],imps:f[O.imps]||[],thumbs:(f[P.proofLook]||[]).map(thumb).filter(Boolean)};};
@@ -338,7 +344,7 @@ async function loadPast(name,mapO,sortQ){
     const di=await at(T_IMP,`maxRecords=80&${flds(Object.values(IP))}&sort%5B0%5D%5Bfield%5D=${IP.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent(`FIND(LOWER("${fq(name)}"),LOWER({Customer Name Search}))`)}`);
     S.pastImps=(di.records||[]).map(r=>{const f=r.fields;return {rid:r.id,id:f[IP.id]||'',type:sel(f[IP.type]),loc:sel(f[IP.loc]),screens:f[IP.screens]||0,nick:f[IP.nick]||'',inks:f[IP.inksTxt]||'',inkIds:f[IP.inks]||[],created:(f[IP.created]||'').slice(0,10),thumbs:(f[IP.proofs]||[]).map(thumb).filter(Boolean),order:(f[IP.order]||[])[0]};});
   }catch(e){ S.pastOrders=[]; S.pastImps=[]; }
-  render();
+  S.pastLoaded=true; render();
 }
 async function pickOrder(id){
   const o=S.orders.find(x=>x.id===id); S.order=o; S.rep=o.rep; S.due=o.due; S.ship=o.ship.slice(); S.src=o.src; S.repMore=REPS_MORE.includes(o.rep);
@@ -357,8 +363,14 @@ function renderOrder(){
   $('src').innerHTML=SOURCES.map(s=>B(s,S.src===s,`S.src='${s}';render()`)).join('')+(S.src&&!SOURCES.includes(S.src)?B(esc(S.src),true,''):'');
 }
 /* ---------- past orders (search + small proofs) ---------- */
+// Past orders stay folded until asked for (remembered on this computer). The header says what's inside.
+let PAST_OPEN=false; try{ PAST_OPEN=localStorage.getItem('pom_co_past_open')==='1'; }catch(e){}
+function togglePast(){ PAST_OPEN=!PAST_OPEN; try{ localStorage.setItem('pom_co_past_open',PAST_OPEN?'1':'0'); }catch(e){} renderPast(); if(PAST_OPEN) setTimeout(()=>$('pastQ').focus(),0); }
 function renderPast(){
   $('pastPanel').style.display=S.cust?'':'none'; if(!S.cust) return;
+  const n=S.pastOrders.length, last=S.pastOrders[0];
+  $('pastSum').textContent=!S.pastLoaded?'Loading…':n?`${n} order${n>1?'s':''}${last?' · last '+last.num+(last.created?', '+new Date(last.created).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''):''}${PAST_OPEN?'':' — reorder or repeat art'}`:'None yet';
+  $('pastTog').classList.toggle('open',PAST_OPEN); $('pastBody').style.display=PAST_OPEN?'':'none';
   const q=($('pastQ').value||'').toLowerCase().trim();
   const impsByOrder={}; S.pastImps.forEach(m=>{(impsByOrder[m.order]=impsByOrder[m.order]||[]).push(m);});
   const list=S.pastOrders.filter(o=>{ if(!q) return true; const hay=[o.num,o.created,o.status].concat((impsByOrder[o.id]||[]).map(m=>m.id+' '+m.loc+' '+m.type+' '+m.inks+' '+m.nick)).join(' ').toLowerCase(); return hay.includes(q); });
