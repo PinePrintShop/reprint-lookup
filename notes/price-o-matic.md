@@ -251,3 +251,7 @@ Stephen: "Can we make the customer search more intuitive?"
 - Keyboard: ↓ ↑ Enter, Esc clears. Placeholder: "Customer or order #".
 - Once picked, the customer shows as a yellow chip with **change**; the Order row only appears then. Order chips say "created today / 3 days ago" instead of raw dates.
 - Same Airtable reads as before plus one: Orders where Order Status = Awaiting Proof (paged, up to 300). Still read-only.
+
+## Create order — Past orders folded by default (Oct 6)
+- Stephen: make past orders an optional dropdown. The Past orders panel is now one line: "Past orders · 3 orders · last 10612, Jun 12, 2026 — reorder or repeat art ▾". Tap to open the search + proofs; tap again to fold. Open/closed is remembered on this computer.
+- "Repeat art…" on imprints still searches past imprints whether the panel is open or not.
