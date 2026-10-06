@@ -122,7 +122,7 @@ a.ghost{display:inline-block}
 </head>
 <body>
 <div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved.</div>
-<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v98.html" style="text-decoration:none">← Quote</a></div>
+<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v99.html" style="text-decoration:none">← Quote</a></div>
 <div class="mbar" id="mbar"></div>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
@@ -240,7 +240,7 @@ function nextIds(){ const n=S.order?S.order.num:null, start=S.existingImps.lengt
 function renderQuote(){
   $('qHint').textContent=CART.length?CART.length+' line'+(CART.length>1?'s':'')+' from Price-O-Matic on this computer':'';
   $('quote').innerHTML=CART.length?CART.map(c=>`<div class="qrow"><b>${esc(c.name)}</b><span>${c.qty} × ${money(c.quotedUnit)}</span><span class="auto">${esc((c.scopeLines||[]).slice(1).join(' · '))}</span></div>`).join('')
-    :`<div class="auto" style="margin-left:0">No quote on this computer yet. Build one in <a href="price-o-matic-v98.html">Price-O-Matic</a> and press <b>Add to quote</b> — or add line items by hand below.</div>`;
+    :`<div class="auto" style="margin-left:0">No quote on this computer yet. Build one in <a href="price-o-matic-v99.html">Price-O-Matic</a> and press <b>Add to quote</b> — or add line items by hand below.</div>`;
 }
 /* ---------- customer + orders (real) ---------- */
 let custTimer=null;
@@ -351,13 +351,21 @@ function pickPrev(i,rid){ const p=S.pastImps.find(x=>x.rid===rid), m=S.imps[i]; 
   m.prev=p; m.repeat=true; m.pick=false; if(p.loc) m.loc=p.loc; if(p.type) m.ink=p.type; if(p.screens&&m.method==='Screenprint') m.screens=p.screens; if(!m.nick&&p.nick) m.nick=p.nick; render(); }
 function tgLine(i,li){ const a=S.imps[i].lines,k=a.indexOf(li); if(k>=0)a.splice(k,1); else a.push(li); render(); }
 /* ---------- line items + real garment matching ---------- */
+// Garment match: the quote line's style # + color → the Airtable Garment. Styles like the 3001 have 100+ colors,
+// so ask Airtable for the exact color first, then load every color of the style (paged) for the dropdown.
+const normC=s=>String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(table,params+(off?'&offset='+off:'')); out=out.concat(d.records||[]); off=d.offset||''; }while(off&&out.length<max); return out; }
 async function matchGarments(){
   for(const L of S.lines){
     if(L.cands||L.bandana||!L.style) continue;
-    try{ const d=await at(T_GAR,`maxRecords=12&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`{Product Number}="${fq(L.style)}"`)}`);
-      L.cands=(d.records||[]).map(r=>({id:r.id,name:r.fields[G.name]||'',color:r.fields[G.color]||'',cost:r.fields[G.cost]}));
-      const want=L.color.toLowerCase(); L.garment=L.cands.find(c=>String(c.color).toLowerCase()===want)||L.cands.find(c=>c.name.toLowerCase().includes(want)&&want)||null;
-    }catch(e){ L.cands=[]; }
+    const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:r.fields[G.cost]});
+    try{
+      const st=`TRIM({Product Number})="${fq(L.style)}"`;
+      if(L.color){ const d=await at(T_GAR,`maxRecords=1&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`AND(${st},LOWER(TRIM({Colorway}))="${fq(normC(L.color))}")`)}`);
+        if(d.records&&d.records[0]) L.garment=mapG(d.records[0]); }
+      L.cands=(await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&sort%5B0%5D%5Bfield%5D=${G.color}&filterByFormula=${encodeURIComponent(st)}`,300)).map(mapG);
+      if(!L.garment&&L.color){ const w=normC(L.color); L.garment=L.cands.find(c=>normC(c.color)===w)||null; }
+    }catch(e){ L.cands=L.cands||[]; }
   }
   render();
 }
@@ -369,7 +377,8 @@ function renderLines(){
     h+=`<div class="card"><div class="ch"><span class="t1">${esc(L.garment?L.garment.name:L.qname)}</span><span class="t2">${esc(L.ptype)}</span><div class="right"><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">sizes '+got+' of '+L.qty+'</span>'}</div></div><div class="grid">`;
     if(L.bandana) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">Bandana — pick the bandana garment when building</span></div>`;
     else if(L.cands==null) h+=`<span class="k req">Garment</span><div class="bts"><span class="auto" style="margin-left:0">${L.style?'Looking up '+esc(L.style)+' in Airtable…':'No style number in the quote line'}</span></div>`;
-    else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?'pick the color':'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}</div>`;
+    else if(L.garment&&!L.chg) h+=`<span class="k req">Garment</span><div class="bts"><span class="tag ok">✓ ${esc(L.garment.name)}</span><span class="auto">matched from the quote</span><button class="link" onclick="S.lines[${i}].chg=true;render()">change</button></div>`;
+    else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?(L.color?'"'+esc(L.color)+'" isn\'t in Airtable for '+esc(L.style)+' — pick the color':'pick the color'):'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.color||c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}</div>`;
     h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" placeholder="${sg[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px">${Object.keys(sg).length?`<button class="b sug" onclick="spread(${i})">${got?'Fill the other '+(L.qty-got):'Use these '+L.qty}</button>`:''}<button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
     h+=`<span class="k">Price / pc</span><div class="bts"><span class="tot">${money(L.price)}</span><span class="auto">from the quote</span></div>`;
     h+=`<span class="k">Imprints</span><div class="chips">${imps.map(m=>`<span class="chip on">${ids[S.imps.indexOf(m)]} · ${esc(impName(m))}</span>`).join('')||'<span class="auto">none linked</span>'}</div>`;
@@ -379,7 +388,7 @@ function renderLines(){
   if(!S.lines.length) h+='<div class="auto" style="margin-left:0">No quote lines. In the real build you could add line items by hand here.</div>';
   $('lines').innerHTML=h;
 }
-function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; render(); }
+function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); }
 function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
 // Grey size suggestions: the line's qty (or what's left of it) spread over a typical run. Hats/totes/bandanas go to OSFA.
 const RUN={S:.15,M:.30,L:.30,XL:.15,'2XL':.10};

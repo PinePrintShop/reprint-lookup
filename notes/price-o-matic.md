@@ -216,3 +216,15 @@ Stephen asked to check the phone view once a garment is selected.
 - **Quantity:** 4-across grid (24 36 48 72 / 100 144 250 other) instead of a ragged wrap.
 - **Bottom bar:** adds **Add to quote** next to Share (now an outline button). Tapping it adds the line and scrolls to the quote. With the builder empty and lines in the quote, the bar shows the **quote total** and **Quote (n) ↓** to jump there (it used to keep showing the last line's price).
 - Laptop / iPad unchanged. Create order's "← Quote" now points at v98. No pricing changes; handoff re-tested.
+
+## v99 — Start from works on phones (Oct 6)
+- **Start from** didn't drop down on Stephen's phone: the button's container had `overflow:auto` on small screens, which clipped the menu. Now visible.
+- Fixed a v98 slip: an empty grey garment box showed before any search (the phone grid rule overrode the hidden state).
+- Bottom-bar **Add to quote** starts disabled until there's something to price (it was missing its first update because the bar sits after the script).
+- Create order's "← Quote" now points at v99. No pricing changes.
+
+## Create order — garment color from the quote (Oct 6) · `pom-create-order-live.html`
+Stephen: "Why does it ask me to pick a color when I already did in the quote?"
+- The quote line carries the color (e.g. "… 3001 … - Black"), but Create order asked Airtable for only the first **12** Garments of the style. The 3001 has ~100 colors in Airtable (238 records containing "3001" incl. CVC / Y / T variants), so Black usually wasn't in those 12 → "pick the color".
+- Now: one query for the exact style + color (`TRIM({Product Number})` and `LOWER(TRIM({Colorway}))`, since some records have trailing spaces like "3001 " and "Dark Grey Heather "), then every color of the style (paged) for the dropdown.
+- A matched garment shows as **✓ Bella Canvas 3001 - Black · matched from the quote · change**, no dropdown. If the color really isn't in Airtable it says so: *"Black" isn't in Airtable for 3001 — pick the color*. Dropdown lists color names only.
