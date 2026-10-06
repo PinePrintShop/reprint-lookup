@@ -93,13 +93,35 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .detail{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
+.fbrk{display:none}.ich{margin-left:14px}
+.mbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--text);color:#fff;padding:10px 12px calc(10px + env(safe-area-inset-bottom));align-items:center;gap:10px}
+.mbar .mt{flex:1;min-width:0;font-size:13px;line-height:1.3}.mbar .mt b{font:700 17px var(--mono);color:var(--yellow);display:block}
+.mbar button{height:46px;padding:0 18px;border-radius:var(--r);border:1px solid var(--ydk);background:var(--yellow);font-weight:900;font-size:15px;white-space:nowrap}
+.mbar button.wait{background:#2a2a26;color:#ddd;border-color:#4a4a44}
 @media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.rail{position:static}}
-@media (max-width:600px){.ch{flex-wrap:wrap}.idtag{white-space:nowrap}.grid{grid-template-columns:minmax(0,1fr);gap:6px}.grid>.k{margin-top:8px}.sizes{grid-template-columns:repeat(6,minmax(0,1fr))}.pgrid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
+@media (max-width:600px){
+  body{padding:10px 10px 90px}
+  .mk-note .long{display:none}
+  .top{padding:8px 8px 8px 14px;gap:10px}.crumb{display:none}.brand{font-size:13px;letter-spacing:1.5px;white-space:nowrap}
+  .prac{font-size:11px;padding:5px 8px;white-space:nowrap}.ghost{padding:7px 10px;white-space:nowrap}
+  .wrap{margin-top:12px;gap:12px}.panel{padding:16px 14px}.panel+.panel{margin-top:12px}
+  .sec{flex-wrap:wrap;row-gap:4px;margin-bottom:12px}.sec .hint{margin-left:0;flex-basis:100%;font-size:12px}
+  .card{padding:12px}.ch{flex-wrap:wrap;gap:6px 10px}.ch .t1{font-size:16px}.idtag{white-space:nowrap}
+  .grid{grid-template-columns:minmax(0,1fr);gap:6px}.grid>.k{margin-top:8px}
+  .b{height:40px;padding:0 12px}.bts select.t{flex:1;min-width:120px}
+  .sizes{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .pgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pc2 .th{height:80px}.pc2 .th img{max-height:80px}
+  .out{max-height:60vh}
+  .mbar{display:flex}
+  .bts>input.nick{flex:1 1 100%!important}
+  .fbrk{display:block;flex-basis:100%;height:0}.ich{margin-left:0;margin-right:4px}
+}
 </style>
 </head>
 <body>
-<div class="mk-note"><b>Mockup v3 — real data, read-only.</b> Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write. Nothing is saved.</div>
-<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Practice — read-only</span><a class="ghost" href="price-o-matic-v95.html" style="text-decoration:none">← Back to quote</a></div>
+<div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved.</div>
+<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v95.html" style="text-decoration:none">← Quote</a></div>
+<div class="mbar" id="mbar"></div>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
   <div>
@@ -309,11 +331,11 @@ function renderImps(){
     h+=`<div class="card"><div class="ch"><span class="idtag">${ids[i]}</span><span class="t1">${impName(m)}</span><span class="t2">${on.length?'on '+esc(on.join(' + ')):''}</span><div class="right">${need?'<span class="tag need">'+(!m.loc?'pick a location':'pick an ink type')+'</span>':'<span class="tag ok">ready</span>'}</div></div><div class="grid">`;
     if(m.method==='Screenprint'){
       h+=`<span class="k req">Ink type</span><div class="bts">${INKS.map(k=>B(k,m.ink===k,`S.imps[${i}].ink='${k}';render()`)).join('')}</div>`;
-      h+=`<span class="k req">Screens</span><div class="bts"><input class="t" style="width:70px;text-align:center" value="${m.screens}" onchange="S.imps[${i}].screens=Number(this.value)||1;render()"><span class="auto">${m.colors} color${m.colors>1?'s':''}${m.ub?' + underbase':''} from the quote</span><span class="k" style="margin-left:14px">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
+      h+=`<span class="k req">Screens</span><div class="bts"><input class="t" style="width:70px;text-align:center" value="${m.screens}" onchange="S.imps[${i}].screens=Number(this.value)||1;render()"><span class="auto">${m.colors} color${m.colors>1?'s':''}${m.ub?' + underbase':''} from the quote</span><span class="fbrk"></span><span class="k ich">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
     } else h+=`<span class="k req">Imprint type</span><div class="bts">${m.ink?`<span class="tag ok">${esc(m.ink)}</span><span class="auto">from the quote</span>`:`<span class="tag need">no matching Airtable type</span><span class="auto">(e.g. Decopress Suede) — pick one when building</span>`}</div>`;
     h+=`<span class="k req">Location</span><div class="bts">${LOCS.slice(0,6).map(l=>B(l,m.loc===l,`S.imps[${i}].loc='${l}';render()`)).join('')}<select class="t" onchange="if(this.value){S.imps[${i}].loc=this.value;render()}"><option value="">More…</option>${LOCS.slice(6).map(l=>`<option ${m.loc===l?'selected':''}>${l}</option>`).join('')}</select>${!LOC_MAP[m.qloc]&&m.qloc&&m.qloc!=='Bandana'?`<span class="auto">quote said "${esc(m.qloc)}"</span>`:''}</div>`;
     h+=`<span class="k">Goes on</span><div class="chips">${S.lines.map((L,li)=>`<button class="chip${m.lines.includes(li)?' on':''}" onclick="tgLine(${i},${li})">${m.lines.includes(li)?'✓ ':''}${esc(L.garment?L.garment.name:(L.qname||'Line '+(li+1)))}</button>`).join('')}</div>`;
-    h+=`<span class="k">Nickname</span><div class="bts"><input class="t" style="flex:1" placeholder="e.g. Hop logo" value="${esc(m.nick)}" oninput="S.imps[${i}].nick=this.value"><button class="b${m.prev?' on':''}" onclick="S.imps[${i}].pick=!S.imps[${i}].pick;render()">${m.prev?'Repeat of '+esc(m.prev.id):'Repeat art…'}</button></div>`;
+    h+=`<span class="k">Nickname</span><div class="bts"><input class="t nick" style="flex:1" placeholder="e.g. Hop logo" value="${esc(m.nick)}" oninput="S.imps[${i}].nick=this.value"><button class="b${m.prev?' on':''}" onclick="S.imps[${i}].pick=!S.imps[${i}].pick;render()">${m.prev?'Repeat of '+esc(m.prev.id):'Repeat art…'}</button></div>`;
     if(m.prev) h+=`<span class="k">Repeat of</span><div class="rep">${m.prev.thumbs[0]?`<img src="${esc(m.prev.thumbs[0])}" alt="">`:''}<b style="font-family:var(--mono)">${esc(m.prev.id)}</b><span class="auto">${esc(m.prev.loc)} · ${esc(m.prev.type)} · ${m.prev.screens} screens · ${esc(m.prev.inks)}</span><button class="link" onclick="S.imps[${i}].prev=null;S.imps[${i}].repeat=false;render()">remove</button></div>`;
     if(m.pick){ const q=(m.q||'').toLowerCase(); const list=S.pastImps.filter(p=>!q||[p.id,p.loc,p.type,p.inks,p.nick,p.created].join(' ').toLowerCase().includes(q));
       h+=`<div class="picker"><input class="search" placeholder="Search ${esc(S.cust?S.cust.name:'this customer')}'s past imprints — ID, location, ink, nickname…" value="${esc(m.q||'')}" id="pq${i}" oninput="pickQ(${i},this.value)"><div class="pgrid">${S.cust?(list.slice(0,24).map(p=>`<button class="pc2${m.prev&&m.prev.rid===p.rid?' on':''}" onclick="pickPrev(${i},'${p.rid}')"><div class="th">${p.thumbs[0]?`<img src="${esc(p.thumbs[0])}" loading="lazy" alt="">`:'<span class="m">no proof</span>'}</div><b>${esc(p.id)}</b><span class="m">${esc(p.loc)} · ${p.screens?p.screens+' scr · ':''}${esc(p.created)}</span><span class="m">${esc(p.inks||p.type)}</span></button>`).join('')||'<span class="auto" style="margin-left:0">No past imprints match.</span>'):'<span class="auto" style="margin-left:0">Pick the customer first.</span>'}</div></div>`; }
@@ -350,7 +372,7 @@ function renderLines(){
     h+=`<span class="k">Price / pc</span><div class="bts"><span class="tot">${money(L.price)}</span><span class="auto">from the quote</span></div>`;
     h+=`<span class="k">Imprints</span><div class="chips">${imps.map(m=>`<span class="chip on">${ids[S.imps.indexOf(m)]} · ${esc(impName(m))}</span>`).join('')||'<span class="auto">none linked</span>'}</div>`;
     h+=`<span class="k req">Proofing notes</span><textarea class="t">${esc(imps.map(m=>ids[S.imps.indexOf(m)]+' '+impName(m)).join('\n'))}</textarea>`;
-    h+=`<span class="k">Nickname</span><div class="bts"><input class="t" style="flex:1" placeholder="Line item nickname"><button class="b${L.womens?' on':''}" onclick="S.lines[${i}].womens=!S.lines[${i}].womens;render()">Women's</button><button class="b${L.youth?' on':''}" onclick="S.lines[${i}].youth=!S.lines[${i}].youth;render()">Youth</button></div></div></div>`;
+    h+=`<span class="k">Nickname</span><div class="bts"><input class="t nick" style="flex:1" placeholder="Line item nickname"><button class="b${L.womens?' on':''}" onclick="S.lines[${i}].womens=!S.lines[${i}].womens;render()">Women's</button><button class="b${L.youth?' on':''}" onclick="S.lines[${i}].youth=!S.lines[${i}].youth;render()">Youth</button></div></div></div>`;
   });
   if(!S.lines.length) h+='<div class="auto" style="margin-left:0">No quote lines. In the real build you could add line items by hand here.</div>';
   $('lines').innerHTML=h;
@@ -373,6 +395,7 @@ function renderSum(){
   let h=`<h3>${S.order?'Order '+S.order.num+' · '+esc(S.cust.name):'Create order'}</h3><div class="will">${S.order?'Updates order <b>'+S.order.num+'</b>':'Finds the order Pipedrive made'} · adds <b>${S.lines.length}</b> line items · <b>${S.imps.length}</b> imprints${S.imps.length?' ('+nextIds().join(', ')+')':''}</div>`;
   h+='<div class="checks">'+(p.length?p.map(x=>`<div class="c bad">○ ${esc(x)}</div>`).join(''):'<div class="c ok">✓ Everything needed is filled in</div>')+'</div>';
   h+=`<div class="money"><span>Quote total</span><span>${money(tot)}</span></div><button class="go" ${p.length?'disabled':''} onclick="preview()">Create order</button>`;
+  $('mbar').innerHTML=`<div class="mt"><b>${money(tot)}</b>${S.order?'Order '+S.order.num+' · ':''}${p.length?p.length+' thing'+(p.length>1?'s':'')+' left':'ready'}</div>`+(p.length?`<button class="wait" onclick="$('sum').scrollIntoView({behavior:'smooth'})">What's left</button>`:`<button onclick="preview();$('sum').scrollIntoView({behavior:'smooth'})">Create order</button>`);
   $('sum').innerHTML=h;
 }
 function preview(){

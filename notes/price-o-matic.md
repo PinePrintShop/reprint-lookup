@@ -179,3 +179,12 @@ Stephen: "focus on the awaiting proof ones", add a past-print section with small
 - **Repeat art… on each imprint:** opens a search of the client's past imprints (up to 80, via `Customer Name Search`) with proof thumbnails. Picking one fills location, type, screens and nickname, and shows "Repeat of 10612-A" with its proof. The preview adds **Previous Imprint** and copies its **Inks**.
 - **Layout:** the summary rail stacks under the page below 900px wide; labels sit above buttons on phones.
 - Still read-only: tested with mocked Airtable, 0 writes. This file stays the one mockup page (v95's Create order button links to it); the real build will get its own versioned file.
+
+## Create order — phone layout (Oct 6) · `pom-create-order-live.html`
+Stephen opened it on his phone and it looked off: the header wrapped letter by letter, section hints squeezed the titles, and Create order sat at the very bottom.
+- **Header:** one line ("PRICE-O-MATIC · Read-only · ← Quote"); the long mockup note is cut to "Nothing is saved."
+- **Sections:** the hint text moves under the title; tighter panel and card padding so the buttons get the width.
+- **Imprints:** Ink changes gets its own row; nickname is full width with Repeat art… under it (same for Women's / Youth on line items).
+- **Past orders:** two cards per row.
+- **Bottom bar** (phones only): quote total, order #, and either **Create order** or **What's left** (jumps to the checklist). No more scrolling to the end to finish.
+- Laptop layout unchanged. Tested at 390px and 1440px with mocked Airtable, 0 writes.
