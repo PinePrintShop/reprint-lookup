@@ -209,3 +209,10 @@ Stephen asked for a greyed-out auto fill for the qty.
 - Phone banner: small photo on the left, Dismiss pinned top-right, swatches use the full width (the "96 colors →" hint is hidden; the Pick color dropdown is right above).
 - Turnaround chip reads "TURNAROUND 15 BUS. DAYS ~OCT 23" (was "Current average turnaround … business days") so it no longer covers the product tabs on a laptop.
 - Create order's "← Quote" now points at v97. No pricing changes; quote → Create order handoff re-tested.
+
+## v98 — phone: garment box, quantity, Add to quote in the bottom bar (Oct 6)
+Stephen asked to check the phone view once a garment is selected.
+- **Garment box (phones):** photo and name/prices share the top row; vendor chips, the stock table, Pick color and swatches use the full width below (they were squeezed into a 228px column beside the photo, and the stock table cut off at 2XL). Stock table scrolls sideways if a style has many sizes. Swatches are bigger (30px) and the row opens scrolled to the picked color. "96 colors · or tap a swatch below" hidden on phones.
+- **Quantity:** 4-across grid (24 36 48 72 / 100 144 250 other) instead of a ragged wrap.
+- **Bottom bar:** adds **Add to quote** next to Share (now an outline button). Tapping it adds the line and scrolls to the quote. With the builder empty and lines in the quote, the bar shows the **quote total** and **Quote (n) ↓** to jump there (it used to keep showing the last line's price).
+- Laptop / iPad unchanged. Create order's "← Quote" now points at v98. No pricing changes; handoff re-tested.
