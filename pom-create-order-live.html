@@ -156,6 +156,7 @@ a.ghost{display:inline-block}
 <div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved.</div>
 <div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v101.html" style="text-decoration:none">← Quote</a></div>
 <div class="mbar" id="mbar"></div>
+<iframe id="pomEngine" src="price-o-matic-v101.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
   <div>
@@ -205,7 +206,7 @@ a.ghost{display:inline-block}
 /* ---------- Airtable (read-only) ---------- */
 const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_CUST='tblXToEJONa3VELp2', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV';
 const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',due:'fldphJYdlBNS0dmAK',rep:'fldSPnWlnzz48ZZDD',ship:'fldrjFuIBn45ewFU5',src:'fldE1muKiijQchB0h',lines:'fldU6fgrz6sU3wyIZ',imps:'fldShbb1tOR0zwGIt',created:'fldXUjQHSeRaW5per'};
-const G={name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO',ssColor:'fldUnCYQgAx8AhsMZ',mfr:'fldtL6paVNlfMRDj4'};
+const G={name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO',ssColor:'fldUnCYQgAx8AhsMZ',mfr:'fldtL6paVNlfMRDj4',fleece:'fldi7NqFcF7S2p4mj'};
 // Garment fields written when the vendor's naming fixes or adds a Garment
 const GW={mfr:'fldtL6paVNlfMRDj4',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',ssColor:'fldUnCYQgAx8AhsMZ',cost:'fldRmgDAByrOWcHLO',up2:'fldHakcDllb8SFCwz',up3:'fldEXqJi6mii9bpoJ',up4:'fldBWmLGzqtjXM0zm',up5:'fldlF7ZOqCNYr8hi2',
   XS:'fldqtCiqDEcvbp5NY',S:'fldDnig5xvHwBEp47',M:'fldFfI2Bz6Zd901fV',L:'fldxddv4SOBQ79jLU',XL:'flduZZd9EqXf5Ntxf','2XL':'fldZpjXegFmPwGExL','3XL':'fldaVCBI9azZ2fzCk','4XL':'fldEm0sh0qVbR8qqw','5XL':'fld221OWblbVqYZeY','6XL':'fldmHuYBdqOdaXTmv',OSFA:'fldsBR0uVhjpEHyJh'};
@@ -249,11 +250,11 @@ function fromQuote(cart){
       : (snap.impressions||[]).every(i=>!i.type||i.type==='Embroidery')&&(snap.impressions||[]).some(i=>i.type)?'Embroidered Apparel':'Printed Apparel';
     const nm=String(c.name||''); const vg=c.vg||null;
     const color=(vg&&vg.color)||(nm.split(' - ')[1]||'').trim(); const style=(vg&&vg.style)||(nm.match(/\b([A-Z]{0,4}\d{2,6}[A-Z]{0,4})\b/i)||[])[1]||'';
-    lines.push({qname:nm,style,color,vg,ptype,qty:Number(c.qty)||0,price:Number(c.quotedUnit)||0,up:c.ssTiers||null,qCost:Number(snap.garmentCost)||null,sizes:{},garment:null,cands:null,nick:'',womens:false,youth:false,bandana:p==='bandana'});
+    lines.push({qname:nm,style,color,vg,ptype,qty:Number(c.qty)||0,price:Number(c.quotedUnit)||0,up:c.ssTiers||null,qCost:Number(snap.garmentCost)||null,snap,sizes:{},garment:null,cands:null,nick:'',womens:false,youth:false,bandana:p==='bandana'});
     (snap.impressions||[]).filter(i=>i.type).forEach(i=>{
       const key=[i.loc,i.type,i.screens,!!i.underbase,i.supRecipe,i.supSize,i.decoMaterial,i.embStitchBand].join('|');
       let m=imps.find(x=>x.key===key);
-      if(!m){ m={key,loc:LOC_MAP[i.loc]||'',qloc:i.loc||'',method:i.type,screens:i.type==='Screenprint'?(Number(i.screens)||1)+(i.underbase?1:0):0,ub:!!i.underbase,colors:Number(i.screens)||0,inkChanges:Number(i.inkChanges)||0,ink:impType(i),nick:'',repeat:false,lines:[],priced:true,qUb:!!i.underbase};
+      if(!m){ m={src:i,key,loc:LOC_MAP[i.loc]||'',qloc:i.loc||'',method:i.type,screens:i.type==='Screenprint'?(Number(i.screens)||1)+(i.underbase?1:0):0,ub:!!i.underbase,colors:Number(i.screens)||0,inkChanges:Number(i.inkChanges)||0,ink:impType(i),nick:'',repeat:false,lines:[],priced:true,qUb:!!i.underbase};
         m.qScreens=m.screens; imps.push(m); }
       if(!m.lines.includes(li)) m.lines.push(li);
     });
@@ -528,7 +529,7 @@ async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(
 async function matchGarments(){
   for(const L of S.lines){
     if(L.cands||L.bandana||!L.style) continue;
-    const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:r.fields[G.cost],raw:{product:r.fields[G.product]||'',color:r.fields[G.color]||'',ssColor:r.fields[G.ssColor]||'',mfr:r.fields[G.mfr]||[]}});
+    const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:r.fields[G.cost],fleece:!!r.fields[G.fleece],raw:{product:r.fields[G.product]||'',color:r.fields[G.color]||'',ssColor:r.fields[G.ssColor]||'',mfr:r.fields[G.mfr]||[]}});
     try{
       const st=`TRIM({Product Number})="${fq(L.style)}"`;
       if(L.color){ const d=await at(T_GAR,`maxRecords=1&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`AND(${st},OR(LOWER(TRIM({Colorway}))="${fq(normC(L.color))}",LOWER(TRIM({[S&S] Color Name}))="${fq(normC(L.color))}"))`)}`);
@@ -566,7 +567,7 @@ function renderLines(){
     h+=`<div class="card"><div class="ch"><span class="t1">${esc(L.garment?L.garment.name:((gplan(L)||{}).name||L.qname||(L.style?L.style+' — pick the color':(L.manual&&!isApparel(L)?L.ptype:'New line item'))))}</span><span class="t2">${esc(L.ptype)}</span><div class="right"><button class="link" onclick="rmLine(${i})">remove</button><span class="tot">${L.qty} × ${money(L.price)}</span>${ok?'<span class="tag ok">sizes ✓</span>':'<span class="tag need">sizes '+got+' of '+L.qty+'</span>'}</div></div><div class="grid">`;
     if(L.manual){
       h+=`<span class="k req">Type</span><div class="bts">${PT_MAIN.map(t=>B(t,L.ptype===t,`setPT(${i},'${t}')`)).join('')}<select class="t" onchange="if(this.value)setPT(${i},this.value)"><option value="">More…</option>${PT_MORE.map(t=>`<option ${L.ptype===t?'selected':''}>${t}</option>`).join('')}</select></div>`;
-      h+=`<span class="k req">Qty · price</span><div class="bts"><input class="t" inputmode="numeric" style="width:90px;text-align:center" placeholder="qty" value="${L.qty||''}" onchange="setQty(${i},this.value)"><span class="auto">×</span><input class="t" inputmode="decimal" style="width:100px;text-align:center" placeholder="$ / pc" value="${L.price||''}" onchange="S.lines[${i}].price=Number(String(this.value).replace(/[^0-9.]/g,''))||0;render()"><span class="auto">${L.qty&&L.price?'= '+money(L.qty*L.price):'price by hand — no quote'}</span></div>`;
+      h+=`<span class="k req">Qty · price</span><div class="bts"><input class="t" inputmode="numeric" style="width:90px;text-align:center" placeholder="qty" value="${L.qty||''}" onchange="setQty(${i},this.value)"><span class="auto">×</span><input class="t" inputmode="decimal" style="width:100px;text-align:center" placeholder="$ / pc" value="${L.price||''}" onchange="S.lines[${i}].priceManual=true;S.lines[${i}].priceSrc='';S.lines[${i}].price=Number(String(this.value).replace(/[^0-9.]/g,''))||0;render()"><span class="auto">${L.qty&&L.price?'= '+money(L.qty*L.price)+(L.priceSrc==='pom'?' · POM price':''):'filled from POM rates once the garment + prints are set'}</span></div>`;
     }
     if(L.manual&&!isApparel(L)) h+=`<span class="k">Garment</span><div class="bts"><span class="auto" style="margin-left:0">none needed for ${esc(L.ptype)}</span></div>`;
     else if(L.manual&&!L.style) h+=`<span class="k req">Garment</span><div class="bts"><input class="t" id="gs${i}" style="width:180px" placeholder="Style # — 3001, 5000…" onkeydown="if(event.key==='Enter')findStyle(${i})"><button class="b" onclick="findStyle(${i})">Find</button><span class="auto">then pick the color</span></div>`;
@@ -578,8 +579,9 @@ function renderLines(){
       h+=`<span class="k req">Garment</span><div class="bts"><span class="tag new">+ new</span><b>${esc(gp.name)}</b><span class="auto">not in Airtable yet — adds it from ${esc(gp.vendor||'the vendor')} (cost, upcharges, sizes)</span>${gp.mfrMissing?`<span class="tag need">Manufacturer "${esc(gp.brand)}" isn't an Airtable choice — ask Stephen</span>`:''}${L.cands&&L.cands.length?`<button class="link" onclick="S.lines[${i}].chg=true;render()">pick an existing one instead</button>`:''}</div>`; }
     else h+=`<span class="k req">Garment</span><div class="bts">${L.garment?`<span class="tag ok">✓ ${esc(L.garment.name)}</span>`:`<span class="tag need">${L.cands.length?(L.color?'"'+esc(L.color)+'" isn\'t in Airtable for '+esc(L.style)+' — pick the color':'pick the color'):'not in Airtable yet'}</span>`}<select class="t" onchange="pickG(${i},this.value)"><option value="">${L.cands.length?L.cands.length+' '+esc(L.style)+' colors in Airtable…':'—'}</option>${L.cands.map(c=>`<option value="${c.id}" ${L.garment&&L.garment.id===c.id?'selected':''}>${esc(c.color||c.name)}</option>`).join('')}</select>${L.cands.length?'':`<button class="b">+ Add garment</button>`}${L.manual?`<button class="link" onclick="S.lines[${i}].style='';S.lines[${i}].cands=[];S.lines[${i}].garment=null;render()">other style</button>`:''}</div>`;
     if(!(L.manual&&!isApparel(L))) h+=`<span class="k req">Sizes</span><div><div class="sizes">${SIZES.map(z=>`<label>${z}<input inputmode="numeric" value="${L.sizes[z]||''}" placeholder="${sg[z]||''}" onchange="setSz(${i},'${z}',this.value)"></label>`).join('')}</div><div class="bts" style="margin-top:8px">${Object.keys(sg).length?`<button class="b sug" onclick="spread(${i})">${got?'Fill the other '+(L.qty-got):'Use these '+L.qty}</button>`:''}<button class="link" onclick="S.lines[${i}].sizes={};render()">Clear</button>${L.up&&L.up.c2?`<span class="auto">2XL +$${(L.up.c2-L.up.c1).toFixed(2)}${L.up.c3?' · 3XL +$'+(L.up.c3-L.up.c1).toFixed(2):''} (vendor)</span>`:''}</div></div>`;
+    if(!L.bandana&&L.ptype!=='Artwork') h+=`<span class="k">POM price today</span><div>${pomHtml(L,i)}</div>`;
     { const pc=pcHtml(L); if(pc) h+=`<span class="k">Price check</span><div>${pc}</div>`; }
-    if(!L.manual) h+=`<span class="k${L.price?'':' req'}">Price / pc</span><div class="bts">${L.price&&!L.editPrice?`<span class="tot">${money(L.price)}</span><span class="auto">${L.fromPast?'from the past order'+(L.priceSrc==='line total'?' (its line total ÷ qty)':L.priceSrc==='autoprice'?' (Airtable autoprice)':''):'from the quote'}</span><button class="link" onclick="S.lines[${i}].editPrice=true;render()">change</button>`:`<input class="t" inputmode="decimal" style="width:110px;text-align:center" placeholder="$ / pc" value="${L.price||''}" onchange="S.lines[${i}].price=Number(String(this.value).replace(/[^0-9.]/g,''))||0;S.lines[${i}].editPrice=false;render()">${L.price?'':`<span class="tag need">${L.fromPast?'no price on the old order — enter it':'enter a price'}</span>`}`}</div>`;
+    if(!L.manual) h+=`<span class="k${L.price?'':' req'}">Price / pc</span><div class="bts">${L.price&&!L.editPrice?`<span class="tot">${money(L.price)}</span><span class="auto">${L.priceSrc==='pom'?'POM price today':L.fromPast?'from the past order'+(L.priceSrc==='line total'?' (its line total ÷ qty)':L.priceSrc==='autoprice'?' (Airtable autoprice)':''):'from the quote'}</span><button class="link" onclick="S.lines[${i}].editPrice=true;render()">change</button>`:`<input class="t" inputmode="decimal" style="width:110px;text-align:center" placeholder="$ / pc" value="${L.price||''}" onchange="S.lines[${i}].priceManual=true;S.lines[${i}].priceSrc='';S.lines[${i}].price=Number(String(this.value).replace(/[^0-9.]/g,''))||0;S.lines[${i}].editPrice=false;render()">${L.price?'':`<span class="tag need">${L.fromPast?'no price on the old order — enter it':'enter a price'}</span>`}`}</div>`;
     h+=`<span class="k">Imprints</span><div class="chips">${S.imps.map((m,k)=>`<button class="chip${m.lines.includes(i)?' on':''}" onclick="tgLine(${k},${i})">${m.lines.includes(i)?'✓ ':''}${ids[k]} · ${esc(impName(m))}</button>`).join('')||'<span class="auto">no imprints yet</span>'}</div>`;
     h+=`<span class="k req">Proofing notes</span><textarea class="t">${esc(imps.map(m=>ids[S.imps.indexOf(m)]+' '+impName(m)).join('\n'))}</textarea>`;
     h+=`<span class="k">Nickname</span><div class="bts"><input class="t nick" style="flex:1" placeholder="Line item nickname"><button class="b${L.womens?' on':''}" onclick="S.lines[${i}].womens=!S.lines[${i}].womens;render()">Women's</button><button class="b${L.youth?' on':''}" onclick="S.lines[${i}].youth=!S.lines[${i}].youth;render()">Youth</button></div></div></div>`;
@@ -600,7 +602,7 @@ function rmLine(i){ S.lines.splice(i,1); S.imps.forEach(m=>{ m.lines=m.lines.fil
 function addImp(){ S.imps.push({key:'hand'+Date.now(),manual:true,loc:'',qloc:'',method:'Screenprint',screens:1,ub:false,colors:1,inkChanges:0,ink:'',nick:'',repeat:false,lines:S.lines.map((L,k)=>L.bandana?-1:k).filter(k=>k>=0),priced:false}); render(); }
 function setFam(i,f){ const m=S.imps[i]; m.method=f; const o=FAM_TYPES[f]||[]; m.ink=o.length===1?o[0]:''; if(f!=='Screenprint'){ m.screens=0; } else if(!m.screens){ m.screens=1; m.colors=1; } render(); }
 function rmImp(i){ S.imps.splice(i,1); render(); }
-function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); if(S.pcDone) priceCheck(); }
+function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); priceCheck(); }
 function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
 // Grey size suggestions: the line's qty (or what's left of it) spread over a typical run. Hats/totes/bandanas go to OSFA.
 const RUN={S:.15,M:.30,L:.30,XL:.15,'2XL':.10};
@@ -678,7 +680,7 @@ function pcHtml(L){
   if(S.pcRunning&&!L.pv) return '<span class="auto" style="margin-left:0">Checking vendor prices…</span>';
   const c=pcOf(L); if(!c) return '';
   if(c.skip) return `<span class="auto" style="margin-left:0">${esc(c.skip)}</span>`;
-  return (c.ok||!c.flags.length?(c.ok?`<div class="pchk ok">✓ Not under ${esc(c.vendor)}'s price today ($${c.t.c1.toFixed(2)} XS–XL)</div>`:''):c.flags.map(f=>`<div class="pchk warn">⚠ ${esc(f)}</div>`).join(''))+c.info.map(f=>`<div class="gfix">${esc(f)}</div>`).join('');
+  return c.flags.map(f=>`<div class="pchk warn">⚠ ${esc(f)}</div>`).join('')+c.info.map(f=>`<div class="gfix">${esc(f)}</div>`).join('');
 }
 function renderSum(){
   const p=problems(), tot=S.lines.reduce((a,L)=>a+L.qty*L.price,0);
@@ -704,7 +706,56 @@ function preview(){
 const GN={fldtL6paVNlfMRDj4:'Manufacturer',fldJlvS5vcBkzx3hG:'Product Number',flduMprMvRlAHAiCh:'Colorway',fldUnCYQgAx8AhsMZ:'[S&S] Color Name',fldRmgDAByrOWcHLO:'Cost',fldHakcDllb8SFCwz:'2XL Up-charge',fldEXqJi6mii9bpoJ:'3XL Up-charge',fldBWmLGzqtjXM0zm:'4XL Up-charge',fldlF7ZOqCNYr8hi2:'5XL Up-charge'};
 const FN={fldAEQvMAAZX9gnhl:'Imprint.previousImprint',fldpNCCXTgHyDhvak:'Imprint.inks (copied from the repeat)'}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k); Object.entries(GW).forEach(([k,v])=>FN[v]='Garment.'+(GN[v]||k));
 window.LF=L;
-function render(){ renderQuote(); renderCust(); renderOrder(); renderPast(); renderImps(); renderLines(); renderSum(); }
+/* ---------- POM pricing engine: the Price-O-Matic itself, loaded hidden, so prices here match quotes exactly ----------
+   Garment = today's vendor price (cheapest across colors) → Airtable Garment Cost → the quote's garment cost.
+   Prints = the imprints linked to the line. Engine adds garment +10%, prints, card-fee gross-up and rounds to $0.05. */
+let ENG=null;
+function engReady(){ try{ const w=$('pomEngine').contentWindow; if(w&&typeof w.computeApparelAt==='function'){ ENG=w; render(); } }catch(e){} }
+const DECO_BACK=Object.fromEntries(Object.entries(DECO_MAP).map(([k,v])=>[v,k]));
+function lineFleece(L){ if(L.snap&&L.snap.fleece!=null) return !!L.snap.fleece; if(L.garment&&L.garment.fleece) return true; return /hood|crew|fleece|sweat|zip/i.test((L.garment&&L.garment.name)||L.qname||''); }
+function pomImp(m,fleece){
+  const b=Object.assign({loc:m.loc||'Front',printType:fleece?'Fleece':'Tees / Totes',inkChanges:0,fleeceImpressions:0,supSize:'4 X 4',supRecipe:'Wearable',supImprintsPerGang:1,decoSize:'2.5 X 2.5',decoMaterial:'Sim Woven / Twill',decoApplication:'Heat Press',embStitchBand:'Up to 5,000'}, m.src||{});
+  if(m.method==='Screenprint') return Object.assign(b,{type:'Screenprint',screens:m.colors||1,underbase:!!m.ub,inkChanges:m.inkChanges||0});
+  if(m.method==='Size Tags 1C') return Object.assign(b,{type:'Size Tags 1C'});
+  const t=m.ink||'';
+  if(/^Supacolor - /.test(t)) return Object.assign(b,{type:'Supacolor',supRecipe:t.replace('Supacolor - ','')});
+  if(DECO_BACK[t]) return Object.assign(b,{type:'Decopress',decoMaterial:DECO_BACK[t]});
+  if(t==='Embroidery'||m.method==='Embroidery') return Object.assign(b,{type:'Embroidery',embStitchBand:(m.src&&m.src.embStitchBand)||'Up to 5,000'});
+  if(/Application$/.test(t)) return Object.assign(b,{type:'Embroidery',embStitchBand:t});
+  return null;   // Patch/Label ONLY, Finishing, Flatstock on a garment: not priced by the POM
+}
+function pomPrice(L,li){
+  if(!ENG) return {why:'loading Price-O-Matic rates…'};
+  const q=Number(L.qty)||0; if(!q) return {why:'enter a qty'};
+  const imps=S.imps.filter(m=>m.lines.includes(li));
+  if(/Flatstock/.test(L.ptype||'')){ const fm=imps.find(m=>m.method==='Flatstock')||imps[0]; const c=ENG.computeFlatstockAt(q,{qty:q,colors:(fm&&fm.colors)||1,paper:'French',printsPerSheet:1});
+    return c&&c.pricePerPiece?{pp:Math.round(c.pricePerPiece*100)/100,parts:`flatstock ${(fm&&fm.colors)||1}c on French paper`}:{why:'flatstock not priced at this qty'}; }
+  if(!isApparel(L)&&!(L.snap&&L.snap.product==='apparel')) return {why:`price ${L.ptype} in the Price-O-Matic`};
+  const vend=L.pv&&L.pv.t&&L.pv.t.c1, at=L.garment&&Number(L.garment.cost)||0, cost=vend||at||L.qCost||0;
+  if(!cost) return {why:'needs a garment cost — pick the garment'};
+  const fl=lineFleece(L), list=imps.map(m=>({m,p:pomImp(m,fl)})), skipped=list.filter(x=>!x.p);
+  const st=Object.assign({}, L.snap&&L.snap.product==='apparel'?L.snap:{shipping:false,asColourLow:false}, {garmentCost:cost,fleece:fl,impressions:list.filter(x=>x.p).map(x=>x.p)});
+  let c=null; try{ c=ENG.computeApparelAt(q,st); }catch(e){}
+  if(!c) return {why:'a print here has no price at this qty (e.g. a transfer that isn’t offered)'};
+  const ids=nextIds();
+  return {pp:Math.round(c.pricePerPiece*100)/100,garment:c.garmentPrice,cost,costSrc:vend?L.pv.vendor+' today':at?'Airtable':'the quote',
+    parts:list.filter(x=>x.p).map((x,k)=>`${ids[S.imps.indexOf(x.m)]} ${impName(x.m)} $${c.impPrices[k].toFixed(2)}`).join(' · '),skipped:skipped.map(x=>ids[S.imps.indexOf(x.m)]+' '+(x.m.ink||x.m.method))};
+}
+function pomHtml(L,i){
+  const r=pomPrice(L,i); if(r.why) return `<span class="auto" style="margin-left:0">${esc(r.why)}</span>`;
+  const brk=r.garment==null?esc(r.parts||''):`garment $${r.garment.toFixed(2)} ($${r.cost.toFixed(2)} ${esc(r.costSrc)} +10%)${r.parts?' + prints: '+esc(r.parts):''}${r.skipped&&r.skipped.length?' · not priced: '+esc(r.skipped.join(', ')):''}`;
+  const diff=Math.round((r.pp-(L.price||0))*100)/100;
+  let h=`<div class="bts"><span class="tot">${money(r.pp)}</span>`;
+  if(L.priceSrc==='pom') h+='<span class="auto">used as the price</span>';
+  else if(L.price&&diff>0.04) h+=`<span class="tag need">$${diff.toFixed(2)}/pc more than ${L.manual||L.priceManual?'the typed price':L.fromPast?'the old order':'quoted'}</span><button class="b sug" onclick="usePom(${i})">Use ${money(r.pp)}</button>`;
+  else if(L.price&&diff<-0.04) h+=`<span class="auto">${money(-diff)}/pc under the current price</span><button class="link" onclick="usePom(${i})">use it</button>`;
+  else if(L.price) h+='<span class="pchk ok" style="margin:0">✓ matches today</span>';
+  return h+`</div><div class="gfix">${brk}</div>`;
+}
+function usePom(i){ const L=S.lines[i], r=pomPrice(L,i); if(r.pp){ L.price=r.pp; L.priceSrc='pom'; L.priceManual=false; L.editPrice=false; } render(); }
+// Lines with no price (hand-added, old orders) take the POM price and keep following it until someone types a price.
+function syncPom(){ if(!ENG) return; S.lines.forEach((L,i)=>{ if(L.priceManual||L.bandana) return; if(L.price&&L.priceSrc!=='pom') return; const r=pomPrice(L,i); if(r.pp){ L.price=r.pp; L.priceSrc='pom'; } }); }
+function render(){ syncPom(); renderQuote(); renderCust(); renderOrder(); renderPast(); renderImps(); renderLines(); renderSum(); }
 render(); matchGarments().then(()=>priceCheck()); loadAwaiting();
 </script>
 </body>
