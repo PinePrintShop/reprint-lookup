@@ -116,6 +116,13 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 .pc2.sel{position:relative}
 .pc2 .ck{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line2);background:#fff;font:700 13px/19px var(--sans);text-align:center;z-index:1}
 .pc2.sel.on .ck{background:var(--yellow);border-color:var(--ydk)}
+.plan{border:1px solid var(--ydk);background:#fffef0;border-radius:8px;padding:12px;margin:4px 0 12px}
+.prow{display:grid;grid-template-columns:44px minmax(0,1fr) auto minmax(0,1.3fr);gap:6px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.prow:first-of-type{border-top:none}.prow img,.prow .noimg{width:44px;height:44px;object-fit:contain;border-radius:4px;background:var(--soft);display:block}
+.prow .pfrom{display:flex;flex-direction:column;font-size:13px}.prow .pfrom b{font:700 13px var(--mono)}.prow .m{color:var(--muted);font-size:12px}
+.prow .arr{color:var(--muted)}.prow select{width:100%;min-width:0}
+.pchk{grid-column:2/-1;font-size:12px}.pchk.ok{color:var(--green)}.pchk.warn{color:var(--amb);font-weight:600}
+@media (max-width:600px){.prow{grid-template-columns:44px minmax(0,1fr)}.prow .arr{display:none}.prow select{grid-column:1/-1}}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
 .fbrk{display:none}.ich{margin-left:14px}
@@ -242,7 +249,8 @@ function fromQuote(cart){
     (snap.impressions||[]).filter(i=>i.type).forEach(i=>{
       const key=[i.loc,i.type,i.screens,!!i.underbase,i.supRecipe,i.supSize,i.decoMaterial,i.embStitchBand].join('|');
       let m=imps.find(x=>x.key===key);
-      if(!m){ m={key,loc:LOC_MAP[i.loc]||'',qloc:i.loc||'',method:i.type,screens:i.type==='Screenprint'?(Number(i.screens)||1)+(i.underbase?1:0):0,ub:!!i.underbase,colors:Number(i.screens)||0,inkChanges:Number(i.inkChanges)||0,ink:impType(i),nick:'',repeat:false,lines:[]}; imps.push(m); }
+      if(!m){ m={key,loc:LOC_MAP[i.loc]||'',qloc:i.loc||'',method:i.type,screens:i.type==='Screenprint'?(Number(i.screens)||1)+(i.underbase?1:0):0,ub:!!i.underbase,colors:Number(i.screens)||0,inkChanges:Number(i.inkChanges)||0,ink:impType(i),nick:'',repeat:false,lines:[],priced:true,qUb:!!i.underbase};
+        m.qScreens=m.screens; imps.push(m); }
       if(!m.lines.includes(li)) m.lines.push(li);
     });
     if(p==='bandana') imps.push({key:'bandana'+li,loc:'Bandana',qloc:'Bandana',method:'Screenprint',screens:(snap.bandana&&snap.bandana.colors)||1,ub:false,colors:(snap.bandana&&snap.bandana.colors)||1,inkChanges:0,ink:'',nick:'',repeat:false,lines:[li]});
@@ -389,7 +397,8 @@ function renderPast(){
     const lines=S.pastLines[o.id];
     h+=`<div class="detail"><div class="ch"><span class="t1">Order ${o.num}</span><span class="t2">${o.created} · ${esc(o.status)}</span><div class="right"><button class="b" onclick="copyPast('${o.id}')" ${lines?'':'disabled'}>Copy whole order</button><button class="link" onclick="S.pastOpen=null;render()">close</button></div></div>`;
     const pi=impsByOrder[o.id]||[], nSel=pi.filter(m=>S.pastSel.has(m.rid)).length;
-    if(pi.length) h+=`<div class="selbar">${nSel?`<button class="b on" onclick="repeatSelected()">Repeat ${nSel} imprint${nSel>1?'s':''} in this order</button><button class="link" onclick="S.pastSel.clear();render()">clear</button>`:`<span class="auto" style="margin-left:0">Tap imprints to repeat just those${pi.length>1?' (pick as many as you need)':''} — or copy the whole order.</span>`}${pi.length>1&&nSel<pi.length?`<button class="link" onclick="pi_all('${o.id}')">select all</button>`:''}</div>`;
+    if(S.repPlan) h+=renderPlan();
+    else if(pi.length) h+=`<div class="selbar">${nSel?`<button class="b on" onclick="repeatSelected()">Repeat ${nSel} imprint${nSel>1?'s':''} in this order</button><button class="link" onclick="S.pastSel.clear();render()">clear</button>`:`<span class="auto" style="margin-left:0">Tap imprints to repeat just those${pi.length>1?' (pick as many as you need)':''} — or copy the whole order.</span>`}${pi.length>1&&nSel<pi.length?`<button class="link" onclick="pi_all('${o.id}')">select all</button>`:''}</div>`;
     h+=`<div class="pgrid">${pi.map(m=>`<button class="pc2 sel${S.pastSel.has(m.rid)?' on':''}" onclick="tgPastSel('${m.rid}')"><span class="ck">${S.pastSel.has(m.rid)?'✓':''}</span><div class="th">${m.thumbs[0]?`<img src="${esc(m.thumbs[0])}" alt="">`:'<span class="m">—</span>'}</div><b>${esc(m.id)}</b><span class="m">${esc(m.loc)} · ${esc(m.type)}${m.screens?' · '+m.screens+' screens':''}</span><span class="m">${esc(m.inks)}</span></button>`).join('')}</div>`;
     if(S.pastMsg) h+=`<div class="gfix" style="margin-top:8px;color:var(--green)">${S.pastMsg}</div>`;
     h+=lines?`<div style="margin-top:10px">${lines.map(l=>`<div class="qrow"><b>${esc(l.name)}</b><span>${l.qty} × ${money(l.price)}</span></div>`).join('')}</div>`:'<div class="auto" style="margin:10px 0 0">Loading line items…</div>';
@@ -398,7 +407,7 @@ function renderPast(){
   $('pastDetail').innerHTML=h;
 }
 async function openPast(id){
-  if(S.pastOpen!==id){ S.pastSel=new Set(); S.pastMsg=''; }
+  if(S.pastOpen!==id){ S.pastSel=new Set(); S.pastMsg=''; S.repPlan=null; }
   S.pastOpen=id; render(); const o=S.pastOrders.find(x=>x.id===id); if(S.pastLines[id]||!o.lineIds.length){ S.pastLines[id]=S.pastLines[id]||[]; render(); return; }
   try{ const d=await at('tblJx5UlwO7oMSk5H',`${flds(Object.values(LI).concat(SIZES.map(z=>window.LF[z])))}&filterByFormula=${encodeURIComponent('OR('+o.lineIds.map(x=>`RECORD_ID()='${x}'`).join(',')+')')}`);
     S.pastLines[id]=(d.records||[]).map(r=>{const f=r.fields,sz={};SIZES.forEach(z=>{const v=Number(f[window.LF[z]])||0;if(v)sz[z]=v;});return {rid:r.id,name:f[LI.name]||'',garmentId:(f[LI.garment]||[])[0]||null,ptype:sel(f[LI.ptype]),price:Number(f[LI.price])||0,sizes:sz,qty:sum(sz),imprints:f[LI.imprints]||[]};});
@@ -411,25 +420,58 @@ function copyPast(id){
   const base=S.lines.length;
   lines.forEach(l=>S.lines.push({qname:l.name.replace(/^\d+-[^-]*-/,''),style:'',color:'',ptype:l.ptype||'Printed Apparel',qty:l.qty,price:l.price,up:null,sizes:Object.assign({},l.sizes),garment:l.garmentId?{id:l.garmentId,name:l.name.replace(/^\d+-[^-]*-/,'')}:null,cands:[],nick:'',womens:false,youth:false,fromPast:true}));
   imps.forEach(m=>{ const li=lines.map((l,k)=>l.imprints.includes(m.rid)?base+k:-1).filter(k=>k>=0);
-    S.imps.push({key:'past'+m.rid,loc:m.loc,qloc:m.loc,method:/^Supacolor|^Decopress|Embroidery|Application/.test(m.type)?m.type.split(' - ')[0]:'Screenprint',screens:m.screens,ub:false,colors:m.screens,inkChanges:0,ink:m.type,nick:m.nick,repeat:true,prev:m,lines:li}); });
+    S.imps.push({key:'past'+m.rid,loc:m.loc,qloc:m.loc,method:/^Supacolor|^Decopress|Embroidery|Application/.test(m.type)?m.type.split(' - ')[0]:'Screenprint',screens:m.screens,ub:false,colors:m.screens,inkChanges:0,ink:m.type,nick:m.nick,repeat:true,prev:m,lines:li,priced:true,qScreens:m.screens,qUb:hasBase(m.type)}); });
   S.pastOpen=null; render();
 }
 function tgPastSel(rid){ S.pastSel.has(rid)?S.pastSel.delete(rid):S.pastSel.add(rid); S.pastMsg=''; render(); }
 function pi_all(oid){ S.pastImps.filter(m=>m.order===oid).forEach(m=>S.pastSel.add(m.rid)); S.pastMsg=''; render(); }
-// Repeat only the picked past imprints. One that matches a print already here (same location, not yet a repeat)
-// becomes that print's "Repeat of"; the rest come in as new imprints on every line (untick lines under "Goes on").
+// Repeat the picked past imprints, in two steps: a plan (where each one goes, with checks against what the quote
+// priced) that can be changed, then Apply. Default target: a print here with the same location and method that
+// isn't a repeat yet; otherwise "add as a new imprint".
+const famOf=t=>/^Supacolor|^Decopress|Embroidery|Application/.test(t||'')?String(t).split(' - ')[0]:'Screenprint';
+const hasBase=t=>/Base|Blocker/i.test(t||'')&&!/No Base/i.test(t||'');
+function repCheck(m,p){
+  if(!m) return {ok:false,msg:'New imprint — not priced in the quote. Re-quote or price it by hand.'};
+  if(!m.priced) return {ok:false,msg:'Not priced in the quote.'};
+  const w=[];
+  if(m.method==='Screenprint'&&famOf(p.type)==='Screenprint'){
+    if(p.screens&&m.qScreens&&p.screens!==m.qScreens) w.push(`Quote priced ${m.qScreens} screen${m.qScreens>1?'s':''}; this art has ${p.screens}`);
+    if(m.qUb&&p.type&&!hasBase(p.type)) w.push(`Quote priced an underbase; ${p.type} has none`);
+    if(!m.qUb&&hasBase(p.type)) w.push(`${p.type} uses an underbase the quote didn't price`);
+  }
+  if(famOf(p.type)!==m.method) w.push(`Quote priced ${m.method.toLowerCase()}; this art is ${famOf(p.type).toLowerCase()}`);
+  return w.length?{ok:false,msg:w.join(' · ')+' — re-quote?'}:{ok:true,msg:m.method==='Screenprint'?'Matches the quote ('+m.qScreens+' screen'+(m.qScreens>1?'s':'')+')':'Matches the quote'};
+}
 function repeatSelected(){
-  const picks=S.pastImps.filter(m=>S.pastSel.has(m.rid)), msg=[];
-  picks.forEach(p=>{
-    const fam=/^Supacolor|^Decopress|Embroidery|Application/.test(p.type)?p.type.split(' - ')[0]:'Screenprint';
-    const i=S.imps.findIndex(m=>!m.prev&&m.loc&&m.loc===p.loc&&m.method===fam);
-    if(i>=0){ pickPrev(i,p.rid); msg.push(`${esc(p.id)} → repeat on your ${esc(p.loc)} print`); }
-    else { const all=S.lines.map((L,k)=>L.bandana?-1:k).filter(k=>k>=0);
-      S.imps.push({key:'past'+p.rid,loc:p.loc,qloc:p.loc,method:fam,screens:p.screens,ub:false,colors:p.screens,inkChanges:0,ink:p.type,nick:p.nick,repeat:true,prev:p,lines:all});
-      msg.push(`${esc(p.id)} → added as a new ${esc(p.loc||'')} imprint${all.length>1?' on all '+all.length+' lines':''}`); }
+  const used=new Set();
+  S.repPlan=S.pastImps.filter(m=>S.pastSel.has(m.rid)).map(p=>{
+    const t=S.imps.findIndex((m,i)=>!used.has(i)&&!m.prev&&m.loc&&m.loc===p.loc&&m.method===famOf(p.type));
+    if(t>=0) used.add(t); return {rid:p.rid,target:t};
   });
-  S.pastSel=new Set(); S.pastMsg='✓ '+msg.join(' · ');
   render();
+}
+function setPlan(k,v){ v=Number(v); if(v>=0) S.repPlan.forEach((r,j)=>{ if(j!==k&&r.target===v) r.target=-1; }); S.repPlan[k].target=v; render(); }
+function applyPlan(){
+  const msg=[], ids=nextIds();
+  S.repPlan.forEach(r=>{ const p=S.pastImps.find(x=>x.rid===r.rid); if(!p) return;
+    if(r.target>=0){ const m=S.imps[r.target];
+      m.prev=p; m.repeat=true; m.pick=false; if(p.type) m.ink=p.type; if(p.screens&&m.method==='Screenprint') m.screens=p.screens; if(!m.nick&&p.nick) m.nick=p.nick;
+      msg.push(`${esc(p.id)} → ${ids[r.target]} ${esc(m.loc)}`); }
+    else { const all=S.lines.map((L,k)=>L.bandana?-1:k).filter(k=>k>=0);
+      S.imps.push({key:'past'+p.rid,loc:p.loc,qloc:p.loc,method:famOf(p.type),screens:p.screens,ub:false,colors:p.screens,inkChanges:0,ink:p.type,nick:p.nick,repeat:true,prev:p,lines:all,priced:false});
+      msg.push(`${esc(p.id)} → new ${esc(p.loc||'')} imprint`); }
+  });
+  S.repPlan=null; S.pastSel=new Set(); S.pastMsg='✓ '+msg.join(' · '); render();
+}
+function renderPlan(){
+  const ids=nextIds();
+  let h='<div class="plan"><div class="clh" style="margin:-12px -12px 10px;border-radius:8px 8px 0 0">Where each one goes</div>';
+  S.repPlan.forEach((r,k)=>{ const p=S.pastImps.find(x=>x.rid===r.rid); if(!p) return; const t=r.target>=0?S.imps[r.target]:null, c=repCheck(t,p);
+    h+=`<div class="prow">${p.thumbs[0]?`<img src="${esc(p.thumbs[0])}" alt="">`:'<span class="noimg"></span>'}<div class="pfrom"><b>${esc(p.id)}</b><span class="m">${esc(p.loc)} · ${esc(p.type)}${p.screens?' · '+p.screens+' scr':''}</span></div><span class="arr">→</span>
+      <select class="t" onchange="setPlan(${k},this.value)">${S.imps.map((m,i)=>(m.prev&&r.target!==i)?'':`<option value="${i}" ${r.target===i?'selected':''}>${ids[i]} · ${esc(impName(m))}${m.qScreens&&m.method==='Screenprint'?' ('+m.qScreens+' scr)':''}</option>`).join('')}<option value="-1" ${r.target<0?'selected':''}>Add as a new imprint</option></select>
+      <div class="pchk ${c.ok?'ok':'warn'}">${c.ok?'✓':'⚠'} ${esc(c.msg)}</div></div>`; });
+  h+=`<div class="bts" style="margin-top:10px"><button class="b on" onclick="applyPlan()">Apply</button><button class="link" onclick="S.repPlan=null;render()">cancel</button></div></div>`;
+  return h;
 }
 function tgShip(s){ const i=S.ship.indexOf(s); if(i>=0)S.ship.splice(i,1); else S.ship.push(s); render(); }
 /* ---------- imprints ---------- */
@@ -445,9 +487,10 @@ function renderImps(){
       h+=`<span class="k req">Screens</span><div class="bts"><input class="t" style="width:70px;text-align:center" value="${m.screens}" onchange="S.imps[${i}].screens=Number(this.value)||1;render()"><span class="auto">${m.colors} color${m.colors>1?'s':''}${m.ub?' + underbase':''} from the quote</span><span class="fbrk"></span><span class="k ich">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
     } else h+=`<span class="k req">Imprint type</span><div class="bts">${m.ink?`<span class="tag ok">${esc(m.ink)}</span><span class="auto">from the quote</span>`:`<span class="tag need">no matching Airtable type</span><span class="auto">(e.g. Decopress Suede) — pick one when building</span>`}</div>`;
     h+=`<span class="k req">Location</span><div class="bts">${LOCS.slice(0,6).map(l=>B(l,m.loc===l,`S.imps[${i}].loc='${l}';render()`)).join('')}<select class="t" onchange="if(this.value){S.imps[${i}].loc=this.value;render()}"><option value="">More…</option>${LOCS.slice(6).map(l=>`<option ${m.loc===l?'selected':''}>${l}</option>`).join('')}</select>${!LOC_MAP[m.qloc]&&m.qloc&&m.qloc!=='Bandana'?`<span class="auto">quote said "${esc(m.qloc)}"</span>`:''}</div>`;
-    h+=`<span class="k">Goes on</span><div class="chips">${S.lines.map((L,li)=>`<button class="chip${m.lines.includes(li)?' on':''}" onclick="tgLine(${i},${li})">${m.lines.includes(li)?'✓ ':''}${esc(L.garment?L.garment.name:(L.qname||'Line '+(li+1)))}</button>`).join('')}</div>`;
+    h+=`<span class="k">Goes on</span><div class="chips">${S.lines.map((L,li)=>`<button class="chip${m.lines.includes(li)?' on':''}" onclick="tgLine(${i},${li})">${m.lines.includes(li)?'✓ ':''}${esc(L.garment?L.garment.name:((gplan(L)||{}).name||L.qname||'Line '+(li+1)))}</button>`).join('')}</div>`;
     h+=`<span class="k">Nickname</span><div class="bts"><input class="t nick" style="flex:1" placeholder="e.g. Hop logo" value="${esc(m.nick)}" oninput="S.imps[${i}].nick=this.value"><button class="b${m.prev?' on':''}" onclick="S.imps[${i}].pick=!S.imps[${i}].pick;render()">${m.prev?'Repeat of '+esc(m.prev.id):'Repeat art…'}</button></div>`;
     if(m.prev) h+=`<span class="k">Repeat of</span><div class="rep">${m.prev.thumbs[0]?`<img src="${esc(m.prev.thumbs[0])}" alt="">`:''}<b style="font-family:var(--mono)">${esc(m.prev.id)}</b><span class="auto">${esc(m.prev.loc)} · ${esc(m.prev.type)} · ${m.prev.screens} screens · ${esc(m.prev.inks)}</span><button class="link" onclick="S.imps[${i}].prev=null;S.imps[${i}].repeat=false;render()">remove</button></div>`;
+    if(m.prev){ const c=repCheck(m,m.prev); h+=`<span></span><div class="pchk ${c.ok?'ok':'warn'}">${c.ok?'✓':'⚠'} ${esc(c.msg)}</div>`; }
     if(m.pick){ const q=(m.q||'').toLowerCase(); const list=S.pastImps.filter(p=>!q||[p.id,p.loc,p.type,p.inks,p.nick,p.created].join(' ').toLowerCase().includes(q));
       h+=`<div class="picker"><input class="search" placeholder="Search ${esc(S.cust?S.cust.name:'this customer')}'s past imprints — ID, location, ink, nickname…" value="${esc(m.q||'')}" id="pq${i}" oninput="pickQ(${i},this.value)"><div class="pgrid">${S.cust?(list.slice(0,24).map(p=>`<button class="pc2${m.prev&&m.prev.rid===p.rid?' on':''}" onclick="pickPrev(${i},'${p.rid}')"><div class="th">${p.thumbs[0]?`<img src="${esc(p.thumbs[0])}" loading="lazy" alt="">`:'<span class="m">no proof</span>'}</div><b>${esc(p.id)}</b><span class="m">${esc(p.loc)} · ${p.screens?p.screens+' scr · ':''}${esc(p.created)}</span><span class="m">${esc(p.inks||p.type)}</span></button>`).join('')||'<span class="auto" style="margin-left:0">No past imprints match.</span>'):'<span class="auto" style="margin-left:0">Pick the customer first.</span>'}</div></div>`; }
     h+=`</div></div>`;
