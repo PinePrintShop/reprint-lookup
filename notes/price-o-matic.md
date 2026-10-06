@@ -202,3 +202,10 @@ Stephen asked for a greyed-out auto fill for the qty.
 - v96: brand and **Start from / New quote** share one row; the five product tabs wrap onto two rows so all are visible. Start from is back on phones.
 - iPad: same idea, one row for brand + buttons, tabs below. Laptop unchanged.
 - Create order's "← Quote" now points at v96. Otherwise identical to v95 (CSS only, no pricing changes).
+
+## v97 — page no longer stretches on phones once a garment is found (Oct 6)
+- Stephen's phone screenshot: after Find, the page zoomed out and ran off the right edge. The vendor banner's color swatch row (96 colors, one line) and the turnaround chip forced the layout wider than the screen (3,127px wide on a 390px phone).
+- v97: the main column can shrink (`minmax(0,1fr)`), the banner info and swatch row scroll inside their own box, the turnaround chip gets its own row in the top bar on phone / iPad.
+- Phone banner: small photo on the left, Dismiss pinned top-right, swatches use the full width (the "96 colors →" hint is hidden; the Pick color dropdown is right above).
+- Turnaround chip reads "TURNAROUND 15 BUS. DAYS ~OCT 23" (was "Current average turnaround … business days") so it no longer covers the product tabs on a laptop.
+- Create order's "← Quote" now points at v97. No pricing changes; quote → Create order handoff re-tested.
