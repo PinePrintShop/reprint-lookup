@@ -328,3 +328,12 @@ Stephen: pull in pricing from vendors (or Airtable) and scan vendors so we aren'
   - ✓ "Not under S&S's price today" only when there was a basis to compare.
 - Rail: "⚠ 3 lines may be under-charging · ~$50.70" or "✓ Prices check out against vendors today".
 - Read-only: nothing is written (Airtable Garment Cost is shown, not changed).
+
+## Create order — POM pricing for every line (Oct 6)
+Stephen (phone screenshot of a hand-added 3001 Black × 100, price box empty): still not pulling in vendor pricing or printing cost.
+- Create order now loads **price-o-matic-v101.html in a hidden iframe** (same site) and calls its own `computeApparelAt` / `computeFlatstockAt`, so prices match quotes exactly — no second copy of the rate grids. **When the POM gets a new version, bump the iframe `src` here.**
+- Per line, **POM price today** = garment (today's cheapest vendor price → Airtable Garment Cost → the quote's cost, +10% as the POM does) + the imprints linked to that line (screen print colors/underbase/ink changes, embroidery band or application, Supacolor recipe at 4×4, Decopress material at 2.5×2.5; fleece from the quote, Airtable "Fleece?", or the garment name) → gross-up and $0.05 rounding by the POM. Flatstock lines: colors of the linked Flatstock imprint, French paper.
+- Shown with the breakdown: "garment $4.06 ($3.69 S&S today +10%) + prints: 10961-A Front · 2c $4.84 · 10961-B Left Chest · embroidery $4.50".
+- Lines with **no price** (hand-added, old orders) take the POM price and keep following it as garment/prints/qty change, until someone types a price. Typed or quoted prices are never overwritten: the row says "$X/pc more than quoted / the typed price" with **Use $X**, or "✓ matches today".
+- Not priced here (says so): patches and other non-apparel types except flatstock, Patch/Label ONLY, Finishing; bandanas. 2XL+ still comes from the price check below it (its "✓ not under vendor price" line was dropped — the POM row is the verdict now).
+- Tested with a local web server (the iframe needs a real origin; file:// can't share it).
