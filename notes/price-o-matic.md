@@ -289,3 +289,11 @@ Stephen saw picked past imprints merge into the quote's prints and asked to walk
 - Warnings don't block Create order; they're for sales to re-quote if needed. On Apply the print keeps its location, garments and quoted price; Repeat of, ink type, screens, inks and (if blank) nickname come from the past imprint.
 - "Goes on" chips use the short garment name for vendor-added garments.
 - Stephen confirmed (Oct 6): **Discharge counts as no underbase.** A discharge repeat on a quote that priced an underbase is correctly flagged.
+
+## v101 — Create order even with nothing filled out (Oct 6)
+- Stephen: we need a Create order button even if nothing is filled out. Before, it lived only in the quote box, which is hidden until a line is added.
+- **Laptop / iPad:** a yellow-outlined **Create order →** at the right end of the top bar, always there.
+- **Phone:** the bottom bar's button reads **Create order →** whenever there's nothing to price and the quote is empty (then Add to quote → Quote (n) ↓ as before).
+- Both save the current quote first, so an empty POM hands over an empty quote — a leftover quote from earlier can't sneak in.
+- The quote box's button now says **Create order with this quote →**.
+- Create order's empty start says what works today: pick the order, then copy a past order or repeat past imprints; adding line items by hand comes with the real build. Its "← Quote" points at v101.
