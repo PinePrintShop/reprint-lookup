@@ -196,3 +196,9 @@ Stephen asked for a greyed-out auto fill for the qty.
 - One button accepts them: **Use these 144**, or **Fill the other 104** once some are typed. Replaces the "Typical run" link.
 - Caps, hats, beanies, totes, bags, bandanas, koozies and towels suggest **OSFA** = qty.
 - Grey numbers are only hints: nothing counts toward the sizes check until accepted or typed.
+
+## v96 — top bar fits on phones (Oct 6)
+- On Stephen's phone the top bar ran off the right edge: the product tabs were one long row wider than the screen (Flatstock and Patches cut off), and the bar stacked brand / buttons / tabs in a column with empty space.
+- v96: brand and **Start from / New quote** share one row; the five product tabs wrap onto two rows so all are visible. Start from is back on phones.
+- iPad: same idea, one row for brand + buttons, tabs below. Laptop unchanged.
+- Create order's "← Quote" now points at v96. Otherwise identical to v95 (CSS only, no pricing changes).
