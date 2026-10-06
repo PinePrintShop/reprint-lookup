@@ -459,7 +459,7 @@ function applyPlan(){
   const msg=[], ids=nextIds();
   S.repPlan.forEach(r=>{ const p=S.pastImps.find(x=>x.rid===r.rid); if(!p) return;
     if(r.target>=0){ const m=S.imps[r.target];
-      m.prev=p; m.repeat=true; m.pick=false; if(p.type) m.ink=p.type; if(p.screens&&m.method==='Screenprint') m.screens=p.screens; if(!m.nick&&p.nick) m.nick=p.nick;
+      m.prev=p; m.repeat=true; m.pick=false; if(p.type) m.ink=p.type; if(p.screens&&m.method==='Screenprint') artScreens(m,p); if(!m.nick&&p.nick) m.nick=p.nick;
       msg.push(`${esc(p.id)} → ${ids[r.target]} ${esc(m.loc)}`); }
     else { const all=S.lines.map((L,k)=>L.bandana?-1:k).filter(k=>k>=0);
       S.imps.push({key:'past'+p.rid,loc:p.loc,qloc:p.loc,method:famOf(p.type),screens:p.screens,ub:false,colors:p.screens,inkChanges:0,ink:p.type,nick:p.nick,repeat:true,prev:p,lines:all,priced:false});
@@ -488,8 +488,9 @@ function renderImps(){
     h+=`<div class="card"><div class="ch"><span class="idtag">${ids[i]}</span><span class="t1">${impName(m)}</span><span class="t2">${on.length?'on '+esc(on.join(' + ')):''}</span><div class="right"><button class="link" onclick="rmImp(${i})">remove</button>${need?'<span class="tag need">'+(!m.loc?'pick a location':'pick an ink type')+'</span>':'<span class="tag ok">ready</span>'}</div></div><div class="grid">`;
     if(m.manual) h+=`<span class="k req">Method</span><div class="bts">${Object.keys(FAM_TYPES).map(f=>B(f,m.method===f,`setFam(${i},'${f}')`)).join('')}</div>`;
     if(m.method==='Screenprint'){
-      h+=`<span class="k req">Ink type</span><div class="bts">${INKS.map(k=>B(k,m.ink===k,`S.imps[${i}].ink='${k}';render()`)).join('')}</div>`;
-      h+=`<span class="k req">Screens</span><div class="bts"><input class="t" style="width:70px;text-align:center" value="${m.screens}" onchange="S.imps[${i}].screens=Number(this.value)||1;if(S.imps[${i}].manual)S.imps[${i}].colors=S.imps[${i}].screens;render()">${m.manual?'':`<span class="auto">${m.colors} color${m.colors>1?'s':''}${m.ub?' + underbase':''} from the quote</span>`}<span class="fbrk"></span><span class="k ich">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
+      h+=`<span class="k req">Ink type</span><div class="bts">${INKS.map(k=>B(k,m.ink===k,`setInk(${i},'${k}')`)).join('')}</div>`;
+      h+=`<span class="k req">Colors</span><div class="bts">${[1,2,3,4,5,6].map(n=>B(String(n),m.colors===n,`setColors(${i},${n})`)).join('')}<select class="t" style="width:auto" onchange="if(this.value)setColors(${i},Number(this.value))"><option value="">7+</option>${[7,8,9,10,11,12].map(n=>`<option value="${n}" ${m.colors===n?'selected':''}>${n}</option>`).join('')}</select>${B('+ Underbase',m.ub,`tgUb(${i})`)}</div>`;
+      h+=`<span class="k">Screens</span><div class="bts"><span class="tot">${m.screens}</span><span class="auto">${m.colors} color${m.colors>1?'s':''}${m.ub?' + underbase':''}</span>${m.priced&&!m.manual&&m.qScreens&&m.screens!==m.qScreens?`<span class="tag need">quote priced ${m.qScreens}</span>`:(m.priced&&!m.manual&&m.qScreens?'<span class="auto">as quoted</span>':'')}<span class="fbrk"></span><span class="k ich">Ink changes</span>${[0,1,2].map(n=>B(n?String(n):'None',m.inkChanges===n,`S.imps[${i}].inkChanges=${n};render()`)).join('')}</div>`;
     } else if(m.manual||!m.ink){ const opts=FAM_TYPES[m.method]||[].concat(...Object.values(FAM_TYPES));
       h+=`<span class="k req">Imprint type</span><div class="bts">${opts.length<=4?opts.map(t=>B(t.replace(/^\w+ - /,''),m.ink===t,`S.imps[${i}].ink=${JSON.stringify(t).replace(/"/g,"'")};render()`)).join(''):`<select class="t" onchange="S.imps[${i}].ink=this.value;render()"><option value="">Pick a type…</option>${opts.map(t=>`<option ${m.ink===t?'selected':''}>${esc(t)}</option>`).join('')}</select>`}${!m.manual?'<span class="auto">quote had no matching Airtable type (e.g. Decopress Suede)</span>':''}</div>`; }
     else h+=`<span class="k req">Imprint type</span><div class="bts"><span class="tag ok">${esc(m.ink)}</span><span class="auto">from the quote</span></div>`;
@@ -506,8 +507,14 @@ function renderImps(){
   $('imps').innerHTML=h;
 }
 function pickQ(i,v){ S.imps[i].q=v; renderImps(); const e=$('pq'+i); if(e){ e.focus(); e.setSelectionRange(v.length,v.length); } }
+// Screens = colors + underbase. Buttons set colors; the underbase follows the ink type (EZP Base / Bleed Blocker = on,
+// Discharge / No Base = off) and can be flipped by hand.
+function setColors(i,n){ const m=S.imps[i]; m.colors=n; m.screens=n+(m.ub?1:0); render(); }
+function tgUb(i){ const m=S.imps[i]; m.ub=!m.ub; m.screens=(m.colors||1)+(m.ub?1:0); render(); }
+function setInk(i,k){ const m=S.imps[i]; m.ink=k; m.ub=hasBase(k); m.screens=(m.colors||1)+(m.ub?1:0); render(); }
+function artScreens(m,p){ m.ub=hasBase(p.type); m.colors=Math.max(1,p.screens-(m.ub?1:0)); m.screens=m.colors+(m.ub?1:0); }
 function pickPrev(i,rid){ const p=S.pastImps.find(x=>x.rid===rid), m=S.imps[i]; if(!p) return;
-  m.prev=p; m.repeat=true; m.pick=false; if(p.loc) m.loc=p.loc; if(p.type) m.ink=p.type; if(p.screens&&m.method==='Screenprint') m.screens=p.screens; if(!m.nick&&p.nick) m.nick=p.nick; render(); }
+  m.prev=p; m.repeat=true; m.pick=false; if(p.loc) m.loc=p.loc; if(p.type) m.ink=p.type; if(p.screens&&m.method==='Screenprint') artScreens(m,p); if(!m.nick&&p.nick) m.nick=p.nick; render(); }
 function tgLine(i,li){ const a=S.imps[i].lines,k=a.indexOf(li); if(k>=0)a.splice(k,1); else a.push(li); render(); }
 /* ---------- line items + real garment matching ---------- */
 // Garment match: the quote line's style # + color → the Airtable Garment. Styles like the 3001 have 100+ colors,

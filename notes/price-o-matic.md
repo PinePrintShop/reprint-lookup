@@ -304,3 +304,9 @@ Stephen: in future Awaiting Proof orders won't have line items attached, and the
 - **+ Add imprint** (under Imprints): Method buttons (Screenprint, Embroidery, Supacolor, Decopress, Patch & label, Flatstock, Finishing) → the matching Airtable Imprint Types (buttons, or a list for Supacolor), location, screens + ink changes for screen print, Goes on, nickname, Repeat art…. Starts on every line.
 - Line item cards can now tick imprints on/off directly (same links as the imprint's "Goes on"). Any line or imprint has **remove**; removing a line keeps the other links right.
 - Checks: hand lines need qty and price (and a garment for apparel types). Hand-added imprints aren't compared to a quote ("Added by hand — price it on the line items").
+
+## Create order — screens by buttons (Oct 6)
+Stephen: screens is a typed box; explore buttons.
+- Screen-print imprints now have **Colors** buttons 1–6 + a 7+ list (to 12) and a **+ Underbase** toggle. **Screens** is worked out (colors + underbase) and shown with "as quoted", or an amber **quote priced N** when it no longer matches what the quote priced.
+- Picking the **ink type sets the underbase**: EZP Base / Bleed Blocker → on, Discharge / No Base W/B → off (Discharge = no underbase, per Stephen). The toggle still overrides it.
+- Repeats fill colors + underbase from the old art (its screens minus 1 if its ink type has a base).
