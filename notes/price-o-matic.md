@@ -297,3 +297,10 @@ Stephen saw picked past imprints merge into the quote's prints and asked to walk
 - Both save the current quote first, so an empty POM hands over an empty quote — a leftover quote from earlier can't sneak in.
 - The quote box's button now says **Create order with this quote →**.
 - Create order's empty start says what works today: pick the order, then copy a past order or repeat past imprints; adding line items by hand comes with the real build. Its "← Quote" points at v101.
+
+## Create order — add line items and imprints by hand (Oct 6)
+Stephen: in future Awaiting Proof orders won't have line items attached, and there was no way to add a line item or imprint here.
+- **+ Add line item** (under Line items): Type buttons from Airtable's Product Type (Printed / Embroidered Apparel, Flatstock Printing, Woven Patches, Embroidered Patches (100%), More… for the rest), **Qty × $/pc** typed in (= line total shown), and for apparel a **Style #** box → Find loads every color of that style from Garments → pick the color. Sizes get the grey suggestion from the qty. Non-apparel types need no garment; sizes go to OSFA = qty automatically. "other style" re-opens the style box.
+- **+ Add imprint** (under Imprints): Method buttons (Screenprint, Embroidery, Supacolor, Decopress, Patch & label, Flatstock, Finishing) → the matching Airtable Imprint Types (buttons, or a list for Supacolor), location, screens + ink changes for screen print, Goes on, nickname, Repeat art…. Starts on every line.
+- Line item cards can now tick imprints on/off directly (same links as the imprint's "Goes on"). Any line or imprint has **remove**; removing a line keeps the other links right.
+- Checks: hand lines need qty and price (and a garment for apparel types). Hand-added imprints aren't compared to a quote ("Added by hand — price it on the line items").
