@@ -288,3 +288,4 @@ Stephen saw picked past imprints merge into the quote's prints and asked to walk
   - otherwise ✓ "Matches the quote (3 screens)"
 - Warnings don't block Create order; they're for sales to re-quote if needed. On Apply the print keeps its location, garments and quoted price; Repeat of, ink type, screens, inks and (if blank) nickname come from the past imprint.
 - "Goes on" chips use the short garment name for vendor-added garments.
+- Stephen confirmed (Oct 6): **Discharge counts as no underbase.** A discharge repeat on a quote that priced an underbase is correctly flagged.
