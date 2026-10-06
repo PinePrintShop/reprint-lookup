@@ -264,3 +264,9 @@ Stephen: "Can we make the customer search more intuitive?"
 - 75 Orders sit at Awaiting Proof; only ~29 are from the last 60 days. The rest (2022 → Jun 2026) were never moved on or cancelled.
 - The waiting list now shows Awaiting Proof orders created in the **last 45 days** (`RECENT_DAYS`). Searching still finds older ones, in their own section "Older than 45 days · probably stale", so nothing is unreachable. A customer's Order chips also ignore stale ones when a recent one exists.
 - Checked before any cleanup: no Airtable automation fires on **Cancelled / Voided** (customer emails fire only on Completed / Ready to Order), so cancelling stale orders sends nothing.
+
+## Airtable cleanup — stale Awaiting Proof orders cancelled (Oct 6)
+Stephen OK'd: switch the Awaiting Proof orders created before July 2026 to **Cancelled / Voided**. 46 changed; 29 remain at Awaiting Proof (Aug 4 onward). No automation fires on Cancelled / Voided (checked first).
+- Changed (order #): 2026-06: 10201, 10172 · 2026-04: 9959, 9958, 9942, 9941, 9940, 9939, 9938, 9937, 9914, 9832, 9831, 9830 · 2025: 9009, 8878, 8768 · 2024: 7153, 7108, 6533, 6527, 6318, 6064, 5995, 5936 · 2023: 5587, 5461, 5361, 5280, 5051, 5029, 5007, 4995, 4986, 4967, 4945, 4943, 4897, 4883, 4847, 4843, 4817, 4743, 4708, 4627 · 2022: 4609.
+- To undo one: set its Order Status back to Awaiting Proof.
+- Left for sales to check: 10627 Subculture Cyclery (Aug 13, 6 lines), 10569 Cheba Hut HQ (Aug 4, 2 lines), and the September ones (oldest 10804 West Kill Brewing, Sep 8).
