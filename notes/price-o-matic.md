@@ -188,3 +188,11 @@ Stephen opened it on his phone and it looked off: the header wrapped letter by l
 - **Past orders:** two cards per row.
 - **Bottom bar** (phones only): quote total, order #, and either **Create order** or **What's left** (jumps to the checklist). No more scrolling to the end to finish.
 - Laptop layout unchanged. Tested at 390px and 1440px with mocked Airtable, 0 writes.
+
+## Create order — grey size fill-in (Oct 6) · `pom-create-order-live.html`
+Stephen asked for a greyed-out auto fill for the qty.
+- Empty size boxes show a **grey suggestion** that adds up to the line's qty: S 15% · M 30% · L 30% · XL 15% · 2XL 10% (144 → 22 / 43 / 43 / 22 / 14).
+- Type any size and the grey numbers **re-spread what's left** over the other sizes (XL 40 of 144 → S 18 · M 37 · L 37 · 2XL 12).
+- One button accepts them: **Use these 144**, or **Fill the other 104** once some are typed. Replaces the "Typical run" link.
+- Caps, hats, beanies, totes, bags, bandanas, koozies and towels suggest **OSFA** = qty.
+- Grey numbers are only hints: nothing counts toward the sizes check until accepted or typed.
