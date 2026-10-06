@@ -282,8 +282,8 @@ function hl(text,q){ let h=esc(text); words(q).forEach(w=>{ if(w.length<2) retur
 const ago=d=>{ if(!d) return ''; const n=Math.round((Date.now()-new Date(d))/864e5); return n<=0?'today':n===1?'yesterday':n<7?n+' days ago':new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}); };
 async function loadAwaiting(){
   if(!TOKEN) return;
-  try{ const recs=await atAll(T_ORD,`pageSize=100&${flds([O.num,O.cust,O.custName,O.created,O.rep,O.lines,O.due])}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent('{Order Status}="Awaiting Proof"')}`,300);
-    S.awaiting=recs.map(r=>{const f=r.fields;return {oid:r.id,num:f[O.num],cid:(f[O.cust]||[])[0]||'',name:String(f[O.custName]||'').trim(),created:f[O.created]||'',rep:sel(f[O.rep]),lines:(f[O.lines]||[]).length};}).filter(o=>o.name);
+  try{ const recs=await atAll(T_ORD,`pageSize=100&${flds([O.num,O.cust,O.custName,O.created,O.rep,O.lines,O.due,O.status])}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent('OR({Order Status}="Awaiting Proof",{Order Status}=BLANK())')}`,300);
+    S.awaiting=recs.map(r=>{const f=r.fields;return {blank:!f[O.status],oid:r.id,num:f[O.num],cid:(f[O.cust]||[])[0]||'',name:String(f[O.custName]||'').trim(),created:f[O.created]||'',rep:sel(f[O.rep]),lines:(f[O.lines]||[]).length};}).filter(o=>o.name);
   }catch(e){ S.awaiting=[]; }
   renderCust();
 }
@@ -302,7 +302,7 @@ function renderCust(){
   if(S.awaiting==null){ $('custList').innerHTML=TOKEN?'<div class="clh">Loading orders waiting for proof…</div>':''; return; }
   const {q,aw,others}=custRows(), lim=custAll||q?aw.length:8; let h='', k=0;
   h+=`<div class="clh">${q?'Waiting for proof':'Waiting for proof · newest first'}</div>`;
-  h+=aw.slice(0,lim).map(o=>`<button class="cr${k===custKb?' kb':''}" data-k="${k++}" onclick="pickAwaiting('${o.oid}')"><span class="on">${hl(String(o.num),q)}</span><span class="nm">${hl(o.name,q)}</span><span class="rt">${esc(o.rep||'')}</span><span class="mt">created ${ago(o.created)}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':'')+' already':''}</span></button>`).join('')||`<div class="cr dim" style="cursor:default"><span></span><span class="nm">No order waiting for proof matches "${esc(q)}"</span></div>`;
+  h+=aw.slice(0,lim).map(o=>`<button class="cr${k===custKb?' kb':''}" data-k="${k++}" onclick="pickAwaiting('${o.oid}')"><span class="on">${hl(String(o.num),q)}</span><span class="nm">${hl(o.name,q)}</span><span class="rt">${esc(o.rep||'')}</span><span class="mt">${o.blank?'<b style="color:var(--amb)">no status yet</b> · ':''}created ${ago(o.created)}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':'')+' already':''}</span></button>`).join('')||`<div class="cr dim" style="cursor:default"><span></span><span class="nm">No order waiting for proof matches "${esc(q)}"</span></div>`;
   if(!q&&aw.length>lim) h+=`<button class="cmore" onclick="custAll=true;renderCust()">Show all ${aw.length} waiting for proof</button>`;
   if(others.length){ h+='<div class="clh">Other customers · no order waiting for proof</div>'+others.map(c=>`<button class="cr dim${k===custKb?' kb':''}" data-k="${k++}" onclick="pickCust('${c.id}',${JSON.stringify(c.name).replace(/"/g,'&quot;')})"><span class="on">—</span><span class="nm">${hl(c.name,q)}</span><span class="rt"></span></button>`).join(''); }
   $('custList').innerHTML=h;
@@ -329,7 +329,7 @@ async function pickCust(id,name,wantOid){
     const sortQ=`&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc`;
     const mapO=r=>{const f=r.fields;return {id:r.id,num:f[O.num],status:sel(f[O.status]),due:f[O.due]||'',rep:sel(f[O.rep]),ship:(f[O.ship]||[]).map(sel),src:sel(f[O.src]),created:f[O.created]||'',lines:(f[O.lines]||[]).length,lineIds:f[O.lines]||[],imps:f[O.imps]||[],thumbs:(f[P.proofLook]||[]).map(thumb).filter(Boolean)};};
     // only the order(s) waiting for this step
-    const d=await at(T_ORD,`maxRecords=6&${flds(Object.values(O))}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}="Awaiting Proof")`)}`);
+    const d=await at(T_ORD,`maxRecords=6&${flds(Object.values(O))}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",OR({Order Status}="Awaiting Proof",{Order Status}=BLANK()))`)}`);
     S.orders=(d.records||[]).map(mapO);
     $('custFound').textContent=S.orders.length?(S.orders.length>1?S.orders.length+' orders waiting for proof — pick one':''):'No Awaiting Proof order for '+name+' — has the Pipedrive deal been moved to approved customer?';
     loadPast(name, mapO, sortQ);
@@ -339,7 +339,7 @@ async function pickCust(id,name,wantOid){
 }
 async function loadPast(name,mapO,sortQ){
   try{
-    const d=await at(T_ORD,`maxRecords=40&${flds(Object.values(O).concat([P.proofLook]))}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}!="Awaiting Proof",{Order Status}!="Cancelled / Voided")`)}`);
+    const d=await at(T_ORD,`maxRecords=40&${flds(Object.values(O).concat([P.proofLook]))}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}!="Awaiting Proof",{Order Status}!="Cancelled / Voided",{Order Status}!=BLANK())`)}`);
     S.pastOrders=(d.records||[]).map(mapO);
     const di=await at(T_IMP,`maxRecords=80&${flds(Object.values(IP))}&sort%5B0%5D%5Bfield%5D=${IP.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent(`FIND(LOWER("${fq(name)}"),LOWER({Customer Name Search}))`)}`);
     S.pastImps=(di.records||[]).map(r=>{const f=r.fields;return {rid:r.id,id:f[IP.id]||'',type:sel(f[IP.type]),loc:sel(f[IP.loc]),screens:f[IP.screens]||0,nick:f[IP.nick]||'',inks:f[IP.inksTxt]||'',inkIds:f[IP.inks]||[],created:(f[IP.created]||'').slice(0,10),thumbs:(f[IP.proofs]||[]).map(thumb).filter(Boolean),order:(f[IP.order]||[])[0]};});
