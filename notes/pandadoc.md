@@ -48,3 +48,11 @@
 **Rounds 5-6:** API-TEST-3 (role `c`, sized short tags, single-curly name/date) and API-TEST-4 (same, but double-curly name/date) both **failed processing** ("Document creation failed", 400). So name/date was not the cause; suspects are the one-letter role or tags without underscores (`{i:c}`), or the larger font sizes. API-TEST-5 uses only proven styles (role `client`, `{initials:client___}` sized, double-curly name/date) to isolate it.
 
 **Worker v16:** for a failed document, the GET route also fetches PandaDoc's status record and returns it, so the failure reason comes back.
+
+**Rounds 7-8:**
+- **API-TEST-5 worked:** 11 fields with role `client` and sized `{initials:client_…}` / `{signature:client_…}` tags. But the proof initials were tiny (5 pt), since the long role has to fit the 43 pt box.
+- **API-TEST-6 (role `cl`) failed** like the `c` versions, so PandaDoc rejects short roles. Keep `client`.
+- **API-TEST-7:**
+  - Terms and signature: as TEST-5.
+  - Proofs: default-size `{{initials:client}}`, centered in art's white box. The default field is about 35.6 x 15.7 pt, left edge at the tag x, spanning baseline-12.5 to baseline+3 (measured from the round 4 screenshot).
+  - Name/date: double curly.
