@@ -58,3 +58,5 @@
   - Name/date: double curly.
 
 **Round 9 (API-TEST-7):** Terms initials look great. Proof initials are inside the APPROVED white box (good). The signature field was much too tall: PandaDoc makes a signature field about **3.25 x the tag font size** tall (measured: 25 pt tag gave an 81 pt field, spanning baseline-2.78fs to baseline+0.47fs; width follows the tag width). **API-TEST-8:** signature tag font = available height / 3.25 (12.4 pt), so the field fills the 41 pt space under "I've reviewed…" (523-564 inside the 503-568 frame).
+
+**Round 10 (API-TEST-9):** proof initials should fill the white box. Short-form sized tag `{i:client_}` at 9.4 pt, so the field is about 38 x 31 pt in the 43 x 39 box (2.5 pt margin). This assumes initials fields scale like signature fields (height about 3.25 x font), which this round verifies. Signature as in TEST-8; Terms unchanged.
