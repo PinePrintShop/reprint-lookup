@@ -48,3 +48,36 @@
 **Rounds 5-6:** API-TEST-3 (role `c`, sized short tags, single-curly name/date) and API-TEST-4 (same, but double-curly name/date) both **failed processing** ("Document creation failed", 400). So name/date was not the cause; suspects are the one-letter role or tags without underscores (`{i:c}`), or the larger font sizes. API-TEST-5 uses only proven styles (role `client`, `{initials:client___}` sized, double-curly name/date) to isolate it.
 
 **Worker v16:** for a failed document, the GET route also fetches PandaDoc's status record and returns it, so the failure reason comes back.
+
+**Rounds 7-8:**
+- **API-TEST-5 worked:** 11 fields with role `client` and sized `{initials:client_…}` / `{signature:client_…}` tags. But the proof initials were tiny (5 pt), since the long role has to fit the 43 pt box.
+- **API-TEST-6 (role `cl`) failed** like the `c` versions, so PandaDoc rejects short roles. Keep `client`.
+- **API-TEST-7:**
+  - Terms and signature: as TEST-5.
+  - Proofs: default-size `{{initials:client}}`, centered in art's white box. The default field is about 35.6 x 15.7 pt, left edge at the tag x, spanning baseline-12.5 to baseline+3 (measured from the round 4 screenshot).
+  - Name/date: double curly.
+
+**Round 9 (API-TEST-7):** Terms initials look great. Proof initials are inside the APPROVED white box (good). The signature field was much too tall: PandaDoc makes a signature field about **3.25 x the tag font size** tall (measured: 25 pt tag gave an 81 pt field, spanning baseline-2.78fs to baseline+0.47fs; width follows the tag width). **API-TEST-8:** signature tag font = available height / 3.25 (12.4 pt), so the field fills the 41 pt space under "I've reviewed…" (523-564 inside the 503-568 frame).
+
+**Round 10 (API-TEST-9):** proof initials should fill the white box. Short-form sized tag `{i:client_}` at 9.4 pt, so the field is about 38 x 31 pt in the 43 x 39 box (2.5 pt margin). This assumes initials fields scale like signature fields (height about 3.25 x font), which this round verifies. Signature as in TEST-8; Terms unchanged.
+
+### Final tag format (2026-10-08, verified in sandbox)
+- **Role:** `client` (one recipient, the order contact). Short roles `c` and `cl` make processing fail. Tags without underscores (`{i:c}`) are suspect too, so always include at least one.
+- **Style:** curly braces only. Square brackets are ignored.
+- **Color:** white text, invisible on white areas. Never put a tag over a dark area, or it shows.
+- **Field size:** PandaDoc sizes the field from the tag. Width = tag width; height ≈ **3.25 × font size**, spanning baseline−2.78·fs to baseline+0.47·fs.
+- **Placement:**
+
+| Spot | Tag | Placement |
+|---|---|---|
+| Terms initials | `{initials:client_…}` | on each `_____________` line (71 × 22 pt box). Looks great. |
+| Proof APPROVED | `{i:client_}` at about 9.4 pt | centered in art's white box (text.x1+15.4 … +58.6, text.y0−8.9 … text.y1+2), 2.5 pt margin. Inside and works; doesn't quite fill the box. |
+| Invoice signature | `{signature:client_…}` | font = available height ÷ 3.25, under "I've reviewed…" inside its frame |
+| Name / Date | `{{textfield:client}}` / `{{date:client}}` at 8 pt | just right of the labels |
+
+- **CC:** recipient with `recipient_type: "CC"` works. The signer and CC must be different emails.
+
+## 2026-10-08 · Built into Line Item Review v6
+- **Packet:** Terms asset + art's proof pages (APPROVED box located with pdf.js) + invoice generated from Airtable. All tags use the final format above.
+- **Worker v17:** adds `/pandadoc/file` (proof downloads, Airtable hosts only) and the **sandbox guard**: a "[DEV]" document is never sent unless `allowSandbox:true`. Test page v4 sets that flag; Line Item Review never does.
+- **Assets:** `assets/pandadoc-terms-v1.pdf` (the Terms page from 10955 with 5 hidden initials tags) and `assets/pine-invoice-logo.png`.
