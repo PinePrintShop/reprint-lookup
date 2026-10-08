@@ -89,3 +89,7 @@ Stephen's feedback after using v1:
 - Read-only: nothing is written.
 
 Create order's **Line Item Review →** button now opens v3.
+
+## 2026-10-08 · v4
+
+Airtable margin math was rebuilt on the $133k/mo cost basis (see `notes/pricing-formula-review.md`). Margin now means profit after garment, press time and a full share of shop costs, so about 10% is normal. The thin-margin warning moved from <15% to **<5%** (`THIN`), and a one-line note under the margin tiles says what margin means. Create order now opens v4.
