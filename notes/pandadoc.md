@@ -28,3 +28,23 @@
 **Round 2 (live sandbox):** upload + CC worked (`recipient_type: "CC"` is accepted on create). But API-TEST-10955 made **0 fields**, and the Client signer came back as CC. That happens when a recipient ends up with no fields, so PandaDoc never parsed the tags. Possible cause: the ID-tagged `[textfield:Client:name___]` was not declared in a `fields` object (PandaDoc says ID tags must be), which may invalidate the whole parse. Or the syntax is just different.
 
 **Test page v3 + TAG-SYNTAX-TEST.pdf:** one page with every syntax variant, none with IDs. Initials: `[initials:client]`×1, `[i:client]`×2, `{initials:client}`×4, `{{initials:client}}`×8, `{i:client}`×16. Signature: `[signature:client]`×1, `{{signature:client}}`×2, `{signature:client}`×4. Date: `[date:client]`×1, `{{date:client}}`×2. Text: `[textfield:client]`×1, `{{textfield:client}}`×2. Counts are powers of two, so the totals show which styles converted. The page now has an editable role (default `client`) and blocks the same email as signer and CC.
+
+**Round 3 result (TAG-SYNTAX-TEST, doc D4YekRuQov9kwvgcK7U5c9): 38 fields** = initials 28 (16+8+4), signature 6 (4+2), date 2, text 2, and the recipient stayed a **signer**.
+- **Curly braces work, square brackets do not.** `{{initials:client}}`, `{{signature:client}}`, `{{date:client}}` and `{{textfield:client}}` all convert; `{initials:client___}` and `{i:client___}` also work.
+- That explains the earlier 0-field runs: those files used square brackets.
+- **Decision:** use double curly `{{type:client}}` in white text (invisible on the page, still read by PandaDoc).
+- **Next:** API-TEST-2-10955.pdf (the real packet with 11 hidden tags), sent to Stephen with "Also send" to check the signer experience.
+
+**Round 4 (API-TEST-2, sent to Stephen):** works end to end: email, signer view, signature, name and date on the invoice. Placement was off in two places: on proofs the initials box overlapped the black "APPROVED" label, and a white tag edge showed on the black; Terms initials sat unevenly on the lines.
+
+**Round 5 (API-TEST-3), fields sized to the real boxes:**
+- The app scans each page and makes every tag the exact size of its box, because PandaDoc sizes a field to its tag (font size sets the height, underscores the width).
+- The role is shortened to `c` so tags fit small boxes, e.g. `{i:c}`, `{s:c__________}`, `{t:c____}`, `{d:c____}`.
+- **Terms:** the 5 `_____________` signing lines (71 x 22 pt each).
+- **Proofs:** the white box of art's APPROVED stamp, found relative to the "APPROVED" text: x from text.x1+15.4 to text.x1+58.6, y from text.y0-8.9 to text.y1+2, inset 3 pt. That matched both art templates.
+- **Invoice:** the signature frame (the drawn rect around "I've reviewed…") and the Name/Date lines.
+- Single-curly date/text tags (`{d:..}` `{t:..}`) are new this round; the double-curly forms are already proven if these fail.
+
+**Rounds 5-6:** API-TEST-3 (role `c`, sized short tags, single-curly name/date) and API-TEST-4 (same, but double-curly name/date) both **failed processing** ("Document creation failed", 400). So name/date was not the cause; suspects are the one-letter role or tags without underscores (`{i:c}`), or the larger font sizes. API-TEST-5 uses only proven styles (role `client`, `{initials:client___}` sized, double-curly name/date) to isolate it.
+
+**Worker v16:** for a failed document, the GET route also fetches PandaDoc's status record and returns it, so the failure reason comes back.
