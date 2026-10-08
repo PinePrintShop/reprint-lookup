@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PandaDoc Test — Pine</title>
+<style>
+:root{--bg:#F2F2EE;--line:#E6E6E0;--line2:#D4D4CC;--text:#141412;--muted:#80807A;--yellow:#E8E832;--ydk:#C9C92A;--green:#1e6b45;--gtint:#e9f4ee;--red:#b3261e;--rtint:#fdf0ee;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:15px Helvetica,Arial,sans-serif;padding:12px 16px 40px;max-width:760px;margin:0 auto}
+.top{background:var(--text);border-radius:var(--r);padding:10px 16px;display:flex;align-items:center;gap:12px;color:#fff}
+.brand{font-weight:900;letter-spacing:2px;color:var(--yellow)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-top:12px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px}
+label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 4px}
+input[type=text],input[type=email],input[type=password]{width:100%;height:44px;border:1px solid var(--line2);border-radius:8px;padding:0 12px;font-size:16px}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.ck{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px}
+.ck input{width:22px;height:22px}
+button{height:48px;padding:0 18px;border-radius:8px;border:1px solid var(--line2);background:#fff;font-weight:800;font-size:15px;cursor:pointer}
+button.y{background:var(--yellow);border-color:var(--ydk)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+pre{white-space:pre-wrap;word-break:break-word;background:#f7f7f4;border-radius:8px;padding:10px;font-size:12px;margin-top:10px;max-height:320px;overflow:auto}
+.ok{background:var(--gtint);color:var(--green);border-radius:8px;padding:10px;margin-top:10px;font-weight:700}
+.bad{background:var(--rtint);color:var(--red);border-radius:8px;padding:10px;margin-top:10px;font-weight:700}
+a{color:inherit}
+</style>
+</head>
+<body>
+<div class="top"><span class="brand">PINE</span><b>PandaDoc sandbox test</b></div>
+<div class="panel">
+  <h2>1 · Packet</h2>
+  <input type="file" id="file" accept="application/pdf">
+  <div class="hint">Use TEST-2-square-10955.pdf. Its tags use the role <b>Client</b>, which matches the signer below.</div>
+  <label>Document name</label><input type="text" id="name" value="TEST 10955 | Mile High Dreamin LLC">
+</div>
+<div class="panel">
+  <h2>2 · Who gets it</h2>
+  <div class="row"><div><label>Signer email (use your own)</label><input type="email" id="email" placeholder="you@pineprintshop.com"></div>
+  <div><label>Signer name</label><input type="text" id="fname" placeholder="First Last"></div></div>
+  <label>CC email (optional, experimental)</label><input type="email" id="cc" placeholder="salesperson@pineprintshop.com">
+  <div class="hint">CC is being tested: the first run tells us whether PandaDoc accepts a CC recipient on create.</div>
+  <div class="ck"><input type="checkbox" id="send"><label for="send" style="margin:0;color:var(--text);font-size:14px">Also send the email (otherwise it stays a draft so you can look first)</label></div>
+</div>
+<div class="panel">
+  <h2>3 · Run</h2>
+  <div class="btns"><button class="y" onclick="go()">Upload to PandaDoc sandbox</button><button onclick="check()">Check fields</button></div>
+  <div id="msg"></div><pre id="out" style="display:none"></pre>
+</div>
+<div class="panel" id="tokBox" style="display:none"><h2>Airtable token</h2><input type="password" id="tok" placeholder="pat…"><div class="btns"><button class="y" onclick="saveTok()">Save</button></div><div class="hint">The worker only lets people with the Pine Airtable token use PandaDoc.</div></div>
+<script>
+const W='https://pine-workers.stephen-dab.workers.dev/proxy/pandadoc/documents';
+const $=id=>document.getElementById(id);
+let TOKEN=''; try{TOKEN=localStorage.getItem('pine_at_key')||'';}catch(e){}
+if(!TOKEN) $('tokBox').style.display='';
+function saveTok(){ TOKEN=$('tok').value.trim(); try{localStorage.setItem('pine_at_key',TOKEN);}catch(e){} $('tokBox').style.display='none'; }
+let lastId=''; try{lastId=new URLSearchParams(location.search).get('id')||localStorage.getItem('pine_pd_test_id')||'';}catch(e){}
+function msg(t,ok){ $('msg').innerHTML=`<div class="${ok?'ok':'bad'}">${t}</div>`; }
+function show(o){ $('out').style.display=''; $('out').textContent=JSON.stringify(o,null,2); }
+async function go(){
+  const f=$('file').files[0], email=$('email').value.trim();
+  if(!TOKEN) return msg('Add the Airtable token first'), $('tokBox').style.display='';
+  if(!f) return msg('Pick the test PDF');
+  if(!/@/.test(email)) return msg('Enter your email as the signer');
+  const [first,...last]=($('fname').value.trim()||'Test Signer').split(' ');
+  const recipients=[{email,first_name:first,last_name:last.join(' ')||'.',role:'Client'}];
+  const cc=$('cc').value.trim(); if(/@/.test(cc)) recipients.push({email:cc,first_name:'CC',last_name:'Test',recipient_type:'CC'});
+  const fd=new FormData(); fd.append('file',f,f.name);
+  fd.append('data',JSON.stringify({name:$('name').value.trim()||f.name,recipients,send:$('send').checked?{subject:'TEST · Please review and sign',message:'Sandbox test from Pine Line Item Review.'}:null,tags:['pine-test']}));
+  msg('Uploading… (PandaDoc takes a few seconds)',true);
+  try{ const r=await fetch(W,{method:'POST',headers:{Authorization:'Bearer '+TOKEN},body:fd}); const j=await r.json(); show(j);
+    if(!r.ok||!j.ok) return msg('Didn\'t work: '+(j.error||r.status));
+    lastId=j.id; try{localStorage.setItem('pine_pd_test_id',lastId);}catch(e){}
+    msg(`Created ✓ ${j.sent?'and sent':'(draft, not sent)'} · <a href="${j.link}" target="_blank" rel="noopener">open in PandaDoc</a> · checking fields…`,true); setTimeout(check,1500);
+  }catch(e){ msg('Couldn\'t reach the worker: '+e.message); }
+}
+// PandaDoc processes an upload for a few seconds (409 "document.uploaded"); keep asking for up to ~40 s.
+async function check(){
+  if(!lastId) return msg('Upload first');
+  try{ let r,j;
+    for(let i=0;i<20;i++){
+      r=await fetch(W+'/'+lastId,{headers:{Authorization:'Bearer '+TOKEN}}); j=await r.json();
+      if(r.status===409||/document\.uploaded/.test(j.error||'')){ msg('PandaDoc is still processing the file… '+(i+1),true); await new Promise(res=>setTimeout(res,2000)); continue; }
+      break; }
+    show(j);
+    if(!r.ok||!j.ok) return msg('Didn\'t work: '+(j.error||r.status));
+    const c=j.counts||{}, n=Object.values(c).reduce((a,b)=>a+b,0);
+    msg(n?`PandaDoc made ${n} fields: ${Object.entries(c).map(([k,v])=>v+' '+k).join(', ')} (expected 11: 8 initials, 1 signature, 1 text, 1 date)`:'No fields yet. Tags weren\'t converted (or still processing; check again in a few seconds)',n>0);
+  }catch(e){ msg('Couldn\'t reach the worker: '+e.message); }
+}
+</script>
+</body>
+</html>
