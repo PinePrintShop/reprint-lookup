@@ -81,3 +81,5 @@
 - **Packet:** Terms asset + art's proof pages (APPROVED box located with pdf.js) + invoice generated from Airtable. All tags use the final format above.
 - **Worker v17:** adds `/pandadoc/file` (proof downloads, Airtable hosts only) and the **sandbox guard**: a "[DEV]" document is never sent unless `allowSandbox:true`. Test page v4 sets that flag; Line Item Review never does.
 - **Assets:** `assets/pandadoc-terms-v1.pdf` (the Terms page from 10955 with 5 hidden initials tags) and `assets/pine-invoice-logo.png`.
+
+**2026-10-08:** worker v17 deployed. Verified the deployed code matches `workers/pine-workers-v17.js` (only difference: the trailing newline). Same day: **Production key** in `PANDADOC_KEY`, so sends are live ($2 each). The sandbox test page now also makes real, billed documents; use Line Item Review instead.
