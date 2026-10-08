@@ -56,3 +56,5 @@
   - Terms and signature: as TEST-5.
   - Proofs: default-size `{{initials:client}}`, centered in art's white box. The default field is about 35.6 x 15.7 pt, left edge at the tag x, spanning baseline-12.5 to baseline+3 (measured from the round 4 screenshot).
   - Name/date: double curly.
+
+**Round 9 (API-TEST-7):** Terms initials look great. Proof initials are inside the APPROVED white box (good). The signature field was much too tall: PandaDoc makes a signature field about **3.25 x the tag font size** tall (measured: 25 pt tag gave an 81 pt field, spanning baseline-2.78fs to baseline+0.47fs; width follows the tag width). **API-TEST-8:** signature tag font = available height / 3.25 (12.4 pt), so the field fills the 41 pt space under "I've reviewed…" (523-564 inside the 503-568 frame).
