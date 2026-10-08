@@ -140,3 +140,15 @@ Stephen compared a v6 invoice (order 10569) with the extension's and found missi
 - **Paging:** 12 rows per invoice page; totals and signature on the last page.
 - **Checks:** "no proof" names repeat garments once, with "+N more".
 - **Tested** on 10955 (practice + live) and on a 15-line order with 6XL. Create order now opens v7.
+
+## 2026-10-08 · v8: step bar across Quote › Create order › Review
+
+Stephen asked to move both ways through POM → Create order → Line Item Review.
+- **Step bar:** POM v102, Create order and Line Item Review v8 share one bar (`flowNav()`, same code in all three): **① Quote › ② Create order › ③ Review**, current step in yellow. Phones show Quote · Order · Review.
+- **Order number travels with you:**
+  - Create order → Review opens that order.
+  - Review → Create order opens Create order on the selected order (new: Create order reads `?order=` and picks that Awaiting Proof order).
+  - Back to Quote keeps the quote (it's saved in the browser).
+- **Practice mode** carries through every link.
+- **Top bars streamlined:** yellow **PINE** wordmark, then the step bar, then each app's own controls. The full design pass is saved for when everything moves into Central.
+- **Tested** on desktop + phone (every link, forward and back, with the order number). The v7 send flow and v5 review tests pass on v8.

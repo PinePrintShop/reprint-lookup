@@ -364,3 +364,6 @@ Stephen: Create order will replace Sales Entry now. Sales Entry v23 stays as-is 
 - Sales person filter on the waiting-for-proof list (Patrick / Chris / +).
 - A small diagnostics log of recent Airtable calls.
 - Not carried over on purpose: "+ New imprint" writing immediately (Create order writes imprints with the order, so no orphans if someone backs out); "+ New Reorder" drafting a new order record (Create order fills the Awaiting Proof order Pipedrive already made; "Copy whole order" covers reorders).
+
+## 2026-10-08 · v102: step bar
+POM v102 = v101 + the shared step bar (① Quote › ② Create order › ③ Review) in the top bar, replacing the "Create order →" button, with the wordmark changed to **PINE v102**. Pricing is unchanged. Create order's hidden pricing engine now loads v102. Create order also got the same bar and opens a specific order from `?order=` (used by Line Item Review's "Create order" step). See notes/line-item-review.md (v8).
