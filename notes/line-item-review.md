@@ -129,3 +129,14 @@ The sheet:
 1. Deploy `workers/pine-workers-v17.js`.
 2. Swap `PANDADOC_KEY` to the Production key ($2 per document).
 3. Send one real order to yourself first.
+
+## 2026-10-08 · v7: invoice matches the extension
+
+Stephen compared a v6 invoice (order 10569) with the extension's and found missing lines, and asked for the black-outline logo.
+- **Table lines:** the extension's 16 vertical column dividers, positions measured from 10955's PDF, drawn through the header and every 27.7 pt row. Columns now use the extension's exact widths.
+- **Pills:** product type in light blue and garment in lavender (the extension's colors). The garment pill grows to two lines for long names.
+- **Logo:** `assets/pine-invoice-logo-outline.png`, the same logo inverted to black line art on white, without the black block.
+- **6XL:** only when an order has 6XL does a 6XL column get squeezed into the size area, with a smaller header. Otherwise sizes are OSFA–5XL like the extension.
+- **Paging:** 12 rows per invoice page; totals and signature on the last page.
+- **Checks:** "no proof" names repeat garments once, with "+N more".
+- **Tested** on 10955 (practice + live) and on a 15-line order with 6XL. Create order now opens v7.
