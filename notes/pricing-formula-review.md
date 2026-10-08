@@ -278,3 +278,52 @@ IF(
 - Autoprice still $4.65.
 
 **Side effect:** Orders › [PRICE] Total Shipping Allowance, and "Shipping Allowance vs Shipping Cost", now use the realistic bandana number.
+
+## 2026-10-08 · Shipping estimate for margins (tees, fleece, everything)
+
+**Why:** Stephen asked to apply the bandana approach to tees and fleece. Sales use the margin to review pricing, so it should reflect real shipping. **Autoprice must not change.**
+
+**The problem:** Autoprice reads `[PRICE] Shipping Allowance` for non-bandana lines, so that field can't change. Margin now uses a separate estimate instead.
+
+**ShipStation history:** Orders › Shipping Cost on 3,163 Free Shipping orders, with line items sorted into tee, fleece, bandana and other.
+
+| | Real shipping / pc | Old allowance |
+|---|---|---|
+| Tees <50 pcs | $0.86 | $0.65 |
+| Tees 100–250 | $0.50 | $0.65 |
+| Tees 500+ | $0.47 | $0.65 |
+| Fleece <100 | ~$1.95 | $2.15 |
+| Fleece 100–250 | $1.63 | $2.15 |
+
+**Model:** each order costs about **$11 to ship**, spread over all its pieces, plus a per-piece rate. That adds up to about $180k against $183k actually spent.
+
+| Item | Per piece |
+|---|---|
+| Tees and other apparel | $0.45 |
+| Fleece | $1.55 |
+| Bandanas | $0.09 |
+| Patches, stickers, pins | $0.06 |
+
+- Pick-Up, Delivery, Fulfillment, and Artwork / Pre-Order Setup Fees / Misc. lines = $0.
+
+**Airtable changes (Line Items):**
+
+| Field | Change |
+|---|---|
+| **[COST] Order Quantity** `fldwGflBp7IISO98H` | New rollup: SUM of Orders › Total Quantity Rollup |
+| **[COST] Est. Shipping / pc** `fldObjUIJI9gHPqOf` | New formula, the model above |
+| [PRICE] Estimated Margin / Piece `fldU1y8VEpcg25vtr` | Subtracts `[COST] Est. Shipping / pc` instead of `[PRICE] Shipping Allowance`. Margin % and Line margin follow |
+| Estimated Shipping / Piece `fld5M8zqRzfmPBT1r` | Was broken (pointed at a deleted field). Now mirrors `[COST] Est. Shipping / pc` |
+
+- `[PRICE] Shipping Allowance` and Autoprice are untouched.
+- Line Item Review reads the Airtable margin fields, so no app change was needed.
+
+**Effect:**
+- Most tee lines gain about $0.10–0.20/pc of margin.
+- Fleece lines gain about $0.45–0.55/pc.
+- Very small tee orders lose a little.
+- 10981 stays +$0.68/pc; 10871 goes from −$0.43 to −$0.39/pc.
+
+**Rollback:** put `{fld0IVAS1IxcPoqc6}` back in place of `{fldObjUIJI9gHPqOf}` in Estimated Margin / Piece.
+
+**Re-fit later:** re-run the ShipStation fit if carrier rates change a lot.
