@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Line Item Review — Pine</title>
+<style>
+:root{--bg:#F2F2EE;--surface:#fff;--line:#E6E6E0;--line2:#D4D4CC;--text:#141412;--muted:#80807A;--soft:#F7F7F4;--yellow:#E8E832;--ydk:#C9C92A;--ytint:#FBFBDC;--green:#1e6b45;--gtint:#e9f4ee;--red:#b3261e;--rtint:#fdf0ee;--amb:#a96b12;--atint:#fbf1e2;
+  --sans:Helvetica,Arial,sans-serif;--mono:'Courier New',monospace;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px}
+body{padding:12px 16px 0;max-width:1680px;margin:0 auto}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.top{background:var(--text);border-radius:var(--r);padding:8px 10px 8px 18px;display:flex;align-items:center;gap:14px;color:#ddd;flex-wrap:wrap}
+.brand{font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:var(--yellow)}
+.crumb{font-size:14px;color:#fff;font-weight:700}
+.prac{background:var(--yellow);color:var(--text);font-weight:700;font-size:12px;padding:6px 10px;border-radius:20px}
+.top .sp{margin-left:auto}
+.me{height:40px;border-radius:8px;border:1px solid #4a4a44;background:#26261f;color:#fff;padding:0 10px;font-weight:700;max-width:190px}
+.me.need{border-color:var(--yellow);box-shadow:0 0 0 2px var(--yellow)}
+.ghost{background:none;border:1px solid #4a4a44;color:#ddd;border-radius:8px;height:40px;padding:0 14px;font-size:13px;text-decoration:none;display:inline-flex;align-items:center}
+.app{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px;margin-top:12px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+/* list */
+.list{position:sticky;top:12px;max-height:calc(100vh - 90px);display:flex;flex-direction:column;overflow:hidden}
+.lhead{padding:12px 12px 8px;border-bottom:1px solid var(--line)}
+.q{width:100%;height:42px;border:1px solid var(--line2);border-radius:8px;padding:0 12px;font-size:16px;outline:none}
+.q:focus{border-color:var(--text)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px}
+.tab{height:48px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-size:12px;font-weight:700;line-height:1.15;padding:0 2px}
+.tab b{display:block;font:700 16px var(--mono)}
+.tab.on{background:var(--text);color:var(--yellow);border-color:var(--text)}
+.lbody{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+.og{border-bottom:1px solid var(--line);padding-bottom:4px}
+.og+.og{margin-top:6px}
+/* order band: dark like the top bar so it never reads as a line item */
+.oh{background:var(--text);color:#fff;padding:8px 12px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;position:sticky;top:0;z-index:1}
+.oh .num{font:700 14px var(--mono);color:var(--yellow)}
+.oh .nm{font-weight:700;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+.oh .meta{width:100%;font-size:12px;color:#aaa;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.li .chev{color:var(--line2);font-size:22px;line-height:1;flex:none}
+.li{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:9px 12px 9px 14px;min-height:52px;border-left:4px solid transparent}
+.li:hover{background:var(--soft)}
+.li.on{background:var(--ytint);border-left-color:var(--ydk)}
+.li .g{flex:1;min-width:0;font-size:13px;line-height:1.3}
+.li .g b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .g span{color:var(--muted)}
+.empty{padding:22px 14px;color:var(--muted);font-size:14px;text-align:center}
+.pill{font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap;border:1px solid transparent}
+.st-proof{background:var(--soft);border-color:var(--line2);color:var(--muted)}
+.st-uploaded{background:var(--atint);border-color:#ecd2a6;color:var(--amb)}
+.st-review{background:var(--ytint);border-color:var(--ydk);color:var(--text)}
+.st-ready{background:var(--gtint);border-color:#bfe0cc;color:var(--green)}
+.tag{font-size:11px;font-weight:700;padding:3px 7px;border-radius:20px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.tag.hard{background:var(--rtint);border-color:#f2c9c4;color:var(--red)}
+.tag.asap{background:var(--gtint);border-color:#bfe0cc;color:var(--green)}
+/* detail */
+.det{min-width:0}
+.back{display:none}
+.hdr{padding:16px 20px 14px}
+.hdr .l1{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr .onum{font:700 20px var(--mono)}
+.hdr .cn{font-size:20px;font-weight:800}
+.hdr .l2{margin-top:6px;font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hdr .links{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.lk{height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:1px solid var(--line2);border-radius:8px;background:#fff;font-size:13px;font-weight:700;text-decoration:none}
+.lk:hover{border-color:var(--text)}
+.lk.dim{color:var(--muted);font-weight:500;border-style:dashed}
+.lines{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.lc{border:1px solid var(--line2);background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;display:flex;align-items:center;gap:6px;min-height:40px;text-align:left}
+.lc.on{background:var(--ytint);border-color:var(--ydk);box-shadow:inset 0 0 0 1px var(--ydk)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.15)}
+.d-proof{background:#ddd}.d-uploaded{background:#e9b45a}.d-review{background:var(--yellow)}.d-ready{background:#3fae6f}
+.stage{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+.stp{padding:10px 12px;font-size:12px;color:var(--muted);border-right:1px solid var(--line);display:flex;gap:8px;align-items:center;line-height:1.25}
+.stp:last-child{border-right:0}
+.stp i{font-style:normal;width:22px;height:22px;border-radius:50%;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex:none}
+.stp.done{color:var(--text)}.stp.done i{background:var(--text);border-color:var(--text);color:var(--yellow)}
+.stp.now{color:var(--text);font-weight:700;background:var(--ytint)}.stp.now i{border-color:var(--ydk)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:14px}
+@media (min-width:1360px){.cols{grid-template-columns:minmax(0,1fr) 400px}}
+.box{padding:16px 18px}
+.box h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.box h3 .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400}
+.stack>*+*{margin-top:14px}
+.proofs{display:flex;gap:12px;flex-wrap:wrap}
+.pf{display:block;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--soft);text-decoration:none;width:min(100%,460px)}
+.pf img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain;background:#fff}
+.pf .fn{font-size:12px;padding:6px 8px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf.sm{width:150px}.pf.sm img{height:110px;object-fit:cover}
+.noproof{border:2px dashed var(--line2);border-radius:var(--r);padding:26px;text-align:center;color:var(--muted);width:100%}
+.attach{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{height:44px;padding:0 16px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-weight:700;font-size:14px}
+.btn:hover{border-color:var(--text)}
+.btn.y{background:var(--yellow);border-color:var(--ydk)}
+.btn:disabled{opacity:.45;cursor:default}
+.hint{font-size:12px;color:var(--muted)}
+.imp{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.imp+.imp{margin-top:8px}
+.idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
+.imp .d{font-size:14px}.imp .d small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.imp .acts{display:flex;gap:6px}
+.imp .nt{grid-column:2/4;font-size:13px;color:var(--text);background:var(--soft);border-radius:6px;padding:6px 8px;white-space:pre-wrap}
+.kv{display:grid;grid-template-columns:130px minmax(0,1fr);gap:8px 14px;font-size:14px;align-items:baseline}
+.kv .k{font-size:12px;color:var(--muted)}
+.sz{display:flex;gap:6px;flex-wrap:wrap}
+.sz span{border:1px solid var(--line2);border-radius:6px;padding:4px 8px;font:700 13px var(--mono);background:#fff}
+.sz span small{font:400 11px var(--sans);color:var(--muted);margin-right:4px}
+.nt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nt-grid label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:700}
+.nt-grid textarea{border:1px solid var(--line2);border-radius:8px;padding:9px 10px;min-height:76px;resize:vertical;font-size:14px;color:var(--text);font-weight:400;outline:none;width:100%}
+.nt-grid textarea:focus{border-color:var(--text)}
+.nt-grid textarea.dirty{border-color:var(--ydk);background:var(--ytint)}
+.savebar{display:flex;gap:10px;align-items:center;margin-top:12px}
+/* comments */
+.cm{display:flex;flex-direction:column;gap:10px;max-height:460px;overflow:auto}
+.c{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.c.mine{background:var(--ytint);border-color:#e6e6a8}
+.c .a{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:baseline}
+.c .a b{color:var(--text);font-size:13px}
+.c .t{font-size:14px;margin-top:3px;white-space:pre-wrap;word-wrap:break-word}
+.c .t .m{font-weight:700;background:#fff;border-radius:4px;padding:0 3px}
+.cbox{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.cbox textarea{width:100%;min-height:70px;border:1px solid var(--line2);border-radius:8px;padding:9px 10px;font-size:15px;resize:vertical;outline:none}
+.cbox textarea:focus{border-color:var(--text)}
+.ment{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.mch{border:1px solid var(--line2);background:#fff;border-radius:20px;padding:0 12px;height:34px;font-size:13px}
+.mch.on{background:var(--yellow);border-color:var(--ydk);font-weight:700}
+.crow{display:flex;gap:10px;align-items:center}
+.crow .btn{margin-left:auto}
+/* pricing */
+.pr-top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pr-top div{background:var(--soft);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--muted)}
+.pr-top b{display:block;font:700 18px var(--mono);color:var(--text);margin-top:2px}
+.pin{display:flex;gap:8px;align-items:center;margin-top:12px}
+.pin input{height:44px;width:120px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;font:700 18px var(--mono);outline:none}
+.pin input:focus{border-color:var(--text)}
+.pr-top.mg{margin-top:12px}.pr-top.mg div{background:#fff;border:1px solid var(--line)}
+.pr-top b.neg{color:var(--red)}
+.warn{background:var(--rtint);border:1px solid #f2c9c4;color:var(--red);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+.okb{background:var(--gtint);border:1px solid #bfe0cc;color:var(--green);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+/* action bar */
+.abar{position:sticky;bottom:0;z-index:5;margin-top:14px;background:var(--text);border-radius:var(--r) var(--r) 0 0;padding:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.ab{height:56px;border-radius:8px;border:1px solid #4a4a44;background:#26261f;color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;line-height:1.1;text-align:center;padding:0 8px}
+.ab small{display:block;font-weight:400;font-size:11px;color:#aaa}
+.ab.on{background:var(--yellow);color:var(--text);border-color:var(--ydk)}
+.ab.on small{color:#555}
+.ab.next{background:none;color:var(--yellow);border-color:#4a4a44;padding:0 18px}
+.ab:disabled{opacity:.4}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:20;box-shadow:0 4px 18px rgba(0,0,0,.25);max-width:90vw}
+.toast.err{background:var(--red)}
+.tok{padding:16px 18px;margin-top:12px}
+.tok .row{display:flex;gap:8px;margin-top:10px}
+.tok input{flex:1;height:44px;border:1px solid var(--line2);border-radius:8px;padding:0 12px}
+.spin{color:var(--muted);padding:30px;text-align:center}
+.mob-only{display:none}
+/* phone / small iPad portrait */
+@media (max-width:900px){
+  body{padding:8px 10px 0}
+  .app{grid-template-columns:minmax(0,1fr);margin-top:8px}
+  .list{position:static;max-height:none}
+  .app.det-open .list{display:none}
+  .app:not(.det-open) .det{display:none}
+  .back{display:flex;align-items:center;margin-bottom:8px}
+  .nt-grid{grid-template-columns:1fr}
+  .kv{grid-template-columns:100px minmax(0,1fr)}
+  .stage{grid-template-columns:repeat(2,1fr)}
+  .stp:nth-child(2){border-right:0}.stp:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .abar{grid-template-columns:repeat(3,minmax(0,1fr));margin-left:-10px;margin-right:-10px;border-radius:0}
+  .ab{height:54px;font-size:13px}
+  .ab.next{grid-column:1/-1;height:40px}
+  .top{gap:8px;padding:8px 10px}
+  .crumb{display:none}
+  .me{max-width:150px}
+  .hdr{padding:14px}
+  .box{padding:14px}
+  .imp{grid-template-columns:auto minmax(0,1fr)}
+  .imp .acts{grid-column:1/-1}
+  .imp .nt{grid-column:1/-1}
+  .mob-only{display:inline}
+}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">Pine</div><div class="crumb">Line Item Review</div>
+  <span class="prac" id="prac" style="display:none">PRACTICE · nothing is saved</span>
+  <span class="sp"></span>
+  <select class="me" id="me" onchange="setMe(this.value)" aria-label="Who are you?"></select>
+  <button class="ghost" onclick="load(true)" title="Refresh">↻</button>
+</div>
+<div id="tokBox" class="panel tok" style="display:none"><b>Airtable token</b> · paste the same token the other Pine apps use (saved on this device only).
+  <div class="row"><input id="tok" placeholder="pat…" autocomplete="off"><button class="btn y" onclick="saveTok()">Save</button></div></div>
+<div class="app" id="app">
+  <div class="panel list">
+    <div class="lhead">
+      <input class="q" id="q" placeholder="Search order #, customer, garment" oninput="S.q=this.value;renderList()" autocomplete="off">
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div class="lbody" id="lbody"><div class="spin">Loading…</div></div>
+  </div>
+  <div class="det" id="det"></div>
+</div>
+<input type="file" id="file" accept="image/*,application/pdf" multiple style="display:none" onchange="uploadProofs(this.files)">
+<script>
+/* ---------- Airtable ---------- */
+const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_LI='tblJx5UlwO7oMSk5H', T_IMP='tbln9oAGvz2PNBZLV', T_GAR='tblukWGm0CIelookM', T_CUST='tblXToEJONa3VELp2';
+const PRACTICE=/[?&]practice=1/.test(location.search);
+const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',rep:'fldSPnWlnzz48ZZDD',due:'fldphJYdlBNS0dmAK',hard:'fldMFfWyYJ6ZQDte6',lines:'fldU6fgrz6sU3wyIZ',created:'fldXUjQHSeRaW5per',art:'fldriiZiENIPeJRRV'};
+const L={ptype:'fld8LIkrBXv8WoRRb',garment:'fldZbOdGIoCk3Gan2',imps:'fldTFz4ZzfOthqkg6',nick:'fldKb7r8o7uvj1iEd',proof:'flddhvdkKI31tFTdX',
+  ready2:'fldycrq3VJYSFd8Gi',qok:'fldsVU7LXUN6LszvB',pok:'fldR8jKCpNAhfyt5G',
+  nProof:'fldWdnT83KLEvBrg4',nSales:'fldG3tzTzUC3QQJ1I',nProd:'fld4FjoCQ5bXdwjJj',nShip:'fld7rY74m37acM2Ik',nOrder:'fldF378cgWuOcWNL6',nFin:'fldqsj7nZgHrtRbEn',
+  price:'fldtMZWzA4dfPxEXx',auto:'fldyMPijIsJW5XmI8',total:'fldSMd8DkbypJiw2W',qty:'fldFfuKAcduwWQp8g',plus:'fldz5zScKTotEqJGg',sizes:'fldGh3mjV0Q753nzs',
+  womens:'fld65C13J5BbKIWoI',youth:'fldLHtzJ3peAtr4X1',created:'fldl02e7TiLPg4v47',waitT:'fldEnov8O5itelIm1',elapsed:'fldRrcFrlv3I54cEt',impDesc:'fldKpcYiNDhlknPyv',
+  gCost:'fldVtBTv42HG6WYs1',labor:'fld2NLpfI9x7E7eMq',overhead:'fldgGJXMzYpSnr2Cw',materials:'fldyuDjdP9KQx9Dui',shipA:'fld0IVAS1IxcPoqc6',ascIn:'fldbs9svKV48Xx3yq',pay:'fldjTKtpDmrnNml2c',
+  mPiece:'fldU1y8VEpcg25vtr',mLine:'fldCchT5PeYhNvxXr',mPct:'fldHnS5fBKoWbZx5f',thread:'fldN1ZvNKYF5s8qUo',threadName:'fldhmfbmjD9Gbj0ng',promo:'fldrkl4UNBYf9QmNQ',pdesc:'fldBGLb39lznbSibX',
+  vReady:'fld1PvosWlHKMKKMS',vUp:'fld8S6v2jG8kaID7B'};
+const I={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',repeat:'flda9L7041ahNZT0b',notes:'fldNuEzGIYI8FWqXu',sep:'fldiBqdFTRMahiMeI',folder:'flduiSyyBu5bf8jfG',inks:'fldMM5hp8kEpo3KKT'};
+const G_NAME='fldT4jfh2XV9lERef', C_ART='fldxohp41phv6Qbms';
+const NOTES=[['nProof','Proofing notes'],['nSales','Sales notes'],['nProd','Production notes'],['nShip','Shipping notes']];
+const SIZES=[['XS','fldVA9ZmYxhDxtnYZ'],['S','fldCZr5lB6Jx80lfG'],['M','fldzTs1qKe9IBxxSn'],['L','fldnRLJxjUDa1mQTj'],['XL','fldTRgdexcpBXXQPv'],['2XL','fldin7j6uGO0uRTec'],['3XL','fldpltq9fdRkrvIvt'],['4XL','fldrsci7JnToa43Zd'],['5XL','fldchnRSKFukouW6N'],['6XL','fldI8gTtsEJwg33BI'],['OSFA','fld2bgIlmPbANgLVK']];
+const WHO=['Art Department','Chris','Garrett','Josh','Patrick','Stephen','Whitney'];
+// Airtable users we can @mention. Seeded with people seen on Line Item comments; the app learns more from every thread it opens.
+const PEOPLE_SEED={usr8GNzrtN698y03u:'Art Department',usrIie9QUerxvDqmi:'Chris Hoffman',usrc25UiXFiAJg0hW:'Patrick Dawson',usr0lsFTRPFpjXsUH:'Whitney Bontrager'};
+
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+let TOKEN=ls.get('pine_at_key','');
+const S={orders:[],lines:{},garments:{},custArt:{},imps:{},comments:{},tab:null,q:'',sel:null,me:ls.get('pine_lir_me',''),ment:[],busy:{},dirty:{},loaded:false};
+let PEOPLE={}; try{PEOPLE=Object.assign({},PEOPLE_SEED,JSON.parse(ls.get('pine_lir_people','{}')));}catch(e){PEOPLE=Object.assign({},PEOPLE_SEED);}
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sel=v=>v==null?'':(typeof v==='string'?v:(v.name||''));
+const first=v=>Array.isArray(v)?v[0]:v;
+const num=v=>{const x=Array.isArray(v)?v[0]:v;return typeof x==='number'?x:(x==null||x===''?null:Number(x));};
+const money=v=>v==null||isNaN(v)?'—':(v<0?'−$':'$')+Math.abs(v).toFixed(2);
+const flds=a=>a.map(f=>'fields%5B%5D='+f).join('&');
+function ago(t){ if(!t) return ''; const m=(Date.now()-new Date(t))/6e4; if(m<60) return Math.max(1,Math.round(m))+'m'; const h=m/60; if(h<48) return Math.round(h)+'h'; return Math.round(h/24)+'d'; }
+function fmtDate(d){ if(!d) return ''; const x=new Date(d+(String(d).length===10?'T12:00:00':'')); return x.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+function toast(msg,err){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const t=document.createElement('div'); t.className='toast'+(err?' err':''); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),err?5000:2200); }
+
+async function at(path,opt){
+  if(!TOKEN){ $('tokBox').style.display=''; throw new Error('no token'); }
+  const r=await fetch(path.startsWith('http')?path:`https://api.airtable.com/v0/${BASE}/${path}`,Object.assign({},opt||{},{headers:Object.assign({Authorization:'Bearer '+TOKEN},(opt&&opt.body)?{'Content-Type':'application/json'}:{})}));
+  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status)); }
+  return r.json();
+}
+async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(`${table}?returnFieldsByFieldId=true&${params}${off?'&offset='+off:''}`); out=out.concat(d.records||[]); off=d.offset||''; }while(off&&out.length<(max||1000)); return out; }
+async function byIds(table,ids,fields){ const out=[]; ids=[...new Set(ids)].filter(Boolean);
+  for(let i=0;i<ids.length;i+=40){ const f=`OR(${ids.slice(i,i+40).map(id=>`RECORD_ID()='${id}'`).join(',')})`;
+    out.push(...await atAll(table,`pageSize=100&${flds(fields)}&filterByFormula=${encodeURIComponent(f)}`)); }
+  return out; }
+function saveTok(){ TOKEN=$('tok').value.trim(); ls.set('pine_at_key',TOKEN); $('tokBox').style.display='none'; load(); }
+
+/* ---------- who am I ---------- */
+function renderMe(){ const m=$('me'); m.innerHTML=`<option value="">Who are you?</option>`+WHO.map(w=>`<option${w===S.me?' selected':''}>${esc(w)}</option>`).join(''); m.classList.toggle('need',!S.me); }
+function setMe(v){ S.me=v; ls.set('pine_lir_me',v); if(!S.tabTouched) S.tab=defaultTab(); renderMe(); renderList(); renderDet(); }
+function defaultTab(){ return S.me==='Art Department'?'art':'review'; }
+
+/* ---------- load ---------- */
+async function load(manual){
+  if(!TOKEN){ $('tokBox').style.display=''; $('lbody').innerHTML='<div class="empty">Paste the Airtable token above to start.</div>'; return; }
+  if(manual) $('lbody').innerHTML='<div class="spin">Refreshing…</div>';
+  try{
+    const ords=await atAll(T_ORD,`pageSize=100&${flds(Object.values(O))}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=asc&filterByFormula=${encodeURIComponent('{Order Status}="Awaiting Proof"')}`,500);
+    S.orders=ords.map(r=>{const f=r.fields;return {id:r.id,num:f[O.num],cust:first(f[O.cust])||'',name:String(f[O.custName]||'').trim(),rep:sel(f[O.rep]),due:f[O.due]||'',hard:sel(f[O.hard]),lines:f[O.lines]||[],created:f[O.created]||'',art:f[O.art]||[]};});
+    const lids=S.orders.flatMap(o=>o.lines);
+    const recs=await byIds(T_LI,lids,Object.values(L).concat(SIZES.map(s=>s[1])));
+    const keep=S.lines; S.lines={}; recs.forEach(r=>{ S.lines[r.id]=Object.assign(r.fields,{_id:r.id}); if(keep[r.id]&&keep[r.id]._local) Object.assign(S.lines[r.id],keep[r.id]._local,{_local:keep[r.id]._local}); });
+    const gids=recs.flatMap(r=>r.fields[L.garment]||[]).filter(id=>!S.garments[id]);
+    if(gids.length) (await byIds(T_GAR,gids,[G_NAME])).forEach(g=>S.garments[g.id]=g.fields[G_NAME]||'');
+    const cids=S.orders.map(o=>o.cust).filter(id=>id&&!(id in S.custArt));
+    if(cids.length){ const cs=await byIds(T_CUST,cids,[C_ART]); cids.forEach(id=>S.custArt[id]=''); cs.forEach(c=>S.custArt[c.id]=c.fields[C_ART]||''); }
+    S.loaded=true;
+  }catch(e){ if(e.message!=='no token') $('lbody').innerHTML=`<div class="empty">Couldn't load from Airtable: ${esc(e.message)}</div>`; return; }
+  if(!S.tab) S.tab=deepLink()||defaultTab();
+  if(S.sel&&!S.lines[S.sel]) S.sel=null;
+  renderList(); renderDet();
+}
+function deepLink(){ const p=new URLSearchParams(location.search), on=p.get('order'), ln=p.get('line');
+  if(ln&&S.lines[ln]){ pick(ln,true); return 'all'; }
+  if(on){ const o=S.orders.find(x=>String(x.num)===on); if(o&&o.lines.find(id=>S.lines[id])){ pick(o.lines.find(id=>S.lines[id]),true); return 'all'; } toast('Order '+on+' isn\'t awaiting proof'); }
+  return null; }
+
+/* ---------- state of a line ---------- */
+function stage(Ln){ if(Ln[L.qok]&&Ln[L.pok]) return 'ready'; if(Ln[L.ready2]) return 'review'; if((Ln[L.proof]||[]).length) return 'uploaded'; return 'proof'; }
+const ST_TXT={proof:'Needs proof',uploaded:'Proof up',review:'Awaiting review',ready:'Ready to send'};
+const TABS=[['art','Art to do',s=>s==='proof'||s==='uploaded'],['review','Review',s=>s==='review'],['ready','Ready to send',s=>s==='ready'],['all','All',()=>true]];
+function gName(Ln){ const g=(Ln[L.garment]||[]).map(id=>S.garments[id]).filter(Boolean)[0]; return g||Ln[L.nick]||Ln[L.pdesc]||Ln[L.promo]||sel(Ln[L.ptype])||'Line item'; }
+function impLine(Ln){ const d=Ln[L.impDesc]; return (Array.isArray(d)?d:[d]).filter(Boolean).join(' · '); }
+function lineOrder(id){ return S.orders.find(o=>o.lines.includes(id)); }
+function reviewLabel(Ln){ const s=stage(Ln); if(s==='review'){ const q=Ln[L.qok],p=Ln[L.pok]; if(q||p) return (q?'Quality ✓':'Pricing ✓')+' · 1 to go'; } return ST_TXT[s]; }
+
+/* ---------- list ---------- */
+function visible(){ const ws=S.q.toLowerCase().split(/\s+/).filter(Boolean), tab=TABS.find(t=>t[0]===S.tab)||TABS[3], out=[];
+  S.orders.forEach(o=>{ const ls_=o.lines.map(id=>S.lines[id]).filter(Boolean).filter(Ln=>tab[2](stage(Ln))).filter(Ln=>{ const hay=(o.num+' '+o.name+' '+gName(Ln)+' '+impLine(Ln)+' '+o.rep).toLowerCase(); return ws.every(w=>hay.includes(w)); });
+    if(ls_.length) out.push({o,lines:ls_}); });
+  return out; }
+function counts(){ const c={art:0,review:0,ready:0,all:0}; Object.values(S.lines).forEach(Ln=>{ if(!lineOrder(Ln._id)) return; const s=stage(Ln); c.all++; TABS.forEach(t=>{ if(t[0]!=='all'&&t[2](s)) c[t[0]]++; }); }); return c; }
+function renderList(){
+  const c=counts(); $('tabs').innerHTML=TABS.map(t=>`<button class="tab${S.tab===t[0]?' on':''}" onclick="S.tab='${t[0]}';S.tabTouched=true;renderList()"><b>${c[t[0]]}</b>${t[1]}</button>`).join('');
+  if(!S.loaded) return;
+  const v=visible();
+  if(!v.length){ $('lbody').innerHTML=`<div class="empty">${S.q?'Nothing matches “'+esc(S.q)+'”':S.tab==='art'?'No proofs waiting on art 🎉':S.tab==='review'?'Nothing waiting for review':S.tab==='ready'?'Nothing ready to send yet':'No orders awaiting proof'}</div>`; return; }
+  $('lbody').innerHTML=v.map(({o,lines})=>`<div class="og"><div class="oh" onclick="pick('${lines[0]._id}')" title="Opens the first line"><span class="num">${esc(o.num)}</span><span class="nm">${esc(o.name)}</span>
+      <div class="meta">${[o.rep?esc(o.rep):'',o.hard?`<span class="tag ${o.hard==='ASAP'?'asap':'hard'}">${o.hard==='ASAP'?'ASAP':'Hard'}${o.due?' '+fmtDate(o.due):''}</span>`:(o.due?'due '+fmtDate(o.due):''),ago(o.created)+' old'].filter(Boolean).join(' · ')}</div></div>
+    ${lines.map(Ln=>{const s=stage(Ln),cc=S.comments[Ln._id];return `<button class="li${S.sel===Ln._id?' on':''}" onclick="pick('${Ln._id}')"><span class="g"><b>${esc(gName(Ln))}</b><span>${esc(impLine(Ln)||sel(Ln[L.ptype]))}${cc&&cc.list&&cc.list.length?' · 💬 '+cc.list.length:''}</span></span><span class="pill st-${s}">${esc(reviewLabel(Ln))}</span><span class="chev">›</span></button>`;}).join('')}</div>`).join('');
+}
+
+/* ---------- detail ---------- */
+function pick(id,quiet){ if(S.sel&&S.sel!==id&&hasDirty()&&!confirm('You have unsaved notes. Leave them?')) return; S.dirty={}; S.sel=id; S.ment=[]; $('app').classList.add('det-open');
+  if(quiet) return; renderList(); renderDet(); window.scrollTo({top:0}); }
+function closeDet(){ if(hasDirty()&&!confirm('You have unsaved notes. Leave them?')) return; S.dirty={}; $('app').classList.remove('det-open'); renderList(); }
+const hasDirty=()=>Object.keys(S.dirty).length>0;
+function renderDet(){
+  const Ln=S.lines[S.sel], d=$('det');
+  if(!Ln){ d.innerHTML=S.loaded?`<div class="panel box" style="color:var(--muted)">Pick a line item on the left.${S.me?'':'<br><br>First, choose <b>who you are</b> at the top right — comments are signed with it.'}</div>`:''; return; }
+  const o=lineOrder(Ln._id)||{lines:[]}, s=stage(Ln), proofs=Ln[L.proof]||[];
+  if(!S.imps[Ln._id]) loadImps(Ln); if(!S.comments[Ln._id]) loadComments(Ln._id);
+  const art=S.custArt[o.cust], oLines=o.lines.map(id=>S.lines[id]).filter(Boolean);
+  const steps=[['proof','Proof uploaded',proofs.length>0],['review','Awaiting review',!!Ln[L.ready2]],['q','Quality approved',!!Ln[L.qok]],['p','Pricing approved',!!Ln[L.pok]]];
+  const nowIdx=steps.findIndex(x=>!x[2]);
+  let h=`<button class="btn back" onclick="closeDet()">‹ All line items</button>
+  <div class="panel"><div class="hdr">
+    <div class="l1"><span class="onum">${esc(o.num||'')}</span><span class="cn">${esc(o.name||'')}</span><span class="pill st-${s}">${esc(reviewLabel(Ln))}</span></div>
+    <div class="l2">${o.rep?'<span>'+esc(o.rep)+'</span>':''}${o.hard?`<span class="tag ${o.hard==='ASAP'?'asap':'hard'}">${o.hard==='ASAP'?'ASAP':'Hard deadline'}</span>`:''}${o.due?'<span>Due '+fmtDate(o.due)+'</span>':''}<span>Created ${ago(Ln[L.created])} ago</span>${Ln[L.elapsed]?'<span>Proof took '+esc(String(Ln[L.elapsed]).replace('⏳ ',''))+'</span>':Ln[L.waitT]?'<span>Waiting on proof '+esc(String(Ln[L.waitT]).replace('⏳ ',''))+'</span>':''}</div>
+    <div class="links">${art?`<a class="lk" href="${esc(art)}" target="_blank" rel="noopener">📁 Client art folder</a>`:`<span class="lk dim" title="Save it from Create order">No art folder saved</span>`}
+      ${(o.art||[]).length?`<a class="lk" href="${esc(o.art[0].url)}" target="_blank" rel="noopener">🖼 Customer art (${o.art.length})</a>`:''}
+      <a class="lk" href="https://airtable.com/${BASE}/${T_LI}/${Ln._id}" target="_blank" rel="noopener">Open in Airtable ↗</a></div>
+    ${oLines.length>1?`<div class="lines">${oLines.map(x=>`<button class="lc${x._id===Ln._id?' on':''}" onclick="pick('${x._id}')"><span class="dot d-${stage(x)}"></span>${esc(gName(x))}</button>`).join('')}</div>`:''}
+  </div>
+  <div class="stage">${steps.map((x,i)=>`<div class="stp${x[2]?' done':i===nowIdx?' now':''}"><i>${x[2]?'✓':i+1}</i>${x[1]}</div>`).join('')}</div></div>
+  <div class="cols"><div class="stack">
+    <div class="panel box"><h3>Proof<span class="r hint">${proofs.length?proofs.length+' file'+(proofs.length>1?'s':''):''}</span></h3>
+      <div class="proofs">${proofs.length?proofs.map(a=>{const th=(a.thumbnails&&(a.thumbnails.large||a.thumbnails.full))||(/^image\//.test(a.type||'')?a:null);return `<a class="pf" href="${esc(a.url)}" target="_blank" rel="noopener">${th?`<img src="${esc(th.url)}" alt="">`:'<div class="noproof" style="border:0">📄</div>'}<div class="fn">${esc(a.filename||'proof')}</div></a>`;}).join(''):'<div class="noproof">No proof yet</div>'}</div>
+      <div class="attach"><button class="btn${proofs.length?'':' y'}" onclick="$('file').click()" ${S.busy.up?'disabled':''}>${S.busy.up?'Uploading…':proofs.length?'+ Attach another':'Attach proof'}</button><span class="hint">PDF or image, up to 5 MB each</span></div>
+    </div>
+    ${impsHtml(Ln)}
+    ${garmentHtml(Ln)}
+    ${notesHtml(Ln)}
+  </div><div class="stack">
+    ${commentsHtml(Ln)}
+    ${pricingHtml(Ln)}
+  </div></div>
+  ${actionsHtml(Ln)}`;
+  d.innerHTML=h;
+}
+function impsHtml(Ln){ const ims=S.imps[Ln._id];
+  let b=!ims||!ims.list?'<div class="hint">Loading imprints…</div>':ims.err?`<div class="hint">Couldn't load imprints: ${esc(ims.err)}</div>`:!ims.list.length?`<div class="hint">${esc(impLine(Ln)||'No imprints linked')}</div>`:
+    ims.list.map(f=>`<div class="imp"><span class="idtag">${esc(f[I.id]||'—')}</span><div class="d">${esc([sel(f[I.loc]),sel(f[I.type])].filter(Boolean).join(' · ')||'Imprint')}${f[I.screens]?' · '+f[I.screens]+' screen'+(f[I.screens]>1?'s':''):''}${f[I.repeat]?' · <b>Repeat</b>':''}<small>${esc([f[I.nick],f[I.inks]].filter(Boolean).join(' · '))}</small></div>
+      <div class="acts">${f[I.sep]?`<a class="lk" href="${esc(f[I.sep])}" target="_blank" rel="noopener">Sep file</a>`:''}${f[I.folder]?`<a class="lk" href="${esc(f[I.folder])}" target="_blank" rel="noopener">📁</a>`:''}</div>
+      ${f[I.notes]?`<div class="nt">${esc(f[I.notes])}</div>`:''}</div>`).join('');
+  return `<div class="panel box"><h3>Imprints</h3>${b}</div>`; }
+function garmentHtml(Ln){ const sz=SIZES.filter(s=>num(Ln[s[1]])>0);
+  const tags=[Ln[L.womens]?'Women\'s':'',Ln[L.youth]?'Youth':''].filter(Boolean);
+  return `<div class="panel box"><h3>Garment</h3><div class="kv">
+    <span class="k">Garment</span><span><b>${esc(gName(Ln))}</b>${tags.length?' · '+tags.map(t=>`<span class="tag">${t}</span>`).join(' '):''}</span>
+    <span class="k">Type</span><span>${esc(sel(Ln[L.ptype])||'—')}</span>
+    <span class="k">Sizes</span><span class="sz">${sz.length?sz.map(s=>`<span><small>${s[0]}</small>${num(Ln[s[1]])}</span>`).join(''):'<span class="hint">no sizes yet</span>'}<span style="background:var(--text);color:var(--yellow);border-color:var(--text)"><small style="color:#bbb">Total</small>${num(Ln[L.qty])||0}</span></span>
+    ${Ln[L.thread]||Ln[L.threadName]?`<span class="k">Thread</span><span>${esc(Ln[L.threadName]||'')}${Ln[L.thread]?' <span class="tag hard">to order</span>':''}</span>`:''}
+    ${Ln[L.nOrder]?`<span class="k">Order notes</span><span style="white-space:pre-wrap">${esc(Ln[L.nOrder])}</span>`:''}
+    ${Ln[L.vReady]||Ln[L.vUp]?`<span class="k">Vendor proof</span><span>${Ln[L.vUp]?'✓ uploaded':'Ready for vendor proof'}</span>`:''}
+  </div></div>`; }
+function notesHtml(Ln){
+  return `<div class="panel box"><h3>Notes<span class="r hint">Start proofing notes with UPDATE: to ping Slack</span></h3><div class="nt-grid">
+    ${NOTES.map(([k,lab])=>{const v=k in S.dirty?S.dirty[k]:(Ln[L[k]]||'');return `<label>${lab}<textarea data-k="${k}" class="${k in S.dirty?'dirty':''}" oninput="noteIn(this)">${esc(v)}</textarea></label>`;}).join('')}
+  </div><div class="savebar" id="noteBar" style="${hasDirty()?'':'display:none'}"><button class="btn y" onclick="saveNotes()" ${S.busy.notes?'disabled':''}>${S.busy.notes?'Saving…':'Save notes'}</button><button class="btn" onclick="S.dirty={};renderDet()">Undo</button></div></div>`; }
+function noteIn(t){ const k=t.dataset.k, Ln=S.lines[S.sel]; if(t.value===(Ln[L[k]]||'')) delete S.dirty[k]; else S.dirty[k]=t.value; t.classList.toggle('dirty',k in S.dirty); $('noteBar').style.display=hasDirty()?'':'none'; }
+
+/* ---------- comments ---------- */
+function cAuthor(c){ const m=/^\[([^\]]{1,40})\]\s*/.exec(c.text||''); return m?{name:m[1],text:c.text.slice(m[0].length),via:true}:{name:(c.author&&c.author.name)||'Someone',text:c.text||'',via:false}; }
+function cText(c,t){ return esc(t).replace(/@\[(usr|ugp)([A-Za-z0-9]+)\]/g,(m,p,id)=>{ const k=p+id, mm=(c.mentioned||{})[k]; return `<span class="m">@${esc((mm&&mm.displayName)||PEOPLE[k]||'someone')}</span>`; }); }
+function short(n){ return n==='Art Department'?'Art Dept':String(n).split(' ')[0]; }
+function commentsHtml(Ln){ const C=S.comments[Ln._id];
+  const list=!C||!C.list?'<div class="hint">Loading comments…</div>':C.err?(/permission/i.test(C.err)?`<div class="warn">This Airtable token isn't allowed to read comments yet. In Airtable → Builder hub → Personal access tokens, edit the token the Pine apps use and add the scopes <b>data.recordComments:read</b> and <b>data.recordComments:write</b>. The token itself doesn't change.</div>`:`<div class="hint">Couldn't load comments: ${esc(C.err)}</div>`):!C.list.length?'<div class="hint">No comments yet.</div>':
+    C.list.slice().reverse().map(c=>{const a=cAuthor(c);return `<div class="c${a.name===S.me?' mine':''}"><div class="a"><b>${esc(a.name)}</b><span>${ago(c.createdTime)} ago</span>${c._practice?'<span class="tag">practice</span>':''}</div><div class="t">${cText(c,a.text)}</div></div>`;}).join('');
+  const ppl=Object.entries(PEOPLE).sort((a,b)=>(a[1]==='Art Department'?-1:b[1]==='Art Department'?1:a[1].localeCompare(b[1])));
+  return `<div class="panel box"><h3>Comments · 2nd eyes</h3><div class="cm" id="cm">${list}</div>
+    <div class="cbox"><textarea id="ctext" placeholder="${S.me?'Comment as '+esc(S.me)+'…':'Pick who you are (top right) to comment'}" ${S.me?'':'disabled'} oninput="$('cpost').disabled=!this.value.trim()"></textarea>
+      <div class="ment"><span class="hint" style="align-self:center">Notify:</span>${ppl.map(([id,n])=>`<button class="mch${S.ment.includes(id)?' on':''}" onclick="tgMent('${id}')">@${esc(short(n))}</button>`).join('')}</div>
+      <div class="crow"><span class="hint">Shows in Airtable's comments too</span><button class="btn y" id="cpost" onclick="postComment()" disabled>${S.busy.c?'Posting…':'Post'}</button></div></div></div>`; }
+function tgMent(id){ const i=S.ment.indexOf(id); i<0?S.ment.push(id):S.ment.splice(i,1); const t=$('ctext').value; renderDet(); $('ctext').value=t; $('cpost').disabled=!t.trim(); }
+function learnPeople(list){ let ch=false; list.forEach(c=>{ const a=c.author; if(a&&a.id&&a.name&&!PEOPLE[a.id]){PEOPLE[a.id]=a.name;ch=true;} Object.values(c.mentioned||{}).forEach(m=>{ if(m.id&&m.displayName&&!PEOPLE[m.id]){PEOPLE[m.id]=m.displayName;ch=true;} }); }); if(ch) ls.set('pine_lir_people',JSON.stringify(PEOPLE)); }
+async function loadComments(id){ S.comments[id]={list:null}; try{ const d=await at(`${T_LI}/${id}/comments?pageSize=100`); S.comments[id]={list:d.comments||[]}; learnPeople(S.comments[id].list); }catch(e){ S.comments[id]={list:[],err:e.message}; }
+  if(S.sel===id) keepTyping(renderDet); renderList(); }
+function keepTyping(fn){ const t=$('ctext')?$('ctext').value:''; const ae=document.activeElement&&document.activeElement.id; fn(); if($('ctext')&&t){ $('ctext').value=t; $('cpost').disabled=false; } if(ae==='ctext'&&$('ctext')) $('ctext').focus(); }
+async function postComment(){ const id=S.sel, raw=$('ctext').value.trim(); if(!raw||!S.me) return;
+  const text=`[${S.me}] ${raw}`+(S.ment.length?' '+S.ment.map(u=>'@['+u+']').join(' '):'');
+  S.busy.c=true; $('cpost').disabled=true;
+  try{ let c; if(PRACTICE){ c={id:'comPractice'+Date.now(),text,createdTime:new Date().toISOString(),author:{name:S.me},mentioned:Object.fromEntries(S.ment.map(u=>[u,{id:u,displayName:PEOPLE[u]}])),_practice:true}; }
+    else c=await at(`${T_LI}/${id}/comments`,{method:'POST',body:JSON.stringify({text})});
+    const C=S.comments[id]; if(C&&C.list) C.list.unshift(c); else S.comments[id]={list:[c]}; S.ment=[]; S.busy.c=false; renderDet(); renderList(); toast(PRACTICE?'Practice — comment not posted':'Comment posted'); const cm=$('cm'); if(cm) cm.scrollTop=cm.scrollHeight;
+  }catch(e){ S.busy.c=false; $('cpost').disabled=false; toast('Comment failed: '+e.message,true); } }
+
+/* ---------- pricing ---------- */
+function pricingHtml(Ln){ const p=num(Ln[L.price]), a=num(Ln[L.auto]), q=num(Ln[L.qty])||0, mp=num(Ln[L.mPiece]), pct=num(Ln[L.mPct]);
+  const under=p!=null&&a!=null&&p<a-0.001;
+  return `<div class="panel box"><h3>Pricing</h3>
+    <div class="pr-top"><div>Price / pc<b>${money(p)}</b></div><div>Autoprice<b>${money(a)}</b></div><div>Line total<b>${money(num(Ln[L.total]))}</b></div></div>
+    ${num(Ln[L.plus])?`<div class="hint" style="margin-top:6px">Includes ${money(num(Ln[L.plus]))} 2XL+ up-charges · ${q} pcs</div>`:`<div class="hint" style="margin-top:6px">${q} pcs</div>`}
+    <div class="pr-top mg"><div>Margin / pc<b class="${mp!=null&&mp<0?'neg':''}">${money(mp)}</b></div><div>Margin<b class="${pct!=null&&pct<0.15?'neg':''}">${pct==null?'—':Math.round(pct*100)+'%'}</b></div><div>Line margin<b class="${num(Ln[L.mLine])<0?'neg':''}">${money(num(Ln[L.mLine]))}</b></div></div>
+    <div class="pin"><span class="hint">Price / pc</span><input id="pin" inputmode="decimal" value="${p==null?'':p}" oninput="$('pinSave').style.display=(this.value!=='${p==null?'':p}')?'':'none'"><button class="btn y" id="pinSave" style="display:none" onclick="savePrice()">Save price</button>${a!=null&&p!==a?`<button class="btn" onclick="$('pin').value='${a}';savePrice()">Use autoprice</button>`:''}</div>
+    ${under?`<div class="warn">Price is ${money(a-p)} under autoprice.</div>`:''}
+    ${mp!=null&&mp<0?`<div class="warn"><b>Losing money</b> on this line (${money(mp)} / pc). Check the price before approving.</div>`:pct!=null&&pct<0.15&&mp!=null?`<div class="warn">Thin margin (${Math.round(pct*100)}%).</div>`:''}
+  </div>`; }
+
+/* ---------- actions ---------- */
+function actionsHtml(Ln){ const r2=!!Ln[L.ready2], q=!!Ln[L.qok], p=!!Ln[L.pok], b=S.busy.act;
+  return `<div class="abar">
+    <button class="ab${r2?' on':''}" onclick="toggle('ready2')" ${b?'disabled':''}><span>${r2?'✓ ':''}Awaiting Review<small>${r2?'2nd eyes asked':'Art: proof is up'}</small></span></button>
+    <button class="ab${q?' on':''}" onclick="toggle('qok')" ${b?'disabled':''}><span>${q?'✓ ':''}Quality Approved<small>${q?'tap to undo':'proof looks right'}</small></span></button>
+    <button class="ab${p?' on':''}" onclick="toggle('pok')" ${b?'disabled':''}><span>${p?'✓ ':''}Pricing Approved<small>${p?'tap to undo':'price checked'}</small></span></button>
+    <button class="ab next" onclick="next()">Next →</button></div>`; }
+const ACT_NAME={ready2:'Awaiting Review',qok:'Quality Approved',pok:'Pricing Approved'};
+async function toggle(k){ const Ln=S.lines[S.sel]; if(!Ln) return; const on=!Ln[L[k]];
+  if(!on&&!confirm(`Undo ${ACT_NAME[k]}?`)) return;
+  if(on&&k==='ready2'&&!(Ln[L.proof]||[]).length&&!confirm('No proof is attached yet. Mark Awaiting Review anyway?')) return;
+  if(on&&k==='pok'&&num(Ln[L.mPiece])!=null&&num(Ln[L.mPiece])<0&&!confirm('This line is losing money. Approve pricing anyway?')) return;
+  S.busy.act=true; renderDet();
+  try{ await patch(Ln._id,{[L[k]]:on}); toast((on?'✓ ':'Undid ')+ACT_NAME[k]+(PRACTICE?' (practice)':'')+(on&&k==='ready2'&&!PRACTICE?' · quality@ emailed':''));
+    if(on&&stage(S.lines[S.sel])==='ready') toast('Both approvals in — ready to send proofs'); }
+  catch(e){ toast('Didn\'t save: '+e.message,true); }
+  S.busy.act=false; renderList(); keepTyping(renderDet); }
+function next(){ const flat=visible().flatMap(g=>g.lines.map(x=>x._id)); const i=flat.indexOf(S.sel);
+  const nx=flat[i+1]||flat.find(id=>id!==S.sel); if(nx) pick(nx); else toast('That\'s the last one in this list'); }
+async function patch(id,fields){
+  if(PRACTICE){ const Ln=S.lines[id]; Ln._local=Object.assign(Ln._local||{},fields); Object.assign(Ln,fields); return; }
+  const r=await at(`${T_LI}/${id}`,{method:'PATCH',body:JSON.stringify({fields,returnFieldsByFieldId:true})});
+  // Airtable leaves empty values (unchecked boxes, cleared notes) out of the reply, so apply what we sent too
+  S.lines[id]=Object.assign({},S.lines[id],r.fields,fields,{_id:id});
+  // formulas like Margin don't come back from a PATCH; refetch the line so pricing is current
+  if(L.price in fields){ const [x]=await byIds(T_LI,[id],Object.values(L).concat(SIZES.map(s=>s[1]))); if(x) S.lines[id]=Object.assign(x.fields,{_id:id}); }
+}
+async function saveNotes(){ const fields={}; Object.entries(S.dirty).forEach(([k,v])=>fields[L[k]]=v); S.busy.notes=true; keepTyping(renderDet);
+  try{ await patch(S.sel,fields); S.dirty={}; toast(PRACTICE?'Practice — notes not saved':'Notes saved'); }catch(e){ toast('Notes didn\'t save: '+e.message,true); }
+  S.busy.notes=false; keepTyping(renderDet); }
+async function savePrice(){ const v=Number(String($('pin').value).replace(/[$,\s]/g,'')); if(!(v>0)) return toast('Enter a price above $0',true);
+  try{ await patch(S.sel,{[L.price]:Math.round(v*100)/100}); toast(PRACTICE?'Practice — price not saved':'Price saved'); }catch(e){ toast('Price didn\'t save: '+e.message,true); }
+  renderList(); keepTyping(renderDet); }
+
+/* ---------- imprints ---------- */
+async function loadImps(Ln){ const id=Ln._id; S.imps[id]={list:null};
+  try{ const ids=Ln[L.imps]||[]; const recs=ids.length?await byIds(T_IMP,ids,Object.values(I)):[]; recs.sort((a,b)=>String(a.fields[I.id]).localeCompare(String(b.fields[I.id]))); S.imps[id]={list:recs.map(r=>r.fields)}; }
+  catch(e){ S.imps[id]={list:[],err:e.message}; }
+  if(S.sel===id) keepTyping(renderDet); }
+
+/* ---------- proof upload (Airtable content API, ≤5 MB each) ---------- */
+function b64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(file); }); }
+async function uploadProofs(files){ const id=S.sel; files=[...(files||[])]; $('file').value=''; if(!files.length||!id) return;
+  const big=files.filter(f=>f.size>5e6); if(big.length) toast(big.map(f=>f.name).join(', ')+' is over 5 MB — attach it in Airtable',true);
+  files=files.filter(f=>f.size<=5e6); if(!files.length) return;
+  S.busy.up=true; keepTyping(renderDet);
+  try{ for(const f of files){
+      if(PRACTICE){ const url=URL.createObjectURL(f); const a={id:'attPractice',url,filename:f.name,type:f.type,thumbnails:/^image\//.test(f.type)?{large:{url}}:undefined}; const Ln=S.lines[id]; const v=(Ln[L.proof]||[]).concat([a]); Ln[L.proof]=v; Ln._local=Object.assign(Ln._local||{},{[L.proof]:v}); continue; }
+      const r=await at(`https://content.airtable.com/v0/${BASE}/${id}/${L.proof}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:f.type||'application/octet-stream',file:await b64(f),filename:f.name})});
+      if(r&&r.fields){ const v=r.fields[L.proof]||Object.values(r.fields).find(Array.isArray); if(v) S.lines[id][L.proof]=v; } }
+    toast(PRACTICE?'Practice — proof not uploaded':'Proof attached'); }
+  catch(e){ toast('Upload failed: '+e.message,true); }
+  S.busy.up=false; renderList(); keepTyping(renderDet); }
+
+/* ---------- go ---------- */
+if(PRACTICE) $('prac').style.display='';
+renderMe(); renderList();
+load();
+setInterval(()=>{ if(!document.hidden&&!hasDirty()&&!S.busy.act&&!($('ctext')&&$('ctext').value)) load(); },180000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&S.loaded&&!hasDirty()&&!($('ctext')&&$('ctext').value)) load(); });
+</script>
+</body>
+</html>
