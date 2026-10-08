@@ -152,13 +152,22 @@ a.ghost{display:inline-block}
   .bts>input.nick{flex:1 1 100%!important}
   .fbrk{display:block;flex-basis:100%;height:0}.ich{margin-left:0;margin-right:4px}
 }
+.flow{display:inline-flex;align-items:center;gap:2px;background:#26261f;border:1px solid #4a4a44;border-radius:22px;padding:3px;font-family:Helvetica,Arial,sans-serif}
+.flow a,.flow b{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:18px;font-size:13px;font-weight:700;text-decoration:none;color:#ddd;white-space:nowrap;letter-spacing:0;text-transform:none}
+.flow a:hover{color:#fff;background:#3a3a33}
+.flow b{background:#E8E832;color:#141412}
+.flow i{font-style:normal;font-size:11px;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid currentColor;opacity:.8}
+.flow .sep{color:#6b6b63;font-size:12px;padding:0 1px}
+.flow .sh{display:none}
+@media (max-width:600px){.flow a,.flow b{padding:0 9px;font-size:12px;gap:4px}.flow .lbl{display:none}.flow .sh{display:inline}}
+.top .prac{margin-left:auto}
 </style>
 </head>
 <body>
 <div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved — except a client art folder link you paste.</div>
-<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v101.html" style="text-decoration:none">← Quote</a><a class="ghost" id="lirLink" href="pine-line-item-review-v7.html" style="text-decoration:none">Line Item Review →</a></div>
+<div class="top"><div class="brand">Pine</div><span id="flowNav"></span><span class="prac">Read-only</span></div>
 <div class="mbar" id="mbar"></div>
-<iframe id="pomEngine" src="price-o-matic-v101.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
+<iframe id="pomEngine" src="price-o-matic-v102.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
   <div>
@@ -205,6 +214,16 @@ a.ghost{display:inline-block}
   </div>
 </div>
 <script>
+/* Quote → Create order → Review: same bar in all three apps (POM, Create order, Line Item Review).
+   Carries the order number and ?practice=1 so you can step forward and back on one order. */
+const FLOW={quote:'price-o-matic-v102.html',order:'pom-create-order-live.html',review:'pine-line-item-review-v8.html'};
+function flowNav(cur,orderNum){
+  const pr=/[?&]practice=1/.test(location.search), q=(o)=>{ const a=[]; if(o) a.push('order='+encodeURIComponent(o)); if(pr) a.push('practice=1'); return a.length?'?'+a.join('&'):''; };
+  const steps=[['quote','1','Quote',FLOW.quote+(pr?'?practice=1':'')],['order','2','Create order',FLOW.order+q(orderNum)],['review','3','Review',FLOW.review+q(orderNum)]];
+  return '<nav class="flow" aria-label="Order steps">'+steps.map(([k,n,l,h],i)=>(i?'<span class="sep">›</span>':'')+(k===cur?`<b aria-current="step"><i>${n}</i><span class="lbl">${l}</span><span class="sh">${l.replace('Create order','Order')}</span></b>`:`<a href="${h}"${k==='quote'?' onclick="try{saveCartLS()}catch(e){}"':''}><i>${n}</i><span class="lbl">${l}</span><span class="sh">${l.replace('Create order','Order')}</span></a>`)).join('')+'</nav>';
+}
+try{ document.getElementById('flowNav').innerHTML=flowNav('order',new URLSearchParams(location.search).get('order')||''); }catch(e){}
+
 /* ---------- Airtable (read-only) ---------- */
 const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_CUST='tblXToEJONa3VELp2', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV';
 const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',due:'fldphJYdlBNS0dmAK',rep:'fldSPnWlnzz48ZZDD',ship:'fldrjFuIBn45ewFU5',src:'fldE1muKiijQchB0h',lines:'fldU6fgrz6sU3wyIZ',imps:'fldShbb1tOR0zwGIt',created:'fldXUjQHSeRaW5per'};
@@ -294,7 +313,7 @@ function nextIds(){ const n=S.order?S.order.num:null, start=S.existingImps.lengt
 function renderQuote(){
   $('qHint').textContent=CART.length?CART.length+' line'+(CART.length>1?'s':'')+' from Price-O-Matic on this computer':'';
   $('quote').innerHTML=CART.length?CART.map(c=>`<div class="qrow"><b>${esc(c.name)}</b><span>${c.qty} × ${money(c.quotedUnit)}</span><span class="auto">${esc((c.scopeLines||[]).slice(1).join(' · '))}</span></div>`).join('')
-    :`<div class="auto" style="margin-left:0">Starting without a quote. Pick the order, then copy a past order or repeat past imprints from <b>Past orders</b>. Adding line items by hand comes with the real build. (Or build a quote in <a href="price-o-matic-v101.html">Price-O-Matic</a> first.)</div>`;
+    :`<div class="auto" style="margin-left:0">Starting without a quote. Pick the order, then copy a past order or repeat past imprints from <b>Past orders</b>. Adding line items by hand comes with the real build. (Or build a quote in <a href="price-o-matic-v102.html">Price-O-Matic</a> first.)</div>`;
 }
 /* ---------- client art folder: Customers › Art Folder (Drive link, shop folder naming) ----------
    The one thing this page writes for real: a pasted link is saved to the customer so the art dept can find it later.
@@ -331,6 +350,8 @@ async function loadAwaiting(){
     S.awaiting=recs.map(r=>{const f=r.fields;return {blank:!f[O.status],oid:r.id,num:f[O.num],cid:(f[O.cust]||[])[0]||'',name:String(f[O.custName]||'').trim(),created:f[O.created]||'',rep:sel(f[O.rep]),lines:(f[O.lines]||[]).length};}).filter(o=>o.name);
   }catch(e){ S.awaiting=[]; }
   renderCust();
+  const want=new URLSearchParams(location.search).get('order');
+  if(want&&!S.cust&&!S.flowPicked){ S.flowPicked=true; const o=(S.awaiting||[]).find(x=>String(x.num)===want); if(o) pickAwaiting(o.oid); else if(typeof toast==='function') toast('Order '+want+' isn\'t waiting for proof'); }
 }
 function custRows(){
   const q=$('cust').value.trim(), ws=words(q), A=S.awaiting||[];
@@ -742,8 +763,8 @@ function renderSum(){
   h+=`<div class="money"><span>Order total${ups?`<small style="display:block;font-weight:400;color:var(--muted);font-size:12px">incl. ${money(ups)} 2XL+ up-charges</small>`:''}</span><span>${money(tot)}</span></div><button class="go" ${p.length?'disabled':''} onclick="preview()">Create order</button>`;
   $('mbar').innerHTML=`<div class="mt"><b>${money(tot)}</b>${S.order?'Order '+S.order.num+' · ':''}${p.length?p.length+' thing'+(p.length>1?'s':'')+' left':'ready'}</div>`+(p.length?`<button class="wait" onclick="$('sum').scrollIntoView({behavior:'smooth'})">What's left</button>`:`<button onclick="preview();$('sum').scrollIntoView({behavior:'smooth'})">Create order</button>`);
   $('sum').innerHTML=h;
-  // after Create order the lines go to Line Item Review; open it on this order
-  $('lirLink').href='pine-line-item-review-v7.html'+(S.order?'?order='+S.order.num:'');
+  // the step bar follows the picked order, so Review opens on it
+  $('flowNav').innerHTML=flowNav('order',S.order?S.order.num:'');
 }
 function preview(){
   const ids=nextIds(), o=S.order;
