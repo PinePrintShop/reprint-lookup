@@ -152,3 +152,10 @@ Stephen asked to move both ways through POM → Create order → Line Item Revie
 - **Practice mode** carries through every link.
 - **Top bars streamlined:** yellow **PINE** wordmark, then the step bar, then each app's own controls. The full design pass is saved for when everything moves into Central.
 - **Tested** on desktop + phone (every link, forward and back, with the order number). The v7 send flow and v5 review tests pass on v8.
+
+## 2026-10-08 · v9: pinned top bar
+Stephen: scrolling "changes the top and feels wonky". The top bar scrolled away while the order list (sticky) stayed, so the layout jumped.
+- **The bar stays put:** the top bar (PINE + steps + who/refresh) is pinned at the top. The order list now sits just under it: its sticky top and height follow the bar's real height (`--toph`, measured with a ResizeObserver). Scrolling to a section lands below the bar (`scroll-padding-top`).
+- **Phone:** the bar is compacted to two short rows: PINE + Quote · Order · Review, then PRACTICE + who + refresh (98 px).
+- Same change in POM v103 (pinned on iPad/computer only; on phones its 3-row bar with the product tabs scrolls normally) and in Create order. The step bar now points to POM v103 and Line Item Review v9.
+- **Tested** by scrolling on computer, iPad and phone: the bar stays at top 0 and the list stays aligned. Review tests pass on v9.

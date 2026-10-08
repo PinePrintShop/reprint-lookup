@@ -367,3 +367,6 @@ Stephen: Create order will replace Sales Entry now. Sales Entry v23 stays as-is 
 
 ## 2026-10-08 · v102: step bar
 POM v102 = v101 + the shared step bar (① Quote › ② Create order › ③ Review) in the top bar, replacing the "Create order →" button, with the wordmark changed to **PINE v102**. Pricing is unchanged. Create order's hidden pricing engine now loads v102. Create order also got the same bar and opens a specific order from `?order=` (used by Line Item Review's "Create order" step). See notes/line-item-review.md (v8).
+
+## 2026-10-08 · v103: pinned top bar
+POM v103 = v102 with the top bar pinned while scrolling on iPad/computer (≥700 px). The summary rail sits below it, and scroll targets land below it. On phones the 3-row bar (product tabs) scrolls normally. The step bar points to Line Item Review v9; Create order loads v103 as its hidden pricing engine and has its own bar pinned.
