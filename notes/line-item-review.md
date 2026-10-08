@@ -70,3 +70,11 @@ Practice: https://pineprintshop.github.io/reprint-lookup/pine-line-item-review-v
 - Post an automatic comment like "[Chris] ✓ Quality approved" on approvals, so the thread shows who approved.
 - A "Send proofs" step that moves the order to Sent - Awaiting Payment once every line is ready.
 - Add a Line Item Review tile in Pine Central.
+
+## 2026-10-08 · v2
+
+Stephen's feedback after using v1:
+- **Order headers kept getting tapped as if they were line items.** In the list, each order is now a dark band, the same look as the top bar: yellow order #, customer in caps, and the salesperson, ASAP/Hard and age underneath. Line items stay white and have a › arrow. Tapping the band now opens that order's first line instead of doing nothing.
+- **Margins are totals only.** Pricing shows Margin / pc, Margin % and Line margin, right under the price tiles. Margin % turns red under 15%; Margin / pc and Line margin turn red when negative. The warnings stay: under autoprice, thin margin and losing money. The labor, overhead, materials and shipping breakdown is gone.
+- **The comments error now says what to fix.** v1 showed "Couldn't load comments: Invalid permissions" because the shared token lacks the comment scopes. The box now explains how to add `data.recordComments:read` and `data.recordComments:write` to the existing token; the token string doesn't change. Practice mode still reads real comments and only fakes writes, so it shows the same message.
+- Create order's **Line Item Review →** button now opens v2.
