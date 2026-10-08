@@ -355,3 +355,12 @@ Stephen: we have spaces for the 2XL up-charge; in the sales flow the up-charge i
 - The garment's up-charge = vendor tier − XS–XL (4XL+ tier for 4XL and 5XL). If Airtable's Garment up-charge is missing or different, the garment PATCH sets it (new garments already got them).
 - **Proofing notes** fill from the line's imprints ("10961-A Front · 2c · Discharge · repeat of 10612-A · Hop logo"), editable, "reset to the imprints"; written to Line Items › Proofing Notes.
 - **Back Neck** and **Other** added to Create order's locations (POM "Back neck" / "Other" map to them). The Airtable API can't add select options directly; Stephen to add them in Imprints › Location, or the real build writes with typecast so the first use creates them.
+
+## Decision: Create order replaces Sales Entry (Oct 8)
+Stephen: Create order will replace Sales Entry now. Sales Entry v23 stays as-is (old links keep working); no new versions. Pine Central's menu should point sales at the POM → Create order once the real build ships.
+**Sales Entry v23 features to carry into the real Create order build:**
+- Line Item fields: Order Notes (production, `fldF378cgWuOcWNL6`), Shipping Notes (`fld7rY74m37acM2Ik`), Production Notes (`fld4FjoCQ5bXdwjJj`), Finishing Notes (`fldqsj7nZgHrtRbEn`), Product Description (`fldBGLb39lznbSibX`), Patch Size (`fldDPldCW28Ts5CSt`), Sticker Size (`fldg7mDtQwtesvv6U`), Promo Product Description (`fldrkl4UNBYf9QmNQ`), **Ready for 2nd Eyes** (`fldycrq3VJYSFd8Gi`). Supplier stays hidden (purchasing sets it), as in Sales Entry.
+- Garment search by name across Garments (Sales Entry's tokenized search), not just style #.
+- Sales person filter on the waiting-for-proof list (Patrick / Chris / +).
+- A small diagnostics log of recent Airtable calls.
+- Not carried over on purpose: "+ New imprint" writing immediately (Create order writes imprints with the order, so no orphans if someone backs out); "+ New Reorder" drafting a new order record (Create order fills the Awaiting Proof order Pipedrive already made; "Copy whole order" covers reorders).
