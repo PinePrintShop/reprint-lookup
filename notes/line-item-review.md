@@ -78,3 +78,14 @@ Stephen's feedback after using v1:
 - **Margins are totals only.** Pricing shows Margin / pc, Margin % and Line margin, right under the price tiles. Margin % turns red under 15%; Margin / pc and Line margin turn red when negative. The warnings stay: under autoprice, thin margin and losing money. The labor, overhead, materials and shipping breakdown is gone.
 - **The comments error now says what to fix.** v1 showed "Couldn't load comments: Invalid permissions" because the shared token lacks the comment scopes. The box now explains how to add `data.recordComments:read` and `data.recordComments:write` to the existing token; the token string doesn't change. Practice mode still reads real comments and only fakes writes, so it shows the same message.
 - Create order's **Line Item Review →** button now opens v2.
+
+## 2026-10-08 · v3
+
+**Master design link for reorders.** Each imprint card shows a yellow **📁 Master design** button (with the master's I-number) that opens the canonical design folder.
+- If the imprint has a Canonical Design, the app uses its *Master Folder URL* lookup, or its own *Canonical Folder URL* if it's the master itself.
+- New reorders usually only have *Previous Imprint ID* set; none of today's 10975 repeats has a Canonical Design yet. For those, the app follows Previous Imprint ID back up to 3 reorders until it finds a folder. The card then says "Repeat of 9871-A", for example.
+- If it finds nothing, a reorder shows "No master folder yet". It's a candidate for the canonical promotion app.
+- 292 imprints have master/canonical folder data today.
+- Read-only: nothing is written.
+
+Create order's **Line Item Review →** button now opens v3.
