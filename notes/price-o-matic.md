@@ -347,3 +347,11 @@ Stephen (phone screenshot of a hand-added 3001 Black × 100, price box empty): s
 - Checked real orders (108xx): colors of one style almost always share an imprint (10877: three 4800 colors on 10877-A); across styles both happen — shared art (10819 tee + hoodie on A/B, 10856 tees + hoodie) and separate (10869, 10898).
 - New default: **same style, any colors → one imprint; different styles → separate imprints.** IDs follow the quote order, so the example is A tee front (Black + Navy), B hoodie front, C hoodie back.
 - **Combine with…** on an imprint card merges it into another imprint at the same location + method ("same art"); **split by garment** turns a shared imprint back into one per style.
+
+## Create order — 2XL+ up-charges, proofing notes, Back Neck / Other (Oct 8)
+Stephen: we have spaces for the 2XL up-charge; in the sales flow the up-charge is the difference in garment. The differences live on Garments, the 2XL+ pricing on Line Items. Yes to proofing notes, and add Back neck / Other.
+- Airtable: Line Items › Plus-Size Up-charges = 2XL qty × Garment "2XL Up-charge" + 3XL × 3XL + 4XL × 4XL + 5XL × 5XL (Printed / Embroidered Apparel); Line Total = that + Price Input × qty.
+- Create order now does the same: each apparel line shows **2XL+ up-charges** (e.g. "14 × 2XL +$1.50 = $21.00 — garment difference (S&S)") and the rail total includes them ("Order total incl. $31.50 2XL+ up-charges"). The "2XL+ not covered" warning is gone.
+- The garment's up-charge = vendor tier − XS–XL (4XL+ tier for 4XL and 5XL). If Airtable's Garment up-charge is missing or different, the garment PATCH sets it (new garments already got them).
+- **Proofing notes** fill from the line's imprints ("10961-A Front · 2c · Discharge · repeat of 10612-A · Hop logo"), editable, "reset to the imprints"; written to Line Items › Proofing Notes.
+- **Back Neck** and **Other** added to Create order's locations (POM "Back neck" / "Other" map to them). The Airtable API can't add select options directly; Stephen to add them in Imprints › Location, or the real build writes with typecast so the first use creates them.

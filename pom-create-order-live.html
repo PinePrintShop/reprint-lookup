@@ -208,7 +208,7 @@ a.ghost{display:inline-block}
 /* ---------- Airtable (read-only) ---------- */
 const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_CUST='tblXToEJONa3VELp2', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV';
 const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',due:'fldphJYdlBNS0dmAK',rep:'fldSPnWlnzz48ZZDD',ship:'fldrjFuIBn45ewFU5',src:'fldE1muKiijQchB0h',lines:'fldU6fgrz6sU3wyIZ',imps:'fldShbb1tOR0zwGIt',created:'fldXUjQHSeRaW5per'};
-const G={name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO',ssColor:'fldUnCYQgAx8AhsMZ',mfr:'fldtL6paVNlfMRDj4',fleece:'fldi7NqFcF7S2p4mj'};
+const G={name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO',ssColor:'fldUnCYQgAx8AhsMZ',mfr:'fldtL6paVNlfMRDj4',fleece:'fldi7NqFcF7S2p4mj',up2:'fldHakcDllb8SFCwz',up3:'fldEXqJi6mii9bpoJ',up4:'fldBWmLGzqtjXM0zm',up5:'fldlF7ZOqCNYr8hi2'};
 // Garment fields written when the vendor's naming fixes or adds a Garment
 const GW={mfr:'fldtL6paVNlfMRDj4',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',ssColor:'fldUnCYQgAx8AhsMZ',cost:'fldRmgDAByrOWcHLO',up2:'fldHakcDllb8SFCwz',up3:'fldEXqJi6mii9bpoJ',up4:'fldBWmLGzqtjXM0zm',up5:'fldlF7ZOqCNYr8hi2',
   XS:'fldqtCiqDEcvbp5NY',S:'fldDnig5xvHwBEp47',M:'fldFfI2Bz6Zd901fV',L:'fldxddv4SOBQ79jLU',XL:'flduZZd9EqXf5Ntxf','2XL':'fldZpjXegFmPwGExL','3XL':'fldaVCBI9azZ2fzCk','4XL':'fldEm0sh0qVbR8qqw','5XL':'fld221OWblbVqYZeY','6XL':'fldmHuYBdqOdaXTmv',OSFA:'fldsBR0uVhjpEHyJh'};
@@ -232,7 +232,7 @@ const fq=s=>String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
 const flds=a=>a.map(f=>'fields%5B%5D='+f).join('&');
 const sel=v=>v==null?'':(typeof v==='string'?v:(v.name||''));
 /* ---------- quote from Price-O-Matic (same site → same browser storage) ---------- */
-const LOC_MAP={'Front':'Front','Back':'Back','Left chest':'Left Chest','Right chest':'Right Chest','Left sleeve':'Left Sleeve','Right sleeve':'Right Sleeve','Size tag':'Size Tag','Pocket':'Pocket','Hood':'Hood'};
+const LOC_MAP={'Front':'Front','Back':'Back','Left chest':'Left Chest','Right chest':'Right Chest','Left sleeve':'Left Sleeve','Right sleeve':'Right Sleeve','Size tag':'Size Tag','Pocket':'Pocket','Hood':'Hood','Back neck':'Back Neck','Other':'Other'};
 const DECO_MAP={'Sim Woven / Twill':'Decopress - Woven / Twill','Leather':'Decopress - Leather','Metallic':'Decopress - Metallic','Reflective':'Decopress - Reflective'};
 const SUPA_OK=['Wearable','1C Wearable','Blocker','1C Blocker','Headwear','1C Headwear','Promotional','1C Promotional','Reflective'];
 function readQuote(){ try{ const o=JSON.parse(localStorage.getItem('pom_cart_v1')||'null'); return (o&&o.cart)||[]; }catch(e){ return []; } }
@@ -272,7 +272,7 @@ const SHIPS=['Free Shipping','Pick-Up','Delivery','Customer Account - UPS','Fulf
 const SHIPS_MORE=['Customer Account - FedEx','2-Day Air Shipping','Next Day Air Shipping','Blind Shipping','Multiple Shipping Locations','International Shipping','FREIGHT','Address TBD On Ship Date'];
 const SOURCES=['Repeat','Referral','Word-of-mouth','Google','Social Media'];
 const INKS=['Discharge','No Base W/B','EZP Base + W/B','Bleed Blocker + W/B'];
-const LOCS=['Front','Back','Left Chest','Left Sleeve','Right Sleeve','Size Tag','Pocket','Hood','Right Chest','Back Hem','Front Hem','Multiple Locations'];
+const LOCS=['Front','Back','Left Chest','Left Sleeve','Right Sleeve','Size Tag','Pocket','Hood','Right Chest','Back Neck','Back Hem','Front Hem','Other','Multiple Locations'];
 const SIZES=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','OSFA'];
 const CART=readQuote();
 const S=Object.assign({cust:null,orders:[],order:null,existingImps:[],repMore:false,rep:'',due:'',ship:[],src:'',pastOrders:[],pastImps:[],pastOpen:null,pastLines:{},pastSel:new Set(),pastMsg:''},fromQuote(CART));
@@ -553,7 +553,7 @@ async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(
 async function matchGarments(){
   for(const L of S.lines){
     if(L.cands||L.bandana||!L.style) continue;
-    const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:r.fields[G.cost],fleece:!!r.fields[G.fleece],raw:{product:r.fields[G.product]||'',color:r.fields[G.color]||'',ssColor:r.fields[G.ssColor]||'',mfr:r.fields[G.mfr]||[]}});
+    const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:r.fields[G.cost],fleece:!!r.fields[G.fleece],raw:{product:r.fields[G.product]||'',color:r.fields[G.color]||'',ssColor:r.fields[G.ssColor]||'',mfr:r.fields[G.mfr]||[],up:{up2:numv(r.fields[G.up2]),up3:numv(r.fields[G.up3]),up4:numv(r.fields[G.up4]),up5:numv(r.fields[G.up5])}}});
     try{
       const st=`TRIM({Product Number})="${fq(L.style)}"`;
       if(L.color){ const d=await at(T_GAR,`maxRecords=1&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`AND(${st},OR(LOWER(TRIM({Colorway}))="${fq(normC(L.color))}",LOWER(TRIM({[S&S] Color Name}))="${fq(normC(L.color))}"))`)}`);
@@ -566,9 +566,22 @@ async function matchGarments(){
 }
 // Vendor naming wins: a matched Garment gets its Product Number / Colorway / [S&S] Color Name set to the vendor's,
 // and a garment that isn't in Airtable yet is added from the vendor (no more adding them by hand).
+// Up-charges: Line Items' Plus-Size Up-charges = 2XL qty × Garment 2XL Up-charge (+ 3XL, 4XL, 5XL), and the
+// garment's up-charge is the vendor's price difference over XS–XL. So a garment whose up-charge is missing or
+// off gets it set to the vendor difference.
+function upDiffs(L){ const t=(L.pv&&L.pv.t)||(L.vg&&L.vg.tiers); if(!t||!t.c1) return null; const d=k=>t[k]>t.c1?Math.round((t[k]-t.c1)*100)/100:0; return {up2:d('c2'),up3:d('c3'),up4:d('c4'),up5:d('c4'),src:(L.pv&&L.pv.vendor)||(L.vg&&L.vg.vendor)||'vendor'}; }
+function upNow(L){ const d=upDiffs(L), r=(L.garment&&L.garment.raw&&L.garment.raw.up)||{}; const o={}; ['up2','up3','up4','up5'].forEach(k=>{ o[k]=(d&&d[k])||r[k]||0; }); return o; }
+const UP_SZ={up2:'2XL',up3:'3XL',up4:'4XL',up5:'5XL'};
+function plusSize(L){ if(!/Printed Apparel|Embroidered Apparel/.test(L.ptype||'')) return {total:0,parts:[]}; const u=upNow(L), parts=[]; let total=0;
+  Object.entries(UP_SZ).forEach(([k,z])=>{ const n=Number(L.sizes[z])||0; if(n&&u[k]){ total+=n*u[k]; parts.push(`${n} × ${z} +$${u[k].toFixed(2)}`); } });
+  return {total:Math.round(total*100)/100,parts}; }
 function gplan(L){
-  const v=L.vg; if(!v||!v.style||!v.color) return null;
+  const v=L.vg;
+  if(L.garment&&(!v||!v.style||!v.color)){ const r=L.garment.raw||{}, d=upDiffs(L), f={}; if(d) ['up2','up3','up4','up5'].forEach(k=>{ if(d[k]&&Math.abs((r.up&&r.up[k]||0)-d[k])>0.009) f[GW[k]]=d[k]; });
+    return Object.keys(f).length?{kind:'fix',id:L.garment.id,fields:f,from:r}:null; }
+  if(!v||!v.style||!v.color) return null;
   if(L.garment){ const r=L.garment.raw||{}, f={};
+    { const d=upDiffs(L); if(d) ['up2','up3','up4','up5'].forEach(k=>{ if(d[k]&&Math.abs((r.up&&r.up[k]||0)-d[k])>0.009) f[GW[k]]=d[k]; }); }
     if(r.product!==v.style) f[GW.product]=v.style;
     if(r.color!==v.color) f[GW.color]=v.color;
     if(r.ssColor!==v.color) f[GW.ssColor]=v.color;
@@ -607,7 +620,8 @@ function renderLines(){
     { const pc=pcHtml(L); if(pc) h+=`<span class="k">Price check</span><div>${pc}</div>`; }
     if(!L.manual) h+=`<span class="k${L.price?'':' req'}">Price / pc</span><div class="bts">${L.price&&!L.editPrice?`<span class="tot">${money(L.price)}</span><span class="auto">${L.priceSrc==='pom'?'POM price today':L.fromPast?'from the past order'+(L.priceSrc==='line total'?' (its line total ÷ qty)':L.priceSrc==='autoprice'?' (Airtable autoprice)':''):'from the quote'}</span><button class="link" onclick="S.lines[${i}].editPrice=true;render()">change</button>`:`<input class="t" inputmode="decimal" style="width:110px;text-align:center" placeholder="$ / pc" value="${L.price||''}" onchange="S.lines[${i}].priceManual=true;S.lines[${i}].priceSrc='';S.lines[${i}].price=Number(String(this.value).replace(/[^0-9.]/g,''))||0;S.lines[${i}].editPrice=false;render()">${L.price?'':`<span class="tag need">${L.fromPast?'no price on the old order — enter it':'enter a price'}</span>`}`}</div>`;
     h+=`<span class="k">Imprints</span><div class="chips">${S.imps.map((m,k)=>`<button class="chip${m.lines.includes(i)?' on':''}" onclick="tgLine(${k},${i})">${m.lines.includes(i)?'✓ ':''}${ids[k]} · ${esc(impName(m))}</button>`).join('')||'<span class="auto">no imprints yet</span>'}</div>`;
-    h+=`<span class="k req">Proofing notes</span><textarea class="t">${esc(imps.map(m=>ids[S.imps.indexOf(m)]+' '+impName(m)).join('\n'))}</textarea>`;
+    { const ps=plusSize(L); if(ps.total) h+=`<span class="k">2XL+ up-charges</span><div class="bts"><span class="tot">${money(ps.total)}</span><span class="auto">${esc(ps.parts.join(' · '))} — garment difference${upDiffs(L)?' ('+esc(upDiffs(L).src)+')':''}, added to the line total</span></div>`; }
+    h+=`<span class="k req">Proofing notes</span><div><textarea class="t" oninput="S.lines[${i}].notes=this.value">${esc(notesFor(L,i))}</textarea>${L.notes!=null?`<button class="link" onclick="S.lines[${i}].notes=null;render()">reset to the imprints</button>`:'<div class="gfix">Filled from the imprints — edit to add notes</div>'}</div>`;
     h+=`<span class="k">Nickname</span><div class="bts"><input class="t nick" style="flex:1" placeholder="Line item nickname"><button class="b${L.womens?' on':''}" onclick="S.lines[${i}].womens=!S.lines[${i}].womens;render()">Women's</button><button class="b${L.youth?' on':''}" onclick="S.lines[${i}].youth=!S.lines[${i}].youth;render()">Youth</button></div></div></div>`;
   });
   if(!S.lines.length) h+='<div class="auto" style="margin-left:0">No line items yet — add one below, or copy a past order from <b>Past orders</b>.</div>';
@@ -640,6 +654,7 @@ function combineImp(i,k){ const a=S.imps[i], b=S.imps[k]; a.lines.forEach(li=>{ 
 function splitImp(i){ const m=S.imps[i], groups={}; m.lines.forEach(li=>{ const k=S.lines[li]?styleKey(S.lines[li]):'?'; (groups[k]=groups[k]||[]).push(li); });
   const keys=Object.keys(groups); m.lines=groups[keys[0]]; keys.slice(1).forEach((k,n)=>S.imps.splice(i+1+n,0,Object.assign({},m,{key:m.key+'|split'+k,lines:groups[k]}))); render(); }
 function rmImp(i){ S.imps.splice(i,1); render(); }
+function notesFor(L,i){ if(L.notes!=null) return L.notes; const ids=nextIds(); return S.imps.map((m,k)=>m.lines.includes(i)?`${ids[k]} ${m.loc||'?'} · ${m.method==='Screenprint'?(m.colors+'c'+(m.ub?' + underbase':''))+(m.ink?' · '+m.ink:''):(m.ink||m.method)}${m.prev?' · repeat of '+m.prev.id:''}${m.nick?' · '+m.nick:''}`:null).filter(Boolean).join('\n'); }
 function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); priceCheck(); }
 function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
 // Grey size suggestions: the line's qty (or what's left of it) spread over a typical run. Hats/totes/bandanas go to OSFA.
@@ -707,8 +722,6 @@ function pcFor(L,v){
   const up=Math.round((t.c1-basis)*100)/100, flags=[], info=[];
   let gap=0;
   if(basis&&up>0.02){ gap+=up*L.qty; flags.push(`Garment up $${up.toFixed(2)}/pc since it was priced ($${basis.toFixed(2)} on ${basisSrc} → $${t.c1.toFixed(2)} at ${v.vendor}) — about $${(up*L.qty).toFixed(2)} less margin`); }
-  let big=0, bigPcs=0; Object.entries(L.sizes||{}).forEach(([z,n])=>{ const k=TIER_OF(z); if(k!=='c1'&&t[k]>t.c1){ big+=n*(t[k]-t.c1); bigPcs+=n; } });
-  if(big>0.01){ gap+=big; flags.push(`${bigPcs} pcs in 2XL+ cost $${big.toFixed(2)} more from ${v.vendor} and the line has one price — add about $${(big/L.qty).toFixed(2)}/pc to cover it`); }
   if(at&&Math.abs(at-t.c1)>0.05) info.push(`Airtable Garment Cost $${at.toFixed(2)} vs ${v.vendor} today $${t.c1.toFixed(2)}`);
   if(!basis) info.push(`Garment ~ $${t.c1.toFixed(2)}/pc today at ${v.vendor}`+(t.c2?` · 2XL $${t.c2.toFixed(2)}`:'')+(t.c3?` · 3XL $${t.c3.toFixed(2)}`:''));
   return {vendor:v.vendor,t,flags,info,gap:Math.round(gap*100)/100,ok:!flags.length&&!!basis};
@@ -721,12 +734,12 @@ function pcHtml(L){
   return c.flags.map(f=>`<div class="pchk warn">⚠ ${esc(f)}</div>`).join('')+c.info.map(f=>`<div class="gfix">${esc(f)}</div>`).join('');
 }
 function renderSum(){
-  const p=problems(), tot=S.lines.reduce((a,L)=>a+L.qty*L.price,0);
+  const p=problems(), ups=S.lines.reduce((a,L)=>a+plusSize(L).total,0), tot=S.lines.reduce((a,L)=>a+L.qty*L.price,0)+ups;
   let h=`<h3>${S.order?'Order '+S.order.num+' · '+esc(S.cust.name):'Create order'}</h3><div class="will">${S.order?'Updates order <b>'+S.order.num+'</b>':'Finds the order Pipedrive made'} · adds <b>${S.lines.length}</b> line items · <b>${S.imps.length}</b> imprints${S.imps.length?' ('+nextIds().join(', ')+')':''}</div>`;
   h+='<div class="checks">'+(p.length?p.map(x=>`<div class="c bad">○ ${esc(x)}</div>`).join(''):'<div class="c ok">✓ Everything needed is filled in</div>')+'</div>';
   { const pcs=S.lines.map(pcOf), g=pcs.reduce((a,c)=>a+((c&&c.gap)||0),0), n=pcs.filter(c=>c&&c.flags&&c.flags.length).length;
     h+=`<div class="pcsum">${S.pcRunning?'Checking vendor prices…':S.pcDone?(n?`<b class="warn">⚠ ${n} line${n>1?'s':''} may be under-charging · ~${money(g)}</b>`:'<span class="ok">✓ Prices check out against vendors today</span>'):''} <button class="link" onclick="priceCheck()">${S.pcDone?'re-check':'check vendor prices'}</button></div>`; }
-  h+=`<div class="money"><span>Quote total</span><span>${money(tot)}</span></div><button class="go" ${p.length?'disabled':''} onclick="preview()">Create order</button>`;
+  h+=`<div class="money"><span>Order total${ups?`<small style="display:block;font-weight:400;color:var(--muted);font-size:12px">incl. ${money(ups)} 2XL+ up-charges</small>`:''}</span><span>${money(tot)}</span></div><button class="go" ${p.length?'disabled':''} onclick="preview()">Create order</button>`;
   $('mbar').innerHTML=`<div class="mt"><b>${money(tot)}</b>${S.order?'Order '+S.order.num+' · ':''}${p.length?p.length+' thing'+(p.length>1?'s':'')+' left':'ready'}</div>`+(p.length?`<button class="wait" onclick="$('sum').scrollIntoView({behavior:'smooth'})">What's left</button>`:`<button onclick="preview();$('sum').scrollIntoView({behavior:'smooth'})">Create order</button>`);
   $('sum').innerHTML=h;
 }
@@ -736,12 +749,12 @@ function preview(){
   const imps=S.imps.map((m,i)=>({_willBe:ids[i],fields:{[IF.order]:[o.id],[IF.type]:m.ink,[IF.loc]:m.loc,[IF.screens]:m.screens,[IF.inkChanges]:m.inkChanges,[IF.nick]:m.nick||undefined,[IF.repeat]:m.repeat||undefined,'fldAEQvMAAZX9gnhl':m.prev?[m.prev.rid]:undefined,'fldpNCCXTgHyDhvak':m.prev&&m.prev.inkIds.length?m.prev.inkIds:undefined}}));
   const LF=window.LF;
   const gps=S.lines.map(gplan), gNew=gps.filter(g=>g&&g.kind==='new'), gFix=gps.filter(g=>g&&g.kind==='fix');
-  const lines=S.lines.map((ln,i)=>{ const f={[LF.order]:[o.id],[LF.ptype]:ln.ptype,[LF.garment]:ln.garment?[ln.garment.id]:(gps[i]&&gps[i].kind==='new'?['(new garment '+gps[i].name+')']:undefined),[LF.imprints]:S.imps.map((m,k)=>m.lines.includes(i)?'(new '+ids[k]+')':null).filter(Boolean),[LF.price]:ln.price,[LF.womens]:ln.womens||undefined,[LF.youth]:ln.youth||undefined}; Object.keys(ln.sizes).forEach(z=>f[LF[z]]=ln.sizes[z]); return {fields:f}; });
+  const lines=S.lines.map((ln,i)=>{ const f={[LF.order]:[o.id],[LF.ptype]:ln.ptype,[LF.garment]:ln.garment?[ln.garment.id]:(gps[i]&&gps[i].kind==='new'?['(new garment '+gps[i].name+')']:undefined),[LF.imprints]:S.imps.map((m,k)=>m.lines.includes(i)?'(new '+ids[k]+')':null).filter(Boolean),[LF.price]:ln.price,[LF.proof]:notesFor(ln,i)||undefined,[LF.womens]:ln.womens||undefined,[LF.youth]:ln.youth||undefined}; Object.keys(ln.sizes).forEach(z=>f[LF[z]]=ln.sizes[z]); return {fields:f}; });
   const names=x=>JSON.stringify(x,null,1).replace(/"(fld\w{14})"/g,(m,id)=>'"'+(FN[id]||id)+'"');
   $('out').textContent=(gNew.length?'CREATE Garments ('+gNew.length+') — from the vendor\n'+names(gNew.map(g=>({_willBe:g.name,fields:g.fields})))+'\n\n':'')+(gFix.length?'PATCH Garments ('+gFix.length+') — vendor naming\n'+names(gFix.map(g=>({id:g.id,fields:g.fields})))+'\n\n':'')+'PATCH Orders\n'+names(orderPatch)+'\n\nCREATE Imprints ('+imps.length+')\n'+names(imps)+'\n\nCREATE Line Items ('+lines.length+')\n'+names(lines);
   $('outBox').style.display='';
 }
-const GN={fldtL6paVNlfMRDj4:'Manufacturer',fldJlvS5vcBkzx3hG:'Product Number',flduMprMvRlAHAiCh:'Colorway',fldUnCYQgAx8AhsMZ:'[S&S] Color Name',fldRmgDAByrOWcHLO:'Cost',fldHakcDllb8SFCwz:'2XL Up-charge',fldEXqJi6mii9bpoJ:'3XL Up-charge',fldBWmLGzqtjXM0zm:'4XL Up-charge',fldlF7ZOqCNYr8hi2:'5XL Up-charge'};
+const GN={fldlF7ZOqCNYr8hi2:'5XL Up-charge',fldBWmLGzqtjXM0zm:'4XL Up-charge',fldEXqJi6mii9bpoJ:'3XL Up-charge',fldHakcDllb8SFCwz:'2XL Up-charge',fldtL6paVNlfMRDj4:'Manufacturer',fldJlvS5vcBkzx3hG:'Product Number',flduMprMvRlAHAiCh:'Colorway',fldUnCYQgAx8AhsMZ:'[S&S] Color Name',fldRmgDAByrOWcHLO:'Cost',fldHakcDllb8SFCwz:'2XL Up-charge',fldEXqJi6mii9bpoJ:'3XL Up-charge',fldBWmLGzqtjXM0zm:'4XL Up-charge',fldlF7ZOqCNYr8hi2:'5XL Up-charge'};
 const FN={fldAEQvMAAZX9gnhl:'Imprint.previousImprint',fldpNCCXTgHyDhvak:'Imprint.inks (copied from the repeat)'}; Object.entries({...O}).forEach(([k,v])=>FN[v]='Order.'+k); Object.entries(IF).forEach(([k,v])=>FN[v]='Imprint.'+k); Object.entries(L).forEach(([k,v])=>FN[v]='LineItem.'+k); Object.entries(GW).forEach(([k,v])=>FN[v]='Garment.'+(GN[v]||k));
 window.LF=L;
 /* ---------- POM pricing engine: the Price-O-Matic itself, loaded hidden, so prices here match quotes exactly ----------
