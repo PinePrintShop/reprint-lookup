@@ -34,3 +34,13 @@
 - That explains the earlier 0-field runs: those files used square brackets.
 - **Decision:** use double curly `{{type:client}}` in white text (invisible on the page, still read by PandaDoc).
 - **Next:** API-TEST-2-10955.pdf (the real packet with 11 hidden tags), sent to Stephen with "Also send" to check the signer experience.
+
+**Round 4 (API-TEST-2, sent to Stephen):** works end to end: email, signer view, signature, name and date on the invoice. Placement was off in two places: on proofs the initials box overlapped the black "APPROVED" label, and a white tag edge showed on the black; Terms initials sat unevenly on the lines.
+
+**Round 5 (API-TEST-3), fields sized to the real boxes:**
+- The app scans each page and makes every tag the exact size of its box, because PandaDoc sizes a field to its tag (font size sets the height, underscores the width).
+- The role is shortened to `c` so tags fit small boxes, e.g. `{i:c}`, `{s:c__________}`, `{t:c____}`, `{d:c____}`.
+- **Terms:** the 5 `_____________` signing lines (71 x 22 pt each).
+- **Proofs:** the white box of art's APPROVED stamp, found relative to the "APPROVED" text: x from text.x1+15.4 to text.x1+58.6, y from text.y0-8.9 to text.y1+2, inset 3 pt. That matched both art templates.
+- **Invoice:** the signature frame (the drawn rect around "I've reviewed…") and the Name/Date lines.
+- Single-curly date/text tags (`{d:..}` `{t:..}`) are new this round; the double-curly forms are already proven if these fail.
