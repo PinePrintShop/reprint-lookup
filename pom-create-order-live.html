@@ -156,7 +156,7 @@ a.ghost{display:inline-block}
 </head>
 <body>
 <div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved — except a client art folder link you paste.</div>
-<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v101.html" style="text-decoration:none">← Quote</a><a class="ghost" id="lirLink" href="pine-line-item-review-v2.html" style="text-decoration:none">Line Item Review →</a></div>
+<div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v101.html" style="text-decoration:none">← Quote</a><a class="ghost" id="lirLink" href="pine-line-item-review-v3.html" style="text-decoration:none">Line Item Review →</a></div>
 <div class="mbar" id="mbar"></div>
 <iframe id="pomEngine" src="price-o-matic-v101.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
@@ -743,7 +743,7 @@ function renderSum(){
   $('mbar').innerHTML=`<div class="mt"><b>${money(tot)}</b>${S.order?'Order '+S.order.num+' · ':''}${p.length?p.length+' thing'+(p.length>1?'s':'')+' left':'ready'}</div>`+(p.length?`<button class="wait" onclick="$('sum').scrollIntoView({behavior:'smooth'})">What's left</button>`:`<button onclick="preview();$('sum').scrollIntoView({behavior:'smooth'})">Create order</button>`);
   $('sum').innerHTML=h;
   // after Create order the lines go to Line Item Review; open it on this order
-  $('lirLink').href='pine-line-item-review-v2.html'+(S.order?'?order='+S.order.num:'');
+  $('lirLink').href='pine-line-item-review-v3.html'+(S.order?'?order='+S.order.num:'');
 }
 function preview(){
   const ids=nextIds(), o=S.order;
