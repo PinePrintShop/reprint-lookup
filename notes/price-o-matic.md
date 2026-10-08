@@ -337,3 +337,13 @@ Stephen (phone screenshot of a hand-added 3001 Black × 100, price box empty): s
 - Lines with **no price** (hand-added, old orders) take the POM price and keep following it as garment/prints/qty change, until someone types a price. Typed or quoted prices are never overwritten: the row says "$X/pc more than quoted / the typed price" with **Use $X**, or "✓ matches today".
 - Not priced here (says so): patches and other non-apparel types except flatstock, Patch/Label ONLY, Finishing; bandanas. 2XL+ still comes from the price check below it (its "✓ not under vendor price" line was dropped — the POM row is the verdict now).
 - Tested with a local web server (the iframe needs a real origin; file:// can't share it).
+
+## Create order — client art folder link + imprint grouping (Oct 8)
+**Art folder.** Stephen: we already have a folder naming system; just give a place to share the link and write it to Airtable.
+- New Airtable field **Customers › Art Folder** (url, `fldxohp41phv6Qbms`), added with Stephen's OK.
+- After picking the customer, Create order shows **📁 Client art folder** (opens the Drive folder) with "change link", or a box to paste one. Save checks it's a Google Drive link and PATCHes the customer — **the only real write on this page**. `?practice=1` fakes it ("practice — not saved"). The line item review app will read the same field.
+
+**Imprint grouping.** Stephen tried a 3001 front + an SS4500 hoodie front and back: both fronts were merged into one imprint; he expected tee front, hoodie front, hoodie back = A, B, C.
+- Checked real orders (108xx): colors of one style almost always share an imprint (10877: three 4800 colors on 10877-A); across styles both happen — shared art (10819 tee + hoodie on A/B, 10856 tees + hoodie) and separate (10869, 10898).
+- New default: **same style, any colors → one imprint; different styles → separate imprints.** IDs follow the quote order, so the example is A tee front (Black + Navy), B hoodie front, C hoodie back.
+- **Combine with…** on an imprint card merges it into another imprint at the same location + method ("same art"); **split by garment** turns a shared imprint back into one per style.

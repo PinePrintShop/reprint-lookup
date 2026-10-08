@@ -125,6 +125,8 @@ input.t:focus,textarea.t:focus{border-color:var(--text)}
 @media (max-width:600px){.prow{grid-template-columns:44px minmax(0,1fr)}.prow .arr{display:none}.prow select{grid-column:1/-1}}
 .addb{margin-top:12px}
 .pcsum{margin-top:12px;font-size:13px}.pcsum .warn{color:var(--amb)}.pcsum .ok{color:var(--green)}
+.comb{height:30px;font-size:12px;padding:0 6px;width:auto}
+.fold{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}.fold .fbtn{text-decoration:none;display:inline-flex;align-items:center;color:var(--text)}
 .idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
 a.ghost{display:inline-block}
 .fbrk{display:none}.ich{margin-left:14px}
@@ -153,7 +155,7 @@ a.ghost{display:inline-block}
 </style>
 </head>
 <body>
-<div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved.</div>
+<div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved — except a client art folder link you paste.</div>
 <div class="top"><div class="brand">Price-O-Matic</div><div class="crumb">Quote → <b>Create order</b></div><span class="prac">Read-only</span><a class="ghost" href="price-o-matic-v101.html" style="text-decoration:none">← Quote</a></div>
 <div class="mbar" id="mbar"></div>
 <iframe id="pomEngine" src="price-o-matic-v101.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
@@ -252,7 +254,9 @@ function fromQuote(cart){
     const color=(vg&&vg.color)||(nm.split(' - ')[1]||'').trim(); const style=(vg&&vg.style)||(nm.match(/\b([A-Z]{0,4}\d{2,6}[A-Z]{0,4})\b/i)||[])[1]||'';
     lines.push({qname:nm,style,color,vg,ptype,qty:Number(c.qty)||0,price:Number(c.quotedUnit)||0,up:c.ssTiers||null,qCost:Number(snap.garmentCost)||null,snap,sizes:{},garment:null,cands:null,nick:'',womens:false,youth:false,bandana:p==='bandana'});
     (snap.impressions||[]).filter(i=>i.type).forEach(i=>{
-      const key=[i.loc,i.type,i.screens,!!i.underbase,i.supRecipe,i.supSize,i.decoMaterial,i.embStitchBand].join('|');
+      // Colors of the same style share one imprint (same art, same setup); a different style (tee vs hoodie) gets its own.
+      // "Combine with…" on the imprint card joins them when it really is the same art.
+      const key=[(style||'line'+li).toUpperCase(),i.loc,i.type,i.screens,!!i.underbase,i.supRecipe,i.supSize,i.decoMaterial,i.embStitchBand].join('|');
       let m=imps.find(x=>x.key===key);
       if(!m){ m={src:i,key,loc:LOC_MAP[i.loc]||'',qloc:i.loc||'',method:i.type,screens:i.type==='Screenprint'?(Number(i.screens)||1)+(i.underbase?1:0):0,ub:!!i.underbase,colors:Number(i.screens)||0,inkChanges:Number(i.inkChanges)||0,ink:impType(i),nick:'',repeat:false,lines:[],priced:true,qUb:!!i.underbase};
         m.qScreens=m.screens; imps.push(m); }
@@ -292,6 +296,26 @@ function renderQuote(){
   $('quote').innerHTML=CART.length?CART.map(c=>`<div class="qrow"><b>${esc(c.name)}</b><span>${c.qty} × ${money(c.quotedUnit)}</span><span class="auto">${esc((c.scopeLines||[]).slice(1).join(' · '))}</span></div>`).join('')
     :`<div class="auto" style="margin-left:0">Starting without a quote. Pick the order, then copy a past order or repeat past imprints from <b>Past orders</b>. Adding line items by hand comes with the real build. (Or build a quote in <a href="price-o-matic-v101.html">Price-O-Matic</a> first.)</div>`;
 }
+/* ---------- client art folder: Customers › Art Folder (Drive link, shop folder naming) ----------
+   The one thing this page writes for real: a pasted link is saved to the customer so the art dept can find it later.
+   ?practice=1 fakes the save. */
+const F_ART='fldxohp41phv6Qbms', PRACTICE=/[?&]practice=1/.test(location.search);
+async function custId(){ if(S.cust.id) return S.cust.id; const d=await at(T_CUST,`maxRecords=1&${flds(['fld47twOIwW053ihT'])}&filterByFormula=${encodeURIComponent(`{Company Name}="${fq(S.cust.name)}"`)}`); const r=(d.records||[])[0]; if(r) S.cust.id=r.id; return S.cust.id; }
+async function loadFolder(){ try{ const id=await custId(); if(!id){ S.folder={state:'nocust'}; return renderCust(); }
+    const d=await at(T_CUST,`${flds([F_ART])}&filterByFormula=${encodeURIComponent(`RECORD_ID()='${id}'`)}`); const u=((d.records||[])[0]||{fields:{}}).fields[F_ART]||'';
+    S.folder={state:u?'set':'empty',url:u}; }catch(e){ S.folder={state:'error',msg:e.message}; } renderCust(); }
+function folderHtml(){ const f=S.folder||{};
+  if(f.state==='loading') return '<div class="fold auto">Looking for the art folder…</div>';
+  if(f.state==='nocust') return '<div class="fold auto">Customer record not found — can\'t save a folder link.</div>';
+  if(f.state==='set'&&!f.edit) return `<div class="fold"><a class="b fbtn" href="${esc(f.url)}" target="_blank" rel="noopener">📁 Client art folder</a>${f.saved?(PRACTICE?'<span class="tag need">practice — not saved</span>':'<span class="pchk ok" style="margin:0">✓ saved to Airtable</span>'):''}<button class="link" onclick="S.folder.edit=true;renderCust()">change link</button></div>`;
+  return `<div class="fold"><input class="t" id="folderIn" style="flex:1;min-width:0" placeholder="Paste the client's Google Drive folder link" value="${esc(f.url||'')}" onkeydown="if(event.key==='Enter')saveFolder()"><button class="b on" onclick="saveFolder()">Save</button>${f.state==='set'?'<button class="link" onclick="S.folder.edit=false;renderCust()">cancel</button>':''}${f.err?`<span class="tag need">${esc(f.err)}</span>`:''}</div>`; }
+async function saveFolder(){ const v=($('folderIn').value||'').trim();
+  if(!/^https:\/\/(drive|docs)\.google\.com\//.test(v)){ S.folder.err='That doesn\'t look like a Google Drive link'; return renderCust(); }
+  try{ const id=await custId();
+    if(!PRACTICE){ const r=await fetch(`https://api.airtable.com/v0/${BASE}/${T_CUST}/${id}`,{method:'PATCH',headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({fields:{[F_ART]:v}})});
+      if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status)); } }
+    S.folder={state:'set',url:v,saved:true}; }catch(e){ S.folder.err='Not saved: '+e.message; }
+  renderCust(); }
 /* ---------- customer + orders (real) ---------- */
 // Customer search: before typing, the Awaiting Proof orders (one tap picks customer + order). Typing filters them
 // by customer or order # (any word order) and also finds other customers in Airtable.
@@ -320,7 +344,7 @@ function custRows(){
 }
 function renderCust(){
   $('custBox').style.display=S.cust?'none':''; $('ordersK').style.display=$('orders').style.display=S.cust?'':'none';
-  $('custPicked').innerHTML=S.cust?`<div class="cpick">${esc(S.cust.name)}<button class="link" onclick="unpickCust()">change</button></div>`:'';
+  $('custPicked').innerHTML=S.cust?`<div class="cpick">${esc(S.cust.name)}<button class="link" onclick="unpickCust()">change</button></div>${folderHtml()}`:'';
   if(S.cust){ $('custList').innerHTML=''; return; }
   if(S.awaiting==null){ $('custList').innerHTML=TOKEN?'<div class="clh">Loading orders waiting for proof…</div>':''; return; }
   const {q,aw,others,old}=custRows(), lim=custAll||q?aw.length:8; let h='', k=0;
@@ -332,7 +356,7 @@ function renderCust(){
   $('custList').innerHTML=h;
 }
 function pickAwaiting(oid){ const o=(S.awaiting||[]).find(x=>x.oid===oid); if(o) pickCust(o.cid||null,o.name,oid); }
-function unpickCust(){ S.cust=null; S.order=null; S.orders=[]; S.pastOrders=[]; S.pastImps=[]; S.pastOpen=null; $('custFound').textContent=''; $('cust').value=''; render(); setTimeout(()=>$('cust').focus(),0); }
+function unpickCust(){ S.folder=null; S.cust=null; S.order=null; S.orders=[]; S.pastOrders=[]; S.pastImps=[]; S.pastOpen=null; $('custFound').textContent=''; $('cust').value=''; render(); setTimeout(()=>$('cust').focus(),0); }
 $('cust').addEventListener('input',()=>{ custKb=-1; custAll=false; renderCust(); clearTimeout(custTimer); const v=$('cust').value.trim(); S.custOthers=[]; if(v.length>=2) custTimer=setTimeout(()=>searchCust(v),250); });
 $('cust').addEventListener('keydown',e=>{ const n=$('custList').querySelectorAll('.cr[data-k]').length;
   if(e.key==='ArrowDown'){ e.preventDefault(); custKb=Math.min(n-1,custKb+1); renderCust(); }
@@ -348,7 +372,7 @@ async function searchCust(v){
   renderCust();
 }
 async function pickCust(id,name,wantOid){
-  S.cust={id,name}; S.pastLoaded=false; renderCust(); $('custFound').textContent='Loading orders…';
+  S.cust={id,name}; S.pastLoaded=false; S.folder={state:'loading'}; renderCust(); loadFolder(); $('custFound').textContent='Loading orders…';
   try{
     const sortQ=`&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc`;
     const mapO=r=>{const f=r.fields;return {id:r.id,num:f[O.num],status:sel(f[O.status]),due:f[O.due]||'',rep:sel(f[O.rep]),ship:(f[O.ship]||[]).map(sel),src:sel(f[O.src]),created:f[O.created]||'',lines:(f[O.lines]||[]).length,lineIds:f[O.lines]||[],imps:f[O.imps]||[],thumbs:(f[P.proofLook]||[]).map(thumb).filter(Boolean)};};
@@ -490,7 +514,7 @@ function renderImps(){
   S.imps.forEach((m,i)=>{
     const on=m.lines.map(li=>S.lines[li]&&(S.lines[li].color||S.lines[li].qname)).filter(Boolean);
     const need=!m.ink||!m.loc;
-    h+=`<div class="card"><div class="ch"><span class="idtag">${ids[i]}</span><span class="t1">${impName(m)}</span><span class="t2">${on.length?'on '+esc(on.join(' + ')):''}</span><div class="right"><button class="link" onclick="rmImp(${i})">remove</button>${need?'<span class="tag need">'+(!m.loc?'pick a location':'pick an ink type')+'</span>':'<span class="tag ok">ready</span>'}</div></div><div class="grid">`;
+    h+=`<div class="card"><div class="ch"><span class="idtag">${ids[i]}</span><span class="t1">${impName(m)}</span><span class="t2">${on.length?'on '+esc(on.join(' + ')):''}</span><div class="right">${impTools(m,i)}<button class="link" onclick="rmImp(${i})">remove</button>${need?'<span class="tag need">'+(!m.loc?'pick a location':'pick an ink type')+'</span>':'<span class="tag ok">ready</span>'}</div></div><div class="grid">`;
     if(m.manual) h+=`<span class="k req">Method</span><div class="bts">${Object.keys(FAM_TYPES).map(f=>B(f,m.method===f,`setFam(${i},'${f}')`)).join('')}</div>`;
     if(m.method==='Screenprint'){
       h+=`<span class="k req">Ink type</span><div class="bts">${INKS.map(k=>B(k,m.ink===k,`setInk(${i},'${k}')`)).join('')}</div>`;
@@ -601,6 +625,20 @@ function findStyle(i){ const v=($('gs'+i).value||'').trim(); if(!v) return; cons
 function rmLine(i){ S.lines.splice(i,1); S.imps.forEach(m=>{ m.lines=m.lines.filter(x=>x!==i).map(x=>x>i?x-1:x); }); render(); }
 function addImp(){ S.imps.push({key:'hand'+Date.now(),manual:true,loc:'',qloc:'',method:'Screenprint',screens:1,ub:false,colors:1,inkChanges:0,ink:'',nick:'',repeat:false,lines:S.lines.map((L,k)=>L.bandana?-1:k).filter(k=>k>=0),priced:false}); render(); }
 function setFam(i,f){ const m=S.imps[i]; m.method=f; const o=FAM_TYPES[f]||[]; m.ink=o.length===1?o[0]:''; if(f!=='Screenprint'){ m.screens=0; } else if(!m.screens){ m.screens=1; m.colors=1; } render(); }
+// Combine: move this imprint's garments onto another imprint at the same location + method, then drop this one.
+// Split: one imprint per garment style (the first style keeps this imprint, the others get copies).
+const styleKey=L=>(styleOf(L)||L.qname||'').toUpperCase();
+function impTools(m,i){
+  const ids=nextIds(), same=S.imps.map((x,k)=>({x,k})).filter(o=>o.k!==i&&o.x.loc===m.loc&&o.x.method===m.method);
+  const styles=new Set(m.lines.map(li=>S.lines[li]&&styleKey(S.lines[li])));
+  let h='';
+  if(same.length) h+=`<select class="t comb" onchange="if(this.value!=='')combineImp(${i},Number(this.value))"><option value="">Combine with…</option>${same.map(o=>`<option value="${o.k}">${ids[o.k]} · same art</option>`).join('')}</select>`;
+  if(styles.size>1) h+=`<button class="link" onclick="splitImp(${i})">split by garment</button>`;
+  return h;
+}
+function combineImp(i,k){ const a=S.imps[i], b=S.imps[k]; a.lines.forEach(li=>{ if(!b.lines.includes(li)) b.lines.push(li); }); if(!b.prev&&a.prev){ b.prev=a.prev; b.repeat=true; } if(!b.nick&&a.nick) b.nick=a.nick; S.imps.splice(i,1); render(); }
+function splitImp(i){ const m=S.imps[i], groups={}; m.lines.forEach(li=>{ const k=S.lines[li]?styleKey(S.lines[li]):'?'; (groups[k]=groups[k]||[]).push(li); });
+  const keys=Object.keys(groups); m.lines=groups[keys[0]]; keys.slice(1).forEach((k,n)=>S.imps.splice(i+1+n,0,Object.assign({},m,{key:m.key+'|split'+k,lines:groups[k]}))); render(); }
 function rmImp(i){ S.imps.splice(i,1); render(); }
 function pickG(i,id){ const L=S.lines[i]; L.garment=L.cands.find(c=>c.id===id)||null; L.chg=false; render(); priceCheck(); }
 function setSz(i,z,v){ const n=Math.max(0,parseInt(v)||0); if(n)S.lines[i].sizes[z]=n; else delete S.lines[i].sizes[z]; render(); }
