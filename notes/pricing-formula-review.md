@@ -238,3 +238,43 @@ IF(
 -{fldbs9svKV48Xx3yq}
 ```
 </details>
+
+## 2026-10-08 · Bandana shipping + 225/hr (order 10981)
+
+**Why:** 10981 (Sight Line Provisions, 2,000 bandanas at $4.70, Free Shipping) showed −$0.16/pc. Two tee-sized assumptions caused it:
+- **Shipping Allowance was a flat $0.65/pc.** On 2,000 bandanas that assumed about $1,300 of postage.
+- **Bandana cost speed was 200/hr.**
+
+**ShipStation history** (Orders › Shipping Cost):
+- 1,809 bandana-only orders, 1,696 of them Free Shipping.
+
+| Bandanas on the order | Real shipping / pc |
+|---|---|
+| under 100 | $0.29 |
+| 100–199 | $0.20 |
+| 200–499 | $0.16 |
+| 500–999 | $0.12 |
+| 1,000+ | $0.10 |
+
+- Across all of them it averages about **$12 per order + $0.09 per piece** (linear fit on the 1,696 Free Shipping orders). That's about $0.14/pc overall, not $0.65.
+
+**Changes (margin only; Autoprice unchanged):**
+
+| Field | Before | After |
+|---|---|---|
+| Line Items · [PRICE] Shipping Allowance (`fld0IVAS1IxcPoqc6`) | $0.65/pc for everything | Bandana lines: **$0.09 + $12 ÷ line qty**. Everything else unchanged |
+| Imprints · Labor Estimate, Overhead Estimate, Consumables & Materials | bandana speed 200/hr | **225/hr** |
+
+- Pick-Up, Delivery and Fulfillment still get $0.
+- The bandana test is the same one Autoprice uses (`{Print Location Rollup}="Bandana"`). Autoprice for bandanas reads only the flat grid, so no price moves.
+- The $12 is per line. An order with several bandana colours counts it more than once, which leans conservative.
+- Rollback: put `.65` back in place of the bandana branch, and `"Bandana",225` back to `"Bandana",200` in the three Imprint formulas.
+
+**Result on 10981:**
+- shipping $0.65 → $0.10/pc
+- labor $2.39 → $2.13
+- overhead $0.26 → $0.23
+- margin **−$0.16 → +$0.68/pc (14.4%)**
+- Autoprice still $4.65.
+
+**Side effect:** Orders › [PRICE] Total Shipping Allowance, and "Shipping Allowance vs Shipping Cost", now use the realistic bandana number.
