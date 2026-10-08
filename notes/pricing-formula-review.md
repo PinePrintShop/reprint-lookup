@@ -72,3 +72,169 @@ The selling side is consistent between the POM and Airtable. The cost side of th
 5. One time table (setup min/screen, impressions/hr by press and product) used by both pricing and scheduling.
 
 The selling prices themselves (POM grid → Airtable) don't need changing for any of this. Only the cost and margin side is off.
+
+
+## 2026-10-08 · Changes applied (Stephen: "$133K for the rest of this year … if it doesn't change the auto price but just the margin math, move forward")
+
+**Autoprice untouched.** Autoprice, the impression price, the press-time field and impressions/hour were all left alone. Before/after snapshot of 4,799 line items from the last 400 days: Autoprice, the Impression Price Rollup and the legacy Autoprice **changed on 0 lines**.
+
+**What changed (margin math only):**
+
+| Field | Before | After |
+|---|---|---|
+| Imprints · [PRICE] Labor Estimate | $382.70/press-hr; bandanas 100/hr; ÷ *Total Active Impressions* | **$466.88/press-hr**; bandanas **200/hr**; ÷ *Total All-time Impressions*; blank if 0 |
+| Imprints · [PRICE] Overhead Estimate | $41.26/press-hr, same time and count issues | **$50.34/press-hr**, same fixes |
+| Imprints · [PRICE] Consumables & Materials | 1.65% of the *legacy 11/25* price | 1.65% of the **current** Price per Impression (falls back to $579.29/hr math on finished orders) |
+| Imprints · [PRICE] Estimated Impression Margin | legacy price − costs | **current** price − costs |
+| Line Items · [PRICE] Payment Processing Allowance | gross-up of garment + impression price (blank counted twice on bandanas) | **3% × Price Input** |
+| Line Items · [PRICE] Estimated Margin / Piece | same math | same math, **blank when there's no Price Input** |
+| Line Items · [PRICE] Estimated Margin (%) | ÷ *legacy 11/25 Autoprice* | **÷ Price Input** |
+
+- **Cost per press-hour:** $133,000 ÷ 180 h × 1.4 (utilization) ÷ 2 presses = **$517.22**. That's the same math as the POM without its 12% profit, split labor $466.88 + overhead $50.34 in the old 90/10 ratio. Embroidery ($27.50 + $12.66/hr) and Supacolor ($22.50 + $3.33/hr) are unchanged.
+- **Cost time:** 12 min/screen. Bandanas run at 200/hr for cost; everything else uses the pricing speed (tees 230, fleece 170; 230 when an order is finished).
+- **Supacolor 1C:** the formulas spelled these "Supacolor - Wearable 1C", but the real options are "Supacolor - 1C Wearable". 1C Supacolor was being costed at the screenprint rate. Both spellings now match.
+- Every changed field has a description in Airtable explaining the change.
+
+**Effect:**
+- Margins now compute on all 4,799 lines; **3,882 were NaN/blank before** (finished orders).
+- Bandana median margin: **−4.4% → +14%**. Order 10978 is now +$1.07/pc (12.6%).
+- Tees: margin per piece is lower, because the hourly cost rose from $424 to $517.
+- **What "margin" means now:** profit after garment, press time and a full share of the $133k. By design that lands near the POM's 12% profit goal, so about 10% is normal.
+- **Reconciliation:** summed by month, Oct 2025 – Sep 2026, model margin is **5–16% of revenue ($15–60k/mo)**. The real leftover (revenue − garments − $133k) was **$28–178k/mo**. So the model is conservative, mostly because it prices 12 min/screen and full run time where the presses actually take less.
+- **Data quirk:** line recT077e7qtYBB54Z (order 9212, Promo Product, 2,625 pcs) is linked to bandana imprint 9212-C, whose impression count only includes 4 pieces. Its "margin" is −$324k. Unlink it or ignore it.
+
+**Line Item Review v4:** the thin-margin warning moved from <15% to **<5%**, and there's a one-line note on what margin means.
+
+**Not changed (ask first):**
+- **Calibrating cost time to actuals** (8 min/screen, Press 1 247/hr, Press 2 223/hr) would make margins less conservative.
+- **Decopress, finishing and flatstock** still get the screenprint press rate.
+- **The POM's 1.4 utilization factor** (vs 1/0.6 = 1.67) is unchanged, because it drives prices.
+
+**Rollback:** previous formulas, for reference:
+
+<details><summary>Line Items · [PRICE] Payment Processing Allowance (fldjTKtpDmrnNml2c)</summary>
+
+```
+({fldVtBTv42HG6WYs1}
++{fldlWcO6Hl5QnoIXf}
++{fldWnDcFeL1zE94Um}
++{fld0IVAS1IxcPoqc6}
++{fldbs9svKV48Xx3yq}
++{fld9nZF2L6vnqATrV}
++{fldCKWHYFtF4lK3o0})
+/.97-
+({fldVtBTv42HG6WYs1}
++{fldlWcO6Hl5QnoIXf}
++{fldWnDcFeL1zE94Um}
++{fld0IVAS1IxcPoqc6}
++{fldbs9svKV48Xx3yq}
++{fld9nZF2L6vnqATrV}
++{fldCKWHYFtF4lK3o0})
+
+```
+</details>
+
+<details><summary>Line Items · [PRICE] Estimated Margin (%) (fldHnS5fBKoWbZx5f)</summary>
+
+```
+{fldU1y8VEpcg25vtr}/{fldjqIHjJO6Qa1nkX}
+```
+</details>
+
+<details><summary>Imprints · [PRICE] Labor Estimate (fldSGssVzEkzjU4sI)</summary>
+
+```
+IF(
+    OR({fldjNCuaGOkWgzH2K}="Embroidery",
+        {fldjNCuaGOkWgzH2K}="Patch Application",
+        {fldjNCuaGOkWgzH2K}="Hem Label Application",
+        {fldjNCuaGOkWgzH2K}="Woven Label Application"),
+            ({fldZR9k8zWPbgV1vm}*27.50)/{fldFipR4ddfqMPeAX},
+IF(
+    OR({fldjNCuaGOkWgzH2K}="Supacolor - Wearable",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Wearable 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Blocker",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Blocker 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Promotional",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Promotional 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Headwear",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Headwear 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Reflective"),
+            ({fldZR9k8zWPbgV1vm}*22.50)/{fldFipR4ddfqMPeAX},
+
+    (
+    (({fld8rgkIj1RPO97QU}*.75*25.00)+
+    {fldZR9k8zWPbgV1vm}*382.70))/{fldFipR4ddfqMPeAX}))
+```
+</details>
+
+<details><summary>Imprints · [PRICE] Overhead Estimate (fldNRHdvfPRtGbkTV)</summary>
+
+```
+IF(
+    OR({fldjNCuaGOkWgzH2K}="Embroidery",
+        {fldjNCuaGOkWgzH2K}="Patch Application",
+        {fldjNCuaGOkWgzH2K}="Hem Label Application",
+        {fldjNCuaGOkWgzH2K}="Woven Label Application"),
+            ({fldZR9k8zWPbgV1vm}*12.66)/{fldFipR4ddfqMPeAX},
+IF(
+    OR({fldjNCuaGOkWgzH2K}="Supacolor - Wearable",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Wearable 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Blocker",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Blocker 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Promotional",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Promotional 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Headwear",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Headwear 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Reflective",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Size Tags"),
+            ({fldZR9k8zWPbgV1vm}*3.33)/{fldFipR4ddfqMPeAX},
+
+    (
+    
+    {fldZR9k8zWPbgV1vm}*41.26)/{fldFipR4ddfqMPeAX}))
+```
+</details>
+
+<details><summary>Imprints · [PRICE] Consumables & Materials (fldsr9vb8vaLMjhGM)</summary>
+
+```
+  IF(
+    OR({fldjNCuaGOkWgzH2K}="Supacolor - Wearable",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Wearable 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Blocker",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Blocker 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Promotional",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Promotional 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Headwear",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Headwear 1C",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Reflective",
+        {fldjNCuaGOkWgzH2K}="Supacolor - Size Tags"),
+    {fldfybDdp66T1bGbR},
+.0165*{fldJ1NVA0R4ZpMqXw})
+```
+</details>
+
+<details><summary>Imprints · [PRICE] Estimated Impression Margin (fldYW0ByQo63banqz)</summary>
+
+```
+{fldJ1NVA0R4ZpMqXw}
+-{fldSGssVzEkzjU4sI}
+-{fldNRHdvfPRtGbkTV}
+-{fldsr9vb8vaLMjhGM}
+```
+</details>
+
+<details><summary>Line Items · [PRICE] Estimated Margin / Piece (fldU1y8VEpcg25vtr)</summary>
+
+```
+{fldtMZWzA4dfPxEXx}
+-{fldVtBTv42HG6WYs1}
+-{fld2NLpfI9x7E7eMq}
+-{fldjTKtpDmrnNml2c}
+-{fldgGJXMzYpSnr2Cw}
+-{fldyuDjdP9KQx9Dui}
+-{fld0IVAS1IxcPoqc6}
+-{fldbs9svKV48Xx3yq}
+```
+</details>
