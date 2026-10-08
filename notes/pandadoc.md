@@ -76,3 +76,8 @@
 | Name / Date | `{{textfield:client}}` / `{{date:client}}` at 8 pt | just right of the labels |
 
 - **CC:** recipient with `recipient_type: "CC"` works. The signer and CC must be different emails.
+
+## 2026-10-08 · Built into Line Item Review v6
+- **Packet:** Terms asset + art's proof pages (APPROVED box located with pdf.js) + invoice generated from Airtable. All tags use the final format above.
+- **Worker v17:** adds `/pandadoc/file` (proof downloads, Airtable hosts only) and the **sandbox guard**: a "[DEV]" document is never sent unless `allowSandbox:true`. Test page v4 sets that flag; Line Item Review never does.
+- **Assets:** `assets/pandadoc-terms-v1.pdf` (the Terms page from 10955 with 5 hidden initials tags) and `assets/pine-invoice-logo.png`.

@@ -97,3 +97,35 @@ Airtable margin math was rebuilt on the $133k/mo cost basis (see `notes/pricing-
 ## 2026-10-08 · v5
 
 **Invoice-only fees are filtered out**, using the same rule as Purchasing v94: a line with Product Type "Misc." and no garment (shipping, rush and other fees that exist only for the invoice). Those lines no longer appear in the list, the tab counts, the order's line chips, **Next →** or deep links. The order header shows them once, e.g. "+ 1 invoice fee ($25.00)", so the total still makes sense. Create order now opens v5.
+
+## 2026-10-08 · v6: Send for signature (PandaDoc)
+
+**What's new:** once every real line on an order is Quality + Pricing approved, the order header shows **✓ All N lines approved → Send for signature**. Until then it shows "X of N lines approved".
+
+The sheet:
+1. **Who and what:** signer = the order contact email; CC = the salesperson (Orders › Sales Rep Email). Subject and message are prefilled and editable.
+2. **The packet,** built in the browser with pdf-lib and pdf.js, loaded only when needed:
+   - **Terms of Service** (`assets/pandadoc-terms-v1.pdf`, the 5 initials already tagged).
+   - **Every approved proof file,** each file once even when several lines share it. Each page gets an initials tag in art's APPROVED white box, found by reading the "APPROVED" text with pdf.js. A page without art's stamp, or an image proof, gets an added APPROVED box.
+   - **The invoice,** drawn from Airtable in the extension's layout:
+     - logo, bill/ship to, terms, delivery method
+     - every line including fee lines, with sizes OSFA–6XL, price, 2XL+ up-charges and line totals
+     - the order's own discount, subtotal, sales tax, Colorado retail delivery fee, payments and outstanding
+     - signature, name and date tags
+     - 13 lines per page; totals and signature on the last page
+     - the Order Date shows the local date (the extension shows 10955 as 10/4; it's 10/5)
+3. **Checks before sending:** pages tagged, lines with no proof, line totals vs the order subtotal, size limit.
+4. **Preview:** page thumbnails (works on iPad); tap one to open the full PDF, or Download.
+5. **Send:** the worker creates and sends the PandaDoc named "10955 | Customer" (same naming, so the QuickBooks zap still matches). Then the app writes **PandaDoc URL** and **Order Status = Sent - Awaiting Payment** (checked: no automation fires on that status) and the order leaves the queue.
+6. **Practice mode:** builds the preview and sends nothing.
+
+**Safety:**
+- While the worker has the **Sandbox** key, documents are created but **never sent to a customer** (worker v17). The salesperson sees "PandaDoc is still on the Sandbox key".
+- Proof files load directly, or through the worker if Airtable blocks cross-origin reads (v17 `/pandadoc/file` route).
+
+**Tested** with mocked Airtable and worker on 10955's real proofs: 5 pages; tag sizes identical to the proven API-TEST-9; practice, live and sandbox-blocked paths; phone sheet. The v5 review tests also pass on v6.
+
+**To go live:**
+1. Deploy `workers/pine-workers-v17.js`.
+2. Swap `PANDADOC_KEY` to the Production key ($2 per document).
+3. Send one real order to yourself first.
