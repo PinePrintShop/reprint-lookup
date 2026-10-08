@@ -93,3 +93,7 @@ Create order's **Line Item Review →** button now opens v3.
 ## 2026-10-08 · v4
 
 Airtable margin math was rebuilt on the $133k/mo cost basis (see `notes/pricing-formula-review.md`). Margin now means profit after garment, press time and a full share of shop costs, so about 10% is normal. The thin-margin warning moved from <15% to **<5%** (`THIN`), and a one-line note under the margin tiles says what margin means. Create order now opens v4.
+
+## 2026-10-08 · v5
+
+**Invoice-only fees are filtered out**, using the same rule as Purchasing v94: a line with Product Type "Misc." and no garment (shipping, rush and other fees that exist only for the invoice). Those lines no longer appear in the list, the tab counts, the order's line chips, **Next →** or deep links. The order header shows them once, e.g. "+ 1 invoice fee ($25.00)", so the total still makes sense. Create order now opens v5.
