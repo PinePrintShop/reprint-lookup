@@ -177,3 +177,27 @@ Stephen asked for a bigger mockup, less white space beside it, tighter line-item
   - the ‹ › arrows and centring work
   - the approval toggles work from the step row
   - no console errors
+
+## 2026-10-09 · v11: desktop layout (three panes)
+Stephen: Review is used almost only on a desktop, so v11 is designed for it.
+- **Three panes that fit the screen (≥1200px wide):** queue | proof | details. The page itself no longer scrolls.
+  - The queue and the details column each scroll on their own.
+  - The proof always fills the middle, from the step buttons to the bottom of the screen, so it never scrolls away.
+- **Details column (380–480px):** imprints, garment and sizes, pricing, comments, notes, in that order (check the art, then the price).
+  - Its scroll position is kept when the page refreshes itself, e.g. after an approval or when comments load.
+  - Imprint cards stack their buttons under the description so the text doesn't get squeezed.
+- **Several proofs:** one big proof, with thumbnails underneath to switch. Clicking the big proof opens the full file.
+- **Shorter header on desktop:** "X of N lines approved" is a small pill at the top right (the explanation is in its tooltip). The full "Send for signature" bar still appears once every line is approved.
+- **Keyboard:** ← / → move between the order's lines and N goes to the next line in the tab. Keys are ignored while typing.
+- **Below 1200px** it falls back to the v10 layout.
+- **Always-latest links:** `pine-line-item-review.html` and `price-o-matic.html` are tiny redirect pages that open the current version and keep `?practice=1` / `?order=`.
+  - The step bar in POM v105, Create order and Review v11 uses them, so a new Review or POM version doesn't need a link-only release of the others.
+  - When shipping a new version, update the one line in the redirect file.
+- **Tested** with mocked Airtable at 1366×768, 1440×900, 1680×1050, 1920×1080, 2560×1440 and iPad:
+  - nothing runs past the screen
+  - the proof is fully visible
+  - the details column keeps its scroll after an approval
+  - the arrow keys and N work
+  - proof thumbnails switch
+  - the redirects keep the query string
+  - no console errors
