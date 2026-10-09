@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Line Item Review — Pine</title>
+<style>
+:root{--bg:#F2F2EE;--surface:#fff;--line:#E6E6E0;--line2:#D4D4CC;--text:#141412;--muted:#80807A;--soft:#F7F7F4;--yellow:#E8E832;--ydk:#C9C92A;--ytint:#FBFBDC;--green:#1e6b45;--gtint:#e9f4ee;--red:#b3261e;--rtint:#fdf0ee;--amb:#a96b12;--atint:#fbf1e2;
+  --sans:Helvetica,Arial,sans-serif;--mono:'Courier New',monospace;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px}
+body{padding:12px 16px 0;max-width:1680px;margin:0 auto}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.top{background:var(--text);border-radius:var(--r);padding:8px 10px 8px 18px;display:flex;align-items:center;gap:14px;color:#ddd;flex-wrap:wrap}
+.brand{font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:var(--yellow)}
+.crumb{font-size:14px;color:#fff;font-weight:700}
+.prac{background:var(--yellow);color:var(--text);font-weight:700;font-size:12px;padding:6px 10px;border-radius:20px}
+.top .sp{margin-left:auto}
+.me{height:40px;border-radius:8px;border:1px solid #4a4a44;background:#26261f;color:#fff;padding:0 10px;font-weight:700;max-width:190px}
+.me.need{border-color:var(--yellow);box-shadow:0 0 0 2px var(--yellow)}
+.ghost{background:none;border:1px solid #4a4a44;color:#ddd;border-radius:8px;height:40px;padding:0 14px;font-size:13px;text-decoration:none;display:inline-flex;align-items:center}
+.app{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px;margin-top:12px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+/* list */
+.list{position:sticky;top:calc(var(--toph,64px) + 24px);max-height:calc(100vh - var(--toph,64px) - 36px);display:flex;flex-direction:column;overflow:hidden}
+.lhead{padding:12px 12px 8px;border-bottom:1px solid var(--line)}
+.q{width:100%;height:42px;border:1px solid var(--line2);border-radius:8px;padding:0 12px;font-size:16px;outline:none}
+.q:focus{border-color:var(--text)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px}
+.tab{height:48px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-size:12px;font-weight:700;line-height:1.15;padding:0 2px}
+.tab b{display:block;font:700 16px var(--mono)}
+.tab.on{background:var(--text);color:var(--yellow);border-color:var(--text)}
+.lbody{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+.og{border-bottom:1px solid var(--line);padding-bottom:4px}
+.og+.og{margin-top:6px}
+/* order band: dark like the top bar so it never reads as a line item */
+.oh{background:var(--text);color:#fff;padding:8px 12px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;cursor:pointer;position:sticky;top:0;z-index:1}
+.oh .num{font:700 14px var(--mono);color:var(--yellow)}
+.oh .nm{font-weight:700;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+.oh .meta{width:100%;font-size:12px;color:#aaa;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.li .chev{color:var(--line2);font-size:22px;line-height:1;flex:none}
+.li{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:9px 12px 9px 14px;min-height:52px;border-left:4px solid transparent}
+.li:hover{background:var(--soft)}
+.li.on{background:var(--ytint);border-left-color:var(--ydk)}
+.li .g{flex:1;min-width:0;font-size:13px;line-height:1.3}
+.li .g b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .g span{color:var(--muted)}
+.empty{padding:22px 14px;color:var(--muted);font-size:14px;text-align:center}
+.pill{font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap;border:1px solid transparent}
+.st-proof{background:var(--soft);border-color:var(--line2);color:var(--muted)}
+.st-uploaded{background:var(--atint);border-color:#ecd2a6;color:var(--amb)}
+.st-review{background:var(--ytint);border-color:var(--ydk);color:var(--text)}
+.st-ready{background:var(--gtint);border-color:#bfe0cc;color:var(--green)}
+.tag{font-size:11px;font-weight:700;padding:3px 7px;border-radius:20px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.tag.hard{background:var(--rtint);border-color:#f2c9c4;color:var(--red)}
+.tag.asap{background:var(--gtint);border-color:#bfe0cc;color:var(--green)}
+/* detail */
+.det{min-width:0}
+.back{display:none}
+.hdr{padding:16px 20px 14px}
+.hdr .l1{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr .onum{font:700 20px var(--mono)}
+.hdr .cn{font-size:20px;font-weight:800}
+.hdr .l2{margin-top:6px;font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hdr .links{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.lk{height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:1px solid var(--line2);border-radius:8px;background:#fff;font-size:13px;font-weight:700;text-decoration:none}
+.lk:hover{border-color:var(--text)}
+.lk.master{background:var(--yellow);border-color:var(--ydk)}.lk.master small{font:700 11px var(--mono);margin-left:4px}
+.lk.dim{color:var(--muted);font-weight:500;border-style:dashed}
+.lines{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.lc{border:1px solid var(--line2);background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;display:flex;align-items:center;gap:6px;min-height:40px;text-align:left}
+.lc.on{background:var(--ytint);border-color:var(--ydk);box-shadow:inset 0 0 0 1px var(--ydk)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.15)}
+.d-proof{background:#ddd}.d-uploaded{background:#e9b45a}.d-review{background:var(--yellow)}.d-ready{background:#3fae6f}
+.stage{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+.stp{padding:10px 12px;font-size:12px;color:var(--muted);border-right:1px solid var(--line);display:flex;gap:8px;align-items:center;line-height:1.25}
+.stp:last-child{border-right:0}
+.stp i{font-style:normal;width:22px;height:22px;border-radius:50%;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex:none}
+.stp.done{color:var(--text)}.stp.done i{background:var(--text);border-color:var(--text);color:var(--yellow)}
+.stp.now{color:var(--text);font-weight:700;background:var(--ytint)}.stp.now i{border-color:var(--ydk)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:14px}
+@media (min-width:1500px){.cols{grid-template-columns:minmax(0,1fr) 380px}}
+.box{padding:16px 18px}
+.box h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.box h3 .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400}
+.stack>*+*{margin-top:14px}
+.proofs{display:flex;gap:12px;flex-wrap:wrap}
+.pf{display:block;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--soft);text-decoration:none;width:min(100%,460px)}
+.pf img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain;background:#fff}
+.pf .fn{font-size:12px;padding:6px 8px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf.sm{width:150px}.pf.sm img{height:110px;object-fit:cover}
+.noproof{border:2px dashed var(--line2);border-radius:var(--r);padding:26px;text-align:center;color:var(--muted);width:100%}
+.attach{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{height:44px;padding:0 16px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-weight:700;font-size:14px}
+.btn:hover{border-color:var(--text)}
+.btn.y{background:var(--yellow);border-color:var(--ydk)}
+.btn:disabled{opacity:.45;cursor:default}
+.hint{font-size:12px;color:var(--muted)}
+.imp{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.imp+.imp{margin-top:8px}
+.idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px}
+.imp .d{font-size:14px}.imp .d small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.imp .acts{display:flex;gap:6px}
+.imp .nt{grid-column:2/4;font-size:13px;color:var(--text);background:var(--soft);border-radius:6px;padding:6px 8px;white-space:pre-wrap}
+.kv{display:grid;grid-template-columns:130px minmax(0,1fr);gap:8px 14px;font-size:14px;align-items:baseline}
+.kv .k{font-size:12px;color:var(--muted)}
+.sz{display:flex;gap:6px;flex-wrap:wrap}
+.sz span{border:1px solid var(--line2);border-radius:6px;padding:4px 8px;font:700 13px var(--mono);background:#fff}
+.sz span small{font:400 11px var(--sans);color:var(--muted);margin-right:4px}
+.nt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nt-grid label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:700}
+.nt-grid textarea{border:1px solid var(--line2);border-radius:8px;padding:9px 10px;min-height:76px;resize:vertical;font-size:14px;color:var(--text);font-weight:400;outline:none;width:100%}
+.nt-grid textarea:focus{border-color:var(--text)}
+.nt-grid textarea.dirty{border-color:var(--ydk);background:var(--ytint)}
+.savebar{display:flex;gap:10px;align-items:center;margin-top:12px}
+/* comments */
+.cm{display:flex;flex-direction:column;gap:10px;max-height:460px;overflow:auto}
+.c{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.c.mine{background:var(--ytint);border-color:#e6e6a8}
+.c .a{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:baseline}
+.c .a b{color:var(--text);font-size:13px}
+.c .t{font-size:14px;margin-top:3px;white-space:pre-wrap;word-wrap:break-word}
+.c .t .m{font-weight:700;background:#fff;border-radius:4px;padding:0 3px}
+.cbox{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.cbox textarea{width:100%;min-height:70px;border:1px solid var(--line2);border-radius:8px;padding:9px 10px;font-size:15px;resize:vertical;outline:none}
+.cbox textarea:focus{border-color:var(--text)}
+.ment{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.mch{border:1px solid var(--line2);background:#fff;border-radius:20px;padding:0 12px;height:34px;font-size:13px}
+.mch.on{background:var(--yellow);border-color:var(--ydk);font-weight:700}
+.crow{display:flex;gap:10px;align-items:center}
+.crow .btn{margin-left:auto}
+/* pricing */
+.pr-top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pr-top div{background:var(--soft);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--muted)}
+.pr-top b{display:block;font:700 18px var(--mono);color:var(--text);margin-top:2px}
+.pin{display:flex;gap:8px;align-items:center;margin-top:12px}
+.pin input{height:44px;width:120px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;font:700 18px var(--mono);outline:none}
+.pin input:focus{border-color:var(--text)}
+.pr-top.mg{margin-top:12px}.pr-top.mg div{background:#fff;border:1px solid var(--line)}
+.pr-top b.neg{color:var(--red)}
+.warn{background:var(--rtint);border:1px solid #f2c9c4;color:var(--red);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+.okb{background:var(--gtint);border:1px solid #bfe0cc;color:var(--green);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+/* action bar */
+.abar{position:sticky;bottom:0;z-index:5;margin-top:14px;background:var(--text);border-radius:var(--r) var(--r) 0 0;padding:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.ab{height:56px;border-radius:8px;border:1px solid #4a4a44;background:#26261f;color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;line-height:1.1;text-align:center;padding:0 8px}
+.ab small{display:block;font-weight:400;font-size:11px;color:#aaa}
+.ab.on{background:var(--yellow);color:var(--text);border-color:var(--ydk)}
+.ab.on small{color:#555}
+.ab.next{background:none;color:var(--yellow);border-color:#4a4a44;padding:0 18px}
+.ab:disabled{opacity:.4}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:20;box-shadow:0 4px 18px rgba(0,0,0,.25);max-width:90vw}
+.toast.err{background:var(--red)}
+.tok{padding:16px 18px;margin-top:12px}
+.tok .row{display:flex;gap:8px;margin-top:10px}
+.tok input{flex:1;height:44px;border:1px solid var(--line2);border-radius:8px;padding:0 12px}
+.spin{color:var(--muted);padding:30px;text-align:center}
+.mob-only{display:none}
+/* phone / small iPad portrait */
+@media (max-width:900px){
+  body{padding:8px 10px 0}
+  .app{grid-template-columns:minmax(0,1fr);margin-top:8px}
+  .list{position:static;max-height:none}
+  .app.det-open .list{display:none}
+  .app:not(.det-open) .det{display:none}
+  .back{display:flex;align-items:center;margin-bottom:8px}
+  .nt-grid{grid-template-columns:1fr}
+  .kv{grid-template-columns:100px minmax(0,1fr)}
+  .stage{grid-template-columns:repeat(2,1fr)}
+  .stp:nth-child(2){border-right:0}.stp:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .abar{grid-template-columns:repeat(3,minmax(0,1fr));margin-left:-10px;margin-right:-10px;border-radius:0}
+  .ab{height:54px;font-size:13px}
+  .ab.next{grid-column:1/-1;height:40px}
+  .top{gap:8px;padding:8px 10px}
+  .crumb{display:none}
+  .me{max-width:150px}
+  .hdr{padding:14px}
+  .box{padding:14px}
+  .imp{grid-template-columns:auto minmax(0,1fr)}
+  .imp .acts{grid-column:1/-1}
+  .imp .nt{grid-column:1/-1}
+  .mob-only{display:inline}
+}
+.sendbar{margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--gtint);border:1px solid #bfe0cc;border-radius:var(--r);padding:10px 12px}
+.sendbar b{color:var(--green)}.sendbar .btn{margin-left:auto}
+.sendbar.wait{background:var(--soft);border-color:var(--line)}.sendbar.wait b{color:var(--muted)}
+.sheet{position:fixed;inset:0;background:rgba(20,20,18,.55);z-index:30;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px}
+.sheet .in{background:#fff;border-radius:var(--r);width:min(980px,100%);padding:18px 20px}
+.sheet h2{font-size:18px;margin-bottom:4px}
+.sheet .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sheet label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin:10px 0 4px}
+.sheet input,.sheet textarea{width:100%;border:1px solid var(--line2);border-radius:8px;padding:9px 10px;font-size:15px}
+.sheet input{height:44px}.sheet textarea{min-height:70px;resize:vertical}
+.sheet .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap;position:sticky;bottom:-18px;background:#fff;padding:10px 0 12px;border-top:1px solid var(--line)}
+.thumbs{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;max-height:56vh;overflow:auto;background:var(--soft);border-radius:8px;padding:12px}
+.thumbs .th{display:flex;flex-direction:column;gap:4px;text-decoration:none;font-size:12px;color:var(--muted);align-items:center}
+.thumbs canvas{border:1px solid var(--line2);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.sheet .chk{font-size:13px;margin-top:10px;display:grid;gap:4px}
+.sheet .chk div::before{content:"✓ ";color:var(--green);font-weight:900}
+.sheet .chk div.bad::before{content:"! ";color:var(--red)}
+@media (max-width:900px){.sheet .row2{grid-template-columns:1fr}.thumbs canvas{max-width:42vw;height:auto}}
+.flow{display:inline-flex;align-items:center;gap:2px;background:#26261f;border:1px solid #4a4a44;border-radius:22px;padding:3px;font-family:Helvetica,Arial,sans-serif}
+.flow a,.flow b{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:18px;font-size:13px;font-weight:700;text-decoration:none;color:#ddd;white-space:nowrap;letter-spacing:0;text-transform:none}
+.flow a:hover{color:#fff;background:#3a3a33}
+.flow b{background:#E8E832;color:#141412}
+.flow i{font-style:normal;font-size:11px;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid currentColor;opacity:.8}
+.flow .sep{color:#6b6b63;font-size:12px;padding:0 1px}
+.flow .sh{display:none}
+@media (max-width:600px){.flow a,.flow b{padding:0 9px;font-size:12px;gap:4px}.flow .lbl{display:none}.flow .sh{display:inline}}
+.top[data-pin]{position:sticky;top:0;z-index:25;box-shadow:0 0 0 12px var(--bg)}
+html{scroll-padding-top:calc(var(--toph,64px) + 20px)}
+@media (max-width:900px){
+  .top[data-pin]{box-shadow:0 0 0 8px var(--bg);row-gap:6px}
+  .top .pl{display:none}
+  .top .prac{font-size:11px;padding:4px 8px}
+  .me{height:36px;max-width:132px;font-size:14px}
+  .top .ghost{height:36px;padding:0 10px}
+}
+/* v10: bigger proof, one-row line strip, slimmer approval bar */
+.hdr{padding:14px 18px 12px}
+.hdr .links{margin-top:8px}
+.lk{height:34px}
+.sendbar{margin-top:10px;padding:7px 12px}
+.lnav{display:flex;align-items:center;gap:6px;margin-top:10px}
+.lnav .ar{flex:none;width:36px;height:36px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-size:18px;font-weight:700;line-height:1}
+.lnav .ar:disabled{opacity:.35}
+.lnav .cnt{flex:none;font:700 12px var(--mono);color:var(--muted);min-width:44px;text-align:center}
+.lines{flex:1;min-width:0;margin-top:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding:2px 1px 4px}
+.lc{flex:none;min-height:36px;padding:4px 10px;font-size:12px;white-space:nowrap;max-width:260px}
+.lc span.t{overflow:hidden;text-overflow:ellipsis}
+.stp{padding:8px 12px}
+.cols{margin-top:12px}
+.box.pbox{padding:12px 14px}
+.box.pbox h3{margin-bottom:8px}
+.proofs{gap:10px}
+.pf{width:100%}
+.pf img{max-height:max(420px,calc(100vh - var(--toph,64px) - 150px))}
+.proofs.multi .pf{width:calc(50% - 5px)}
+.proofs.multi .pf img{max-height:520px}
+.attach{margin-top:10px}
+.abar{padding:6px;gap:6px;margin-top:12px}
+.ab{height:44px;font-size:14px}
+.ab small{display:none}
+.ab.next{padding:0 16px}
+.hdr .l2 .links{margin:0 0 0 auto;display:inline-flex;gap:6px;flex-wrap:wrap}
+.hdr .l2{row-gap:6px}
+.sbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:6px;margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px}
+.sbar .stp{border:1px solid var(--line);border-radius:8px;min-height:44px;background:#fff;text-align:left;font-size:13px}
+.sbar .stp:last-child{border-right:1px solid var(--line)}
+.sbar .sb{cursor:pointer}
+.sbar .sb:hover{border-color:var(--text)}
+.sbar .stp.done{background:var(--yellow);border-color:var(--ydk);color:var(--text);font-weight:700}
+.sbar .stp.done i{background:var(--text);color:var(--yellow);border-color:var(--text)}
+.sbar .stp.now{background:var(--ytint);border-color:var(--ydk)}
+.sbar .sb:disabled{opacity:.5;cursor:default}
+.snext{border:0;background:var(--text);color:var(--yellow);border-radius:8px;font-weight:800;font-size:14px;padding:0 18px;min-height:44px}
+@media (min-width:700px){
+  .sbar{position:sticky;top:calc(var(--toph,64px) + 12px);z-index:4;box-shadow:0 0 0 8px var(--bg),0 -14px 0 0 var(--bg)}
+  .abar{display:none}
+  .pf img{max-height:max(420px,calc(100vh - var(--toph,64px) - 200px))}
+}
+@media (max-width:900px){
+  .hdr .l2 .links{margin-left:0;width:100%}
+}
+@media (max-width:699px){
+  .sbar{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sbar .snext{display:none}
+  .proofs.multi .pf{width:100%}
+  .pf img{max-height:70vh}
+  .ab{height:46px;font-size:13px}
+  .ab.next{height:36px}
+  .lc{max-width:150px}
+}
+/* v11: desktop = three panes (queue | proof | details), each fits the screen; the proof never scrolls away */
+.pthumbs{display:flex;gap:6px;margin-top:8px;overflow-x:auto;flex:none}
+.pt{flex:none;width:76px;height:58px;border:1px solid var(--line2);border-radius:6px;background:#fff;padding:2px;overflow:hidden}
+.pt img{width:100%;height:100%;object-fit:contain}
+.pt.on{border-color:var(--ydk);box-shadow:0 0 0 2px var(--yellow)}
+.dgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:12px}
+.dmain{min-width:0}
+@media (min-width:1200px){
+  body{max-width:2400px;padding-bottom:12px}
+  html,body{height:100%}
+  .app{grid-template-columns:310px minmax(0,1fr);height:calc(100vh - var(--toph,64px) - 36px);align-items:stretch}
+  .list{position:static;max-height:none;height:100%}
+  .det{display:flex;flex-direction:column;min-height:0;height:100%}
+  .det>.panel{flex:none}
+  .sbar{position:static;box-shadow:none;flex:none}
+  .dgrid{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) clamp(380px,28vw,480px);grid-template-rows:minmax(0,1fr)}
+  .hdr{position:relative}
+  .hdr .l1{padding-right:230px}
+  .sendbar.wait{position:absolute;top:12px;right:16px;margin:0;padding:5px 12px;border-radius:20px}
+  .sendbar.wait .hint{display:none}
+  .sbar{margin-top:10px}
+  .dgrid{margin-top:10px}
+  .dmain{display:flex;flex-direction:column;min-height:0}
+  .pbox{flex:1;min-height:0;display:flex;flex-direction:column}
+  .pbox .proofs{flex:1;min-height:0;display:flex}
+  .pbox .pf{flex:1;min-height:0;display:flex;flex-direction:column;width:auto}
+  .pbox .imgw{flex:1;min-height:0;position:relative;background:#fff}
+  .pbox .imgw img{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:contain}
+  .pbox .imgw .noproof{position:absolute;inset:0}
+  .drail .imp{grid-template-columns:auto minmax(0,1fr)}
+  .drail .imp .acts{grid-column:1/-1;flex-wrap:wrap}
+  .drail .imp .nt{grid-column:1/-1}
+  .pbox .noproof{display:flex;align-items:center;justify-content:center}
+  .pbox .attach{flex:none}
+  .drail{overflow:auto;min-height:0;padding-right:4px;scrollbar-width:thin}
+  .drail .nt-grid{grid-template-columns:1fr}
+  .drail .cm{max-height:min(46vh,420px)}
+  .abar{display:none}
+  .back{display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="top" data-pin>
+  <div class="brand">Pine</div><span id="flowNav"></span>
+  <span class="prac" id="prac" style="display:none">PRACTICE<span class="pl"> · nothing is saved</span></span>
+  <span class="sp"></span>
+  <select class="me" id="me" onchange="setMe(this.value)" aria-label="Who are you?"></select>
+  <button class="ghost" onclick="load(true)" title="Refresh">↻</button>
+</div>
+<div id="tokBox" class="panel tok" style="display:none"><b>Airtable token</b> · paste the same token the other Pine apps use (saved on this device only).
+  <div class="row"><input id="tok" placeholder="pat…" autocomplete="off"><button class="btn y" onclick="saveTok()">Save</button></div></div>
+<div class="app" id="app">
+  <div class="panel list">
+    <div class="lhead">
+      <input class="q" id="q" placeholder="Search order #, customer, garment" oninput="S.q=this.value;renderList()" autocomplete="off">
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div class="lbody" id="lbody"><div class="spin">Loading…</div></div>
+  </div>
+  <div class="det" id="det"></div>
+</div>
+<input type="file" id="file" accept="image/*,application/pdf" multiple style="display:none" onchange="uploadProofs(this.files)">
+<script>
+/* ---------- Airtable ---------- */
+const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_LI='tblJx5UlwO7oMSk5H', T_IMP='tbln9oAGvz2PNBZLV', T_GAR='tblukWGm0CIelookM', T_CUST='tblXToEJONa3VELp2';
+const PRACTICE=/[?&]practice=1/.test(location.search);
+const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',rep:'fldSPnWlnzz48ZZDD',due:'fldphJYdlBNS0dmAK',hard:'fldMFfWyYJ6ZQDte6',lines:'fldU6fgrz6sU3wyIZ',created:'fldXUjQHSeRaW5per',art:'fldriiZiENIPeJRRV',
+  // v6 — invoice + PandaDoc send
+  contactName:'fldwO1DrkCebInHlj',contactEmail:'fldSQShbnSLkVQ8uK',repEmail:'fldPzZrJi6yiO53Od',terms:'fldXiOl3dp5AOSdfN',shipMethod:'fldpVCwzNucLLifXD',
+  billAddr:'fldfscTS0dmRfr7sN',billCity:'fldFQvJpLpOyKBIJv',billState:'fldxYM9InsLYVbBkH',billZip:'fldxfVs29n3HszG86',
+  shipContact:'fldpHFCU70jZpuKs6',shipAddr:'fldDf4gRxe2NoUVPy',shipCity:'fldh0KVzmy5QsWj2D',shipState:'fldTlayqsfEWPaph0',shipZip:'fld4uEiBVeL9w48R3',
+  discount:'fldVgM2vVjMfSBqGv',subtotal:'fldIpkZrYJAaChFXZ',tax:'fldB6SyS5Z4ZvVFir',rdf:'fldeQWzf54B27kbHq',paid:'fld0PV2voxceYy9aQ',outstanding:'fld41ufQmz4XFtok4',pandadoc:'fldqIIPwPEJXL7Efu'};
+const L={ptype:'fld8LIkrBXv8WoRRb',garment:'fldZbOdGIoCk3Gan2',imps:'fldTFz4ZzfOthqkg6',nick:'fldKb7r8o7uvj1iEd',proof:'flddhvdkKI31tFTdX',
+  ready2:'fldycrq3VJYSFd8Gi',qok:'fldsVU7LXUN6LszvB',pok:'fldR8jKCpNAhfyt5G',
+  nProof:'fldWdnT83KLEvBrg4',nSales:'fldG3tzTzUC3QQJ1I',nProd:'fld4FjoCQ5bXdwjJj',nShip:'fld7rY74m37acM2Ik',nOrder:'fldF378cgWuOcWNL6',nFin:'fldqsj7nZgHrtRbEn',
+  price:'fldtMZWzA4dfPxEXx',auto:'fldyMPijIsJW5XmI8',total:'fldSMd8DkbypJiw2W',qty:'fldFfuKAcduwWQp8g',plus:'fldz5zScKTotEqJGg',sizes:'fldGh3mjV0Q753nzs',
+  womens:'fld65C13J5BbKIWoI',youth:'fldLHtzJ3peAtr4X1',created:'fldl02e7TiLPg4v47',waitT:'fldEnov8O5itelIm1',elapsed:'fldRrcFrlv3I54cEt',impDesc:'fldKpcYiNDhlknPyv',
+  gCost:'fldVtBTv42HG6WYs1',labor:'fld2NLpfI9x7E7eMq',overhead:'fldgGJXMzYpSnr2Cw',materials:'fldyuDjdP9KQx9Dui',shipA:'fld0IVAS1IxcPoqc6',ascIn:'fldbs9svKV48Xx3yq',pay:'fldjTKtpDmrnNml2c',
+  mPiece:'fldU1y8VEpcg25vtr',mLine:'fldCchT5PeYhNvxXr',mPct:'fldHnS5fBKoWbZx5f',thread:'fldN1ZvNKYF5s8qUo',threadName:'fldhmfbmjD9Gbj0ng',promo:'fldrkl4UNBYf9QmNQ',pdesc:'fldBGLb39lznbSibX',
+  vReady:'fld1PvosWlHKMKKMS',vUp:'fld8S6v2jG8kaID7B'};
+const I={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',repeat:'flda9L7041ahNZT0b',notes:'fldNuEzGIYI8FWqXu',sep:'fldiBqdFTRMahiMeI',folder:'flduiSyyBu5bf8jfG',inks:'fldMM5hp8kEpo3KKT',
+  prev:'fldAEQvMAAZX9gnhl',masterFolder:'fld0Bu2TH7Rgflvm4',masterId:'fldBHbv5lUXAm0D5V',canonId:'fldNDHBSscGx8PGgu'};
+const G_NAME='fldT4jfh2XV9lERef', C_ART='fldxohp41phv6Qbms';
+const NOTES=[['nProof','Proofing notes'],['nSales','Sales notes'],['nProd','Production notes'],['nShip','Shipping notes']];
+const SIZES=[['XS','fldVA9ZmYxhDxtnYZ'],['S','fldCZr5lB6Jx80lfG'],['M','fldzTs1qKe9IBxxSn'],['L','fldnRLJxjUDa1mQTj'],['XL','fldTRgdexcpBXXQPv'],['2XL','fldin7j6uGO0uRTec'],['3XL','fldpltq9fdRkrvIvt'],['4XL','fldrsci7JnToa43Zd'],['5XL','fldchnRSKFukouW6N'],['6XL','fldI8gTtsEJwg33BI'],['OSFA','fld2bgIlmPbANgLVK']];
+// Margins are profit after garments, press time and a full share of shop costs ($133k/mo), so ~10% is normal. Flag under 5%.
+const THIN=0.05;
+const WHO=['Art Department','Chris','Garrett','Josh','Patrick','Stephen','Whitney'];
+// Airtable users we can @mention. Seeded with people seen on Line Item comments; the app learns more from every thread it opens.
+const PEOPLE_SEED={usr8GNzrtN698y03u:'Art Department',usrIie9QUerxvDqmi:'Chris Hoffman',usrc25UiXFiAJg0hW:'Patrick Dawson',usr0lsFTRPFpjXsUH:'Whitney Bontrager'};
+
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+let TOKEN=ls.get('pine_at_key','');
+const S={orders:[],lines:{},garments:{},custArt:{},imps:{},comments:{},tab:null,q:'',sel:null,me:ls.get('pine_lir_me',''),ment:[],busy:{},dirty:{},loaded:false};
+let PEOPLE={}; try{PEOPLE=Object.assign({},PEOPLE_SEED,JSON.parse(ls.get('pine_lir_people','{}')));}catch(e){PEOPLE=Object.assign({},PEOPLE_SEED);}
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sel=v=>v==null?'':(typeof v==='string'?v:(v.name||''));
+const first=v=>Array.isArray(v)?v[0]:v;
+const num=v=>{const x=Array.isArray(v)?v[0]:v;return typeof x==='number'?x:(x==null||x===''?null:Number(x));};
+const money=v=>v==null||isNaN(v)?'—':(v<0?'−$':'$')+Math.abs(v).toFixed(2);
+const flds=a=>a.map(f=>'fields%5B%5D='+f).join('&');
+function ago(t){ if(!t) return ''; const m=(Date.now()-new Date(t))/6e4; if(m<60) return Math.max(1,Math.round(m))+'m'; const h=m/60; if(h<48) return Math.round(h)+'h'; return Math.round(h/24)+'d'; }
+function fmtDate(d){ if(!d) return ''; const x=new Date(d+(String(d).length===10?'T12:00:00':'')); return x.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+function toast(msg,err){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const t=document.createElement('div'); t.className='toast'+(err?' err':''); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),err?5000:2200); }
+
+async function at(path,opt){
+  if(!TOKEN){ $('tokBox').style.display=''; throw new Error('no token'); }
+  const r=await fetch(path.startsWith('http')?path:`https://api.airtable.com/v0/${BASE}/${path}`,Object.assign({},opt||{},{headers:Object.assign({Authorization:'Bearer '+TOKEN},(opt&&opt.body)?{'Content-Type':'application/json'}:{})}));
+  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status)); }
+  return r.json();
+}
+async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(`${table}?returnFieldsByFieldId=true&${params}${off?'&offset='+off:''}`); out=out.concat(d.records||[]); off=d.offset||''; }while(off&&out.length<(max||1000)); return out; }
+async function byIds(table,ids,fields){ const out=[]; ids=[...new Set(ids)].filter(Boolean);
+  for(let i=0;i<ids.length;i+=40){ const f=`OR(${ids.slice(i,i+40).map(id=>`RECORD_ID()='${id}'`).join(',')})`;
+    out.push(...await atAll(table,`pageSize=100&${flds(fields)}&filterByFormula=${encodeURIComponent(f)}`)); }
+  return out; }
+function saveTok(){ TOKEN=$('tok').value.trim(); ls.set('pine_at_key',TOKEN); $('tokBox').style.display='none'; load(); }
+
+/* ---------- who am I ---------- */
+function renderMe(){ const m=$('me'); m.innerHTML=`<option value="">Who are you?</option>`+WHO.map(w=>`<option${w===S.me?' selected':''}>${esc(w)}</option>`).join(''); m.classList.toggle('need',!S.me); }
+function setMe(v){ S.me=v; ls.set('pine_lir_me',v); if(!S.tabTouched) S.tab=defaultTab(); renderMe(); renderList(); renderDet(); }
+function defaultTab(){ return S.me==='Art Department'?'art':'review'; }
+
+/* ---------- load ---------- */
+async function load(manual){
+  if(!TOKEN){ $('tokBox').style.display=''; $('lbody').innerHTML='<div class="empty">Paste the Airtable token above to start.</div>'; return; }
+  if(manual) $('lbody').innerHTML='<div class="spin">Refreshing…</div>';
+  try{
+    const ords=await atAll(T_ORD,`pageSize=100&${flds(Object.values(O))}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=asc&filterByFormula=${encodeURIComponent('{Order Status}="Awaiting Proof"')}`,500);
+    S.orders=ords.map(r=>{const f=r.fields;return {id:r.id,num:f[O.num],cust:first(f[O.cust])||'',name:String(f[O.custName]||'').trim(),rep:sel(f[O.rep]),due:f[O.due]||'',hard:sel(f[O.hard]),lines:f[O.lines]||[],created:f[O.created]||'',art:f[O.art]||[],f};});
+    const lids=S.orders.flatMap(o=>o.lines);
+    const recs=await byIds(T_LI,lids,Object.values(L).concat(SIZES.map(s=>s[1])));
+    const keep=S.lines; S.lines={}; recs.forEach(r=>{ S.lines[r.id]=Object.assign(r.fields,{_id:r.id}); if(keep[r.id]&&keep[r.id]._local) Object.assign(S.lines[r.id],keep[r.id]._local,{_local:keep[r.id]._local}); });
+    const gids=recs.flatMap(r=>r.fields[L.garment]||[]).filter(id=>!S.garments[id]);
+    if(gids.length) (await byIds(T_GAR,gids,[G_NAME])).forEach(g=>S.garments[g.id]=g.fields[G_NAME]||'');
+    const cids=S.orders.map(o=>o.cust).filter(id=>id&&!(id in S.custArt));
+    if(cids.length){ const cs=await byIds(T_CUST,cids,[C_ART]); cids.forEach(id=>S.custArt[id]=''); cs.forEach(c=>S.custArt[c.id]=c.fields[C_ART]||''); }
+    S.loaded=true;
+  }catch(e){ if(e.message!=='no token') $('lbody').innerHTML=`<div class="empty">Couldn't load from Airtable: ${esc(e.message)}</div>`; return; }
+  if(!S.tab) S.tab=deepLink()||defaultTab();
+  if(S.sel&&!S.lines[S.sel]) S.sel=null;
+  renderList(); renderDet();
+}
+function deepLink(){ const p=new URLSearchParams(location.search), on=p.get('order'), ln=p.get('line');
+  if(ln&&real(ln)){ pick(ln,true); return 'all'; }
+  if(on){ const o=S.orders.find(x=>String(x.num)===on); if(o&&o.lines.find(real)){ pick(o.lines.find(real),true); return 'all'; } toast('Order '+on+' isn\'t awaiting proof'); }
+  return null; }
+
+/* ---------- state of a line ---------- */
+// Invoice-only lines (Product Type Misc., no garment: shipping, rush and other fees) have nothing to proof. Same rule as Purchasing v94.
+function isFee(Ln){ return !(Ln[L.garment]||[]).length && /^misc/i.test(sel(Ln[L.ptype])); }
+const real=id=>{ const Ln=S.lines[id]; return Ln&&!isFee(Ln)?Ln:null; };
+function stage(Ln){ if(Ln[L.qok]&&Ln[L.pok]) return 'ready'; if(Ln[L.ready2]) return 'review'; if((Ln[L.proof]||[]).length) return 'uploaded'; return 'proof'; }
+const ST_TXT={proof:'Needs proof',uploaded:'Proof up',review:'Awaiting review',ready:'Ready to send'};
+const TABS=[['art','Art to do',s=>s==='proof'||s==='uploaded'],['review','Review',s=>s==='review'],['ready','Ready to send',s=>s==='ready'],['all','All',()=>true]];
+function gName(Ln){ const g=(Ln[L.garment]||[]).map(id=>S.garments[id]).filter(Boolean)[0]; return g||Ln[L.nick]||Ln[L.pdesc]||Ln[L.promo]||sel(Ln[L.ptype])||'Line item'; }
+function impLine(Ln){ const d=Ln[L.impDesc]; return (Array.isArray(d)?d:[d]).filter(Boolean).join(' · '); }
+function lineOrder(id){ return S.orders.find(o=>o.lines.includes(id)); }
+function reviewLabel(Ln){ const s=stage(Ln); if(s==='review'){ const q=Ln[L.qok],p=Ln[L.pok]; if(q||p) return (q?'Quality ✓':'Pricing ✓')+' · 1 to go'; } return ST_TXT[s]; }
+
+/* ---------- list ---------- */
+function visible(){ const ws=S.q.toLowerCase().split(/\s+/).filter(Boolean), tab=TABS.find(t=>t[0]===S.tab)||TABS[3], out=[];
+  S.orders.forEach(o=>{ const ls_=o.lines.map(real).filter(Boolean).filter(Ln=>tab[2](stage(Ln))).filter(Ln=>{ const hay=(o.num+' '+o.name+' '+gName(Ln)+' '+impLine(Ln)+' '+o.rep).toLowerCase(); return ws.every(w=>hay.includes(w)); });
+    if(ls_.length) out.push({o,lines:ls_}); });
+  return out; }
+function counts(){ const c={art:0,review:0,ready:0,all:0}; Object.values(S.lines).forEach(Ln=>{ if(!lineOrder(Ln._id)||isFee(Ln)) return; const s=stage(Ln); c.all++; TABS.forEach(t=>{ if(t[0]!=='all'&&t[2](s)) c[t[0]]++; }); }); return c; }
+function renderList(){
+  const c=counts(); $('tabs').innerHTML=TABS.map(t=>`<button class="tab${S.tab===t[0]?' on':''}" onclick="S.tab='${t[0]}';S.tabTouched=true;renderList()"><b>${c[t[0]]}</b>${t[1]}</button>`).join('');
+  if(!S.loaded) return;
+  const v=visible();
+  if(!v.length){ $('lbody').innerHTML=`<div class="empty">${S.q?'Nothing matches “'+esc(S.q)+'”':S.tab==='art'?'No proofs waiting on art 🎉':S.tab==='review'?'Nothing waiting for review':S.tab==='ready'?'Nothing ready to send yet':'No orders awaiting proof'}</div>`; return; }
+  $('lbody').innerHTML=v.map(({o,lines})=>`<div class="og"><div class="oh" onclick="pick('${lines[0]._id}')" title="Opens the first line"><span class="num">${esc(o.num)}</span><span class="nm">${esc(o.name)}</span>
+      <div class="meta">${[o.rep?esc(o.rep):'',o.hard?`<span class="tag ${o.hard==='ASAP'?'asap':'hard'}">${o.hard==='ASAP'?'ASAP':'Hard'}${o.due?' '+fmtDate(o.due):''}</span>`:(o.due?'due '+fmtDate(o.due):''),ago(o.created)+' old'].filter(Boolean).join(' · ')}</div></div>
+    ${lines.map(Ln=>{const s=stage(Ln),cc=S.comments[Ln._id];return `<button class="li${S.sel===Ln._id?' on':''}" onclick="pick('${Ln._id}')"><span class="g"><b>${esc(gName(Ln))}</b><span>${esc(impLine(Ln)||sel(Ln[L.ptype]))}${cc&&cc.list&&cc.list.length?' · 💬 '+cc.list.length:''}</span></span><span class="pill st-${s}">${esc(reviewLabel(Ln))}</span><span class="chev">›</span></button>`;}).join('')}</div>`).join('');
+}
+
+/* ---------- detail ---------- */
+function pick(id,quiet){ if(S.sel&&S.sel!==id&&hasDirty()&&!confirm('You have unsaved notes. Leave them?')) return; S.dirty={}; S.sel=id; S.ment=[]; $('app').classList.add('det-open');
+  if(quiet) return; renderList(); renderDet(); window.scrollTo({top:0}); }
+function closeDet(){ if(hasDirty()&&!confirm('You have unsaved notes. Leave them?')) return; S.dirty={}; $('app').classList.remove('det-open'); renderList(); }
+const hasDirty=()=>Object.keys(S.dirty).length>0;
+function renderDet(){
+  syncFlow();
+  const Ln=S.lines[S.sel], d=$('det');
+  if(!Ln){ d.innerHTML=S.loaded?`<div class="panel box" style="color:var(--muted)">Pick a line item on the left.${S.me?'':'<br><br>First, choose <b>who you are</b> at the top right — comments are signed with it.'}</div>`:''; return; }
+  const o=lineOrder(Ln._id)||{lines:[]}, s=stage(Ln), proofs=Ln[L.proof]||[];
+  if(!S.imps[Ln._id]) loadImps(Ln); if(!S.comments[Ln._id]) loadComments(Ln._id);
+  const art=S.custArt[o.cust], oLines=o.lines.map(real).filter(Boolean), fees=o.lines.map(id=>S.lines[id]).filter(x=>x&&isFee(x));
+  const steps=[['proof','Proof uploaded',proofs.length>0],['review','Awaiting review',!!Ln[L.ready2]],['q','Quality approved',!!Ln[L.qok]],['p','Pricing approved',!!Ln[L.pok]]];
+  const nowIdx=steps.findIndex(x=>!x[2]);
+  let h=`<button class="btn back" onclick="closeDet()">‹ All line items</button>
+  <div class="panel"><div class="hdr">
+    <div class="l1"><span class="onum">${esc(o.num||'')}</span><span class="cn">${esc(o.name||'')}</span><span class="pill st-${s}">${esc(reviewLabel(Ln))}</span></div>
+    <div class="l2">${o.rep?'<span>'+esc(o.rep)+'</span>':''}${o.hard?`<span class="tag ${o.hard==='ASAP'?'asap':'hard'}">${o.hard==='ASAP'?'ASAP':'Hard deadline'}</span>`:''}${o.due?'<span>Due '+fmtDate(o.due)+'</span>':''}<span>Created ${ago(Ln[L.created])} ago</span>${fees.length?`<span title="Invoice-only lines aren't reviewed here">+ ${fees.length} invoice fee${fees.length>1?'s':''} (${money(fees.reduce((t,f)=>t+(num(f[L.total])||0),0))})</span>`:''}${Ln[L.elapsed]?'<span>Proof took '+esc(String(Ln[L.elapsed]).replace('⏳ ',''))+'</span>':Ln[L.waitT]?'<span>Waiting on proof '+esc(String(Ln[L.waitT]).replace('⏳ ',''))+'</span>':''}
+    <span class="links">${art?`<a class="lk" href="${esc(art)}" target="_blank" rel="noopener">📁 Client art folder</a>`:`<span class="lk dim" title="Save it from Create order">No art folder saved</span>`}
+      ${(o.art||[]).length?`<a class="lk" href="${esc(o.art[0].url)}" target="_blank" rel="noopener">🖼 Customer art (${o.art.length})</a>`:''}
+      <a class="lk" href="https://airtable.com/${BASE}/${T_LI}/${Ln._id}" target="_blank" rel="noopener">Open in Airtable ↗</a></span></div>
+    ${sendBanner(o)}
+    ${oLines.length>1?(()=>{const i=oLines.findIndex(x=>x._id===Ln._id),pv=oLines[i-1],nx=oLines[i+1];return `<div class="lnav"><button class="ar" title="Previous line" ${pv?`onclick="pick('${pv._id}')"`:'disabled'}>‹</button><div class="lines" id="lstrip">${oLines.map(x=>`<button class="lc${x._id===Ln._id?' on':''}" title="${esc(gName(x))}" onclick="pick('${x._id}')"><span class="dot d-${stage(x)}"></span><span class="t">${esc(gName(x))}</span></button>`).join('')}</div><span class="cnt" title="← / → keys move between lines">${i+1} / ${oLines.length}</span><button class="ar" title="Next line on this order" ${nx?`onclick="pick('${nx._id}')"`:'disabled'}>›</button></div>`;})():''}
+  </div></div>
+  ${stageHtml(Ln,steps,nowIdx)}
+  <div class="dgrid"><div class="dmain">
+    <div class="panel box pbox"><h3>Proof<span class="r hint">${proofs.length?proofs.length+' file'+(proofs.length>1?'s':''):''}</span></h3>
+      ${proofView(Ln,proofs)}
+      <div class="attach"><button class="btn${proofs.length?'':' y'}" onclick="$('file').click()" ${S.busy.up?'disabled':''}>${S.busy.up?'Uploading…':proofs.length?'+ Attach another':'Attach proof'}</button><span class="hint">PDF or image, up to 5 MB each</span></div>
+    </div>
+  </div><div class="drail stack">
+    ${commentsHtml(Ln)}
+    ${impsHtml(Ln)}
+    ${garmentHtml(Ln)}
+    ${pricingHtml(Ln)}
+    ${notesHtml(Ln)}
+  </div></div>
+  ${actionsHtml(Ln)}`;
+  const old=d.querySelector('.drail'), keep=old&&d.dataset.line===Ln._id?old.scrollTop:0;
+  d.innerHTML=h; d.dataset.line=Ln._id;
+  const nr=d.querySelector('.drail'); if(nr&&keep) nr.scrollTop=keep;
+  const ls=$('lstrip'), on=ls&&ls.querySelector('.lc.on'); if(on){ const lr=ls.getBoundingClientRect(), r=on.getBoundingClientRect(); ls.scrollLeft+=(r.left-lr.left)-(lr.width-r.width)/2; }
+}
+function impsHtml(Ln){ const ims=S.imps[Ln._id];
+  let b=!ims||!ims.list?'<div class="hint">Loading imprints…</div>':ims.err?`<div class="hint">Couldn't load imprints: ${esc(ims.err)}</div>`:!ims.list.length?`<div class="hint">${esc(impLine(Ln)||'No imprints linked')}</div>`:
+    ims.list.map(f=>`<div class="imp"><span class="idtag">${esc(f[I.id]||'—')}</span><div class="d">${esc([sel(f[I.loc]),sel(f[I.type])].filter(Boolean).join(' · ')||'Imprint')}${f[I.screens]?' · '+f[I.screens]+' screen'+(f[I.screens]>1?'s':''):''}${f[I.repeat]||f._from?' · <b>Repeat'+(f._from?' of '+esc(f._from):'')+'</b>':''}<small>${esc([f[I.nick],f[I.inks]].filter(Boolean).join(' · '))}</small></div>
+      <div class="acts">${f._master?`<a class="lk master" href="${esc(f._master.url)}" target="_blank" rel="noopener" title="Canonical folder${f._master.mid?' '+esc(f._master.mid):''}">📁 Master design${f._master.mid?` <small>${esc(f._master.mid)}</small>`:''}</a>`:(f[I.repeat]||f._from)?'<span class="lk dim" title="No canonical folder found for this design yet">No master folder yet</span>':''}${f[I.sep]?`<a class="lk" href="${esc(f[I.sep])}" target="_blank" rel="noopener">Sep file</a>`:''}</div>
+      ${f[I.notes]?`<div class="nt">${esc(f[I.notes])}</div>`:''}</div>`).join('');
+  return `<div class="panel box"><h3>Imprints</h3>${b}</div>`; }
+function garmentHtml(Ln){ const sz=SIZES.filter(s=>num(Ln[s[1]])>0);
+  const tags=[Ln[L.womens]?'Women\'s':'',Ln[L.youth]?'Youth':''].filter(Boolean);
+  return `<div class="panel box"><h3>Garment</h3><div class="kv">
+    <span class="k">Garment</span><span><b>${esc(gName(Ln))}</b>${tags.length?' · '+tags.map(t=>`<span class="tag">${t}</span>`).join(' '):''}</span>
+    <span class="k">Type</span><span>${esc(sel(Ln[L.ptype])||'—')}</span>
+    <span class="k">Sizes</span><span class="sz">${sz.length?sz.map(s=>`<span><small>${s[0]}</small>${num(Ln[s[1]])}</span>`).join(''):'<span class="hint">no sizes yet</span>'}<span style="background:var(--text);color:var(--yellow);border-color:var(--text)"><small style="color:#bbb">Total</small>${num(Ln[L.qty])||0}</span></span>
+    ${Ln[L.thread]||Ln[L.threadName]?`<span class="k">Thread</span><span>${esc(Ln[L.threadName]||'')}${Ln[L.thread]?' <span class="tag hard">to order</span>':''}</span>`:''}
+    ${Ln[L.nOrder]?`<span class="k">Order notes</span><span style="white-space:pre-wrap">${esc(Ln[L.nOrder])}</span>`:''}
+    ${Ln[L.vReady]||Ln[L.vUp]?`<span class="k">Vendor proof</span><span>${Ln[L.vUp]?'✓ uploaded':'Ready for vendor proof'}</span>`:''}
+  </div></div>`; }
+function notesHtml(Ln){
+  return `<div class="panel box"><h3>Notes<span class="r hint">Start proofing notes with UPDATE: to ping Slack</span></h3><div class="nt-grid">
+    ${NOTES.map(([k,lab])=>{const v=k in S.dirty?S.dirty[k]:(Ln[L[k]]||'');return `<label>${lab}<textarea data-k="${k}" class="${k in S.dirty?'dirty':''}" oninput="noteIn(this)">${esc(v)}</textarea></label>`;}).join('')}
+  </div><div class="savebar" id="noteBar" style="${hasDirty()?'':'display:none'}"><button class="btn y" onclick="saveNotes()" ${S.busy.notes?'disabled':''}>${S.busy.notes?'Saving…':'Save notes'}</button><button class="btn" onclick="S.dirty={};renderDet()">Undo</button></div></div>`; }
+function noteIn(t){ const k=t.dataset.k, Ln=S.lines[S.sel]; if(t.value===(Ln[L[k]]||'')) delete S.dirty[k]; else S.dirty[k]=t.value; t.classList.toggle('dirty',k in S.dirty); $('noteBar').style.display=hasDirty()?'':'none'; }
+
+/* ---------- comments ---------- */
+function cAuthor(c){ const m=/^\[([^\]]{1,40})\]\s*/.exec(c.text||''); return m?{name:m[1],text:c.text.slice(m[0].length),via:true}:{name:(c.author&&c.author.name)||'Someone',text:c.text||'',via:false}; }
+function cText(c,t){ return esc(t).replace(/@\[(usr|ugp)([A-Za-z0-9]+)\]/g,(m,p,id)=>{ const k=p+id, mm=(c.mentioned||{})[k]; return `<span class="m">@${esc((mm&&mm.displayName)||PEOPLE[k]||'someone')}</span>`; }); }
+function short(n){ return n==='Art Department'?'Art Dept':String(n).split(' ')[0]; }
+function commentsHtml(Ln){ const C=S.comments[Ln._id];
+  const list=!C||!C.list?'<div class="hint">Loading comments…</div>':C.err?(/permission/i.test(C.err)?`<div class="warn">This Airtable token isn't allowed to read comments yet. In Airtable → Builder hub → Personal access tokens, edit the token the Pine apps use and add the scopes <b>data.recordComments:read</b> and <b>data.recordComments:write</b>. The token itself doesn't change.</div>`:`<div class="hint">Couldn't load comments: ${esc(C.err)}</div>`):!C.list.length?'<div class="hint">No comments yet.</div>':
+    C.list.slice().reverse().map(c=>{const a=cAuthor(c);return `<div class="c${a.name===S.me?' mine':''}"><div class="a"><b>${esc(a.name)}</b><span>${ago(c.createdTime)} ago</span>${c._practice?'<span class="tag">practice</span>':''}</div><div class="t">${cText(c,a.text)}</div></div>`;}).join('');
+  const ppl=Object.entries(PEOPLE).sort((a,b)=>(a[1]==='Art Department'?-1:b[1]==='Art Department'?1:a[1].localeCompare(b[1])));
+  return `<div class="panel box"><h3>Comments · 2nd eyes</h3><div class="cm" id="cm">${list}</div>
+    <div class="cbox"><textarea id="ctext" placeholder="${S.me?'Comment as '+esc(S.me)+'…':'Pick who you are (top right) to comment'}" ${S.me?'':'disabled'} oninput="$('cpost').disabled=!this.value.trim()"></textarea>
+      <div class="ment"><span class="hint" style="align-self:center">Notify:</span>${ppl.map(([id,n])=>`<button class="mch${S.ment.includes(id)?' on':''}" onclick="tgMent('${id}')">@${esc(short(n))}</button>`).join('')}</div>
+      <div class="crow"><span class="hint">Shows in Airtable's comments too</span><button class="btn y" id="cpost" onclick="postComment()" disabled>${S.busy.c?'Posting…':'Post'}</button></div></div></div>`; }
+function tgMent(id){ const i=S.ment.indexOf(id); i<0?S.ment.push(id):S.ment.splice(i,1); const t=$('ctext').value; renderDet(); $('ctext').value=t; $('cpost').disabled=!t.trim(); }
+function learnPeople(list){ let ch=false; list.forEach(c=>{ const a=c.author; if(a&&a.id&&a.name&&!PEOPLE[a.id]){PEOPLE[a.id]=a.name;ch=true;} Object.values(c.mentioned||{}).forEach(m=>{ if(m.id&&m.displayName&&!PEOPLE[m.id]){PEOPLE[m.id]=m.displayName;ch=true;} }); }); if(ch) ls.set('pine_lir_people',JSON.stringify(PEOPLE)); }
+async function loadComments(id){ S.comments[id]={list:null}; try{ const d=await at(`${T_LI}/${id}/comments?pageSize=100`); S.comments[id]={list:d.comments||[]}; learnPeople(S.comments[id].list); }catch(e){ S.comments[id]={list:[],err:e.message}; }
+  if(S.sel===id) keepTyping(renderDet); renderList(); }
+function keepTyping(fn){ const t=$('ctext')?$('ctext').value:''; const ae=document.activeElement&&document.activeElement.id; fn(); if($('ctext')&&t){ $('ctext').value=t; $('cpost').disabled=false; } if(ae==='ctext'&&$('ctext')) $('ctext').focus(); }
+async function postComment(){ const id=S.sel, raw=$('ctext').value.trim(); if(!raw||!S.me) return;
+  const text=`[${S.me}] ${raw}`+(S.ment.length?' '+S.ment.map(u=>'@['+u+']').join(' '):'');
+  S.busy.c=true; $('cpost').disabled=true;
+  try{ let c; if(PRACTICE){ c={id:'comPractice'+Date.now(),text,createdTime:new Date().toISOString(),author:{name:S.me},mentioned:Object.fromEntries(S.ment.map(u=>[u,{id:u,displayName:PEOPLE[u]}])),_practice:true}; }
+    else c=await at(`${T_LI}/${id}/comments`,{method:'POST',body:JSON.stringify({text})});
+    const C=S.comments[id]; if(C&&C.list) C.list.unshift(c); else S.comments[id]={list:[c]}; S.ment=[]; S.busy.c=false; renderDet(); renderList(); toast(PRACTICE?'Practice — comment not posted':'Comment posted'); const cm=$('cm'); if(cm) cm.scrollTop=cm.scrollHeight;
+  }catch(e){ S.busy.c=false; $('cpost').disabled=false; toast('Comment failed: '+e.message,true); } }
+
+/* ---------- pricing ---------- */
+function pricingHtml(Ln){ const p=num(Ln[L.price]), a=num(Ln[L.auto]), q=num(Ln[L.qty])||0, mp=num(Ln[L.mPiece]), pct=num(Ln[L.mPct]);
+  const under=p!=null&&a!=null&&p<a-0.001;
+  return `<div class="panel box"><h3>Pricing</h3>
+    <div class="pr-top"><div>Price / pc<b>${money(p)}</b></div><div>Autoprice<b>${money(a)}</b></div><div>Line total<b>${money(num(Ln[L.total]))}</b></div></div>
+    ${num(Ln[L.plus])?`<div class="hint" style="margin-top:6px">Includes ${money(num(Ln[L.plus]))} 2XL+ up-charges · ${q} pcs</div>`:`<div class="hint" style="margin-top:6px">${q} pcs</div>`}
+    <div class="pr-top mg"><div>Margin / pc<b class="${mp!=null&&mp<0?'neg':''}">${money(mp)}</b></div><div>Margin<b class="${pct!=null&&pct<THIN?'neg':''}">${pct==null?'—':Math.round(pct*100)+'%'}</b></div><div>Line margin<b class="${num(Ln[L.mLine])<0?'neg':''}">${money(num(Ln[L.mLine]))}</b></div></div>
+    <div class="hint" style="margin-top:6px">After garment, press time and a share of shop costs · about 10% is normal</div>
+    <div class="pin"><span class="hint">Price / pc</span><input id="pin" inputmode="decimal" value="${p==null?'':p}" oninput="$('pinSave').style.display=(this.value!=='${p==null?'':p}')?'':'none'"><button class="btn y" id="pinSave" style="display:none" onclick="savePrice()">Save price</button>${a!=null&&p!==a?`<button class="btn" onclick="$('pin').value='${a}';savePrice()">Use autoprice</button>`:''}</div>
+    ${under?`<div class="warn">Price is ${money(a-p)} under autoprice.</div>`:''}
+    ${mp!=null&&mp<0?`<div class="warn"><b>Losing money</b> on this line (${money(mp)} / pc). Check the price before approving.</div>`:pct!=null&&pct<THIN&&mp!=null?`<div class="warn">Thin margin (${Math.round(pct*100)}%).</div>`:''}
+  </div>`; }
+
+/* ---------- proof viewer (v11) ---------- */
+// One big proof; with several files, thumbnails underneath switch the big one. Click the big one to open the full file.
+S.pfSel={};
+const pfThumb=a=>(a.thumbnails&&(a.thumbnails.full||a.thumbnails.large))||(/^image\//.test(a.type||'')?a:null);
+function proofView(Ln,proofs){
+  if(!proofs.length) return '<div class="proofs"><div class="noproof">No proof yet</div></div>';
+  const i=Math.min(S.pfSel[Ln._id]||0,proofs.length-1), a=proofs[i], th=pfThumb(a);
+  return `<div class="proofs"><a class="pf" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open the full file"><div class="imgw">${th?`<img src="${esc(th.url)}" alt="Proof">`:'<div class="noproof" style="border:0">📄 Open file</div>'}</div><div class="fn">${esc(a.filename||'proof')}</div></a></div>
+  ${proofs.length>1?`<div class="pthumbs">${proofs.map((x,j)=>{const t=(x.thumbnails&&(x.thumbnails.large||x.thumbnails.small))||pfThumb(x);return `<button class="pt${j===i?' on':''}" title="${esc(x.filename||'proof')}" onclick="S.pfSel['${Ln._id}']=${j};renderDet()">${t?`<img src="${esc(t.url)}" alt="">`:'📄'}</button>`;}).join('')}</div>`:''}`; }
+// Desktop keys: ← / → move between this order's lines, N = next in the tab. Ignored while typing.
+document.addEventListener('keydown',e=>{ if(e.metaKey||e.ctrlKey||e.altKey) return; const t=e.target; if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable)) return; if(document.querySelector('.sheet')) return;
+  const Ln=S.lines[S.sel]; if(!Ln) return;
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){ const o=lineOrder(Ln._id); if(!o) return; const ls_=o.lines.map(real).filter(Boolean), i=ls_.findIndex(x=>x._id===Ln._id), n=ls_[i+(e.key==='ArrowRight'?1:-1)]; if(n){ e.preventDefault(); pick(n._id); } }
+  else if(e.key==='n'||e.key==='N'){ e.preventDefault(); next(); } });
+
+/* ---------- actions ---------- */
+// v10: the four steps are the approval buttons (pinned under the top bar on iPad/computer); phones keep the bottom bar.
+function stageHtml(Ln,steps,nowIdx){ const b=S.busy.act, key={review:'ready2',q:'qok',p:'pok'}, tip={review:'Art: proof is up',q:'Proof looks right',p:'Price checked'};
+  return `<div class="sbar" id="sbar">${steps.map((x,i)=>{ const cls='stp'+(x[2]?' done':i===nowIdx?' now':''), inner=`<i>${x[2]?'✓':i+1}</i><span>${x[1]}</span>`;
+    return key[x[0]]?`<button class="${cls} sb" title="${x[2]?'Tap to undo':tip[x[0]]}" onclick="toggle('${key[x[0]]}')" ${b?'disabled':''}>${inner}</button>`:`<div class="${cls}">${inner}</div>`; }).join('')}<button class="snext" onclick="next()" title="Next line in this tab (N)">Next →</button></div>`; }
+function actionsHtml(Ln){ const r2=!!Ln[L.ready2], q=!!Ln[L.qok], p=!!Ln[L.pok], b=S.busy.act;
+  return `<div class="abar">
+    <button class="ab${r2?' on':''}" title="${r2?'2nd eyes asked · tap to undo':'Art: proof is up'}" onclick="toggle('ready2')" ${b?'disabled':''}><span>${r2?'✓ ':''}Awaiting Review<small>${r2?'2nd eyes asked':'Art: proof is up'}</small></span></button>
+    <button class="ab${q?' on':''}" title="${q?'Tap to undo':'Proof looks right'}" onclick="toggle('qok')" ${b?'disabled':''}><span>${q?'✓ ':''}Quality Approved<small>${q?'tap to undo':'proof looks right'}</small></span></button>
+    <button class="ab${p?' on':''}" title="${p?'Tap to undo':'Price checked'}" onclick="toggle('pok')" ${b?'disabled':''}><span>${p?'✓ ':''}Pricing Approved<small>${p?'tap to undo':'price checked'}</small></span></button>
+    <button class="ab next" onclick="next()">Next →</button></div>`; }
+const ACT_NAME={ready2:'Awaiting Review',qok:'Quality Approved',pok:'Pricing Approved'};
+async function toggle(k){ const Ln=S.lines[S.sel]; if(!Ln) return; const on=!Ln[L[k]];
+  if(!on&&!confirm(`Undo ${ACT_NAME[k]}?`)) return;
+  if(on&&k==='ready2'&&!(Ln[L.proof]||[]).length&&!confirm('No proof is attached yet. Mark Awaiting Review anyway?')) return;
+  if(on&&k==='pok'&&num(Ln[L.mPiece])!=null&&num(Ln[L.mPiece])<0&&!confirm('This line is losing money. Approve pricing anyway?')) return;
+  S.busy.act=true; renderDet();
+  try{ await patch(Ln._id,{[L[k]]:on}); toast((on?'✓ ':'Undid ')+ACT_NAME[k]+(PRACTICE?' (practice)':'')+(on&&k==='ready2'&&!PRACTICE?' · quality@ emailed':''));
+    if(on&&stage(S.lines[S.sel])==='ready') toast('Both approvals in — ready to send proofs'); }
+  catch(e){ toast('Didn\'t save: '+e.message,true); }
+  S.busy.act=false; renderList(); keepTyping(renderDet); }
+function next(){ const flat=visible().flatMap(g=>g.lines.map(x=>x._id)); const i=flat.indexOf(S.sel);
+  const nx=flat[i+1]||flat.find(id=>id!==S.sel); if(nx) pick(nx); else toast('That\'s the last one in this list'); }
+async function patch(id,fields){
+  if(PRACTICE){ const Ln=S.lines[id]; Ln._local=Object.assign(Ln._local||{},fields); Object.assign(Ln,fields); return; }
+  const r=await at(`${T_LI}/${id}`,{method:'PATCH',body:JSON.stringify({fields,returnFieldsByFieldId:true})});
+  // Airtable leaves empty values (unchecked boxes, cleared notes) out of the reply, so apply what we sent too
+  S.lines[id]=Object.assign({},S.lines[id],r.fields,fields,{_id:id});
+  // formulas like Margin don't come back from a PATCH; refetch the line so pricing is current
+  if(L.price in fields){ const [x]=await byIds(T_LI,[id],Object.values(L).concat(SIZES.map(s=>s[1]))); if(x) S.lines[id]=Object.assign(x.fields,{_id:id}); }
+}
+async function saveNotes(){ const fields={}; Object.entries(S.dirty).forEach(([k,v])=>fields[L[k]]=v); S.busy.notes=true; keepTyping(renderDet);
+  try{ await patch(S.sel,fields); S.dirty={}; toast(PRACTICE?'Practice — notes not saved':'Notes saved'); }catch(e){ toast('Notes didn\'t save: '+e.message,true); }
+  S.busy.notes=false; keepTyping(renderDet); }
+async function savePrice(){ const v=Number(String($('pin').value).replace(/[$,\s]/g,'')); if(!(v>0)) return toast('Enter a price above $0',true);
+  try{ await patch(S.sel,{[L.price]:Math.round(v*100)/100}); toast(PRACTICE?'Practice — price not saved':'Price saved'); }catch(e){ toast('Price didn\'t save: '+e.message,true); }
+  renderList(); keepTyping(renderDet); }
+
+/* ---------- imprints ---------- */
+async function loadImps(Ln){ const id=Ln._id; S.imps[id]={list:null};
+  try{ const ids=Ln[L.imps]||[]; const recs=ids.length?await byIds(T_IMP,ids,Object.values(I)):[]; recs.sort((a,b)=>String(a.fields[I.id]).localeCompare(String(b.fields[I.id]))); S.imps[id]={list:recs.map(r=>r.fields)};
+    await findMasters(S.imps[id].list); }
+  catch(e){ S.imps[id]={list:[],err:e.message}; }
+  if(S.sel===id) keepTyping(renderDet); }
+
+/* ---------- master design (canonical folder) for reorders ----------
+   An imprint stamped with a Canonical Design carries the master folder as a lookup.
+   New reorders usually only link Previous Imprint ID, so walk back up to 3 hops until one has a folder. */
+const ownMaster=f=>{ const url=first(f[I.masterFolder])||f[I.folder]||''; return url?{url,mid:first(f[I.masterId])||f[I.canonId]||''}:null; };
+const PREV={};
+async function findMasters(list){
+  list.forEach(f=>{ f._master=ownMaster(f); });
+  let todo=list.filter(f=>!f._master&&(f[I.prev]||[]).length);
+  for(let hop=0;hop<3&&todo.length;hop++){
+    const need=todo.flatMap(f=>(f._at||f)[I.prev]||[]).filter(id=>!PREV[id]);
+    if(need.length) (await byIds(T_IMP,need,Object.values(I))).forEach(r=>PREV[r.id]=r.fields);
+    todo.forEach(f=>{ const cur=f._at||f, pid=(cur[I.prev]||[])[0], p=PREV[pid]; if(!p){ f._done=true; return; }
+      if(!f._from) f._from=p[I.id]||''; const m=ownMaster(p); if(m){ f._master=Object.assign(m,{via:p[I.id]||''}); f._done=true; } else f._at=p; });
+    todo=todo.filter(f=>!f._done&&!f._master&&((f._at||{})[I.prev]||[]).length);
+  }
+}
+
+/* ---------- proof upload (Airtable content API, ≤5 MB each) ---------- */
+function b64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(file); }); }
+async function uploadProofs(files){ const id=S.sel; files=[...(files||[])]; $('file').value=''; if(!files.length||!id) return;
+  const big=files.filter(f=>f.size>5e6); if(big.length) toast(big.map(f=>f.name).join(', ')+' is over 5 MB — attach it in Airtable',true);
+  files=files.filter(f=>f.size<=5e6); if(!files.length) return;
+  S.busy.up=true; keepTyping(renderDet);
+  try{ for(const f of files){
+      if(PRACTICE){ const url=URL.createObjectURL(f); const a={id:'attPractice',url,filename:f.name,type:f.type,thumbnails:/^image\//.test(f.type)?{large:{url}}:undefined}; const Ln=S.lines[id]; const v=(Ln[L.proof]||[]).concat([a]); Ln[L.proof]=v; Ln._local=Object.assign(Ln._local||{},{[L.proof]:v}); continue; }
+      const r=await at(`https://content.airtable.com/v0/${BASE}/${id}/${L.proof}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:f.type||'application/octet-stream',file:await b64(f),filename:f.name})});
+      if(r&&r.fields){ const v=r.fields[L.proof]||Object.values(r.fields).find(Array.isArray); if(v) S.lines[id][L.proof]=v; } }
+    toast(PRACTICE?'Practice — proof not uploaded':'Proof attached'); }
+  catch(e){ toast('Upload failed: '+e.message,true); }
+  S.busy.up=false; renderList(); keepTyping(renderDet); }
+
+/* ---------- v6: Send for signature (PandaDoc) ----------
+   Once every real line on an order is Quality + Pricing approved, the salesperson builds the signing
+   packet here: Terms of Service + the approved proofs + an invoice drawn from Airtable, with hidden
+   PandaDoc field tags at every signing spot (format proven in the sandbox, see notes/pandadoc.md):
+   curly braces, role "client", white text; field height ≈ 3.25 × tag font size, width = tag width. */
+const WORKER='https://pine-workers.stephen-dab.workers.dev/proxy/pandadoc';
+const LIB={pdflib:'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',pdfjs:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',pdfjsWorker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'};
+const ASSET={terms:'assets/pandadoc-terms-v1.pdf',logo:'assets/pine-invoice-logo-outline.png'};
+const STATUS_SENT='Sent - Awaiting Payment';
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('Could not load '+src)); document.head.appendChild(s); }); }
+async function libs(){ if(!window.PDFLib) await loadScript(LIB.pdflib); if(!window.pdfjsLib){ await loadScript(LIB.pdfjs); pdfjsLib.GlobalWorkerOptions.workerSrc=LIB.pdfjsWorker; } }
+const oVal=(o,k)=>{ const v=o.f?o.f[O[k]]:null; if(v&&typeof v==='object'&&!Array.isArray(v)) return v.name||''; return Array.isArray(v)?v[0]:v; };
+const oNum=(o,k)=>{ const v=Number(oVal(o,k)); return isFinite(v)?v:0; };
+function orderLines(o){ return o.lines.map(id=>S.lines[id]).filter(Boolean); }
+function allApproved(o){ const ls_=o.lines.map(real).filter(Boolean); return ls_.length>0&&ls_.every(Ln=>stage(Ln)==='ready'); }
+function sendBanner(o){
+  if(!o||!o.id) return '';
+  const ls_=o.lines.map(real).filter(Boolean), done=ls_.filter(Ln=>stage(Ln)==='ready').length;
+  if(!ls_.length) return '';
+  if(done<ls_.length) return `<div class="sendbar wait" title="Send for signature unlocks when every line is Quality + Pricing approved"><b>${done} of ${ls_.length} lines approved</b><span class="hint">Send for signature unlocks when every line is Quality + Pricing approved</span></div>`;
+  const had=oVal(o,'pandadoc');
+  return `<div class="sendbar"><b>✓ All ${ls_.length} line${ls_.length>1?'s':''} approved</b><span class="hint">${had?'This order already has a PandaDoc · ':''}Terms + proofs + invoice go to the customer to sign</span><button class="btn y" onclick="openSend('${o.id}')">Send for signature</button></div>`;
+}
+/* ----- sheet ----- */
+let SEND=null;
+function openSend(oid){
+  const o=S.orders.find(x=>x.id===oid); if(!o) return;
+  const email=String(oVal(o,'contactEmail')||'').trim(), rep=String(oVal(o,'repEmail')||'').trim();
+  SEND={oid,blob:null,url:null,checks:[],to:email,toName:String(oVal(o,'contactName')||'').trim(),cc:rep,
+    subject:`Pine Printshop · Order ${o.num} · please review & sign`,
+    message:`Hi ${String(oVal(o,'contactName')||'').split(' ')[0]||'there'},\n\nHere are the proofs, terms and invoice for order ${o.num}. Please initial each proof and the terms, then sign the invoice. Once it's signed you'll get a payment link.\n\nThanks!\n${S.me&&S.me!=='Art Department'?S.me:'Pine Printshop'}`};
+  renderSend(); buildPreview();
+}
+function closeSend(){ if(SEND&&SEND.url) URL.revokeObjectURL(SEND.url); SEND=null; const e=$('sheet'); if(e) e.remove(); }
+function renderSend(){
+  let e=$('sheet'); if(!e){ e=document.createElement('div'); e.id='sheet'; e.className='sheet'; document.body.appendChild(e); }
+  const o=S.orders.find(x=>x.id===SEND.oid), had=oVal(o,'pandadoc');
+  e.innerHTML=`<div class="in"><h2>Send for signature · ${esc(o.num)} ${esc(o.name)}</h2><div class="hint">${PRACTICE?'<b>Practice</b>: builds the preview, sends nothing.':'Creates the PandaDoc, sends it, saves the link and moves the order to '+STATUS_SENT+'.'}</div>
+    ${had?`<div class="warn">This order already has a PandaDoc (<a href="${esc(had)}" target="_blank" rel="noopener">open it</a>). Sending makes a new one.</div>`:''}
+    <div class="row2"><div><label>Signer (order contact)</label><input id="sdTo" value="${esc(SEND.to)}" placeholder="customer@email.com" oninput="SEND.to=this.value.trim()"></div>
+      <div><label>CC (salesperson)</label><input id="sdCc" value="${esc(SEND.cc)}" placeholder="you@pineprintshop.com" oninput="SEND.cc=this.value.trim()"></div></div>
+    <label>Subject</label><input id="sdSub" value="${esc(SEND.subject)}" oninput="SEND.subject=this.value">
+    <label>Message</label><textarea id="sdMsg" oninput="SEND.message=this.value">${esc(SEND.message)}</textarea>
+    <div class="chk" id="sdChk">${SEND.checks.map(c=>`<div class="${c.bad?'bad':''}">${esc(c.t)}</div>`).join('')}</div>
+    ${SEND.url?`<div class="thumbs" id="sdThumbs"></div>`:`<div class="spin" id="sdSpin">${esc(SEND.status||'Building the packet…')}</div>`}
+    <div class="acts">${SEND.url?`<a class="btn" href="${SEND.url}" download="${esc(packetName(o))}.pdf" style="display:inline-flex;align-items:center;text-decoration:none">Download PDF</a>`:''}<button class="btn" onclick="closeSend()">Cancel</button>
+      <button class="btn y" id="sdGo" onclick="doSend()" ${SEND.url&&!SEND.busy?'':'disabled'}>${SEND.busy?'Sending…':PRACTICE?'Send (practice)':'Send to customer'}</button></div></div>`;
+}
+const packetName=o=>`${o.num} | ${o.name}`.replace(/[\\/:*?"<>]/g,'-');
+/* ----- fetching files ----- */
+async function fetchBytes(url){
+  try{ const r=await fetch(url); if(r.ok) return new Uint8Array(await r.arrayBuffer()); }catch(e){}
+  // Airtable attachment links may not allow cross-origin reads: go through the worker (v17 route)
+  const r=await fetch(`${WORKER}/file?url=${encodeURIComponent(url)}`,{headers:{Authorization:'Bearer '+TOKEN}});
+  if(!r.ok) throw new Error('Could not download '+url.split('/').pop().split('?')[0]+' ('+r.status+')');
+  return new Uint8Array(await r.arrayBuffer());
+}
+/* ----- tags ----- */
+function tagFill(page,font,box,tagBase){ // box in PDF units {x0,y0,x1,y1} y-up; field ≈ tag width × 3.25·fs
+  const W=box.x1-box.x0,H=box.y1-box.y0; let fs=H/3.25;
+  while(font.widthOfTextAtSize(tagBase+'_}',fs)>W&&fs>3) fs-=0.1;
+  let u='_'; while(font.widthOfTextAtSize(tagBase+u+'_}',fs)<=W) u+='_';
+  const tag=tagBase+u+'}', w=font.widthOfTextAtSize(tag,fs);
+  page.drawText(tag,{x:box.x0+(W-w)/2,y:box.y0+(H-3.25*fs)/2+0.47*fs,size:fs,font,color:PDFLib.rgb(1,1,1)});
+}
+async function approvedSpots(bytes){ // art's APPROVED stamp → the white box to its right, per page
+  const doc=await pdfjsLib.getDocument({data:bytes.slice(0),isEvalSupported:false}).promise, out=[];
+  for(let i=1;i<=doc.numPages;i++){
+    const tc=await (await doc.getPage(i)).getTextContent(); let spot=null;
+    for(const it of tc.items){ if(String(it.str).trim()!=='APPROVED') continue;
+      const t=it.transform, fs=Math.hypot(t[2],t[3])||it.height, x1=t[4]+it.width, b=t[5];
+      // measured on art's template (10955): box = x1+0.79fs … x1+3.0fs, baseline−0.61fs … baseline+1.39fs; 2.5pt margin
+      spot={x0:x1+0.79*fs+2.5,x1:x1+3.0*fs-2.5,y0:b-0.61*fs+2.5,y1:b+1.39*fs-2.5}; }
+    out.push(spot);
+  }
+  return out;
+}
+function stampOwn(page,bold,font){ // proof page without art's stamp: draw an APPROVED stamp bottom-right and tag it
+  const {width}=page.getSize(), w=170,h=34,x=width-w-24,y=20;
+  page.drawRectangle({x,y,width:w,height:h,color:PDFLib.rgb(1,1,1),borderColor:PDFLib.rgb(0.08,0.08,0.07),borderWidth:1.2});
+  page.drawRectangle({x,y,width:w-52,height:h,color:PDFLib.rgb(0.13,0.12,0.12)});
+  page.drawText('APPROVED',{x:x+14,y:y+11,size:15,font:bold,color:PDFLib.rgb(1,1,1)});
+  return {x0:x+w-52+2.5,x1:x+w-2.5,y0:y+2.5,y1:y+h-2.5};
+}
+/* ----- invoice page (layout copied from the Airtable invoice extension) ----- */
+const SZ=['OSFA','XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+const fmtMoney=v=>'$'+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+// date-only fields as written; timestamps (Creation Date) in local time, so an evening order isn't shown as the next day
+const fmtD=d=>{ if(!d) return ''; if(/T/.test(d)){ const x=new Date(d); return isNaN(x)?'':x.toLocaleDateString('en-US'); } const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})/); return m?`${+m[2]}/${+m[3]}/${m[1]}`:''; };
+function wrapText(text,font,size,maxW,maxLines){ const words=String(text||'').split(/\s+/).filter(Boolean), lines=[]; let cur='';
+  for(const w of words){ const t=cur?cur+' '+w:w; if(font.widthOfTextAtSize(t,size)<=maxW) cur=t; else{ if(cur) lines.push(cur); cur=w; } }
+  if(cur) lines.push(cur); if(lines.length>maxLines){ lines.length=maxLines; lines[maxLines-1]=lines[maxLines-1].replace(/.{0,2}$/,'…'); } return lines; }
+async function invoicePages(pdf,o,font,bold){
+  // Geometry copied from the Airtable invoice extension (measured on order 10955's PDF), so it reads the same.
+  const {rgb}=PDFLib, K=rgb(0,0,0), MUTE=rgb(0.11,0.12,0.15);
+  const logo=await pdf.embedPng(await fetchBytes(ASSET.logo));
+  const rows=orderLines(o).map(Ln=>({ptype:sel(Ln[L.ptype]),garment:isFee(Ln)?'':gName(Ln),imp:isFee(Ln)?(Ln[L.nick]||Ln[L.pdesc]||''):impLine(Ln).replace(/ · /g,', '),
+    sizes:SZ.map(z=>{ const f=(SIZES.find(s=>s[0]===z)||[])[1]; return f?num(Ln[f])||0:0; }),qty:num(Ln[L.qty])||0,price:num(Ln[L.price])||0,plus:num(Ln[L.plus])||0,total:num(Ln[L.total])||0}));
+  // column dividers (x) exactly as the extension; a 6XL column is squeezed in only when an order has 6XL
+  const has6=rows.some(r=>r.sizes[10]);
+  const sizeEdges=has6?Array.from({length:12},(_,k)=>371+k*(562-371)/11):[371,396.1,413.3,426.5,444.4,461.5,479.4,499.9,520.3,540.8,562];
+  const sizeNames=has6?SZ:SZ.slice(0,10);
+  const V=[83.5,218.4,...sizeEdges,613.5,661.7,736.3];
+  const C={ptype:[0,83.5],garment:[83.5,218.4],imp:[218.4,371],qty:[562,613.5],price:[613.5,661.7],plus:[661.7,736.3],total:[736.3,792]};
+  const mid=k=>(C[k][0]+C[k][1])/2, HEAD=99.1, ROW=27.7, PER=12;
+  const pages=Math.max(1,Math.ceil(rows.length/PER)), H=612, T=y=>H-y;
+  const txt=(p,s,x,y,size,f,c,align)=>{ s=String(s==null?'':s); const w=(f||font).widthOfTextAtSize(s,size); p.drawText(s,{x:align==='r'?x-w:align==='c'?x-w/2:x,y:T(y),size,font:f||font,color:c||K}); };
+  const pill=(p,x0,y0,w,h,bg)=>{ const r=Math.min(7,h/2); // rounded rectangle: two crossing bars + four corner circles
+    p.drawRectangle({x:x0+r,y:T(y0+h),width:Math.max(0,w-2*r),height:h,color:bg}); p.drawRectangle({x:x0,y:T(y0+h-r),width:w,height:Math.max(0,h-2*r),color:bg});
+    [[x0+r,y0+r],[x0+w-r,y0+r],[x0+r,y0+h-r],[x0+w-r,y0+h-r]].forEach(([cx,cy])=>p.drawCircle({x:cx,y:T(cy),size:r,color:bg})); };
+  const vlines=(p,y0,y1)=>V.forEach(x=>p.drawRectangle({x,y:T(y1),width:0.65,height:y1-y0,color:K}));
+  for(let pi=0;pi<pages;pi++){
+    const p=pdf.addPage([792,612]);
+    p.drawImage(logo,{x:19.8,y:T(66.1),width:65.6,height:52.9});
+    txt(p,'Invoice',92,48,41.6,bold); txt(p,'Order #:',92,64,11.9); txt(p,String(o.num),139,64,11.9,bold);
+    txt(p,'Order Date',20,84,8.6); txt(p,fmtD(o.created),20,97,11.9,bold); txt(p,'Delivery Due Date',106,84,8.6); txt(p,fmtD(o.due),106,97,11.9,bold);
+    txt(p,'Bill To:',251,43,8.6); txt(p,o.name,251,56,8.6,bold);
+    const bl=[oVal(o,'billAddr'),[oVal(o,'billCity'),[oVal(o,'billState'),oVal(o,'billZip')].filter(Boolean).join(' ')].filter(Boolean).join(', ')].filter(Boolean);
+    bl.forEach((l,i)=>txt(p,l,251,67+i*9.5,8.6));
+    txt(p,'Ship To:',377,43,8.6); txt(p,oVal(o,'shipContact')||'',377,60,8.6,bold);
+    const sl=[oVal(o,'shipAddr'),[oVal(o,'shipCity'),[oVal(o,'shipState'),oVal(o,'shipZip')].filter(Boolean).join(' ')].filter(Boolean).join(', ')].filter(Boolean);
+    sl.forEach((l,i)=>txt(p,l,377,73+i*9.5,8.6));
+    const tm=oVal(o,'terms')||'Due upon receipt', dm=oVal(o,'shipMethod')||'';
+    txt(p,'Terms',529,23,8.6); pill(p,528.6,26.4,font.widthOfTextAtSize(tm,8.6)+16,14.6,rgb(0.77,0.93,1)); txt(p,tm,536.6,36.5,8.6,font,MUTE);
+    txt(p,'Delivery Method:',529,56,8.6); if(dm){ pill(p,524.6,62.1,font.widthOfTextAtSize(dm,8.6)+16,14.5,rgb(1,0.92,0.71)); txt(p,dm,532.6,72.2,8.6,font,MUTE); }
+    txt(p,'Pine Printshop',780,23,11.9,bold,K,'r'); ['2649 E Mulberry Street, #26&27','Fort Collins, CO 80524','(970) 672-4650','www.pineprintshop.com'].forEach((l,i)=>txt(p,l,780,35+i*12,8.6,font,K,'r'));
+    // header row
+    txt(p,'Product Type',mid('ptype'),111,7.3,bold,K,'c'); txt(p,'Garment Type',mid('garment'),111,7.3,bold,K,'c'); txt(p,'Imprint Description',mid('imp'),111,7.3,bold,K,'c');
+    sizeNames.forEach((z,i)=>txt(p,z,(sizeEdges[i]+sizeEdges[i+1])/2,111,has6?6.2:7.3,bold,K,'c'));
+    txt(p,'Total',mid('qty'),107,7.3,bold,K,'c'); txt(p,'Quantity',mid('qty'),117,7.3,bold,K,'c'); txt(p,'Price /',mid('price'),107,7.3,bold,K,'c'); txt(p,'Piece',mid('price'),117,7.3,bold,K,'c');
+    txt(p,'Plus-Size Up-',mid('plus'),107,7.3,bold,K,'c'); txt(p,'charges',mid('plus'),117,7.3,bold,K,'c'); txt(p,'Line Total',782,111,7.3,bold,K,'r');
+    vlines(p,HEAD,HEAD+ROW);
+    rows.slice(pi*PER,(pi+1)*PER).forEach((r,k)=>{
+      const y0=HEAD+ROW*(k+1); vlines(p,y0,y0+ROW); const base=y0+16.5;
+      if(r.ptype){ pill(p,4,y0+6.6,75.3,14.5,rgb(0.53,0.86,1)); txt(p,r.ptype,mid('ptype'),y0+16.3,8.6,font,MUTE,'c'); }
+      const g=wrapText(r.garment,font,8.6,C.garment[1]-C.garment[0]-14,2);
+      if(g.length){ const gw=Math.max(...g.map(l=>font.widthOfTextAtSize(l,8.6)))+14, gh=g.length>1?23:14.5; pill(p,mid('garment')-gw/2,y0+(g.length>1?2.4:6.6),gw,gh,rgb(0.91,0.93,0.98));
+        g.forEach((l,i)=>txt(p,l,mid('garment'),g.length>1?y0+11.5+i*10:y0+16.3,8.6,font,MUTE,'c')); }
+      const im=wrapText(r.imp,font,7.9,C.imp[1]-C.imp[0]-8,2);
+      im.forEach((l,i)=>txt(p,l,mid('imp'),im.length>1?y0+12+i*9:base,7.9,font,K,'c'));
+      sizeNames.forEach((z,i)=>{ const q=r.sizes[SZ.indexOf(z)]; if(q) txt(p,q,(sizeEdges[i]+sizeEdges[i+1])/2,base,7.9,font,K,'c'); });
+      txt(p,r.qty,mid('qty'),base,7.9,font,K,'c'); txt(p,fmtMoney(r.price),mid('price'),base,7.9,font,K,'c'); txt(p,fmtMoney(r.plus),mid('plus'),base,7.9,font,K,'c'); txt(p,fmtMoney(r.total),782,base,7.9,font,K,'r');
+    });
+    if(pages>1) txt(p,`Page ${pi+1} of ${pages}`,780,604,7.5,font,MUTE,'r');
+    if(pi<pages-1) continue;
+    const tot=[['Discounts:',oNum(o,'discount'),491],['Subtotal:',oNum(o,'subtotal'),511],['Sales Tax:',oNum(o,'tax'),531],['Colorado Retail Delivery Fee:',oNum(o,'rdf'),551],['Payments Received:',oNum(o,'paid'),571]];
+    tot.forEach(([k,v,yy])=>{ txt(p,k,668,yy,8.6,font,K,'r'); txt(p,fmtMoney(Math.abs(v)),770,yy,9.2,font,K,'r'); });
+    txt(p,'Outstanding:',668,591,8.6,font,K,'r'); txt(p,fmtMoney(oNum(o,'outstanding')),770,592,13.2,bold,K,'r');
+    p.drawRectangle({x:13.9,y:T(567.5),width:216.7,height:64.7,borderColor:K,borderWidth:1.32});
+    txt(p,"I've reviewed the details above and they are correct.",26,517,8.6);
+    tagFill(p,font,{x0:26,x1:219,y0:T(564),y1:T(523)},'{signature:client');
+    txt(p,'Name:',13,585,8.6); txt(p,'Date:',13,604,8.6);
+    p.drawText('{{textfield:client}}',{x:42,y:T(585),size:8,font,color:rgb(1,1,1)}); p.drawText('{{date:client}}',{x:38,y:T(604),size:8,font,color:rgb(1,1,1)});
+  }
+  return rows;
+}
+/* ----- packet ----- */
+async function buildPacket(o,progress){
+  await libs(); const {PDFDocument,StandardFonts}=PDFLib, checks=[];
+  const pdf=await PDFDocument.create(); pdf.setTitle(packetName(o)); pdf.setCreator('Pine Line Item Review');
+  const font=await pdf.embedFont(StandardFonts.Helvetica), bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+  progress('Terms of Service…');
+  const terms=await PDFDocument.load(await fetchBytes(ASSET.terms)); (await pdf.copyPages(terms,terms.getPageIndices())).forEach(p=>pdf.addPage(p));
+  checks.push({t:'Terms of Service · 5 initials'});
+  const seen=new Set(); let proofPages=0, stamped=0, own=0;
+  for(const Ln of orderLines(o).filter(x=>!isFee(x))){
+    for(const a of (Ln[L.proof]||[])){
+      const key=(a.filename||'')+'|'+(a.size||''); if(seen.has(key)) continue; seen.add(key);
+      progress('Proof '+(a.filename||'')+'…');
+      const bytes=await fetchBytes(a.url);
+      if(/pdf/i.test(a.type||'')||/\.pdf$/i.test(a.filename||'')){
+        const src=await PDFDocument.load(bytes,{ignoreEncryption:true}), spots=await approvedSpots(bytes);
+        const pages=await pdf.copyPages(src,src.getPageIndices());
+        pages.forEach((p,i)=>{ pdf.addPage(p); proofPages++; const sp=spots[i]; if(sp){ tagFill(p,font,sp,'{i:client'); stamped++; } else { tagFill(p,font,stampOwn(p,bold,font),'{i:client'); own++; } });
+      } else {
+        const img=/png/i.test(a.type||a.filename)?await pdf.embedPng(bytes):await pdf.embedJpg(bytes);
+        const p=pdf.addPage([792,612]), sc=Math.min(744/img.width,520/img.height);
+        p.drawImage(img,{x:(792-img.width*sc)/2,y:72+(520-img.height*sc)/2,width:img.width*sc,height:img.height*sc});
+        p.drawText(gName(Ln),{x:24,y:590,size:12,font:bold}); tagFill(p,font,stampOwn(p,bold,font),'{i:client'); proofPages++; own++;
+      }
+    }
+  }
+  const noProof=orderLines(o).filter(x=>!isFee(x)&&!(x[L.proof]||[]).length);
+  checks.push({t:`Proofs · ${proofPages} page${proofPages===1?'':'s'}, ${stamped} on art's APPROVED box${own?`, ${own} with an added APPROVED box`:''}`});
+  if(noProof.length){ const nm=[...new Set(noProof.map(gName))]; checks.push({t:`${noProof.length} line${noProof.length>1?'s have':' has'} no proof: ${nm.slice(0,3).join(', ')}${nm.length>3?' +'+(nm.length-3)+' more':''}`,bad:true}); }
+  progress('Invoice…');
+  const rows=await invoicePages(pdf,o,font,bold);
+  const sum=rows.reduce((a,r)=>a+r.total,0), sub=oNum(o,'subtotal')+oNum(o,'discount');
+  checks.push({t:`Invoice · ${rows.length} line${rows.length===1?'':'s'} · outstanding ${fmtMoney(oNum(o,'outstanding'))}`});
+  if(Math.abs(sum-sub)>0.01) checks.push({t:`Line totals add to ${fmtMoney(sum)} but the order subtotal is ${fmtMoney(sub)}. Refresh, or check Airtable before sending`,bad:true});
+  const bytes=await pdf.save();
+  if(bytes.length>24e6) checks.push({t:`Packet is ${(bytes.length/1e6).toFixed(1)} MB; PandaDoc's limit through the worker is 25 MB`,bad:true});
+  return {bytes,checks};
+}
+async function buildPreview(){
+  const o=S.orders.find(x=>x.id===SEND.oid);
+  try{ const {bytes,checks}=await buildPacket(o,t=>{ SEND.status=t; const e=$('sdSpin'); if(e) e.textContent=t; });
+    if(!SEND) return; SEND.blob=new Blob([bytes],{type:'application/pdf'}); SEND.url=URL.createObjectURL(SEND.blob); SEND.checks=checks; SEND.bytes=bytes; renderSend(); drawThumbs(bytes);
+  }catch(e){ if(!SEND) return; SEND.checks=[{t:'Could not build the packet: '+e.message,bad:true}]; SEND.status='Stopped.'; renderSend(); }
+}
+// Page thumbnails (iPad Safari only shows page 1 of a PDF in a frame); tap one to open the full PDF.
+async function drawThumbs(bytes){
+  const box=$('sdThumbs'); if(!box) return;
+  const doc=await pdfjsLib.getDocument({data:bytes.slice(0),isEvalSupported:false}).promise;
+  const names=['Terms'];
+  for(let i=1;i<=doc.numPages;i++){
+    const pg=await doc.getPage(i), v=pg.getViewport({scale:1}), sc=320/Math.max(v.width,v.height), vp=pg.getViewport({scale:sc*(window.devicePixelRatio||1)});
+    const c=document.createElement('canvas'); c.width=vp.width; c.height=vp.height; c.style.width=(vp.width/(window.devicePixelRatio||1))+'px';
+    await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    const a=document.createElement('a'); a.href=SEND.url; a.target='_blank'; a.rel='noopener'; a.className='th';
+    a.appendChild(c); const cap=document.createElement('span'); cap.textContent=i===1?'Terms':i===doc.numPages?'Invoice':'Proof · page '+i; a.appendChild(cap);
+    if(!$('sdThumbs')) return; box.appendChild(a);
+  }
+}
+async function doSend(){
+  const o=S.orders.find(x=>x.id===SEND.oid); if(!o||!SEND.blob) return;
+  const to=SEND.to, cc=SEND.cc;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return toast('Add the customer\'s email',true);
+  if(cc&&cc.toLowerCase()===to.toLowerCase()) return toast('CC must be a different email than the signer',true);
+  if(SEND.checks.some(c=>c.bad)&&!confirm('Some checks need a look. Send anyway?')) return;
+  const [fn,...ln]=(SEND.toName||to.split('@')[0]).split(' ');
+  const recipients=[{email:to,first_name:fn||'',last_name:ln.join(' ')||'',role:'client'}];
+  if(/@/.test(cc)) recipients.push({email:cc,first_name:S.me||'Pine',last_name:'',recipient_type:'CC'});
+  SEND.busy=true; renderSend();
+  try{
+    let link='https://app.pandadoc.com/practice';
+    if(!PRACTICE){
+      const fd=new FormData(); fd.append('file',SEND.blob,packetName(o)+'.pdf');
+      fd.append('data',JSON.stringify({name:packetName(o),recipients,send:{subject:SEND.subject,message:SEND.message},tags:['pine-line-item-review','order-'+o.num]}));
+      const r=await fetch(`${WORKER}/documents`,{method:'POST',headers:{Authorization:'Bearer '+TOKEN},body:fd}); const j=await r.json();
+      if(!r.ok||!j.ok) throw new Error(j.error||('worker '+r.status));
+      if(j.sandbox&&!j.sent) throw new Error('PandaDoc is still on the Sandbox key, so nothing went to the customer. Ask Stephen to put the Production key in the worker.');
+      if(!j.sent) throw new Error((j.sendError||j.note||'PandaDoc made the document but did not send it')+' · open it: '+j.link);
+      link=j.link;
+      // save the link and move the order on (no automation fires on this status)
+      await at(`${T_ORD}/${o.id}`,{method:'PATCH',body:JSON.stringify({fields:{[O.pandadoc]:link,[O.status]:STATUS_SENT},typecast:true})});
+    }
+    closeSend(); toast(PRACTICE?`Practice: would send to ${to}${cc?' (CC '+cc+')':''}`:`Sent to ${to} ✓ · order ${o.num} moved to ${STATUS_SENT}`);
+    if(!PRACTICE){ S.sel=null; $('app').classList.remove('det-open'); load(true); }
+  }catch(e){ SEND.busy=false; renderSend(); toast('Didn\'t send: '+e.message,true); }
+}
+
+
+/* Quote → Create order → Review: same bar in all three apps (POM, Create order, Line Item Review).
+   Carries the order number and ?practice=1 so you can step forward and back on one order. */
+const FLOW={quote:'price-o-matic.html',order:'pom-create-order-live.html',review:'pine-line-item-review.html'};
+function flowNav(cur,orderNum){
+  const pr=/[?&]practice=1/.test(location.search), q=(o)=>{ const a=[]; if(o) a.push('order='+encodeURIComponent(o)); if(pr) a.push('practice=1'); return a.length?'?'+a.join('&'):''; };
+  const steps=[['quote','1','Quote',FLOW.quote+(pr?'?practice=1':'')],['order','2','Create order',FLOW.order+q(orderNum)],['review','3','Review',FLOW.review+q(orderNum)]];
+  return '<nav class="flow" aria-label="Order steps">'+steps.map(([k,n,l,h],i)=>(i?'<span class="sep">›</span>':'')+(k===cur?`<b aria-current="step"><i>${n}</i><span class="lbl">${l}</span><span class="sh">${l.replace('Create order','Order')}</span></b>`:`<a href="${h}"${k==='quote'?' onclick="try{saveCartLS()}catch(e){}"':''}><i>${n}</i><span class="lbl">${l}</span><span class="sh">${l.replace('Create order','Order')}</span></a>`)).join('')+'</nav>';
+}
+function syncFlow(){ const Ln=S.lines[S.sel], o=Ln&&lineOrder(Ln._id); $('flowNav').innerHTML=flowNav('review',o?o.num:''); }
+
+/* Pinned top bar: --toph = its height, so lists/rails/scroll targets sit just below it. */
+(function(){ function set(){ const t=document.querySelector('[data-pin]'); if(t) document.documentElement.style.setProperty('--toph',t.offsetHeight+'px'); }
+  set(); window.addEventListener('resize',set); window.addEventListener('load',set); try{ new ResizeObserver(set).observe(document.querySelector('[data-pin]')); }catch(e){} })();
+/* ---------- go ---------- */
+if(PRACTICE) $('prac').style.display='';
+renderMe(); renderList(); syncFlow();
+load();
+setInterval(()=>{ if(!document.hidden&&!hasDirty()&&!S.busy.act&&!($('ctext')&&$('ctext').value)) load(); },180000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&S.loaded&&!hasDirty()&&!($('ctext')&&$('ctext').value)) load(); });
+</script>
+</body>
+</html>

@@ -201,3 +201,6 @@ Stephen: Review is used almost only on a desktop, so v11 is designed for it.
   - proof thumbnails switch
   - the redirects keep the query string
   - no console errors
+
+## 2026-10-09 · v12: comments first
+Stephen: the team uses comments a lot, so they go at the top of the right-hand column. Order is now comments, imprints, garment and sizes, pricing, notes. A long thread scrolls inside its own box (up to about half the screen), so the reply box stays near the top. `pine-line-item-review.html` now opens v12. Re-ran the v11 desktop tests at 1366–2560 and on iPad: no errors.
