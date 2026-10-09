@@ -159,3 +159,21 @@ Stephen: scrolling "changes the top and feels wonky". The top bar scrolled away 
 - **Phone:** the bar is compacted to two short rows: PINE + Quote · Order · Review, then PRACTICE + who + refresh (98 px).
 - Same change in POM v103 (pinned on iPad/computer only; on phones its 3-row bar with the product tabs scrolls normally) and in Create order. The step bar now points to POM v103 and Line Item Review v9.
 - **Tested** by scrolling on computer, iPad and phone: the bar stays at top 0 and the list stays aligned. Review tests pass on v9.
+
+## 2026-10-09 · v10: bigger proof, one-row line strip, approvals in the step row
+Stephen asked for a bigger mockup, less white space beside it, tighter line-item buttons, and to keep the approval buttons from hiding the proof.
+- **The steps are the buttons.** The four steps (Proof uploaded › Awaiting review › Quality approved › Pricing approved) are the approval buttons now, with **Next →** at the end.
+  - On iPad and computer the row is pinned right under the top bar, so it never covers the proof.
+  - The floating bottom bar is gone there.
+  - Phones keep the bottom bar for thumb reach.
+- **Bigger proof.** It fills the proof box width and is sized to fit the screen below the pinned rows. It uses Airtable's full-size thumbnail for a sharper image. Two or more proofs sit side by side.
+- **Comments/pricing beside the proof only at ≥1500px.** On iPads and 1366px laptops the proof gets the full width, and comments and pricing follow underneath.
+- **Line strip: one row instead of three.** It reads ‹ chips › with a "3 / 11" counter. The chips scroll sideways, and the current one stays centred.
+- **Shorter header.** The art folder, customer art and Airtable links moved up beside the salesperson and dates.
+- **Links updated.** Create order and POM v104 now open Review v10.
+- **Tested** with mocked Airtable on an 11-line order at 1366, 1680, iPad landscape and portrait, and phone:
+  - the proof is never covered
+  - the pinned row sits under the top bar
+  - the ‹ › arrows and centring work
+  - the approval toggles work from the step row
+  - no console errors
