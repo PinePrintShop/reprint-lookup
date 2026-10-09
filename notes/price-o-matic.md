@@ -373,3 +373,6 @@ POM v103 = v102 with the top bar pinned while scrolling on iPad/computer (≥700
 
 ## 2026-10-09 · v104
 Links only: the step bar's Review link opens Line Item Review v10. Nothing else changed from v103.
+
+## 2026-10-09 · v105
+Links only: the step bar uses the always-latest links (`price-o-matic.html`, `pine-line-item-review.html`), so future Review versions don't need a new POM. Create order's hidden pricing engine now loads v105.

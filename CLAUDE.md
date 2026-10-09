@@ -4,6 +4,7 @@ Single-file HTML apps on GitHub Pages (`https://pineprintshop.github.io/reprint-
 
 ## Every app update
 - **New version file for each change** (`pine-catching-v151.html` → `v152`). Old versions stay untouched; links on the shop floor point at specific versions.
+- **Always-latest links:** `price-o-matic.html` and `pine-line-item-review.html` redirect to the current version. Update the one line in them when you ship a new version; the step bar links to them.
 - **Fix the bugs AND review the flow and UI.** Every cleanup also looks at how the screen is used:
   - finger and mouse travel
   - what's on screen at each step
