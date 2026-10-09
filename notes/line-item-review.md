@@ -221,3 +221,18 @@ Stephen: some orders sit in Ready to send because nobody has marked them cancell
   - Archived tab, then un-archive
   - live mode PATCHes only the two order fields
   - the v11/v12 desktop layout tests at 1366–2560 and iPad pass with no errors
+
+## 2026-10-09 · v14: salesperson filter
+Stephen: salespeople should be able to run through just the orders they need to send.
+- **Salesperson buttons** under the tabs ("Everyone 5 · Chris 3 · Garrett 2"), counted for the current tab.
+  - Picking one filters the list and the tab counts.
+  - **Next / N** only steps through that salesperson's lines.
+  - The choice is remembered on each computer (`pine_lir_rep`).
+  - When the filtered list is empty, it says so, with a "show everyone" link.
+- **Ready to send** is grouped by salesperson (then oldest first). The other tabs stay oldest first.
+- `pine-line-item-review.html` now opens v14.
+- **Tested** with mocked Airtable:
+  - the filter and counts work
+  - the choice survives a reload
+  - archive tests pass
+  - desktop layout tests at 1366–2560 and iPad pass with no errors
