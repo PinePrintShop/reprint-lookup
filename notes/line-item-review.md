@@ -204,3 +204,20 @@ Stephen: Review is used almost only on a desktop, so v11 is designed for it.
 
 ## 2026-10-09 · v12: comments first
 Stephen: the team uses comments a lot, so they go at the top of the right-hand column. Order is now comments, imprints, garment and sizes, pricing, notes. A long thread scrolls inside its own box (up to about half the screen), so the reply box stays near the top. `pine-line-item-review.html` now opens v12. Re-ran the v11 desktop tests at 1366–2560 and on iPad: no errors.
+
+## 2026-10-09 · v13: archive orders
+Stephen: some orders sit in Ready to send because nobody has marked them cancelled yet. An archive clears them out, and an order can come back later if it's revived.
+- **New Orders fields** (additive, agreed): **Review Archived** (checkbox, `fld0rhj54aWspxNO0`) and **Review Archived By** (text, `fld4i9bBzliG12fIf`, e.g. "Chris · 2026-10-09"). Checked first: no automation watches them.
+- **🗄 Archive order** in the order's header links.
+  - It asks first, then hides the whole order from Art to do / Review / Ready to send / All. Nothing is sent or cancelled, and Order Status doesn't change.
+  - The app moves on to the next line in the tab.
+- **Archived tab** (5th tab) lists archived orders. Opening one shows "Archived by … · ↩ Un-archive" where the send bar normally is.
+  - Un-archive puts the order back in the queue and switches to All.
+  - If every line is approved, **Send for signature** is right there again, with the "already has a PandaDoc" note when one was sent before.
+- Practice mode fakes the archive and saves nothing.
+- `pine-line-item-review.html` now opens v13.
+- **Tested** with mocked Airtable, practice and live:
+  - archive, then the counts move
+  - Archived tab, then un-archive
+  - live mode PATCHes only the two order fields
+  - the v11/v12 desktop layout tests at 1366–2560 and iPad pass with no errors
