@@ -170,7 +170,7 @@ html{scroll-padding-top:calc(var(--toph,64px) + 24px)}
 <div class="mk-note"><b>Mockup v3 — real data, read-only.</b> <span class="long">Reads your Price-O-Matic quote from this browser, and real customers, orders and garments from Airtable. <b>Create order</b> only shows what it would write.</span> Nothing is saved — except a client art folder link you paste.</div>
 <div class="top" data-pin><div class="brand">Pine</div><span id="flowNav"></span><span class="prac">Read-only</span></div>
 <div class="mbar" id="mbar"></div>
-<iframe id="pomEngine" src="price-o-matic-v103.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
+<iframe id="pomEngine" src="price-o-matic-v104.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
 <div id="tokBox" class="panel" style="display:none;margin-top:16px"><b>Airtable token</b> — paste the same token the other Pine apps use (saved on this computer only). <div class="bts" style="margin-top:10px"><input class="t" id="tok" style="flex:1" placeholder="pat…"><button class="b on" onclick="saveTok()">Save</button></div></div>
 <div class="wrap">
   <div>
@@ -219,7 +219,7 @@ html{scroll-padding-top:calc(var(--toph,64px) + 24px)}
 <script>
 /* Quote → Create order → Review: same bar in all three apps (POM, Create order, Line Item Review).
    Carries the order number and ?practice=1 so you can step forward and back on one order. */
-const FLOW={quote:'price-o-matic-v103.html',order:'pom-create-order-live.html',review:'pine-line-item-review-v9.html'};
+const FLOW={quote:'price-o-matic-v104.html',order:'pom-create-order-live.html',review:'pine-line-item-review-v10.html'};
 function flowNav(cur,orderNum){
   const pr=/[?&]practice=1/.test(location.search), q=(o)=>{ const a=[]; if(o) a.push('order='+encodeURIComponent(o)); if(pr) a.push('practice=1'); return a.length?'?'+a.join('&'):''; };
   const steps=[['quote','1','Quote',FLOW.quote+(pr?'?practice=1':'')],['order','2','Create order',FLOW.order+q(orderNum)],['review','3','Review',FLOW.review+q(orderNum)]];
@@ -320,7 +320,7 @@ function nextIds(){ const n=S.order?S.order.num:null, start=S.existingImps.lengt
 function renderQuote(){
   $('qHint').textContent=CART.length?CART.length+' line'+(CART.length>1?'s':'')+' from Price-O-Matic on this computer':'';
   $('quote').innerHTML=CART.length?CART.map(c=>`<div class="qrow"><b>${esc(c.name)}</b><span>${c.qty} × ${money(c.quotedUnit)}</span><span class="auto">${esc((c.scopeLines||[]).slice(1).join(' · '))}</span></div>`).join('')
-    :`<div class="auto" style="margin-left:0">Starting without a quote. Pick the order, then copy a past order or repeat past imprints from <b>Past orders</b>. Adding line items by hand comes with the real build. (Or build a quote in <a href="price-o-matic-v103.html">Price-O-Matic</a> first.)</div>`;
+    :`<div class="auto" style="margin-left:0">Starting without a quote. Pick the order, then copy a past order or repeat past imprints from <b>Past orders</b>. Adding line items by hand comes with the real build. (Or build a quote in <a href="price-o-matic-v104.html">Price-O-Matic</a> first.)</div>`;
 }
 /* ---------- client art folder: Customers › Art Folder (Drive link, shop folder naming) ----------
    The one thing this page writes for real: a pasted link is saved to the customer so the art dept can find it later.
