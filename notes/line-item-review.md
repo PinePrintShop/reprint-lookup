@@ -236,3 +236,20 @@ Stephen: salespeople should be able to run through just the orders they need to 
   - the choice survives a reload
   - archive tests pass
   - desktop layout tests at 1366–2560 and iPad pass with no errors
+
+## 2026-10-09 · v15: "Last time" pop-up for repeat imprints
+Stephen: when an imprint has a Previous Imprint ID, show quickly what it was last time.
+- An imprint card with a Previous Imprint ID gets a yellow **🕘 Last time · 9871-A** button. It opens a pop-up on the page:
+  - **Header:** the previous imprint ID, order #, customer, order date and proof-approved date.
+  - **Last proof, big,** with thumbnails for every proof on that order's lines. Click it to open the full file.
+  - **Last time vs this order:** location, type, screens, inks. Rows that differ are highlighted "changed". A row is only flagged when both sides have a value.
+  - **Imprint notes, sep file and design folder** from last time.
+  - **Garments last time:** garment, quantity, price per piece, and that line's proofing notes.
+  - **← Earlier** walks back to the time before (follows Previous Imprint ID again). **Airtable ↗** opens the old imprint.
+- Close with the button, Esc or a click outside. The arrow and N keys are paused while it's open.
+- **Read-only:** reads Imprints (Line Items, Invoice / Order Lookup, Order Date, Customer, Proof Approved Date) and the old lines.
+- `pine-line-item-review.html` now opens v15.
+- **Tested** with mocked Airtable at 1680 and 1366:
+  - pop-up content and changed rows
+  - thumbnails, ← Earlier, Esc
+  - layout tests at 1366–2560 and iPad pass with no errors
