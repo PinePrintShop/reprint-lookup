@@ -253,3 +253,25 @@ Stephen: when an imprint has a Previous Imprint ID, show quickly what it was las
   - pop-up content and changed rows
   - thumbnails, ← Earlier, Esc
   - layout tests at 1366–2560 and iPad pass with no errors
+
+## 2026-10-10 · v16: edit imprint info
+Stephen: let the team adjust imprint info from Review, the same fields they can edit in Airtable's Imprints table.
+- **✎ Edit** on each imprint card opens a form in the card:
+  - Location and Print type (the Airtable options)
+  - Screens, Ink changes, Custom ink charges
+  - Repeat
+  - Nickname, Print notes (size, placement), Sep file link
+  - **Previous Imprint ID:** type it (e.g. 9871-A). The app looks it up and won't save an ID that doesn't exist, or the imprint's own ID. Blank removes the link.
+- **Shared imprints** show "Shared by N lines · changes apply to all", because the imprint record is shared.
+- **Save writes only the changed fields** to the imprint, then reloads the imprints and this line, so Autoprice and margin pick up new screen or ink-change counts. The toast says "Autoprice updated" when that applies.
+- **Inks stay read-only.** They're linked Ink records, so they're edited in Airtable.
+- **Safety:**
+  - Automations checked first: none watch these Imprint fields.
+  - Typed values survive background refreshes and failed saves. The 3-minute auto-refresh pauses while the form is open.
+  - Practice mode fakes the save.
+- `pine-line-item-review.html` now opens v16.
+- **Tested** with mocked Airtable, practice and live:
+  - a bad Previous ID is refused and the edits are kept
+  - a good save PATCHes only the changed fields
+  - "no changes" is handled
+  - the layout and Last-time tests pass with no errors
