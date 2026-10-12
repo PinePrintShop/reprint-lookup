@@ -287,3 +287,10 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - **getProductSellable** accepts productId, partId and lineName (+ isSellable).
   - **Pricing:** PricingAndConfiguration 1.0.0 is enabled. Their sample sends currency USD, fobId 1, priceType Customer, configurationType Blank; the worker already sends these.
   - Next: re-run slc-test-v13 after the reload. If the totals are real, add SLC to Purchasing. That stock pill can only speak for Salt Lake, so Phoenix and Eden NC show "stock unknown".
+- **Correction (Stephen):** SLC's answers above are months old. The reload they promised didn't fix it, since today's run is still all zeros.
+  - **slc-check-v1.html** runs 13 read-only checks in a row and prints one copyable line each:
+    - 1717 stock by the new id CC-1717, by the old numbers 124 / 00124, and with a 2-part filter
+    - Gildan 5000B 31225, which returned real stock in the old test
+    - 1717 price as Customer / Net / List, and by 124
+    - sellable list and product data for 1717
+  - The answers decide the new questions for SLC.
