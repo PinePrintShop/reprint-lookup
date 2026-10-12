@@ -294,3 +294,13 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
     - 1717 price as Customer / Net / List, and by 124
     - sellable list and product data for 1717
   - The answers decide the new questions for SLC.
+- **slc-check-v1 results (Stephen, 10/12):**
+  - 31225 Gildan 5000B: 4,233 units, 149/270 priced ($2.25–$2.50).
+  - CC-1717: all 525 parts listed, but 0 stock / $0 for every part, price type and part filter.
+  - "124" / "00124" don't exist.
+  - Stephen's hunch: CC-1717 isn't the real record, and 1717 lives under a numeric id like Gildan's (Comfort Colors is a Gildan brand).
+- **slc-check-v2.html (SLC product finder):** looks for the products that actually hold invoice part numbers (default 124003, 124503, 315342):
+  - asks SLC by partId
+  - scans the Gildan line, then the whole catalog
+  - checks stock + price for every product it finds
+  - also downloads the whole SLC product list as a CSV (productId, part count, first partIds)
