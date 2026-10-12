@@ -278,3 +278,6 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - No app change yet. Stock-first ranking already moves Bella lines to SanMar as the others run dry.
   - When S&S/SLC stop carrying it, drop 'bella canvas' from the S&S slug list and SLC_BRANDS.
   - Also drop the Bella Canvas Direct suppliers if they close.
+- **SLC result (slc-test-v13, Stephen):** CC-1717 returned 525 parts, **0 units and 0 priced on every SKU**. We bought 1717 at $5.49 on 10/01, so SLC's PromoStandards feed isn't sending live data for our account.
+  - The connection, login and product matching all work.
+  - Waiting on SLC to turn on live inventory and pricing. Purchasing SLC support is on hold until then (re-run slc-test-v13 to check).
