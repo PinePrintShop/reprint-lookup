@@ -354,3 +354,12 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
 - **Tested with mocks:**
   - 1107 Orange (in the product list, no stock rows) → coming soon at CA and NC.
   - Cobalt L 12/50 with ETA 12/12 → "short: L 12/50 · more due Dec 12".
+
+## 2026-10-12 — v105: unreleased AS Colour colors + link for the date
+- **Stephen checked the AS Colour API for 1107 Orange** (the site says ETA 9 Jan 27):
+  - The variant (`1107-ORANG-P-OS`) has **no date field**, no imageUrl, no GTIN12, and was updated 2026-10-02.
+  - Inventory for `skuFilter=1107-ORANG` returns `{"data":[]}`. The release date only lives on the website.
+- **Unreleased colors:** 11 new 1107 colors share the same shape (Burgundy, Charity Pink, Espresso, Forest Green, Ink Blue, Liberty, Orange, Pigeon Blue, Red, Shadow, Sunset).
+  - A matched color with no stock rows **and** no photo/barcode now shows **"new color · not released yet"**. Otherwise it's still "coming soon · no stock yet".
+  - Under the warehouses: "AS Colour hasn't released Orange in 1107 yet. **See the date on ascolour.com ↗**", which links to AS Colour's search for the style.
+- Tested with mocks shaped like the real variant.
