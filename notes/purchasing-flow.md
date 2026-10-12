@@ -313,3 +313,8 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
 - **slc-catalog-v1.html (catalog builder):** names every product with one single-part pricing call each, 4 at a time (~10 min). From the part description it records brand / title / style / sample price.
   - Its JSON becomes the repo's SLC style map, so Purchasing can match "Brand Style" → productId.
   - It doubles as a health report of which products come back $0. Caveat: one sample part per product, and some colors are unpriced even on good products.
+- **SLC catalog built (Stephen ran slc-catalog-v1, 10/12):**
+  - 1,285 products named, but only **198 priced** on the sample part (15%). Saved as `data/slc-styles.json`: id, brand, style, title, priced, sample price. It's the lookup table for Purchasing.
+  - The staples all come back **$0**: Gildan 5000 = `225`, Gildan 64000 = `325`, BC 3001 = `315`, BC 3001CVC = `6315`, NL 3600 = `313`, NL 6210 = `6313`, CC 1717 = `CC-1717`, CC 1745 = `CC-1745`.
+  - Priced examples: Gildan 5000B = `31225` $2.50, Gildan 18500 = `21925` $9.52, Independent SS4500 = `22339` $10.45, IND4000 = `22536` $16.75.
+  - Brands with priced products include Bella 25/69, Independent 36/86, Next Level 19/66 and Decky 13/232. Dri Duck, Imperial, Q-Tees, Legacy, Cap America and The Game have none.
