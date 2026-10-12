@@ -165,3 +165,21 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - Not done yet: warehouses are still ranked by ship time, with live price only.
   - S&S product data includes per-warehouse quantities, and the worker already allows read-only inventory routes for S&S, SanMar and AS Colour.
   - This build environment can't reach the worker, so the response shape and the warehouse-code → Airtable Supplier mapping need one real look first (next step).
+
+## 2026-10-12 — v97: S&S live prices fixed + stock per warehouse
+- **Bug:** Purchasing asked S&S for the bare style ("1717"), and S&S answered "Requested item(s) were not found" (Stephen opened the worker link). So S&S live prices were missing, shown as "no live price" on 10971.
+  - v97 asks for brand + style ("Comfort Colors 1717"), which works, with the bare style kept as a fallback.
+- **Stock:** the same S&S answer carries `warehouses[]: {warehouseAbbr, qty}` per size and color.
+  - S&S shows at most 500, so 500 means 500+.
+  - For the line's color, each S&S warehouse compares stock to what's being bought (sizes + extras) and shows **✓ in stock** or **short: 2XL 4/10**.
+  - Suggestions rank warehouses that can fill the whole line first, then unknown, then short. Ship time breaks ties.
+  - "More warehouses…" shows the same note.
+- **Code → warehouse** (`SS_CODE`): IL Lockport, NV Reno, KS Olathe, OH West Chester, MA Middleboro, NJ Robbinsville, GA McDonough, PA Reading, TX Ft. Worth.
+  - S&S also returns **FO**, **CN** and **DS** (DS = dropship, qty 0).
+  - Airtable also has newer S&S warehouses: Dallas, Bolingbrook, Duluth, Harrisburg, Orlando, Pompano Beach and Fresno.
+  - Those show no stock until we confirm which code is which. Guessing would send buys to the wrong building. TX → Ft. Worth (the original TX warehouse) also needs confirming against Dallas.
+- SanMar and AS Colour stock aren't read yet (the worker has read-only inventory routes for both). S&S first.
+- **Tested** with a mocked S&S answer in Stephen's shape:
+  - 10971-style line: Ft. Worth and Lockport ✓ in stock (shown first), Dallas unknown.
+  - Olathe short 2XL and Reno short L moved to the list with the reason.
+  - The bare-style request isn't sent once brand + style works.
