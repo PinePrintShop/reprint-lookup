@@ -318,3 +318,14 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - The staples all come back **$0**: Gildan 5000 = `225`, Gildan 64000 = `325`, BC 3001 = `315`, BC 3001CVC = `6315`, NL 3600 = `313`, NL 6210 = `6313`, CC 1717 = `CC-1717`, CC 1745 = `CC-1745`.
   - Priced examples: Gildan 5000B = `31225` $2.50, Gildan 18500 = `21925` $9.52, Independent SS4500 = `22339` $10.45, IND4000 = `22536` $16.75.
   - Brands with priced products include Bella 25/69, Independent 36/86, Next Level 19/66 and Decky 13/232. Dri Duck, Imperial, Q-Tees, Legacy, Cap America and The Game have none.
+
+## 2026-10-12 — v102: color typos still match
+- **Stephen's check on v101 (real data):**
+  - SanMar now shows for Comfort Colors 1717.
+  - On order 10968, AS Colour 1107 Gold showed "✓ in stock". **1107 "Colbalt"** showed "$5.70*" and no stock, because Airtable's garment says "Colbalt" and AS Colour says "Cobalt".
+- **Fix:** color matching is exact, then prefix, then **close spelling**:
+  - 1 letter off, or 2 for names of 7+ letters, and only when exactly one vendor color is that close.
+  - The pill's tooltip names the vendor's spelling ("price for COBALT (Airtable spells it Colbalt)").
+  - Applies to price and stock for S&S, SanMar and AS Colour.
+- **Tested with mocks:** 1107 Colbalt → $5.70 (no *), CA ✓ in stock. Gold is unchanged.
+- The Airtable garment name "AS Colour 1107 - Colbalt" could be corrected to Cobalt (Stephen's call; it isn't changed here).
