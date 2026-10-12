@@ -328,4 +328,9 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - The pill's tooltip names the vendor's spelling ("price for COBALT (Airtable spells it Colbalt)").
   - Applies to price and stock for S&S, SanMar and AS Colour.
 - **Tested with mocks:** 1107 Colbalt → $5.70 (no *), CA ✓ in stock. Gold is unchanged.
-- The Airtable garment name "AS Colour 1107 - Colbalt" could be corrected to Cobalt (Stephen's call; it isn't changed here).
+- **Fix in Airtable** (Stephen: "can we update Airtable to match what the vendor spells it"):
+  - When a vendor's spelling differs, the line says "AS Colour spells this color **Cobalt** (Airtable: Colbalt)" with a **Fix in Airtable** button.
+  - After a confirm it PATCHes the Garment's **Color** field (`flduMprMvRlAHAiCh`, single-line text). The garment name is a formula of brand + style + color, so it follows.
+  - Every open line using that garment updates on screen.
+  - No automations watch Garments (checked record-updated automations). Practice mode only logs the change.
+  - Tested in practice: logged PATCH recG6 Color = "Cobalt", the title became "AS Colour 1107 - Cobalt", and the prompt went away.

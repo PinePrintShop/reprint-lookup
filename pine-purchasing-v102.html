@@ -113,6 +113,7 @@ table.sz .tot{font-weight:800;padding-left:8px}
 .arr.ok{color:var(--green)}.arr.tight{color:var(--amb)}.arr.late{color:var(--red)}.arr.unk{color:var(--muted)}
 .find{display:flex;gap:6px;margin-top:6px}.find input{flex:1;min-width:0;font-size:14px;border:1px solid var(--border);border-radius:6px;padding:8px}
 .addwh{flex:none;border:1px solid var(--border);background:var(--yellow,#E8E832);border-radius:6px;padding:0 12px;font-weight:700;font-size:13px;cursor:pointer}
+.spell{margin-top:8px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}.spell b{color:var(--text)}.spell button{border:1px solid var(--border);background:var(--yellow);border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer}
 .more{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:5px;background:#fff;width:100%}
 .split{margin-top:10px;border-top:1px dashed var(--border-dk);padding-top:10px}
 .split .sh{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:6px}
@@ -304,7 +305,8 @@ table.sz .tot{font-weight:800;padding-left:8px}
 /* ============================================================
    PINE PURCHASING v92 — live version of the left→right flow mockup.
    v102: Color matching allows a small typo ("Colbalt" in Airtable = AS Colour "Cobalt"), so those lines get their own price + stock
-        instead of the style price (*) and no stock. The pill's tooltip names the vendor's spelling.
+        instead of the style price (*) and no stock. The line says how the vendor spells it, with "Fix in Airtable" (rewrites
+        the Garment's Color field to the vendor's spelling).
    v101: "+ Add new" next to the warehouse search: a one-off drop ship or new vendor is added to Airtable Suppliers and picked.
    v100: S&S warehouses from S&S's own list. Dallas, Bolingbrook, Duluth, Harrisburg, Robbinsville and Pompano Beach aren't on it,
         so they're no longer suggested. Codes: TX = Ft. Worth, FO = Orlando, CN = Fresno (see SS_CODE).
@@ -1074,6 +1076,21 @@ function lineHtml(o,l){
 }
 /* v97/v98 — whole line in stock first, then unknown, then short */
 function stockRank(l,w){ var s=whStock(l,w); return s?(s.ok?0:2):1; }
+/* v102 — a vendor spells the color differently from Airtable ("Colbalt" vs AS Colour "COBALT"): say so once, with a fix that
+   rewrites the Garment's Color field (flduMprMvRlAHAiCh; the name is a formula of brand + style + color, no automations). */
+var GAR_COLOR='flduMprMvRlAHAiCh';
+function vendorSpelling(l){ var v=LIVE[l.id]||{}; for(var k in v) if(v[k]&&v[k].as) return {vendor:k, as:v[k].as}; return null; }
+function niceColor(c){ c=String(c||'').trim(); return c===c.toUpperCase()?c.toLowerCase().replace(/(^|[\s\/-])([a-z])/g,function(m,a,b){ return a+b.toUpperCase(); }):c; }
+function spellHint(l){ var x=vendorSpelling(l); if(!x || !l.garmentId || S[l.id].spellFixed) return '';
+  return '<div class="spell">'+esc(x.vendor)+' spells this color <b>'+esc(niceColor(x.as))+'</b> (Airtable: '+esc(colorOf(l.garment))+') '
+    +'<button onclick="fixSpelling(\''+l.id+'\')">Fix in Airtable</button></div>'; }
+async function fixSpelling(id){ var l=lineById(id), x=vendorSpelling(l); if(!x) return; var nu=niceColor(x.as), old=colorOf(l.garment);
+  if(!confirm('Change this garment\'s color in Airtable from "'+old+'" to "'+nu+'"?\n\nEvery order using this garment will show the new spelling.')) return;
+  try{ await atSend('PATCH','https://api.airtable.com/v0/'+BASE+'/'+T_GAR,{records:[{id:l.garmentId, fields:{[GAR_COLOR]:nu}}]},'garment color '+old+' -> '+nu); }
+  catch(e){ toast('Could not update: '+e.message); return; }
+  allLines().forEach(function(m){ if(m.garmentId===l.garmentId){ m.garment=m.garment.replace(/ - .*$/,' - '+nu); S[m.id].spellFixed=true; } });
+  if(GARMENTS[l.garmentId]) GARMENTS[l.garmentId].name=l.garment;
+  toast(WRITES_ENABLED?'Fixed: '+old+' → '+nu:'Practice — would change '+old+' → '+nu); renderAll(); }
 function whChoices(o,l,i,sel,locked){
   var vs=carrierVendors(l), cands=WAREHOUSES.filter(function(w){ return vs.indexOf(w.vendor)>=0 && !whClosed(w); })
     .sort(function(a,b){ return stockRank(l,a)-stockRank(l,b) || (a.days==null?99:a.days)-(b.days==null?99:b.days) || a.name.localeCompare(b.name); });
@@ -1083,6 +1100,7 @@ function whChoices(o,l,i,sel,locked){
       +'<span><span class="nm">'+esc(shortWh(w))+'</span><br><span class="tr">'+(w.days!=null?'UPS Ground ~'+w.days+' day'+(w.days>1?'s':''):'ship time unknown')+'</span>'+livePill(l,w.vendor)+stockPill(l,w)+'</span>'
       +'<span class="arr '+a.cls+'">'+a.txt+'</span></button>'; }).join('');
   if(!top.length) h+='<div class="hint">No suggested warehouse for this brand — pick one below.</div>';
+  h+=spellHint(l);
   if(!locked){ var byV={}, rest=[];
     WAREHOUSES.forEach(function(w){ if(top.indexOf(w)>=0) return; if(isRecent(w) && !whClosed(w)) (byV[w.vendor]=byV[w.vendor]||[]).push(w); else rest.push(w); });
     var note=function(w){ var k=whStock(l,w); return k?(k.ok?' · ✓ in stock':' · short '+k.short.map(function(x){ return sizeLabel(x.k); }).join(', ')):''; };
