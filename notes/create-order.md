@@ -90,3 +90,48 @@ Stephen added `PIPEDRIVE_KEY` (sales@ user) as a Cloudflare secret. The live wor
 - v18 (not yet deployed) now skips bulk sends (anniversary-discount blasts) and robot senders (Airtable, ShipStation), so the real conversation shows first.
 - 10977's October sizes email is **not** in Pipedrive (Murf.studio's newest is July), so not every order's sizes arrive by synced email. The paste box stays the fallback.
 - **Deployed Oct 12:** Stephen pasted v18 into Cloudflare, and the Pipedrive check page works (key OK, customer emails show).
+
+## 2026-10-12 — create-order-v1: the real build (writes to Airtable)
+Built from the fresh mockup's flow on real data. It reuses pom-create-order-live's Airtable reads and the POM pricing engine (`price-o-matic-v105.html` in a hidden iframe; **bump it when the POM gets a new version**). Permanent link: `create-order.html`. Practice: `?practice=1`, where every write is faked and nothing is sent.
+
+**Flow**
+1. Orders waiting for proof (last 45 days, search by customer or #; `?order=` opens one).
+2. If the customer has history: **Reorder** (their past orders with proof thumbnails; copies garments, and the imprints as repeats with Previous Imprint ID and inks linked) or **New order**.
+3. Customer emails from Pipedrive (worker v18), found by the order's contact email, to copy sizes from.
+4. One card per line item, with:
+   - type (folded; Printed Apparel by default, Embroidered Apparel when every print is embroidery)
+   - garment by style # (Airtable Garments)
+   - color
+   - sizes (grid, or paste from the email; "use same sizes" on reorders)
+   - Women's / Youth
+   - prints, from on this order, the customer's past art, or new art (nickname, location, method, type, colors, underbase, inks)
+   - ink colors per print per garment
+5. Price per line: today's POM price, following changes until someone types a price. **Shared prints are priced at the pieces they print across the whole order** (POM's impressionPrice at the print's total qty), the same way Airtable's autoprice works. 10977 comes out at $42.05 / $51.60, exactly Airtable's. Pricing each line on its own gave $71.50 for the 20-pc women's line.
+
+**What it writes** (checked against the automations first)
+- **Imprints, one call each, in order:**
+  - Linked Orders, Imprint Type, Location, Nickname, Screen Count, Ink Changes (screen print).
+  - Repeats also get Repeat?, Previous Imprint ID and Inks.
+  - **It never writes Imprint ID:** the "Copy Imprint ID" automation fills it from the order link, so letters continue after any imprints the order already has.
+- **Line Items, 10 per call:**
+  - Both order links (Order Reference is what automations read), Product Type, Garment, Imprints, Price Input, sizes, Women's / Youth.
+  - Proofing Notes, built from the imprints, e.g. "10977-B Left Sleeve · Damn Proud · 1c + UB · inks: White". "UPDATE:" is kept out because it posts to Slack.
+- **Never written:** Order Status (it emails customers), Ready for 2nd Eyes (emails quality@), Ordered, Received.
+- **If a write fails partway**, it lists what's already in Airtable and the button becomes **Finish creating**, which only adds what's missing. Already-created lines and prints can't be removed here.
+- After creating: the page locks, shows the real IDs (read back after the automation runs) and links to **Review**.
+
+**Tested with mocked Airtable + worker:**
+- Mill City reorder of 6210.
+- 10977 by hand.
+- An order that already has imprints: new ones are C to F.
+- Practice mode: zero writes.
+- Failure on line items, then retry: no duplicate imprints.
+- Phone at 390px with no sideways scroll.
+
+**Not in v1 yet:**
+- Quote prefill from the POM (on purpose, for now).
+- Order fields (rep, due, shipping, source).
+- Adding a new garment from the vendor.
+- 2XL+ up-charges in the total (Airtable adds them).
+- Vendor price check.
+- Non-apparel pricing (typed by hand).
