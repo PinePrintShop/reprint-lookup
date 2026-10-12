@@ -204,3 +204,32 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - **AS Colour 5001:** NC ✓, CA short L/XL. With no warehouse field, both show ✓ (CA + NC).
   - **Gildan 5000 (not on mock S&S):** "no live price · not found at S&S".
   - Also checked at iPad and phone widths, with no errors.
+
+## 2026-10-12 — v99: SanMar for every brand it carries
+- **Bug (Stephen):** Comfort Colors 1717 said "no SanMar style code", but SanMar carries it. Purchasing only knew SanMar codes for house brands and Bella Canvas (BC…).
+- **Fix:** every brand in the SanMar list is now tried by its mill number (1717, 5000…). Next Level tries NL + number first.
+- **Guard:** a bare number could be another brand's style, so a SanMar answer only counts if it has the line's color. Otherwise the pill says, for example, "SanMar 5000 has no Navy color".
+- **Tested:** with mocks, Comfort Colors 1717 Pepper shows SanMar Cincinnati at $4.75 ✓ in stock. Gildan 5000 Navy, with a SanMar answer that lacked Navy, was rejected with that reason.
+- **S&S codes CN / DS:** Airtable stores S&S suppliers by city, never by letter code, so there is no order history under CN or DS.
+  - DS is S&S dropship. CN is most likely a closed or old warehouse, as Stephen thinks.
+  - Both stay unmapped, so they never show stock.
+- **Last S&S line item per city** (record created date; the table has no PO date field):
+
+| City | Lines (all) | Last 12 months | Last |
+|---|---|---|---|
+| Olathe, KS | 2474 | 256 | 2026-10-06 |
+| Reno, NV | 1624 | 232 | 2026-10-06 |
+| Ft. Worth, TX | 768 | 54 | 2026-09-29 |
+| Lockport, IL | 362 | 74 | 2026-09-25 |
+| Fresno, CA | 56 | 28 | 2026-09-22 |
+| Reading, PA | 14 | 5 | 2026-08-26 |
+| Dallas, TX | 35 | 7 | 2026-08-19 |
+| Bolingbrook, IL | 31 | 3 | 2026-08-12 |
+| McDonough, GA | 156 | 6 | 2026-08-10 |
+| Middleboro, MA | 2 | 2 | 2026-02-19 |
+| Duluth, GA | 7 | 3 | 2025-11-13 |
+| Orlando, FL | 2 | 0 | 2025-07-27 |
+| Harrisburg, PA | 3 | 0 | 2025-05-21 |
+| West Chester, OH | 3 | 0 | 2025-01-05 |
+| Robbinsville, NJ | 54 | 0 | 2024-09-05 |
+| Pompano Beach, FL | 4 | 0 | 2023-09-29 |
