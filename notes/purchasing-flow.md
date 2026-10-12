@@ -233,3 +233,21 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
 | West Chester, OH | 3 | 0 | 2025-01-05 |
 | Robbinsville, NJ | 54 | 0 | 2024-09-05 |
 | Pompano Beach, FL | 4 | 0 | 2023-09-29 |
+
+## 2026-10-12 — v100: S&S's real warehouse list, shorter warehouse menu
+- **S&S's current warehouses** (Stephen's screenshot from S&S): Olathe, Reno, Fort Worth, Lockport, Fresno, West Chester, McDonough, Orlando, Reading, Middleboro. Dallas isn't listed, so it looks closed.
+- **Codes** (`SS_CODE`): IL Lockport, NV Reno, KS Olathe, OH West Chester, MA Middleboro, GA McDonough, PA Reading, **TX Ft. Worth**, **FO Orlando**, **CN Fresno**.
+  - FO and CN are worked out, not confirmed: they're the two codes left over for Orlando and Fresno.
+  - To check: compare one SKU's stock on the S&S site against the app.
+  - DS is dropship, never stock.
+- **Not suggested anymore:** S&S warehouses that aren't on S&S's list (Dallas, Bolingbrook, Duluth, Harrisburg, Robbinsville, Pompano Beach). Old POs still show them.
+- **"More warehouses…"** now lists only warehouses with a line item created in the last 12 months. Before, it listed all 236 suppliers, FedEx and USPS included.
+  - The list is built in the background after orders show (one pass over the last year's Line Items, Supplier field only) and cached a day per device.
+  - Until it loads, the menu shows everything, as before.
+- **"🔍 Find another warehouse…"** at the bottom opens a type-to-search box for the rest, each marked "closed" or "not ordered this past year".
+- Fixed a stale-element error when picking from the search box (the line re-drew during the input's blur).
+- Tested with mocks:
+  - Independent IND4000: Fresno ✓ and Orlando ✓ come before Ft. Worth (short 2XL).
+  - The menu showed only the warehouses we've used.
+  - Search found S&S Dallas (closed) and selected it.
+  - No errors on iPad width.
