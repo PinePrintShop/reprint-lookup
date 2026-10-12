@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SLC Product Finder</title>
+<style>
+:root{--bg:#F2F2EE;--line:#E5E5E0;--text:#0D0D0B;--muted:#888880;--yellow:#E8E832;--green:#1e6b45;--red:#c0392b;--amb:#b7791f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 Helvetica,Arial,sans-serif;padding:12px 16px 40px;max-width:980px;margin:0 auto}
+.top{background:var(--text);color:#fff;border-radius:10px;padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.top b{color:var(--yellow);letter-spacing:2px}
+button{height:42px;padding:0 16px;border:1px solid #C9C92A;background:var(--yellow);border-radius:8px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5}
+button.sec{background:#fff;border-color:var(--line)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:12px}
+.hint{color:var(--muted);font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+input{height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:14px 'Courier New',monospace;width:130px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+td,th{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ok{color:var(--green);font-weight:700}.zero{color:var(--amb);font-weight:700}.bad{color:var(--red);font-weight:700}
+textarea{width:100%;height:220px;font:11px/1.35 'Courier New',monospace;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="top"><b>PINE</b>SLC product finder<span class="hint" style="color:#bbb">Read-only. Which SLC product really holds a part, and does it have stock + price?</span></div>
+<div class="panel">
+  <div class="hint">Part numbers from SLC invoices, without the leading zeros (invoice 00124003 → 124003).</div>
+  <div class="row">
+    <label>Part A <input id="pa" value="124003"></label><span class="hint">1717 White S</span>
+    <label>Part B <input id="pb" value="124503"></label><span class="hint">1717 Black S</span>
+    <label>Part C <input id="pc" value="315342"></label><span class="hint">BC 3001 Dark Grey</span>
+  </div>
+  <div class="row"><button id="go">Find products</button><span class="hint" id="prog">2–5 minutes. The full catalog step is big.</span></div>
+  <table id="t"><thead><tr><th>#</th><th>Step</th><th>Result</th></tr></thead><tbody></tbody></table>
+</div>
+<div class="panel">
+  <b>For Claude</b> <button id="copy" class="sec" style="height:32px;margin-left:8px">Copy</button>
+  <button id="csv" class="sec" style="height:32px" disabled>Download full SLC product list (CSV)</button>
+  <textarea id="out" readonly></textarea>
+</div>
+<script>
+/* SLC FINDER — slc-check-v1: CC-1717 has every part but 0 stock / $0; numeric-id Gildan 5000B (31225) has real stock + prices.
+   Stephen's hunch: 1717 also lives under a numeric id (Comfort Colors is a Gildan brand). So ask SLC which productIds hold the
+   invoice's part numbers (getProductSellable by partId), scan the Gildan line and the whole catalog for them, then check stock +
+   price for every productId found. Also offers the whole catalog (productId, part count) as a CSV. */
+var W='https://pine-workers.stephen-dab.workers.dev/proxy/slc';
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function tags(d,t){ return Array.prototype.slice.call(d.getElementsByTagNameNS('*',t)); }
+function txt(el,t){ var n=el.getElementsByTagNameNS('*',t)[0]; return n?n.textContent.trim():''; }
+function fault(d){ var f=tags(d,'faultstring')[0]; if(f) return f.textContent.trim().slice(0,160);
+  return tags(d,'ServiceMessage').map(function(s){ return (txt(s,'code')+' '+txt(s,'description')).trim(); }).filter(Boolean).join(' / ').slice(0,160); }
+async function call(svc,body){ var t0=performance.now(), r=await fetch(W+'/'+svc,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}), text=await r.text();
+  return {doc:new DOMParser().parseFromString(text,'text/xml'), bytes:text.length, s:((performance.now()-t0)/1000).toFixed(1), status:r.status}; }
+/* sellable answer -> {productId: [partIds]} */
+function pairs(d){ var m={}, rows=tags(d,'ProductSellable');
+  if(rows.length) rows.forEach(function(r){ var p=txt(r,'productId'), q=txt(r,'partId'); if(p) (m[p]=m[p]||[]).push(q); });
+  else { var ps=tags(d,'productId'), qs=tags(d,'partId'); ps.forEach(function(p,i){ var k=p.textContent.trim(); (m[k]=m[k]||[]).push(qs[i]?qs[i].textContent.trim():''); }); }
+  return m; }
+function holding(m,parts){ return Object.keys(m).filter(function(p){ return m[p].some(function(q){ return parts.indexOf(q)>=0; }); }); }
+var LINES=[], CATALOG=null, ROW=0;
+function row(step){ ROW++; $('t').tBodies[0].insertAdjacentHTML('beforeend','<tr><td>'+ROW+'</td><td>'+esc(step)+'</td><td id="r'+ROW+'" class="hint">asking SLC…</td></tr>'); return ROW; }
+function done(i,cls,line,step){ $('r'+i).className=cls; $('r'+i).textContent=line; LINES.push(i+'. '+step+' → '+line); $('out').value=LINES.join('\n'); }
+async function step(name,fn){ var i=row(name); try{ var x=await fn(); done(i,x.cls,x.line,name); return x; }catch(e){ done(i,'bad','error: '+e.message,name); return {}; } }
+$('go').onclick=async function(){
+  this.disabled=true; $('t').tBodies[0].innerHTML=''; ROW=0; LINES=['SLC finder · '+new Date().toLocaleString()];
+  var parts=[$('pa').value,$('pb').value,$('pc').value].map(function(s){ return s.trim().replace(/^0+/,''); }).filter(Boolean), found={};
+  // 1. ask by part number
+  for(var k=0;k<parts.length;k++){
+    await step('Products holding part '+parts[k],async function(){ var a=await call('productdata',{operation:'getProductSellable',partId:parts[k],isSellable:true}), m=pairs(a.doc), ids=Object.keys(m), f=fault(a.doc);
+      ids.forEach(function(p){ found[p]=found[p]||parts[k]; });
+      return {cls:ids.length?'ok':'bad', line:(ids.length?ids.join(', '):'none')+(f?' · SLC says: '+f:'')+' ('+a.s+'s)'}; }); }
+  // 2. Gildan line (Comfort Colors is a Gildan brand)
+  await step('Gildan line: products holding those parts',async function(){ var a=await call('productdata',{operation:'getProductSellable',lineName:'Gildan',isSellable:true}), m=pairs(a.doc), h=holding(m,parts), f=fault(a.doc);
+    h.forEach(function(p){ found[p]=found[p]||m[p].filter(function(q){ return parts.indexOf(q)>=0; })[0]; }); var ids=Object.keys(m), num=ids.filter(function(p){ return /^\d+$/.test(p); }).length;
+    return {cls:h.length?'ok':'zero', line:ids.length+' Gildan products ('+num+' numeric ids) · holding the parts: '+(h.join(', ')||'none')+(f?' · SLC says: '+f:'')+' ('+(a.bytes/1e6).toFixed(1)+' MB, '+a.s+'s)'}; });
+  // 3. whole catalog
+  $('prog').textContent='Downloading the whole SLC catalog…';
+  await step('Whole catalog: products holding those parts',async function(){ var a=await call('productdata',{operation:'getProductSellable',isSellable:true}), m=pairs(a.doc), h=holding(m,parts), f=fault(a.doc), ids=Object.keys(m);
+    if(ids.length){ CATALOG=m; $('csv').disabled=false; } h.forEach(function(p){ found[p]=found[p]||m[p].filter(function(q){ return parts.indexOf(q)>=0; })[0]; });
+    var pre={}; ids.forEach(function(p){ var x=(/^([A-Z]+)-/.exec(p)||[0,/^\d+$/.test(p)?'(numeric)':'(other)'])[1]; pre[x]=(pre[x]||0)+1; });
+    return {cls:ids.length?(h.length?'ok':'zero'):'bad', line:ids.length+' products · holding the parts: '+(h.join(', ')||'none')+' · id styles: '+Object.keys(pre).sort(function(x,y){ return pre[y]-pre[x]; }).slice(0,12).map(function(x){ return x+' '+pre[x]; }).join(', ')+(f?' · SLC says: '+f:'')+' ('+(a.bytes/1e6).toFixed(1)+' MB, '+a.s+'s)'}; });
+  // 4. stock + price for every product found
+  var ids=Object.keys(found); if(!ids.length) LINES.push('No product holds those parts.');
+  for(var j=0;j<ids.length;j++){ var pid=ids[j], part=found[pid]||parts[0];
+    await step(pid+': stock of those parts',async function(){ var a=await call('inventory',{operation:'getInventoryLevels',productId:pid,partIds:parts}), u=0, n=0, f=fault(a.doc);
+      tags(a.doc,'PartInventory').forEach(function(p){ var q=p.getElementsByTagNameNS('*','quantityAvailable')[0], v=q?+txt(q,'value')||0:0; u+=v; n++; });
+      return {cls:u>0?'ok':(n?'zero':'bad'), line:n+' parts · '+u.toLocaleString()+' units'+(f?' · SLC says: '+f:'')+' ('+a.s+'s)'}; });
+    await step(pid+': price of part '+part,async function(){ var a=await call('pricing',{operation:'getConfigurationAndPricing',productId:pid,partId:part,priceType:'Customer'}), pr=[], f=fault(a.doc);
+      tags(a.doc,'PartPrice').forEach(function(x){ var v=+txt(x,'price')||0; if(v>0) pr.push(v); });
+      return {cls:pr.length?'ok':'zero', line:(pr.length?'$'+Math.min.apply(null,pr).toFixed(2):'$0 / none')+(f?' · SLC says: '+f:'')+' ('+a.s+'s)'}; });
+  }
+  $('prog').textContent='Done. Copy the box below for Claude.'; this.disabled=false;
+};
+$('copy').onclick=function(){ var t=$('out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } this.textContent='Copied ✓'; };
+$('csv').onclick=function(){ if(!CATALOG) return; var rows=[['productId','parts','first partIds']].concat(Object.keys(CATALOG).sort().map(function(p){ return [p, CATALOG[p].length, CATALOG[p].slice(0,5).join(' ')]; }));
+  var blob=new Blob([rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n')],{type:'text/csv'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='slc-products.csv'; a.click(); };
+</script>
+</body>
+</html>
