@@ -251,3 +251,12 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - The menu showed only the warehouses we've used.
   - Search found S&S Dallas (closed) and selected it.
   - No errors on iPad width.
+
+## 2026-10-12 — v101: add a warehouse from Purchasing
+- **"+ Add new"** sits next to the "Find another warehouse…" search box. It's for a one-off drop ship or a vendor that isn't in Airtable yet: type the name and tap it.
+  - After a confirm, it creates the Supplier record (name only) and picks it for the line.
+  - If the typed name already exists, it just picks that one.
+- **Naming hint** in the confirm: use "Company - City, ST" so the ship time works. Add "(DS)" for a drop ship.
+- **Practice mode:** the new supplier only lives on that screen; nothing is saved.
+- **Automations:** none run on Supplier records (checked the base's record-created automations), so adding one sends nothing.
+- **Tested with mocks:** "Shaka Wear - Houston, TX (DS)" was added and selected, with UPS Ground ~3 days. In practice mode it wasn't saved, and there were no errors.
