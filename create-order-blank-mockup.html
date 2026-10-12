@@ -149,9 +149,9 @@ const art=(t,c)=>'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://ww
 // print: [letter, nickname, location, method, ink type, colors, underbase, repeat-of]
 // version: [garment, color, inks, qty, sold price, prints]
 const ORDERS=[
- {num:10977,name:'Murf.studio',rep:'Patrick',note:'2 lines · 4 imprints · both lines have the same name',
+ {num:10977,name:'Murf.studio',rep:'Patrick',note:'2 lines · 4 imprints · same hoodie, MENS vs WOMENS back',
   prints:[['B','Ragin Mess MENS','Back','Screen print','Bleed Blocker + W/B',1,true],['C','USN Emblem','Left Chest','Screen print','Bleed Blocker + W/B',1,true],['A','Damn Proud','Left Sleeve','Screen print','Bleed Blocker + W/B',1,true],['D','Ragin Mess WOMENS','Back','Screen print','Bleed Blocker + W/B',1,true]],
-  products:[{vs:[['IND4000Z','Black','White',100,45,'BCA']]},{vs:[['IND4000Z','Black','White',20,45,'ACD']]}]},
+  products:[{vs:[['IND4000Z','Black','White',100,45,'BCA'],['IND4000Z','Black','White',20,45,'ACD']]}]},
  {num:10500,name:'WARGAME',rep:'Chris',note:'13 lines · 7 imprints',
   prints:[['A','H20 Boy','Front','Screen print','Bleed Blocker + W/B',7,false],['B','Wargame Size Tag','Size Tag','Supacolor','Supacolor - Wearable',0,false,'8686-A'],['E','H20 Boy Back Tank','Back','Screen print','Bleed Blocker + W/B',2,false],['I','H20 Boy Back','Back','Screen print','Bleed Blocker + W/B',2,false],['C','92 Shirt','Front','Screen print','No Base W/B',1,false],['F','OG Brand 3D','Front','Screen print','No Base W/B',3,false,'8383-F'],['G','OG Brand 3D Back','Back','Screen print','No Base W/B',3,false,'8383-G']],
   products:[{name:'H20 BOY',vs:[['CC9360','Black','Fluorescents',25,22.39,'ABE'],['AA1301','Black','Fluorescents',50,18.80,'ABI'],['AA1301','White','Fluorescents',50,18.53,'ABI']]},
@@ -234,7 +234,7 @@ function unlinkPrint(prId,id){ const pr=PR(prId); pr.prints=pr.prints.filter(x=>
 function dropIfUnused(id){ if(!S.prods.some(pr=>pr.prints.includes(id))) S.prints=S.prints.filter(p=>p.id!==id); }
 function setP(id,k,v){ const p=P(id); p[k]=v; if(k==='method'){ const o=METHODS[v]||[]; p.ink=o.length===1?o[0]:''; if(v!=='Screen print'){ p.colors=0; p.ub=false; } } render(); }
 function addV(prId,copy){ const pr=PR(prId), v=blankV(); v.on=[...pr.prints];
-  if(copy){ const last=pr.vs[pr.vs.length-1]; if(last){ v.g=last.g; v.color=last.color; v.on=[...last.on]; } }
+  if(copy){ const last=pr.vs[pr.vs.length-1]; if(last){ v.g=last.g; v.color=last.color; v.inks=last.inks; v.on=[...last.on]; } }
   pr.vs.push(v); render(); if(copy) setTimeout(()=>{ const e=$('ik_'+v.id); if(e) e.focus(); },0); }
 function rmV(prId,id){ const pr=PR(prId); pr.vs=pr.vs.filter(v=>v.id!==id); render(); }
 function setV(id,k,val){ const v=V(id); v[k]=val; if(k==='g'){ v.color=''; v.sizes={}; } render(); }
@@ -306,9 +306,9 @@ function render(){
     if(S.past===pr.id) h+=`<div class="pastg">${(PAST[o.num]||[]).map((x,i)=>`<button class="pc" onclick="newPrint('${pr.id}',PAST[${o.num}][${i}])"><img src="${x.img}" alt=""><b>${x.id}</b> ${esc(x.nick)}<br><span class="hint">${esc(x.loc)} · ${esc(x.method)}${x.colors?' · '+x.colors+' col':''}</span></button>`).join('')}</div>`;
     h+=`<div class="sub">Versions ${pi?'':'<span class="hint">each row becomes a line item, named automatically</span>'}</div>`;
     h+=`<div class="scroll"><table class="vt"><tr><th>Garment</th><th>Color</th><th>Ink colors</th><th>Qty</th><th>Prints</th><th>Sizes</th><th></th></tr>${pr.vs.map(v=>versionRow(pr,v)).join('')}</table></div>`;
-    h+=`<div class="vbar"><button class="b" onclick="addV('${pr.id}')">+ Version</button>${pr.vs.length?`<button class="b" onclick="addV('${pr.id}',true)">+ Same garment, other inks</button>`:''}</div>`;
+    h+=`<div class="vbar"><button class="b" onclick="addV('${pr.id}')">+ Version</button>${pr.vs.length?`<button class="b" onclick="addV('${pr.id}',true)">+ Same garment again</button><span class="hint">copies the last row: tick different prints (another design) or change the inks</span>`:''}</div>`;
     h+=`</div></div>`; });
-  h+=`<div class="vbar" style="margin-top:14px"><button class="btn${S.prods.length?'':' y'}" onclick="addProduct()">+ Add ${S.prods.length?'another':'a'} group</button><span class="hint">e.g. the women's version with its own back, or the hats</span></div></div>`;
+  h+=`<div class="vbar" style="margin-top:14px"><button class="btn${S.prods.length?'':' y'}" onclick="addProduct()">+ Add ${S.prods.length?'another':'a'} group</button><span class="hint">only for a separate set of prints, e.g. the hats</span></div></div>`;
   // 3 map
   const vs=allVs(), cols=byLetter(), show=vs.length&&cols.length;
   h+=`<div class="panel step${show?'':' off'}"><div class="sh"><span class="n">3</span><h2>Check the order &amp; prices</h2><span class="hint">Every line item and the imprints on it · price is today's POM price, type over it</span></div>`;
