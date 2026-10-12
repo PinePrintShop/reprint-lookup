@@ -49,3 +49,32 @@ Stephen pointed out that the line item name is a formula, e.g. `10977-Murf.studi
 
 ## 2026-10-12 — "Same garment again" copies the whole row
 Stephen: a second row on the same garment is usually another design (10977 MENS vs WOMENS back), not just other inks. The button now copies the last row's garment, color, ink colors and print ticks; sizes start empty. Sales then tick the different prints or change the inks. 10977 is now shown as one group with two rows (A B C and A C D), the way it would really be entered. "Add another group" is only for a separate set of prints, such as hats.
+
+## 2026-10-12 — Fresh start: built for the common order, with reorder as its own door
+Stephen felt the product/group flow was layered on itself and not yet better than Airtable, so the mockup was rewritten from scratch. It's based on the last 12 months of Airtable data (1,698 orders, cancelled left out):
+- 51% of orders have 1 line, 34% have 2–3, 14% have 4–9, and 1.6% have 10+. 56% have exactly one imprint.
+- 30% reuse some past art and 15% are a straight reorder of one past order. Repeats go back a median of 7 months, and 27% are over a year old.
+- 226 imprints are ticked Repeat? with no previous imprint linked.
+
+Ideas taken from other print-shop software: Printavo (imprints attached to groups of garments), DecoNetwork (reorder and reuse of artwork) and YoPrint (decoration as a priced service).
+
+The flow:
+1. **Pick the order** (Pipedrive made it).
+2. **Two doors** when the customer has history:
+   - **Reorder** lists their past orders with art thumbnails. One tap copies the garments and makes the imprints as repeats with Previous Imprint ID filled. It shows last time's sizes and price.
+   - **New order** is everything else.
+3. **One card per line item.** Proofs stay per line, as today. Each card has:
+   - Garment search, ranked by style #.
+   - Color chips.
+   - Sizes: grid, or **paste from the email** ("6 S, 6 M, 15 XL", "S-10 M-20", "10 small 20 med", "2X 3"). The sample Pipedrive email sits on screen to copy from.
+   - Prints, each added from one of three tabs:
+     - **On this order:** same imprint ID.
+     - **Customer's past art:** searchable thumbnails; makes a repeat.
+     - **New art:** nickname, location, type, colors, inks.
+   - Ink colors per print per garment. A difference counts as an ink change.
+4. **More lines:** "Another garment, same prints" (men's and women's tees), "Copy last line" (same hoodie with a different back, as on 10977) or a blank line.
+5. **Rail:** checklist, imprint list, total and Create. **A clock** times each order from picking it to Create, for the stopwatch test against Airtable.
+
+Real data comes from Mill City Church (7 past orders, 23 imprints), 10977 Murf.studio and WARGAME. A 10193 reorder of 6210 gives 10193-A/B as repeats of 6210-A/B. 10977 built by hand gives Airtable's exact line names and 4 imprints, with prices within about $1 of Airtable.
+
+Found while pulling data: Autoprice is #ERROR! on lines of finished orders, because the imprint quantity rollup reads 0 there. This was not caused by the October formula changes. Open orders price normally.

@@ -3,338 +3,311 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Create Order (blank) — Pine mockup</title>
+<title>Create Order — Pine mockup</title>
 <style>
 :root{--bg:#F2F2EE;--surface:#fff;--line:#E6E6E0;--line2:#D4D4CC;--text:#141412;--muted:#80807A;--soft:#F7F7F4;--yellow:#E8E832;--ydk:#C9C92A;--ytint:#FBFBDC;--green:#1e6b45;--gtint:#e9f4ee;--red:#b3261e;--rtint:#fdf0ee;--amb:#a96b12;--atint:#fbf1e2;
   --sans:Helvetica,Arial,sans-serif;--mono:'Courier New',monospace;--r:10px}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px}
-body{padding:12px 16px 40px;max-width:1600px;margin:0 auto}
+body{padding:12px 16px 40px;max-width:1400px;margin:0 auto}
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 button{cursor:pointer}
 .top{background:var(--text);border-radius:var(--r);padding:10px 18px;display:flex;align-items:center;gap:14px;color:#ddd;position:sticky;top:0;z-index:20;box-shadow:0 0 0 12px var(--bg);flex-wrap:wrap}
 .brand{font-weight:900;letter-spacing:2px;color:var(--yellow)}
 .crumb{color:#fff;font-weight:700}
 .prac{background:var(--yellow);color:var(--text);font-weight:700;font-size:12px;padding:6px 10px;border-radius:20px}
-.top .sp{margin-left:auto;font-size:13px;color:#aaa}
-.app{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;margin-top:14px;align-items:start}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
-.step{padding:16px 18px;margin-bottom:14px}
-.step.off{opacity:.45;pointer-events:none}
-.sh{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.sh .n{width:28px;height:28px;border-radius:50%;background:var(--text);color:var(--yellow);font:700 14px var(--mono);display:flex;align-items:center;justify-content:center;flex:none}
-.sh h2{font-size:18px}
-.sh .hint{margin-left:auto}
+.top .sp{margin-left:auto;font:700 15px var(--mono);color:var(--yellow)}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;margin-top:14px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+h2{font-size:18px}
 .hint{font-size:12px;color:var(--muted)}
-.btn{height:42px;padding:0 16px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-weight:700;font-size:14px}
+.btn{height:44px;padding:0 16px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-weight:700;font-size:14px}
 .btn:hover{border-color:var(--text)}
 .btn.y{background:var(--yellow);border-color:var(--ydk)}
 .btn.k{background:var(--text);color:var(--yellow);border-color:var(--text)}
 .btn:disabled{opacity:.4;cursor:default}
-.link{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px}
 .b{height:36px;padding:0 12px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-size:14px;font-weight:600}
+.b:hover{border-color:var(--text)}
 .b.on{background:var(--yellow);border-color:var(--ydk)}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px}
 .bts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
 .tag.ok{background:var(--gtint);border-color:#bfe0cc;color:var(--green)}
 .tag.need{background:var(--atint);border-color:#ecd2a6;color:var(--amb)}
-.tag.bad{background:var(--rtint);border-color:#f2c9c4;color:var(--red)}
-.idtag{font:700 13px var(--mono);background:var(--text);color:var(--yellow);padding:4px 8px;border-radius:6px;white-space:nowrap}
+.idtag{font:700 12px var(--mono);background:var(--text);color:var(--yellow);padding:3px 7px;border-radius:5px;white-space:nowrap}
 .sw{display:inline-block;width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.25);vertical-align:-3px;flex:none}
-/* step 1 */
-.orders{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
-.oc{border:1px solid var(--line2);background:#fff;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
-.oc .num{font:700 16px var(--mono)}.oc b{font-size:15px}.oc span{font-size:12px;color:var(--muted)}
-.oc .bts{margin-top:4px}
-.picked{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.picked .num{font:700 20px var(--mono)}.picked .nm{font-size:20px;font-weight:800}
-/* step 2 products */
-.prod{border:1px solid var(--line2);border-radius:12px;margin-top:12px;overflow:hidden;background:#fff}
-.ph{background:var(--text);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.ph .gt{font-weight:800;font-size:17px;color:var(--yellow);display:flex;gap:10px;align-items:baseline}
-.ph .gt small{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#aaa;font-weight:700}
-.ph .hint{color:#aaa}
-.ph .link{color:#bbb;margin-left:auto}
-.pb{padding:12px 14px}
-.sub{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:4px 0 8px;display:flex;gap:10px;align-items:baseline}
-.sub .hint{text-transform:none;letter-spacing:0;font-weight:400}
-.prt{display:grid;grid-template-columns:auto minmax(170px,240px) minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:6px;background:var(--soft)}
-.prt.need{border-color:#ecd2a6;background:var(--atint)}
-.prt input.nick{height:36px;border:1px solid var(--line2);border-radius:6px;padding:0 10px;font-weight:700;width:100%;background:#fff}
-.prt input.nick.empty{border-color:#e9b45a}
-.prt .sum{font-size:13px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
-.prt .acts{display:flex;gap:8px}
-.ped{grid-column:1/-1;display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px 12px;align-items:center;padding:8px 2px 4px;border-top:1px dashed var(--line2)}
-.ped .k{font-size:12px;font-weight:700;color:var(--muted)}
-.addp{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 14px}
-.pastg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:0 0 12px}
-.pc{border:1px solid var(--line2);border-radius:8px;background:#fff;padding:6px;text-align:left;font-size:12px}
-.pc:hover{border-color:var(--text)}
-.pc img{width:100%;height:70px;object-fit:contain;display:block;margin-bottom:4px}
-.pc b{font-family:var(--mono)}
-.scroll{overflow-x:auto}
-table.vt{border-collapse:separate;border-spacing:0;font-size:13px;width:100%}
-.vt th{font-size:11px;color:var(--muted);font-weight:700;text-align:left;padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
-.vt td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
-.vt tr.need td{background:var(--atint)}
-.vt select,.vt input{height:34px;border:1px solid var(--line2);border-radius:6px;background:#fff;padding:0 6px}
-.vt input.inks{width:140px}
-.vt select.gs{width:180px}
-.vt input.inks.empty{border-color:#e9b45a}
-.szs{display:flex;gap:3px}
-.szs label{display:flex;flex-direction:column;align-items:center;font:700 10px var(--mono);color:var(--muted);gap:1px}
-.szs input{width:34px;height:30px;text-align:center;font:700 13px var(--mono);padding:0}
-.qt{font:700 14px var(--mono);background:var(--text);color:var(--yellow);border-radius:6px;padding:6px 8px;display:inline-block;min-width:44px;text-align:center}
-.pt{width:32px;height:32px;border:1px solid var(--line2);border-radius:6px;background:#fff;font:700 13px var(--mono);margin-right:3px}
-.pt.on{background:var(--yellow);border-color:var(--ydk)}
-.vbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
-.warn{background:var(--atint);border:1px solid #ecd2a6;color:var(--amb);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
-/* step 3 map */
-table.map{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-.map th,.map td{border-bottom:1px solid var(--line);padding:6px;text-align:center;vertical-align:middle}
-.map th .idtag{display:inline-block;margin-bottom:4px}
-.map th{font-size:11px;color:var(--muted);font-weight:700;background:var(--soft)}
-.map th.l,.map td.l{text-align:left}
-.map tr.grp td{background:var(--text);color:var(--yellow);font-weight:800;letter-spacing:.5px;text-align:left}
-.map .tick{width:34px;height:30px;border:1px solid var(--line2);border-radius:6px;background:#fff;font-weight:900;font-size:15px}
-.map .tick.on{background:var(--yellow);border-color:var(--ydk)}
-.map td.pr input{width:78px;height:32px;border:1px solid var(--line2);border-radius:6px;text-align:right;padding:0 6px;font:700 13px var(--mono)}
-.map td.pr input.under{border-color:var(--red);background:var(--rtint);color:var(--red)}
-.map td.pr small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
-.map td.nk{font-size:12px;color:var(--muted);text-align:left;white-space:normal;min-width:180px}
-.map tfoot td{font-size:12px;color:var(--muted)}
+input.t{height:40px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;background:#fff}
+/* order picker + doors */
+.orders{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:10px}
+.oc{border:1px solid var(--line2);background:#fff;border-radius:10px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:4px}
+.oc:hover{border-color:var(--text)}
+.oc .num{font:700 16px var(--mono)}.oc span{font-size:12px;color:var(--muted)}
+.ohead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ohead .num{font:700 20px var(--mono)}.ohead .nm{font-size:20px;font-weight:800}
+.doors{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.door{border:2px solid var(--line2);border-radius:12px;padding:16px;background:#fff;text-align:left;display:flex;flex-direction:column;gap:6px}
+.door:hover{border-color:var(--text)}
+.door b{font-size:18px}.door span{font-size:13px;color:var(--muted)}
+.door.main{border-color:var(--ydk);background:var(--ytint)}
+.past{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.po{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid var(--line2);border-radius:10px;padding:8px 10px;background:#fff;text-align:left}
+.po:hover{border-color:var(--text)}
+.po .th{display:flex;gap:4px}
+.po img{width:64px;height:44px;border-radius:5px;border:1px solid var(--line)}
+.po .d b{font-family:var(--mono)}.po .d div{font-size:13px;color:var(--muted);margin-top:2px}
+/* line cards */
+.ln{border:1px solid var(--line2);border-radius:12px;background:#fff;margin-top:12px;overflow:hidden}
+.ln.ok{border-left:5px solid #3fae6f}.ln.need{border-left:5px solid #e9b45a}
+.lh{display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--soft);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.lh .no{font:700 13px var(--mono);color:var(--muted)}
+.lh .g{font-weight:800;font-size:16px}
+.lh .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.lh .qt{font:700 15px var(--mono);background:var(--text);color:var(--yellow);border-radius:6px;padding:5px 9px}
+.lh .pr input{width:82px;height:36px;border:1px solid var(--line2);border-radius:6px;text-align:right;padding:0 8px;font:700 14px var(--mono)}
+.lh .pr input.under{border-color:var(--red);background:var(--rtint);color:var(--red)}
+.lh .pr small{display:block;font-size:10px;color:var(--muted);text-align:right}
+.lb{padding:12px 14px;display:grid;grid-template-columns:70px minmax(0,1fr);gap:12px 12px;align-items:start}
+.lb .k{font-size:12px;font-weight:700;color:var(--muted);padding-top:10px}
+.gres{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.gres button{border:1px solid var(--line);border-radius:8px;background:#fff;padding:7px 10px;text-align:left;font-size:14px}
+.gres button:hover{border-color:var(--text)}
+.gres span{font-size:12px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--line2);background:#fff;border-radius:20px;font-size:13px;font-weight:600}
+.chip.on{background:var(--yellow);border-color:var(--ydk)}
+.szrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.szs{display:flex;gap:4px;flex-wrap:wrap}
+.szs label{display:flex;flex-direction:column;align-items:center;font:700 10px var(--mono);color:var(--muted);gap:2px}
+.szs input{width:46px;height:38px;border:1px solid var(--line2);border-radius:6px;text-align:center;font:700 14px var(--mono)}
+.paste{flex:1;min-width:220px;display:flex;flex-direction:column;gap:2px}
+.paste input{height:38px;border:1px dashed var(--ydk);background:var(--ytint);border-radius:6px;padding:0 10px}
+.paste small{font-size:11px;color:var(--muted)}
+.prc{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:8px;padding:5px 6px 5px 6px;background:#fff;font-size:13px;max-width:100%}
+.prc img{width:46px;height:32px;border-radius:4px;border:1px solid var(--line)}
+.prc .tx{display:flex;flex-direction:column;min-width:0}
+.prc .tx b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prc .tx span{font-size:11px;color:var(--muted)}
+.prc .x{border:0;background:none;color:var(--muted);font-size:16px;padding:0 4px}
+.prints{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.addp{border:1px solid var(--ydk);background:var(--ytint);border-radius:10px;padding:10px;margin-top:8px;grid-column:1/-1}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.artg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:330px;overflow:auto;padding:2px}
+.art{border:1px solid var(--line2);border-radius:8px;background:#fff;padding:6px;text-align:left;font-size:12px}
+.art:hover{border-color:var(--text)}
+.art img{width:100%;height:64px;display:block;border-radius:4px;margin-bottom:4px}
+.art b{font-family:var(--mono)}
+.npf{display:grid;grid-template-columns:90px minmax(0,1fr);gap:8px 10px;align-items:center}
+.npf .k{font-size:12px;font-weight:700;color:var(--muted)}
+.more{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.email{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px;white-space:pre-wrap;line-height:1.45}
 /* rail */
-.rail{position:sticky;top:84px;padding:16px 18px}
+.rail{position:sticky;top:84px}
 .rail h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px}
 .chk{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .chk li{display:flex;gap:8px;align-items:flex-start}
 .chk li i{font-style:normal;width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex:none}
 .chk li.ok i{background:var(--text);border-color:var(--text);color:var(--yellow)}
 .chk li.bad{color:var(--amb)}
-.tots{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px}
+.imps{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.imps div{display:flex;gap:6px;align-items:center}
+.tots{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px}
 .tots b{font:700 15px var(--mono);text-align:right}
 .tots .big{font-size:20px}
-.cmp{margin-top:12px;background:var(--ytint);border:1px solid var(--ydk);border-radius:8px;padding:10px;font-size:13px;line-height:1.45}
-.out{margin-top:12px;background:var(--soft);border-radius:8px;padding:10px;font-size:12px;white-space:pre-wrap;max-height:50vh;overflow:auto}
+.out{margin-top:12px;background:var(--soft);border-radius:8px;padding:10px;font-size:12px;white-space:pre-wrap;max-height:45vh;overflow:auto}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:40}
-@media (max-width:1100px){.app{grid-template-columns:minmax(0,1fr)}.rail{position:static}}
-@media (max-width:700px){.prt{grid-template-columns:auto minmax(0,1fr)}.prt .sum,.prt .acts{grid-column:1/-1}.ped{grid-template-columns:1fr}.top .sp{display:none}}
+@media (max-width:1050px){.app{grid-template-columns:minmax(0,1fr)}.rail{position:static}}
+@media (max-width:640px){.doors{grid-template-columns:1fr}.lb{grid-template-columns:1fr}.lb .k{padding-top:0}.po{grid-template-columns:minmax(0,1fr)}.po .th{display:none}}
 </style>
 </head>
 <body>
-<div class="top"><span class="brand">PINE</span><span class="crumb">Create order · blank</span><span class="prac">MOCKUP · nothing is saved</span><span class="sp">Real orders: 10977 Murf.studio · 10500 + 10975 WARGAME · 10902 New Millennium</span></div>
-<div class="app">
-  <div id="main"></div>
-  <div class="panel rail" id="rail"></div>
-</div>
+<div class="top"><span class="brand">PINE</span><span class="crumb">Create order</span><span class="prac">MOCKUP · nothing is saved</span><span class="sp" id="clock" title="Time since you picked the order">0:00</span></div>
+<div class="app"><div id="main"></div><div class="panel rail" id="rail"></div></div>
 <script>
-/* ---------- mock data (no Airtable) ---------- */
+/* ---------- mock data (from Airtable, read-only copy) ---------- */
 const APP=['XS','S','M','L','XL','2XL','3XL','4XL'], HAT=['OSFA'];
 const K='#1c1c1c',W='#f6f6f2';
 const CAT={
- AA1301:{code:'AA',brand:'American Apparel',style:'1301',name:'Heavyweight Tee',cost:5.40,sizes:APP,colors:{Black:K,White:W,Navy:'#1f2a44'}},
- CC9360:{code:'CC',brand:'Comfort Colors',style:'9360',name:'Heavyweight Tank',cost:7.10,sizes:APP,colors:{Black:K,White:W}},
- CC1717:{code:'CC',brand:'Comfort Colors',style:'1717',name:'Garment-Dyed Tee',cost:6.95,sizes:APP,colors:{Black:K,White:W,Sandstone:'#d8c3a0',Mustard:'#d6a531',Pepper:'#4a4a48'}},
- CC6014:{code:'CC',brand:'Comfort Colors',style:'6014',name:'Garment-Dyed Long Sleeve',cost:10.80,sizes:APP,colors:{Black:K,White:W,Pepper:'#4a4a48'}},
- AS1156:{code:'AS',brand:'AS Colour',style:'1156',name:'Access Cap',cost:6.60,sizes:HAT,colors:{Black:K,Natural:'#ece4d2'}},
- AS5026:{code:'AS',brand:'AS Colour',style:'5026',name:'Classic Tee',cost:7.90,sizes:APP,colors:{Black:K,White:W,Natural:'#ece4d2',Navy:'#1f2a44'}},
- BC3001:{code:'BC',brand:'Bella Canvas',style:'3001',name:'Unisex Jersey Tee',cost:3.05,sizes:APP,colors:{Black:K,White:W,Navy:'#1f2a44','Heather Grey':'#b9b9b4'}},
- IND4000Z:{code:'IND',brand:'Independent',style:'IND4000Z',name:'Heavyweight Zip Hood',cost:21.70,sizes:APP,fleece:true,colors:{Black:K,White:W}},
+ CC1466:{code:'CC',brand:'Comfort Colors',style:'1466',name:'Lightweight Crewneck',cost:15.41,sizes:APP,fleece:1,colors:{Ivory:['#efe8d6','IVR'],Pepper:['#4a4a48','PEP'],Black:[K,'BK']}},
+ CC1566:{code:'CC',brand:'Comfort Colors',style:'1566',name:'Garment-Dyed Crewneck',cost:19.08,sizes:APP,fleece:1,colors:{Pepper:['#4a4a48','PEP'],Ivory:['#efe8d6','IVR'],Black:[K,'BK']}},
+ CC1717:{code:'CC',brand:'Comfort Colors',style:'1717',name:'Heavyweight Tee',cost:5.49,sizes:APP,colors:{Pepper:['#4a4a48','PR'],'Flo Blue':['#6f8fc0','FLB'],White:[W,'WH'],Black:[K,'BK'],Sandstone:['#d8c3a0','SS'],Mustard:['#d6a531','MU']}},
+ GD64000:{code:'GD',brand:'Gildan',style:'64000',name:'Softstyle Tee',cost:3.02,sizes:APP,colors:{'Heather Royal':['#4a64b0','HRB'],Black:[K,'BK'],White:[W,'WH']}},
+ AS5001:{code:'AS',brand:'AS Colour',style:'5001',name:'Staple Tee',cost:5.45,sizes:APP,colors:{Black:[K,'BK'],White:[W,'WH'],Natural:['#ece4d2','NT']}},
+ AS5102:{code:'ASC',brand:'AS Colour',style:'5102',name:'Supply Hood',cost:21.75,sizes:APP,fleece:1,colors:{Walnut:['#6b4a33','WN'],Black:[K,'BK']}},
+ IND4000Z:{code:'IND',brand:'Independent',style:'IND4000Z',name:'Heavyweight Zip Hood',cost:21.70,sizes:APP,fleece:1,colors:{Black:[K,'BK'],White:[W,'WH']}},
+ AA1301:{code:'AA',brand:'American Apparel',style:'1301',name:'Heavyweight Tee',cost:5.40,sizes:APP,colors:{Black:[K,'BK'],White:[W,'WH']}},
+ CC9360:{code:'CC',brand:'Comfort Colors',style:'9360',name:'Heavyweight Tank',cost:7.10,sizes:APP,colors:{Black:[K,'BK'],White:[W,'WH']}},
+ BC3001:{code:'BC',brand:'Bella Canvas',style:'3001',name:'Unisex Jersey Tee',cost:3.05,sizes:APP,colors:{Black:[K,'BK'],White:[W,'WH'],Navy:['#1f2a44','NY']}},
 };
-const CCODE={Black:'BK',White:'WH',Navy:'NY',Natural:'NT',Sandstone:'SS',Mustard:'MU',Pepper:'PE','Heather Grey':'HG'};
-const LOCS=['Front','Back','Left Chest','Right Chest','Left Sleeve','Right Sleeve','Back Hem','Size Tag','Hat Front'];
-const METHODS={'Screen print':['No Base W/B','Discharge','Bleed Blocker + W/B','EZP Base + W/B'],'Embroidery':['Embroidery'],'Supacolor':['Supacolor - Wearable','Supacolor - Headwear'],'Patch application':['Patch Application']};
-const CURVE={XS:.02,S:.14,M:.28,L:.28,XL:.17,'2XL':.07,'3XL':.03,'4XL':.01};
-const art=(t,c)=>'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70"><rect width="120" height="70" fill="${c||K}"/><text x="60" y="40" font-size="12" text-anchor="middle" font-family="sans-serif" font-weight="bold" fill="#E8E832">${t}</text></svg>`);
-// print: [letter, nickname, location, method, ink type, colors, underbase, repeat-of]
-// version: [garment, color, inks, qty, sold price, prints]
+const LOCS=['Front','Back','Left Chest','Right Chest','Left Sleeve','Right Sleeve','Pocket','Back Hem','Size Tag'];
+const METHODS={'No Base W/B':'sp','EZP Base + W/B':'sp','Bleed Blocker + W/B':'sp','Discharge':'sp','Embroidery':'emb','Supacolor':'supa','Patch Application':'patch'};
+const art=(t,c,f)=>'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70"><rect width="120" height="70" fill="${c||'#2a2a27'}"/><text x="60" y="41" font-size="${t.length>12?9:12}" text-anchor="middle" font-family="sans-serif" font-weight="bold" fill="${f||'#E8E832'}">${t.replace(/&/g,'&amp;').toUpperCase()}</text></svg>`);
+// past art: [imprint ID, nickname, location, type, screens, inks, date]
+const MCC_ART=[['10691-A','Mill City Crewneck 2026','Front','Bleed Blocker + W/B',2,'1/2 BB, Off White','Aug 2026'],['10632-A','Quote','Front','Bleed Blocker + W/B',2,'Off White, 1/4 BB','Aug 2026'],['10632-B','2AP','Back','Bleed Blocker + W/B',2,'Off White, 1/4 BB','Aug 2026'],['10626-A','Better Together','Front','No Base W/B',1,'Semi-Opaque White','Aug 2026'],['10452-A','Mill City Kids','Front','EZP Base + W/B',2,'EZP White','Jul 2026'],['9391-A','Shrink the Mountain','Front','EZP Base + W/B',2,'WG1, 1/4 BB','Jan 2026'],['9358-A','Mill City Church','Front','EZP Base + W/B',2,'1/4 BB, EZP White','Jan 2026'],['9286-A','Life Safety','Front','EZP Base + W/B',2,'EZP White, 1/4 BB','Dec 2025'],['9193-B','Cypress Tonal','Front','Bleed Blocker + W/B',2,'5625, EZP White','Nov 2025'],['9190-A','Mill City Front HOODIE','Front','No Base W/B',1,'412','Nov 2025'],['9190-B','Mill City Back','Back','No Base W/B',1,'412','Nov 2025'],['9181-A','Mill City FRONT EMB','Front','Embroidery',0,'','Nov 2025'],['9181-B','Mill City LOGO','Right Sleeve','Embroidery',0,'','Nov 2025'],['9177-A','Mill City KIDS','Front','Bleed Blocker + W/B',2,'1/2 BB, EZP White','Nov 2025'],['8842-A','Young Adults','Front','Discharge',1,'Off White DC','Sep 2025'],['8757-B','Mill City Student','Back','No Base W/B',1,'7516','Sep 2025'],['8681-A','Alive Adults','Front','Bleed Blocker + W/B',2,'1/4 BB, EZP White','Aug 2025'],['8681-B','Alive KIDS','Front','Bleed Blocker + W/B',2,'1/4 BB, EZP White','Aug 2025'],['8055-B','Love NOCO ADULTS','Front','Discharge',2,'485, Black','May 2025'],['7534-A','Sisterhood LC','Left Chest','EZP Base + W/B',2,'Off White','Jan 2025'],['7534-B','Stay Salty','Back','EZP Base + W/B',2,'Off White','Jan 2025'],['6210-A','Jesora','Front','No Base W/B',2,'7516','Apr 2024'],['6210-B','Mil City','Back','No Base W/B',2,'7516','Apr 2024']];
+const WG_ART=[['8686-A','Wargame Size Tag','Size Tag','Supacolor',0,'Full color','Feb 2026'],['8686-C','Wargame Logo','Left Chest','No Base W/B',1,'White','Feb 2026'],['8383-F','OG Brand 3D','Front','No Base W/B',3,'Blue, Red, White','Dec 2025'],['8383-G','OG Brand 3D Back','Back','No Base W/B',3,'Blue, Red, White','Dec 2025'],['8932-B','Cult Back','Back','Bleed Blocker + W/B',2,'Orange, White','Mar 2026'],['8932-C','Cult Chest','Left Chest','No Base W/B',1,'Orange','Mar 2026']];
+// past orders: lines [garment, color, sizes, price, [imprint IDs]]
+const MCC_PAST=[[10691,'Aug 2026',[['CC1566','Pepper','12 S, 19 M, 26 L, 23 XL, 12 2XL, 8 3XL',29.95,['10691-A']]]],[10632,'Aug 2026',[['CC1717','Pepper','7 S, 12 M, 9 L, 6 XL, 1 2XL',19.00,['10632-A','10632-B']]]],[10626,'Aug 2026',[['CC1717','Flo Blue','44 S, 74 M, 76 L, 60 XL, 16 2XL, 5 3XL',13.00,['10626-A']]]],[10452,'Jul 2026',[['GD64000','Heather Royal','10 XS, 20 S, 20 M, 10 L, 5 XL, 3 2XL, 2 3XL',12.00,['10452-A']]]],[9358,'Jan 2026',[['AS5001','Black','310 S, 360 M, 260 L, 126 XL, 42 2XL, 26 3XL',9.10,['9358-A']]]],[9190,'Nov 2025',[['AS5102','Walnut','96 S, 142 M, 156 L, 57 XL, 17 2XL, 12 3XL',31.50,['9190-A','9190-B']]]],[6210,'Apr 2024',[['CC1466','Ivory','8 S, 16 M, 6 L, 5 XL',27.90,['6210-A','6210-B']]]]];
+const WG_PAST=[[8932,'Mar 2026',[['AA1301','Black','5 S, 12 M, 14 L, 8 XL, 3 2XL',13.85,['8932-C','8932-B']]]]];
 const ORDERS=[
- {num:10977,name:'Murf.studio',rep:'Patrick',note:'2 lines · 4 imprints · same hoodie, MENS vs WOMENS back',
-  prints:[['B','Ragin Mess MENS','Back','Screen print','Bleed Blocker + W/B',1,true],['C','USN Emblem','Left Chest','Screen print','Bleed Blocker + W/B',1,true],['A','Damn Proud','Left Sleeve','Screen print','Bleed Blocker + W/B',1,true],['D','Ragin Mess WOMENS','Back','Screen print','Bleed Blocker + W/B',1,true]],
-  products:[{vs:[['IND4000Z','Black','White',100,45,'BCA'],['IND4000Z','Black','White',20,45,'ACD']]}]},
- {num:10500,name:'WARGAME',rep:'Chris',note:'13 lines · 7 imprints',
-  prints:[['A','H20 Boy','Front','Screen print','Bleed Blocker + W/B',7,false],['B','Wargame Size Tag','Size Tag','Supacolor','Supacolor - Wearable',0,false,'8686-A'],['E','H20 Boy Back Tank','Back','Screen print','Bleed Blocker + W/B',2,false],['I','H20 Boy Back','Back','Screen print','Bleed Blocker + W/B',2,false],['C','92 Shirt','Front','Screen print','No Base W/B',1,false],['F','OG Brand 3D','Front','Screen print','No Base W/B',3,false,'8383-F'],['G','OG Brand 3D Back','Back','Screen print','No Base W/B',3,false,'8383-G']],
-  products:[{name:'H20 BOY',vs:[['CC9360','Black','Fluorescents',25,22.39,'ABE'],['AA1301','Black','Fluorescents',50,18.80,'ABI'],['AA1301','White','Fluorescents',50,18.53,'ABI']]},
-   {name:'92 SHIRT',vs:[['AA1301','White','Black',20,10.21,'CB'],['AA1301','White','Blue 293',20,10.21,'CB'],['AA1301','White','Red 180',20,10.21,'CB'],['CC1717','Sandstone','Black',20,12.93,'CB'],['CC1717','Mustard','Blue 293',20,12.93,'CB']]},
-   {name:'OG BRAND 3D',vs:[['AA1301','White','Blue',20,12.35,'FGB'],['AA1301','Black','Blue',30,12.35,'FGB'],['AA1301','White','Red',20,12.35,'FGB'],['AA1301','Black','Red',30,12.35,'FGB'],['AA1301','Black','Green 362',50,12.35,'FGB']]}]},
- {num:10975,name:'WARGAME',rep:'Chris',note:'9 lines · 9 imprints',
-  prints:[['A','Cult Chest','Left Chest','Screen print','No Base W/B',1,false,'8932-C'],['B','Cult Back','Back','Screen print','Bleed Blocker + W/B',2,false,'8932-B'],['C','Wargame Size Tag','Size Tag','Screen print','No Base W/B',1,false,'8932-G'],['D','Cult Left Sleeve','Left Sleeve','Screen print','No Base W/B',1,false,'8932-E'],['E','Cult Right Sleeve','Right Sleeve','Screen print','No Base W/B',1,false,'8932-F'],['I','Cult Back White','Back','Screen print','No Base W/B',2,false],['F','Crest','Hat Front','Embroidery','Embroidery',0,false,'8932-A'],['G','Skull','Hat Front','Embroidery','Embroidery',0,false,'10541-H'],['H','Wordmark','Hat Front','Embroidery','Embroidery',0,false,'8373-H']],
-  products:[{name:'CULT',vs:[['AA1301','Black','Orange + White',37,13.85,'ABC'],['AA1301','Black','Blue 300 + White',54,13.85,'ABC'],['AA1301','White','Orange + Black',18,13.55,'ACI'],['CC6014','Black','Orange + White',20,30.30,'ABCDE'],['CC6014','Black','Blue 300 + White',42,30.30,'ABCDE'],['CC6014','White','Orange + Black',21,30.30,'ACDEI']]},
-   {name:'CREST EMB',vs:[['AS1156','Black','',20,16.20,'F']]},{name:'SKULL EMB',vs:[['AS1156','Black','',12,16.20,'G']]},{name:'WORDMARK EMB',vs:[['AS1156','Black','',12,18.15,'H']]}]},
- {num:10902,name:'New Millennium',rep:'Chris',note:'2 lines · 3 imprints',
-  prints:[['A','New Millennium','Front','Screen print','No Base W/B',2,false,'10431-A'],['B','NM Back Black','Back','Screen print','Bleed Blocker + W/B',2,false],['C','NM Back White','Back','Screen print','No Base W/B',1,false]],
-  products:[{name:'NEW MILLENNIUM',vs:[['AS5026','Black','PMS 7409 + White',63,18.75,'AB'],['AS5026','White','PMS 7409 + Black',62,18.75,'AC']]}]},
+ {num:10193,name:'Mill City Church',rep:'Chris',created:'2 hours ago',art:MCC_ART,past:MCC_PAST,
+  email:'From: Jen @ Mill City Church\n\nHi! Could we get the Jesora crewnecks again, same as last spring?\nSizes: 6 S, 6 M, 15 XL, 5 2XL, 3 3XL\nThanks!'},
+ {num:10977,name:'Murf.studio',rep:'Patrick',created:'yesterday',art:[],past:[],
+  email:'From: Murf.studio\n\nZip hoodies, black, white ink.\nMENS (Ragin Mess back, Damn Proud sleeve, USN emblem chest): 20 S, 20 M, 20 L, 20 XL, 20 2XL\nWOMENS (same but the women\'s back): 20 S'},
+ {num:10500,name:'WARGAME Co.',rep:'Chris',created:'yesterday',art:WG_ART,past:WG_PAST,
+  email:'From: WARGAME\n\nBig drop! Sheet attached. First line:\n92 SHIRT white tee, black ink: S-3 M-6 L-6 XL-3 2XL-1 3XL-1'},
 ];
-// past imprints for "Repeat of past art" (from each repeat above + a few extras)
-const PAST={};
-ORDERS.forEach(o=>{ PAST[o.num]=o.prints.filter(p=>p[7]).map(p=>({id:p[7],nick:p[1],loc:p[2],method:p[3],ink:p[4],colors:p[5],ub:p[6],img:art(p[1].toUpperCase().slice(0,14))})); });
-PAST[10500].push({id:'8686-C',nick:'Wargame Logo',loc:'Left Chest',method:'Screen print',ink:'No Base W/B',colors:1,ub:false,img:art('WARGAME LOGO')});
 
-/* ---------- state ---------- */
-const S={o:null,prints:[],prods:[],seq:1,past:null,created:false};
+/* ---------- helpers ---------- */
+const S={o:null,view:'pick',prints:[],lines:[],seq:1,add:null,tab:'order',q:'',np:null,t0:null,tEnd:null,created:false,showEmail:true};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>v==null||isNaN(v)?'—':'$'+v.toFixed(2);
 const P=id=>S.prints.find(p=>p.id===id);
-const PR=id=>S.prods.find(p=>p.id===id);
-const V=id=>{ for(const pr of S.prods){ const v=pr.vs.find(x=>x.id===id); if(v) return v; } };
-const qty=v=>Object.values(v.sizes).reduce((a,b)=>a+(Number(b)||0),0);
-const allVs=()=>S.prods.flatMap(pr=>pr.vs.map(v=>Object.assign(v,{_pr:pr})));
-const byLetter=()=>[...S.prints].sort((a,b)=>a.L.localeCompare(b.L));
-const nextLetter=()=>{ for(let i=0;i<26;i++){ const l=String.fromCharCode(65+i); if(!S.prints.some(p=>p.L===l)) return l; } return '?'; };
+const Ln=id=>S.lines.find(l=>l.id===id);
+const qty=l=>Object.values(l.sizes).reduce((a,b)=>a+(b||0),0);
+const hex=l=>l.g&&l.color?CAT[l.g].colors[l.color][0]:'#ddd';
+const gName=g=>`${CAT[g].brand} ${CAT[g].style}`;
+const lineName=l=>`${S.o.num}-${S.o.name}-${l.g?CAT[l.g].code+'-'+CAT[l.g].style:'?'}-${l.color?CAT[l.g].colors[l.color][1]:'?'}`;
 const pid=p=>`${S.o.num}-${p.L}`;
-const hex=v=>v.g&&CAT[v.g].colors[v.color]||'#ddd';
-function spreadTo(g,t){ const z=CAT[g].sizes, s={}; if(z.length===1){ s.OSFA=t; return s; } let left=t; const w=z.reduce((a,x)=>a+CURVE[x],0);
-  z.forEach((x,i)=>{ const n=i===z.length-1?left:Math.round(t*CURVE[x]/w); if(n>0){ s[x]=n; left-=n; } }); if(left>0) s.L=(s.L||0)+left; return s; }
-function toast(t){ const e=document.createElement('div'); e.className='toast'; e.textContent=t; document.body.appendChild(e); setTimeout(()=>e.remove(),2400); }
+const pastArt=id=>S.o.art.find(a=>a[0]===id);
+const isSP=p=>METHODS[p.method]==='sp';
+function toast(t){ const e=document.createElement('div'); e.className='toast'; e.textContent=t; document.body.appendChild(e); setTimeout(()=>e.remove(),2200); }
+function nextLetter(){ for(let i=0;i<26;i++){ const l=String.fromCharCode(65+i); if(!S.prints.some(p=>p.L===l)) return l; } return '?'; }
+const thumb=p=>art(p.nick||p.loc||'?');
+const fmtT=ms=>{ const s=Math.floor(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 
-/* ---------- pricing (today's POM rules, approximate) ---------- */
+/* sizes typed or pasted from an email: "6 S, 6 M, 15 XL", "S-10 M-20", "10 small 20 med", "2X 3" */
+const SZ_ALIAS={xs:'XS','x-small':'XS',xsmall:'XS',s:'S',sm:'S',sml:'S',small:'S',m:'M',md:'M',med:'M',medium:'M',l:'L',lg:'L',lrg:'L',large:'L',xl:'XL',xlarge:'XL','x-large':'XL','2xl':'2XL',xxl:'2XL','2x':'2XL','xx-large':'2XL','3xl':'3XL',xxxl:'3XL','3x':'3XL','4xl':'4XL','4x':'4XL',xxxxl:'4XL',osfa:'OSFA',os:'OSFA'};
+function parseSizes(txt){ const out={}, t=txt.toLowerCase().replace(/[,;\/|]/g,' ');
+  const re=/(\d+)\s*(?:x\s+|-|:|=)?\s*(xx-large|x-large|x-small|xsmall|xlarge|xxxxl|xxxl|xxl|4xl|3xl|2xl|4x|3x|2x|xl|xs|small|sml|sm|medium|med|md|large|lrg|lg|osfa|os|s|m|l)\b|\b(xx-large|x-large|x-small|xsmall|xlarge|xxxxl|xxxl|xxl|4xl|3xl|2xl|4x|3x|2x|xl|xs|small|sml|sm|medium|med|md|large|lrg|lg|osfa|os|s|m|l)\s*(?:-|:|=|x)?\s*(\d+)/g;
+  let m; while((m=re.exec(t))){ const n=+(m[1]||m[4]), z=SZ_ALIAS[m[2]||m[3]]; if(z&&n) out[z]=(out[z]||0)+n; }
+  return out; }
+const szText=o=>Object.entries(o).map(([z,n])=>`${n} ${z}`).join(', ');
+
+/* ---------- pricing: today's POM rules, approximate ---------- */
 const RATE=579.29;
 const tier=(q,t)=>q<50?t[0]:q<75?t[1]:q<100?t[2]:q<150?t[3]:q<300?t[4]:q<500?t[5]:t[6];
-const vsOn=p=>allVs().filter(v=>v.on.includes(p.id));
-const pQty=p=>vsOn(p).reduce((a,v)=>a+qty(v),0);
-const screens=p=>p.method==='Screen print'?(p.colors||0)+(p.ub?1:0):0;
-// ink changes: distinct ink sets typed on the versions this print goes on, minus one
-function autoInk(p){ if(p.method!=='Screen print') return 0; const s=new Set(vsOn(p).map(v=>v.inks.trim().toLowerCase()).filter(Boolean)); return Math.max(0,s.size-1); }
-const inkCh=p=>p.icSet!=null?p.icSet:autoInk(p);
-function pPrice(p){ const q=pQty(p); if(!q||!p.method) return null;
-  if(p.method==='Screen print'){ const s=screens(p); if(!s) return null; return (s*0.2+q/230)*RATE/q+inkCh(p)*35/q; }
-  if(p.method==='Embroidery') return tier(q,[8.45,7.25,4.85,4.50,4.35,4.05,3.85]);
-  if(p.method==='Patch application') return tier(q,[2.5,2.25,2,1.75,1.7,1.65,1.5]);
-  if(p.method==='Supacolor') return 1.10;
+const linesWith=p=>S.lines.filter(l=>l.prints.includes(p.id));
+const pQty=p=>linesWith(p).reduce((a,l)=>a+qty(l),0);
+const screens=p=>isSP(p)?(p.colors||0)+(p.ub?1:0):0;
+// ink change: the same imprint printed in different ink colors on different garments
+function inkChanges(p){ if(!isSP(p)) return 0; const s=new Set(linesWith(p).map(l=>(l.inks[p.id]??p.inks).trim().toLowerCase())); return Math.max(0,s.size-1); }
+function pPrice(p){ const q=pQty(p), k=METHODS[p.method]; if(!q||!k) return null;
+  if(k==='sp'){ const s=screens(p); if(!s) return null; return (s*0.2+q/230)*RATE/q+inkChanges(p)*35/q; }
+  if(k==='emb') return tier(q,[8.45,7.25,4.85,4.50,4.35,4.05,3.85]);
+  if(k==='patch') return tier(q,[2.5,2.25,2,1.75,1.7,1.65,1.5]);
+  if(k==='supa') return 1.10;
   return null; }
-function pomPrice(v){ if(!v.g||!v.on.length) return null; let s=0; for(const id of v.on){ const x=pPrice(P(id)); if(x==null) return null; s+=x; }
-  return Math.round(((CAT[v.g].cost*1.1+(CAT[v.g].fleece?2.15:0.65)+s)/0.97)/0.05)*0.05; }
-const vPrice=v=>v.price!=null?v.price:pomPrice(v);
-// Airtable's line item name is a formula: order-customer-brand code-style-color code
-const lineName=v=>`${S.o.num}-${S.o.name}-${v.g?CAT[v.g].code+'-'+v.g:'?'}-${v.color?(CCODE[v.color]||v.color.slice(0,2).toUpperCase()):'?'}`;
-// group title: its own prints' nicknames (prints shared with other groups, like a size tag, left out)
-const grpTitle=pr=>{ const own=pr.prints.filter(id=>!S.prods.some(x=>x!==pr&&x.prints.includes(id))); const n=(own.length?own:pr.prints).map(id=>P(id).nick.trim()).filter(Boolean); return !n.length?'New group':n.length>3?n.slice(0,3).join(' + ')+` + ${n.length-3} more`:n.join(' + '); };
-const sameName=v=>allVs().filter(x=>x!==v&&x.g&&x.color&&lineName(x)===lineName(v)).length;
+function pom(l){ if(!l.g||!l.prints.length||!qty(l)) return null; let s=0; for(const id of l.prints){ const x=pPrice(P(id)); if(x==null) return null; s+=x; }
+  const g=CAT[l.g]; return Math.round(((g.cost*1.1+(g.fleece?2.15:0.65)+s)/0.97)/0.05)*0.05; }
+const price=l=>l.price!=null?l.price:pom(l);
 
 /* ---------- actions ---------- */
-function blankPrint(){ return {id:'P'+(S.seq++),L:nextLetter(),nick:'',loc:'',method:'',ink:'',colors:0,ub:false,prev:null,icSet:null,open:true}; }
-function blankV(){ return {id:'V'+(S.seq++),g:'',color:'',inks:'',sizes:{},price:null,on:[]}; }
-function start(num,built){ const o=ORDERS.find(x=>x.num===num); S.o=o; S.prints=[]; S.prods=[]; S.created=false; S.past=null;
-  if(built){ const map={};
-    o.prints.forEach(a=>{ const p={id:'P'+(S.seq++),L:a[0],nick:a[1],loc:a[2],method:a[3],ink:a[4],colors:a[5],ub:a[6],prev:a[7]?PAST[num].find(x=>x.id===a[7]):null,icSet:null,open:false}; map[a[0]]=p.id; S.prints.push(p); });
-    o.products.forEach(x=>{ const pr={id:'R'+(S.seq++),prints:[],vs:[]};
-      x.vs.forEach(a=>{ const on=[...a[5]].map(l=>map[l]); on.forEach(i=>{ if(!pr.prints.includes(i)) pr.prints.push(i); });
-        pr.vs.push({id:'V'+(S.seq++),g:a[0],color:a[1],inks:a[2],sizes:spreadTo(a[0],a[3]),price:a[4],on}); });
-      pr.prints=byLetter().map(p=>p.id).filter(i=>pr.prints.includes(i)); S.prods.push(pr); });
-  } else addProduct(true);
-  render(); }
-function addProduct(quiet){ const pr={id:'R'+(S.seq++),prints:[],vs:[blankV()]}; S.prods.push(pr); if(!quiet){ render(); setTimeout(()=>{ const e=document.querySelectorAll('.prod'); if(e.length) e[e.length-1].scrollIntoView({block:'center'}); },0); } }
-function rmProduct(id){ const pr=PR(id); S.prods=S.prods.filter(x=>x!==pr); pr.prints.forEach(dropIfUnused); render(); }
-function newPrint(prId,fromPast){ const pr=PR(prId), p=blankPrint(); if(fromPast){ Object.assign(p,{nick:fromPast.nick,loc:fromPast.loc,method:fromPast.method,ink:fromPast.ink,colors:fromPast.colors,ub:fromPast.ub,prev:fromPast,open:false}); S.past=null; }
-  S.prints.push(p); linkPrint(pr,p.id); render(); if(!fromPast) setTimeout(()=>{ const e=$('nk_'+prId+'_'+p.id); if(e) e.focus(); },0); }
-function linkPrint(pr,id){ if(!pr.prints.includes(id)) pr.prints.push(id); pr.vs.forEach(v=>{ if(!v.on.includes(id)) v.on.push(id); }); }
-function useShared(prId,id){ if(!id) return; linkPrint(PR(prId),id); render(); }
-function unlinkPrint(prId,id){ const pr=PR(prId); pr.prints=pr.prints.filter(x=>x!==id); pr.vs.forEach(v=>v.on=v.on.filter(x=>x!==id)); dropIfUnused(id); render(); }
-function dropIfUnused(id){ if(!S.prods.some(pr=>pr.prints.includes(id))) S.prints=S.prints.filter(p=>p.id!==id); }
-function setP(id,k,v){ const p=P(id); p[k]=v; if(k==='method'){ const o=METHODS[v]||[]; p.ink=o.length===1?o[0]:''; if(v!=='Screen print'){ p.colors=0; p.ub=false; } } render(); }
-function addV(prId,copy){ const pr=PR(prId), v=blankV(); v.on=[...pr.prints];
-  if(copy){ const last=pr.vs[pr.vs.length-1]; if(last){ v.g=last.g; v.color=last.color; v.inks=last.inks; v.on=[...last.on]; } }
-  pr.vs.push(v); render(); if(copy) setTimeout(()=>{ const e=$('ik_'+v.id); if(e) e.focus(); },0); }
-function rmV(prId,id){ const pr=PR(prId); pr.vs=pr.vs.filter(v=>v.id!==id); render(); }
-function setV(id,k,val){ const v=V(id); v[k]=val; if(k==='g'){ v.color=''; v.sizes={}; } render(); }
-function setSz(id,z,val){ const v=V(id), n=Math.max(0,Math.round(Number(val)||0)); if(n) v.sizes[z]=n; else delete v.sizes[z]; render(); }
-function spreadV(id,val){ const v=V(id), t=Math.round(Number(val)||0); if(!v.g||!t) return; v.sizes=spreadTo(v.g,t); render(); }
-function tgOn(vid,id){ const v=V(vid), i=v.on.indexOf(id); i<0?v.on.push(id):v.on.splice(i,1); render(); }
-function create(){ S.created=true; render(); toast('Practice: would create the order (nothing saved)'); }
+const blankLine=()=>({id:'L'+(S.seq++),g:'',color:'',gq:'',sizes:{},prints:[],inks:{},price:null,last:null});
+function pickOrder(n){ S.o=ORDERS.find(o=>o.num===n); S.prints=[]; S.lines=[]; S.created=false; S.tEnd=null; S.t0=Date.now(); S.add=null;
+  S.view=S.o.past.length?'door':'edit'; if(S.view==='edit') S.lines=[blankLine()]; render(); }
+function startNew(){ S.view='edit'; S.lines=[blankLine()]; render(); focusSoon('gq_'+S.lines[0].id); }
+function reorder(num){ const po=S.o.past.find(x=>x[0]===num); const map={};
+  po[2].forEach(([g,color,sz,pr,ids])=>{ const l=blankLine(); Object.assign(l,{g,color,last:{sizes:sz,price:pr,order:num}});
+    ids.forEach(id=>{ if(!map[id]) map[id]=addPrintFromArt(id); l.prints.push(map[id]); }); S.lines.push(l); });
+  S.view='edit'; render(); toast(`Copied order ${num}: ${po[2].length} line${po[2].length>1?'s':''}, ${Object.keys(map).length} imprint${Object.keys(map).length>1?'s':''} as repeats`); focusSoon('paste_'+S.lines[0].id); }
+function addPrintFromArt(id){ const a=pastArt(id), ex=S.prints.find(p=>p.prev===id); if(ex) return ex.id;
+  const p={id:'P'+(S.seq++),L:nextLetter(),nick:a[1],loc:a[2],method:a[3],colors:a[4],ub:false,inks:a[5],prev:id}; S.prints.push(p); return p.id; }
+function pickG(lid,g){ const l=Ln(lid); l.g=g; l.color=''; l.gq=''; const cs=Object.keys(CAT[g].colors); if(cs.length===1) l.color=cs[0]; render(); }
+function pickColor(lid,c){ Ln(lid).color=c; render(); focusSoon('paste_'+lid); }
+function setSz(lid,z,v){ const l=Ln(lid), n=Math.max(0,Math.round(+v||0)); if(n) l.sizes[z]=n; else delete l.sizes[z]; render(); }
+function pasteSz(lid,v){ const o=parseSizes(v); if(!Object.keys(o).length){ if(v.trim()) toast('Couldn\'t read sizes from that'); return; } Ln(lid).sizes=o; render(); toast(`${Object.values(o).reduce((a,b)=>a+b,0)} pcs: ${szText(o)}`); }
+function sameAsLast(lid){ const l=Ln(lid); l.sizes=parseSizes(l.last.sizes); render(); }
+function openAdd(lid){ S.add=S.add===lid?null:lid; S.q=''; S.np=null; S.tab=S.prints.some(p=>!Ln(lid).prints.includes(p.id))?'order':S.o.art.length?'past':'new'; if(S.tab==='new') newDraft(); render(); }
+function newDraft(){ S.np={nick:'',loc:'',method:'',colors:0,ub:false,inks:''}; }
+function setTab(t){ S.tab=t; if(t==='new'&&!S.np) newDraft(); render(); if(t==='past') focusSoon('artq'); if(t==='new') focusSoon('npnick'); }
+function attach(lid,pid){ const l=Ln(lid); if(!l.prints.includes(pid)) l.prints.push(pid); S.add=null; render(); }
+function attachArt(lid,aid){ attach(lid,addPrintFromArt(aid)); }
+function saveNew(lid){ const n=S.np; if(!n.nick.trim()) return toast('Give the print a nickname'); if(!n.loc) return toast('Pick a location'); if(!n.method) return toast('Pick a print type'); if(METHODS[n.method]==='sp'&&!n.colors) return toast('How many colors?');
+  const p={id:'P'+(S.seq++),L:nextLetter(),nick:n.nick.trim(),loc:n.loc,method:n.method,colors:n.colors,ub:n.ub,inks:n.inks.trim(),prev:null}; S.prints.push(p); attach(lid,p.id); }
+function detach(lid,pid){ const l=Ln(lid); l.prints=l.prints.filter(x=>x!==pid); delete l.inks[pid]; if(!S.lines.some(x=>x.prints.includes(pid))) S.prints=S.prints.filter(p=>p.id!==pid); render(); }
+function setInk(lid,pid,v){ const l=Ln(lid), p=P(pid); if(!v.trim()||v.trim()===p.inks) delete l.inks[pid]; else l.inks[pid]=v.trim(); render(); }
+function addLine(kind){ const last=S.lines[S.lines.length-1], l=blankLine();
+  if(kind==='prints'&&last){ l.prints=[...last.prints]; }
+  if(kind==='copy'&&last){ l.g=last.g; l.color=last.color; l.prints=[...last.prints]; }
+  S.lines.push(l); render(); focusSoon(l.g?'paste_'+l.id:'gq_'+l.id); }
+function rmLine(lid){ const l=Ln(lid); S.lines=S.lines.filter(x=>x!==l); l.prints.forEach(pid=>{ if(!S.lines.some(x=>x.prints.includes(pid))) S.prints=S.prints.filter(p=>p.id!==pid); }); render(); }
+function create(){ S.created=true; S.tEnd=Date.now(); render(); toast('Practice: would create the order (nothing saved)'); }
 
 /* ---------- checks ---------- */
-const pReady=p=>p.nick.trim()&&p.loc&&p.method&&p.ink&&(p.method!=='Screen print'||p.colors);
-const pNeed=p=>!p.nick.trim()?'needs a nickname':!p.loc?'pick a location':!p.method?'pick a method':!p.ink?'pick an ink type':(p.method==='Screen print'&&!p.colors)?'how many colors?':'';
-const vNeed=v=>!v.g?'garment':!v.color?'color':!qty(v)?'sizes':!v.on.length?'prints':(v.inks.trim()===''&&v.on.some(i=>P(i).method==='Screen print'))?'ink colors':'';
-function checks(){ const c=[], vs=allVs();
-  c.push([!!S.o,S.o?`Order ${S.o.num} picked`:'Pick the order']);
-  const pBad=S.prints.filter(p=>!pReady(p));
-  c.push([S.prints.length>0&&!pBad.length,!S.prints.length?'Add the prints':pBad.length?`${pBad.length} print${pBad.length>1?'s':''}: ${pNeed(pBad[0])}`:`${S.prints.length} print${S.prints.length>1?'s':''}, each with a nickname`]);
-  const vBad=vs.filter(v=>vNeed(v));
-  c.push([vs.length>0&&!vBad.length,vBad.length?`${vBad.length} version${vBad.length>1?'s need':' needs'} ${vNeed(vBad[0])}`:`${vs.length} versions, sizes and inks in`]);
-  const lone=S.prints.filter(p=>!vsOn(p).length);
-  c.push([S.prints.length>0&&!lone.length,lone.length?`${lone.length} print${lone.length>1?'s aren\'t':' isn\'t'} on any version`:'Every print is on a garment']);
-  const unp=vs.filter(v=>vPrice(v)==null);
-  c.push([vs.length>0&&!unp.length,unp.length?'Prices fill in once prints are set':'Every line has a price']);
+function lineNeed(l){ return !l.g?'pick a garment':!l.color?'pick a color':!qty(l)?'add sizes':!l.prints.length?'add a print':price(l)==null?'price':''; }
+function checks(){ const c=[]; const bad=S.lines.filter(lineNeed);
+  c.push([S.lines.length>0&&!bad.length,!S.lines.length?'Add a garment':bad.length?`Line ${S.lines.indexOf(bad[0])+1}: ${lineNeed(bad[0])}`:`${S.lines.length} line item${S.lines.length>1?'s':''} ready`]);
+  const nn=S.prints.filter(p=>!p.nick.trim()); c.push([S.prints.length>0&&!nn.length,!S.prints.length?'Add the prints':nn.length?'A print needs a nickname':`${S.prints.length} imprint${S.prints.length>1?'s':''}, each with a nickname`]);
   return c; }
 
 /* ---------- render ---------- */
-function printRow(pr,p){ const need=pNeed(p), ic=inkCh(p), shared=S.prods.filter(x=>x!==pr&&x.prints.includes(p.id));
-  const sum=[p.loc,p.method==='Screen print'?`${p.colors||'?'} color${p.colors===1?'':'s'}${p.ub?' + UB':''}`:p.method,p.method==='Screen print'?p.ink:''].filter(Boolean).join(' · ');
-  let h=`<div class="prt${need?' need':''}"><span class="idtag">${pid(p)}</span>
-   <input class="nick${p.nick.trim()?'':' empty'}" id="nk_${pr.id}_${p.id}" value="${esc(p.nick)}" placeholder="Imprint nickname" aria-label="Imprint nickname for ${pid(p)}" onchange="setP('${p.id}','nick',this.value)">
-   <div class="sum">${sum?esc(sum):'<span class="hint">location, method…</span>'}${p.prev?`<span class="tag">repeat of ${esc(p.prev.id)}</span>`:''}${shared.length?`<span class="tag">also in group ${shared.map(x=>S.prods.indexOf(x)+1).join(', ')}</span>`:''}${ic?`<span class="tag need">${ic} ink change${ic>1?'s':''}</span>`:''}${need&&p.nick.trim()?`<span class="tag need">${need}</span>`:''}</div>
-   <div class="acts"><button class="link" onclick="P('${p.id}').open=!P('${p.id}').open;render()">${p.open?'done':'edit'}</button><button class="link" onclick="unlinkPrint('${pr.id}','${p.id}')">remove</button></div>`;
-  if(p.open){
-    h+=`<div class="ped"><span class="k">Location</span><div class="bts">${LOCS.map(l=>`<button class="b${p.loc===l?' on':''}" onclick="setP('${p.id}','loc','${l}')">${l}</button>`).join('')}</div>
-     <span class="k">Method</span><div class="bts">${Object.keys(METHODS).map(m=>`<button class="b${p.method===m?' on':''}" onclick="setP('${p.id}','method','${m}')">${m}</button>`).join('')}</div>`;
-    if(p.method&&METHODS[p.method].length>1) h+=`<span class="k">Ink / type</span><div class="bts">${METHODS[p.method].map(t=>`<button class="b${p.ink===t?' on':''}" onclick="setP('${p.id}','ink','${t}')">${t.replace(/^Supacolor - /,'')}</button>`).join('')}</div>`;
-    if(p.method==='Screen print'){
-      h+=`<span class="k">Colors</span><div class="bts">${[1,2,3,4,5,6,7,8].map(n=>`<button class="b${p.colors===n?' on':''}" onclick="setP('${p.id}','colors',${n})">${n}</button>`).join('')}<button class="b${p.ub?' on':''}" onclick="setP('${p.id}','ub',${!p.ub})">+ Underbase</button><span class="hint">${screens(p)?screens(p)+' screens':''}</span></div>
-       <span class="k">Ink changes</span><div class="bts"><button class="b${p.icSet==null?' on':''}" onclick="setP('${p.id}','icSet',null)">Auto: ${autoInk(p)}</button>${[0,1,2,3].map(n=>`<button class="b${p.icSet===n?' on':''}" onclick="setP('${p.id}','icSet',${n})">${n}</button>`).join('')}<span class="hint">auto counts the different ink colors typed on the versions below</span></div>`;
-    }
-    h+=`</div>`;
-  }
-  return h+`</div>`; }
-
-function versionRow(pr,v){ const g=v.g&&CAT[v.g], need=vNeed(v), q=qty(v);
-  let h=`<tr class="${need?'need':''}"><td><select class="gs" aria-label="Garment" onchange="setV('${v.id}','g',this.value)"><option value="">Garment…</option>${Object.entries(CAT).map(([k,x])=>`<option value="${k}"${v.g===k?' selected':''}>${k} · ${esc(x.name)}</option>`).join('')}</select></td>
-   <td><span class="sw" style="background:${hex(v)}"></span> <select aria-label="Color" onchange="setV('${v.id}','color',this.value)" ${g?'':'disabled'}><option value="">Color…</option>${g?Object.keys(g.colors).map(c=>`<option${v.color===c?' selected':''}>${esc(c)}</option>`).join(''):''}</select></td>
-   <td><input class="inks${v.inks.trim()||!v.on.some(i=>P(i).method==='Screen print')?'':' empty'}" id="ik_${v.id}" value="${esc(v.inks)}" placeholder="e.g. Blue 293 + White" onchange="setV('${v.id}','inks',this.value)"></td>
-   <td><span class="qt">${q}</span></td>
-   <td>${pr.prints.map(id=>{ const p=P(id); return `<button class="pt${v.on.includes(id)?' on':''}" title="${esc(p.nick||p.loc)}" onclick="tgOn('${v.id}','${id}')">${p.L}</button>`; }).join('')||'<span class="hint">add a print</span>'}</td>
-   <td>${g?`<div class="szs">${g.sizes.map(z=>`<label>${z}<input inputmode="numeric" value="${v.sizes[z]||''}" onchange="setSz('${v.id}','${z}',this.value)"></label>`).join('')}${g.sizes.length>1?`<label>total<input inputmode="numeric" placeholder="#" title="Type a total to spread it over sizes" onchange="spreadV('${v.id}',this.value)"></label>`:''}</div>`:'<span class="hint">pick a garment</span>'}</td>
-   <td><button class="link" onclick="rmV('${pr.id}','${v.id}')" aria-label="Remove version">✕</button></td></tr>`;
-  return h; }
-
-function render(){
-  const o=S.o; let h='';
-  // 1 order
-  h+=`<div class="panel step"><div class="sh"><span class="n">1</span><h2>Order</h2><span class="hint">Pipedrive makes the order; pick it here</span></div>`;
-  h+=o?`<div class="picked"><span class="num">${o.num}</span><span class="nm">${esc(o.name)}</span><span class="tag">${esc(o.rep)}</span><button class="link" onclick="S.o=null;render()">change</button><span class="hint" style="margin-left:auto">📁 Art folder · ${(PAST[o.num]||[]).length} past imprints for repeats</span></div>`
-   :`<div class="orders">${ORDERS.map(x=>`<div class="oc"><span class="num">${x.num}</span><b>${esc(x.name)}</b><span>${esc(x.rep)} · real order: ${x.note}</span><div class="bts"><button class="b on" onclick="start(${x.num},false)">Start blank</button><button class="b" onclick="start(${x.num},true)">See it built</button></div></div>`).join('')}</div>`;
-  h+=`</div>`;
-  // 2 products
-  h+=`<div class="panel step${o?'':' off'}"><div class="sh"><span class="n">2</span><h2>Prints &amp; garments</h2><span class="hint">A group = prints that go on the same garments, then every garment / color / ink version</span></div>`;
-  S.prods.forEach((pr,pi)=>{
-    const others=S.prints.filter(p=>!pr.prints.includes(p.id));
-    h+=`<div class="prod"><div class="ph"><span class="gt"><small>Group ${pi+1}</small>${esc(grpTitle(pr))}</span><span class="hint">${pr.vs.length} version${pr.vs.length===1?'':'s'} · ${pr.vs.reduce((a,v)=>a+qty(v),0)} pcs</span><button class="link" onclick="rmProduct('${pr.id}')">remove group</button></div><div class="pb">`;
-    h+=`<div class="sub">Prints ${pi?'':'<span class="hint">each location is its own imprint ID with its own nickname (the name sales and the shop see)</span>'}</div>`;
-    pr.prints.forEach(id=>h+=printRow(pr,P(id)));
-    h+=`<div class="addp"><button class="b${pr.prints.length?'':' on'}" onclick="newPrint('${pr.id}')">+ New print</button><button class="b" onclick="S.past=S.past==='${pr.id}'?null:'${pr.id}';render()">+ Repeat of past art…</button>${others.length?`<select class="b" onchange="useShared('${pr.id}',this.value)" aria-label="Use a print already on this order"><option value="">+ Use a print already on this order…</option>${others.map(p=>`<option value="${p.id}">${p.L} · ${esc(p.nick||p.loc||'print')}</option>`).join('')}</select>`:''}</div>`;
-    if(S.past===pr.id) h+=`<div class="pastg">${(PAST[o.num]||[]).map((x,i)=>`<button class="pc" onclick="newPrint('${pr.id}',PAST[${o.num}][${i}])"><img src="${x.img}" alt=""><b>${x.id}</b> ${esc(x.nick)}<br><span class="hint">${esc(x.loc)} · ${esc(x.method)}${x.colors?' · '+x.colors+' col':''}</span></button>`).join('')}</div>`;
-    h+=`<div class="sub">Versions ${pi?'':'<span class="hint">each row becomes a line item, named automatically</span>'}</div>`;
-    h+=`<div class="scroll"><table class="vt"><tr><th>Garment</th><th>Color</th><th>Ink colors</th><th>Qty</th><th>Prints</th><th>Sizes</th><th></th></tr>${pr.vs.map(v=>versionRow(pr,v)).join('')}</table></div>`;
-    h+=`<div class="vbar"><button class="b" onclick="addV('${pr.id}')">+ Version</button>${pr.vs.length?`<button class="b" onclick="addV('${pr.id}',true)">+ Same garment again</button><span class="hint">copies the last row: tick different prints (another design) or change the inks</span>`:''}</div>`;
-    h+=`</div></div>`; });
-  h+=`<div class="vbar" style="margin-top:14px"><button class="btn${S.prods.length?'':' y'}" onclick="addProduct()">+ Add ${S.prods.length?'another':'a'} group</button><span class="hint">only for a separate set of prints, e.g. the hats</span></div></div>`;
-  // 3 map
-  const vs=allVs(), cols=byLetter(), show=vs.length&&cols.length;
-  h+=`<div class="panel step${show?'':' off'}"><div class="sh"><span class="n">3</span><h2>Check the order &amp; prices</h2><span class="hint">Every line item and the imprints on it · price is today's POM price, type over it</span></div>`;
-  if(show){
-    h+=`<div class="scroll"><table class="map"><thead><tr><th class="l">Garment</th><th class="l">Line item name (automatic)</th><th>Qty</th>${cols.map(p=>`<th title="${esc(p.nick)}"><span class="idtag">${p.L}</span><br>${esc(p.loc||'?')}</th>`).join('')}<th>Price / pc</th><th>Total</th></tr></thead><tbody>`;
-    S.prods.forEach(pr=>{ h+=`<tr class="grp"><td colspan="${5+cols.length}">Group ${S.prods.indexOf(pr)+1} · ${esc(grpTitle(pr))}</td></tr>`;
-      pr.vs.forEach(v=>{ const pp=pomPrice(v), p=vPrice(v), under=p!=null&&pp!=null&&p<pp-0.001;
-        h+=`<tr><td class="l"><span class="sw" style="background:${hex(v)}"></span> ${v.g?esc(v.g):'?'} ${esc(v.color||'')}</td><td class="nk"><span style="font-family:var(--mono)">${esc(lineName(v))}</span></td><td><b>${qty(v)}</b></td>
-         ${cols.map(c=>`<td><button class="tick${v.on.includes(c.id)?' on':''}" onclick="tgOn('${v.id}','${c.id}')" aria-label="${c.L} on this line">${v.on.includes(c.id)?'✓':''}</button></td>`).join('')}
-         <td class="pr"><input class="${under?'under':''}" value="${p!=null?p.toFixed(2):''}" placeholder="—" onchange="const x=parseFloat(this.value);V('${v.id}').price=isNaN(x)?null:x;render()"><small>${pp!=null?(v.price!=null&&Math.abs(v.price-pp)>0.001?(under?'under POM ':'POM ')+money(pp):'POM price'):'needs prints'}</small></td><td><b>${p!=null?money(p*qty(v)):'—'}</b></td></tr>`; }); });
-    h+=`</tbody><tfoot><tr><td class="l">Pieces</td><td></td><td></td>${cols.map(c=>`<td>${pQty(c)}</td>`).join('')}<td colspan="2"></td></tr><tr><td class="l">Ink changes</td><td></td><td></td>${cols.map(c=>`<td>${inkCh(c)||''}</td>`).join('')}<td colspan="2"></td></tr></tfoot></table></div>`;
-    const dup=vs.filter(v=>sameName(v)).length;
-    if(dup) h+=`<div class="hint" style="margin-top:8px">${dup} of ${vs.length} lines share a name with another line (same garment and color). That's normal: Airtable names lines by garment, so the imprints and ink colors are what tell them apart.</div>`;
-  } else h+=`<div class="hint">Shows up once there's a group with prints and versions.</div>`;
-  h+=`</div>`;
-  $('main').innerHTML=h;
-  // rail
-  const c=checks(), ok=c.every(x=>x[0]), total=vs.reduce((a,v)=>a+(vPrice(v)||0)*qty(v),0), pcs=vs.reduce((a,v)=>a+qty(v),0);
-  const looks=vs.reduce((a,v)=>a+v.on.length,0), ics=S.prints.reduce((a,p)=>a+inkCh(p),0);
-  let r=`<h3>${o?'Order '+o.num+' · '+esc(o.name):'Create order'}</h3><ul class="chk">${c.map(([k,t])=>`<li class="${k?'ok':'bad'}"><i>${k?'✓':''}</i>${esc(t)}</li>`).join('')}</ul>
-   <div class="tots"><span>Line items</span><b>${vs.length}</b><span>Imprints</span><b>${S.prints.length}</b><span>Ink changes</span><b>${ics}</b><span>Pieces</span><b>${pcs}</b><span>Total</span><b class="big">${money(total)}</b></div>`;
-  if(vs.length&&S.prints.length) r+=`<div class="cmp"><b>Same order the Airtable way:</b> ${S.prints.length} imprint${S.prints.length>1?'s':''} made one by one in Imprint Creator, then ${vs.length} line items, each with its imprints found and ticked: <b>${looks} imprint look-ups</b>. Here, each print is typed once and ticked per version.</div>`;
-  r+=`<div class="vbar"><button class="btn k" style="width:100%" onclick="create()" ${ok?'':'disabled'}>Create order${ok?'':' — finish the checklist'}</button></div>`;
-  if(S.created) r+=`<div class="out"><b>Practice — would write to Airtable:</b>\n\n<b>${S.prints.length} imprints</b>\n${byLetter().map(p=>`• ${pid(p)} · ${esc(p.nick)} · ${esc(p.loc)} · ${esc(p.method==='Screen print'?p.colors+' col '+p.ink:p.ink)}${inkCh(p)?' · '+inkCh(p)+' ink change':''}${p.prev?' · repeat of '+p.prev.id:''}`).join('\n')}\n\n<b>${vs.length} line items</b>\n${vs.map(v=>`• ${esc(lineName(v))} · ${v.inks?esc(v.inks)+' ink · ':''}${qty(v)} pcs · ${money(vPrice(v))} · ${v.on.map(i=>P(i).L).sort().join('+')}`).join('\n')}\n\nThen it opens Line Item Review on this order.</div>`;
-  $('rail').innerHTML=r;
+let pendingFocus=null; function focusSoon(id){ pendingFocus=id; setTimeout(()=>{ const e=$(id); if(e){ e.focus(); } pendingFocus=null; },0); }
+let rendering=false;
+function render(){ if(rendering){ setTimeout(render,0); return; } rendering=true; try{ draw(); } finally{ rendering=false; } }
+function draw(){
+  const ae=document.activeElement, keep=ae&&ae.id&&ae.tagName==='INPUT'?{id:ae.id,s:ae.selectionStart}:null;
+  $('main').innerHTML=S.view==='pick'?vPick():S.view==='door'?vDoor():vEdit();
+  $('rail').innerHTML=vRail();
+  if(keep&&!pendingFocus){ const e=$(keep.id); if(e){ e.focus(); try{ e.setSelectionRange(keep.s,keep.s); }catch(_){} } }
 }
+function orderHead(){ const o=S.o; return `<div class="ohead"><span class="num">${o.num}</span><span class="nm">${esc(o.name)}</span><span class="tag">${esc(o.rep)}</span><button class="link" onclick="S.view='pick';S.o=null;S.t0=null;render()">change order</button></div>`; }
+function vPick(){ return `<div class="panel"><h2>Which order?</h2><div class="hint" style="margin-top:4px">Pipedrive already made the order. Pick it to add what's on it.</div>
+  <div class="orders">${ORDERS.map(o=>`<button class="oc" onclick="pickOrder(${o.num})"><span class="num">${o.num}</span><b>${esc(o.name)}</b><span>${esc(o.rep)} · created ${o.created} · ${o.past.length?o.past.length+' past orders on file':'new customer'}</span></button>`).join('')}</div></div>`; }
+function vDoor(){ const o=S.o;
+  return `<div class="panel">${orderHead()}
+   <div class="doors"><div class="door main"><b>↻ Reorder: pick a past order below</b><span>Its garments and imprints come back, linked as repeats. You enter the new sizes.</span></div>
+   <button class="door" onclick="startNew()"><b>＋ New order</b><span>New garments or new art (you can still pull in past art).</span></button></div>
+   <div class="past">${o.past.map(([n,d,ls])=>{ const ids=[...new Set(ls.flatMap(x=>x[4]))];
+     return `<button class="po" onclick="reorder(${n})"><span class="th">${ids.slice(0,3).map(id=>`<img src="${art(pastArt(id)[1])}" alt="">`).join('')}</span><span class="d"><b>${n}</b> · ${d}<div>${ls.map(([g,c,sz,pr])=>`${esc(gName(g))} ${esc(c)} · ${parseQty(sz)} pcs · ${money(pr)}`).join('<br>')}</div><div>${ids.map(id=>esc(pastArt(id)[1])+' ('+pastArt(id)[2]+')').join(' + ')}</div></span><span class="btn y" style="display:flex;align-items:center">Reorder</span></button>`; }).join('')}</div></div>`; }
+// best match first: style number that starts with what was typed
+const rank=([k,x],q)=>([x.style,k,x.style.replace(/^[a-z]+/i,'')].some(v=>v.toLowerCase().startsWith(q))?2:0)+(x.name.toLowerCase().startsWith(q)?1:0);
+const parseQty=s=>Object.values(parseSizes(s)).reduce((a,b)=>a+b,0);
+function vEdit(){ const o=S.o; let h=`<div class="panel">${orderHead()}`;
+  h+=`<div style="margin-top:10px"><button class="link" onclick="S.showEmail=!S.showEmail;render()">${S.showEmail?'hide':'show'} customer email (from Pipedrive)</button>${S.showEmail?`<div class="email" style="margin-top:6px">${esc(o.email)}</div><div class="hint" style="margin-top:4px">Sample email for this mockup. Copy the sizes straight into a line's yellow box.</div>`:''}</div>`;
+  S.lines.forEach((l,i)=>h+=vLine(l,i));
+  h+=`<div class="more"><button class="btn" onclick="addLine('prints')" ${S.lines.length&&S.lines[S.lines.length-1].prints.length?'':'disabled'}>＋ Another garment, same prints</button><button class="btn" onclick="addLine('copy')" ${S.lines.length&&S.lines[S.lines.length-1].g?'':'disabled'}>⧉ Copy last line</button><button class="btn" onclick="addLine()">＋ Blank line</button></div>
+   <div class="hint" style="margin-top:6px">Each line is one line item with its own proof. Same garment twice is fine when the prints or inks differ (men's / women's backs).</div></div>`;
+  return h; }
+function vLine(l,i){ const need=lineNeed(l), g=l.g&&CAT[l.g], q=qty(l), pp=pom(l), p=price(l), under=p!=null&&pp!=null&&p<pp-0.001;
+  let h=`<div class="ln ${need?'need':'ok'}"><div class="lh"><span class="no">${i+1}</span>`;
+  h+=g?`<span class="sw" style="background:${hex(l)}"></span><span class="g">${esc(gName(l.g))}${l.color?' · '+esc(l.color):''}</span><button class="link" onclick="Ln('${l.id}').g='';render();focusSoon('gq_${l.id}')">change</button>`:`<span class="g">New line</span>`;
+  h+=`<div class="right">${need?`<span class="tag need">${need}</span>`:''}<span class="qt">${q}</span><span class="pr"><input id="pr_${l.id}" class="${under?'under':''}" value="${p!=null?p.toFixed(2):''}" placeholder="price" aria-label="Price per piece" onchange="const v=parseFloat(this.value);Ln('${l.id}').price=isNaN(v)?null:v;render()"><small>${pp!=null?(l.price!=null&&Math.abs(l.price-pp)>0.001?(under?'under ':'')+'POM '+money(pp):'POM price'):''}${l.last?' · last '+money(l.last.price):''}</small></span><button class="link" onclick="rmLine('${l.id}')" aria-label="Remove line">✕</button></div></div><div class="lb">`;
+  // garment
+  if(!g){ const qq=l.gq.trim().toLowerCase(), hits=qq?Object.entries(CAT).filter(([k,x])=>(k+' '+x.brand+' '+x.style+' '+x.name).toLowerCase().includes(qq)).sort((a,b)=>rank(b,qq)-rank(a,qq)).slice(0,6):[];
+    h+=`<span class="k">Garment</span><div><input class="t" style="width:100%" id="gq_${l.id}" placeholder="Style # or name: 1717, crewneck, 5001…" value="${esc(l.gq)}" oninput="Ln('${l.id}').gq=this.value;render()" autocomplete="off">${hits.length?`<div class="gres">${hits.map(([k,x])=>`<button onclick="pickG('${l.id}','${k}')"><b>${esc(x.brand)} ${esc(x.style)}</b> <span>${esc(x.name)} · $${x.cost.toFixed(2)}</span></button>`).join('')}</div>`:qq?'<div class="hint" style="margin-top:6px">Not in Airtable yet. The real version offers to add it from the vendor.</div>':''}</div>`;
+  } else if(!l.color){ h+=`<span class="k">Color</span><div class="bts">${Object.entries(g.colors).map(([c,x])=>`<button class="chip" onclick="pickColor('${l.id}','${esc(c)}')"><span class="sw" style="background:${x[0]}"></span>${esc(c)}</button>`).join('')}</div>`; }
+  // sizes
+  if(g&&l.color){ h+=`<span class="k">Sizes</span><div class="szrow"><div class="szs">${g.sizes.map(z=>`<label>${z}<input id="sz_${l.id}_${z}" inputmode="numeric" value="${l.sizes[z]||''}" onchange="setSz('${l.id}','${z}',this.value)"></label>`).join('')}</div>
+    <div class="paste"><small>Paste or type from the email</small><input id="paste_${l.id}" placeholder="6 S, 6 M, 15 XL, 5 2XL" onkeydown="if(event.key==='Enter'){pasteSz('${l.id}',this.value);this.value=''}" onpaste="setTimeout(()=>pasteSz('${l.id}',this.value),0)" onchange="pasteSz('${l.id}',this.value)"></div>
+    ${l.last?`<div class="hint" style="width:100%">Last time (${l.last.order}): ${esc(l.last.sizes)} <button class="link" onclick="sameAsLast('${l.id}')">use same sizes</button></div>`:''}</div>`; }
+  // prints
+  h+=`<span class="k">Prints</span><div><div class="prints">${l.prints.map(id=>{ const p=P(id), ink=l.inks[id]??p.inks;
+      return `<span class="prc"><img src="${thumb(p)}" alt=""><span class="tx"><b><span class="idtag">${p.L}</span> ${esc(p.nick)}</b><span>${esc(p.loc)} · ${isSP(p)?screens(p)+' scr':esc(p.method)}${p.prev?' · repeat of '+p.prev:''}${inkChanges(p)&&l.inks[id]!=null?' · ink change':''}</span>${isSP(p)?`<span>inks: <input style="width:120px;height:22px;border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px" value="${esc(ink)}" placeholder="ink colors" aria-label="Ink colors on this garment" onchange="setInk('${l.id}','${id}',this.value)"></span>`:''}</span><button class="x" onclick="detach('${l.id}','${id}')" aria-label="Remove print">✕</button></span>`; }).join('')}
+    <button class="b${l.prints.length?'':' on'}" onclick="openAdd('${l.id}')">＋ Print</button></div></div>`;
+  if(S.add===l.id) h+=vAdd(l);
+  return h+`</div></div>`; }
+function vAdd(l){ const others=S.prints.filter(p=>!l.prints.includes(p.id)), artList=S.o.art;
+  let h=`<div class="addp"><div class="tabs">${others.length?`<button class="b${S.tab==='order'?' on':''}" onclick="setTab('order')">On this order (${others.length})</button>`:''}${artList.length?`<button class="b${S.tab==='past'?' on':''}" onclick="setTab('past')">${esc(S.o.name)} past art (${artList.length})</button>`:''}<button class="b${S.tab==='new'?' on':''}" onclick="setTab('new')">＋ New art</button><button class="link" style="margin-left:auto" onclick="S.add=null;render()">close</button></div>`;
+  if(S.tab==='order') h+=`<div class="bts">${others.map(p=>`<button class="prc" onclick="attach('${l.id}','${p.id}')"><img src="${thumb(p)}" alt=""><span class="tx"><b><span class="idtag">${p.L}</span> ${esc(p.nick)}</b><span>${esc(p.loc)}</span></span></button>`).join('')}</div><div class="hint" style="margin-top:6px">Same imprint ID, no new screens.</div>`;
+  if(S.tab==='past'){ const q=S.q.trim().toLowerCase(), hits=artList.filter(a=>!q||(a.join(' ')).toLowerCase().includes(q));
+    h+=`<input class="t" id="artq" style="width:100%;margin-bottom:8px" placeholder="Search name, location or order #" value="${esc(S.q)}" oninput="S.q=this.value;render()" autocomplete="off"><div class="artg">${hits.map(a=>`<button class="art" onclick="attachArt('${l.id}','${a[0]}')"><img src="${art(a[1])}" alt=""><b>${a[0]}</b> ${esc(a[1])}<br><span class="hint">${esc(a[2])} · ${esc(a[3])}${a[4]?' · '+a[4]+' scr':''} · ${a[6]}</span></button>`).join('')||'<span class="hint">No match</span>'}</div><div class="hint" style="margin-top:6px">Makes a new imprint ID on this order, linked to the old one as a repeat.</div>`; }
+  if(S.tab==='new'){ const n=S.np, sp=METHODS[n.method]==='sp';
+    h+=`<div class="npf"><span class="k">Nickname</span><input class="t" id="npnick" value="${esc(n.nick)}" placeholder="e.g. Damn Proud" oninput="S.np.nick=this.value" onkeydown="if(event.key==='Enter')saveNew('${l.id}')">
+     <span class="k">Location</span><div class="bts">${LOCS.map(x=>`<button class="b${n.loc===x?' on':''}" onclick="S.np.loc='${x}';render()">${x}</button>`).join('')}</div>
+     <span class="k">Type</span><div class="bts">${Object.keys(METHODS).map(x=>`<button class="b${n.method===x?' on':''}" onclick="S.np.method='${x}';render()">${x}</button>`).join('')}</div>
+     ${sp?`<span class="k">Colors</span><div class="bts">${[1,2,3,4,5,6].map(c=>`<button class="b${n.colors===c?' on':''}" onclick="S.np.colors=${c};render()">${c}</button>`).join('')}<button class="b${n.ub?' on':''}" onclick="S.np.ub=!S.np.ub;render()">+ Underbase</button></div>
+     <span class="k">Inks</span><input class="t" value="${esc(n.inks)}" placeholder="optional, e.g. White, PMS 7409" oninput="S.np.inks=this.value">`:''}
+     <span></span><div><button class="btn y" onclick="saveNew('${l.id}')">Add ${pid({L:nextLetter()})}</button></div></div>`; }
+  return h+`</div>`; }
+function vRail(){ if(!S.o) return `<h3>Create order</h3><div class="hint">Pick an order to start. The clock up top times you, so we can compare with Airtable.</div>`;
+  if(S.view==='door') return `<h3>${esc(S.o.name)}</h3><div class="hint">${S.o.past.length} past orders · ${S.o.art.length} past imprints on file.</div>`;
+  const c=checks(), ok=c.every(x=>x[0]), pcs=S.lines.reduce((a,l)=>a+qty(l),0), tot=S.lines.reduce((a,l)=>a+(price(l)||0)*qty(l),0);
+  let h=`<h3>Order ${S.o.num}</h3><ul class="chk">${c.map(([k,t])=>`<li class="${k?'ok':'bad'}"><i>${k?'✓':''}</i>${esc(t)}</li>`).join('')}</ul>`;
+  if(S.prints.length) h+=`<div class="imps">${[...S.prints].sort((a,b)=>a.L.localeCompare(b.L)).map(p=>`<div><span class="idtag">${pid(p)}</span> ${esc(p.nick)} <span class="hint">${esc(p.loc)} · on ${linesWith(p).length} line${linesWith(p).length===1?'':'s'}${inkChanges(p)?' · '+inkChanges(p)+' ink change'+(inkChanges(p)>1?'s':''):''}</span></div>`).join('')}</div>`;
+  h+=`<div class="tots"><span>Line items</span><b>${S.lines.length}</b><span>Pieces</span><b>${pcs}</b><span>Total</span><b class="big">${money(tot)}</b></div>
+   <div style="margin-top:12px"><button class="btn k" style="width:100%" onclick="create()" ${ok&&!S.created?'':'disabled'}>${S.created?'Created (practice)':'Create order'}</button></div>`;
+  if(S.created) h+=`<div class="out"><b>Done in ${fmtT(S.tEnd-S.t0)}.</b> Practice — would write to Airtable:\n\n<b>${S.prints.length} imprint${S.prints.length>1?'s':''}</b>\n${[...S.prints].sort((a,b)=>a.L.localeCompare(b.L)).map(p=>`• ${pid(p)} · ${esc(p.nick)} · ${esc(p.loc)} · ${esc(p.method)}${isSP(p)?' · '+screens(p)+' screens':''}${p.prev?' · repeat of '+p.prev:''}${inkChanges(p)?' · '+inkChanges(p)+' ink change':''}`).join('\n')}\n\n<b>${S.lines.length} line item${S.lines.length>1?'s':''}</b> (one proof each)\n${S.lines.map(l=>`• ${esc(lineName(l))} · ${qty(l)} pcs (${szText(l.sizes)}) · ${money(price(l))} · imprints ${l.prints.map(id=>P(id).L).sort().join('+')}`).join('\n')}\n\nThen it opens Line Item Review on this order.</div>`;
+  return h; }
+setInterval(()=>{ const e=$('clock'); if(e) e.textContent=S.t0?fmtT((S.tEnd||Date.now())-S.t0):'0:00'; },500);
 render();
 </script>
 </body>
