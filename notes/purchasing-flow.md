@@ -304,3 +304,12 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - scans the Gildan line, then the whole catalog
   - checks stock + price for every product it finds
   - also downloads the whole SLC product list as a CSV (productId, part count, first partIds)
+- **slc-check-v2 results (Stephen, 10/12):**
+  - 1717 parts live only on CC-1717. BC 3001 Dark Grey (315342) lives on productId **315**, also 0 stock / $0. So the missing data isn't about the id style.
+  - SLC's whole catalog is **1,285 products** (15.7 MB list) in mixed id styles:
+    - brand prefixes: LAT- 124, DECKY- 120, GILDAN- 32, CC- 21, AH- 20, DRI- 18, NLA- 14…
+    - bare style-ish ids: 3001CVC, 112FP…
+    - plain numbers: 31225 = Gildan 5000B. "5000", "3001", "3600" and "64000" don't exist as ids.
+- **slc-catalog-v1.html (catalog builder):** names every product with one single-part pricing call each, 4 at a time (~10 min). From the part description it records brand / title / style / sample price.
+  - Its JSON becomes the repo's SLC style map, so Purchasing can match "Brand Style" → productId.
+  - It doubles as a health report of which products come back $0. Caveat: one sample part per product, and some colors are unpriced even on good products.

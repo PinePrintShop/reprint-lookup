@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SLC Catalog Builder</title>
+<style>
+:root{--bg:#F2F2EE;--line:#E5E5E0;--text:#0D0D0B;--muted:#888880;--yellow:#E8E832;--green:#1e6b45;--red:#c0392b;--amb:#b7791f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 Helvetica,Arial,sans-serif;padding:12px 16px 40px;max-width:1100px;margin:0 auto}
+.top{background:var(--text);color:#fff;border-radius:10px;padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.top b{color:var(--yellow);letter-spacing:2px}
+button{height:42px;padding:0 16px;border:1px solid #C9C92A;background:var(--yellow);border-radius:8px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5}
+button.sec{background:#fff;border-color:var(--line)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:12px}
+.hint{color:var(--muted);font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input{height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:14px;width:220px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;background:var(--green);width:0}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+td,th{text-align:left;padding:6px;border-bottom:1px solid var(--line)}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ok{color:var(--green);font-weight:700}.zero{color:var(--amb);font-weight:700}.bad{color:var(--red);font-weight:700}
+textarea{width:100%;height:160px;font:11px/1.35 'Courier New',monospace;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="top"><b>PINE</b>SLC catalog builder<span class="hint" style="color:#bbb">Read-only. Names every SLC product and checks which ones have prices.</span></div>
+<div class="panel">
+  <div class="row">
+    <input id="only" placeholder="Only ids containing… (blank = all)">
+    <button id="go">Build catalog</button>
+    <button id="stop" class="sec" disabled>Stop</button>
+    <span class="hint" id="prog">All ~1,285 products takes about 10 minutes. Keep this tab open.</span>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+</div>
+<div class="panel">
+  <b>Summary by brand</b> <span class="hint">priced = SLC returned a real price for the sample size</span>
+  <table id="sum"><thead><tr><th>Brand</th><th>Products</th><th>Priced</th><th>$0 / missing</th></tr></thead><tbody></tbody></table>
+</div>
+<div class="panel">
+  <b>Results</b>
+  <button id="json" class="sec" style="height:32px;margin-left:8px" disabled>Download slc-catalog.json (for Claude)</button>
+  <button id="csv" class="sec" style="height:32px" disabled>Download CSV</button>
+  <button id="copy" class="sec" style="height:32px" disabled>Copy summary</button>
+  <textarea id="out" readonly></textarea>
+</div>
+<script>
+/* SLC CATALOG BUILDER — SLC productIds don't carry the style reliably (CC-1717, 3001CVC, 31225 = Gildan 5000B, 315 = BC 3001),
+   and getProductSellable has ids + part numbers only. A pricing call for ONE part returns that part's full description
+   ("Comfort Colors - Garment-Dyed Heavyweight T-Shirt - 1717 White S") in ~1 s, so: whole catalog -> one pricing call per
+   product (4 at a time) -> brand / title / style / sample price. The JSON goes into the repo so Purchasing can match
+   "Brand Style" -> SLC productId without asking SLC every time. Also a data-health report: which products have $0 prices. */
+var W='https://pine-workers.stephen-dab.workers.dev/proxy/slc', RES=[], STOP=false;
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function tags(d,t){ return Array.prototype.slice.call(d.getElementsByTagNameNS('*',t)); }
+function txt(el,t){ var n=el.getElementsByTagNameNS('*',t)[0]; return n?n.textContent.trim():''; }
+async function call(svc,body){ var r=await fetch(W+'/'+svc,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return new DOMParser().parseFromString(await r.text(),'text/xml'); }
+function pairs(d){ var m={}, rows=tags(d,'ProductSellable');
+  if(rows.length) rows.forEach(function(r){ var p=txt(r,'productId'), q=txt(r,'partId'); if(p) (m[p]=m[p]||[]).push(q); });
+  else { var ps=tags(d,'productId'), qs=tags(d,'partId'); ps.forEach(function(p,i){ var k=p.textContent.trim(); (m[k]=m[k]||[]).push(qs[i]?qs[i].textContent.trim():''); }); }
+  return m; }
+/* "Comfort Colors - Garment-Dyed Heavyweight T-Shirt - 1717 White S" -> brand, title, style (first word of the last segment) */
+function parseDesc(d){ var seg=String(d||'').split(' - '); if(seg.length<2) return {brand:'', title:d||'', style:''};
+  var last=seg[seg.length-1].trim(); return {brand:seg[0].trim(), title:seg.slice(1,-1).join(' - ').trim(), style:(last.split(/\s+/)[0]||'')}; }
+async function one(pid,part){
+  try{ var d=await call('pricing',{operation:'getConfigurationAndPricing',productId:pid,partId:part,priceType:'Customer'}), p=tags(d,'Part')[0], desc=p?txt(p,'partDescription'):'';
+    var pr=tags(d,'PartPrice').map(function(x){ return +txt(x,'price')||0; }).filter(function(v){ return v>0; }), sm=tags(d,'ServiceMessage').map(function(s){ return txt(s,'description'); }).join(' ');
+    var x=parseDesc(desc); return {productId:pid, brand:x.brand, style:x.style, title:x.title, sample:desc, price:pr.length?Math.min.apply(null,pr):0, msg:sm.slice(0,120)}; }
+  catch(e){ return {productId:pid, brand:'', style:'', title:'', sample:'', price:0, msg:'error: '+e.message}; } }
+function render(done,total){
+  $('bar').style.width=(total?100*done/total:0)+'%';
+  var by={}; RES.forEach(function(r){ var b=r.brand||'(no name)'; var x=by[b]=by[b]||{n:0,p:0}; x.n++; if(r.price>0) x.p++; });
+  var ks=Object.keys(by).sort(function(a,b){ return by[b].n-by[a].n; });
+  $('sum').tBodies[0].innerHTML=ks.map(function(k){ var x=by[k]; return '<tr><td>'+esc(k)+'</td><td>'+x.n+'</td><td class="'+(x.p?'ok':'zero')+'">'+x.p+'</td><td class="'+(x.n-x.p?'zero':'')+'">'+(x.n-x.p)+'</td></tr>'; }).join('');
+  var priced=RES.filter(function(r){ return r.price>0; }).length;
+  $('out').value='SLC catalog builder · '+new Date().toLocaleString()+'\n'+RES.length+' of '+total+' products named · '+priced+' priced · '+(RES.length-priced)+' $0/missing\n\n'
+    +ks.map(function(k){ return k+': '+by[k].n+' products, '+by[k].p+' priced'; }).join('\n')
+    +'\n\nZero-price examples: '+RES.filter(function(r){ return !(r.price>0); }).slice(0,25).map(function(r){ return r.productId+(r.style?' ('+r.brand+' '+r.style+')':''); }).join(', '); }
+$('go').onclick=async function(){
+  this.disabled=true; $('stop').disabled=false; STOP=false; RES=[]; $('prog').textContent='Downloading the SLC product list…';
+  var m; try{ m=pairs(await call('productdata',{operation:'getProductSellable',isSellable:true})); }catch(e){ $('prog').textContent='Could not load the product list: '+e.message; this.disabled=false; return; }
+  var f=$('only').value.trim().toUpperCase(), ids=Object.keys(m).filter(function(p){ return !f || p.toUpperCase().indexOf(f)>=0; }).sort(), i=0, n=0;
+  async function worker(){ while(!STOP && i<ids.length){ var pid=ids[i++]; RES.push(Object.assign(await one(pid,m[pid][0]),{parts:m[pid].length})); n++;
+    $('prog').textContent=n+' of '+ids.length+' products…'; if(n%10===0||n===ids.length) render(n,ids.length); } }
+  await Promise.all([worker(),worker(),worker(),worker()]); render(n,ids.length);
+  $('prog').textContent=(STOP?'Stopped at ':'Done: ')+n+' of '+ids.length+'. Download the JSON for Claude.'; ['json','csv','copy'].forEach(function(b){ $(b).disabled=false; });
+  this.disabled=false; $('stop').disabled=true; };
+$('stop').onclick=function(){ STOP=true; };
+function dl(name,text,type){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:type})); a.download=name; a.click(); }
+$('json').onclick=function(){ dl('slc-catalog.json',JSON.stringify({built:new Date().toISOString(), products:RES.slice().sort(function(a,b){ return a.productId.localeCompare(b.productId); })},null,0),'application/json'); };
+$('csv').onclick=function(){ var cols=['productId','brand','style','title','price','parts','sample','msg'];
+  dl('slc-catalog.csv',[cols.join(',')].concat(RES.map(function(r){ return cols.map(function(c){ return '"'+String(r[c]==null?'':r[c]).replace(/"/g,'""')+'"'; }).join(','); })).join('\n'),'text/csv'); };
+$('copy').onclick=function(){ var t=$('out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } this.textContent='Copied ✓'; };
+</script>
+</body>
+</html>
