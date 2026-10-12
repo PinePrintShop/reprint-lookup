@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Create Order — Pine</title>
+<style>
+:root{--bg:#F2F2EE;--surface:#fff;--line:#E6E6E0;--line2:#D4D4CC;--text:#141412;--muted:#80807A;--soft:#F7F7F4;--yellow:#E8E832;--ydk:#C9C92A;--ytint:#FBFBDC;--green:#1e6b45;--gtint:#e9f4ee;--red:#b3261e;--rtint:#fdf0ee;--amb:#a96b12;--atint:#fbf1e2;
+  --sans:Helvetica,Arial,sans-serif;--mono:'Courier New',monospace;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px}
+body{padding:12px 16px 40px;max-width:1400px;margin:0 auto}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+.top{background:var(--text);border-radius:var(--r);padding:10px 18px;display:flex;align-items:center;gap:14px;color:#ddd;position:sticky;top:0;z-index:20;box-shadow:0 0 0 12px var(--bg);flex-wrap:wrap}
+.brand{font-weight:900;letter-spacing:2px;color:var(--yellow)}
+.crumb{color:#fff;font-weight:700}
+.crumb a{color:#aaa;text-decoration:none;font-weight:400}
+.prac{background:var(--yellow);color:var(--text);font-weight:700;font-size:12px;padding:6px 10px;border-radius:20px}
+.top .sp{margin-left:auto;font:700 15px var(--mono);color:var(--yellow)}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;margin-top:14px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+h2{font-size:18px}
+.hint{font-size:12px;color:var(--muted)}
+.err{background:var(--rtint);border:1px solid #f2c9c4;color:var(--red);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px}
+.btn{height:44px;padding:0 16px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-weight:700;font-size:14px}
+.btn:hover{border-color:var(--text)}
+.btn.y{background:var(--yellow);border-color:var(--ydk)}
+.btn.k{background:var(--text);color:var(--yellow);border-color:var(--text)}
+.btn:disabled{opacity:.4;cursor:default}
+.b{height:36px;padding:0 12px;border:1px solid var(--line2);background:#fff;border-radius:8px;font-size:14px;font-weight:600}
+.b:hover{border-color:var(--text)}
+.b.on{background:var(--yellow);border-color:var(--ydk)}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px}
+.bts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.tag.ok{background:var(--gtint);border-color:#bfe0cc;color:var(--green)}
+.tag.need{background:var(--atint);border-color:#ecd2a6;color:var(--amb)}
+.idtag{font:700 12px var(--mono);background:var(--text);color:var(--yellow);padding:3px 7px;border-radius:5px;white-space:nowrap}
+input.t{height:40px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;background:#fff}
+/* order picker */
+.olist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.oc{display:grid;grid-template-columns:80px minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line2);background:#fff;border-radius:8px;padding:9px 12px;text-align:left}
+.oc:hover{border-color:var(--text)}
+.oc .num{font:700 15px var(--mono)}.oc .m{font-size:12px;color:var(--muted)}
+.ohead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ohead .num{font:700 20px var(--mono)}.ohead .nm{font-size:20px;font-weight:800}
+.doors{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.door{border:2px solid var(--line2);border-radius:12px;padding:14px 16px;background:#fff;text-align:left;display:flex;flex-direction:column;gap:6px}
+.door:hover{border-color:var(--text)}
+.door b{font-size:17px}.door span{font-size:13px;color:var(--muted)}
+.door.main{border-color:var(--ydk);background:var(--ytint);cursor:default}
+.past{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.po{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid var(--line2);border-radius:10px;padding:8px 10px;background:#fff;text-align:left}
+.po:hover{border-color:var(--text)}
+.po .th{display:flex;gap:4px}
+.po img,.po .noimg{width:64px;height:48px;border-radius:5px;border:1px solid var(--line);object-fit:contain;background:var(--soft)}
+.po .noimg{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.po .d b{font-family:var(--mono)}.po .d div{font-size:13px;color:var(--muted);margin-top:2px}
+/* email */
+.email{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px;line-height:1.45;margin-top:6px;max-height:280px;overflow:auto}
+.email .msg+.msg{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+.email pre{white-space:pre-wrap;font:13px/1.45 var(--sans);margin-top:4px}
+/* line cards */
+.ln{border:1px solid var(--line2);border-radius:12px;background:#fff;margin-top:12px;overflow:hidden}
+.ln.ok{border-left:5px solid #3fae6f}.ln.need{border-left:5px solid #e9b45a}
+.lh{display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--soft);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.lh .no{font:700 13px var(--mono);color:var(--muted)}
+.lh .g{font-weight:800;font-size:16px}
+.lh .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.lh .qt{font:700 15px var(--mono);background:var(--text);color:var(--yellow);border-radius:6px;padding:5px 9px}
+.lh .pr input{width:86px;height:36px;border:1px solid var(--line2);border-radius:6px;text-align:right;padding:0 8px;font:700 14px var(--mono)}
+.lh .pr input.under{border-color:var(--red);background:var(--rtint);color:var(--red)}
+.lh .pr small{display:block;font-size:10px;color:var(--muted);text-align:right;max-width:200px}
+.lb{padding:12px 14px;display:grid;grid-template-columns:70px minmax(0,1fr);gap:12px;align-items:start}
+.lb .k{font-size:12px;font-weight:700;color:var(--muted);padding-top:10px}
+.gres{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.gres button{border:1px solid var(--line);border-radius:8px;background:#fff;padding:7px 10px;text-align:left;font-size:14px}
+.gres button:hover{border-color:var(--text)}
+.gres span{font-size:12px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--line2);background:#fff;border-radius:20px;font-size:13px;font-weight:600}
+.chip:hover{border-color:var(--text)}
+.szrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.szs{display:flex;gap:4px;flex-wrap:wrap}
+.szs label{display:flex;flex-direction:column;align-items:center;font:700 10px var(--mono);color:var(--muted);gap:2px}
+.szs input{width:46px;height:38px;border:1px solid var(--line2);border-radius:6px;text-align:center;font:700 14px var(--mono)}
+.paste{flex:1;min-width:220px;display:flex;flex-direction:column;gap:2px}
+.paste input{height:38px;border:1px dashed var(--ydk);background:var(--ytint);border-radius:6px;padding:0 10px}
+.paste small{font-size:11px;color:var(--muted)}
+.prc{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:8px;padding:5px 6px;background:#fff;font-size:13px;max-width:100%;text-align:left}
+.prc img,.prc .noimg{width:46px;height:34px;border-radius:4px;border:1px solid var(--line);object-fit:contain;background:var(--soft);flex:none}
+.prc .tx{display:flex;flex-direction:column;min-width:0}
+.prc .tx b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prc .tx span{font-size:11px;color:var(--muted)}
+.prc .x{border:0;background:none;color:var(--muted);font-size:16px;padding:0 4px}
+.prc input{width:130px;height:22px;border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
+.prints{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.addp{border:1px solid var(--ydk);background:var(--ytint);border-radius:10px;padding:10px;margin-top:2px;grid-column:1/-1}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.artg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:340px;overflow:auto;padding:2px}
+.art{border:1px solid var(--line2);border-radius:8px;background:#fff;padding:6px;text-align:left;font-size:12px}
+.art:hover{border-color:var(--text)}
+.art img,.art .noimg{width:100%;height:70px;display:flex;align-items:center;justify-content:center;border-radius:4px;margin-bottom:4px;object-fit:contain;background:var(--soft);color:var(--muted);font-size:11px}
+.art b{font-family:var(--mono)}
+.npf{display:grid;grid-template-columns:90px minmax(0,1fr);gap:8px 10px;align-items:center}
+.npf .k{font-size:12px;font-weight:700;color:var(--muted)}
+.more{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.locked .ln,.locked .more{pointer-events:none;opacity:.6}
+.donebar{background:var(--gtint);border:1px solid #bfe0cc;color:var(--green);border-radius:8px;padding:10px 12px;margin-top:10px;font-weight:700}
+/* rail */
+.rail{position:sticky;top:84px}
+.rail h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px}
+.chk{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.chk li{display:flex;gap:8px;align-items:flex-start}
+.chk li i{font-style:normal;width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex:none}
+.chk li.ok i{background:var(--text);border-color:var(--text);color:var(--yellow)}
+.chk li.bad{color:var(--amb)}
+.imps{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.imps div{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tots{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px}
+.tots b{font:700 15px var(--mono);text-align:right}
+.tots .big{font-size:20px}
+.out{margin-top:12px;background:var(--soft);border-radius:8px;padding:10px;font-size:12px;white-space:pre-wrap;max-height:45vh;overflow:auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:40;max-width:90vw}
+#tokBox{display:none}
+@media (max-width:1050px){.app{grid-template-columns:minmax(0,1fr)}.rail{position:static}}
+@media (max-width:640px){.doors{grid-template-columns:1fr}.lb{grid-template-columns:1fr}.lb .k{padding-top:0}.po{grid-template-columns:minmax(0,1fr)}.po .th{display:none}.oc{grid-template-columns:64px minmax(0,1fr)}.oc .rt{display:none}}
+</style>
+</head>
+<body>
+<div class="top"><span class="brand">PINE</span><span class="crumb"><a href="price-o-matic.html">Quote</a> › Create order › <a id="revLink" href="pine-line-item-review.html">Review</a></span><span class="prac" id="pracTag" style="display:none">PRACTICE · nothing is saved</span><span class="sp" id="clock" title="Time since you picked the order">0:00</span></div>
+<div class="panel" id="tokBox" style="margin-top:14px"><b>Airtable token</b><div class="hint" style="margin:4px 0 8px">The same one the other Pine apps use. Kept on this device only.</div><div class="bts"><input class="t" id="tok" style="flex:1;min-width:240px" placeholder="pat…"><button class="btn y" onclick="saveTok()">Save</button></div></div>
+<div class="app"><div id="main"></div><div class="panel rail" id="rail"></div></div>
+<iframe id="pomEngine" src="price-o-matic-v105.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
+<script>
+/* =====================================================================
+   Create order v1. Fills the Awaiting Proof order Pipedrive made:
+   creates its Imprints, then its Line Items. ?practice=1 fakes every write.
+   Safe writes only (see notes/create-order.md, Oct 12 automation check):
+   - Imprint ID is NOT written: an automation copies it from "Imprint ID Generator",
+     which needs Linked Orders set in the same create call.
+   - Order Status is never written (status changes email the customer).
+   - Line items get both order links (Order Reference is what automations read).
+   - Never set Ready for 2nd Eyes, Ordered, Received; "UPDATE:" is kept out of Proofing Notes.
+   ===================================================================== */
+const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV', T_LI='tblJx5UlwO7oMSk5H';
+const PRACTICE=/[?&]practice=1/.test(location.search);
+const PROXY='https://pine-workers.stephen-dab.workers.dev/proxy';
+const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',due:'fldphJYdlBNS0dmAK',rep:'fldSPnWlnzz48ZZDD',ship:'fldrjFuIBn45ewFU5',lines:'fldU6fgrz6sU3wyIZ',lines2:'fldU6fgrz6sU3wyIZ',imps:'fldShbb1tOR0zwGIt',created:'fldXUjQHSeRaW5per',email:'fldtqZM37i9bKUPaT',proofLook:'fldzdj6DTD2TrACCf'};
+const G={name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO',ssColor:'fldUnCYQgAx8AhsMZ',mfr:'fldtL6paVNlfMRDj4',fleece:'fldi7NqFcF7S2p4mj'};
+const IP={id:'fldDFfwFQ9B20n2kT',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',inkChanges:'fld6Tv0llCxjjyyHJ',nick:'fldyGOHRKNz00MaYQ',repeat:'flda9L7041ahNZT0b',prev:'fldAEQvMAAZX9gnhl',inksTxt:'fldMM5hp8kEpo3KKT',inks:'fldpNCCXTgHyDhvak',order:'flds9F80ZDkTH1M1t',proofs:'fldUOIfCd22MxevRm',created:'fldc7aezBfzoVPeAY'};
+const LF={ref:'fld5r0tFvdpzWV5pA',orders:'fldckT7oPYh1rrBCI',ptype:'fld8LIkrBXv8WoRRb',garment:'fldZbOdGIoCk3Gan2',imprints:'fldTFz4ZzfOthqkg6',price:'fldtMZWzA4dfPxEXx',proof:'fldWdnT83KLEvBrg4',womens:'fld65C13J5BbKIWoI',youth:'fldLHtzJ3peAtr4X1',name:'fldU6oLyZnxhhm2kX',total:'fldSMd8DkbypJiw2W',tqty:'fldFfuKAcduwWQp8g',auto:'fldyMPijIsJW5XmI8',proofImg:'flddhvdkKI31tFTdX'};
+const SZF={XS:'fldVA9ZmYxhDxtnYZ',S:'fldCZr5lB6Jx80lfG',M:'fldzTs1qKe9IBxxSn',L:'fldnRLJxjUDa1mQTj',XL:'fldTRgdexcpBXXQPv','2XL':'fldin7j6uGO0uRTec','3XL':'fldpltq9fdRkrvIvt','4XL':'fldrsci7JnToa43Zd','5XL':'fldchnRSKFukouW6N','6XL':'fldI8gTtsEJwg33BI',OSFA:'fld2bgIlmPbANgLVK'};
+const SIZES=Object.keys(SZF), APP_SIZES=['XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+const LOCS=['Front','Back','Left Chest','Right Chest','Left Sleeve','Right Sleeve','Size Tag','Pocket','Hood','Back Neck','Back Hem','Front Hem','Other'];
+const INKS=['No Base W/B','EZP Base + W/B','Bleed Blocker + W/B','Discharge'];
+const SUPA=['Wearable','1C Wearable','Blocker','1C Blocker','Headwear','1C Headwear','Promotional','1C Promotional','Reflective'].map(x=>'Supacolor - '+x);
+const FAM={'Screen print':INKS,'Embroidery':['Embroidery'],'Supacolor':SUPA,'Patch & label':['Patch Application','Hem Label Application','Woven Label Application','Patch/Label ONLY']};
+const famOf=t=>Object.keys(FAM).find(f=>FAM[f].includes(t))||(/^Decopress/.test(t)?'Decopress':'');
+const hasBase=t=>/EZP Base|Bleed Blocker/.test(t||'');
+const PT_MAIN=['Printed Apparel','Embroidered Apparel','Flatstock Printing','Woven Patches','Embroidered Patches (100%)','Stickers'];
+const RECENT_DAYS=45;
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=v=>v==null||isNaN(v)?'—':'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const sel=v=>v==null?'':(typeof v==='string'?v:(v.name||''));
+const numv=v=>typeof v==='number'&&isFinite(v)?v:0;
+const fq=s=>String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+const flds=a=>a.map(f=>'fields%5B%5D='+f).join('&');
+const thumb=a=>a?((a.thumbnails&&(a.thumbnails.large||a.thumbnails.small)||{}).url||a.url):'';
+const ago=d=>{ if(!d) return ''; const n=Math.round((Date.now()-new Date(d))/864e5), dt=new Date(d); return n<=0?'today':n===1?'yesterday':n<7?n+' days ago':dt.toLocaleDateString('en-US',n>300?{month:'short',year:'numeric'}:{month:'short',day:'numeric'}); };
+const fmtT=ms=>{ const s=Math.floor(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const isApparel=l=>/Apparel/.test(l.ptype);
+function toast(t){ const e=document.createElement('div'); e.className='toast'; e.textContent=t; document.body.appendChild(e); setTimeout(()=>e.remove(),2600); }
+let TOKEN=''; try{ TOKEN=localStorage.getItem('pine_at_key')||''; }catch(e){}
+function saveTok(){ TOKEN=$('tok').value.trim(); try{ localStorage.setItem('pine_at_key',TOKEN); }catch(e){} $('tokBox').style.display='none'; loadAwaiting(); }
+async function at(table,params){
+  if(!TOKEN){ $('tokBox').style.display='block'; throw new Error('Add your Airtable token above'); }
+  const r=await fetch(`https://api.airtable.com/v0/${BASE}/${table}?returnFieldsByFieldId=true&${params}`,{headers:{Authorization:'Bearer '+TOKEN}});
+  if(!r.ok) throw new Error('Airtable '+r.status+(r.status===401?' — check the token':'')); return r.json();
+}
+async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(table,params+(off?'&offset='+off:'')); out=out.concat(d.records||[]); off=d.offset||''; }while(off&&out.length<max); return out; }
+const byIds=ids=>encodeURIComponent('OR('+ids.map(x=>`RECORD_ID()='${x}'`).join(',')+')');
+// The only writes on this page. Practice mode fakes them.
+let FAKE=1;
+async function atWrite(method,table,records){
+  if(PRACTICE){ await new Promise(r=>setTimeout(r,120)); return {records:records.map(x=>({id:x.id||('recPRACTICE'+String(FAKE++).padStart(6,'0')),fields:x.fields}))}; }
+  const r=await fetch(`https://api.airtable.com/v0/${BASE}/${table}`,{method,headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({records,typecast:true,returnFieldsByFieldId:true})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error('Airtable '+r.status+': '+((j.error&&(j.error.message||j.error.type))||'write failed'));
+  return j;
+}
+
+/* sizes typed or pasted from an email: "6 S, 6 M, 15 XL", "S-10 M-20", "10 small 20 med", "2X 3" */
+const SZ_ALIAS={xs:'XS','x-small':'XS',xsmall:'XS',s:'S',sm:'S',sml:'S',small:'S',m:'M',md:'M',med:'M',medium:'M',l:'L',lg:'L',lrg:'L',large:'L',xl:'XL',xlarge:'XL','x-large':'XL','2xl':'2XL',xxl:'2XL','2x':'2XL','xx-large':'2XL','3xl':'3XL',xxxl:'3XL','3x':'3XL','4xl':'4XL','4x':'4XL',xxxxl:'4XL','5xl':'5XL','5x':'5XL',osfa:'OSFA',os:'OSFA'};
+const SZW='xx-large|x-large|x-small|xsmall|xlarge|xxxxl|xxxl|xxl|5xl|4xl|3xl|2xl|5x|4x|3x|2x|xl|xs|small|sml|sm|medium|med|md|large|lrg|lg|osfa|os|s|m|l';
+function parseSizes(txt){ const out={}, t=String(txt).toLowerCase().replace(/[,;\/|()]/g,' ');
+  const re=new RegExp(`(\\d+)\\s*(?:x\\s+|-|:|=)?\\s*(${SZW})\\b|\\b(${SZW})\\s*(?:-|:|=|x)?\\s*(\\d+)`,'g');
+  let m; while((m=re.exec(t))){ const n=+(m[1]||m[4]), z=SZ_ALIAS[m[2]||m[3]]; if(z&&n) out[z]=(out[z]||0)+n; }
+  return out; }
+const szText=o=>SIZES.filter(z=>o[z]).map(z=>`${o[z]} ${z}`).join(', ');
+const qty=l=>Object.values(l.sizes).reduce((a,b)=>a+(b||0),0);
+
+/* ---------- state ---------- */
+const S={awaiting:null,q:'',o:null,view:'pick',past:[],pastImps:[],pastLoaded:false,existing:[],prints:[],lines:[],seq:1,add:null,tab:'order',artQ:'',np:null,
+  t0:null,tEnd:null,busy:false,done:null,err:'',mail:null,showMail:true};
+const P=id=>S.prints.find(p=>p.id===id);
+const Ln=id=>S.lines.find(l=>l.id===id);
+const LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+// New imprints get the next letters after any the order already has (the Airtable automation counts the same way).
+const letterOf=p=>LETTERS[S.existing.length+S.prints.indexOf(p)]||'?';
+const pid=p=>`${S.o.num}-${letterOf(p)}`;
+const isSP=p=>famOf(p.type)==='Screen print';
+const screens=p=>isSP(p)?(p.colors||0)+(p.ub?1:0):0;
+const linesWith=p=>S.lines.filter(l=>l.prints.includes(p.id));
+function inkChanges(p){ if(p.icSet!=null) return p.icSet; if(!isSP(p)) return 0; const s=new Set(linesWith(p).map(l=>(l.inks[p.id]??p.inks).trim().toLowerCase())); return Math.max(0,s.size-1); }
+
+/* ---------- loading ---------- */
+async function loadAwaiting(){
+  if(!TOKEN){ $('tokBox').style.display='block'; render(); return; }
+  try{ const recs=await atAll(T_ORD,`pageSize=100&${flds([O.num,O.cust,O.custName,O.created,O.rep,O.lines,O.status])}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent('OR({Order Status}="Awaiting Proof",{Order Status}=BLANK())')}`,300);
+    S.awaiting=recs.map(r=>{const f=r.fields;return {id:r.id,num:f[O.num],name:String(f[O.custName]||'').trim(),created:f[O.created]||'',rep:sel(f[O.rep]),lines:(f[O.lines]||[]).length,blank:!f[O.status]};}).filter(o=>o.name&&o.num);
+  }catch(e){ S.awaiting=[]; S.err=e.message; }
+  render();
+  const want=new URLSearchParams(location.search).get('order');
+  if(want){ const o=(S.awaiting||[]).find(x=>String(x.num)===want); if(o) pickOrder(o.id); else toast('Order '+want+' isn\'t waiting for proof'); }
+}
+async function pickOrder(id){
+  S.err=''; S.view='loading'; render();
+  try{
+    const d=await at(T_ORD,`${flds(Object.values(O))}&filterByFormula=${byIds([id])}`), r=d.records&&d.records[0]; if(!r) throw new Error('Order not found');
+    const f=r.fields;
+    S.o={id:r.id,num:f[O.num],name:String(f[O.custName]||'').trim(),rep:sel(f[O.rep]),due:f[O.due]||'',ship:(f[O.ship]||[]).map(sel).join(', '),email:[].concat(f[O.email]||[]).map(String).find(x=>x.includes('@'))||'',lineCount:(f[O.lines]||[]).length,impIds:f[O.imps]||[]};
+    S.existing=[]; if(S.o.impIds.length){ const di=await at(T_IMP,`${flds([IP.id])}&filterByFormula=${byIds(S.o.impIds)}`); S.existing=(di.records||[]).map(x=>x.fields[IP.id]||'?').sort(); }
+    S.prints=[]; S.lines=[]; S.done=null; S.made=null; S.add=null; S.t0=Date.now(); S.tEnd=null; S.mail=null;
+    $('revLink').href='pine-line-item-review.html?order='+S.o.num;
+    await loadPast(S.o.name);
+    S.view=S.past.length?'door':'edit'; if(S.view==='edit') S.lines=[blankLine()];
+    render(); loadMail();
+  }catch(e){ S.err=e.message; S.view='pick'; render(); }
+}
+async function loadPast(name){
+  S.past=[]; S.pastImps=[];
+  try{
+    const sortQ=`&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc`;
+    const d=await at(T_ORD,`maxRecords=40&${flds([O.num,O.created,O.lines,O.imps,O.proofLook,O.status])}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}!="Awaiting Proof",{Order Status}!="Cancelled / Voided",{Order Status}!=BLANK())`)}`);
+    S.past=(d.records||[]).map(r=>{const f=r.fields;return {id:r.id,num:f[O.num],created:f[O.created]||'',lineIds:f[O.lines]||[],impIds:f[O.imps]||[],thumbs:(f[O.proofLook]||[]).map(thumb).filter(Boolean),lines:null};}).filter(o=>o.lineIds.length);
+    const di=await at(T_IMP,`maxRecords=100&${flds(Object.values(IP))}&sort%5B0%5D%5Bfield%5D=${IP.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent(`FIND(LOWER("${fq(name)}"),LOWER({Customer Name Search}))`)}`);
+    S.pastImps=(di.records||[]).map(r=>{const f=r.fields;return {rid:r.id,id:f[IP.id]||'',type:sel(f[IP.type]),loc:sel(f[IP.loc]),screens:f[IP.screens]||0,nick:f[IP.nick]||'',inks:f[IP.inksTxt]||'',inkIds:f[IP.inks]||[],created:(f[IP.created]||'').slice(0,10),thumb:thumb((f[IP.proofs]||[])[0]),order:(f[IP.order]||[])[0]};}).filter(m=>m.id);
+  }catch(e){ S.err='Past orders: '+e.message; }
+  S.pastLoaded=true;
+}
+async function loadMail(){
+  if(!S.o.email){ S.mail={none:'No customer email on this order in Airtable.'}; return render(); }
+  S.mail={loading:true}; render();
+  try{ const r=await fetch(PROXY+'/pipedrive/emails?limit=5&email='+encodeURIComponent(S.o.email),{headers:{Authorization:'Bearer '+TOKEN}}); const j=await r.json();
+    if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+    S.mail=j.person?{msgs:j.messages||[],person:j.person}:{none:'No Pipedrive contact with '+S.o.email+'.'};
+  }catch(e){ S.mail={none:'Couldn\'t load emails from Pipedrive ('+e.message+').'}; }
+  render();
+}
+const mapG=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),style:String(r.fields[G.product]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:numv(r.fields[G.cost]),fleece:!!r.fields[G.fleece]});
+let gTimer=null;
+function gSearch(lid,v){ const l=Ln(lid); l.gq=v; l.gres=null; render(); clearTimeout(gTimer); const q=v.trim(); if(q.length<2) return;
+  gTimer=setTimeout(async()=>{ try{
+      // Style # first (the usual case); brand / color words only if that finds nothing.
+      let recs=await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`FIND(UPPER("${fq(q)}"),UPPER({Product Number}))`)}`,200);
+      if(!recs.length){ try{ recs=await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent('AND('+q.toLowerCase().split(/\s+/).filter(Boolean).map(w=>`FIND("${fq(w)}",LOWER({Manufacturer}&" "&{Product Number}&" "&{Colorway}))`).join(',')+')')}`,200); }catch(e){} }
+      if(Ln(lid)&&Ln(lid).gq===v){ const by={}; recs.map(mapG).forEach(g=>{ const k=g.style||g.name; (by[k]=by[k]||[]).push(g); });
+        const ql=q.toLowerCase(), rank=k=>(k.toLowerCase().startsWith(ql)||k.toLowerCase().replace(/^[a-z]+/,'').startsWith(ql)?2:0);
+        Ln(lid).gres=Object.entries(by).sort((a,b)=>rank(b[0])-rank(a[0])||b[1].length-a[1].length).slice(0,8).map(([k,gs])=>({style:k,name:gs[0].name.replace(/\s*-\s*[^-]*$/,''),colors:gs})); render(); }
+    }catch(e){ if(Ln(lid)){ Ln(lid).gres=[]; Ln(lid).gerr=e.message; render(); } } },300); }
+// Garment names look like "Comfort Colors 1717 - Pepper"; show brand + style.
+const gLabel=g=>g?g.name.replace(/\s*-\s*[^-]*$/,'')||g.style:'';
+
+/* ---------- actions ---------- */
+const blankLine=()=>({id:'L'+(S.seq++),ptype:'Printed Apparel',g:null,colors:null,gq:'',gres:null,sizes:{},prints:[],inks:{},price:null,last:null,womens:false,youth:false,notes:null});
+function startNew(){ S.view='edit'; if(!S.lines.length) S.lines=[blankLine()]; render(); focusSoon('gq_'+S.lines[0].id); }
+function newPrintFromPast(m){ const ex=S.prints.find(p=>p.prev&&p.prev.rid===m.rid); if(ex) return ex.id;
+  const ub=hasBase(m.type), p={id:'P'+(S.seq++),nick:m.nick,loc:m.loc,type:m.type,colors:isSPType(m.type)?Math.max(1,(m.screens||1)-(ub?1:0)):0,ub:isSPType(m.type)&&ub,inks:m.inks,prev:m,icSet:null}; S.prints.push(p); return p.id; }
+const isSPType=t=>INKS.includes(t);
+async function reorder(oid){
+  const po=S.past.find(x=>x.id===oid); S.view='loading'; render();
+  try{
+    const d=await at(T_LI,`${flds([LF.garment,LF.ptype,LF.price,LF.imprints,LF.total,LF.tqty,LF.auto,LF.womens,LF.youth].concat(Object.values(SZF)))}&filterByFormula=${byIds(po.lineIds)}`);
+    const recs=d.records||[], gids=[...new Set(recs.map(r=>(r.fields[LF.garment]||[])[0]).filter(Boolean))];
+    const gd=gids.length?await at(T_GAR,`${flds(Object.values(G))}&filterByFormula=${byIds(gids)}`):{records:[]}, gmap={}; (gd.records||[]).forEach(r=>gmap[r.id]=mapG(r));
+    S.lines=[];
+    recs.forEach(r=>{ const f=r.fields, l=blankLine(), sz={}; SIZES.forEach(z=>{ const v=numv(f[SZF[z]]); if(v) sz[z]=v; });
+      const pi=numv(f[LF.price]), lt=numv(f[LF.total]), tq=numv(f[LF.tqty]);
+      l.ptype=sel(f[LF.ptype])||'Printed Apparel'; l.g=gmap[(f[LF.garment]||[])[0]]||null; l.womens=!!f[LF.womens]; l.youth=!!f[LF.youth];
+      l.last={order:po.num,sizes:sz,price:pi||(lt&&tq?Math.round(lt/tq*100)/100:0)};
+      (f[LF.imprints]||[]).forEach(rid=>{ const m=S.pastImps.find(x=>x.rid===rid); if(m) l.prints.push(newPrintFromPast(m)); });
+      S.lines.push(l); });
+    S.view='edit'; render(); toast(`Copied ${po.num}: ${S.lines.length} line${S.lines.length===1?'':'s'}, ${S.prints.length} imprint${S.prints.length===1?'':'s'} as repeats. Enter the new sizes.`);
+    if(S.lines[0]) focusSoon('paste_'+S.lines[0].id);
+  }catch(e){ S.err=e.message; S.view='door'; render(); }
+}
+function pickStyle(lid,k){ const l=Ln(lid), r=l.gres[k]; l.colors=r.colors; l.g=r.colors.length===1?r.colors[0]:null; l.gq=''; l.gres=null; render(); if(l.g) focusSoon('paste_'+lid); }
+function pickColor(lid,gid){ const l=Ln(lid); l.g=l.colors.find(g=>g.id===gid); render(); focusSoon('paste_'+lid); }
+function changeG(lid){ const l=Ln(lid); l.g=null; l.colors=null; render(); focusSoon('gq_'+lid); }
+function setSz(lid,z,v){ const l=Ln(lid), n=Math.max(0,Math.round(+v||0)); if(n) l.sizes[z]=n; else delete l.sizes[z]; render(); }
+function pasteSz(lid,v){ const o=parseSizes(v); if(!Object.keys(o).length){ if(String(v).trim()) toast('Couldn\'t read sizes from that'); return; } Ln(lid).sizes=o; render(); toast(`${Object.values(o).reduce((a,b)=>a+b,0)} pcs: ${szText(o)}`); }
+function osfaQty(lid,v){ const n=Math.max(0,Math.round(+v||0)); Ln(lid).sizes=n?{OSFA:n}:{}; render(); }
+function sameAsLast(lid){ const l=Ln(lid); l.sizes=Object.assign({},l.last.sizes); render(); }
+function setPT(lid,t){ const l=Ln(lid); l.ptype=t; if(!isApparel(l)){ const q=qty(l); l.sizes=q?{OSFA:q}:{}; } render(); }
+function openAdd(lid){ S.add=S.add===lid?null:lid; S.artQ=''; S.np=null; const l=Ln(lid);
+  S.tab=S.prints.some(p=>!l.prints.includes(p.id))?'order':S.pastImps.length?'past':'new'; if(S.tab==='new') newDraft(); render(); if(S.tab==='new') focusSoon('npnick'); }
+function newDraft(){ S.np={nick:'',loc:'',fam:'',type:'',colors:0,ub:false,inks:''}; }
+function setTab(t){ S.tab=t; if(t==='new'&&!S.np) newDraft(); render(); if(t==='past') focusSoon('artq'); if(t==='new') focusSoon('npnick'); }
+function setFam(f){ const n=S.np; n.fam=f; n.type=FAM[f].length===1?FAM[f][0]:''; n.ub=false; if(f!=='Screen print') n.colors=0; render(); }
+function setNpType(t){ S.np.type=t; S.np.ub=hasBase(t); render(); }
+function attach(lid,pidv){ const l=Ln(lid); if(!l.prints.includes(pidv)) l.prints.push(pidv); S.add=null; autoPT(l); render(); }
+function attachPast(lid,rid){ attach(lid,newPrintFromPast(S.pastImps.find(m=>m.rid===rid))); }
+function saveNew(lid){ const n=S.np; if(!n.nick.trim()) return toast('Give the print a nickname'); if(!n.loc) return toast('Pick a location'); if(!n.type) return toast('Pick the print type');
+  if(isSPType(n.type)&&!n.colors) return toast('How many colors?');
+  const p={id:'P'+(S.seq++),nick:n.nick.trim(),loc:n.loc,type:n.type,colors:n.colors,ub:n.ub,inks:n.inks.trim(),prev:null,icSet:null}; S.prints.push(p); attach(lid,p.id); }
+// Embroidery-only lines are Embroidered Apparel; anything printed is Printed Apparel. Sales can still change it.
+function autoPT(l){ if(!isApparel(l)||l.ptManual) return; const ts=l.prints.map(id=>P(id).type); if(ts.length&&ts.every(t=>t==='Embroidery')) l.ptype='Embroidered Apparel'; else if(ts.some(t=>t!=='Embroidery')) l.ptype='Printed Apparel'; }
+function detach(lid,pidv){ if(S.made&&S.made.newId[pidv]&&!S.lines.some(x=>x.id!==lid&&x.prints.includes(pidv))) return toast('Already created in Airtable — fix it in Line Item Review');
+  const l=Ln(lid); l.prints=l.prints.filter(x=>x!==pidv); delete l.inks[pidv]; if(!S.lines.some(x=>x.prints.includes(pidv))) S.prints=S.prints.filter(p=>p.id!==pidv); autoPT(l); render(); }
+function setInk(lid,pidv,v){ const l=Ln(lid), p=P(pidv); if(!v.trim()||v.trim()===p.inks) delete l.inks[pidv]; else l.inks[pidv]=v.trim(); render(); }
+function setNick(pidv,v){ P(pidv).nick=v.trim(); render(); }
+function addLine(kind){ const last=S.lines[S.lines.length-1], l=blankLine();
+  if(last&&(kind==='prints'||kind==='copy')){ l.prints=[...last.prints]; l.ptype=last.ptype; }
+  if(last&&kind==='copy'){ l.g=last.g; l.colors=last.colors; l.inks=Object.assign({},last.inks); }
+  S.lines.push(l); render(); focusSoon(l.g?'paste_'+l.id:'gq_'+l.id); }
+function rmLine(lid){ const l=Ln(lid); if(S.made&&S.made.lines.some(x=>x.l===l)) return toast('Already created in Airtable — fix it in Line Item Review'); S.lines=S.lines.filter(x=>x!==l); l.prints.forEach(x=>{ if(!S.lines.some(y=>y.prints.includes(x))) S.prints=S.prints.filter(p=>p.id!==x); }); render(); }
+
+/* ---------- POM price: the Price-O-Matic itself, loaded hidden (same as quotes) ---------- */
+let ENG=null;
+function engReady(){ try{ const w=$('pomEngine').contentWindow; if(w&&typeof w.computeApparelAt==='function'){ ENG=w; render(); } }catch(e){} }
+const fleeceOf=l=>!!(l.g&&(l.g.fleece||/hood|crew|fleece|sweat|zip/i.test(l.g.name)));
+function pomImp(p,fleece,l){
+  const b={loc:p.loc||'Front',printType:fleece?'Fleece':'Tees / Totes',inkChanges:0,fleeceImpressions:0,supSize:'4 X 4',supRecipe:'Wearable',supImprintsPerGang:1,decoSize:'2.5 X 2.5',decoMaterial:'Sim Woven / Twill',decoApplication:'Heat Press',embStitchBand:'Up to 5,000'};
+  if(isSP(p)) return Object.assign(b,{type:'Screenprint',screens:p.colors||1,underbase:!!p.ub,inkChanges:inkChanges(p)});
+  if(/^Supacolor - /.test(p.type)) return Object.assign(b,{type:'Supacolor',supRecipe:p.type.replace('Supacolor - ','')});
+  if(p.type==='Embroidery') return Object.assign(b,{type:'Embroidery'});
+  if(/Application$/.test(p.type)) return Object.assign(b,{type:'Embroidery',embStitchBand:p.type});
+  return null; }
+function pom(l){
+  if(!isApparel(l)) return {why:'type the price'}; if(!ENG) return {why:'loading POM rates…'};
+  const q=qty(l); if(!q) return {why:'add sizes'}; if(!l.g) return {why:'pick the garment'}; if(!l.g.cost) return {why:'garment has no cost in Airtable'};
+  if(!l.prints.length) return {why:'add a print'};
+  const fl=fleeceOf(l), list=l.prints.map(id=>pomImp(P(id),fl,l));
+  if(list.some(x=>!x)) return {why:'a print here isn\'t priced by the POM — type the price'};
+  // Same math as the POM's computeApparelAt, except each print is priced at the pieces it prints across the
+  // whole order (a front shared by a 100 and a 20 prints 120), like Airtable's autoprice.
+  const st={shipping:false,asColourLow:false,garmentCost:l.g.cost,fleece:fl,impressions:list};
+  try{ if(typeof ENG.impressionPrice==='function'&&typeof ENG.garmentPricing==='function'){
+      const imps=list.map((x,k)=>ENG.impressionPrice(x,printQty(P(l.prints[k]))||q)); if(imps.some(v=>v==null||!isFinite(v))) return {why:'no POM price at this qty'};
+      const pp=Math.round(((ENG.garmentPricing(st)+imps.reduce((a,b)=>a+b,0))/0.97)/0.05)*0.05; return {pp:Math.round(pp*100)/100,shared:l.prints.some(x=>printQty(P(x))>q)}; }
+    const c=ENG.computeApparelAt(q,st); return c&&c.pricePerPiece?{pp:Math.round(c.pricePerPiece*100)/100}:{why:'no POM price at this qty'}; }catch(e){ return {why:'POM error: '+e.message}; } }
+const printQty=p=>linesWith(p).reduce((a,l)=>a+qty(l),0);
+const price=l=>l.price!=null?l.price:(pom(l).pp??null);
+
+/* ---------- checks ---------- */
+function lineNeed(l){ if(isApparel(l)&&!l.g) return 'pick the garment'; if(!qty(l)) return isApparel(l)?'add sizes':'add the qty'; if(!l.prints.length&&isApparel(l)) return 'add a print'; if(price(l)==null) return 'add a price'; return ''; }
+function printNeed(p){ return !p.nick.trim()?'needs a nickname':!p.loc?'needs a location':!p.type?'needs a type':isSP(p)&&!p.colors?'how many colors?':''; }
+function checks(){ const c=[], bad=S.lines.filter(lineNeed), pb=S.prints.filter(printNeed);
+  c.push([S.lines.length>0&&!bad.length,!S.lines.length?'Add a line':bad.length?`Line ${S.lines.indexOf(bad[0])+1}: ${lineNeed(bad[0])}`:`${S.lines.length} line item${S.lines.length>1?'s':''} ready`]);
+  c.push([!pb.length&&(S.prints.length>0||S.lines.every(l=>!isApparel(l))),pb.length?`${pid(pb[0])}: ${printNeed(pb[0])}`:S.prints.length?`${S.prints.length} imprint${S.prints.length>1?'s':''} with nicknames`:'Add the prints']);
+  if(S.existing.length+S.prints.length>26) c.push([false,'More than 26 imprints on one order']);
+  return c; }
+function proofNotes(l){ if(l.notes!=null) return l.notes;
+  return l.prints.map(id=>{ const p=P(id), ink=(l.inks[id]??p.inks)||''; return `${pid(p)} ${p.loc} · ${p.nick}${isSP(p)?` · ${p.colors}c${p.ub?' + UB':''}`:` · ${p.type}`}${ink?' · inks: '+ink:''}${p.prev?' · repeat of '+p.prev.id:''}`; }).join('\n').replace(/UPDATE:/gi,'Update -'); }
+
+/* ---------- create ---------- */
+async function create(){
+  if(S.busy||S.done) return; const c=checks(); if(!c.every(x=>x[0])) return toast('Finish the checklist first');
+  S.busy=true; S.err=''; render();
+  // A retry after a failure keeps what was already created (S.made) and only adds the rest, so nothing doubles.
+  const made=S.made=S.made||{imps:[],lines:[],newId:{}}, newId=made.newId;
+  try{
+    // 1. Imprints one at a time, in order, so the ID automation hands out A, B, C… in the order shown here.
+    for(const p of S.prints){ if(newId[p.id]) continue;
+      const f={[IP.order]:[S.o.id],[IP.type]:p.type,[IP.loc]:p.loc,[IP.nick]:p.nick};
+      if(isSP(p)){ f[IP.screens]=screens(p); f[IP.inkChanges]=inkChanges(p); }
+      if(p.prev){ f[IP.repeat]=true; f[IP.prev]=[p.prev.rid]; if(p.prev.inkIds&&p.prev.inkIds.length) f[IP.inks]=p.prev.inkIds; }
+      const r=await atWrite('POST',T_IMP,[{fields:f}]); newId[p.id]=r.records[0].id; made.imps.push({p,rid:r.records[0].id});
+    }
+    // 2. Line items, 10 per call. Both order links: automations read Order Reference.
+    const todo=S.lines.filter(l=>!made.lines.some(x=>x.l===l));
+    const recs=todo.map(l=>{ const f={[LF.ref]:[S.o.id],[LF.orders]:[S.o.id],[LF.ptype]:l.ptype,[LF.price]:price(l),[LF.imprints]:l.prints.map(x=>newId[x])};
+      if(l.g) f[LF.garment]=[l.g.id]; const n=proofNotes(l); if(n) f[LF.proof]=n; if(l.womens) f[LF.womens]=true; if(l.youth) f[LF.youth]=true;
+      Object.entries(l.sizes).forEach(([z,v])=>{ if(SZF[z]&&v) f[SZF[z]]=v; }); return {fields:f}; });
+    for(let i=0;i<recs.length;i+=10){ const r=await atWrite('POST',T_LI,recs.slice(i,i+10)); r.records.forEach((x,k)=>made.lines.push({l:todo[i+k],rid:x.id})); }
+    S.done=made; S.tEnd=Date.now(); S.busy=false; render(); toast(PRACTICE?'Practice: nothing was saved':'Order '+S.o.num+' created');
+    if(!PRACTICE) setTimeout(readBackIds,4000);
+  }catch(e){ S.busy=false; S.err=`Stopped: ${e.message}. Already in Airtable: ${made.imps.length} imprint${made.imps.length===1?'':'s'}, ${made.lines.length} line item${made.lines.length===1?'':'s'}. Fix the problem and press Finish creating — it only adds what's missing.`; render(); }
+}
+async function readBackIds(){ try{ const ids=S.done.imps.map(x=>x.rid); if(!ids.length) return; const d=await at(T_IMP,`${flds([IP.id])}&filterByFormula=${byIds(ids)}`); S.done.ids={}; (d.records||[]).forEach(r=>S.done.ids[r.id]=r.fields[IP.id]||''); render(); }catch(e){} }
+
+/* ---------- render ---------- */
+let pendingFocus=null; function focusSoon(id){ pendingFocus=id; setTimeout(()=>{ const e=$(id); if(e) e.focus(); pendingFocus=null; },0); }
+let rendering=false;
+function render(){ if(rendering){ setTimeout(render,0); return; } rendering=true; try{ draw(); } finally{ rendering=false; } }
+function draw(){
+  const ae=document.activeElement, keep=ae&&ae.id&&ae.tagName==='INPUT'?{id:ae.id,s:ae.selectionStart}:null;
+  $('main').innerHTML=S.view==='pick'?vPick():S.view==='loading'?'<div class="panel hint">Loading…</div>':S.view==='door'?vDoor():vEdit();
+  $('rail').innerHTML=vRail();
+  if(keep&&!pendingFocus){ const e=$(keep.id); if(e){ e.focus(); try{ e.setSelectionRange(keep.s,keep.s); }catch(_){} } }
+}
+const errHtml=()=>S.err?`<div class="err">${esc(S.err)}</div>`:'';
+function vPick(){ if(!TOKEN) return `<div class="panel"><h2>Create order</h2><div class="hint" style="margin-top:6px">Add your Airtable token above to start.</div>${errHtml()}</div>`;
+  if(S.awaiting==null) return '<div class="panel hint">Loading orders waiting for proof…</div>';
+  const q=S.q.toLowerCase().trim(), hit=o=>!q||o.name.toLowerCase().includes(q)||String(o.num).startsWith(q), recent=o=>!o.created||(Date.now()-new Date(o.created))/864e5<=RECENT_DAYS;
+  const list=S.awaiting.filter(hit).filter(o=>q||recent(o));
+  return `<div class="panel"><h2>Which order?</h2><div class="hint" style="margin-top:4px">Orders waiting for proof${q?'':' · last '+RECENT_DAYS+' days'}. Pipedrive already made them.</div>
+   <input class="t" id="oq" style="width:100%;margin-top:10px" placeholder="Search customer or order #" value="${esc(S.q)}" oninput="S.q=this.value;render()" autocomplete="off">
+   <div class="olist">${list.slice(0,60).map(o=>`<button class="oc" onclick="pickOrder('${o.id}')"><span class="num">${o.num}</span><span><b>${esc(o.name)}</b><br><span class="m">created ${ago(o.created)}${o.lines?' · '+o.lines+' line'+(o.lines>1?'s':'')+' already':''}${o.blank?' · no status yet':''}</span></span><span class="m rt">${esc(o.rep)}</span></button>`).join('')||'<div class="hint">No order waiting for proof matches.</div>'}</div>${errHtml()}</div>`; }
+function orderHead(){ const o=S.o; return `<div class="ohead"><span class="num">${o.num}</span><span class="nm">${esc(o.name)}</span>${o.rep?`<span class="tag">${esc(o.rep)}</span>`:''}${o.due?`<span class="tag">due ${esc(o.due)}</span>`:''}${o.ship?`<span class="tag">${esc(o.ship)}</span>`:''}<button class="link" onclick="if(!S.done&&S.lines.some(l=>l.g||l.prints.length)&&!confirm(S.made?'Leave this order? Part of it is already in Airtable — finish it or fix it in Line Item Review.':'Leave this order? What you entered here is not saved.'))return;S.made=null;S.view='pick';S.o=null;S.t0=null;S.err='';render()">change order</button></div>
+  ${o.lineCount||S.existing.length?`<div class="tag need" style="display:inline-block;margin-top:8px;white-space:normal">Already has ${o.lineCount} line${o.lineCount===1?'':'s'}${S.existing.length?' and imprints '+esc(S.existing.join(', ')):''}. New ones are added alongside.</div>`:''}`; }
+function vDoor(){ const imgs=o=>o.thumbs.slice(0,3).map(u=>`<img src="${esc(u)}" loading="lazy" alt="">`).join('')||'<span class="noimg">no proof</span>';
+  return `<div class="panel">${orderHead()}
+   <div class="doors"><div class="door main"><b>↻ Reorder: pick a past order below</b><span>Its garments come back, and its imprints as repeats (linked to the old ones). You enter the new sizes.</span></div>
+   <button class="door" onclick="startNew()"><b>＋ New order</b><span>New garments or new art. Past art is still one tap away.</span></button></div>
+   <div class="past">${S.past.map(o=>{ const imps=S.pastImps.filter(m=>m.order===o.id);
+     return `<button class="po" onclick="reorder('${o.id}')"><span class="th">${imgs(o)}</span><span class="d"><b>${o.num}</b> · ${ago(o.created)}<div>${o.lineIds.length} line${o.lineIds.length===1?'':'s'}${imps.length?' · '+imps.map(m=>esc(m.nick||m.loc)+' ('+esc(m.loc)+')').join(' + '):''}</div></span><span class="btn y" style="display:flex;align-items:center">Reorder</span></button>`; }).join('')}</div>${errHtml()}</div>`; }
+function vMail(){ const m=S.mail; if(!m) return '';
+  let h=`<div style="margin-top:10px"><button class="link" onclick="S.showMail=!S.showMail;render()">${S.showMail?'hide':'show'} customer emails (Pipedrive)</button>`;
+  if(S.showMail){ if(m.loading) h+='<div class="hint" style="margin-top:4px">Loading emails…</div>';
+    else if(m.none) h+=`<div class="hint" style="margin-top:4px">${esc(m.none)}</div>`;
+    else h+=m.msgs.length?`<div class="email">${m.msgs.map(x=>`<div class="msg"><b>${esc(x.subject||'(no subject)')}</b> <span class="hint">${esc(x.from)} · ${ago(x.date)}</span><pre>${esc(x.text||x.snippet)}</pre></div>`).join('')}</div><div class="hint" style="margin-top:4px">Copy sizes into a line's yellow box.</div>`:'<div class="hint" style="margin-top:4px">No synced emails from this customer in Pipedrive.</div>'; }
+  return h+'</div>'; }
+function vEdit(){ let h=`<div class="panel${S.done?' locked':''}">${orderHead()}${S.done?`<div class="donebar">${PRACTICE?'Practice run finished — nothing was saved.':'Created in Airtable.'} Changes from here go in <a href="pine-line-item-review.html?order=${S.o.num}">Line Item Review</a>.</div>`:''}${vMail()}`;
+  S.lines.forEach((l,i)=>h+=vLine(l,i));
+  const last=S.lines[S.lines.length-1];
+  h+=`<div class="more"><button class="btn" onclick="addLine('prints')" ${last&&last.prints.length?'':'disabled'}>＋ Another garment, same prints</button><button class="btn" onclick="addLine('copy')" ${last&&last.g?'':'disabled'}>⧉ Copy last line</button><button class="btn" onclick="addLine()">＋ Blank line</button></div>
+   <div class="hint" style="margin-top:6px">Each line is one line item with its own proof.</div>${S.made?'':errHtml()}</div>`;
+  return h; }
+function vLine(l,i){ const need=lineNeed(l), q=qty(l), r=pom(l), pp=r.pp??null, p=price(l), under=p!=null&&pp!=null&&p<pp-0.001, ap=isApparel(l);
+  let h=`<div class="ln ${need?'need':'ok'}"><div class="lh"><span class="no">${i+1}</span>`;
+  h+=l.g?`<span class="g">${esc(gLabel(l.g))} · ${esc(l.g.color)}</span><button class="link" onclick="changeG('${l.id}')">change</button>`:`<span class="g">${ap?'New line':esc(l.ptype)}</span>`;
+  h+=`<div class="right">${need?`<span class="tag need">${need}</span>`:''}<span class="qt">${q}</span><span class="pr"><input id="pr_${l.id}" class="${under?'under':''}" value="${p!=null?p.toFixed(2):''}" placeholder="$ / pc" aria-label="Price per piece" onchange="const v=parseFloat(this.value);Ln('${l.id}').price=isNaN(v)?null:v;render()"><small>${pp!=null?(l.price!=null&&Math.abs(l.price-pp)>0.001?(under?'under ':'')+'POM '+money(pp)+` <button class="link" style="font-size:10px" onclick="Ln('${l.id}').price=null;render()">use</button>`:(r.shared?'POM · shared prints at full qty':'POM price')):esc(r.why||'')}${l.last&&l.last.price?' · last '+money(l.last.price):''}</small></span><button class="link" onclick="rmLine('${l.id}')" aria-label="Remove line">✕</button></div></div><div class="lb">`;
+  h+=`<span class="k">Type</span><div class="bts">${l.ptOpen?PT_MAIN.map(t=>`<button class="b${l.ptype===t?' on':''}" onclick="Ln('${l.id}').ptManual=true;Ln('${l.id}').ptOpen=false;setPT('${l.id}','${t}')">${t.replace(' (100%)','')}</button>`).join(''):`<span style="font-weight:600;padding-top:2px">${esc(l.ptype)}</span><button class="link" onclick="Ln('${l.id}').ptOpen=true;render()">change</button>`}</div>`;
+  if(ap&&!l.g){
+    if(!l.colors){ h+=`<span class="k">Garment</span><div><input class="t" style="width:100%" id="gq_${l.id}" placeholder="Style # or name: 1717, 5001, crewneck…" value="${esc(l.gq)}" oninput="gSearch('${l.id}',this.value)" autocomplete="off">`;
+      if(l.gres) h+=l.gres.length?`<div class="gres">${l.gres.map((x,k)=>`<button onclick="pickStyle('${l.id}',${k})"><b>${esc(x.name)}</b> <span>${x.colors.length} color${x.colors.length===1?'':'s'} · $${(x.colors[0].cost||0).toFixed(2)}</span></button>`).join('')}</div>`:`<div class="hint" style="margin-top:6px">${l.gerr?esc(l.gerr):'Not in Airtable Garments. Add it there first (vendor add comes later).'}</div>`;
+      else if(l.gq.trim().length>=2) h+='<div class="hint" style="margin-top:6px">Searching…</div>';
+      h+='</div>'; }
+    else h+=`<span class="k">Color</span><div class="bts">${l.colors.map(g=>`<button class="chip" onclick="pickColor('${l.id}','${g.id}')">${esc(g.color)}</button>`).join('')}<button class="link" onclick="changeG('${l.id}')">other style</button></div>`; }
+  if(ap&&l.g){ const zs=APP_SIZES.concat(Object.keys(l.sizes).filter(z=>!APP_SIZES.includes(z)));
+    h+=`<span class="k">Sizes</span><div class="szrow"><div class="szs">${zs.map(z=>`<label>${z}<input id="sz_${l.id}_${z}" inputmode="numeric" value="${l.sizes[z]||''}" onchange="setSz('${l.id}','${z}',this.value)"></label>`).join('')}</div>
+      <div class="paste"><small>Paste or type from the email</small><input id="paste_${l.id}" placeholder="6 S, 6 M, 15 XL, 5 2XL" onkeydown="if(event.key==='Enter'){pasteSz('${l.id}',this.value);this.value=''}" onpaste="setTimeout(()=>{pasteSz('${l.id}',this.value);this.value=''},0)" onchange="if(this.value){pasteSz('${l.id}',this.value);this.value=''}"></div>
+      ${l.last&&Object.keys(l.last.sizes).length?`<div class="hint" style="width:100%">Last time (${l.last.order}): ${esc(szText(l.last.sizes))} <button class="link" onclick="sameAsLast('${l.id}')">use same sizes</button></div>`:''}
+      <div class="bts" style="width:100%"><button class="b${l.womens?' on':''}" onclick="Ln('${l.id}').womens=!Ln('${l.id}').womens;render()">Women's</button><button class="b${l.youth?' on':''}" onclick="Ln('${l.id}').youth=!Ln('${l.id}').youth;render()">Youth</button></div></div>`; }
+  if(!ap) h+=`<span class="k">Qty</span><div class="bts"><input class="t" id="oq_${l.id}" style="width:110px" inputmode="numeric" value="${q||''}" placeholder="qty" onchange="osfaQty('${l.id}',this.value)"><span class="hint">no garment needed · price typed above</span></div>`;
+  h+=`<span class="k">Prints</span><div><div class="prints">${l.prints.map(id=>{ const p=P(id), ink=l.inks[id]??p.inks, img=p.prev&&p.prev.thumb;
+      return `<span class="prc">${img?`<img src="${esc(img)}" alt="">`:`<span class="noimg">${p.prev?'repeat':'new'}</span>`}<span class="tx"><b><span class="idtag">${letterOf(p)}</span> <input style="width:150px;height:22px;font-weight:700;font-size:13px" value="${esc(p.nick)}" placeholder="nickname" aria-label="Imprint nickname" onchange="setNick('${id}',this.value)"></b><span>${esc(p.loc)} · ${isSP(p)?screens(p)+' scr · '+esc(p.type):esc(p.type)}${p.prev?' · repeat of '+esc(p.prev.id):''}${linesWith(p).length>1?' · on '+linesWith(p).length+' lines':''}</span>${isSP(p)?`<span>inks: <input value="${esc(ink)}" placeholder="ink colors" aria-label="Ink colors on this garment" onchange="setInk('${l.id}','${id}',this.value)"></span>`:''}</span><button class="x" onclick="detach('${l.id}','${id}')" aria-label="Remove print">✕</button></span>`; }).join('')}
+    <button class="b${l.prints.length?'':' on'}" onclick="openAdd('${l.id}')">＋ Print</button></div></div>`;
+  if(S.add===l.id) h+=vAdd(l);
+  return h+`</div></div>`; }
+function vAdd(l){ const others=S.prints.filter(p=>!l.prints.includes(p.id)), art=S.pastImps;
+  let h=`<div class="addp"><div class="tabs">${others.length?`<button class="b${S.tab==='order'?' on':''}" onclick="setTab('order')">On this order (${others.length})</button>`:''}${art.length?`<button class="b${S.tab==='past'?' on':''}" onclick="setTab('past')">${esc(S.o.name)} past art (${art.length})</button>`:''}<button class="b${S.tab==='new'?' on':''}" onclick="setTab('new')">＋ New art</button><button class="link" style="margin-left:auto" onclick="S.add=null;render()">close</button></div>`;
+  if(S.tab==='order') h+=`<div class="bts">${others.map(p=>`<button class="prc" onclick="attach('${l.id}','${p.id}')">${p.prev&&p.prev.thumb?`<img src="${esc(p.prev.thumb)}" alt="">`:`<span class="noimg">${p.prev?'repeat':'new'}</span>`}<span class="tx"><b><span class="idtag">${letterOf(p)}</span> ${esc(p.nick)}</b><span>${esc(p.loc)}</span></span></button>`).join('')}</div><div class="hint" style="margin-top:6px">Same imprint ID, no new screens.</div>`;
+  if(S.tab==='past'){ const q=S.artQ.trim().toLowerCase(), hits=art.filter(a=>!q||[a.id,a.nick,a.loc,a.type,a.inks].join(' ').toLowerCase().includes(q)).slice(0,60);
+    h+=`<input class="t" id="artq" style="width:100%;margin-bottom:8px" placeholder="Search name, location, ink or order #" value="${esc(S.artQ)}" oninput="S.artQ=this.value;render()" autocomplete="off"><div class="artg">${hits.map(a=>`<button class="art" onclick="attachPast('${l.id}','${a.rid}')">${a.thumb?`<img src="${esc(a.thumb)}" loading="lazy" alt="">`:'<span class="noimg">no proof</span>'}<b>${esc(a.id)}</b> ${esc(a.nick)}<br><span class="hint">${esc(a.loc)} · ${esc(a.type)}${a.screens?' · '+a.screens+' scr':''} · ${esc(a.created)}</span></button>`).join('')||'<span class="hint">No match</span>'}</div><div class="hint" style="margin-top:6px">Makes a new imprint on this order, marked Repeat and linked to the old one.</div>`; }
+  if(S.tab==='new'){ const n=S.np, sp=isSPType(n.type)||n.fam==='Screen print';
+    h+=`<div class="npf"><span class="k">Nickname</span><input class="t" id="npnick" value="${esc(n.nick)}" placeholder="e.g. Damn Proud" oninput="S.np.nick=this.value" onkeydown="if(event.key==='Enter')saveNew('${l.id}')">
+     <span class="k">Location</span><div class="bts">${LOCS.map(x=>`<button class="b${n.loc===x?' on':''}" onclick="S.np.loc='${x}';render()">${x}</button>`).join('')}</div>
+     <span class="k">Method</span><div class="bts">${Object.keys(FAM).map(f=>`<button class="b${n.fam===f?' on':''}" onclick="setFam('${f}')">${f}</button>`).join('')}</div>
+     ${n.fam&&FAM[n.fam].length>1?`<span class="k">Type</span><div class="bts">${FAM[n.fam].map(t=>`<button class="b${n.type===t?' on':''}" onclick="setNpType('${t}')">${t.replace('Supacolor - ','')}</button>`).join('')}</div>`:''}
+     ${sp?`<span class="k">Colors</span><div class="bts">${[1,2,3,4,5,6,7,8].map(c=>`<button class="b${n.colors===c?' on':''}" onclick="S.np.colors=${c};render()">${c}</button>`).join('')}<button class="b${n.ub?' on':''}" onclick="S.np.ub=!S.np.ub;render()">+ Underbase</button><span class="hint">${n.colors?(n.colors+(n.ub?1:0))+' screens':''}</span></div>
+     <span class="k">Inks</span><input class="t" value="${esc(n.inks)}" placeholder="optional, e.g. White, PMS 7409" oninput="S.np.inks=this.value">`:''}
+     <span></span><div><button class="btn y" onclick="saveNew('${l.id}')">Add ${S.o.num}-${LETTERS[S.existing.length+S.prints.length]||'?'}</button></div></div>`; }
+  return h+`</div>`; }
+function vRail(){ if(!S.o) return `<h3>Create order</h3><div class="hint">Pick the order. The clock up top times you, so we can compare with Airtable.</div>`;
+  if(S.view==='door'||S.view==='loading') return `<h3>${esc(S.o.name)}</h3><div class="hint">${S.past.length} past orders · ${S.pastImps.length} past imprints on file.</div>`;
+  const c=checks(), ok=c.every(x=>x[0]), pcs=S.lines.reduce((a,l)=>a+qty(l),0), tot=S.lines.reduce((a,l)=>a+(price(l)||0)*qty(l),0);
+  let h=`<h3>Order ${S.o.num}</h3><ul class="chk">${c.map(([k,t])=>`<li class="${k?'ok':'bad'}"><i>${k?'✓':''}</i>${esc(t)}</li>`).join('')}</ul>`;
+  if(S.prints.length) h+=`<div class="imps">${S.prints.map(p=>`<div><span class="idtag">${pid(p)}</span> ${esc(p.nick)} <span class="hint">${esc(p.loc)} · ${linesWith(p).length} line${linesWith(p).length===1?'':'s'}${inkChanges(p)?' · '+inkChanges(p)+' ink change'+(inkChanges(p)>1?'s':''):''}</span></div>`).join('')}</div>`;
+  h+=`<div class="tots"><span>Line items</span><b>${S.lines.length}</b><span>Pieces</span><b>${pcs}</b><span>Total <span class="hint">before 2XL+ up-charges</span></span><b class="big">${money(tot)}</b></div>`;
+  if(!S.done) h+=`<div style="margin-top:12px"><button class="btn k" style="width:100%" onclick="create()" ${ok&&!S.busy?'':'disabled'}>${S.busy?'Creating…':S.made?'Finish creating':PRACTICE?'Create order (practice)':'Create order'}</button></div>${S.err&&S.made?`<div class="err">${esc(S.err)}</div>`:''}`;
+  if(S.done){ const d=S.done; h+=`<div class="out"><b>${PRACTICE?'Practice — nothing saved.':'Created in Airtable.'} Took ${fmtT(S.tEnd-S.t0)}.</b>\n\n${d.imps.length} imprint${d.imps.length===1?'':'s'}\n${d.imps.map(x=>`• ${esc((d.ids&&d.ids[x.rid])||pid(x.p))} · ${esc(x.p.nick)} · ${esc(x.p.loc)}${x.p.prev?' · repeat of '+esc(x.p.prev.id):''}`).join('\n')}\n\n${d.lines.length} line item${d.lines.length===1?'':'s'}\n${d.lines.map(x=>`• ${esc(x.l.g?gLabel(x.l.g)+' '+x.l.g.color:x.l.ptype)} · ${qty(x.l)} pcs · ${money(price(x.l))}`).join('\n')}</div>
+    <div class="bts" style="margin-top:10px"><a class="btn y" style="display:flex;align-items:center;text-decoration:none" href="pine-line-item-review.html?order=${S.o.num}">Review ${S.o.num} →</a><button class="link" onclick="S.view='pick';S.o=null;S.t0=null;S.done=null;S.made=null;render()">next order</button></div>`; }
+  return h; }
+setInterval(()=>{ const e=$('clock'); if(e) e.textContent=S.t0?fmtT((S.tEnd||Date.now())-S.t0):'0:00'; },500);
+if(PRACTICE) $('pracTag').style.display='';
+window.addEventListener('beforeunload',e=>{ if(S.o&&!S.done&&S.lines.some(l=>l.g||l.prints.length)){ e.preventDefault(); e.returnValue=''; } });
+render(); loadAwaiting();
+</script>
+</body>
+</html>
