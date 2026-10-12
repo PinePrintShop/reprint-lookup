@@ -269,3 +269,8 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - one raw PartInventory, to see the per-warehouse tags
   - one raw pricing Part
 - Stephen's first style: **Comfort Colors 1717**. Once we have the real answer, Purchasing gets SLC price + stock the same way as S&S, SanMar and AS Colour.
+- **Update (same day):** Stephen's run showed SLC productIds are **brand code + style** (Comfort Colors: CC-1717, CC-6030, CC-1745Y…, 19 in all). So style → productId is a name match on the brand catalog list, with no scanning.
+  - The catalog call (getProductSellable) is ~760 KB for Comfort Colors and took ~1 s.
+  - Stock calls are slow: one 336-part style took 15 s. Purchasing should fetch SLC per line, in the background, and cache it.
+  - Invoice 1436082 (10/01/26) item numbers: 00124xxx = CC 1717 ($5.49 S–XL), 00315xxx = BC 3001 ($3.79, 2XL $5.58). These are SLC's old numeric ids, so the old "315 is deprecated" read of slc-test-v10 was wrong.
+  - slc-test-v12 matches by name first and loads only that style.
