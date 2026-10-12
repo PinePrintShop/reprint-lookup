@@ -334,3 +334,14 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - Every open line using that garment updates on screen.
   - No automations watch Garments (checked record-updated automations). Practice mode only logs the change.
   - Tested in practice: logged PATCH recG6 Color = "Cobalt", the title became "AS Colour 1107 - Cobalt", and the prompt went away.
+
+## 2026-10-12 — v103: pick the vendor's color when nothing matches
+- **Stephen:** the AS Colour 1107 **Orange** beanie also got no color match. AS Colour likely calls it something longer (e.g. "Safety Orange"), which is neither a prefix nor a 1–2 letter typo.
+- **Whole-word match:** "Orange" matches a vendor color containing the word ORANGE, but only when exactly one vendor color does.
+- **No match at all:** the line says "AS Colour has no color called **Orange** for this style" with a menu of the vendor's colors (ones sharing a word listed first).
+  - Picking one rewrites the Garment's Color in Airtable, after a confirm. Same field and safety as the v102 "Fix in Airtable".
+  - The line then re-matches price and stock with the new name.
+- **Tested with mocks:** 1107 Orange vs vendor colors Safety Orange + Burnt Orange.
+  - Two candidates, so no guess and the picker shows.
+  - Picked Safety Orange: practice logged the PATCH, then $5.95 and CA ✓ in stock.
+  - Colbalt → Cobalt still works.
