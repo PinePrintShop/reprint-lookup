@@ -78,3 +78,11 @@ The flow:
 Real data comes from Mill City Church (7 past orders, 23 imprints), 10977 Murf.studio and WARGAME. A 10193 reorder of 6210 gives 10193-A/B as repeats of 6210-A/B. 10977 built by hand gives Airtable's exact line names and 4 imprints, with prices within about $1 of Airtable.
 
 Found while pulling data: Autoprice is #ERROR! on lines of finished orders, because the imprint quantity rollup reads 0 there. This was not caused by the October formula changes. Open orders price normally.
+
+## 2026-10-12 — Pipedrive: worker v18 (read-only email lookup)
+Stephen added `PIPEDRIVE_KEY` (sales@ user) as a Cloudflare secret. The live worker was checked first and matches `workers/pine-workers-v17.js`; v18 is v17 plus:
+- `GET /proxy/pipedrive/me`: checks the key and returns only the key owner's name.
+- `GET /proxy/pipedrive/emails?email=<customer email>`: finds the Pipedrive person by exact email. Airtable stores no Pipedrive IDs, and Orders carry the customer email. Returns their deals and newest synced emails, with plain-text bodies for the newest 3. Cached for 2 minutes.
+- Same Airtable-token gate as PandaDoc. GET only; nothing in Pipedrive can be changed through the worker.
+- Tested locally against a fake Pipedrive. A live test needs the deploy. **Deploy:** Cloudflare → Workers & Pages → pine-workers → Edit code → paste `workers/pine-workers-v18.js` → Deploy. Then open `pipedrive-test.html`.
+- Emails only show if sales@ has email sync on in Pipedrive and the emails are linked to the person.
