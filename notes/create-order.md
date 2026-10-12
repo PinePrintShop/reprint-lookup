@@ -89,3 +89,4 @@ Stephen added `PIPEDRIVE_KEY` (sales@ user) as a Cloudflare secret. The live wor
 - Checked through the new Pipedrive connector (read-only), logged in as Chris Hoffman. One login sees a customer's emails from **every synced mailbox**: Patrick's hello@, Josh's and the Airtable automation emails all appear under Joseph @ Murf.studio. So hello@ doesn't need its own key.
 - v18 (not yet deployed) now skips bulk sends (anniversary-discount blasts) and robot senders (Airtable, ShipStation), so the real conversation shows first.
 - 10977's October sizes email is **not** in Pipedrive (Murf.studio's newest is July), so not every order's sizes arrive by synced email. The paste box stays the fallback.
+- **Deployed Oct 12:** Stephen pasted v18 into Cloudflare, and the Pipedrive check page works (key OK, customer emails show).
