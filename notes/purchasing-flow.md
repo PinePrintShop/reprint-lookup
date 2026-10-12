@@ -281,3 +281,9 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
 - **SLC result (slc-test-v13, Stephen):** CC-1717 returned 525 parts, **0 units and 0 priced on every SKU**. We bought 1717 at $5.49 on 10/01, so SLC's PromoStandards feed isn't sending live data for our account.
   - The connection, login and product matching all work.
   - Waiting on SLC to turn on live inventory and pricing. Purchasing SLC support is on hold until then (re-run slc-test-v13 to check).
+- **SLC's answers** (from the earlier round of questions, relayed by Stephen 2026-10-12):
+  - **Zeros:** SLC sees the same missing results and is reloading its product data. They expect it fixed by tomorrow and will tell Stephen.
+  - **Warehouses:** Phoenix and Eden NC stock is **not** in PromoStandards. The API shows only the West Valley City (Salt Lake) warehouse, and there is no other inventory endpoint.
+  - **getProductSellable** accepts productId, partId and lineName (+ isSellable).
+  - **Pricing:** PricingAndConfiguration 1.0.0 is enabled. Their sample sends currency USD, fobId 1, priceType Customer, configurationType Blank; the worker already sends these.
+  - Next: re-run slc-test-v13 after the reload. If the totals are real, add SLC to Purchasing. That stock pill can only speak for Salt Lake, so Phoenix and Eden NC show "stock unknown".
