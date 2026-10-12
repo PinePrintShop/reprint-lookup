@@ -274,3 +274,7 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - Stock calls are slow: one 336-part style took 15 s. Purchasing should fetch SLC per line, in the background, and cache it.
   - Invoice 1436082 (10/01/26) item numbers: 00124xxx = CC 1717 ($5.49 S–XL), 00315xxx = BC 3001 ($3.79, 2XL $5.58). These are SLC's old numeric ids, so the old "315 is deprecated" read of slc-test-v10 was wrong.
   - slc-test-v12 matches by name first and loads only that style.
+- **Bella+Canvas** (Stephen, 2026-10-12): Bella+Canvas is moving to **SanMar only** once S&S and SLC sell through their stock.
+  - No app change yet. Stock-first ranking already moves Bella lines to SanMar as the others run dry.
+  - When S&S/SLC stop carrying it, drop 'bella canvas' from the S&S slug list and SLC_BRANDS.
+  - Also drop the Bella Canvas Direct suppliers if they close.
