@@ -318,3 +318,19 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - The staples all come back **$0**: Gildan 5000 = `225`, Gildan 64000 = `325`, BC 3001 = `315`, BC 3001CVC = `6315`, NL 3600 = `313`, NL 6210 = `6313`, CC 1717 = `CC-1717`, CC 1745 = `CC-1745`.
   - Priced examples: Gildan 5000B = `31225` $2.50, Gildan 18500 = `21925` $9.52, Independent SS4500 = `22339` $10.45, IND4000 = `22536` $16.75.
   - Brands with priced products include Bella 25/69, Independent 36/86, Next Level 19/66 and Decky 13/232. Dri Duck, Imperial, Q-Tees, Legacy, Cap America and The Game have none.
+
+## 2026-10-12 — v102: color typos still match
+- **Stephen's check on v101 (real data):**
+  - SanMar now shows for Comfort Colors 1717.
+  - On order 10968, AS Colour 1107 Gold showed "✓ in stock". **1107 "Colbalt"** showed "$5.70*" and no stock, because Airtable's garment says "Colbalt" and AS Colour says "Cobalt".
+- **Fix:** color matching is exact, then prefix, then **close spelling**:
+  - 1 letter off, or 2 for names of 7+ letters, and only when exactly one vendor color is that close.
+  - The pill's tooltip names the vendor's spelling ("price for COBALT (Airtable spells it Colbalt)").
+  - Applies to price and stock for S&S, SanMar and AS Colour.
+- **Tested with mocks:** 1107 Colbalt → $5.70 (no *), CA ✓ in stock. Gold is unchanged.
+- **Fix in Airtable** (Stephen: "can we update Airtable to match what the vendor spells it"):
+  - When a vendor's spelling differs, the line says "AS Colour spells this color **Cobalt** (Airtable: Colbalt)" with a **Fix in Airtable** button.
+  - After a confirm it PATCHes the Garment's **Color** field (`flduMprMvRlAHAiCh`, single-line text). The garment name is a formula of brand + style + color, so it follows.
+  - Every open line using that garment updates on screen.
+  - No automations watch Garments (checked record-updated automations). Practice mode only logs the change.
+  - Tested in practice: logged PATCH recG6 Color = "Cobalt", the title became "AS Colour 1107 - Cobalt", and the prompt went away.
