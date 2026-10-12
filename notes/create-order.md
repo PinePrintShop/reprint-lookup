@@ -28,3 +28,15 @@ Stephen: bring sales into Create order slowly. They start from a blank order and
 - No errors.
 
 **Next:** Stephen and sales click through it. Then decide whether price defaults to the POM price or is typed in, and wire it to Airtable in `pom-create-order-live.html`.
+
+## 2026-10-12 — Mockup rebuilt around products (big-order flow)
+Checked against WARGAME 10500 (13 lines, 7 imprints) and 10975 (9 lines, 9 imprints). In Airtable today, sales make every imprint in Imprint Creator first, typing each nickname. Then they make line items one at a time (e.g. "3001 White"), find the right imprint IDs, tick them, submit and repeat. On 10500 that is 34 imprint look-ups.
+
+The new flow works one product at a time:
+- **Product**: one design idea (H20 BOY, 92 SHIRT, OG BRAND 3D). The name groups the versions and starts each line nickname ("92 SHIRT – Blue 293 on White").
+- **Prints**: one row per location. Each is its own imprint ID with **its own Imprint Nickname** (per location, like "Damn Proud" on the left sleeve and "USN Emblem" on the left chest). A print can be new, a repeat of past art, or one that's already on this order (the size tag shared by every product).
+- **Versions**: each row is garment + color + ink colors + sizes + print toggles. Each row becomes a line item. "Same garment, other inks" copies the row so only the ink colors need typing.
+- **Ink changes are counted automatically**: the number of different ink colors typed on the versions that share a screen print, minus one. They can be overridden per print.
+- **Step 3** shows every line × imprint with today's POM price; under-POM prices show red. The rail compares this flow with the Airtable way.
+
+Each order card has "Start blank" and "See it built" (loaded with the real order). 10902 reproduces Airtable's $20.80 / $18.95 autoprice exactly. Garment costs for the WARGAME styles are placeholders, so their red under-POM flags are rough.
