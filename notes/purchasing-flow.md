@@ -183,3 +183,24 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - 10971-style line: Ft. Worth and Lockport ✓ in stock (shown first), Dallas unknown.
   - Olathe short 2XL and Reno short L moved to the list with the reason.
   - The bare-style request isn't sent once brand + style works.
+
+## 2026-10-12 — v98: live prices for short brand names, SanMar + AS Colour stock, Dallas
+- **Bug (Stephen: "still not seeing live price"):** Airtable shortens some brands. "Independent IND4000" didn't match the S&S brand list (only "Independent Trading Co."), so those lines never asked S&S at all and showed "no live price".
+  - Fix: a short brand now matches the one S&S brand it starts ("Independent" → Independent Trading Co.). SLC and SanMar brand checks work the same way.
+  - S&S is now asked with **its own name** for the style, taken from the S&S style list ("Independent Trading Co. IND4000", "BELLA + CANVAS 3001"). The list is the one Price-o-Matic already caches for 24h, with the same keys and shape, so it's shared on the same device. The v97 guesses stay as fallbacks.
+- **"No live price" now says why**, e.g. "not found at S&S", "no SanMar style code for Gildan", "not found at AS Colour". The full reason is in the pill's tooltip and in the cost note.
+- **S&S codes:** TX = **Dallas** (Stephen: the bigger warehouse), FO = **Ft. Worth**. CN and DS (dropship) are still unmapped, as are Bolingbrook, Duluth, Harrisburg, Orlando, Pompano Beach and Fresno.
+- **SanMar stock:** read from `/proxy/sanmar/inventory` (XML, same as Price-o-Matic), per warehouse.
+  - Warehouses are matched to Airtable by city. The spelling check ignores doubled letters, so Airtable's "Cinncinnati" matches. If the warehouse name is missing, the ID is used: 1 Seattle, 2 Cincinnati, 3 Dallas, 4 Reno, 5 Robbinsville, 6 Jacksonville, 7 Minneapolis, 12 Phoenix, 31 Richmond.
+  - Colors come from SanMar's catalog color, which can be cut short. A prefix match is used, and an unmatched color shows nothing.
+  - Only styles with a verified SanMar code are checked: Port & Co / Port Authority / District / Sport-Tek, and Bella Canvas as BC…
+- **AS Colour stock:** read from `/proxy/ascolour/inventory/items?skuFilter=` and joined to color + size by SKU from the variants.
+  - If a row names its warehouse, stock shows per warehouse (CA / NC).
+  - If not, it shows **"✓ in stock (CA + NC)"**, both warehouses together.
+- Ranking is unchanged: whole line in stock first, then unknown, then short, then ship time. It now covers all three vendors.
+- **Tested with mocked S&S, SanMar XML and AS Colour JSON.** The test order had four lines:
+  - **Independent IND4000:** gets S&S. Dallas and Olathe ✓, Ft. Worth short 2XL 3/10.
+  - **Bella Canvas 3001:** S&S plus SanMar. SanMar Cincinnati ✓ ($2.99, sale thru Oct 31), SanMar Dallas short L, Reno ✓ (found by ID).
+  - **AS Colour 5001:** NC ✓, CA short L/XL. With no warehouse field, both show ✓ (CA + NC).
+  - **Gildan 5000 (not on mock S&S):** "no live price · not found at S&S".
+  - Also checked at iPad and phone widths, with no errors.
