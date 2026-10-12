@@ -345,3 +345,12 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - Two candidates, so no guess and the picker shows.
   - Picked Safety Orange: practice logged the PATCH, then $5.95 and CA ✓ in stock.
   - Colbalt → Cobalt still works.
+
+## 2026-10-12 — v104: AS Colour "coming soon" + next delivery dates
+- **Stephen's finding (real data):** 1107 Orange matched AS Colour's "Orange" ($5.70, no *) but showed no stock pill. The AS Colour site says Orange is **coming soon** for 1107. 1107F is a different style that comes in Safety Orange; which one to use is the customer's/sales' call.
+- **Coming soon:** a color AS Colour lists but has no stock rows for yet now shows an amber **"coming soon · no stock yet"** pill, ranked with short warehouses.
+  - If a variant field says so (comingSoon / status "Coming Soon" / pre-order), the tooltip notes it.
+- **Next delivery dates:** short AS Colour pills add the earliest upcoming `nextDeliveryETA` for the short sizes, e.g. "short: L 12/50 · more due Dec 12".
+- **Tested with mocks:**
+  - 1107 Orange (in the product list, no stock rows) → coming soon at CA and NC.
+  - Cobalt L 12/50 with ETA 12/12 → "short: L 12/50 · more due Dec 12".
