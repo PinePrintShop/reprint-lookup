@@ -40,3 +40,9 @@ The new flow works one product at a time:
 - **Step 3** shows every line × imprint with today's POM price; under-POM prices show red. The rail compares this flow with the Airtable way.
 
 Each order card has "Start blank" and "See it built" (loaded with the real order). 10902 reproduces Airtable's $20.80 / $18.95 autoprice exactly. Garment costs for the WARGAME styles are placeholders, so their red under-POM flags are rough.
+
+## 2026-10-12 — No typed product name; line names come from the Airtable formula
+Stephen pointed out that the line item name is a formula, e.g. `10977-Murf.studio-IND-IND4000Z-BK` (order-customer-brand code-style-color code), and only imprints get typed nicknames. The mockup now matches:
+- The "product name" box is gone. Each **group** is titled with its own prints' nicknames, e.g. "Ragin Mess MENS". Shared prints like a size tag are left out of the title.
+- Step 3 shows each line's automatic name. One note explains that lines on the same garment and color share a name, and the imprints tell them apart. On 10977 both lines are IND4000Z Black (MENS and WOMENS backs).
+- Added 10977 Murf.studio as the small real example. Added IND4000Z to the mock catalog. The POM estimate uses the fleece shipping allowance.

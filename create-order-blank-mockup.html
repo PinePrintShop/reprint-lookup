@@ -51,8 +51,8 @@ button{cursor:pointer}
 /* step 2 products */
 .prod{border:1px solid var(--line2);border-radius:12px;margin-top:12px;overflow:hidden;background:#fff}
 .ph{background:var(--text);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.ph input{height:40px;min-width:220px;flex:1;max-width:420px;border:0;border-radius:8px;padding:0 12px;font-weight:800;font-size:17px;text-transform:uppercase;background:#2a2a27;color:var(--yellow)}
-.ph input::placeholder{color:#8a8a80;text-transform:none;font-weight:600}
+.ph .gt{font-weight:800;font-size:17px;color:var(--yellow);display:flex;gap:10px;align-items:baseline}
+.ph .gt small{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#aaa;font-weight:700}
 .ph .hint{color:#aaa}
 .ph .link{color:#bbb;margin-left:auto}
 .pb{padding:12px 14px}
@@ -122,7 +122,7 @@ table.map{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
 </style>
 </head>
 <body>
-<div class="top"><span class="brand">PINE</span><span class="crumb">Create order · blank</span><span class="prac">MOCKUP · nothing is saved</span><span class="sp">Real orders: 10500 + 10975 WARGAME · 10902 New Millennium</span></div>
+<div class="top"><span class="brand">PINE</span><span class="crumb">Create order · blank</span><span class="prac">MOCKUP · nothing is saved</span><span class="sp">Real orders: 10977 Murf.studio · 10500 + 10975 WARGAME · 10902 New Millennium</span></div>
 <div class="app">
   <div id="main"></div>
   <div class="panel rail" id="rail"></div>
@@ -132,14 +132,16 @@ table.map{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
 const APP=['XS','S','M','L','XL','2XL','3XL','4XL'], HAT=['OSFA'];
 const K='#1c1c1c',W='#f6f6f2';
 const CAT={
- AA1301:{brand:'American Apparel',style:'1301',name:'Heavyweight Tee',cost:5.40,sizes:APP,colors:{Black:K,White:W,Navy:'#1f2a44'}},
- CC9360:{brand:'Comfort Colors',style:'9360',name:'Heavyweight Tank',cost:7.10,sizes:APP,colors:{Black:K,White:W}},
- CC1717:{brand:'Comfort Colors',style:'1717',name:'Garment-Dyed Tee',cost:6.95,sizes:APP,colors:{Black:K,White:W,Sandstone:'#d8c3a0',Mustard:'#d6a531',Pepper:'#4a4a48'}},
- CC6014:{brand:'Comfort Colors',style:'6014',name:'Garment-Dyed Long Sleeve',cost:10.80,sizes:APP,colors:{Black:K,White:W,Pepper:'#4a4a48'}},
- AS1156:{brand:'AS Colour',style:'1156',name:'Access Cap',cost:6.60,sizes:HAT,colors:{Black:K,Natural:'#ece4d2'}},
- AS5026:{brand:'AS Colour',style:'5026',name:'Classic Tee',cost:7.90,sizes:APP,colors:{Black:K,White:W,Natural:'#ece4d2',Navy:'#1f2a44'}},
- BC3001:{brand:'Bella Canvas',style:'3001',name:'Unisex Jersey Tee',cost:3.05,sizes:APP,colors:{Black:K,White:W,Navy:'#1f2a44','Heather Grey':'#b9b9b4'}},
+ AA1301:{code:'AA',brand:'American Apparel',style:'1301',name:'Heavyweight Tee',cost:5.40,sizes:APP,colors:{Black:K,White:W,Navy:'#1f2a44'}},
+ CC9360:{code:'CC',brand:'Comfort Colors',style:'9360',name:'Heavyweight Tank',cost:7.10,sizes:APP,colors:{Black:K,White:W}},
+ CC1717:{code:'CC',brand:'Comfort Colors',style:'1717',name:'Garment-Dyed Tee',cost:6.95,sizes:APP,colors:{Black:K,White:W,Sandstone:'#d8c3a0',Mustard:'#d6a531',Pepper:'#4a4a48'}},
+ CC6014:{code:'CC',brand:'Comfort Colors',style:'6014',name:'Garment-Dyed Long Sleeve',cost:10.80,sizes:APP,colors:{Black:K,White:W,Pepper:'#4a4a48'}},
+ AS1156:{code:'AS',brand:'AS Colour',style:'1156',name:'Access Cap',cost:6.60,sizes:HAT,colors:{Black:K,Natural:'#ece4d2'}},
+ AS5026:{code:'AS',brand:'AS Colour',style:'5026',name:'Classic Tee',cost:7.90,sizes:APP,colors:{Black:K,White:W,Natural:'#ece4d2',Navy:'#1f2a44'}},
+ BC3001:{code:'BC',brand:'Bella Canvas',style:'3001',name:'Unisex Jersey Tee',cost:3.05,sizes:APP,colors:{Black:K,White:W,Navy:'#1f2a44','Heather Grey':'#b9b9b4'}},
+ IND4000Z:{code:'IND',brand:'Independent',style:'IND4000Z',name:'Heavyweight Zip Hood',cost:21.70,sizes:APP,fleece:true,colors:{Black:K,White:W}},
 };
+const CCODE={Black:'BK',White:'WH',Navy:'NY',Natural:'NT',Sandstone:'SS',Mustard:'MU',Pepper:'PE','Heather Grey':'HG'};
 const LOCS=['Front','Back','Left Chest','Right Chest','Left Sleeve','Right Sleeve','Back Hem','Size Tag','Hat Front'];
 const METHODS={'Screen print':['No Base W/B','Discharge','Bleed Blocker + W/B','EZP Base + W/B'],'Embroidery':['Embroidery'],'Supacolor':['Supacolor - Wearable','Supacolor - Headwear'],'Patch application':['Patch Application']};
 const CURVE={XS:.02,S:.14,M:.28,L:.28,XL:.17,'2XL':.07,'3XL':.03,'4XL':.01};
@@ -147,6 +149,9 @@ const art=(t,c)=>'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://ww
 // print: [letter, nickname, location, method, ink type, colors, underbase, repeat-of]
 // version: [garment, color, inks, qty, sold price, prints]
 const ORDERS=[
+ {num:10977,name:'Murf.studio',rep:'Patrick',note:'2 lines · 4 imprints · both lines have the same name',
+  prints:[['B','Ragin Mess MENS','Back','Screen print','Bleed Blocker + W/B',1,true],['C','USN Emblem','Left Chest','Screen print','Bleed Blocker + W/B',1,true],['A','Damn Proud','Left Sleeve','Screen print','Bleed Blocker + W/B',1,true],['D','Ragin Mess WOMENS','Back','Screen print','Bleed Blocker + W/B',1,true]],
+  products:[{vs:[['IND4000Z','Black','White',100,45,'BCA']]},{vs:[['IND4000Z','Black','White',20,45,'ACD']]}]},
  {num:10500,name:'WARGAME',rep:'Chris',note:'13 lines · 7 imprints',
   prints:[['A','H20 Boy','Front','Screen print','Bleed Blocker + W/B',7,false],['B','Wargame Size Tag','Size Tag','Supacolor','Supacolor - Wearable',0,false,'8686-A'],['E','H20 Boy Back Tank','Back','Screen print','Bleed Blocker + W/B',2,false],['I','H20 Boy Back','Back','Screen print','Bleed Blocker + W/B',2,false],['C','92 Shirt','Front','Screen print','No Base W/B',1,false],['F','OG Brand 3D','Front','Screen print','No Base W/B',3,false,'8383-F'],['G','OG Brand 3D Back','Back','Screen print','No Base W/B',3,false,'8383-G']],
   products:[{name:'H20 BOY',vs:[['CC9360','Black','Fluorescents',25,22.39,'ABE'],['AA1301','Black','Fluorescents',50,18.80,'ABI'],['AA1301','White','Fluorescents',50,18.53,'ABI']]},
@@ -199,9 +204,13 @@ function pPrice(p){ const q=pQty(p); if(!q||!p.method) return null;
   if(p.method==='Supacolor') return 1.10;
   return null; }
 function pomPrice(v){ if(!v.g||!v.on.length) return null; let s=0; for(const id of v.on){ const x=pPrice(P(id)); if(x==null) return null; s+=x; }
-  return Math.round(((CAT[v.g].cost*1.1+0.65+s)/0.97)/0.05)*0.05; }
+  return Math.round(((CAT[v.g].cost*1.1+(CAT[v.g].fleece?2.15:0.65)+s)/0.97)/0.05)*0.05; }
 const vPrice=v=>v.price!=null?v.price:pomPrice(v);
-const lineNick=(pr,v)=>`${(pr.name||'?').toUpperCase()} – ${v.inks?v.inks+' on ':''}${v.color||'?'}`;
+// Airtable's line item name is a formula: order-customer-brand code-style-color code
+const lineName=v=>`${S.o.num}-${S.o.name}-${v.g?CAT[v.g].code+'-'+v.g:'?'}-${v.color?(CCODE[v.color]||v.color.slice(0,2).toUpperCase()):'?'}`;
+// group title: its own prints' nicknames (prints shared with other groups, like a size tag, left out)
+const grpTitle=pr=>{ const own=pr.prints.filter(id=>!S.prods.some(x=>x!==pr&&x.prints.includes(id))); const n=(own.length?own:pr.prints).map(id=>P(id).nick.trim()).filter(Boolean); return !n.length?'New group':n.length>3?n.slice(0,3).join(' + ')+` + ${n.length-3} more`:n.join(' + '); };
+const sameName=v=>allVs().filter(x=>x!==v&&x.g&&x.color&&lineName(x)===lineName(v)).length;
 
 /* ---------- actions ---------- */
 function blankPrint(){ return {id:'P'+(S.seq++),L:nextLetter(),nick:'',loc:'',method:'',ink:'',colors:0,ub:false,prev:null,icSet:null,open:true}; }
@@ -209,13 +218,13 @@ function blankV(){ return {id:'V'+(S.seq++),g:'',color:'',inks:'',sizes:{},price
 function start(num,built){ const o=ORDERS.find(x=>x.num===num); S.o=o; S.prints=[]; S.prods=[]; S.created=false; S.past=null;
   if(built){ const map={};
     o.prints.forEach(a=>{ const p={id:'P'+(S.seq++),L:a[0],nick:a[1],loc:a[2],method:a[3],ink:a[4],colors:a[5],ub:a[6],prev:a[7]?PAST[num].find(x=>x.id===a[7]):null,icSet:null,open:false}; map[a[0]]=p.id; S.prints.push(p); });
-    o.products.forEach(x=>{ const pr={id:'R'+(S.seq++),name:x.name,prints:[],vs:[]};
+    o.products.forEach(x=>{ const pr={id:'R'+(S.seq++),prints:[],vs:[]};
       x.vs.forEach(a=>{ const on=[...a[5]].map(l=>map[l]); on.forEach(i=>{ if(!pr.prints.includes(i)) pr.prints.push(i); });
         pr.vs.push({id:'V'+(S.seq++),g:a[0],color:a[1],inks:a[2],sizes:spreadTo(a[0],a[3]),price:a[4],on}); });
       pr.prints=byLetter().map(p=>p.id).filter(i=>pr.prints.includes(i)); S.prods.push(pr); });
   } else addProduct(true);
   render(); }
-function addProduct(quiet){ const pr={id:'R'+(S.seq++),name:'',prints:[],vs:[blankV()]}; S.prods.push(pr); if(!quiet){ render(); setTimeout(()=>{ const e=$('nm_'+pr.id); if(e){ e.focus(); e.scrollIntoView({block:'center'}); } },0); } }
+function addProduct(quiet){ const pr={id:'R'+(S.seq++),prints:[],vs:[blankV()]}; S.prods.push(pr); if(!quiet){ render(); setTimeout(()=>{ const e=document.querySelectorAll('.prod'); if(e.length) e[e.length-1].scrollIntoView({block:'center'}); },0); } }
 function rmProduct(id){ const pr=PR(id); S.prods=S.prods.filter(x=>x!==pr); pr.prints.forEach(dropIfUnused); render(); }
 function newPrint(prId,fromPast){ const pr=PR(prId), p=blankPrint(); if(fromPast){ Object.assign(p,{nick:fromPast.nick,loc:fromPast.loc,method:fromPast.method,ink:fromPast.ink,colors:fromPast.colors,ub:fromPast.ub,prev:fromPast,open:false}); S.past=null; }
   S.prints.push(p); linkPrint(pr,p.id); render(); if(!fromPast) setTimeout(()=>{ const e=$('nk_'+prId+'_'+p.id); if(e) e.focus(); },0); }
@@ -240,8 +249,6 @@ const pNeed=p=>!p.nick.trim()?'needs a nickname':!p.loc?'pick a location':!p.met
 const vNeed=v=>!v.g?'garment':!v.color?'color':!qty(v)?'sizes':!v.on.length?'prints':(v.inks.trim()===''&&v.on.some(i=>P(i).method==='Screen print'))?'ink colors':'';
 function checks(){ const c=[], vs=allVs();
   c.push([!!S.o,S.o?`Order ${S.o.num} picked`:'Pick the order']);
-  const noName=S.prods.filter(pr=>!pr.name.trim());
-  c.push([S.prods.length>0&&!noName.length,!S.prods.length?'Add a product':noName.length?`${noName.length} product${noName.length>1?'s need':' needs'} a name`:`${S.prods.length} product${S.prods.length>1?'s':''} named`]);
   const pBad=S.prints.filter(p=>!pReady(p));
   c.push([S.prints.length>0&&!pBad.length,!S.prints.length?'Add the prints':pBad.length?`${pBad.length} print${pBad.length>1?'s':''}: ${pNeed(pBad[0])}`:`${S.prints.length} print${S.prints.length>1?'s':''}, each with a nickname`]);
   const vBad=vs.filter(v=>vNeed(v));
@@ -257,7 +264,7 @@ function printRow(pr,p){ const need=pNeed(p), ic=inkCh(p), shared=S.prods.filter
   const sum=[p.loc,p.method==='Screen print'?`${p.colors||'?'} color${p.colors===1?'':'s'}${p.ub?' + UB':''}`:p.method,p.method==='Screen print'?p.ink:''].filter(Boolean).join(' · ');
   let h=`<div class="prt${need?' need':''}"><span class="idtag">${pid(p)}</span>
    <input class="nick${p.nick.trim()?'':' empty'}" id="nk_${pr.id}_${p.id}" value="${esc(p.nick)}" placeholder="Imprint nickname" aria-label="Imprint nickname for ${pid(p)}" onchange="setP('${p.id}','nick',this.value)">
-   <div class="sum">${sum?esc(sum):'<span class="hint">location, method…</span>'}${p.prev?`<span class="tag">repeat of ${esc(p.prev.id)}</span>`:''}${shared.length?`<span class="tag">also on ${esc(shared.map(x=>x.name||'?').join(', '))}</span>`:''}${ic?`<span class="tag need">${ic} ink change${ic>1?'s':''}</span>`:''}${need&&p.nick.trim()?`<span class="tag need">${need}</span>`:''}</div>
+   <div class="sum">${sum?esc(sum):'<span class="hint">location, method…</span>'}${p.prev?`<span class="tag">repeat of ${esc(p.prev.id)}</span>`:''}${shared.length?`<span class="tag">also in group ${shared.map(x=>S.prods.indexOf(x)+1).join(', ')}</span>`:''}${ic?`<span class="tag need">${ic} ink change${ic>1?'s':''}</span>`:''}${need&&p.nick.trim()?`<span class="tag need">${need}</span>`:''}</div>
    <div class="acts"><button class="link" onclick="P('${p.id}').open=!P('${p.id}').open;render()">${p.open?'done':'edit'}</button><button class="link" onclick="unlinkPrint('${pr.id}','${p.id}')">remove</button></div>`;
   if(p.open){
     h+=`<div class="ped"><span class="k">Location</span><div class="bts">${LOCS.map(l=>`<button class="b${p.loc===l?' on':''}" onclick="setP('${p.id}','loc','${l}')">${l}</button>`).join('')}</div>
@@ -289,31 +296,33 @@ function render(){
    :`<div class="orders">${ORDERS.map(x=>`<div class="oc"><span class="num">${x.num}</span><b>${esc(x.name)}</b><span>${esc(x.rep)} · real order: ${x.note}</span><div class="bts"><button class="b on" onclick="start(${x.num},false)">Start blank</button><button class="b" onclick="start(${x.num},true)">See it built</button></div></div>`).join('')}</div>`;
   h+=`</div>`;
   // 2 products
-  h+=`<div class="panel step${o?'':' off'}"><div class="sh"><span class="n">2</span><h2>Products</h2><span class="hint">One product = one design idea: its prints, then every garment / color / ink version of it</span></div>`;
+  h+=`<div class="panel step${o?'':' off'}"><div class="sh"><span class="n">2</span><h2>Prints &amp; garments</h2><span class="hint">A group = prints that go on the same garments, then every garment / color / ink version</span></div>`;
   S.prods.forEach((pr,pi)=>{
     const others=S.prints.filter(p=>!pr.prints.includes(p.id));
-    h+=`<div class="prod"><div class="ph"><input id="nm_${pr.id}" value="${esc(pr.name)}" placeholder="Product name, e.g. H20 BOY" onchange="PR('${pr.id}').name=this.value.toUpperCase();render()"><span class="hint">${pr.vs.length} version${pr.vs.length===1?'':'s'} · ${pr.vs.reduce((a,v)=>a+qty(v),0)} pcs</span><button class="link" onclick="rmProduct('${pr.id}')">remove product</button></div><div class="pb">`;
-    h+=`<div class="sub">Prints <span class="hint">each location is its own imprint ID with its own nickname</span></div>`;
+    h+=`<div class="prod"><div class="ph"><span class="gt"><small>Group ${pi+1}</small>${esc(grpTitle(pr))}</span><span class="hint">${pr.vs.length} version${pr.vs.length===1?'':'s'} · ${pr.vs.reduce((a,v)=>a+qty(v),0)} pcs</span><button class="link" onclick="rmProduct('${pr.id}')">remove group</button></div><div class="pb">`;
+    h+=`<div class="sub">Prints ${pi?'':'<span class="hint">each location is its own imprint ID with its own nickname (the name sales and the shop see)</span>'}</div>`;
     pr.prints.forEach(id=>h+=printRow(pr,P(id)));
     h+=`<div class="addp"><button class="b${pr.prints.length?'':' on'}" onclick="newPrint('${pr.id}')">+ New print</button><button class="b" onclick="S.past=S.past==='${pr.id}'?null:'${pr.id}';render()">+ Repeat of past art…</button>${others.length?`<select class="b" onchange="useShared('${pr.id}',this.value)" aria-label="Use a print already on this order"><option value="">+ Use a print already on this order…</option>${others.map(p=>`<option value="${p.id}">${p.L} · ${esc(p.nick||p.loc||'print')}</option>`).join('')}</select>`:''}</div>`;
     if(S.past===pr.id) h+=`<div class="pastg">${(PAST[o.num]||[]).map((x,i)=>`<button class="pc" onclick="newPrint('${pr.id}',PAST[${o.num}][${i}])"><img src="${x.img}" alt=""><b>${x.id}</b> ${esc(x.nick)}<br><span class="hint">${esc(x.loc)} · ${esc(x.method)}${x.colors?' · '+x.colors+' col':''}</span></button>`).join('')}</div>`;
-    h+=`<div class="sub">Versions <span class="hint">one per garment + color + ink colors · each becomes a line item</span></div>`;
+    h+=`<div class="sub">Versions ${pi?'':'<span class="hint">each row becomes a line item, named automatically</span>'}</div>`;
     h+=`<div class="scroll"><table class="vt"><tr><th>Garment</th><th>Color</th><th>Ink colors</th><th>Qty</th><th>Prints</th><th>Sizes</th><th></th></tr>${pr.vs.map(v=>versionRow(pr,v)).join('')}</table></div>`;
     h+=`<div class="vbar"><button class="b" onclick="addV('${pr.id}')">+ Version</button>${pr.vs.length?`<button class="b" onclick="addV('${pr.id}',true)">+ Same garment, other inks</button>`:''}</div>`;
     h+=`</div></div>`; });
-  h+=`<div class="vbar" style="margin-top:14px"><button class="btn${S.prods.length?'':' y'}" onclick="addProduct()">+ Add ${S.prods.length?'another':'a'} product</button><span class="hint">e.g. a second design, or the hats</span></div></div>`;
+  h+=`<div class="vbar" style="margin-top:14px"><button class="btn${S.prods.length?'':' y'}" onclick="addProduct()">+ Add ${S.prods.length?'another':'a'} group</button><span class="hint">e.g. the women's version with its own back, or the hats</span></div></div>`;
   // 3 map
   const vs=allVs(), cols=byLetter(), show=vs.length&&cols.length;
   h+=`<div class="panel step${show?'':' off'}"><div class="sh"><span class="n">3</span><h2>Check the order &amp; prices</h2><span class="hint">Every line item and the imprints on it · price is today's POM price, type over it</span></div>`;
   if(show){
-    h+=`<div class="scroll"><table class="map"><thead><tr><th class="l">Line item</th><th class="l">Nickname</th><th>Qty</th>${cols.map(p=>`<th title="${esc(p.nick)}"><span class="idtag">${p.L}</span><br>${esc(p.loc||'?')}</th>`).join('')}<th>Price / pc</th><th>Total</th></tr></thead><tbody>`;
-    S.prods.forEach(pr=>{ h+=`<tr class="grp"><td colspan="${5+cols.length}">${esc(pr.name||'Unnamed product')}</td></tr>`;
+    h+=`<div class="scroll"><table class="map"><thead><tr><th class="l">Garment</th><th class="l">Line item name (automatic)</th><th>Qty</th>${cols.map(p=>`<th title="${esc(p.nick)}"><span class="idtag">${p.L}</span><br>${esc(p.loc||'?')}</th>`).join('')}<th>Price / pc</th><th>Total</th></tr></thead><tbody>`;
+    S.prods.forEach(pr=>{ h+=`<tr class="grp"><td colspan="${5+cols.length}">Group ${S.prods.indexOf(pr)+1} · ${esc(grpTitle(pr))}</td></tr>`;
       pr.vs.forEach(v=>{ const pp=pomPrice(v), p=vPrice(v), under=p!=null&&pp!=null&&p<pp-0.001;
-        h+=`<tr><td class="l"><span class="sw" style="background:${hex(v)}"></span> ${v.g?esc(v.g):'?'} ${esc(v.color||'')}</td><td class="nk">${esc(lineNick(pr,v))}</td><td><b>${qty(v)}</b></td>
+        h+=`<tr><td class="l"><span class="sw" style="background:${hex(v)}"></span> ${v.g?esc(v.g):'?'} ${esc(v.color||'')}</td><td class="nk"><span style="font-family:var(--mono)">${esc(lineName(v))}</span></td><td><b>${qty(v)}</b></td>
          ${cols.map(c=>`<td><button class="tick${v.on.includes(c.id)?' on':''}" onclick="tgOn('${v.id}','${c.id}')" aria-label="${c.L} on this line">${v.on.includes(c.id)?'✓':''}</button></td>`).join('')}
          <td class="pr"><input class="${under?'under':''}" value="${p!=null?p.toFixed(2):''}" placeholder="—" onchange="const x=parseFloat(this.value);V('${v.id}').price=isNaN(x)?null:x;render()"><small>${pp!=null?(v.price!=null&&Math.abs(v.price-pp)>0.001?(under?'under POM ':'POM ')+money(pp):'POM price'):'needs prints'}</small></td><td><b>${p!=null?money(p*qty(v)):'—'}</b></td></tr>`; }); });
     h+=`</tbody><tfoot><tr><td class="l">Pieces</td><td></td><td></td>${cols.map(c=>`<td>${pQty(c)}</td>`).join('')}<td colspan="2"></td></tr><tr><td class="l">Ink changes</td><td></td><td></td>${cols.map(c=>`<td>${inkCh(c)||''}</td>`).join('')}<td colspan="2"></td></tr></tfoot></table></div>`;
-  } else h+=`<div class="hint">Shows up once there's a product with prints and versions.</div>`;
+    const dup=vs.filter(v=>sameName(v)).length;
+    if(dup) h+=`<div class="hint" style="margin-top:8px">${dup} of ${vs.length} lines share a name with another line (same garment and color). That's normal: Airtable names lines by garment, so the imprints and ink colors are what tell them apart.</div>`;
+  } else h+=`<div class="hint">Shows up once there's a group with prints and versions.</div>`;
   h+=`</div>`;
   $('main').innerHTML=h;
   // rail
@@ -323,7 +332,7 @@ function render(){
    <div class="tots"><span>Line items</span><b>${vs.length}</b><span>Imprints</span><b>${S.prints.length}</b><span>Ink changes</span><b>${ics}</b><span>Pieces</span><b>${pcs}</b><span>Total</span><b class="big">${money(total)}</b></div>`;
   if(vs.length&&S.prints.length) r+=`<div class="cmp"><b>Same order the Airtable way:</b> ${S.prints.length} imprint${S.prints.length>1?'s':''} made one by one in Imprint Creator, then ${vs.length} line items, each with its imprints found and ticked: <b>${looks} imprint look-ups</b>. Here, each print is typed once and ticked per version.</div>`;
   r+=`<div class="vbar"><button class="btn k" style="width:100%" onclick="create()" ${ok?'':'disabled'}>Create order${ok?'':' — finish the checklist'}</button></div>`;
-  if(S.created) r+=`<div class="out"><b>Practice — would write to Airtable:</b>\n\n<b>${S.prints.length} imprints</b>\n${byLetter().map(p=>`• ${pid(p)} · ${esc(p.nick)} · ${esc(p.loc)} · ${esc(p.method==='Screen print'?p.colors+' col '+p.ink:p.ink)}${inkCh(p)?' · '+inkCh(p)+' ink change':''}${p.prev?' · repeat of '+p.prev.id:''}`).join('\n')}\n\n<b>${vs.length} line items</b>\n${vs.map(v=>`• ${esc(lineNick(v._pr,v))} · ${v.g} · ${qty(v)} pcs · ${money(vPrice(v))} · ${v.on.map(i=>P(i).L).sort().join('+')}`).join('\n')}\n\nThen it opens Line Item Review on this order.</div>`;
+  if(S.created) r+=`<div class="out"><b>Practice — would write to Airtable:</b>\n\n<b>${S.prints.length} imprints</b>\n${byLetter().map(p=>`• ${pid(p)} · ${esc(p.nick)} · ${esc(p.loc)} · ${esc(p.method==='Screen print'?p.colors+' col '+p.ink:p.ink)}${inkCh(p)?' · '+inkCh(p)+' ink change':''}${p.prev?' · repeat of '+p.prev.id:''}`).join('\n')}\n\n<b>${vs.length} line items</b>\n${vs.map(v=>`• ${esc(lineName(v))} · ${v.inks?esc(v.inks)+' ink · ':''}${qty(v)} pcs · ${money(vPrice(v))} · ${v.on.map(i=>P(i).L).sort().join('+')}`).join('\n')}\n\nThen it opens Line Item Review on this order.</div>`;
   $('rail').innerHTML=r;
 }
 render();
