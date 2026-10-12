@@ -260,3 +260,12 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
 - **Practice mode:** the new supplier only lives on that screen; nothing is saved.
 - **Automations:** none run on Supplier records (checked the base's record-created automations), so adding one sends nothing.
 - **Tested with mocks:** "Shaka Wear - Houston, TX (DS)" was added and selected, with UPS Ground ~3 days. In practice mode it wasn't saved, and there were no errors.
+
+## 2026-10-12 — SLC: next step (slc-test-v11)
+- SLC has no public API docs. It uses PromoStandards (SOAP), which the worker has spoken since v4 (`/proxy/slc/productdata | inventory | pricing`).
+- **Blocker for Purchasing:** SLC files styles under its own productIds, and the brand catalog call (getProductSellable) returns only productId + partId.
+- **slc-test-v11** finds the productId for a brand + style by checking each product's stock descriptions, then shows a "For Claude" box with:
+  - the productId
+  - one raw PartInventory, to see the per-warehouse tags
+  - one raw pricing Part
+- Stephen's first style: **Comfort Colors 1717**. Once we have the real answer, Purchasing gets SLC price + stock the same way as S&S, SanMar and AS Colour.
