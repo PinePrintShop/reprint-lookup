@@ -14,7 +14,9 @@
  *            Orders carry the customer email), then returns
  *            {ok, person:{id,name}|null, deals:[{id,title,status,stage,updated}],
  *             messages:[{id,subject,from,date,snippet,text}]}
- *            newest first. Bodies (as plain text, 6000 chars max) for the newest 3.
+ *            newest first, without bulk sends or robot senders (Airtable, ShipStation).
+ *            Bodies (as plain text, 6000 chars max) for the newest 3. One key sees every
+ *            mailbox synced into Pipedrive (hello@, sales@, reps), not only its own.
  *   - CACHE: module-level Map, 2 min per email.
  *
  * v17 CHANGE: GET /proxy/pandadoc/file?url=<Airtable attachment URL> streams a proof PDF
@@ -1671,13 +1673,15 @@ async function handlePipedrive(request, env, rest, params) {
       body.person = { id: person.id, name: person.name };
       const [dj, mj] = await Promise.all([
         pipeGet(env, '/persons/' + person.id + '/deals', { status: 'all_not_deleted', limit: 10, sort: 'update_time DESC' }).catch(() => ({ data: [] })),
-        pipeGet(env, '/persons/' + person.id + '/mailMessages', { limit: 25 }).catch(e => ({ data: [], _err: e.message })),
+        pipeGet(env, '/persons/' + person.id + '/mailMessages', { limit: 50 }).catch(e => ({ data: [], _err: e.message })),
       ]);
       body.deals = (dj.data || []).map(d => ({ id: d.id, title: d.title, status: d.status, stage: d.stage_id, updated: d.update_time }));
       if (mj._err) body.mailError = mj._err;
       // Each item is {object:'mailMessage', timestamp, data:{...}} (or the message itself).
+      // Skip bulk sends (anniversary blasts) and robots (Airtable, ShipStation): sales want the conversation.
+      const robot = /(no-?reply|airtableemail|shipstation|mailer-daemon)/i;
       const msgs = (mj.data || []).map(x => x.data || x)
-        .filter(m => m && m.id)
+        .filter(m => m && m.id && !m.group_sending_flag && !m.draft_flag && !robot.test(((m.from || [])[0] || {}).email_address || ''))
         .sort((a, b) => String(b.message_time || b.add_time || '').localeCompare(String(a.message_time || a.add_time || '')))
         .slice(0, limit);
       body.messages = msgs.map(m => ({
