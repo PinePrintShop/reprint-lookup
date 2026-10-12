@@ -86,3 +86,6 @@ Stephen added `PIPEDRIVE_KEY` (sales@ user) as a Cloudflare secret. The live wor
 - Same Airtable-token gate as PandaDoc. GET only; nothing in Pipedrive can be changed through the worker.
 - Tested locally against a fake Pipedrive. A live test needs the deploy. **Deploy:** Cloudflare → Workers & Pages → pine-workers → Edit code → paste `workers/pine-workers-v18.js` → Deploy. Then open `pipedrive-test.html`.
 - Emails only show if sales@ has email sync on in Pipedrive and the emails are linked to the person.
+- Checked through the new Pipedrive connector (read-only), logged in as Chris Hoffman. One login sees a customer's emails from **every synced mailbox**: Patrick's hello@, Josh's and the Airtable automation emails all appear under Joseph @ Murf.studio. So hello@ doesn't need its own key.
+- v18 (not yet deployed) now skips bulk sends (anniversary-discount blasts) and robot senders (Airtable, ShipStation), so the real conversation shows first.
+- 10977's October sizes email is **not** in Pipedrive (Murf.studio's newest is July), so not every order's sizes arrive by synced email. The paste box stays the fallback.
