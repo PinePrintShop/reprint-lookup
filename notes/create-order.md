@@ -46,3 +46,6 @@ Stephen pointed out that the line item name is a formula, e.g. `10977-Murf.studi
 - The "product name" box is gone. Each **group** is titled with its own prints' nicknames, e.g. "Ragin Mess MENS". Shared prints like a size tag are left out of the title.
 - Step 3 shows each line's automatic name. One note explains that lines on the same garment and color share a name, and the imprints tell them apart. On 10977 both lines are IND4000Z Black (MENS and WOMENS backs).
 - Added 10977 Murf.studio as the small real example. Added IND4000Z to the mock catalog. The POM estimate uses the fleece shipping allowance.
+
+## 2026-10-12 — "Same garment again" copies the whole row
+Stephen: a second row on the same garment is usually another design (10977 MENS vs WOMENS back), not just other inks. The button now copies the last row's garment, color, ink colors and print ticks; sizes start empty. Sales then tick the different prints or change the inks. 10977 is now shown as one group with two rows (A B C and A C D), the way it would really be entered. "Add another group" is only for a separate set of prints, such as hats.
