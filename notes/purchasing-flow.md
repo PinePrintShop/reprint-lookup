@@ -154,3 +154,14 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
 - **Order list:** shows **Review design** when an open line has a flag.
 - Imprint screen counts and types are loaded with the imprint IDs (one extra read; nothing new written).
 - **Tested with a mocked Airtable** (practice mode, no writes) on: the guide's 300- and 600-pc examples, a 40-pc 5-screen job (below minimum), a Hard Deadline job (old way), a bandana job (skipped), and Use all.
+
+## 2026-10-12 — v96: layout + Extras plan follows edits
+- **Layout:** lines with sizes up to 4XL had four cost boxes in a fixed row, and wide size grids pushed the order panel sideways, cutting off its left edge (Stephen's screenshot of 10971).
+  - Cost boxes now sit two per row. Size boxes and stage padding are a little narrower.
+  - A very wide size grid scrolls inside its own box.
+  - Checked at 1400 and 1280 px wide: no sideways scroll.
+- **Applied state:** clearing extras (or tapping +, or changing a split) now re-checks the Extras plan, so "✓ applied" turns back to **use** when the line no longer matches.
+- **Asked:** suggest warehouses that have the stock.
+  - Not done yet: warehouses are still ranked by ship time, with live price only.
+  - S&S product data includes per-warehouse quantities, and the worker already allows read-only inventory routes for S&S, SanMar and AS Colour.
+  - This build environment can't reach the worker, so the response shape and the warehouse-code → Airtable Supplier mapping need one real look first (next step).
