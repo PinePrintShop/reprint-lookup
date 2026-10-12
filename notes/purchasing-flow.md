@@ -132,3 +132,25 @@ He works order by order, batching into vendor carts across orders. When a wareho
   - Ordering 90010 checks off its blank line with PO 100526.
   - 90012 (not ordered yet) is left alone.
   - Practice mode: 0 writes sent.
+
+## 2026-10-12 — v95: extras plan per design + review flags
+The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). A year of orders modelled with them came out about $7,100 cheaper; see the purchasing guide. To make them easy to apply, every order now shows an **Extras plan** under its header:
+- **Grouping:** printed-apparel lines are grouped **by design**, meaning lines with the same imprints. Pieces are summed, and screens are the sum of the design's imprint Screen Counts.
+- **How many:**
+  - Under 50 pcs: 0.
+  - 50–99 pcs: 0, or 2% at 5+ screens.
+  - 100+ pcs: 1.25%, or 2% at 5+ screens.
+  - Always rounded up.
+- **Where they go:** on the design's biggest colorway (shared with any colorway that's at least a third of the design), in L, M, XL order.
+  - Matches the guide's examples: 300 pcs at 3 screens = Black 1 M, 2 L, 1 XL; 600 pcs at 5 screens = Black 3 M, 3 L, 2 XL + White 1 M, 2 L, 1 XL.
+- **Small line in a split design** (under 20 pcs or under 15% of its design):
+  - Stephen: these are often for specific people, so they can't ship short.
+  - The plan adds **1 extra on that line** in its most common size, and flags it so the design gets a look.
+- **Below the minimum** (design pieces under 25 + 10 per extra screen): flagged to review with sales (fewer colors, or the price).
+- **Use all** / **use** writes the plan into the lines' extras (nothing is saved until the cart is placed, as before). Typed extras still work.
+- **Exceptions:**
+  - Hard Deadline orders, and orders that print within 3 business days of their due date, say "Old way" and get no plan.
+  - Bandanas and embroidery are skipped.
+- **Order list:** shows **Review design** when an open line has a flag.
+- Imprint screen counts and types are loaded with the imprint IDs (one extra read; nothing new written).
+- **Tested with a mocked Airtable** (practice mode, no writes) on: the guide's 300- and 600-pc examples, a 40-pc 5-screen job (below minimum), a Hard Deadline job (old way), a bandana job (skipped), and Use all.
