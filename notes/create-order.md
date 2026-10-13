@@ -161,7 +161,7 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 ### Turning on email reading (one time, Stephen)
 1. **Create an Anthropic API key:** go to https://console.anthropic.com, sign in or create the Pine org, open **Settings → Billing**, add a card and some credit ($10–20 is plenty to start; each email read costs about 1–3¢). Then go to **Settings → API keys → Create key**, name it "pine-workers", and copy it (it starts `sk-ant-`, and is shown only once).
 2. **Add it to the worker:** Cloudflare dashboard → Workers & Pages → **pine-workers** → Settings → Variables and Secrets → **Add** → type **Secret**, name `ANTHROPIC_API_KEY`, paste the key, Deploy.
-3. **Deploy worker v19:** pine-workers → Edit code → replace everything with `workers/pine-workers-v19.js` → Deploy. v19 includes everything v18 did; Pipedrive emails now carry to/cc.
+3. **Deploy worker v19:** open https://pineprintshop.github.io/reprint-lookup/copy-worker.html and tap **Copy worker code**. Then pine-workers → Edit code → select all → paste → Deploy. v19 includes everything v18 did; Pipedrive emails now carry to/cc.
 4. **Check:** open Create order (practice link), pick an order with emails, tap **✨ Read email & fill the order**.
    - "Email reading isn't switched on yet" → the secret is missing.
    - "needs worker v19 deployed" → step 3 didn't save.
