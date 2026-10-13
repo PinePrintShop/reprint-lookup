@@ -350,3 +350,14 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - Pine's mix only fills sizes the garment comes in.
 - **Vendors:** Create order doesn't call the vendors; Purchasing does. Stephen also asked about checking garment names against the vendor and catching low stock: that's next (see below).
 - **Tested** on desktop + emulated iPhone. 1717 showed S–3XL; the Atonal cap showed one Quantity box → OSFA 25; the XS warning showed; the Pepper mix skipped XS; Create passes; no errors.
+
+## 2026-10-13 — v11: only the sizes the garment is made in
+- **Why (Stephen):** "we should really only show what that garment actually comes in… because we can't override what the garment maker actually makes." So v10's "show all sizes" / "use sizes instead" links are gone.
+- **Airtable decides** (Garments size boxes):
+  - **Sizes ticked:** only those size boxes. OSFA shows only if it's ticked too.
+  - **Only OSFA ticked, or a Cap / Beanie / Bandana / Tote Bag / Paper with nothing ticked:** one Quantity box.
+  - **Nothing ticked on another garment:** every size shows, with a note to tick the sizes on the garment. The vendor check (next) is meant to fill that gap.
+- **Sizes it isn't made in:**
+  - **Pasted:** skipped, with a toast ("skipped XS: Comfort Colors 1717 isn't made in that size").
+  - **Already on a line** (a reorder, "same sizes as last time"): the line shows a warning and can't be added or created until it's cleared.
+- **Tested** on desktop + emulated iPhone (touch): 1717 showed S–3XL, a pasted XS was skipped, the cap was a single Quantity box (OSFA 25), no override links, Create passes, no errors.
