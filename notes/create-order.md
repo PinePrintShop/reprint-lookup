@@ -166,3 +166,31 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
    - "Email reading isn't switched on yet" → the secret is missing.
    - "needs worker v19 deployed" → step 3 didn't save.
 - Optional: Anthropic console → Settings → Limits → set a monthly spend limit.
+
+## 2026-10-13 — v3 + worker v20: the right conversation, and each rep's emails private
+- **What v2 got wrong (Stephen's real orders):**
+  - **10999 UpSlope (Patrick):** Patrick's hello@ held only Patrick's own two July 2025 emails. Brady's replies were in Chris's sales@ thread, so v2 showed nothing useful and also exposed Chris's emails under "other inboxes".
+  - **Boxcar (Patrick):** Jon sent the "Re-order" (S 20 / M 18 / L 14 / XL 20) to **chris@pineprintshop.com**. The reader drafted from the older 10925 proof/payment emails instead.
+  - **Why Patrick's mail was missing:** the Pipedrive key belongs to the sales@ user, and Pipedrive email sync is **private per user** (every message is `connection_type: private`). That key sees Chris's mail plus only the emails Patrick sent from inside Pipedrive.
+- **Privacy rule (Stephen chose "customer's emails only"):** a rep sees:
+  - **their own conversations**, minus anything another Pine address wrote
+  - **anything the customer wrote to any other Pine address**, with quoted earlier messages cut off and labeled "sent to another Pine inbox"
+
+  Another rep's own emails are filtered out in the worker, so they never reach the browser.
+- **Rep addresses** (`REP_BOX` in v3): Patrick = hello@ + patrick@; Chris = sales@ + chris@. Reps without an entry (Garrett, Josh, Stephen) get no emails until added.
+- **Worker v20:**
+  - **Keys:** each rep's own Pipedrive key reads their private mail: **`PIPEDRIVE_KEY_HELLO`** for Patrick (secret name = `PIPEDRIVE_KEY_` + the part before @). `PIPEDRIVE_KEY` stays Chris/sales@. Customer-written mail is gathered with every key the worker has.
+  - **Messages:** each carries its thread id, and full text comes for the customer's newest 5.
+  - **Checking a key:** `/proxy/pipedrive/me?inbox=hello@pineprintshop.com` says which Pipedrive user a key belongs to.
+  - **Reader:** it gets `currentLines` and is told older proof/invoice/payment emails are background only.
+- **v3 screen:**
+  - Emails are grouped into conversations, one button each, newest customer-written first, and the reader reads the selected one.
+  - "No emails from the customer in Pipedrive" shows when there's nothing from them.
+  - Draft lines that match a line already on screen (e.g. after Reorder: same style + color) fill that line's sizes instead of adding a new line.
+- **Tested** (worker in Node with fake Pipedrive keys; page with Playwright mocks):
+  - **Patrick's view of Boxcar:** Jon's reorder (from Chris's mailbox, Chris's quoted note cut off) plus Patrick's own thread, with no Chris-written email.
+  - **Chris's view:** the mirror image.
+  - **Boxcar flow:** the reorder fills the existing 1717 Black line with 20/18/14/20. UpSlope shows the "no emails from the customer" note. A Garrett order shows no emails.
+- **To finish (Stephen):**
+  1. Deploy worker v20 from copy-worker.html.
+  2. Patrick creates his own Pipedrive API key (logged in as Patrick: Personal preferences → API) → Cloudflare secret **`PIPEDRIVE_KEY_HELLO`**.
