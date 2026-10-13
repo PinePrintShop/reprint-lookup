@@ -144,7 +144,7 @@ const R=id=>S.rows.find(r=>r.id===id), I=id=>S.imps.find(i=>i.id===id), key=(r,i
 const tot=r=>Object.values(r.sizes).reduce((a,b)=>a+b,0), money=v=>'$'+(+v||0).toFixed(2);
 const letter=i=>'10980-'+'ABCDEFGHIJKLMNOP'[S.imps.indexOf(i)];
 const screens=i=>isSP(i.type)?(i.colors||0)+(i.ub?1:0):0;
-const params=i=>[i.loc||'location?', isSP(i.type)?`${i.colors||'?'}c${i.ub?' + UB':''} · ${screens(i)} scr`:(i.type||'method?')].join(' · ');
+const params=i=>[i.loc||'location?', isSP(i.type)?`${i.colors||'?'}c${i.ub?' + UB':''} · ${screens(i)} scr`:(i.type||i.fam||'method?')].join(' · ');
 const pcsOn=i=>S.rows.filter(r=>S.on[key(r.id,i.id)]).reduce((a,r)=>a+(+r.qty||0),0);
 function toast(t){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const e=document.createElement('div'); e.className='toast'; e.textContent=t; document.body.appendChild(e); setTimeout(()=>e.remove(),2600); }
 
@@ -161,14 +161,14 @@ function tog(rid,iid){ const k=key(rid,iid); if(S.on[k]) delete S.on[k]; else S.
 function rmRow(id){ S.rows=S.rows.filter(r=>r.id!==id); Object.keys(S.on).forEach(k=>{ if(k.startsWith(id+'|')) delete S.on[k]; }); render(); }
 function rmImp(id){ S.imps=S.imps.filter(i=>i.id!==id); Object.keys(S.on).forEach(k=>{ if(k.endsWith('|'+id)) delete S.on[k]; }); S.edit=null; render(); }
 function setF(id,f,v){ const i=I(id); i[f]=v; if(f==='type'){ i.ub=hasBase(v); if(!isSP(v)) i.colors=0; else if(!i.colors) i.colors=1; } render(); }
-function setFam(id,f){ const i=I(id); i.type=FAM[f].length===1?FAM[f][0]:(FAM[f].includes(i.type)?i.type:''); if(f!=='Screen print'){ i.colors=0; i.ub=false; } else if(!i.colors) i.colors=1; render(); }
+function setFam(id,f){ const i=I(id); i.fam=f; i.type=FAM[f].length===1?FAM[f][0]:(FAM[f].includes(i.type)?i.type:''); if(f!=='Screen print'){ i.colors=0; i.ub=false; } else if(!i.colors) i.colors=1; render(); }
 function fillMix(id){ const r=R(id); r.sizes=mix(+r.qty||0,r.womens); render(); }
 function mixAll(){ S.rows.filter(r=>!r.g.hat&&!tot(r)&&+r.qty).forEach(r=>r.sizes=mix(+r.qty,r.womens)); render(); toast('Pine\'s usual mix on every shirt, crew and hoodie with a qty'); }
 function setSz(id,z,v){ const r=R(id), n=Math.max(0,parseInt(v)||0); if(n) r.sizes[z]=n; else delete r.sizes[z]; render(); }
 function setQty(id,v){ const r=R(id); r.qty=Math.max(0,parseInt(v)||0)||''; r.chk=false; if(r.g.hat) r.sizes=r.qty?{OSFA:r.qty}:{}; render(); }
 function rowNeed(r){ if(!+r.qty) return 'qty'; if(r.chk) return 'check qty'; if(!r.g.hat&&tot(r)!==+r.qty) return 'sizes'; if(!S.imps.some(i=>S.on[key(r.id,i.id)])) return 'imprint'; if(!+r.price) return 'price'; return ''; }
 // an imprint with no dots isn't created, so it never blocks Create
-function impNeed(i){ if(!pcsOn(i)) return ''; if(!i.nick) return 'name'; if(!i.loc) return 'location'; if(!i.type) return 'method'; return ''; }
+function impNeed(i){ if(!pcsOn(i)) return ''; if(!i.nick) return 'name'; if(!i.loc) return 'location'; if(!i.type) return i.fam?'type':'method'; return ''; }
 
 function render(){
   const freeG=SG.filter(s=>!S.rows.some(r=>r.k===s.k)), freeI=SI.filter(s=>!S.imps.some(i=>i.k===s.k));
@@ -197,15 +197,15 @@ function render(){
 function gres(){ const q=S.gq.trim().toLowerCase(); if(q.length<2) return '';
   const hits=DB.filter(g=>(g.brand+' '+g.style+' '+g.color).toLowerCase().includes(q)||g.style.toLowerCase().startsWith(q)).slice(0,8);
   return `<div class="res">${hits.map(g=>`<button onclick="addRow(DB[${DB.indexOf(g)}]);S.gq='';render()"><b>${esc(g.brand)} ${esc(g.style)}</b> · ${esc(g.color)} <span class="hint">$${g.cost.toFixed(2)} blank</span></button>`).join('')||'<span class="hint">Not in Airtable Garments</span>'}</div>`; }
-function sheet(){ if(!S.edit) return ''; const i=I(S.edit); if(!i) return ''; const fam=famOf(i.type), on=S.rows.filter(r=>S.on[key(r.id,i.id)]);
+function sheet(){ if(!S.edit) return ''; const i=I(S.edit); if(!i) return ''; const fam=i.fam||famOf(i.type), on=S.rows.filter(r=>S.on[key(r.id,i.id)]);
   return `<div class="veil" onclick="if(event.target===this){S.edit=null;render()}"><div class="sheet"><h3><span class="idtag">${letter(i)}</span> Imprint details</h3>
-    <div class="f"><span class="k">Nickname</span><input class="tin" id="nk" value="${esc(i.nick)}" placeholder="e.g. HOT GIRLS GO TO GRIT" onchange="setF('${i.id}','nick',this.value.trim())">
+    <div class="f"><span class="k">Nickname</span><input class="tin" id="nk" value="${esc(i.nick)}" placeholder="e.g. HOT GIRLS GO TO GRIT" oninput="I('${i.id}').nick=this.value.trim()">
     <span class="k">Location</span><div class="chips">${LOCS.map(x=>`<button class="chip${i.loc===x?' on':''}" onclick="setF('${i.id}','loc','${x}')">${x}</button>`).join('')}</div>
     <span class="k">Method</span><div class="chips">${Object.keys(FAM).map(f=>`<button class="chip${fam===f?' on':''}" onclick="setFam('${i.id}','${f}')">${f}</button>`).join('')}</div>
     ${fam&&FAM[fam].length>1?`<span class="k">Type</span><div class="chips">${FAM[fam].map(t=>`<button class="chip${i.type===t?' on':''}" onclick="setF('${i.id}','type','${t}')">${t.replace('Supacolor - ','')}</button>`).join('')}</div>`:''}
     ${fam==='Screen print'?`<span class="k">Ink colors</span><div class="chips">${[1,2,3,4,5,6].map(c=>`<button class="chip${i.colors===c?' on':''}" onclick="I('${i.id}').colors=${c};render()">${c}</button>`).join('')}<button class="chip${i.ub?' on':''}" onclick="I('${i.id}').ub=!I('${i.id}').ub;render()">+ Underbase</button><span class="hint" style="align-self:center">${screens(i)} screens</span></div>`:''}
-    <span class="k">${fam==='Embroidery'?'Thread colors':'Inks'}</span><input class="tin" value="${esc(i.inks)}" placeholder="${fam==='Embroidery'?'e.g. White, PMS 7527':'e.g. White, PMS 7527'}" onchange="setF('${i.id}','inks',this.value.trim())">
-    <span class="k">Print notes</span><textarea class="tin" placeholder="size, placement, stitch count…" onchange="setF('${i.id}','notes',this.value.trim())">${esc(i.notes)}</textarea>
+    <span class="k">${fam==='Embroidery'?'Thread colors':'Inks'}</span><input class="tin" value="${esc(i.inks)}" placeholder="${fam==='Embroidery'?'e.g. White, PMS 7527':'e.g. White, PMS 7527'}" oninput="I('${i.id}').inks=this.value.trim()">
+    <span class="k">Print notes</span><textarea class="tin" placeholder="size, placement, stitch count…" oninput="I('${i.id}').notes=this.value.trim()">${esc(i.notes)}</textarea>
     <span class="k">On</span><div class="hint" style="padding-top:9px">${on.length?on.map(r=>esc(r.g.style+' '+r.g.color)).join(' · ')+' · '+pcsOn(i)+' pcs':'no garments yet — tap squares in its column'}</div></div>
     <div style="display:flex;gap:8px;margin-top:16px"><button class="btn k" onclick="S.edit=null;render()">Done</button><button class="btn" onclick="toast('Opens Grit FOCO past art: picking one makes this a Repeat linked to the old imprint')">Repeat of past art…</button><button class="link" style="margin-left:auto" onclick="rmImp('${i.id}')">delete imprint</button></div></div></div>`; }
 function inkPop(){ if(!S.ink) return ''; const [rid,iid]=S.ink.split('|'), r=R(rid), i=I(iid), on=S.on[S.ink]; if(!on) return '';
