@@ -236,3 +236,21 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - It's optional: the rail shows "Artwork folder link (optional)" until it's filled, but doesn't block Create.
   - On Create, after the imprints and line items, Create order PATCHes only that one field on the order. Practice mode fakes the write as usual.
 - **Tested with mocks:** pill counts (2 / 1 / 3), the label and the LIR link on 10999, and the write order (imprints → line items → the artwork PATCH). No errors.
+
+## 2026-10-13 — v7 + worker v22: fix open questions in one tap
+- **Why (Stephen):** on GRIT the reader asked "Does the Olive Gray hat get the HOT GIRLS GO TO GRIT embroidery too?" when Chris had already said both hats get the same design. He wanted to tap "add to this line item" instead of asking the customer. He also asked for full nicknames: they were cut at "HOT GIRLS GO TO GR".
+- **Open questions are a checklist with fixes:**
+  - **Same art on another line:** "＋ HOT GIRLS GO TO GRIT on 4 · Atonal A601 Olive Gray" adds the same imprint (no new screens).
+  - **Sizes:** "Fill Pine's usual mix", for lines where the email gives a total but no breakdown.
+  - **Artwork:** "Paste the artwork folder" jumps to the folder box.
+  - **Tick when handled:** each question has a tick box. Fixing one ticks it.
+  - **Copy open questions:** builds a short email ("Hi Kayla, a few quick questions before we set up your proofs: 1. … 2. …") from the customer-friendly wording.
+- **Pine's usual size mix:**
+  - **Unisex:** XS 2% · S 16% · M 27% · L 29% · XL 18.5% · 2XL 6% · 3XL 1%. That's the average of 1,496 past apparel lines (24+ pcs) in Airtable, pulled 10/13. 75 pcs → 2/12/20/22/14/4/1.
+  - **Women's:** too few past lines to average (4), so a standard curve: XS 8 · S 22 · M 30 · L 25 · XL 12 · 2XL 3. 50 pcs → 4/11/15/13/6/1. Tell Claude if Pine's curve differs.
+  - **Where:** a yellow "Email asks for 75 pcs" bar on the line. Typing just a number in the sizes paste box (e.g. `75`) does the same. "redo" refills after toggling Women's.
+- **Copy to other lines…** on every print card: one tap puts the same imprint on another line, or on All. Works on any order, with or without the email reader.
+- **Full text:** print cards are full width. The nickname, print notes and line notes wrap and grow to fit, and on phones the thumbnail hides to make room.
+- **Toasts:** a new toast replaces the last one; they used to overlap.
+- **Worker v22** (paste via copy-worker.html): the reader now returns `qty_total` per line, and each question as {text, ask_customer, kind, lines, prints}. kind is sizes / same_art / print_details / artwork / scope / other. It's also told not to ask what the thread already answers, and to apply it instead. With worker v21 still deployed, v7 works but questions are plain text. Size fixes still work (the total comes from the notes, e.g. "Total of 75"), and "copy to other lines" covers the hats.
+- **Tested with mocks (GRIT-style order):** 4 lines, 4 questions. The hat fix put B on line 4. The mix filled 1717 (75) and 6110 women's (50). The copied email held the 2 questions left. The old-worker output worked too. Saves are unchanged (imprints → line items → artwork PATCH). No errors, desktop and phone.
