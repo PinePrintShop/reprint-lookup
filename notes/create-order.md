@@ -398,3 +398,12 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - The size breakdown under the piece count ("12 S, 20 M, 22 L, 14 XL, 4 2XL, 1 3XL" / "25 one size").
   - "no imprints ticked" when there are none.
 - **Tested** on desktop + emulated iPhone; full flow + Create pass; no errors.
+
+## 2026-10-13: v15, Bandana 4800 quick pick + Product Type toggle
+- **🧣 Bandana 4800** chip under the garment search in Line Item Creator (Stephen: "we do so many of those").
+  - One tap loads every Carolina Creative 4800 colorway from Airtable Garments (an exact Product Number match, so Gildan 64800 / AllPro 48000 don't show up). The colors appear as chips, sorted A–Z. The list is loaded once per session.
+  - Sets Product Type to Printed Apparel, which is how past 4800 lines were entered, with a one-size quantity.
+  - "Sand" (rec87yKVZKlanMEnL) has Style "Other" and no OSFA ticked in Airtable. The app now treats a 4800 set up like that as one size anyway. Worth ticking OSFA and setting Style to Bandana on that record when convenient.
+  - `STOCK` in the code is a list, so other stock styles can be added as more chips.
+- **Product Type** now toggles: "all types ▾" shows every type, and "common only ▴" folds back to the five common ones. A rare type that's already picked stays visible when folded.
+- **Tested** on desktop + emulated iPhone with mocked Airtable (toggle open/close, 4800 chips, Sand and Royal as one size, cached reload). No errors.
