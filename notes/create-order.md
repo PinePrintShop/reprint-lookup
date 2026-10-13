@@ -390,3 +390,11 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - Atonal: not checked.
   - Full flow + Create pass; no errors.
 - **Not testable here:** the live vendor answers (the worker is blocked from this sandbox). Worth a look on a real order: 10980's 1717 / 6110 / SS3000 / M2635.
+
+## 2026-10-13 — v14: full imprint IDs and sizes on the line item cards
+- **Why (Stephen):** "make the imprint id attached to these garments a little more noticeable… just the number and id letter… and I like the sizes as well", so sales can scan the order quickly and check it.
+- **Each line item card now shows:**
+  - The full imprint IDs as bigger Pine-yellow tags (**10980-A 10980-B 10980-D**). The nickname and location show on hover.
+  - The size breakdown under the piece count ("12 S, 20 M, 22 L, 14 XL, 4 2XL, 1 3XL" / "25 one size").
+  - "no imprints ticked" when there are none.
+- **Tested** on desktop + emulated iPhone; full flow + Create pass; no errors.
