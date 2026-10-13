@@ -294,3 +294,35 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - **Sizes:** inputs always visible, with Pine's mix, "N of qty" and a women's toggle. Hats show one size.
 - **Imprint cards** (right; below on phone): ID, nickname, location · colors + UB · screens, inks/thread, notes, and "On 1717 Graphite · 75 pcs". Tap to open the full form. An unused one is dashed and "won't be created". **＋ Imprint** card at the end.
 - **Tested** on desktop and an emulated iPhone 13 with touch: Add everything, add E to the Olive Grey hat from the picker, confirm the 75s, Pine's mix, and a new imprint from the 1717 card (Left Sleeve, Screen print, No Base). Result: 6 line items · 6 imprints · 325 pcs · $5,562.50 · ready. No errors.
+
+## 2026-10-13 — v8: back to the Airtable forms, with the deal's emails beside them
+- **Why (Stephen):** the scan / grid / cards ideas moved too far from the Airtable interface sales know. "Wipe the slate clean": make a better Imprint Creator + Line Item Creator, and use the Pipedrive connection only to help the salesperson eyeball the conversation and find answers while they build the order. The current flow is: imprints first, then pick the garment, tick the imprints, sizes and price.
+- **1. Imprint Creator** (same fields as the Airtable form, as buttons):
+  - **Always:** Linked Orders filled in · Repeat? (this customer's past imprints with thumbnails; picking one fills it in, ticks Repeat? and links Previous Imprint ID) · Imprint Type (all 26 Airtable choices, grouped: Screen print, Embroidery, Supacolor, Patch & label, Decopress, Flatstock, Finishing) · Location (Airtable's 16; v7's "Back Neck"/"Other" weren't real choices).
+  - **By type:**
+    - Screen print: Screen Count 1–8 (+) and Ink Changes 0–4 (+), as Stephen asked.
+    - Embroidery: **Stitch Count** with the form's hint ("Enter an estimate if design hasn't been digitized"); quick ≈5,000/7,500/10,000/15,000/20,000 from the POM bands.
+    - Supacolor: **Supacolor Transfer Size** (all 14 Airtable sizes, 4 quick).
+    - Patches: nothing extra; patch size is on the line item, like Airtable.
+  - Then Nickname · **Colors** (typed: names / hex / PMS) · Imprint Notes (→ Print Notes).
+  - **Colors aren't a field on the imprint.** Stephen: sales put color call-outs and client requests in **Proofing Notes**, which is what art reads. So the colors go into the Proofing Notes of each line item the imprint is on, and can be changed per garment. Ink Notes stays the ink room's field.
+  - **"+ Back print for the same garments"** after adding one: same type, Location Back, and it goes on every line item the first imprint is on (ticking the first ticks it too, with a toast).
+- **2. Line Item Creator:**
+  - Product Type (all 21) · Garment + color · **tick this order's imprint IDs** · Proofing Notes **written from the ticks** (e.g. "10980-A Front · GRIT logo · 2 screens · Colors: Cream #F3EBD7"), editable · Line Item Notes (→ Sales Notes; recent records show sales use it for "LC is REPEAT / FOLD AND BAG").
+  - Patch Size / Sticker Size / promo Description only for those types.
+  - Sizes OSFA–6XL with the paste box and Pine's mix · Price / Piece with the POM price beside it.
+  - Additional Notes (Shipping, Finishing, Production, Product Description) behind one link · Women's / Youth.
+  - **"+ Same garment, next color"** keeps the style, ticks, price and notes.
+  - Supplier and the proof upload stay in Line Item Review.
+- **3. Deal emails beside the forms** (no AI; v2–v7's "Read email & fill" is gone; worker v21's deal route is all it needs):
+  - Finder buttons highlight Qty / Sizes / Colors / Garments / Placement / Inks (PMS, hex, underbase, thread…) / Art / Dates, plus a word search with "next ›".
+  - **Tap any sentence to add it to the last field you were in** (nickname, colors, notes, sizes paste box…).
+  - On iPad portrait / phone the emails open from a "✉ Deal emails" button.
+- **Writes:** v7's, plus Imprints Stitch Count (fld3nysvEoi0hb7iC) and Supacolor Transfer Size (flddqYCsxScYXQccG), and on Line Items Sales Notes, Production / Shipping / Finishing Notes, Product Description, Promo Product Description, [PATCHES] Patch Size, [STICKERS] Size. All are existing fields; no Airtable changes. Nothing is saved until Create order; practice mode fakes it.
+- **Fixed while testing (both apply on a real iPad):**
+  - Leaving a field (price, a size) redrew the page right as the tap on the next field landed, so the tap was lost. Redraws from leaving a field now wait a tick.
+  - Fields could scroll up under the sticky black header; they now stop below it.
+- **Tested** with mocked Airtable + deal emails on desktop and an emulated iPhone (touch):
+  - 4 imprints: EZP front, back print for the same garments, embroidery (blocked until a stitch count was given), and a repeat of 4221-A.
+  - 4 line items: 1717 Graphite (pasted sizes, line note + a tapped email sentence), Pepper via "next color" + Pine's mix, A601 Olive Grey hat, Woven Patches 3″.
+  - The write payloads matched; no errors.
