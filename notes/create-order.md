@@ -284,3 +284,13 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - **The method was never remembered.** It was worked out from the type, so on a new imprint, tapping Screen print or Supacolor (several types each) left nothing selected. Imprints from the email chips already had a type, so the earlier tests missed it. The method is now stored on its own, and the type chips appear right away.
   - **Taps after typing were lost.** Nickname, inks and notes saved on blur and redrew the sheet, so on a phone the first tap after typing only closed the keyboard. They now save as you type, without redrawing.
   - **Tested** on an emulated iPhone 13 with touch taps. Typing the nickname and then tapping location → Screen print → EZP → 2 colors → Underbase worked, as did switching to Embroidery, Supacolor and Patch & label. No errors. The real v8 needs the same two fixes.
+
+## 2026-10-13 — Mockup: cards (create-order-cards-mockup.html)
+- **Why (Stephen):** "I do like when garments and imprints are their own cards. Visually easier to see." It has the same logic as the grid mockup (and its fixes), laid out as cards.
+- **Garment cards** (left; one card = one line item; stacked on phone/iPad portrait):
+  - Header: number, garment and color, ready / "needs …", qty and $/pc boxes, ✕.
+  - An amber note when the email's qty is shared ("75 each ✓").
+  - **Imprints:** only the ones on this garment, as yellow chips. Tap the name for its details; "inks" changes inks for this garment only; ✕ takes it off. **＋ Imprint** opens a short picker of this order's other imprints (embroidery first on hats, prints first on apparel) plus "New imprint", which is made, put on this garment and opened.
+  - **Sizes:** inputs always visible, with Pine's mix, "N of qty" and a women's toggle. Hats show one size.
+- **Imprint cards** (right; below on phone): ID, nickname, location · colors + UB · screens, inks/thread, notes, and "On 1717 Graphite · 75 pcs". Tap to open the full form. An unused one is dashed and "won't be created". **＋ Imprint** card at the end.
+- **Tested** on desktop and an emulated iPhone 13 with touch: Add everything, add E to the Olive Grey hat from the picker, confirm the 75s, Pine's mix, and a new imprint from the 1717 card (Left Sleeve, Screen print, No Base). Result: 6 line items · 6 imprints · 325 pcs · $5,562.50 · ready. No errors.
