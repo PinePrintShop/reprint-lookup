@@ -20,7 +20,7 @@
 | Pine Central | `pine-central.html` | v170 |
 | Price-O-Matic | `price-o-matic.html` | v105 |
 | Line Item Review | `pine-line-item-review.html` | v16 |
-| Create order | `create-order.html` | v9 |
+| Create order | `create-order.html` | v10 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 
