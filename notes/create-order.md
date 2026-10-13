@@ -194,3 +194,25 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - **To finish (Stephen):**
   1. Deploy worker v20 from copy-worker.html.
   2. Patrick creates his own Pipedrive API key (logged in as Patrick: Personal preferences → API) → Cloudflare secret **`PIPEDRIVE_KEY_HELLO`**.
+
+## 2026-10-13 — v4 + worker v21: the Pipedrive deal is the source
+- **Why (Stephen):** v3 "is getting a little crazy". On Boxcar 10998 it showed 7 conversation buttons (old 10925 proofs, payment reminders, a hat catalogue…). Starting from the customer pulls in everything they ever sent Pine.
+- **What Pipedrive holds** (16 real deals checked 10/13):
+  - **Order link:** the order # is in the deal title, "10998 | Boxcar Coffee".
+  - **Structured fields:** shipping, delivery method, Hard Deadline/ASAP (+ expected close date), salesperson.
+  - **Web-form leads:** Typeform "Project Description" (qty range, locations, ink count, artwork link).
+  - **Not used:** products and the Front/Back/Sleeve Colors, Merch Type and Approx Qty fields are always empty.
+  - **Emails only:** garment, color, sizes and print details. The approved proof is a PandaDoc link in the "REVISED PROOFS!" email.
+- **v4:**
+  - Finds the deal by order # (worker v21 `/proxy/pipedrive/deal?order=`) and shows **only the emails linked to that deal**, plus the deal link, owner, deadline and delivery, and the web-form description.
+  - No inbox lists, no thread buttons, no other orders.
+  - The reader reads those emails plus the web-form text.
+  - A customer email that isn't on the deal (e.g. sent to another rep) shows once someone links it to the deal in Pipedrive. The screen says so when only Pine's emails are on the deal.
+- **Worker v21:**
+  - Reads deal emails with every Pipedrive key it has (`PIPEDRIVE_KEY` + any `PIPEDRIVE_KEY_*`), since synced mail is private to the rep who synced it.
+  - Patrick's key is still needed for his private mail. Any `PIPEDRIVE_KEY_<NAME>` name works now, e.g. `PIPEDRIVE_KEY_PATRICK`.
+- **Tested with mocks:**
+  - **Boxcar 10998:** deal + Jon's reorder; the reader filled 1717 Black with 20/18/14/20.
+  - **UpSlope 10999:** web form shown, plus the "only Pine's emails" note; the reader got the email + web form.
+  - **No deal:** clear message. No errors.
+- **Next idea (not built):** save the Price-O-Matic quote (garment, colors, prints, price) to the order when it's sent, so Create order only needs sizes from the email.
