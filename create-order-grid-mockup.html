@@ -167,7 +167,8 @@ function mixAll(){ S.rows.filter(r=>!r.g.hat&&!tot(r)&&+r.qty).forEach(r=>r.size
 function setSz(id,z,v){ const r=R(id), n=Math.max(0,parseInt(v)||0); if(n) r.sizes[z]=n; else delete r.sizes[z]; render(); }
 function setQty(id,v){ const r=R(id); r.qty=Math.max(0,parseInt(v)||0)||''; r.chk=false; if(r.g.hat) r.sizes=r.qty?{OSFA:r.qty}:{}; render(); }
 function rowNeed(r){ if(!+r.qty) return 'qty'; if(r.chk) return 'check qty'; if(!r.g.hat&&tot(r)!==+r.qty) return 'sizes'; if(!S.imps.some(i=>S.on[key(r.id,i.id)])) return 'imprint'; if(!+r.price) return 'price'; return ''; }
-function impNeed(i){ if(!i.nick) return 'name'; if(!i.loc) return 'location'; if(!i.type) return 'method'; if(!pcsOn(i)) return 'not on a garment'; return ''; }
+// an imprint with no dots isn't created, so it never blocks Create
+function impNeed(i){ if(!pcsOn(i)) return ''; if(!i.nick) return 'name'; if(!i.loc) return 'location'; if(!i.type) return 'method'; return ''; }
 
 function render(){
   const freeG=SG.filter(s=>!S.rows.some(r=>r.k===s.k)), freeI=SI.filter(s=>!S.imps.some(i=>i.k===s.k));
@@ -177,7 +178,7 @@ function render(){
     ${freeI.length?`<div class="sugs"><span class="lbl">Imprints</span>${freeI.map(s=>`<button class="sug" onclick="sugI('${s.k}')">＋ ${esc(s.nick)} <small style="color:var(--muted);font-weight:400">${esc(s.loc)} · ${esc(isSP(s.type)?s.colors+'c'+(s.ub?'+UB':''):s.type)}</small>${s.for.length?'':' <small>undecided</small>'}</button>`).join('')}</div>`:''}</div>`;
   // grid
   h+=`<div class="gwrap"><table><thead><tr><th class="gcol"><div style="font-size:12px;color:var(--muted);font-weight:700">GARMENT · QTY · $/PC</div></th>`;
-  S.imps.forEach(i=>{ const need=impNeed(i); h+=`<th class="ih"><button class="hd" onclick="S.edit='${i.id}';render()"><span class="idtag">${letter(i)}</span><div class="nk">${esc(i.nick)||'<span class="need">name it</span>'}</div><div class="pm">${esc(params(i))}</div>${i.inks?`<div class="pm">inks: ${esc(i.inks)}</div>`:''}<div class="pm">${pcsOn(i)?pcsOn(i)+' pcs':''}${need&&need!=='not on a garment'?` <span class="need">· ${need}</span>`:''}</div><span class="ed">✎ details</span></button></th>`; });
+  S.imps.forEach(i=>{ const need=impNeed(i); h+=`<th class="ih"><button class="hd" onclick="S.edit='${i.id}';render()"><span class="idtag">${letter(i)}</span><div class="nk">${esc(i.nick)||'<span class="need">name it</span>'}</div><div class="pm">${esc(params(i))}</div>${i.inks?`<div class="pm">inks: ${esc(i.inks)}</div>`:''}<div class="pm">${pcsOn(i)?pcsOn(i)+' pcs':'<span class="need">not used · won\'t be created</span>'}${need?` <span class="need">· ${need}</span>`:''}</div><span class="ed">✎ details</span></button></th>`; });
   h+=`<th class="addi"><button class="btn sm" style="width:100%" onclick="newImp()">＋ Imprint</button><div class="hint" style="margin-top:4px">or a past one</div></th></tr></thead><tbody>`;
   S.rows.forEach(r=>{ const need=rowNeed(r), t=tot(r);
     h+=`<tr><td class="gcol"><div style="display:flex;gap:6px"><div style="flex:1;min-width:0"><div class="gname">${esc(r.g.brand)} ${esc(r.g.style)}</div><div class="gsub">${esc(r.g.color)}${r.womens?' · women\'s':''}</div></div><button class="link" onclick="rmRow('${r.id}')" aria-label="Remove">✕</button></div>
@@ -213,8 +214,8 @@ function inkPop(){ if(!S.ink) return ''; const [rid,iid]=S.ink.split('|'), r=R(r
     <input class="tin" id="inkin" style="margin-top:10px" value="${esc(on.ink||'')}" placeholder="${esc(i.inks||'e.g. Black')}">
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn k" onclick="S.on[S.ink].ink=$('inkin').value.trim();S.ink=null;render()">Save</button><button class="link" onclick="S.on[S.ink].ink='';S.ink=null;render()">use the imprint's inks</button></div></div></div>`; }
 function mailPop(){ if(!S.mail) return ''; return `<div class="veil" onclick="if(event.target===this){S.mail=false;render()}"><div class="sheet mail"><h3>Deal emails · 10980 | Grit FOCO</h3><div class="hint">The lines that matter for the order. In the app: the full thread, scrollable.</div>${MAIL.map(m=>`<div class="m"><b>${esc(m[0])}</b><br>${esc(m[1])}</div>`).join('')}<div style="margin-top:14px"><button class="btn k" onclick="S.mail=false;render()">Close</button></div></div></div>`; }
-function bar(){ const pcs=S.rows.reduce((a,r)=>a+(+r.qty||0),0), $$=S.rows.reduce((a,r)=>a+(+r.qty||0)*(+r.price||0),0), nr=S.rows.filter(rowNeed).length, ni=S.imps.filter(impNeed).length, ready=S.rows.length&&!nr&&!ni;
-  return `<div class="bar"><span>${S.rows.length} line items</span><span>${S.imps.length} imprints</span><span><b>${pcs}</b> pcs</span><span><b>${money($$)}</b></span><span class="hint" style="color:#bbb">${ready?'ready':[nr?nr+' garment'+(nr>1?'s':'')+' need something':'',ni?ni+' imprint'+(ni>1?'s':'')+' need details':''].filter(Boolean).join(' · ')||'add a garment'}</span><button class="btn y" ${ready?'':'disabled'} onclick="toast('Mockup: creates ${S.imps.length} imprints + ${S.rows.length} line items, then Line Item Review')">Create order</button></div>`; }
+function bar(){ const used=S.imps.filter(i=>pcsOn(i)).length, pcs=S.rows.reduce((a,r)=>a+(+r.qty||0),0), $$=S.rows.reduce((a,r)=>a+(+r.qty||0)*(+r.price||0),0), nr=S.rows.filter(rowNeed).length, ni=S.imps.filter(impNeed).length, ready=S.rows.length&&!nr&&!ni;
+  return `<div class="bar"><span>${S.rows.length} line items</span><span>${used} imprint${used===1?'':'s'}</span><span><b>${pcs}</b> pcs</span><span><b>${money($$)}</b></span><span class="hint" style="color:#bbb">${ready?'ready':[nr?nr+' garment'+(nr>1?'s':'')+' need something':'',ni?ni+' imprint'+(ni>1?'s':'')+' need details':''].filter(Boolean).join(' · ')||'add a garment'}</span><button class="btn y" ${ready?'':'disabled'} onclick="toast('Mockup: creates ${used} imprint${used===1?'':'s'} + ${S.rows.length} line items, then Line Item Review')">Create order</button></div>`; }
 render();
 </script>
 </body>
