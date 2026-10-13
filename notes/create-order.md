@@ -326,3 +326,15 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - 4 imprints: EZP front, back print for the same garments, embroidery (blocked until a stitch count was given), and a repeat of 4221-A.
   - 4 line items: 1717 Graphite (pasted sizes, line note + a tapped email sentence), Pepper via "next color" + Pine's mix, A601 Olive Grey hat, Woven Patches 3″.
   - The write payloads matched; no errors.
+
+## 2026-10-13 — v9: the deal's emails are easier to read
+- **Why (Stephen):** "the way the email area is broken up is pretty dense… but everything else is flowing nicely." Pipedrive gives each email as one block: the reply, the signature and the whole quoted chain ("2 October at 13:13, GRIT Info … wrote: …") run together.
+- **Each email now shows:**
+  - **What that person wrote**, one sentence per line, each still tappable to add to a field.
+  - **The quoted chain and the signature folded** behind "▸ quoted earlier email (N lines)". It recognizes "On … wrote:", Apple Mail's "2 October at 13:13, … wrote:", Outlook's "From: … Sent:", and Pine's "------" signature.
+  - **Quoted sentences already in someone's own email on the deal are dropped**, so they appear once. On the test thread that took a 6-line quoted chain down to 1.
+- **Only the newest 2 emails are open.** Older ones show their first line; tap to open.
+- **With a finder or search on, "Only the matching sentences" is on by default.** The panel becomes a short list under each sender, e.g. Qty → "25 Atonal Vintage Black Dad Hats", "25 Olive Gray Atonal Dad Hats", "For the women's shirt, we will do 50.", "…the gray sweatshirt, we will do 75.", "…start with 25 each." Untick it to see whole emails with highlights.
+- **Qty finder** also catches "25 Atonal Vintage Black Dad Hats" (a number, up to 4 words, then a garment word).
+- **Forms:** unchanged from v8.
+- **Tested** on desktop and emulated iPhone with a 4-email thread shaped like 10980's. Full order flow and Create still pass; no errors.
