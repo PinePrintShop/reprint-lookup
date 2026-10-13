@@ -224,3 +224,15 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - **Still open:**
   - **Artwork folder link:** no Orders field holds a Google Drive folder URL (only a yes/no "Proofs Uploaded to Google Drive"). Proposed: add a URL field "Artwork Folder" on Orders, filled by Create order. Needs Stephen's OK (new field).
   - **Already-entered orders:** orders like 10999 already have lines. Proposed: the list shows only orders with no lines yet, or marks the others "already entered — open in Line Item Review".
+
+## 2026-10-13 — v6: "needs lines" pills + Artwork Folder Link
+- **Why (Stephen):** orders like 10999 already have line items. He asked for a label and pill buttons to tell orders that need lines from ones that already have some. He also OK'd the Artwork Folder Link field.
+- **Order list:**
+  - Pills: **Needs lines** (the default) · **Has lines** · **All**, each with a count.
+  - Orders that have lines show "already entered · N lines" plus a **Line Item Review →** link to that order. They can still be opened to add more.
+- **Artwork folder:**
+  - New Orders field **Artwork Folder Link** (`flddst7TDoJfSqb0s`, URL), added with Stephen's OK. It's additive, and no automation watches it.
+  - Paste the Google Drive folder under the order header. An "open ↗" link checks it.
+  - It's optional: the rail shows "Artwork folder link (optional)" until it's filled, but doesn't block Create.
+  - On Create, after the imprints and line items, Create order PATCHes only that one field on the order. Practice mode fakes the write as usual.
+- **Tested with mocks:** pill counts (2 / 1 / 3), the label and the LIR link on 10999, and the write order (imprints → line items → the artwork PATCH). No errors.
