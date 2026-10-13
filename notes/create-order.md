@@ -373,3 +373,20 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - **The imprint tick list was tall.** → 2 across on wide screens.
   - **Toasts covered the Add buttons.** → Toasts show at the top.
 - **Tested:** desktop, iPad landscape and emulated iPhone (touch). Full flow (4 imprints incl. back print / embroidery / repeat, 4 line items) and Create pass; no errors.
+
+## 2026-10-13 — v13: vendor check in Line Item Creator
+- **Why (Stephen):** "verify names are correct in Airtable and maybe we can catch low qty's", and hats should only be one size if the hat really is one size, "which we should either see in Airtable or from the Vendor".
+- **When a garment + color is picked** (or a reorder loads), Create order asks the vendors that carry the brand: S&S, SanMar and AS Colour. It uses the same worker calls, brand matching and color matching as Purchasing v105 (exact → prefix → 1–2 letters off → whole word; S&S uses the garment's "[S&S] Color Name" when set; SanMar's mill number is only trusted when SanMar has the color). Each vendor gets one line under the garment:
+  - **Color name:** "✓ Graphite", or "calls it Pepper Black (Airtable: Pepper) · fix in Airtable" (asks first, then PATCHes only the garment's Colorway; practice mode fakes it). If no vendor has the color, its color list shows, words in common first, to pick and fix.
+    - If one vendor matches Airtable exactly, another vendor's different spelling is just noted, with no fix button, so a fix can't break the right match; "doesn't carry Pepper" replaces the color list.
+  - **Sizes it makes.** If none are ticked on the garment in Airtable, the vendors' sizes decide the size boxes and one-size. If Airtable is ticked but a vendor also makes other sizes: "Vendors also make 4XL, 5XL (not ticked in Airtable)".
+  - **Stock vs the sizes typed**, across that vendor's warehouses (S&S dropship excluded): "low: L needs 22, has 12", or "in stock (Reno has it all)" when one warehouse covers everything. AS Colour: "lists this color but has no stock yet (coming soon)".
+  - **Not checked** (e.g. Atonal): "Atonal isn't checked (S&S, SanMar and AS Colour only)".
+- **Flags** on the line cards and in the checklist: "vendor: low stock" (only when every vendor is short), "spelling" (no vendor matches Airtable), "color?" (no vendor has it), "coming soon". Heads-up only; Create always works.
+- **Tested** with mocked vendors on desktop + emulated iPhone:
+  - 1717 Graphite: S&S low on L, SanMar Reno has it all → not flagged.
+  - Pepper: S&S "Pepper Black" → fixed in Airtable (PATCH Colorway).
+  - SanMar color with no stock rows → "0 in stock".
+  - Atonal: not checked.
+  - Full flow + Create pass; no errors.
+- **Not testable here:** the live vendor answers (the worker is blocked from this sandbox). Worth a look on a real order: 10980's 1717 / 6110 / SS3000 / M2635.
