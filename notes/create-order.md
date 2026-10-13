@@ -269,3 +269,13 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   3. **Order side, per garment:** art chips (tap on/off, with the imprint ID shown). "maybe?" chips mark undecided art, e.g. the Olive hat. Sizes have a "Pine's mix" button. Inks, notes and price are tucked under "More".
   4. **Still open:** each question is either answered by doing it on the order (sizes filled, art picked, folder pasted) or "goes in your reply". "Copy for my reply" writes the email.
 - **Nothing is read live and nothing is saved.** The data is typed in from the real emails.
+
+## 2026-10-13 — Mockup: one grid (create-order-grid-mockup.html)
+- **Why (Stephen):** reading the emails can't settle details like "the graphite shirt, the box hoodie and the gray sweatshirt, we will do 75". Is that 75 each or total? Is the hoodie back-only? So make the manual step faster: put garments and imprint IDs on one Create order page, and keep the print details (location, method, colors, underbase, inks, notes).
+- **Layout:**
+  - **Rows are garments** (one line item each): qty, $/pc and sizes (expand, or Pine's mix).
+  - **Columns are imprint IDs** (10980-A, -B…). The header shows the nickname, location, colors + UB, screens, inks and total pcs. ✎ opens the full imprint form (nickname, location, method/type, ink colors, underbase, inks or thread, print notes, repeat of past art). It's set once, and every garment with a dot uses it.
+  - **A square is a dot:** that line item gets that imprint. A dot on a screen print has its own "inks" link, for an ink change on that garment only.
+- **From the emails:** a row of dashed shortcut chips (garments with qty/price, imprints with params). Tapping one adds it, and dots the garments the emails tie it to. A shared quantity ("75" for three garments) shows amber until confirmed ("75 each ✓") or changed. "Add everything" puts it all in at once.
+- **Bottom bar:** line items, imprints, pcs, total, what's missing, and Create.
+- **Tested on 10980:** Add everything, dot the Olive Grey hat with E, confirm the 75s, Pine's mix, set A's inks to White. Result: 6 line items · 5 imprints · 325 pcs · $5,562.50 · ready. No errors, desktop and phone. Nothing is saved.
