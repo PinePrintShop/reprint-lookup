@@ -399,7 +399,7 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - "no imprints ticked" when there are none.
 - **Tested** on desktop + emulated iPhone; full flow + Create pass; no errors.
 
-## 2026-10-13: v15, Bandana 4800 quick pick + Product Type toggle
+## 2026-10-13 — v15: Bandana 4800 quick pick + Product Type toggle
 - **🧣 Bandana 4800** chip under the garment search in Line Item Creator (Stephen: "we do so many of those").
   - One tap loads every Carolina Creative 4800 colorway from Airtable Garments (an exact Product Number match, so Gildan 64800 / AllPro 48000 don't show up). The colors appear as chips, sorted A–Z. The list is loaded once per session.
   - Sets Product Type to Printed Apparel, which is how past 4800 lines were entered, with a one-size quantity.
