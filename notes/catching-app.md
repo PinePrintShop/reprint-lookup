@@ -165,3 +165,13 @@ Trimmed wording that repeated itself:
   - "Bucket" → **Team**. "Resolve all & continue" → **"Save & finish"**.
 - **Completed tab:** "today" appeared three times; the date is already in the header.
 - What gets saved to Airtable is unchanged. The issue description still reads "1 damaged (Print Team) [1M]: Smudge".
+
+## v152 — packing slip "Order record not found" fix (Oct 13)
+- **The bug:** in v151, "🖨 Packing slip" on the **Order complete** card said "Order record not found for 10906". The button saves the last catch first, and that takes the order's job off the queue right away. The slip lookup searched only the queue, so the order was gone. The same thing happened for any slip opened after the order was finished.
+- **The fix:**
+  - When a job is finished, Catching now remembers the order's Airtable record, so the slip still opens instantly.
+  - The lookup also checks the finished jobs.
+  - As a last resort it looks the order up by its number in Airtable. This also covers the order details not having loaded yet.
+- **Tested** with mocked Airtable:
+  - v151 shows the alert in both cases (card and after done).
+  - v152 opens the slip from the card, after the order is done, and through the lookup by number.
