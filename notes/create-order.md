@@ -216,3 +216,11 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - **UpSlope 10999:** web form shown, plus the "only Pine's emails" note; the reader got the email + web form.
   - **No deal:** clear message. No errors.
 - **Next idea (not built):** save the Price-O-Matic quote (garment, colors, prints, price) to the order when it's sent, so Create order only needs sizes from the email.
+
+## 2026-10-13 — v5: emails only (no web form)
+- **Live check:** Patrick's key (`PIPEDRIVE_KEY_PATRICK`) is in Cloudflare and worker v21 is live. On 10999 UpSlope, v4 showed the deal's emails, including Brady's reply quoted in Patrick's "Re: Patrick from Pine": "Comfort Colors 1717 … Blue Spruce, with a single-color vintage cream ink (HEX #F3EBD7) for both the front chest logo and large back graphic". That matches what Airtable has for 10999.
+- **Stephen:** the web-form description isn't needed, because details change a lot over the email thread. v5 no longer shows it or sends it to the reader.
+- **Softer note** when only Pine-sent emails are on the deal: the customer's words are often quoted inside them.
+- **Still open:**
+  - **Artwork folder link:** no Orders field holds a Google Drive folder URL (only a yes/no "Proofs Uploaded to Google Drive"). Proposed: add a URL field "Artwork Folder" on Orders, filled by Create order. Needs Stephen's OK (new field).
+  - **Already-entered orders:** orders like 10999 already have lines. Proposed: the list shows only orders with no lines yet, or marks the others "already entered — open in Line Item Review".
