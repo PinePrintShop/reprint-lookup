@@ -361,3 +361,15 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - **Pasted:** skipped, with a toast ("skipped XS: Comfort Colors 1717 isn't made in that size").
   - **Already on a line** (a reorder, "same sizes as last time"): the line shows a warning and can't be added or created until it's cleared.
 - **Tested** on desktop + emulated iPhone (touch): 1717 showed S–3XL, a pasted XS was skipped, the cap was a single Quantity box (OSFA 25), no override links, Create passes, no errors.
+
+## 2026-10-13 — v12: a calmer scan
+- **Why (Stephen):** "scan the desktop to see how the eye might scan through the flow, to make sure the UI isn't too scattered." Reviewed full-viewport screenshots at 1440×900 (desktop) and 1180×820 (iPad landscape) at four moments: start, after the first imprint, filling a line item, and all done.
+- **Found → changed:**
+  - **The empty Imprint Creator stayed open after the imprints were done**, pushing step 2 below the fold. → It folds after each Add into three plain buttons: "+ Back print for the same garments", "+ Another imprint", "↻ Repeat of past art". Line items now sit right under the imprint cards.
+  - **Three black buttons competed** (Add imprint, Add line item, Create order), and the yellow "Back print" outshouted its form. → Yellow = add within a step; black = Create order only; quick buttons are plain white.
+  - **Button rows wrapped** (a lone "Finishing"; Product Type took 2–3 rows on iPad). → Imprint Type shows Screen print / Embroidery / Supacolor / Patch & label + more…; Product Type shows the usual 5 + more….
+  - **The checklist nagged early:** "A, B, C, D isn't ticked on any line item" before any line existed; artwork link amber like an error; "Add the imprints" ticked with no imprints (bug since v8). → The unticked warning only shows once a line item exists, with "aren't" for several; the artwork link is grey; the tick bug is fixed.
+  - **The email finders scrolled away** with the emails. → The deal title, finders, search and "tap a sentence" hint stay pinned at the top of the email panel.
+  - **The imprint tick list was tall.** → 2 across on wide screens.
+  - **Toasts covered the Add buttons.** → Toasts show at the top.
+- **Tested:** desktop, iPad landscape and emulated iPhone (touch). Full flow (4 imprints incl. back print / embroidery / repeat, 4 line items) and Create pass; no errors.
