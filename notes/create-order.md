@@ -338,3 +338,15 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - **Qty finder** also catches "25 Atonal Vintage Black Dad Hats" (a number, up to 4 words, then a garment word).
 - **Forms:** unchanged from v8.
 - **Tested** on desktop and emulated iPhone with a 4-email thread shaped like 10980's. Full order flow and Create still pass; no errors.
+
+## 2026-10-13 — v10: sizes follow the garment in Airtable
+- **Why (Stephen):** picking a hat still showed every size box. A hat should go straight to one size, but only if it really is one size, which Airtable or the vendor should say.
+- **Airtable decides** (Garments: Style + the XS / Small / Medium / Large / XL … 6XL / OSFA boxes):
+  - **Only OSFA ticked:** one "Quantity" box, saved as OSFA. That's most caps today (Richardson 112, Yupoong 6606…).
+  - **Real sizes ticked** (tees, or fitted caps if they're set up that way): only those size boxes; "show all sizes" overrides.
+  - **Nothing ticked** (some newer garments): Cap / Beanie / Bandana / Tote Bag / Paper are one size; anything else shows every size. "use sizes instead" is always there.
+- **Size guards:**
+  - A size that isn't ticked for the garment (e.g. pasting "2 XS" on 1717, which has S–3XL) shows a warning: "XS isn't ticked as a size for Comfort Colors 1717 in Airtable. Check the vendor, or tick it on the garment."
+  - Pine's mix only fills sizes the garment comes in.
+- **Vendors:** Create order doesn't call the vendors; Purchasing does. Stephen also asked about checking garment names against the vendor and catching low stock: that's next (see below).
+- **Tested** on desktop + emulated iPhone. 1717 showed S–3XL; the Atonal cap showed one Quantity box → OSFA 25; the XS warning showed; the Pepper mix skipped XS; Create passes; no errors.
