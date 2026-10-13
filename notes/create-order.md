@@ -254,3 +254,18 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - **Toasts:** a new toast replaces the last one; they used to overlap.
 - **Worker v22** (paste via copy-worker.html): the reader now returns `qty_total` per line, and each question as {text, ask_customer, kind, lines, prints}. kind is sizes / same_art / print_details / artwork / scope / other. It's also told not to ask what the thread already answers, and to apply it instead. With worker v21 still deployed, v7 works but questions are plain text. Size fixes still work (the total comes from the notes, e.g. "Total of 75"), and "copy to other lines" covers the hats.
 - **Tested with mocks (GRIT-style order):** 4 lines, 4 questions. The hat fix put B on line 4. The mix filled 1717 (75) and 6110 women's (50). The copied email held the 2 questions left. The old-worker output worked too. Saves are unchanged (imprints → line items → artwork PATCH). No errors, desktop and phone.
+
+## 2026-10-13 — Mockup: scan → pick (create-order-scan-mockup.html)
+- **Why (Stephen):** v7 "looking weird". The tick only struck a question out. The reader merged the Cotton Heritage hoodie into the hats. Fix buttons on top of a pre-filled form are confusing. "Let's slow down… maybe it should create a clickable field we select to then build the order." Keep the current habit: **pick garments, then add art**.
+- **Real case: 10980 Grit FOCO** (deal 22317, 12 emails, Sep 5 – Oct 8):
+  - **Garments:** 1717 Graphite 75 · B+C 6110 Vintage White women's 50 · SS3000 Heather Gray 75 · M2635 Vintage Black box hoodie 75 (back print only) · A601 Vintage Black 25 · A601 Olive Gray 25.
+  - **Quoted prices** in Chris's Sep 28 email: $12.00 / $13.25 / $18.50 / $25.00 / $14.75.
+  - **Hats:** "HOT GIRLS GO TO GRIT will be the black hat". The Olive Gray hat's design is genuinely undecided (HOT GIRLS, or the two-tone left-mockup logo).
+  - **Not received yet:** print-ready art. Phoebe asked Pine to recommend sizes.
+- **Name mismatches:** all six garments are in Airtable, but the email says "Olive Gray" / "Heather Gray" and Airtable has "Olive Grey" / "Grey Heather". That's why v7 said "pick the garment above". The scan needs to match spelling variants.
+- **Mockup flow:**
+  1. **Left, "From the emails":** tappable cards, each with the quote it came from: garments (qty, quoted price, Airtable match), art (confirmed / best guess / not decided) and details (samples, billing, resale ID, deadline).
+  2. **"＋ Add" or "＋ Add all":** puts a garment on the order with its quoted price and the art the emails tie to it.
+  3. **Order side, per garment:** art chips (tap on/off, with the imprint ID shown). "maybe?" chips mark undecided art, e.g. the Olive hat. Sizes have a "Pine's mix" button. Inks, notes and price are tucked under "More".
+  4. **Still open:** each question is either answered by doing it on the order (sizes filled, art picked, folder pasted) or "goes in your reply". "Copy for my reply" writes the email.
+- **Nothing is read live and nothing is saved.** The data is typed in from the real emails.
