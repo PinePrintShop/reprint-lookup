@@ -135,3 +135,34 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - 2XL+ up-charges in the total (Airtable adds them).
 - Vendor price check.
 - Non-apparel pricing (typed by hand).
+
+## 2026-10-13 — v2: right rep's emails, read email & fill, print notes, line notes
+- **Emails from the right inbox.** On 10999 UpSlope (Patrick's order), v1 showed a thread with Chris. That's because the worker returned the customer's newest emails from any Pine inbox.
+  - Worker **v19** now sends each email's to/cc and deal.
+  - v2 shows emails to/from/cc the order's rep first: Patrick = hello@, Chris = sales@ (`REP_BOX`). Others fold under "show N emails with other Pine inboxes".
+  - With worker v18 still deployed (no to/cc), v2 shows all emails as v1 did.
+- **✨ Read email & fill the order.** Sends the rep's newest emails (up to 4), the customer's past imprints, and the allowed locations and print types to worker v19 `POST /proxy/ai/order-from-email`.
+  - Claude (`claude-opus-5-5`, structured JSON output, refusal fallback on) returns a **draft**:
+    - lines: style, brand, color, sizes, women's/youth, which prints, notes
+    - prints: nickname, location, type, colors, underbase, inks, repeat of a past imprint, print notes
+    - questions still to ask the customer
+  - The draft shows first; **Use this draft** fills the form.
+  - Garments are matched in Airtable by exact style # (+ brand), then color. If no match, the style is typed into the garment search and the line says what the email said.
+  - Unanswered questions stay on screen ("Still to check with the customer"). Nothing is saved until Create order, and practice mode still fakes the writes.
+- **Print notes** on every print chip → Imprints **Print Notes** (`fldNuEzGIYI8FWqXu`). Every line on that imprint shows them through the lookup. Rail shows 📝 when a print has notes.
+- **Notes** row on every line → added under the print rows in **Proofing Notes** as "Notes: …". "UPDATE:" is still neutralized (it posts to Slack).
+- **Airtable fields checked 10/13.** Print Notes and Ink Notes live on Imprints. Line Items has Sales / Production / Order / Shipping / Finishing / Proofing Notes. No automation watches Imprints Print Notes on create.
+- **Tested with mocks** (cov2.js), desktop + phone, 10999 UpSlope:
+  - Patrick's hello@ email shown first; Chris's sales@ email folded.
+  - Only Patrick's email was sent to the reader.
+  - Draft → 1 line IND4000 Black 4/8/8/4 (24 pcs, POM $57.05), prints 10999-A Front 2c+UB White/PMS 7409 "About 11 in wide" and 10999-B Left Sleeve.
+  - Writes: Print Notes on each imprint, and Proofing Notes ending "Notes: Logo centered 3 in below collar". No errors.
+
+### Turning on email reading (one time, Stephen)
+1. **Create an Anthropic API key:** go to https://console.anthropic.com, sign in or create the Pine org, open **Settings → Billing**, add a card and some credit ($10–20 is plenty to start; each email read costs about 1–3¢). Then go to **Settings → API keys → Create key**, name it "pine-workers", and copy it (it starts `sk-ant-`, and is shown only once).
+2. **Add it to the worker:** Cloudflare dashboard → Workers & Pages → **pine-workers** → Settings → Variables and Secrets → **Add** → type **Secret**, name `ANTHROPIC_API_KEY`, paste the key, Deploy.
+3. **Deploy worker v19:** pine-workers → Edit code → replace everything with `workers/pine-workers-v19.js` → Deploy. v19 includes everything v18 did; Pipedrive emails now carry to/cc.
+4. **Check:** open Create order (practice link), pick an order with emails, tap **✨ Read email & fill the order**.
+   - "Email reading isn't switched on yet" → the secret is missing.
+   - "needs worker v19 deployed" → step 3 didn't save.
+- Optional: Anthropic console → Settings → Limits → set a monthly spend limit.
