@@ -64,3 +64,17 @@ The plan is to combine the apps early next year, so they need one look first.
   - Poppins Black is no longer squeezed: tracking went from −.01/−.02em to +.005em, with slightly wider word spaces (.08em).
   - Small section labels went from .07em tracking to .03em, with word spacing at .14em, so "ON A REAL SCREEN" and "MOVING THE APPS OVER" read evenly.
 - **Section label width:** section labels hug their text instead of stretching across the page.
+
+## 2026-10-14 · More color: two directions (`pine-colors.html`)
+**Why:** Whitney asked to try more of the brand colors. The page mocks two directions from the Brand Standards palettes on Schedule (desktop), Catching (iPad) and the Pine Central home. Customers on it are made up, since it's a public page.
+
+| | A · Creativity is our currency | B · Consume design |
+|---|---|---|
+| Press 1 (Next) | 7683 `#426DA9` | 7473 `#1E988A` |
+| Press 2 (You) | 637 `#4EC3E0` | 7563 `#D69A2D` |
+| Embroidery | 151 `#FF8200` | 7579 `#DC582A` |
+| Heat press | 540 `#003057` | Red 032 `#EF3340` |
+
+- **Same in both:** each press and department has one color in every app. 107 yellow stays "main button / waiting on you", and the black bar stays.
+- **Stephen (Oct 14): A for the presses.** Press 1 is 7683 blue and Press 2 is 637 sky. Embroidery, heat press, and A vs B overall are still open with Whitney.
+- Canvas version (editable, private): https://claude.ai/artifact/KPpUGp25pmtjEQrdTX7YuR
