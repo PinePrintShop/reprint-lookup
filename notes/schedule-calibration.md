@@ -80,3 +80,9 @@
 2. **Turnaround in the timeline:** add 11–13 min between jobs and 21–30 min on a product change, so suggested start times match the floor.
 3. **Real capacity:** count a full day as about **6.75 h of press time on Press 1 and 6 h on Press 2** (editable in Settings), so 100% means a normal full day.
 4. **Later:** update Airtable's *Estimated Run Time* formula to the same numbers, so Operator, the Board and pricing share one time model. It's an Airtable formula change, so it needs an explicit OK.
+
+
+## 2026-10-14 · Decisions
+- **Option 1 (Schedule app uses the calibrated model):** done in Schedule v9.
+- **Cushion:** Suggest fills days to 90% (Schedule v10). Calibrated job times on their own run about 4–8% short of actual.
+- **Option 2 (Airtable Estimated Run Time formula):** still under discussion. Allocated Production Time (filled in by hand) is what Operator and the Board read today.
