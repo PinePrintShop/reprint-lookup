@@ -129,3 +129,19 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - Keeps every batch that arrived, even if a later one fails.
   - Loads unscheduled jobs and the jobs in view first.
 - Tested with mocked Airtable that returned 429 twice and answered slowly: the open card filled in, and all 73 jobs got their garment types.
+
+## 2026-10-14 · v6: direction B colors for every machine
+**Stephen:** go with B, the more muted "Consume design" colors, for everything (this replaces the earlier A pick for the presses).
+- **Colors** (black text on all of them):
+  - Press 1 (Next): 7473 teal `#1E988A`
+  - Press 2 (You): 7563 mustard `#D69A2D`
+  - Embroidery and sewing: 7579 burnt orange `#DC582A`
+  - Heat presses D3, Tag, Hat: Red 032 `#EF3340`
+  - The page ground is Pine cream `#EFE2CD`.
+- **Where they show:** cards, day-header load chips, machine chips (when on), Day view column headers and fill bars, Month chips, and the press tag on unscheduled cards.
+- **Warnings are black "!" marks now,** because red means heat press:
+  - an over-capacity load chip or bar
+  - a late card (black outline plus a "!" dot)
+  - "Not received"
+  - overdue due dates and the reasons Suggest couldn't place a job
+- `pine-colors.html` now marks B as the pick.
