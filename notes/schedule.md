@@ -120,3 +120,12 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - **Fleece share:** fleece pieces (Sweatshirt, Pullover Hoodie, Zip Up Hoodie, Youth Fleece, Day Fill's list) / all pieces. Run time on the screen presses is × (1 + share × 0.35), so a half-fleece job gets half the bump. The card shows "60% fleece" and "(fleece +21%)".
 - **Garment names** load when you open a card (Garments table, primary field), e.g. "Bella Canvas 3001 - Black". The type shows first while the names load.
 - Tested with mocked Airtable: a hoodie job went from 78 to 105 minutes on Press 1, and the card showed the garment name.
+
+## 2026-10-14 · v5: garments always fill in
+**Bug (Stephen):** with real data, cards showed "…" under Garments. The background Line Items load (hundreds of line items across every loaded job) was either still running or had hit Airtable's 5-requests-a-second limit (429). On any error it threw away everything it had loaded.
+- **Opening a card** now loads that job's own line items and garment names right away. It shows the names, or "Not listed on the line items".
+- **Background load:**
+  - Retries a 429 up to 4 times with a growing wait, and leaves 250 ms between batches.
+  - Keeps every batch that arrived, even if a later one fails.
+  - Loads unscheduled jobs and the jobs in view first.
+- Tested with mocked Airtable that returned 429 twice and answered slowly: the open card filled in, and all 73 jobs got their garment types.
