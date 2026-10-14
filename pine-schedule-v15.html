@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pine Schedule v15</title>
 <!-- Pine Schedule v15 (2026-10-14): unscheduled jobs start at 'Ordered - In Production' (Ready to Order = garments not ordered yet; Stephen).
+     Imprints with no Line Items linked are left out of the list; a note at the bottom names them so they can be linked or deleted.
      Pine Schedule v14 (2026-10-14): Allocated filled from the estimate rounds up to 15 min; formula errors no longer show as "[object Object]"; jobs with no Line Items linked say so
      (no qty, proof or garments to show) and Suggest skips them; Seps file is the picture when there is no proof.
      Pine Schedule v13 (2026-10-14): Allocated Production Time is the scheduler's adjustable job length (Operator, the Board and the
@@ -677,7 +678,7 @@ function renderMonth(cal){
 function sideJobs(){
   const q=(document.getElementById('q').value||'').toLowerCase().trim();
   const ghosted=new Set(S.ghosts.map(g=>g.rid));
-  return Object.values(S.jobs).filter(j=>!j.start && !ghosted.has(j.rid) && jobInSel(j) &&
+  return Object.values(S.jobs).filter(j=>!j.start && !j.noLines && !ghosted.has(j.rid) && jobInSel(j) &&
     (!q || (j.ID+' '+j.nick+' '+j.cust+' '+j.order).toLowerCase().includes(q))); }
 function renderSide(){
   const list=sideJobs(); const all=Object.values(S.jobs).filter(j=>!j.start).length;
@@ -697,6 +698,8 @@ function renderSide(){
         '<span class="tg">'+dur(jobMin(j))+'</span>'+(j.noLines?'<span class="tg a" title="This imprint has no Line Items linked in Airtable, so there is no qty, proof or garment to show">No line items</span>':j.allIn?'':'<span class="tg a" title="Not all garments are checked in">Not received</span>')+'</div>'+
         (S.why[j.rid]?'<div class="why">'+esc(S.why[j.rid])+'</div>':'')+'</div></div>'; });
   });
+  const orphans=Object.values(S.jobs).filter(j=>!j.start && j.noLines && jobInSel(j)).map(j=>j.ID).sort();
+  if(orphans.length) h+='<div class="p-note" style="margin-top:14px;font-size:13px"><b>'+orphans.length+' imprint'+(orphans.length===1?'':'s')+' not shown:</b> no line items linked in Airtable, so there is nothing to print yet. Link them or delete them: '+esc(orphans.join(', '))+'</div>';
   document.getElementById('sideList').innerHTML=h||'<div class="empty">Nothing waiting'+(S.sel?' for these machines':'')+'.</div>'; }
 
 function renderSugbar(){
@@ -838,8 +841,7 @@ function suggest(){
   const placed=allPlaced();
   const use={}; placed.forEach(x=>{ const k=laneOf(x.equip)+'|'+x.day; use[k]=use[k]||{min:0,end:DAY_START,plat:{}}; const u=use[k]; u.min+=x.len; u.end=Math.max(u.end,x.min+x.len); u.plat[platen(S.jobs[x.rid])]=1; });
   const U=(pk,ds)=>use[pk+'|'+ds]||(use[pk+'|'+ds]={min:0,end:DAY_START,plat:{}});
-  Object.values(S.jobs).forEach(j=>{ if(!j.start && j.noLines && jobInSel(j)) S.why[j.rid]='No line items linked in Airtable: link them first'; });
-  const cands=Object.values(S.jobs).filter(j=>!j.start && !j.noLines && !S.skipped[j.rid] && jobInSel(j));
+    const cands=Object.values(S.jobs).filter(j=>!j.start && !j.noLines && !S.skipped[j.rid] && jobInSel(j));
   // group: order + department
   const groups={}; cands.forEach(j=>{ const k=j.order+'|'+deptOf(j); (groups[k]=groups[k]||[]).push(j); });
   const list=Object.values(groups).map(g=>{ const due=g.map(j=>j.due).filter(Boolean).sort()[0]||null;
