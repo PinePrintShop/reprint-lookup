@@ -356,3 +356,4 @@ IF(
 - **Utilization:** set the POM's utilization to the measured 53%. With the POM's formula, the selling rate goes from $579 to about **$608**/press-hr.
   - The formula multiplies by (2 − u). A true "hours actually used" rate would divide by u, giving about $781/hr. That's a bigger change.
 - **Scheduling and pricing stay separate:** Estimated Run Time (scheduling, 15 min/ink change) and the [PRICE] fields don't share inputs. Updating the scheduling formula moves no prices or margins.
+- **Stephen, Oct 14:** ink changes should become a **flat $150 each** (tees, fleece and bandanas). **Not applied yet.** Pricing is still being worked on, so the POM ($35) and Airtable autoprice stay as they are for now.
