@@ -12,7 +12,7 @@ Single-file HTML apps on GitHub Pages (`https://pineprintshop.github.io/reprint-
   - repeated or wordy text (say it once, plainly)
   - iPad and phone layouts
 - Suggest better flows proactively.
-- Keep the black and yellow Pine look.
+- **Pine style v2** (every app, starting with its next version): load Poppins (Google Fonts, weights 800/900) and `pine-style-v2.css`, and build with its `p-` classes. Reference: `pine-style.html`. From the Pine Brand Standards: only black, white, cream `#EFE2CD` and Pantone 107 yellow `#FBE122` (red only for real problems); Poppins Black for titles and one big number, Helvetica for everything else, no Courier; nothing under 12px; one yellow main button per screen; the same black top bar (Pine logo, app name, version, practice pill) in every app. Notes: `notes/pine-style.md`.
 - **Practice mode** (`?practice=1`) on apps that write to Airtable: writes are faked, nothing is saved.
 - **Test with mocked Airtable** (Playwright, Chromium preinstalled) before shipping, and screenshot the key screens. Then commit → PR → merge, and give normal `https://` links (live and practice).
 - Add a dated entry to the app's file in `notes/` describing what changed and why.

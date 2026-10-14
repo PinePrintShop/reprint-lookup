@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Pine Style v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+/* page layout only — every component below comes from pine-style-v2.css */
+body{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:var(--p-s6) max(16px,env(safe-area-inset-right,0px)) 80px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:56px}
+.sec{display:flex;flex-direction:column;gap:var(--p-s4)}
+.sec>p{margin:0;max-width:68ch;color:var(--p-ink-2)}
+.grid{display:grid;gap:var(--p-s4);grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.sw{border-radius:var(--p-r-lg);overflow:hidden;border:1px solid var(--p-line);background:var(--p-white)}
+.sw .chip{height:96px}
+.sw .t{padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.sw .t b{font-size:var(--p-fs-m)}
+.sw .t span{font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.tints{display:flex;gap:8px;flex-wrap:wrap}
+.tints div{flex:1 1 120px;border:1px solid var(--p-line);border-radius:var(--p-r);padding:10px;font-size:var(--p-fs-xs);font-weight:700}
+.spec{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px 20px;align-items:baseline}
+.spec .p-label{padding-top:4px}
+.demo{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:var(--p-s5);display:flex;flex-direction:column;gap:var(--p-s4)}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:var(--p-s4);align-items:start}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:72ch}
+.hero{display:flex;gap:var(--p-s5);align-items:center;flex-wrap:wrap}
+.hero .p-logo{width:120px;color:var(--p-black)}
+.hero h1{font:900 56px/1 var(--p-display);margin:0;letter-spacing:-.02em}
+.hero h1 span{display:block;font:400 28px/1.1 var(--p-sans);letter-spacing:0}
+.mock{border-radius:var(--p-r-lg);overflow:hidden;border:2px solid var(--p-black);background:var(--p-cream-lt)}
+.mock .in{padding:var(--p-s4);display:flex;flex-direction:column;gap:var(--p-s3)}
+.mockrow{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:var(--p-s4)}
+.lane{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lane button{min-height:72px;border-radius:var(--p-r);border:2px solid var(--p-black);background:var(--p-white);font:700 var(--p-fs-s) var(--p-sans);text-transform:uppercase;letter-spacing:.04em;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;padding:10px;cursor:pointer}
+.lane button b{font:900 24px var(--p-display)}
+.lane button.on{background:var(--p-yellow)}
+.proof{aspect-ratio:4/3;border-radius:var(--p-r);background:repeating-linear-gradient(45deg,var(--p-cream),var(--p-cream) 10px,var(--p-cream-lt) 10px,var(--p-cream-lt) 20px);display:flex;align-items:center;justify-content:center;font:900 22px var(--p-display);color:var(--p-ink-3)}
+.status{border-collapse:collapse;width:100%;font-size:var(--p-fs-s);background:var(--p-white);border-radius:var(--p-r-lg);overflow:hidden}
+.status th,.status td{text-align:left;padding:10px 12px;border-top:1px solid var(--p-line)}
+.status th{background:var(--p-black);color:var(--p-white);font:700 var(--p-fs-xs) var(--p-sans);letter-spacing:.08em;text-transform:uppercase;border:0}
+.tablebox{overflow-x:auto;border:1px solid var(--p-line);border-radius:var(--p-r-lg)}
+@media (max-width:800px){.pair,.mockrow{grid-template-columns:minmax(0,1fr)}.spec{grid-template-columns:minmax(0,1fr)}.hero h1{font-size:40px}}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar"><span class="p-logo" aria-hidden="true"></span><span class="p-bar-app">Style</span><span class="p-bar-ver">v2 · Oct 14, 2026</span>
+  <div class="p-bar-sp"><a class="p-btn p-btn-dark" href="https://claude.ai/artifact/XmKpze8p95vdCFp9o9jpyN" target="_blank" rel="noopener" style="border-color:#fff">App audit ↗</a></div></header>
+<main class="wrap">
+
+<section class="hero"><span class="p-logo" role="img" aria-label="Pine"></span><h1><span>One look for</span>every Pine app.</h1></section>
+
+<section class="sec"><span class="p-section">Colors</span>
+<p>From the Pine Brand Standards: black, white, cream and Pantone 107 yellow. Meaning comes from fill and shape (yellow = needs you, black = done), not from more colors. Red appears only when something is wrong: an error, lost money, data that won't save.</p>
+<div class="grid">
+ <div class="sw"><div class="chip" style="background:var(--p-black)"></div><div class="t"><b>Black</b><span>#141412 · bars, text, done</span></div></div>
+ <div class="sw"><div class="chip" style="background:var(--p-white);border-bottom:1px solid var(--p-line)"></div><div class="t"><b>White</b><span>#FFFFFF · cards, fields</span></div></div>
+ <div class="sw"><div class="chip" style="background:var(--p-cream)"></div><div class="t"><b>Cream</b><span>#EFE2CD · page, facts, info</span></div></div>
+ <div class="sw"><div class="chip" style="background:var(--p-yellow)"></div><div class="t"><b>Yellow · Pantone 107</b><span>#FBE122 · the main action, waiting</span></div></div>
+</div>
+<div class="tints">
+ <div style="background:var(--p-cream-lt)">Cream light · page background</div>
+ <div style="background:var(--p-cream-dk)">Cream dark · borders</div>
+ <div style="background:var(--p-yellow-lt)">Yellow light · row that needs you</div>
+ <div style="background:var(--p-white);color:var(--p-ink-2)">Ink 2 · secondary text</div>
+ <div style="background:var(--p-white);color:var(--p-ink-3)">Ink 3 · hints (12px minimum)</div>
+ <div style="background:var(--p-alert-lt);color:var(--p-alert)">Alert · problems only</div>
+</div></section>
+
+<section class="sec"><span class="p-section">Type</span>
+<p>Poppins Black for screen titles and the one big number on a screen. Helvetica for everything else. No typewriter font; numbers line up with even-width digits instead. Nothing smaller than 12px, so it reads on an iPad at arm's length.</p>
+<div class="demo spec">
+ <span class="p-label">Screen title</span><h2 class="p-h1">Receiving · Order 10901</h2>
+ <span class="p-label">Big number</span><span class="p-big">1,240 pcs</span>
+ <span class="p-label">Two-line headline</span><div style="line-height:1"><div style="font:400 28px var(--p-sans)">BANDANAS</div><div style="font:900 28px var(--p-display)">DONE RIGHT.</div></div>
+ <span class="p-label">Heading</span><span class="p-h2">Line items</span>
+ <span class="p-label">Body · 16px</span><span>Count the hats, then hand them off to Shipping prep.</span>
+ <span class="p-label">Hint · 14px</span><span class="p-hint">Shows in Airtable's comments too</span>
+ <span class="p-label">Label · 12px</span><span class="p-label">Ordered total</span>
+ <span class="p-label">Numbers</span><span class="p-num" style="font-weight:700">$1,868.00 · 24 of 25 · 10901-A</span>
+</div></section>
+
+<section class="sec"><span class="p-section">Buttons</span>
+<p>One yellow main button per screen: the thing you came to do. Black for strong second actions. Quiet links for Cancel, Undo, "other color". Danger only for removing or refunding. 44px tall everywhere; 56px on the floor iPads.</p>
+<div class="demo">
+ <div class="p-btns"><button class="p-btn p-btn-main">Add line item</button><button class="p-btn p-btn-dark">Packing slip</button><button class="p-btn">Edit qty</button><button class="p-btn p-btn-quiet">Cancel</button><button class="p-btn p-btn-danger">Remove line</button><button class="p-btn p-btn-main" disabled>Post</button></div>
+ <div class="p-btns"><button class="p-btn p-btn-main p-btn-lg">✓ Done · 24/24 caught</button><button class="p-btn p-btn-lg">Review</button></div>
+</div></section>
+
+<section class="sec"><span class="p-section">Tags, IDs, tabs</span>
+<p>One tag shape for every app. Plain facts are cream, waiting is yellow, done is black, a problem gets the alert outline. Order and imprint IDs always look the same: black badge, yellow text.</p>
+<div class="demo">
+ <div class="p-tags"><span class="p-tag p-tag-soft">144 pcs</span><span class="p-tag p-tag-soft">UPS Ground</span><span class="p-tag p-tag-soft">3 screens</span><span class="p-tag p-tag-wait">Waiting on embroidery</span><span class="p-tag p-tag-wait">Needs lines</span><span class="p-tag p-tag-done">✓ Caught</span><span class="p-tag p-tag-done">✓ Ready to send</span><span class="p-tag">Pick-up</span><span class="p-tag p-tag-alert">Hard deadline</span><span class="p-tag p-tag-alert">1 short</span></div>
+ <div class="p-tags"><span class="p-id">10901</span><span class="p-id">10901-A</span><span class="p-id p-id-lg">10901</span></div>
+ <div class="p-tabs" role="tablist"><button class="p-tab" role="tab" aria-selected="true">Needs lines <span class="p-count">2</span></button><button class="p-tab" role="tab" aria-selected="false">Has lines <span class="p-count">30</span></button><button class="p-tab" role="tab" aria-selected="false">All <span class="p-count">32</span></button></div>
+</div></section>
+
+<section class="sec"><span class="p-section">Rows, notes, forms</span>
+<div class="pair">
+ <div class="p-list">
+  <div class="p-row is-on"><span class="p-id">10980</span><b style="flex:1">Grit FOCO</b><span class="p-tag p-tag-wait">Needs lines</span></div>
+  <div class="p-row"><span class="p-id">10906</span><span style="flex:1">Kasia Bojanowska</span><span class="p-tag p-tag-soft">8 lines</span></div>
+  <div class="p-row is-done"><span class="p-id">10901</span><span style="flex:1">DeVotchKa</span><span class="p-tag p-tag-done">✓ Done</span></div>
+ </div>
+ <div style="display:flex;flex-direction:column;gap:12px">
+  <div class="p-note">Supplier for promo, patches and stickers stays in Line Item Review.</div>
+  <div class="p-note p-note-wait"><b>Waiting on 🧵 Embroidery.</b> They'll pack the whole order and print the slip.</div>
+  <div class="p-note p-note-alert"><b>Losing money on this line</b> ($-0.40 / pc). Check the price before approving.</div>
+  <div class="p-field"><label class="p-label" for="ex1">Imprint nickname</label><input class="p-input" id="ex1" value="GRIT Strength &amp; Movement logo"></div>
+ </div>
+</div></section>
+
+<section class="sec"><span class="p-section">Pop-up, toast, stats</span>
+<p>Every pop-up: title and ✕ at the top, actions bottom right with the main one last. Every toast: black, bottom center, one line, Undo when it can be undone.</p>
+<div class="pair">
+ <div class="p-modal" role="dialog" aria-label="Example pop-up" style="position:static;box-shadow:var(--p-shadow);border:1px solid var(--p-line)">
+  <div class="p-modal-h"><span class="p-h2">Hand off order 10901</span><button class="p-modal-x" aria-label="Close">×</button></div>
+  <div class="p-modal-b" style="display:flex;flex-direction:column;gap:12px"><div class="p-note p-note-wait">Still waiting on <b>👕 Apparel</b> · 75 pcs to go.</div>
+   <div class="p-label">Where are the boxes?</div><div class="p-tabs"><button class="p-tab">🤝 Pick-up</button><button class="p-tab is-on">📦 Shipping prep</button></div></div>
+  <div class="p-modal-f"><button class="p-btn p-btn-quiet">Ship my part now</button><button class="p-btn p-btn-main">✓ Hand off</button></div>
+ </div>
+ <div style="display:flex;flex-direction:column;gap:14px">
+  <div class="p-toast" style="position:static;transform:none;align-self:flex-start">✓ Saved · 2 more in 10901 <button class="p-btn">Undo</button></div>
+  <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="p-stat"><div class="p-label">Pieces done</div><div class="p-big">1,240</div></div><div class="p-stat"><div class="p-label">Jobs today</div><div class="p-big">7/9</div></div></div>
+ </div>
+</div></section>
+
+<section class="sec"><span class="p-section">On a real screen</span>
+<p>Catching on an iPad, in the new style. Same layout as today; only the look changes.</p>
+<div class="mock">
+ <div class="p-bar" style="position:static"><span class="p-logo" aria-hidden="true"></span><span class="p-bar-app">Catching</span><span class="p-bar-ver">v159</span><div class="p-bar-sp"><span class="p-practice">Practice · nothing is saved</span><div class="p-tabs"><button class="p-tab is-on">P1 <span class="p-count">3</span></button><button class="p-tab">Embroidery <span class="p-count">1</span></button></div></div></div>
+ <div class="in">
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="p-id p-id-lg">10901</span><span class="p-h1" style="font-size:22px">DeVotchKa · Next Level 3604 — Navy</span><span class="p-tags" style="margin-left:auto"><span class="p-tag p-tag-wait">🧵 Embroidery · not done</span><span class="p-tag p-tag-done">👕 Apparel · you</span><span class="p-tag">Pick-up</span></span></div>
+  <div class="mockrow">
+   <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="lane"><button class="on"><span>Size M</span><b>27</b></button><button><span>Size L</span><b>29</b></button><button><span>Size XL</span><b>18</b></button><button><span>Smudge</span><b>2</b></button><button><span>Mill flaw</span><b>1</b></button><button><span>Unsure</span><b>0</b></button></div>
+    <div class="p-btns"><button class="p-btn p-btn-lg">Review</button><button class="p-btn p-btn-main p-btn-lg" style="flex:1">✓ Done · 71/74 caught</button></div>
+   </div>
+   <div class="proof">PROOF</div>
+  </div>
+ </div>
+</div></section>
+
+<section class="sec"><span class="p-section">Rules</span>
+<ol class="rules">
+ <li>One yellow main button per screen.</li>
+ <li>Only four colors. Yellow means "needs you" or "do this". Black means done. Red only for a real problem.</li>
+ <li>Every app opens with the same black top bar: Pine logo, app name, version, practice pill, then that app's controls.</li>
+ <li>Poppins Black only for titles and one big number. Everything else Helvetica. No Courier.</li>
+ <li>Nothing smaller than 12px. Touch targets at least 44px; 56px on the floor iPads.</li>
+ <li>Order and imprint IDs are always the black-and-yellow badge.</li>
+ <li>Pop-ups and toasts look and behave the same in every app.</li>
+</ol></section>
+
+<section class="sec"><span class="p-section">Moving the apps over</span>
+<p>Each app switches to this style in its next version, like the self-update rule. No big rewrite.</p>
+<div class="tablebox"><table class="status"><thead><tr><th>App</th><th>Today</th><th>Style v2</th></tr></thead><tbody>
+<tr><td>Operator</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Catching</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Damage Log</td><td>Shared v1</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Line Item Review</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Create order</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Price-O-Matic</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Purchasing · Receiving · Ink Queue</td><td>Mixed</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Production Board · Seps · Screens · Day Fill · Pine Central</td><td>Mixed</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+</tbody></table></div></section>
+
+</main>
+</body>
+</html>
