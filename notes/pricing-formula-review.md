@@ -327,3 +327,32 @@ IF(
 **Rollback:** put `{fld0IVAS1IxcPoqc6}` back in place of `{fldObjUIJI9gHPqOf}` in Estimated Margin / Piece.
 
 **Re-fit later:** re-run the ShipStation fit if carrier rates change a lot.
+
+## 2026-10-14 · Overhead check against the new scheduling times
+**Question (Stephen):** the scheduler now uses measured job times (ink change = 15 min, not 25). Is overhead still accounted for in pricing?
+
+**Short answer:** the scheduling change doesn't touch pricing. Overhead is covered today, but by less than the margin model shows. Ink changes are the clearest gap.
+
+**Data:**
+- 12 months of Press 1/2 jobs with clean timestamps: 1,888 of about 2,320. About 19% of jobs have no timestamps, so totals are scaled up 1.23× where noted.
+- Hours per month:
+
+  | Per month | Hours |
+  |---|---|
+  | Setup + printing | 156 h (≈ **192 h** scaled) |
+  | Floor time, first setup → last job end each day | 213 h (≈ **262 h** scaled) |
+  | Pricing's own time model on the same jobs (12 min/screen, 230/hr tees, 170 fleece, 225 bandana cost speed) | 168 h (≈ 207 h scaled) |
+
+**Findings:**
+1. **Pricing bills press time a bit generously.** Its job time comes out about 8% above the measured setup + printing. That's fine.
+2. **Time between jobs isn't in either model's job times.** That's loading, takedown, cleanup and breaks, about 2 h a day. It's paid for only through the POM's utilization factor.
+   - The POM assumes presses are busy 60% of 180 h × 2 presses = 216 h/month. Actual setup + printing is about 192 h (about 53%).
+   - So each real press hour carries about **$690** of the $133k ($133k ÷ 192 h). The POM uses **$517** (cost) and **$579** (selling).
+3. **Overhead is still covered.** The Oct 8 review measured revenue minus garments at **$737–1,096 per press hour**, above $690. The cushion is thinnest on small tee orders (under 75 pcs, about $737/hr), and the margin model reads more generous than reality.
+4. **Ink changes are underpriced.** The POM charges a flat **$35** per ink change and adds no press time. A measured ink change takes about 15 min, which is about **$145** at the $579 selling rate or about **$170** of real overhead. There are about 25–30 ink changes a month, so roughly **$3–4k/month** goes uncharged.
+
+**Options (pricing decisions; nothing changed):**
+- **Ink change fee:** raise it to about $150, or price it as 15 min of press time at the hourly rate.
+- **Utilization:** set the POM's utilization to the measured 53%. With the POM's formula, the selling rate goes from $579 to about **$608**/press-hr.
+  - The formula multiplies by (2 − u). A true "hours actually used" rate would divide by u, giving about $781/hr. That's a bigger change.
+- **Scheduling and pricing stay separate:** Estimated Run Time (scheduling, 15 min/ink change) and the [PRICE] fields don't share inputs. Updating the scheduling formula moves no prices or margins.
