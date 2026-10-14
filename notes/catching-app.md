@@ -182,3 +182,22 @@ Trimmed wording that repeated itself:
 - The QR label changed from "Scan to reorder" to **"Scan to get more"**.
 - The line now reads: "Scan the code to send <rep> your order. Your imprint IDs are already filled in, so it prints exactly the same."
 - Nothing else changed. reorder.html (the page the QR opens) still says "Reorder".
+
+## v154 — packing slip for any order + iPads stay current (Oct 14)
+- **Why:** an iPad still said it couldn't find order 10901 (and 10906) after v152 shipped. Both orders are in Airtable, both Completed, and v153 only says "not found" when Airtable has no such order. So the iPad was almost certainly still running an older version: home-screen apps can stay open for days without reloading. Nothing showed the version, so nobody could tell.
+- **Version on screen:** the Refresh button now shows "v154".
+- **Stays current:** Catching checks which version `pine-catching.html` points to on Refresh, when the app comes back to the front, and every 15 minutes.
+  - If there's a newer one and nothing is mid-catch, it reloads into it. Practice (`?practice=1`) is kept.
+  - If something is mid-catch, a black **"New Catching version · Update now"** bar shows instead.
+  - Old iPads need one last manual restart to get v154: swipe the app away and open it again.
+- **Completed tab:**
+  - **Any order** box at the top: type an order # and tap 🖨 Packing slip. It works for any order, any day, any status. It looks the order up in Airtable by number. A wrong number says "No order 55555 in Airtable".
+  - Each completed order's header also gets a 🖨 Packing slip button.
+  - The summary now says "N jobs today", since the tab only lists today's catches.
+- **Browser tabs** (not the home-screen app): the slip window opens right away, before the Airtable lookup, so Safari doesn't block it as a pop-up.
+- **Tested** with mocked Airtable:
+  - lookup of 10901 opens the slip in a browser tab and in the home-screen overlay
+  - 55555 gives the not-found message
+  - the Order complete card path still works
+  - the update check reloads when idle and shows the bar when busy
+  - no errors
