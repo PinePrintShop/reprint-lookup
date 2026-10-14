@@ -35,3 +35,26 @@ Base: `https://pineprintshop.github.io/reprint-lookup/`
 **When shipping a new version:** change the one `location.replace('…')` line in that app's permanent link (CLAUDE.md says so too).
 
 `receiving.html` is used because `receiving-dashboard.html` is an old full copy of the app. `pine-scheduler.html` and `pine-lunch-punchclock.html` are also old full apps, so they got no permanent link.
+
+## 2026-10-14 · Apps update themselves (`pine-update.js`)
+**Problem:** home-screen apps stay open for days, so an iPad kept running an old Catching. Refresh only reloaded the data, and GitHub can cache pages for up to 10 minutes.
+
+**Fix (Catching v154+, every app from its next version on):** the app checks its permanent link for a newer version on load, when it comes back to the front, every 15 minutes, and when Refresh is tapped. The check skips the cache.
+- **Nothing in progress:** it switches to the new version by itself, keeping `?practice=1`.
+- **Someone mid-task:** a black **"New version ready · Update now"** bar shows instead.
+- **Version on screen:** each app shows its version, so anyone can see which one an iPad is on.
+
+**How to add it to an app** (shared file `pine-update.js`):
+```html
+<script src="pine-update.js" data-link="pine-operator.html"></script>
+<script>window.pineBusy = () => /* true while a form/catch/upload is open */ false;</script>
+```
+- Call `PineUpdate.check()` from the Refresh button.
+- Show `'v'+PineUpdate.ver` somewhere small.
+- Without `pineBusy`, the app never reloads on its own; it only shows the bar.
+
+**After an app has it:** after a release, wait about 5 minutes, then tap Refresh or just switch back to the app. Only the first move onto a version that has it needs the old swipe-away-and-reopen.
+
+**Status:**
+- Catching: built in since v154.
+- Every other app: added the next time it ships a version (rule in CLAUDE.md).
