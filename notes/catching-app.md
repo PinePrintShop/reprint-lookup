@@ -201,3 +201,14 @@ Trimmed wording that repeated itself:
   - the Order complete card path still works
   - the update check reloads when idle and shows the bar when busy
   - no errors
+
+## v155 — logo back in the packing-slip PDF; leave items off the slip (Oct 14)
+- **Logo missing from the 📄 PDF on the iPads:**
+  - The slip's line logo (since v145) is an SVG with no width/height. iPad Safari draws a size-less SVG blank onto a canvas, and the PDF is made from a canvas (html2canvas). So the logo vanished from the PDF while showing fine on screen and in Print.
+  - Now the PDF uses a PNG copy of the logo built into the app (`PINE_LINE_LOGO_PNG`), and the SVG has a real size too.
+  - Tested by making Chromium skip SVGs on canvas the way Safari does: v154's PDF corner had 1,380 dark pixels (no logo); v155's has 10,105 (logo).
+- **Leave items off the slip** (Stephen: part of an order may have shipped earlier):
+  - Every item on the slip has **✕ Leave off**. The item collapses to a dashed, struck-through strip with **↺ Put back**, and the top bar says "1 item left off".
+  - Left-off items don't print and aren't in the PDF. The buttons never print. The PDF rebuilds after each change.
+  - Only the slip changes. Nothing is written to Airtable.
+- **Tested** with mocked Airtable: 4 items → leave 1 off → print media shows 3 items and 0 buttons, PDF capture shows 3. The order-card slip path still opens with no errors.
