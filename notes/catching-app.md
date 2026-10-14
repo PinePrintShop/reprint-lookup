@@ -175,3 +175,10 @@ Trimmed wording that repeated itself:
 - **Tested** with mocked Airtable:
   - v151 shows the alert in both cases (card and after done).
   - v152 opens the slip from the card, after the order is done, and through the lookup by number.
+
+## v153 — friendlier reorder box on the packing slip (Oct 14)
+- Stephen asked for wording that sounds less like a chore.
+- The heading changed from "Need a reorder?" to **"When it's time to get more!"**.
+- The QR label changed from "Scan to reorder" to **"Scan to get more"**.
+- The line now reads: "Scan the code to send <rep> your order. Your imprint IDs are already filled in, so it prints exactly the same."
+- Nothing else changed. reorder.html (the page the QR opens) still says "Reorder".
