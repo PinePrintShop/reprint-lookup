@@ -275,3 +275,34 @@ Stephen: let the team adjust imprint info from Review, the same fields they can 
   - a good save PATCHes only the changed fields
   - "no changes" is handled
   - the layout and Last-time tests pass with no errors
+
+## 2026-10-14 · v17: remove pages before sending, edit quantities
+Sales feedback, via Stephen:
+
+**Remove pages from the PandaDoc before sending**
+- Every page in the Send for signature preview has a **✕ Remove** button. A removed page is grayed out and stamped "Removed", and **↺ Put back** restores it.
+- A line above the pages says how many go out ("1 page removed · 4 of 5 go to the customer · put all back").
+- The PDF that is sent (and downloaded) is rebuilt from the kept pages only. A removed page's PandaDoc initials tag goes with it.
+- **The invoice signature page can't be removed** (marked "signs here"), so every packet keeps a place to sign.
+- Page captions now name the page: Terms / Proof · garment · p2 / Invoice · signature.
+- Thumbnails stay visible while sending (before, the sheet re-render wiped them).
+
+**Edit quantities in the right column**
+- The Garment panel has **✎ Edit qty**. It shows a box per size: S–3XL plus any size already used, with "more sizes" for XS, 4XL+ and one size.
+  - It shows "50 → 52 pcs" while you type. Save qty writes only the sizes that changed; 0 clears a size.
+- After saving, the app re-reads the line (Total Qty, Autoprice, Line Total and margins are formulas) and the order (subtotal, tax, outstanding). So the invoice in Send for signature is current and the "line totals vs subtotal" check stays honest.
+- A yellow note shows "Qty 50 → 52 · Autoprice $35.00 → $34.80 · Price/pc is $35.00 **[Use $34.80]**". One tap sets the new price. Saving a price by hand also re-reads the order now.
+- **Approvals aren't reset** by a quantity change. This is meant for last-minute tweaks on orders that are ready to send.
+- **Safety:**
+  - Automations checked first: none watch the Line Item size fields.
+  - The 3-minute auto-refresh pauses while the size form is open.
+- **Practice mode** fakes the save. It updates the line total and the order subtotal/outstanding locally, but Autoprice isn't recalculated.
+
+- `pine-line-item-review.html` now opens v17.
+- **Tested** with mocked Airtable (practice and live), recorded in `lir17.js`:
+  - the size edit PATCHes only the changed sizes (2XL cleared to null)
+  - "Use $34.80" PATCHes the price
+  - the order is re-read, so no mismatch warning
+  - removing a proof page sends 4 of 5 pages to the worker, and the order moves to Sent
+  - practice says "would send · 1 page removed"
+  - no errors
