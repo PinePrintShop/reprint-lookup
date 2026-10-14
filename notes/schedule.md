@@ -209,3 +209,8 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - **Suggest** only fills a lane-day up to **90%** of its press time per day. That leaves about 40 min of cushion on Press 1 and 35 min on Press 2. It's editable in Settings ("Suggest fills each day to": 80–100%). Before this, it filled up to 105%.
 - **Dragging by hand** can still go past 90%. The "!" warning shows above 100%.
 - Tested with mocked Airtable: every day Suggest filled landed between 56% and 88%.
+
+## 2026-10-14 · v11: Flatstock and Finishing colors
+- **Flatstock:** Pantone **7683** denim `#426DA9`, from the brand's other palette, with white text (black reads poorly on it).
+- **Finishing:** dusty plum `#8E6C8A`, with black text. It isn't a brand Pantone; the brand book says "feel free to get creative". The muted brand colors left are taken (teal, mustard, burnt orange, Red 032), and the remaining ones are too bright (sky, 107 yellow) or too dark (540 navy). Plum differs from the other lanes in both color and lightness.
+- **Where they show:** cards, machine chips, day-header loads, Day view headers and bars, Month chips and unscheduled tags, same as the other lanes.
