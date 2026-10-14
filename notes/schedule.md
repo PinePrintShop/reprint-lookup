@@ -219,3 +219,13 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - v9–v11 left planned ink changes out of Press 1/2 job time. They now add **15 min each**.
 - That's measured: jobs with 1 ink change ran 15 min over the model and jobs with 2 ran about 26 min over (1,888-job history). Airtable's Ink Change time field assumes 25 min each.
 - The count comes from Ink Change time ÷ 25 min.
+
+## 2026-10-14 · v13: Allocated Production Time
+**Stephen:** Allocated is the scheduler's adjustable time, and the app needs that feature. In Airtable, *End Time* = Scheduled Start + Allocated, and Operator and the Production Board read Allocated.
+- **Job length** on the board is **Allocated Production Time when it's set** (the scheduler's call), else the estimate.
+- **Job card:**
+  - **Estimate** with its breakdown (setup + printing).
+  - **Allocated (min)**, editable, with a "Use estimate" button (rounds up to 5 min). Blank clears it.
+- **Placing a job** with no Allocated (drag, card move, Suggest, Place all) fills it from the estimate, rounded up to 5 min, in the same write. Operator, the Board and the Airtable calendar then show the same length. Existing Allocated values are never overwritten by a move, and Undo puts them back.
+- **Estimate** is the calibrated model, now the same numbers as Airtable's Estimated Run Time (see `schedule-calibration.md`).
+- Tested with mocked Airtable: dropping an unscheduled job wrote Equipment + Start + Allocated 40 min. Setting Allocated to 90 on a card wrote 5,400 s, and the job became 90 min on the board.
