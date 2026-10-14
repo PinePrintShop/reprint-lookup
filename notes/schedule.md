@@ -113,3 +113,10 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - A drop into Thursday among mixed machines landed after the right Press 1 job and pushed the next two Press 1 jobs later.
   - With only Press 2 selected, the list and the board showed just Press 2.
   - Suggest with Press 1 + Press 2 selected only placed screen-print jobs.
+
+## 2026-10-14 · v4: garment names, and fleece really counts
+**Bug (Stephen):** a job card showed a record ID (`recDs3Bz…`) under Garments. The Imprints "Garment Type" lookup points at linked Garments records, and through the API it returns their IDs, not names. Because of that, v1–v3 never spotted fleece either, so fleece jobs got no extra run time.
+- **Garment types:** each job's Line Items are read for their garment type (Garments' type select: T-Shirt, Pullover Hoodie, Bandana…) and qty. They load right after the board shows and are cached.
+- **Fleece share:** fleece pieces (Sweatshirt, Pullover Hoodie, Zip Up Hoodie, Youth Fleece, Day Fill's list) / all pieces. Run time on the screen presses is × (1 + share × 0.35), so a half-fleece job gets half the bump. The card shows "60% fleece" and "(fleece +21%)".
+- **Garment names** load when you open a card (Garments table, primary field), e.g. "Bella Canvas 3001 - Black". The type shows first while the names load.
+- Tested with mocked Airtable: a hoodie job went from 78 to 105 minutes on Press 1, and the card showed the garment name.
