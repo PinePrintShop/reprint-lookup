@@ -306,3 +306,30 @@ Sales feedback, via Stephen:
   - removing a proof page sends 4 of 5 pages to the worker, and the order moves to Sent
   - practice says "would send · 1 page removed"
   - no errors
+
+## 2026-10-14 · v18: screenshots in comments, no @ for yourself
+The Art Director asked for screenshots in comments, to point out small details to the outsourced art team. They work in the Airtable interface today and will move to this app.
+
+**New Airtable field (OK'd by Stephen 10/14):** Line Items › **Comment Screenshots** (`fldIGuJmx4jPgYiB1`, attachments). No automation watches it.
+
+**Screenshots:**
+- Three ways to add one in the comment box:
+  - **paste** (⌘V)
+  - **drag** an image onto the box
+  - **📷 Add screenshot**
+- Previews show before posting, with ✕ to remove. You can post a screenshot with no text.
+- On Post, each image uploads to the line's Comment Screenshots field with an easy-to-match name (`10955_1014-1840.png`: order, date, time). The comment gets a line **"📷 Screenshot: 10955_1014-1840.png"**.
+- In this app that line shows as a thumbnail inside the comment; click it for full size.
+- In Airtable, the comment shows the 📷 line, and the file with that name is in Comment Screenshots.
+- Images only, 5 MB max each (Airtable's upload limit). Practice mode keeps them on screen only.
+
+**Notify chips:** once you pick your name at the top right, your own @ button is hidden. The match is by first name, or by the full name.
+
+**Self-update + version:** `pine-update.js` is added. The version (v18) shows next to ↻, and ↻ also checks for a new version. It won't reload while notes, an imprint or quantity edit, the send sheet, a typed comment or a pending screenshot is open.
+
+- `pine-line-item-review.html` now opens v18.
+- **Tested** with mocked Airtable, practice and live:
+  - Chris's own chip is hidden.
+  - Paste, file pick and ✕ work.
+  - Post uploads to `fldIGuJmx4jPgYiB1` and then comments with the 📷 line and the mention; the thumbnail renders in the comment.
+  - No errors.
