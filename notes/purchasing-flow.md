@@ -363,3 +363,33 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - A matched color with no stock rows **and** no photo/barcode now shows **"new color · not released yet"**. Otherwise it's still "coming soon · no stock yet".
   - Under the warehouses: "AS Colour hasn't released Orange in 1107 yet. **See the date on ascolour.com ↗**", which links to AS Colour's search for the style.
 - Tested with mocks shaped like the real variant.
+
+## 2026-10-14 — v106: editable reprints, split POs, "Reviewed" on Past orders, Pine style v2
+- **Stephen's ask:** in Reprints, make the quantities editable and allow a new PO and a different vendor/warehouse, since replacements sometimes can't come from the same warehouse. Purchasing also wanted an internal checkbox to filter out what they've already checked against invoices.
+- **New Line Items fields (Stephen OK'd 1 + 2):**
+  - **Replacement Supplier** (`fldqPZ5EUCHAE10eu`): link to Suppliers.
+  - **Replacement Order** (`fldLaOaYriGPxxQMu`): long text.
+  - **Invoice Reviewed** (`fldB3pgSpMazJ8hKV`): checkbox.
+  - Also writes the existing **PO # (For Reprints)** (`fldcaFxMwfli5cR2K`).
+  - The original Supplier and PO are left untouched.
+- **Reprints:** each card has one or more "Order from" rows, each with a warehouse, PO # and a box per size.
+  - Sizes start from the Damage Log's damaged sizes, or "OS" with the damaged total.
+  - The PO defaults to today's (MMDDYY). Extra rows add B, C, and so on.
+  - **+ Another PO / warehouse** splits the order. ✕ removes a row.
+  - The warehouse menu ends with **+ New vendor / warehouse…**, which adds a Suppliers record ("Company - City, ST" gives a ship time). In practice mode it isn't saved.
+  - **Mark replacement ordered** saves:
+    - Replacements Ordered? ✓
+    - PO # (For Reprints) = every PO
+    - Replacement Supplier = every warehouse
+    - Replacement Order = one line per PO, e.g. "PO 101426 · S&S - Dallas, TX: 2 M, 2 L"
+- **Reviewed lives on Past orders, not Invoice check.** Invoice check shows carts before ordering. Past orders lists the ordered POs that get matched to vendor invoices.
+  - Each PO row has **Mark reviewed / ✓ Reviewed**, which sets Invoice Reviewed on every line of that PO at that warehouse. It's shared in Airtable, so both computers see it.
+  - **Hide reviewed (n)** filters them out. That on/off choice is remembered per computer.
+- **App:** Pine style v2 (black top bar, Poppins titles, nothing under 12px), self-update via `pine-update.js` with the version on screen.
+  - `pineBusy` is true while a cart has lines or a reprint has been edited.
+  - On iPad width, the order card no longer slides under the Carts panel: the one-column rows now size to their content.
+- **Tested with mocked Airtable (Playwright), 1400 / 1024 / 390 wide, live and practice:**
+  - Split a reprint into S&S Dallas + a new "Shaka Wear" warehouse and marked it ordered. Checked the PATCH payload, and the Suppliers POST in live mode only.
+  - Reviewed one PO (a 3-record PATCH) and turned on the hide filter.
+  - Practice mode logged the writes without sending them.
+  - Re-ran the v105 Ordering test.
