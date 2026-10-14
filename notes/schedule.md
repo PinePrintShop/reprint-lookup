@@ -93,3 +93,23 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - Over-capacity bars and late cards stay red.
   - Embroidery and heat stay plain until Whitney picks their colors.
 - Tested with mocked Airtable (drag, Suggest, Place all, Month).
+
+## 2026-10-14 · v3: one column per day, pick your machines
+**Why (Stephen):** the Airtable calendar keeps every machine's jobs together on the day, with a toggle for all machines or some. The row per press in v1/v2 meant scrolling down to find things.
+- **Week and 3 Day:** each day is one column, with every shown machine's jobs in time order.
+  - Each card starts with its machine (P1, P2, EM, D3, TAG, HAT). Press 1 and Press 2 cards are filled with their colors.
+  - The day header (pinned while you scroll) shows each machine's load, e.g. "P1 59% · P2 31% · EM 12%". It has a red outline when a machine is over.
+- **Machine chips** (new row under the toolbar):
+  - All, or any mix of machines. Tap one while All is on to see just that one, tap others to add them, and tap again to remove one.
+  - Each chip shows how many jobs that machine has in view. Your pick is remembered on this computer.
+  - The chips also filter the Unscheduled list, Month view, and what ✨ Suggest fills.
+- **Dragging onto a day column:**
+  - The job keeps its machine, or the one Suggest picked. A job with no press yet goes on the only machine shown (or Press 1 for screen print when several are shown).
+  - Where you drop it among that machine's jobs sets its place, and later jobs on that machine move only if they'd overlap.
+  - To change machines, tap the card or use Day view.
+- **Day view** keeps one column per machine for moving jobs between machines.
+- Heat presses are labeled D3, TAG and HAT (was HT for all three).
+- Tested with mocked Airtable:
+  - A drop into Thursday among mixed machines landed after the right Press 1 job and pushed the next two Press 1 jobs later.
+  - With only Press 2 selected, the list and the board showed just Press 2.
+  - Suggest with Press 1 + Press 2 selected only placed screen-print jobs.
