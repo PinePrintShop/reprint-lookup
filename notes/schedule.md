@@ -170,3 +170,36 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - Into another lane, it takes that lane's main machine (Tajima or D3).
   - To pick an exact machine, tap the card and use the press picker.
 - Tested with mocked Airtable using mixed machines: a Tag job moved within Heat stayed on Tag, a Press 1 job moved to Heat became D3, and the Heat lane load counted D3 + Tag together.
+
+## 2026-10-14 · v9: job times from real press history
+**Stephen:** do option 1 (the Schedule app uses the calibrated model). Airtable's Estimated Run Time formula (option 2) is still being discussed. Background: `notes/schedule-calibration.md`.
+- **Press 1/2 job time** = setup + printing + Manual Run Time Add:
+  - Setup: 8.2 min/screen on Press 1, 8.9 min/screen on Press 2.
+  - Printing speed (pieces per hour):
+
+    | | Tee | Bandana | Fleece | Tote |
+    |---|---|---|---|---|
+    | Press 1 | 253 | 239 | 194 | 176 |
+    | Press 2 | 231 | 189 | 171 | 149 |
+
+  - A part-fleece job blends the tee and fleece speeds by its fleece share. Split uses both presses' speeds added together.
+- **Embroidery** is the stitch formula plus 18 min of hooping.
+- **Kept on Airtable's formula for now:**
+  - **Heat presses.** The measured speeds (D3 33/hr, Tag 36, Hat 39) come from only 37 jobs and are about 2× slower than the formula; check with the heat press person first.
+  - **Sewing and finishing.**
+- **Gaps between jobs** (loading, takedown, cleanup):
+
+  | | Same product | Product change (bandana ↔ tee ↔ fleece) |
+  |---|---|---|
+  | Press 1 | 11 min | 21 min |
+  | Press 2 | 13 min | 30 min |
+  | Other lanes | 5 min | 5 min |
+
+  These gaps are used for start times when moving or suggesting jobs. They replace the flat 15-minute platen changeover.
+- **Capacity:** "100%" is now a normal full day of press time: Press 1 6.75 h, Press 2 6 h (Embroidery 8 h, Heat 7 h unchanged). Suggest also won't let a run end after **5:15 pm** ("Last job ends by" in Settings).
+- **Settings:** the fleece × factor is gone (fleece comes from data now). The hours setting is relabeled "Press time per day (setup + printing)" with an explanation. Settings saved on a computer before v9 keep their Friday choice and buffer days but not the old 8.25 h / 8 h.
+- **Job card:** shows "Press time 1h 44m · setup 33m + printing 1h 11m".
+- Tested with mocked Airtable. Examples:
+  - 300 tees, 4 screens, Press 1: 1h 52m → 1h 44m.
+  - 150 bandanas, 4 screens, Press 1: 1h 40m → 1h 11m.
+  - 96 bandanas, 1 screen, Press 2: 53m → 40m.
