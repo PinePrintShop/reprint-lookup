@@ -17,7 +17,7 @@
 | Seps | `seps.html` | v34 |
 | Screens | `screens.html` | v21 |
 | Day Fill | `pine-day-fill.html` | v15 |
-| Pine Central | `pine-central.html` | v170 |
+| Pine Central | `pine-central.html` | v171 |
 | Price-O-Matic | `price-o-matic.html` | v105 |
 | Line Item Review | `pine-line-item-review.html` | v18 |
 | Create order | `create-order.html` | v17 |

@@ -27,9 +27,8 @@ body{margin:0}
 .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:var(--p-s4);align-items:start}
 .rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:72ch}
 .hero{display:flex;gap:var(--p-s5);align-items:center;flex-wrap:wrap}
-.hero .p-logo{width:120px;color:var(--p-black)}
-.hero h1{font:900 56px/1 var(--p-display);margin:0;letter-spacing:-.02em}
-.hero h1 span{display:block;font:400 28px/1.1 var(--p-sans);letter-spacing:0}
+.hero h1{font:900 56px/1 var(--p-display);margin:0;letter-spacing:.005em;word-spacing:.08em;text-transform:uppercase}
+.hero h1 span{display:block;font:400 30px/1.1 var(--p-sans);letter-spacing:0;text-transform:uppercase;margin-bottom:4px}
 .mock{border-radius:var(--p-r-lg);overflow:hidden;border:2px solid var(--p-black);background:var(--p-cream-lt)}
 .mock .in{padding:var(--p-s4);display:flex;flex-direction:column;gap:var(--p-s3)}
 .mockrow{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:var(--p-s4)}
@@ -46,11 +45,11 @@ body{margin:0}
 </style>
 </head>
 <body class="p-app">
-<header class="p-bar"><span class="p-logo" aria-hidden="true"></span><span class="p-bar-app">Style</span><span class="p-bar-ver">v2 · Oct 14, 2026</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Style</span><span class="p-bar-ver">v2 · Oct 14, 2026</span>
   <div class="p-bar-sp"><a class="p-btn p-btn-dark" href="https://claude.ai/artifact/XmKpze8p95vdCFp9o9jpyN" target="_blank" rel="noopener" style="border-color:#fff">App audit ↗</a></div></header>
 <main class="wrap">
 
-<section class="hero"><span class="p-logo" role="img" aria-label="Pine"></span><h1><span>One look for</span>every Pine app.</h1></section>
+<section class="hero"><span class="p-mark p-mark-lg"><span class="p-logo" role="img" aria-label="Pine"></span></span><h1><span>One look for</span>every Pine app.</h1></section>
 
 <section class="sec"><span class="p-section">Colors</span>
 <p>From the Pine Brand Standards: black, white, cream and Pantone 107 yellow. Meaning comes from fill and shape (yellow = needs you, black = done), not from more colors. Red appears only when something is wrong: an error, lost money, data that won't save.</p>
@@ -74,7 +73,7 @@ body{margin:0}
 <div class="demo spec">
  <span class="p-label">Screen title</span><h2 class="p-h1">Receiving · Order 10901</h2>
  <span class="p-label">Big number</span><span class="p-big">1,240 pcs</span>
- <span class="p-label">Two-line headline</span><div style="line-height:1"><div style="font:400 28px var(--p-sans)">BANDANAS</div><div style="font:900 28px var(--p-display)">DONE RIGHT.</div></div>
+ <span class="p-label">Two-line headline</span><div style="line-height:1.05"><div style="font:400 28px var(--p-sans)">BANDANAS</div><div style="font:900 28px var(--p-display);word-spacing:.08em">DONE RIGHT.</div></div>
  <span class="p-label">Heading</span><span class="p-h2">Line items</span>
  <span class="p-label">Body · 16px</span><span>Count the hats, then hand them off to Shipping prep.</span>
  <span class="p-label">Hint · 14px</span><span class="p-hint">Shows in Airtable's comments too</span>
@@ -130,7 +129,7 @@ body{margin:0}
 <section class="sec"><span class="p-section">On a real screen</span>
 <p>Catching on an iPad, in the new style. Same layout as today; only the look changes.</p>
 <div class="mock">
- <div class="p-bar" style="position:static"><span class="p-logo" aria-hidden="true"></span><span class="p-bar-app">Catching</span><span class="p-bar-ver">v159</span><div class="p-bar-sp"><span class="p-practice">Practice · nothing is saved</span><div class="p-tabs"><button class="p-tab is-on">P1 <span class="p-count">3</span></button><button class="p-tab">Embroidery <span class="p-count">1</span></button></div></div></div>
+ <div class="p-bar" style="position:static"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Catching</span><span class="p-bar-ver">v159</span><div class="p-bar-sp"><span class="p-practice">Practice · nothing is saved</span><div class="p-tabs"><button class="p-tab is-on">P1 <span class="p-count">3</span></button><button class="p-tab">Embroidery <span class="p-count">1</span></button></div></div></div>
  <div class="in">
   <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="p-id p-id-lg">10901</span><span class="p-h1" style="font-size:22px">DeVotchKa · Next Level 3604 — Navy</span><span class="p-tags" style="margin-left:auto"><span class="p-tag p-tag-wait">🧵 Embroidery · not done</span><span class="p-tag p-tag-done">👕 Apparel · you</span><span class="p-tag">Pick-up</span></span></div>
   <div class="mockrow">
@@ -148,7 +147,7 @@ body{margin:0}
  <li>One yellow main button per screen.</li>
  <li>Only four colors. Yellow means "needs you" or "do this". Black means done. Red only for a real problem.</li>
  <li>Every app opens with the same black top bar: Pine logo, app name, version, practice pill, then that app's controls.</li>
- <li>Poppins Black only for titles and one big number. Everything else Helvetica. No Courier.</li>
+ <li>Poppins Black only for titles and one big number, always in capitals and never squeezed. Everything else Helvetica. No Courier.</li>
  <li>Nothing smaller than 12px. Touch targets at least 44px; 56px on the floor iPads.</li>
  <li>Order and imprint IDs are always the black-and-yellow badge.</li>
  <li>Pop-ups and toasts look and behave the same in every app.</li>
