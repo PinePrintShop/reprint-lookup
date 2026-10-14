@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pine Schedule v4</title>
+<!-- Pine Schedule v4 (2026-10-14): garments come from the job's Line Items (the Imprints "Garment Type" lookup returns record IDs
+     through the API, so v1-v3 showed IDs and never spotted fleece). Fleece share now weights run time like Day Fill did.
+     Pine Schedule v3 (2026-10-14): Week and 3 Day show each day as one column with every machine's jobs in time order,
+     like the Airtable calendar. Machine chips pick All or any mix of machines. Day view keeps a column per machine.
+     Pine Schedule v2 (2026-10-14): Press 1 and Press 2 get their own colors (Stephen picked direction A in pine-colors.html).
+     Pine Schedule v1 (2026-10-14): Scheduler v13 + Day Fill v15 in one app.
+     Drag job cards onto a press and a day. ✨ Suggest fills the next weeks the way Day Fill did
+     (due dates, hard deadlines, whole orders, press limits) and shows dashed cards you can place or skip.
+     Writes Equipment + Scheduled Start Time on Imprints (shop clock time stored as Z, 08:30Z = 8:30 am,
+     same as Operator and the Airtable calendar). ?practice=1 fakes every write. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+html,body{margin:0;height:100%}
+body{background:var(--p-cream-lt)}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.p-bar{position:relative}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--p-line);background:var(--p-white)}
+.tools .grow{flex:1}
+.range{font:900 20px/1 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em;min-width:0;white-space:nowrap}
+.navb{min-width:44px;padding:0 10px}
+.seg{display:inline-flex;border:2px solid var(--p-black);border-radius:var(--p-pill);overflow:hidden}
+.seg button{border:0;background:var(--p-white);font:700 14px/1 var(--p-sans);padding:0 14px;min-height:40px;cursor:pointer;color:var(--p-black)}
+.seg button+button{border-left:2px solid var(--p-black)}
+.seg button.on{background:var(--p-black);color:var(--p-yellow)}
+.body{flex:1;display:flex;min-height:0}
+
+/* unscheduled list */
+.side{width:330px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--p-line);background:var(--p-white);min-height:0}
+.side-h{padding:12px 14px 8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--p-line)}
+.side-h .t{display:flex;align-items:baseline;gap:8px}
+.side-h .t b{font:900 16px/1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.side-list{flex:1;overflow:auto;padding:8px 10px 40px}
+.side.drop-on{box-shadow:inset 0 0 0 3px var(--p-yellow)}
+.og{margin:10px 0 4px;padding:6px 4px 4px;font:700 13px/1.25 var(--p-sans);color:var(--p-ink-2);display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;border-top:1px solid var(--p-line)}
+.og:first-child{border-top:0;margin-top:0}
+.og b{color:var(--p-black)}
+.sc{display:flex;gap:10px;align-items:flex-start;background:var(--p-cream-lt);border:1.5px solid var(--p-line-strong);border-radius:8px;padding:8px;margin:6px 0;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.sc:hover{border-color:var(--p-black)}
+.sc img,.sc .noimg{width:48px;height:48px;flex:none;border-radius:4px;object-fit:contain;background:var(--p-white);border:1px solid var(--p-line)}
+.sc .m{min-width:0;flex:1}
+.sc .l1{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.sc .l2{font-size:13px;color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc .l3{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.sc.hd{box-shadow:inset 5px 0 0 var(--p-black)}
+.sc.skip{opacity:.45}
+.why{font-size:12px;color:var(--p-alert);font-weight:700}
+.id{font:800 15px/1 var(--p-sans);font-variant-numeric:tabular-nums}
+.tg{display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:4px;border:1.5px solid var(--p-black);font:700 12px/1 var(--p-sans);white-space:nowrap;background:var(--p-white)}
+.tg.k{background:var(--p-black);color:var(--p-yellow)}
+.tg.y{background:var(--p-yellow)}
+.tg.c{background:var(--p-cream);border-color:var(--p-cream-dk)}
+.tg.a{border-color:var(--p-alert);color:var(--p-alert)}
+
+/* calendar */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+.sugbar{display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--p-yellow-lt);border-bottom:2px solid var(--p-yellow)}
+.sugbar.on{display:flex}
+.sugbar .msg{flex:1;min-width:200px;font-weight:700}
+.cal{flex:1;overflow:auto;padding:12px 16px 60px}
+.grid{display:grid;gap:0;border:1px solid var(--p-line-strong);border-radius:10px;background:var(--p-white);min-width:min-content}
+.gh{position:sticky;top:-12px;z-index:3;background:var(--p-black);color:var(--p-white);padding:9px 10px;font:700 14px/1.1 var(--p-sans);border-left:1px solid #333;display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.gh.today{background:var(--p-yellow);color:var(--p-black)}
+.gh .dn{font:900 15px/1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.gh .sub{font-size:12px;opacity:.75;font-weight:700}
+.gh:first-child{border-radius:9px 0 0 0;border-left:0}
+.rh{position:sticky;left:-16px;z-index:2;background:var(--p-cream);border-top:1px solid var(--p-line-strong);padding:10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.rh b{font:900 14px/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.rh span{font-size:12px;color:var(--p-ink-2)}
+.cell{border-top:1px solid var(--p-line-strong);border-left:1px solid var(--p-line);padding:6px;min-height:90px;display:flex;flex-direction:column;gap:5px;min-width:0;background:var(--p-white)}
+.cell.off{background:repeating-linear-gradient(135deg,var(--p-cream-lt) 0 8px,var(--p-white) 8px 16px)}
+.cell.past{background:var(--p-cream-lt)}
+.cell.drop-on,.mcell.drop-on{box-shadow:inset 0 0 0 3px var(--p-yellow);background:var(--p-yellow-lt)}
+.fill{display:flex;align-items:center;gap:6px;font:700 12px/1 var(--p-sans);color:var(--p-ink-2)}
+.fill .bar{flex:1;height:7px;border-radius:4px;background:var(--p-cream);overflow:hidden;min-width:30px}
+.fill .bar i{display:block;height:100%;background:var(--p-black)}
+.fill.over .bar i{background:var(--p-alert)}
+.fill.over{color:var(--p-alert)}
+.offl{font:700 12px/1 var(--p-sans);color:var(--p-ink-3);text-transform:uppercase;letter-spacing:.06em}
+.jc{position:relative;background:var(--p-cream-lt);border:1.5px solid var(--p-line-strong);border-radius:6px;padding:5px 7px;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:manipulation;font-size:13px;line-height:1.25}
+.jc:hover{border-color:var(--p-black)}
+.jc .l1{display:flex;gap:5px;align-items:baseline;white-space:nowrap;overflow:hidden}
+.jc .tm{font-weight:700;color:var(--p-ink-2);font-variant-numeric:tabular-nums}
+.jc .id{font-size:14px}
+.jc .em{overflow:hidden;text-overflow:ellipsis}
+.jc .l2{color:var(--p-ink-2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jc.hd{box-shadow:inset 4px 0 0 var(--p-black)}
+.jc.done{opacity:.55}
+.jc.late{border-color:var(--p-alert)}
+.jc.ghost{background:var(--p-yellow-lt);border:2px dashed var(--p-black)}
+.jc.ghost.late{border-color:var(--p-alert)}
+.jc.saving{opacity:.6}
+.jc .bigimg{display:none}
+.day .jc{display:flex;gap:10px;font-size:14px;padding:8px}
+.day .jc .bigimg{display:block;width:64px;height:64px;object-fit:contain;flex:none;background:var(--p-white);border:1px solid var(--p-line);border-radius:4px}
+.day .jc .l2{white-space:normal}
+.day .cell{min-height:200px}
+.dragging{position:fixed;z-index:200;pointer-events:none;opacity:.92;transform:rotate(-1.5deg);box-shadow:0 10px 30px rgba(0,0,0,.3);width:220px}
+.ph{height:4px;border-radius:2px;background:var(--p-black);margin:-2px 0}
+
+/* month */
+.mgrid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));border:1px solid var(--p-line-strong);border-radius:10px;background:var(--p-white);overflow:hidden}
+.mgrid .gh{position:sticky;top:-12px}
+.mcell{border-top:1px solid var(--p-line-strong);border-left:1px solid var(--p-line);min-height:150px;padding:6px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.mcell:nth-child(5n+1){border-left:0}
+.mcell.out{background:var(--p-cream-lt)}
+.mcell.out .mn{color:var(--p-ink-3)}
+.mcell.today .mn{background:var(--p-yellow);border-radius:var(--p-pill);padding:2px 8px}
+.mn{align-self:flex-end;font:800 14px/1.2 var(--p-sans);font-variant-numeric:tabular-nums}
+.mc{display:flex;gap:4px;align-items:baseline;white-space:nowrap;overflow:hidden;font-size:13px;padding:3px 5px;border-radius:4px;background:var(--p-cream-lt);border:1px solid var(--p-line);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.mc .pk{font:800 12px/1 var(--p-sans);background:var(--p-black);color:var(--p-white);border-radius:3px;padding:2px 4px}
+.mc .pk.p2{background:var(--p-white);color:var(--p-black);box-shadow:inset 0 0 0 1.5px var(--p-black)}
+.mc .pk.em{background:var(--p-cream-dk);color:var(--p-black)}
+.mc .pk.ht{background:var(--p-yellow);color:var(--p-black)}
+.mc.ghost{border:1.5px dashed var(--p-black);background:var(--p-yellow-lt)}
+.mc.hd{box-shadow:inset 3px 0 0 var(--p-black)}
+.more{font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2);background:none;border:0;text-align:left;padding:4px 2px;cursor:pointer}
+.mfill{display:flex;gap:6px;flex-wrap:wrap;font:700 12px/1 var(--p-sans);color:var(--p-ink-2)}
+.mfill .ov{color:var(--p-alert)}
+
+/* modal + misc */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
+.kv dt{color:var(--p-ink-2);font-weight:700}
+.kv dd{margin:0}
+.prep{display:flex;gap:6px;flex-wrap:wrap}
+.proof{width:100%;max-height:260px;object-fit:contain;background:var(--p-cream-lt);border-radius:8px;border:1px solid var(--p-line)}
+.row3{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:8px}
+.sel,.inp{min-height:44px;border:2px solid var(--p-black);border-radius:var(--p-r);padding:0 10px;font:400 15px var(--p-sans);background:var(--p-white);color:var(--p-black);width:100%}
+textarea.inp{min-height:70px;padding:8px 10px}
+.empty{padding:30px;text-align:center;color:var(--p-ink-2)}
+.tokenbox{max-width:480px;margin:60px auto;padding:24px;background:var(--p-white);border-radius:12px;border:1px solid var(--p-line-strong);display:flex;flex-direction:column;gap:12px}
+.loading{padding:40px;text-align:center;font-weight:700;color:var(--p-ink-2)}
+.sidebtn{display:none}
+.scrim-side{display:none}
+.legend{font-size:12px;color:var(--p-ink-3)}
+/* v2: press colors (pine-colors.html, direction A). Embroidery and heat stay plain until Whitney picks. */
+:root{--press1:#426DA9;--press1-ink:#FFFFFF;--press2:#4EC3E0;--press2-ink:#141412}
+.rh.k-p1,.gh.k-p1{background:var(--press1);color:var(--press1-ink)} .rh.k-p1 span{color:var(--press1-ink);opacity:.85}
+.rh.k-p2,.gh.k-p2{background:var(--press2);color:var(--press2-ink)} .rh.k-p2 span{color:var(--press2-ink)}
+.cell.k-p1 .fill .bar i{background:var(--press1)} .cell.k-p2 .fill .bar i{background:var(--press2)}
+.cell .fill.over .bar i{background:var(--p-alert)}
+.jc.k-p1{background:var(--press1);border-color:var(--press1);color:var(--press1-ink)} .jc.k-p1 .tm,.jc.k-p1 .l2{color:var(--press1-ink)}
+.jc.k-p2{background:var(--press2);border-color:var(--press2);color:var(--press2-ink)} .jc.k-p2 .tm,.jc.k-p2 .l2{color:var(--press2-ink)}
+.jc.k-p1:hover,.jc.k-p2:hover{border-color:var(--p-black)}
+.jc.late{border:2px solid var(--p-alert)}
+.mc .pk.p1{background:var(--press1);color:var(--press1-ink)} .mc .pk.p2{background:var(--press2);color:var(--press2-ink);box-shadow:none}
+.tg.k-p1{background:var(--press1);border-color:var(--press1);color:var(--press1-ink)} .tg.k-p2{background:var(--press2);border-color:var(--press2);color:var(--press2-ink)}
+.seg button.k-p1.on{background:var(--press1);color:var(--press1-ink)}
+/* v3: machine chips + one column per day */
+.mrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:var(--p-white);border-bottom:1px solid var(--p-line)}
+.mrow .lbl{font:700 12px/1 var(--p-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--p-ink-2);margin-right:4px}
+.mchip{min-height:36px;padding:0 14px;border-radius:var(--p-pill);border:2px solid var(--p-black);background:var(--p-white);color:var(--p-black);font:700 14px/1 var(--p-sans);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.mchip.on{background:var(--p-black);color:var(--p-yellow)}
+.mchip.on.k-p1{background:var(--press1);border-color:var(--press1);color:var(--press1-ink)}
+.mchip.on.k-p2{background:var(--press2);border-color:var(--press2);color:var(--press2-ink)}
+.mchip .n{font:800 12px/1 var(--p-sans);opacity:.8}
+.dgrid{display:grid;gap:0;border:1px solid var(--p-line-strong);border-radius:10px;background:var(--p-white);min-width:min-content}
+.dgrid .gh{flex-direction:column;align-items:stretch;gap:6px}
+.dgrid .gh .top{display:flex;justify-content:space-between;align-items:baseline}
+.dfills{display:flex;flex-wrap:wrap;gap:4px}
+.dfills span{font:700 12px/1 var(--p-sans);padding:3px 5px;border-radius:3px;background:rgba(255,255,255,.14)}
+.gh.today .dfills span{background:rgba(20,20,18,.1)}
+.dfills .k-p1{background:var(--press1)!important;color:var(--press1-ink)} .dfills .k-p2{background:var(--press2)!important;color:var(--press2-ink)}
+.dfills .ov{box-shadow:inset 0 0 0 2px var(--p-alert)}
+.dcell{border-left:1px solid var(--p-line);padding:6px;min-height:420px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.dcell:first-of-type{border-left:0}
+.dcell.past{background:var(--p-cream-lt)}
+.dcell.off{background:repeating-linear-gradient(135deg,var(--p-cream-lt) 0 8px,var(--p-white) 8px 16px)}
+.jc .pkc{font:800 12px/1 var(--p-sans);border-radius:3px;padding:2px 4px;background:var(--p-cream-dk);color:var(--p-black);flex:none}
+.jc.k-p1 .pkc,.jc.k-p2 .pkc{background:rgba(20,20,18,.18);color:inherit}
+@media (max-width:1100px){
+  .side{position:fixed;left:0;top:0;bottom:0;z-index:60;transform:translateX(-105%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.25)}
+  .side.open{transform:none}
+  .scrim-side.open{display:block;position:fixed;inset:0;z-index:55;background:rgba(20,20,18,.35)}
+  .sidebtn{display:inline-flex}
+}
+@media (max-width:700px){
+  .bl{display:none}
+  .p-bar .p-btn{padding:0 14px}
+  .p-bar-sp{flex-wrap:nowrap}
+  .p-practice{font-size:12px;padding:5px 8px}
+  .range{font-size:17px;width:100%;order:-1}
+  .tools{gap:6px;padding:8px 12px}
+  .seg button{padding:0 10px}
+  .cal{padding:8px 8px 60px}
+  .row3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body class="p-app">
+<div class="app">
+  <header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Schedule</span><span class="p-bar-ver" id="ver">v1</span>
+    <div class="p-bar-sp"><span class="p-practice" id="practicePill" hidden>Practice · nothing is saved</span>
+      <button class="p-btn p-btn-dark" style="border-color:#fff" onclick="openSettings()" title="Fridays, hours, fleece" aria-label="Settings">⚙<span class="bl"> Settings</span></button>
+      <button class="p-btn p-btn-dark" style="border-color:#fff" onclick="refresh()" aria-label="Refresh">↻<span class="bl"> Refresh</span></button></div>
+  </header>
+  <div class="tools">
+    <button class="p-btn p-btn-quiet sidebtn" onclick="toggleSide(true)">Unscheduled <span class="p-count" id="sideCount2" style="margin-left:4px"></span></button>
+    <button class="p-btn p-btn-quiet navb" onclick="nav(-1)" aria-label="Back">‹</button>
+    <button class="p-btn p-btn-quiet" onclick="goToday()">Today</button>
+    <button class="p-btn p-btn-quiet navb" onclick="nav(1)" aria-label="Forward">›</button>
+    <span class="range" id="range"></span>
+    <span class="grow"></span>
+    <div class="seg" id="viewSeg"></div>
+    <button class="p-btn p-btn-main" id="sugBtn" onclick="suggest()">✨ Suggest</button>
+  </div>
+  <div class="mrow" id="mrow"></div>
+  <div class="body">
+    <aside class="side" id="side">
+      <div class="side-h">
+        <div class="t"><b>Unscheduled</b><span class="p-count" id="sideCount"></span><span class="grow" style="flex:1"></span><button class="p-btn p-btn-quiet sidebtn" style="min-height:36px" onclick="toggleSide(false)">✕</button></div>
+        <input class="inp" id="q" placeholder="Search order, customer, job" oninput="renderSide()">
+        <div class="legend">Drag a card onto a press and day. Drop a scheduled card back here to unschedule it.</div>
+      </div>
+      <div class="side-list" id="sideList"></div>
+    </aside>
+    <div class="scrim-side" id="scrimSide" onclick="toggleSide(false)"></div>
+    <main class="main">
+      <div class="sugbar" id="sugbar"><span class="msg" id="sugMsg"></span>
+        <button class="p-btn p-btn-main" onclick="placeAll()">Place all</button>
+        <button class="p-btn p-btn-quiet" onclick="clearSuggest()">Clear</button></div>
+      <div class="cal" id="cal"><div class="loading">Loading the schedule…</div></div>
+    </main>
+  </div>
+</div>
+<div id="modalHost"></div>
+
+<script>
+/* ---------------- config ---------------- */
+const VER = 4;
+const BASE='appJkaLk8DykjsgHR', TBL='tbln9oAGvz2PNBZLV';
+const PRACTICE = new URLSearchParams(location.search).get('practice')==='1';
+const F={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',start:'fldfqtIgcEfIlIeQk',
+  equip:'fldv59OGU7EkBVofo',est:'fldDYBnwwV6Z4VLBc',manual:'fldLbUpPkD4ZnHurV',qty:'fldFipR4ddfqMPeAX',screens:'fld8rgkIj1RPO97QU',
+  inkChg:'fldTONDvKJ8o9KHFt',stitch:'fld8EibgRRJgJYM6Q',prio:'fldMCyF3zHshhQLM5',custDue:'fldf57VIkt82rO1iQ',deadline:'fldQ6mM0uxdqjw4kr',
+  ostat:'fldNROVFSsBwLUOYW',order:'fldZAIMnXPYF9LiXq',cust:'fldeLMIAC0ABQAjYJ',lis:'fldsvntAy1QHEoDAg',recvd:'fldt30iqzfw7PrZVz',
+  arrival:'fldl0irab6r0kzzNd',proof:'fldUOIfCd22MxevRm',notes:'fldjlfaH3dOBCtuTM',warn:'fldRVeADvQJAduiWZ',band:'fldo7l8t4IhhWoeXl',
+  reprint:'fldXRqE3k67ZIOO8X',finished:'fldFuDZ68QdUMt3pM',caught:'fldIo2EmE7b25vtfS',running:'fldmnZof3Dce60JKv',sepd:'fldlMcHtldbifKzDN',
+  burned:'fldEL51Nwrxuyn9Zo',inksReady:'fld2a1CPcDMSD26PS'};
+// Presses. hours = a normal day's capacity (edit in Settings). group drives the department tabs.
+const PRESSES=[
+  {k:'p1',name:'Press 1 - ROQ NEXT',short:'Press 1',sub:'ROQ Next',g:'screen',hours:8.25,pk:'P1'},
+  {k:'p2',name:'Press 2 - ROQ YOU',short:'Press 2',sub:'ROQ You',g:'screen',hours:8,pk:'P2'},
+  {k:'split',name:'Press 1 & 2 - SPLIT',short:'P1 & P2',sub:'Split',g:'screen',hours:8,pk:'SP',opt:1},
+  {k:'em',name:'Embroidery - TAJIMA 6-Head',short:'Embroidery',sub:'Tajima 6-head',g:'emb',hours:8,pk:'EM'},
+  {k:'bt',name:'Sewing - Bartacker',short:'Bartacker',sub:'Sewing',g:'emb',hours:8,pk:'SW',opt:1},
+  {k:'pb',name:'Sewing - Post-bed',short:'Post-bed',sub:'Sewing',g:'emb',hours:8,pk:'SW',opt:1},
+  {k:'d3',name:'Heat press - D3',short:'Heat · D3',sub:'Heat press',g:'heat',hours:7,pk:'D3'},
+  {k:'tag',name:'Heat press - Tag Press',short:'Heat · Tag',sub:'Heat press',g:'heat',hours:7,pk:'TAG'},
+  {k:'hat',name:'Heat press - Hat Press',short:'Heat · Hat',sub:'Heat press',g:'heat',hours:6,pk:'HAT'},
+  {k:'fs',name:'Flatstock - M&R Saturn',short:'Flatstock',sub:'M&R Saturn',g:'other',hours:8,pk:'FS',opt:1},
+  {k:'fin',name:'Finishing',short:'Finishing',sub:'Fold, bag, UPC',g:'other',hours:8,pk:'FN',opt:1},
+  {k:'none',name:'',short:'No press',sub:'Pick one',g:'other',hours:0,pk:'?',opt:1}
+];
+const PBY={}; PRESSES.forEach(p=>{PBY[p.k]=p; if(p.name) PBY[p.name]=p;});
+const VIEWS=[{k:'day',l:'Day'},{k:'3day',l:'3 Day'},{k:'week',l:'Week'},{k:'month',l:'Month'}];
+const ACTIVE_STATUS=['Ready to Order','Ordered - In Production','Pre-press','Scheduled, Screened','Received & Staged','On-Press','Delayed'];
+const DAY_START=8*60;              // shop opens 8:00
+const STEP=15;                     // start times land on 15-minute marks
+const CHANGEOVER=15;               // minutes when the platen changes (bandana / sleeve / standard)
+
+const CFG_KEY='pine_sched_cfg';
+const CFG=Object.assign({fri:0, fleece:1.35, idealBuffer:2, horizon:20, hours:{}}, readJSON(CFG_KEY)||{});
+PRESSES.forEach(p=>{ if(CFG.hours[p.k]!=null) p.hours=+CFG.hours[p.k]; });
+
+/* ---------------- state ---------------- */
+const S={view:readLS('pine_sched_view')||'week', sel:readJSON('pine_sched_machines'), anchor:null, jobs:{}, loaded:null,
+  ghosts:[], skipped:{}, why:{}, busy:0, drag:null, modal:null};
+
+/* ---------------- small helpers ---------------- */
+function readLS(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function writeLS(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function readJSON(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function token(){return readLS('pine_at_key')||'';}
+const SHOP_TZ='America/Denver';
+function shopToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:SHOP_TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+function addDays(ds,n){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function dow(ds){return new Date(ds+'T12:00:00Z').getUTCDay();}
+function isWeekend(ds){const w=dow(ds);return w===0||w===6;}
+function nextWorkday(ds,n){let d=ds,c=0;const step=n<0?-1:1;while(c<Math.abs(n)){d=addDays(d,step);if(!isWeekend(d))c++;}return d;}
+function monday(ds){const w=dow(ds);return addDays(ds,w===0?-6:1-w);}
+function wd(ds,long){return (long?['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'])[dow(ds)];}
+function md(ds){const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const d=new Date(ds+'T12:00:00Z');return m[d.getUTCMonth()]+' '+d.getUTCDate();}
+function workdaysBetween(a,b){ // whole workdays from a to b (b later = positive)
+  if(a===b) return 0; let n=0,d=a; const step=b>a?1:-1;
+  while(d!==b){d=addDays(d,step); if(!isWeekend(d)) n+=step;} return n; }
+function hm(min){const h=Math.floor(min/60),m=min%60;const hh=h>12?h-12:h;return hh+':'+String(m).padStart(2,'0')+(h>=12?'p':'');}
+function dur(min){min=Math.round(min);if(min<60)return min+'m';const h=Math.floor(min/60),m=min%60;return h+'h'+(m?' '+m+'m':'');}
+function first(v){if(Array.isArray(v))return v.length?first(v[0]):null;if(v&&typeof v==='object'&&'name' in v)return v.name;return v==null?null:v;}
+function arr(v){return Array.isArray(v)?v.map(first).filter(x=>x!=null&&x!==''):(v==null||v===''?[]:[first(v)]);}
+function toISO(v){ // dates from formulas/lookups: '2026-10-16' or '10/16/2026'
+  v=first(v); if(!v) return null; v=String(v);
+  let m=v.match(/^(\d{4}-\d{2}-\d{2})/); if(m) return m[1];
+  m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m) return m[3]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  return null; }
+
+/* ---------------- jobs ---------------- */
+const SCREEN_TYPES=/Discharge|W\/B|Bleed Blocker|EZP|Plastisol/i;
+function deptOfType(t){ if(!t) return 'screen';
+  if(/Embroidery|Patch|Label/i.test(t)) return 'emb';
+  if(/Supacolor|Decopress/i.test(t)) return 'heat';
+  if(/Flatstock|Finishing/i.test(t)) return 'other';
+  return 'screen'; }
+function platen(j){ const l=(j.loc||'').toLowerCase(); if(l.includes('bandana')) return 'bandana'; if(l.includes('sleeve')) return 'sleeve'; if(/tea towel|tote/.test(l)) return 'flat'; return 'std'; }
+function mkJob(r){
+  const f=r.fields||{}; const start=f[F.start]||null; const eq=first(f[F.equip])||'';
+  const ID=f[F.id]||'(no ID)';
+  const j={rid:r.id, ID, order:String(first(f[F.order])||ID.split('-')[0]), nick:f[F.nick]||'', cust:first(f[F.cust])||'',
+    type:first(f[F.type])||'', loc:first(f[F.loc])||'', equip:eq, start, qty:+f[F.qty]||0, screens:+f[F.screens]||0,
+    inkChg:+f[F.inkChg]||0, stitch:+first(f[F.stitch])||0, est:f[F.est]!=null?+f[F.est]:null, manual:+f[F.manual]||0,
+    prio:first(f[F.prio])||'', due:toISO(f[F.custDue])||toISO(f[F.deadline]), lis:Array.isArray(f[F.lis])?f[F.lis]:[], types:[], garments:null, heavy:0,
+    recvd:arr(f[F.recvd]), arrival:toISO(f[F.arrival]), notes:f[F.notes]||'', ostat:first(f[F.ostat])||'',
+    flags:[f[F.warn],f[F.band],f[F.reprint]].map(first).filter(Boolean).join(''),
+    finished:!!f[F.finished], caught:!!f[F.caught], running:!!f[F.running], sepd:!!f[F.sepd], burned:!!f[F.burned], inksReady:!!f[F.inksReady],
+    proof:null, proofLg:null};
+  const pr=(Array.isArray(f[F.proof])?f[F.proof]:[]).find(a=>a&&a.thumbnails);
+  if(pr){ j.proof=(pr.thumbnails.large||pr.thumbnails.small).url; j.proofLg=pr.thumbnails.large&&pr.thumbnails.large.url; }
+  j.estEquip=eq; // the equipment Airtable's Estimated Run Time was worked out for
+  j.hd=/hard/i.test(j.prio); j.asap=/asap/i.test(j.prio);
+  j.allIn=j.recvd.length>0 && j.recvd.every(x=>x===true||x==='true'||x===1||x==='checked');
+  return j; }
+function pressOf(j){ return PBY[j.equip]||PBY.none; }
+function deptOf(j){ const p=PBY[j.equip]; return p&&p.k!=='none'?p.g:deptOfType(j.type); }
+function day(j){ return j.start?j.start.slice(0,10):null; }
+function startMin(j){ if(!j.start) return null; const t=j.start.slice(11,16).split(':'); return +t[0]*60+ +t[1]; }
+function setStart(j,ds,min){ j.start=ds+'T'+String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0')+':00.000Z'; }
+
+// Airtable's Estimated Run Time formula, so a job moved to another press gets that press's time.
+function runSecs(j,equip){
+  equip=equip==null?j.equip:equip;
+  if(j.est!=null && equip===j.estEquip) return j.est+j.manual;
+  const q=j.qty, scr=j.screens, band=/bandana/i.test(j.loc), t=j.type, ink=j.inkChg;
+  let s=0;
+  if(equip==='Press 1 - ROQ NEXT') s=((scr*10)/60 + q/(band?150:250))*3600+ink;
+  else if(equip==='Press 2 - ROQ YOU') s=((scr*10)/60 + q/(band?135:225))*3600+ink;
+  else if(equip==='Press 1 & 2 - SPLIT') s=((scr*10)/60 + q/(band?285:475))*3600+ink;
+  else if(equip==='Embroidery - TAJIMA 6-Head') s = t==='Embroidery' ? Math.round(((j.stitch/1000)*3*q)/6*60) : ((q*7)/6)/60*3600;
+  else if(/Sewing/.test(equip)) s=(q*2)/60*3600;
+  else if(equip==='Heat press - Tag Press') s=(q*.75)/60*3600;
+  else if(equip==='Heat press - D3') s=q/60*3600;
+  else if(equip==='Heat press - Hat Press') s=(q*1.5)/60*3600;
+  else if(t==='Finishing - Fold & Bag'||t==='Finishing - Bandana Hanger') s=(q*1.5)/60*3600;
+  else if(t==='Finishing - UPC sticker') s=q/60*3600;
+  return s+j.manual; }
+// Minutes the job takes on the floor. Fleece runs slower on the screen presses (Day Fill's bumper).
+function guessEquip(j){ const d=deptOf(j); return d==='emb'?'Embroidery - TAJIMA 6-Head':d==='heat'?'Heat press - D3':d==='screen'?'Press 1 - ROQ NEXT':''; }
+function jobMin(j,equip){
+  equip=equip==null?j.equip:equip; if(!equip) equip=guessEquip(j);
+  let m=runSecs(j,equip)/60;
+  if(j.heavy && /^Press/.test(equip)) m*=1+j.heavy*(CFG.fleece-1);   // share of fleece pieces, like Day Fill
+  return Math.max(STEP, Math.ceil(m)); }
+
+/* ---------------- Airtable ---------------- */
+async function atList(formula,maxPages){
+  let out=[],offset=null,pages=0;
+  const fields=Object.values(F).map(f=>'&fields%5B%5D='+f).join('');
+  do{
+    const u='https://api.airtable.com/v0/'+BASE+'/'+TBL+'?returnFieldsByFieldId=true&pageSize=100&filterByFormula='+encodeURIComponent(formula)+fields+(offset?'&offset='+encodeURIComponent(offset):'');
+    const r=await fetch(u,{headers:{Authorization:'Bearer '+token()}});
+    if(!r.ok){ const t=await r.text(); throw new Error('Airtable '+r.status+': '+t.slice(0,160)); }
+    const d=await r.json(); out=out.concat(d.records||[]); offset=d.offset; pages++;
+  }while(offset && pages<(maxPages||20));
+  return out; }
+// updates: [{rid, fields:{fieldId:value}}]. Practice mode fakes it.
+async function patchMany(updates){
+  if(!updates.length) return;
+  if(PRACTICE){ await new Promise(r=>setTimeout(r,250)); return; }
+  for(let i=0;i<updates.length;i+=10){
+    const chunk=updates.slice(i,i+10).map(u=>({id:u.rid,fields:u.fields}));
+    const r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+TBL,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({records:chunk,typecast:true})});
+    if(!r.ok){ const t=await r.text(); throw new Error('Save failed ('+r.status+'): '+t.slice(0,160)); }
+  } }
+
+function loadRange(){ // what to load: a week back, the view, and the Suggest horizon
+  const t=shopToday(); const v=viewDays();
+  let a=addDays(monday(t),-7), b=nextWorkday(t,CFG.horizon+5);
+  if(v[0]<a) a=addDays(v[0],-1); if(v[v.length-1]>b) b=addDays(v[v.length-1],1);
+  return [a,b]; }
+// Garment type per job, from its Line Items (Garments' type lookup, a select, so names come through).
+// Fleece share = fleece pieces / all pieces, used for run time. Loaded after the board shows; cached.
+const LI_TBL='tblJx5UlwO7oMSk5H', LI_F={type:'fldQg3ejR10sADyFV',qty:'fldFfuKAcduwWQp8g',garment:'fldZbOdGIoCk3Gan2'};
+const GAR_TBL='tblukWGm0CIelookM', GAR_NAME='fldT4jfh2XV9lERef';
+const HEAVY={'Sweatshirt':1,'Pullover Hoodie':1,'Zip Up Hoodie':1,'Youth Fleece':1};
+S.li={}; S.gar={};
+async function atIds(table,ids,fields){
+  const out=[];
+  for(let i=0;i<ids.length;i+=40){
+    const f='OR('+ids.slice(i,i+40).map(id=>"RECORD_ID()='"+id+"'").join(',')+')';
+    const u='https://api.airtable.com/v0/'+BASE+'/'+table+'?returnFieldsByFieldId=true&pageSize=100&filterByFormula='+encodeURIComponent(f)+fields.map(x=>'&fields%5B%5D='+x).join('');
+    const r=await fetch(u,{headers:{Authorization:'Bearer '+token()}}); if(!r.ok) throw new Error('Airtable '+r.status);
+    out.push(...((await r.json()).records||[]));
+  }
+  return out; }
+async function loadLineItems(){
+  const need=[...new Set(Object.values(S.jobs).flatMap(j=>j.lis))].filter(id=>!S.li[id]);
+  if(need.length){
+    try{ (await atIds(LI_TBL,need,Object.values(LI_F))).forEach(r=>{ const f=r.fields||{};
+      S.li[r.id]={type:first(f[LI_F.type])||'',qty:+first(f[LI_F.qty])||0,gar:Array.isArray(f[LI_F.garment])?f[LI_F.garment].map(g=>g&&g.id||g):[]}; }); }
+    catch(e){ console.warn('line items',e); return; }
+  }
+  Object.values(S.jobs).forEach(j=>{ let q=0,h=0; const t=new Set();
+    j.lis.forEach(id=>{ const li=S.li[id]; if(!li) return; if(li.type) t.add(li.type); q+=li.qty; if(HEAVY[li.type]) h+=li.qty; });
+    j.types=[...t]; j.heavy=q?h/q:0; j.fleece=j.heavy>=.5; });
+  render(); }
+async function garmentNames(j){
+  const ids=[...new Set(j.lis.flatMap(id=>(S.li[id]||{}).gar||[]))];
+  const need=ids.filter(id=>!(id in S.gar));
+  if(need.length){ try{ (await atIds(GAR_TBL,need,[GAR_NAME])).forEach(r=>{ S.gar[r.id]=first((r.fields||{})[GAR_NAME])||''; }); }catch(e){ console.warn('garments',e); } }
+  return ids.map(id=>S.gar[id]).filter(Boolean); }
+async function load(){
+  if(!token()){ renderTokenBox(); return; }
+  const [a,b]=loadRange();
+  document.getElementById('cal').innerHTML=Object.keys(S.jobs).length?document.getElementById('cal').innerHTML:'<div class="loading">Loading the schedule…</div>';
+  const statusOK='OR('+ACTIVE_STATUS.map(s=>'FIND("'+s+'",ARRAYJOIN({Order Status Lookup}))').join(',')+')';
+  try{
+    const [sched,uns]=await Promise.all([
+      atList('AND(IS_AFTER({Scheduled Start Time},"'+addDays(a,-1)+'"),IS_BEFORE({Scheduled Start Time},"'+addDays(b,1)+'"))'),
+      atList('AND({Scheduled Start Time}=BLANK(),NOT({Run Finished}),NOT({Caught}),{Imprint Type}!="Patch/Label ONLY",'+statusOK+')')
+    ]);
+    const jobs={}; sched.concat(uns).forEach(r=>{ jobs[r.id]=mkJob(r); });
+    S.jobs=jobs; S.loaded=[a,b];
+    S.ghosts=S.ghosts.filter(g=>jobs[g.rid]&&!jobs[g.rid].start);
+    render();
+    loadLineItems();
+  }catch(e){
+    console.error(e);
+    document.getElementById('cal').innerHTML='<div class="p-note p-note-alert" style="margin:20px">Couldn\'t load the schedule. '+esc(e.message)+' <button class="p-btn p-btn-quiet" onclick="load()">Try again</button></div>';
+  } }
+function refresh(){ load(); if(window.PineUpdate&&PineUpdate.check) PineUpdate.check(); }
+
+/* ---------------- view math ---------------- */
+function viewDays(){
+  const a=S.anchor;
+  if(S.view==='day') return [a];
+  if(S.view==='3day'){ const out=[]; let d=isWeekend(a)?nextWorkday(a,1):a; while(out.length<3){ out.push(d); d=nextWorkday(d,1);} return out; }
+  if(S.view==='week'){ const m=monday(a); return [0,1,2,3,4].map(i=>addDays(m,i)); }
+  // month: Mon-Fri weeks covering the month
+  const first1=a.slice(0,8)+'01'; let d=monday(first1); const out=[];
+  const mo=a.slice(5,7);
+  while(true){ for(let i=0;i<5;i++) out.push(addDays(d,i)); d=addDays(d,7); if(d.slice(5,7)!==mo && d>first1) break; }
+  return out; }
+function nav(n){
+  if(S.view==='day'){ S.anchor=nextWorkday(S.anchor,n); }
+  else if(S.view==='3day'){ S.anchor=nextWorkday(S.anchor,3*n); }
+  else if(S.view==='week'){ S.anchor=addDays(S.anchor,7*n); }
+  else { const d=new Date(S.anchor.slice(0,8)+'15T12:00:00Z'); d.setUTCMonth(d.getUTCMonth()+n); S.anchor=d.toISOString().slice(0,10); }
+  afterNav(); }
+function goToday(){ S.anchor=shopToday(); if(isWeekend(S.anchor)) S.anchor=nextWorkday(S.anchor,1); afterNav(); }
+function afterNav(){ const v=viewDays(); if(S.loaded && (v[0]<S.loaded[0]||v[v.length-1]>S.loaded[1])) load(); render(); }
+function setView(k){ S.view=k; writeLS('pine_sched_view',k); afterNav(); }
+// Machines shown. null = all. Tap a machine while All is on = only that one; tap more to add; tap again to drop.
+function isSel(k){ return !S.sel || S.sel.includes(k); }
+function pickMachine(k){
+  if(k==='all') S.sel=null;
+  else if(!S.sel) S.sel=[k];
+  else if(S.sel.includes(k)){ S.sel=S.sel.filter(x=>x!==k); if(!S.sel.length) S.sel=null; }
+  else S.sel=S.sel.concat(k);
+  writeLS('pine_sched_machines',JSON.stringify(S.sel)); render(); }
+// the machine a job belongs to for filtering: its press, else the press it would most likely go on
+function jobKey(j){ const p=PBY[j.equip]; if(p&&p.k!=='none') return p.k; const g=PBY[guessEquip(j)]; return g?g.k:'none'; }
+function jobInSel(j){ if(!S.sel) return true; const k=jobKey(j); if(S.sel.includes(k)) return true;
+  return !j.equip && deptOf(j)==='screen' && S.sel.includes('p2'); }
+function machineChips(){
+  const used=new Set(); Object.values(S.jobs).forEach(j=>{ const p=PBY[j.equip]; if(p) used.add(p.k); });
+  const list=PRESSES.filter(p=>p.k!=='none' && (!p.opt||used.has(p.k)));
+  const cnt={}; const vd=viewDays(); allPlaced().forEach(x=>{ if(vd.includes(x.day)){ const k=(PBY[x.equip]||PBY.none).k; cnt[k]=(cnt[k]||0)+1; } });
+  return '<span class="lbl">Machines</span><button class="mchip'+(!S.sel?' on':'')+'" onclick="pickMachine(\'all\')">All</button>'+
+    list.map(p=>'<button class="mchip k-'+p.k+(S.sel&&S.sel.includes(p.k)?' on':'')+'" onclick="pickMachine(\''+p.k+'\')">'+esc(p.short)+(cnt[p.k]?' <span class="n">'+cnt[p.k]+'</span>':'')+'</button>').join(''); }
+function openDay(ds){ S.anchor=ds; setView('day'); }
+
+function rowsFor(days){
+  const inView=new Set(); allPlaced().forEach(x=>{ if(days.includes(x.day)) inView.add(PBY[x.equip]?PBY[x.equip].k:'none'); });
+  return PRESSES.filter(p=>isSel(p.k) && (!p.opt||inView.has(p.k)||(S.sel&&S.sel.includes(p.k)))); }
+function friOpen(p){ // Fridays: 0 = no shift, 1 = Press 1 only (plus the other departments), 2 = both presses
+  if(CFG.fri===0) return false; if(CFG.fri===1) return p.k!=='p2' && p.k!=='split'; return true; }
+function isOpen(p,ds){ if(isWeekend(ds)) return false; if(dow(ds)===5) return friOpen(p); return true; }
+function capMin(p,ds){ return isOpen(p,ds)?Math.round(p.hours*60):0; }
+
+// Everything on the calendar: real jobs plus suggestion ghosts, as {rid, equip, day, min, len, ghost}
+function allPlaced(){
+  const out=[];
+  Object.values(S.jobs).forEach(j=>{ if(j.start) out.push({rid:j.rid,equip:j.equip,day:day(j),min:startMin(j),len:jobMin(j),ghost:false}); });
+  S.ghosts.forEach(g=>out.push({rid:g.rid,equip:g.equip,day:g.day,min:g.min,len:jobMin(S.jobs[g.rid],g.equip),ghost:true,late:g.late}));
+  return out; }
+function cellItems(pk,ds,placed){
+  return (placed||allPlaced()).filter(x=>x.day===ds && (PBY[x.equip]?PBY[x.equip].k:'none')===pk).sort((a,b)=>a.min-b.min||(a.ghost-b.ghost)); }
+function usedMin(items){ return items.reduce((a,x)=>a+x.len,0); }
+
+/* ---------------- render ---------------- */
+function render(){
+  document.getElementById('range').textContent=rangeLabel();
+  document.getElementById('viewSeg').innerHTML=VIEWS.map(v=>'<button class="'+(S.view===v.k?'on':'')+'" onclick="setView(\''+v.k+'\')">'+v.l+'</button>').join('');
+  document.getElementById('mrow').innerHTML=machineChips();
+  renderSide(); renderCal(); renderSugbar(); }
+function rangeLabel(){ const v=viewDays();
+  if(S.view==='day') return wd(v[0],true)+' '+md(v[0]);
+  if(S.view==='month'){ const d=new Date(S.anchor+'T12:00:00Z'); return d.toLocaleString('en-US',{month:'long',timeZone:'UTC'})+' '+d.getUTCFullYear(); }
+  return md(v[0])+' – '+md(v[v.length-1]); }
+
+function flagsHtml(j){ return j.flags?'<span class="em">'+esc(j.flags)+'</span>':''; }
+function cardHtml(x,ds){
+  const j=S.jobs[x.rid]; if(!j) return '';
+  const late=x.ghost?x.late:(j.due && ds>j.due);
+  const pk=(PBY[x.equip]||PBY.none).k; const cls='jc'+(x.ghost?' ghost':(pk==='p1'||pk==='p2'?' k-'+pk:''))+(j.hd?' hd':'')+(j.finished?' done':'')+(late?' late':'')+(S.busy&&j._saving?' saving':'');
+  const sub=[j.qty?j.qty.toLocaleString()+(j.screens?' · '+j.screens+' scr':''):'', dur(x.len), j.due?'due '+md(j.due):''].filter(Boolean).join(' · ');
+  return '<div class="'+cls+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'" title="'+esc(j.ID+' '+j.nick)+'">'+
+    (j.proof?'<img class="bigimg" src="'+esc(j.proof)+'" alt="" loading="lazy">':'<span class="bigimg"></span>')+
+    '<div style="min-width:0;flex:1"><div class="l1">'+(S.view==='week'||S.view==='3day'?'<span class="pkc">'+(PBY[x.equip]||PBY.none).pk+'</span>':'')+'<span class="tm">'+(x.ghost?'✨ ':'')+hm(x.min)+'</span><span class="id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</div>'+
+    '<div class="l2">'+esc(sub)+'</div>'+(S.view==='day'?'<div class="l2">'+esc(j.cust)+(j.nick?' · '+esc(j.nick):'')+'</div>':'')+'</div></div>'; }
+
+function renderCal(){
+  const cal=document.getElementById('cal');
+  if(!token()) return;
+  if(S.view==='month') return renderMonth(cal);
+  const days=viewDays(), rows=rowsFor(days), placed=allPlaced(), today=shopToday();
+  const colW=S.view==='day'?'minmax(230px,1fr)':'minmax(170px,1fr)';
+  let h='';
+  if(S.view==='day'){ // presses across, one day
+    h='<div class="grid day" style="grid-template-columns:repeat('+rows.length+','+colW+')">';
+    rows.forEach(p=>{ h+='<div class="gh k-'+p.k+'"><span class="dn">'+esc(p.short)+'</span><span class="sub">'+esc(p.sub)+'</span></div>'; });
+    rows.forEach(p=>{ h+=cellHtml(p,days[0],placed,today); });
+    h+='</div>';
+  } else { // one column per day, every shown machine's jobs in time order (like the Airtable calendar)
+    const keys=new Set(rows.map(p=>p.k));
+    h='<div class="dgrid" style="grid-template-columns:repeat('+days.length+','+colW+')">';
+    days.forEach(d=>{
+      const fills=rows.filter(p=>p.k!=='none').map(p=>{ const it=cellItems(p.k,d,placed), cap=capMin(p,d), u=usedMin(it);
+        if(!it.length && (!cap || (p.k!=='p1' && p.k!=='p2'))) return ''; return '<span class="k-'+p.k+(u>cap?' ov':'')+'" title="'+esc(p.short)+': '+dur(u)+' of '+dur(cap)+'">'+p.pk+' '+(cap?Math.round(u/cap*100)+'%':dur(u))+'</span>'; }).join('');
+      h+='<div class="gh'+(d===today?' today':'')+'"><div class="top" style="cursor:pointer" onclick="openDay(\''+d+'\')"><span class="dn">'+wd(d)+'</span><span class="sub">'+md(d)+'</span></div><div class="dfills">'+fills+'</div></div>'; });
+    days.forEach(d=>{
+      const items=placed.filter(x=>x.day===d && keys.has((PBY[x.equip]||PBY.none).k)).sort((a,b)=>a.min-b.min||PRESSES.indexOf(PBY[a.equip]||PBY.none)-PRESSES.indexOf(PBY[b.equip]||PBY.none)||(a.ghost-b.ghost));
+      const anyOpen=rows.some(p=>isOpen(p,d));
+      h+='<div class="dcell'+(anyOpen?'':' off')+(d<today?' past':'')+'" data-d="'+d+'">'+(anyOpen?'':'<div class="offl">'+(dow(d)===5?'No Friday shift':'Closed')+'</div>')+
+        items.map(x=>cardHtml(x,d).replace('class="jc','data-pk="'+(PBY[x.equip]||PBY.none).k+'" class="jc')).join('')+'</div>'; });
+    h+='</div>';
+  }
+  if(!rows.length) h='<div class="empty">Pick a machine above.</div>';
+  cal.innerHTML=h; }
+function cellHtml(p,ds,placed,today){
+  const items=cellItems(p.k,ds,placed), cap=capMin(p,ds), used=usedMin(items);
+  const open=isOpen(p,ds);
+  let h='<div class="cell k-'+p.k+(open?'':' off')+(ds<today?' past':'')+'" data-p="'+p.k+'" data-d="'+ds+'">';
+  if(p.k!=='none'){
+    if(open||items.length){ const pct=cap?Math.min(100,used/cap*100):100;
+      h+='<div class="fill'+(used>cap?' over':'')+'" title="'+dur(used)+' of '+dur(cap)+'"><span class="bar"><i style="width:'+pct+'%"></i></span>'+(cap?Math.round(used/cap*100)+'%':dur(used))+'</div>'; }
+    if(!open) h+='<div class="offl">'+(dow(ds)===5?'No Friday shift':'Closed')+'</div>';
+  }
+  items.forEach(x=>{ h+=cardHtml(x,ds); });
+  return h+'</div>'; }
+
+function renderMonth(cal){
+  const days=viewDays(), placed=allPlaced(), today=shopToday(), mo=S.anchor.slice(5,7);
+  const rows=new Set(rowsFor(days).map(p=>p.k));
+  let h='<div class="mgrid">'+['Mon','Tue','Wed','Thu','Fri'].map(d=>'<div class="gh"><span class="dn">'+d+'</span></div>').join('');
+  days.forEach(ds=>{
+    const items=placed.filter(x=>x.day===ds && rows.has(PBY[x.equip]?PBY[x.equip].k:'none')).sort((a,b)=>a.min-b.min);
+    const p1=cellItems('p1',ds,placed), p2=cellItems('p2',ds,placed);
+    h+='<div class="mcell'+(ds.slice(5,7)!==mo?' out':'')+(ds===today?' today':'')+'" data-d="'+ds+'"><span class="mn" style="cursor:pointer" onclick="openDay(\''+ds+'\')">'+(+ds.slice(8))+'</span>';
+    {
+      const f=[['P1',p1,PBY.p1],['P2',p2,PBY.p2]].filter(r=>r[1].length&&isSel(r[2].k)).map(r=>{ const cap=capMin(r[2],ds),u=usedMin(r[1]); return '<span class="'+(u>cap?'ov':'')+'">'+r[0]+' '+(cap?Math.round(u/cap*100)+'%':dur(u))+'</span>'; });
+      if(f.length) h+='<div class="mfill">'+f.join('')+'</div>';
+    }
+    const MAX=7;
+    items.slice(0,MAX).forEach(x=>{ const j=S.jobs[x.rid]; if(!j) return; const p=PBY[x.equip]||PBY.none;
+      const pkc=p.k==='p1'?'p1':p.k==='p2'?'p2':p.g==='emb'?'em':p.g==='heat'?'ht':'';
+      h+='<div class="mc'+(x.ghost?' ghost':'')+(j.hd?' hd':'')+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'"><span class="pk '+pkc+'">'+p.pk+'</span><b>'+hm(x.min)+'</b><span class="id" style="font-size:13px">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</div>'; });
+    if(items.length>MAX) h+='<button class="more" onclick="openDay(\''+ds+'\')">+'+(items.length-MAX)+' more</button>';
+    h+='</div>'; });
+  cal.innerHTML=h+'</div>'; }
+
+function sideJobs(){
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  const ghosted=new Set(S.ghosts.map(g=>g.rid));
+  return Object.values(S.jobs).filter(j=>!j.start && !ghosted.has(j.rid) && jobInSel(j) &&
+    (!q || (j.ID+' '+j.nick+' '+j.cust+' '+j.order).toLowerCase().includes(q))); }
+function renderSide(){
+  const list=sideJobs(); const all=Object.values(S.jobs).filter(j=>!j.start).length;
+  document.getElementById('sideCount').textContent=list.length; document.getElementById('sideCount2').textContent=all;
+  // group by order, hard deadlines and earliest due first
+  const by={}; list.forEach(j=>{ (by[j.order]=by[j.order]||[]).push(j); });
+  const groups=Object.values(by).sort((a,b)=>{ const hd=(g)=>g.some(j=>j.hd)?0:1; const due=(g)=>g.map(j=>j.due||'9999').sort()[0];
+    return hd(a)-hd(b)||due(a).localeCompare(due(b)); });
+  const today=shopToday();
+  let h='';
+  groups.forEach(g=>{ const j0=g[0]; const due=g.map(j=>j.due).filter(Boolean).sort()[0];
+    h+='<div class="og"><b>'+esc(j0.order)+'</b> '+esc(j0.cust)+(due?' · <span'+(due<today?' class="why"':'')+'>due '+md(due)+'</span>':'')+(g.some(j=>j.hd)?' <span class="tg k">Hard deadline</span>':'')+'</div>';
+    g.sort((a,b)=>a.ID.localeCompare(b.ID)).forEach(j=>{ const p=PBY[j.equip];
+      h+='<div class="sc'+(j.hd?' hd':'')+(S.skipped[j.rid]?' skip':'')+'" data-rid="'+j.rid+'">'+(j.proof?'<img src="'+esc(j.proof)+'" alt="" loading="lazy">':'<span class="noimg"></span>')+
+        '<div class="m"><div class="l1"><span class="id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</div><div class="l2">'+esc(j.nick||j.type)+'</div>'+
+        '<div class="l3"><span class="tg'+(p&&(p.k==='p1'||p.k==='p2')?' k-'+p.k:p&&p.k!=='none'?' c':'')+'">'+esc(p&&p.k!=='none'?p.short:'No press yet')+'</span>'+(j.qty?'<span class="tg">'+j.qty.toLocaleString()+'</span>':'')+
+        '<span class="tg">'+dur(jobMin(j))+'</span>'+(j.allIn?'':'<span class="tg a" title="Not all garments are checked in">Not received</span>')+'</div>'+
+        (S.why[j.rid]?'<div class="why">'+esc(S.why[j.rid])+'</div>':'')+'</div></div>'; });
+  });
+  document.getElementById('sideList').innerHTML=h||'<div class="empty">Nothing waiting'+(S.sel?' for these machines':'')+'.</div>'; }
+
+function renderSugbar(){
+  const bar=document.getElementById('sugbar');
+  const unplaced=Object.keys(S.why).length;
+  if(!S.ghosts.length && !unplaced){ bar.classList.remove('on'); return; }
+  bar.classList.add('on');
+  const late=S.ghosts.filter(g=>g.late).length, tight=S.ghosts.filter(g=>g.tight).length;
+  document.getElementById('sugMsg').textContent='✨ '+S.ghosts.length+' job'+(S.ghosts.length===1?'':'s')+' suggested'+(late?' · '+late+' after the due date (no room before)':'')+(tight?' · '+tight+' only 1 day before due':'')+
+    (unplaced?' · '+unplaced+' didn\'t fit (see the list)':'')+'. Drag any dashed card to change it, or tap it to place or skip.'; }
+
+/* ---------------- moving jobs ---------------- */
+// Put job rid on press pk, day ds, at position idx among that cell's jobs. Only the moved job and any job it
+// would overlap get new times, so gaps the scheduler left on purpose (lunch, a late truck) stay.
+function planMove(rid,pk,ds,idx){
+  const j=S.jobs[rid], p=PBY[pk]; const equip=p.k==='none'?j.equip:p.name;
+  const items=cellItems(pk,ds).filter(x=>x.rid!==rid && !x.ghost).map(x=>({rid:x.rid,min:x.min,len:x.len}));
+  if(idx==null||idx>items.length) idx=items.length;
+  const len=jobMin(j,equip);
+  const prev=items[idx-1];
+  let t=prev?prev.min+prev.len+co(S.jobs[prev.rid],j):(items[0]&&idx===0?Math.min(DAY_START,items[0].min):DAY_START);
+  t=Math.ceil(t/STEP)*STEP;
+  const changes=[{rid,equip,day:ds,min:t}];
+  let end=t+len, last=j;
+  for(let i=idx;i<items.length;i++){ const x=items[i]; const need=Math.ceil((end+co(last,S.jobs[x.rid]))/STEP)*STEP;
+    if(x.min>=need) break; changes.push({rid:x.rid,equip:S.jobs[x.rid].equip,day:ds,min:need}); end=need+x.len; last=S.jobs[x.rid]; }
+  return changes; }
+function co(a,b){ return a&&b&&platen(a)!==platen(b)?CHANGEOVER:0; }
+
+async function applyChanges(changes,label){
+  const before=changes.map(c=>{ const j=S.jobs[c.rid]; return {rid:c.rid,equip:j.equip,start:j.start}; });
+  const ups=changes.map(c=>{ const j=S.jobs[c.rid]; const f={};
+    if(c.unschedule){ j.start=null; f[F.start]=null; }
+    else { if(c.equip!==j.equip){ j.equip=c.equip; f[F.equip]=c.equip; } setStart(j,c.day,c.min); f[F.start]=j.start; }
+    j._saving=true; return {rid:c.rid,fields:f}; });
+  S.busy++; render();
+  try{ await patchMany(ups); changes.forEach(c=>{ S.jobs[c.rid]._saving=false; });
+    S.busy--; render();
+    toast(label+(PRACTICE?' (practice, not saved)':''),'Undo',()=>undo(before));
+  }catch(e){ before.forEach(b=>{ const j=S.jobs[b.rid]; j.equip=b.equip; j.start=b.start; j._saving=false; });
+    S.busy--; render(); toast(e.message,null,null,true); } }
+async function undo(before){
+  const ups=before.map(b=>{ const j=S.jobs[b.rid]; const f={}; f[F.start]=b.start; if(j.equip!==b.equip&&b.equip) f[F.equip]=b.equip; j.equip=b.equip; j.start=b.start; return {rid:b.rid,fields:f}; });
+  S.busy++; render();
+  try{ await patchMany(ups); S.busy--; render(); toast('Put back'+(PRACTICE?' (practice)':'')); }
+  catch(e){ S.busy--; toast(e.message,null,null,true); load(); } }
+function moveLabel(rid,pk,ds,min){ const j=S.jobs[rid]; return j.ID+' → '+PBY[pk].short+', '+wd(ds)+' '+md(ds)+' '+hm(min); }
+function moveJob(rid,pk,ds,idx){
+  const j=S.jobs[rid]; const p=PBY[pk];
+  if(p.k==='none'){ toast('Pick a press for '+j.ID+' first (tap the card)'); render(); return; }
+  if(isWeekend(ds)){ render(); return; }
+  S.ghosts=S.ghosts.filter(g=>g.rid!==rid); delete S.why[rid];
+  const ch=planMove(rid,pk,ds,idx); const m=ch[0];
+  let label=moveLabel(rid,pk,ds,m.min); if(ch.length>1) label+=' · '+(ch.length-1)+' after it moved later';
+  if(!isOpen(p,ds)) label+=' · that press is off that day';
+  applyChanges(ch,label); }
+function unschedule(rid){ const j=S.jobs[rid]; if(!j.start) return; applyChanges([{rid,unschedule:true}],j.ID+' unscheduled'); }
+
+/* ---------------- drag and drop (mouse, pen and touch) ---------------- */
+// Mouse: press and move. Touch: hold a moment, then drag (a quick swipe still scrolls).
+document.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.jc,.sc,.mc'); if(!el||e.button>0) return;
+  const d={el,rid:el.dataset.rid,ghost:el.dataset.ghost==='1',x:e.clientX,y:e.clientY,id:e.pointerId,touch:e.pointerType==='touch',on:false,ready:e.pointerType!=='touch'};
+  if(d.touch) d.timer=setTimeout(()=>{ d.ready=true; startDrag(d,d.x,d.y); if(navigator.vibrate) navigator.vibrate(15); },280);
+  S.drag=d; });
+document.addEventListener('pointermove',e=>{
+  const d=S.drag; if(!d||e.pointerId!==d.id) return;
+  if(!d.on){ const far=Math.abs(e.clientX-d.x)+Math.abs(e.clientY-d.y)>6;
+    if(d.touch&&!d.ready){ if(far){ clearTimeout(d.timer); S.drag=null; } return; }
+    if(!far) return; startDrag(d,e.clientX,e.clientY); }
+  moveGhost(d,e.clientX,e.clientY); });
+document.addEventListener('touchmove',e=>{ if(S.drag&&S.drag.on) e.preventDefault(); },{passive:false});
+document.addEventListener('pointerup',e=>{ const d=S.drag; if(!d||e.pointerId!==d.id) return; clearTimeout(d.timer); S.drag=null;
+  if(!d.on){ openCard(d.rid,d.ghost); return; } endDrag(d,e.clientX,e.clientY); });
+document.addEventListener('pointercancel',e=>{ const d=S.drag; if(!d) return; clearTimeout(d.timer); if(d.on) cleanupDrag(d); S.drag=null; });
+function startDrag(d,x,y){
+  d.on=true; const c=d.el.cloneNode(true); c.classList.add('dragging'); c.style.width=Math.min(260,Math.max(180,d.el.offsetWidth))+'px';
+  document.body.appendChild(c); d.clone=c; d.el.style.opacity='.35'; document.body.style.cursor='grabbing';
+  if(innerWidth<=1100 && d.el.classList.contains('sc')) toggleSide(false);
+  moveGhost(d,x,y); }
+function targetAt(x,y){
+  const el=document.elementFromPoint(x,y); if(!el) return null;
+  const side=el.closest('#side'); if(side) return {side:true,el:side};
+  const cell=el.closest('.cell,.mcell,.dcell'); if(cell) return {el:cell,p:cell.dataset.p,d:cell.dataset.d,dcol:cell.classList.contains('dcell')};
+  return null; }
+function moveGhost(d,x,y){
+  d.clone.style.left=(x-30)+'px'; d.clone.style.top=(y-16)+'px';
+  const t=targetAt(x,y);
+  document.querySelectorAll('.drop-on').forEach(n=>n.classList.remove('drop-on'));
+  document.querySelectorAll('.ph').forEach(n=>n.remove());
+  if(!t) return; t.el.classList.add('drop-on');
+  if(t.dcol){ const cards=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid); const at=cards.find(c=>{ const r=c.getBoundingClientRect(); return y<r.top+r.height/2; });
+    const ph=document.createElement('div'); ph.className='ph'; if(at) t.el.insertBefore(ph,at); else t.el.appendChild(ph); }
+  if(t.p){ const idx=dropIndex(t.el,y,d.rid); const cards=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid);
+    const ph=document.createElement('div'); ph.className='ph'; if(cards[idx]) t.el.insertBefore(ph,cards[idx]); else t.el.appendChild(ph); }
+  // keep the calendar scrolling while dragging near its edges
+  const cal=document.getElementById('cal'), r=cal.getBoundingClientRect();
+  if(y>r.bottom-40) cal.scrollTop+=14; else if(y<r.top+40) cal.scrollTop-=14;
+  if(x>r.right-40) cal.scrollLeft+=14; else if(x<r.left+40&&x>r.left) cal.scrollLeft-=14; }
+function dropIndex(cell,y,rid){
+  const cards=[...cell.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==rid && c.dataset.ghost!=='1');
+  for(let i=0;i<cards.length;i++){ const r=cards[i].getBoundingClientRect(); if(y<r.top+r.height/2) return i; }
+  return cards.length; }
+function cleanupDrag(d){ if(d.clone) d.clone.remove(); d.el.style.opacity=''; document.body.style.cursor='';
+  document.querySelectorAll('.drop-on').forEach(n=>n.classList.remove('drop-on')); document.querySelectorAll('.ph').forEach(n=>n.remove()); }
+function endDrag(d,x,y){
+  const t=targetAt(x,y); const idx=t&&t.p?dropIndex(t.el,y,d.rid):null; cleanupDrag(d);
+  if(!t){ return; }
+  const j=S.jobs[d.rid]; if(!j) return;
+  if(t.side){ if(d.ghost){ S.ghosts=S.ghosts.filter(g=>g.rid!==d.rid); S.skipped[d.rid]=1; render(); toast(j.ID+' left out of the suggestion'); } else unschedule(d.rid); return; }
+  if(t.p) return moveJob(d.rid,t.p,t.d,idx);
+  if(t.dcol){ // day column: the job keeps its machine (or the one Suggest picked); with one machine shown, it goes there
+    const g=S.ghosts.find(g=>g.rid===d.rid); let pk=(PBY[g?g.equip:j.equip]||PBY.none).k;
+    if(pk==='none'){ if(S.sel&&S.sel.length===1) pk=S.sel[0]; else { const ge=PBY[guessEquip(j)]; pk=ge&&isSel(ge.k)?ge.k:'none'; } }
+    if(pk==='none'){ toast('Pick a press for '+j.ID+' first (tap the card)'); render(); return; }
+    // position among that machine's jobs: how many of them sit above where it was dropped
+    const idx2=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid && c.dataset.ghost!=='1' && c.dataset.pk===pk && c.getBoundingClientRect().top+c.getBoundingClientRect().height/2<y).length;
+    return moveJob(d.rid,pk,t.d,idx2); }
+  // month cell: keep the press (or the one Suggest picked), go to the end of that day
+  const g=S.ghosts.find(g=>g.rid===d.rid); const equip=g?g.equip:j.equip; const p=PBY[equip];
+  if(!p||p.k==='none'){ toast('Pick a press for '+j.ID+' first (tap the card)'); return; }
+  moveJob(d.rid,p.k,t.d,null); }
+
+/* ---------------- suggest (Day Fill's packing, in minutes) ---------------- */
+// Fills the next CFG.horizon workdays with unscheduled jobs:
+//  - whole orders stay together on one day and one press when they fit
+//  - hard deadlines first, then the earliest due date, then bigger orders
+//  - aims to print idealBuffer workdays before the due date (at least 1), never before garments are expected
+//  - Press 2 takes 4 screens or fewer (2 for bandanas); 5+ screens or 3+ prints in an order go to Press 1
+//  - prefers a day that already runs the same platen (bandanas with bandanas)
+function suggest(){
+  if(!Object.keys(S.jobs).length) return;
+  S.ghosts=[]; S.why={};
+  const today=shopToday(); const startDay=nextWorkday(today,1);
+  const horizon=[]; { let d=startDay; while(horizon.length<CFG.horizon){ if(!isWeekend(d)) horizon.push(d); d=nextWorkday(d,1);} }
+  const placed=allPlaced();
+  const use={}; placed.forEach(x=>{ const k=(PBY[x.equip]?PBY[x.equip].k:'none')+'|'+x.day; use[k]=use[k]||{min:0,end:DAY_START,plat:{}}; const u=use[k]; u.min+=x.len; u.end=Math.max(u.end,x.min+x.len); u.plat[platen(S.jobs[x.rid])]=1; });
+  const U=(pk,ds)=>use[pk+'|'+ds]||(use[pk+'|'+ds]={min:0,end:DAY_START,plat:{}});
+  const cands=Object.values(S.jobs).filter(j=>!j.start && !S.skipped[j.rid] && jobInSel(j));
+  // group: order + department
+  const groups={}; cands.forEach(j=>{ const k=j.order+'|'+deptOf(j); (groups[k]=groups[k]||[]).push(j); });
+  const list=Object.values(groups).map(g=>{ const due=g.map(j=>j.due).filter(Boolean).sort()[0]||null;
+    const arr=g.map(j=>j.allIn?null:j.arrival).filter(Boolean).sort().pop()||null;
+    return {jobs:g, due, hd:g.some(j=>j.hd), dept:deptOf(g[0]), arrival:arr, size:g.reduce((a,j)=>a+jobMin(j),0)}; })
+    .sort((a,b)=>(b.hd-a.hd)||((a.due||'9999').localeCompare(b.due||'9999'))||(b.size-a.size));
+  list.forEach(G=>{
+    const ideal=G.due?nextWorkday(G.due,-CFG.idealBuffer):null, hard=G.due?nextWorkday(G.due,-1):null;
+    // garments: print the workday after they're expected; not checked in and no date yet -> 2 workdays out at the soonest
+    let earliest=startDay; const notIn=G.jobs.some(j=>!j.allIn);
+    if(G.arrival){ const a=nextWorkday(G.arrival,1); if(a>earliest) earliest=a; }
+    else if(notIn){ const a=nextWorkday(today,2); if(a>earliest) earliest=a; }
+    // which presses can take this group
+    let presses;
+    if(G.dept==='screen'){
+      const complex=G.jobs.some(j=>j.screens>4)||G.jobs.length>=3;
+      const p2ok=G.jobs.every(j=>j.screens<=(/bandana/i.test(j.loc)?2:4));
+      presses=complex||!p2ok?['p1']:['p1','p2'];
+      const fixed=G.jobs.map(j=>PBY[j.equip]).find(p=>p&&(p.k==='p1'||p.k==='p2')); if(fixed && !complex) presses=[fixed.k].concat(presses.filter(k=>k!==fixed.k));
+    } else {
+      const fixed=G.jobs.map(j=>PBY[j.equip]).find(p=>p&&p.k!=='none');
+      presses=fixed?[fixed.k]:(G.dept==='emb'?['em']:G.dept==='heat'?['d3']:[]);
+    }
+    if(!presses.length){ G.jobs.forEach(j=>S.why[j.rid]='No press picked: drag it where it goes'); return; }
+    const LOCO=l=>/back/i.test(l)?0:/sleeve|left chest|lc/i.test(l)?1:/front|full/i.test(l)?2:3;
+    // it fits when the press has the minutes AND the run ends by close (jobs go after the day's last job)
+    const fits=(pk,ds,min)=>{ const p=PBY[pk]; const cap=capMin(p,ds); const u=U(pk,ds);
+      return cap>0 && u.min+min<=cap*1.05 && Math.ceil(u.end/STEP)*STEP+min<=DAY_START+cap*1.05; };
+    const need=(jobs,pk)=>jobs.reduce((a,j)=>a+jobMin(j,PBY[pk].name),0);
+    // first day (up to `last`) where some allowed press takes all of `jobs`; same platen already running wins, then the emptier press
+    const find=(jobs,last)=>{ const plat=platen(jobs[0]);
+      for(const ds of horizon){
+        if(ds<earliest) continue; if(last && ds>last) break;
+        const opts=presses.filter(pk=>fits(pk,ds,need(jobs,pk)));
+        if(!opts.length) continue;
+        opts.sort((a,b)=>((U(b,ds).plat[plat]?1:0)-(U(a,ds).plat[plat]?1:0))||(U(a,ds).min/capMin(PBY[a],ds)-U(b,ds).min/capMin(PBY[b],ds)));
+        return {ds,pk:opts[0]}; }
+      return null; };
+    const put=(jobs,pick,late)=>{ const u=U(pick.pk,pick.ds); const p=PBY[pick.pk];
+      const tight=!late && ideal && pick.ds>ideal;
+      jobs.slice().sort((a,b)=>LOCO(a.loc)-LOCO(b.loc)).forEach(j=>{   // back, sleeve, front, pocket — same order Scheduler used
+        const len=jobMin(j,p.name); const t=Math.ceil((u.end+(u.last?co(u.last,j):0))/STEP)*STEP;
+        S.ghosts.push({rid:j.rid,equip:p.name,day:pick.ds,min:t,late:!!late,tight:!!tight});
+        u.min+=len; u.end=t+len; u.last=j; u.plat[platen(j)]=1; }); };
+    // 1) the whole order on one press, one day, by the due date
+    let pick=find(G.jobs,hard);
+    if(pick){ put(G.jobs,pick,false); return; }
+    // 2) split the order: each print on its own press/day, still by the due date; 3) otherwise the first day it fits, flagged late
+    G.jobs.slice().sort((a,b)=>LOCO(a.loc)-LOCO(b.loc)).forEach(j=>{
+      let pk=find([j],hard), late=false;
+      if(!pk && G.due){ pk=find([j],null); late=true; }
+      if(pk) put([j],pk,late);
+      else S.why[j.rid]=G.arrival&&G.arrival>horizon[horizon.length-1]?'Garments arrive after the next '+CFG.horizon+' workdays':'No room in the next '+CFG.horizon+' workdays';
+    });
+  });
+  if(!S.ghosts.length && !Object.keys(S.why).length) toast('Nothing to suggest: every job'+(S.sel?' for these machines':'')+' is scheduled.');
+  render(); }
+function clearSuggest(){ S.ghosts=[]; S.why={}; render(); }
+async function placeAll(){
+  const gs=S.ghosts.slice(); if(!gs.length) return;
+  if(!PRACTICE && !confirm('Put '+gs.length+' job'+(gs.length===1?'':'s')+' on the schedule in Airtable?')) return;
+  S.ghosts=[];
+  const changes=gs.map(g=>({rid:g.rid,equip:g.equip,day:g.day,min:g.min}));
+  await applyChanges(changes,gs.length+' job'+(gs.length===1?'':'s')+' scheduled'); }
+async function placeGhost(rid){ const g=S.ghosts.find(x=>x.rid===rid); if(!g) return; closeModal();
+  S.ghosts=S.ghosts.filter(x=>x.rid!==rid);
+  await applyChanges([{rid,equip:g.equip,day:g.day,min:g.min}],moveLabel(rid,PBY[g.equip].k,g.day,g.min)); }
+function skipGhost(rid){ S.ghosts=S.ghosts.filter(x=>x.rid!==rid); S.skipped[rid]=1; closeModal(); render(); }
+
+/* ---------------- card details ---------------- */
+function openCard(rid,ghost){
+  const j=S.jobs[rid]; if(!j) return;
+  const g=ghost?S.ghosts.find(x=>x.rid===rid):null;
+  const ds=g?g.day:day(j), min=g?g.min:startMin(j), equip=g?g.equip:j.equip;
+  const p=PBY[equip]||PBY.none;
+  const buf=j.due&&ds?workdaysBetween(ds,j.due):null;
+  const bufTxt=buf==null?'':buf<0?'<span class="tg a">'+(-buf)+' workday'+(buf===-1?'':'s')+' after due</span>':buf===0?'<span class="tg a">Prints on the due date</span>':buf===1?'<span class="tg y">1 workday before due</span>':'<span class="tg">'+buf+' workdays before due</span>';
+  const prep=[['Sep\'d',j.sepd],['Screens',j.burned],['Inks',j.inksReady],['Garments in',j.allIn]].map(x=>'<span class="tg'+(x[1]?' k':'')+'">'+(x[1]?'✓ ':'')+x[0]+'</span>').join('');
+  const pressOpts=PRESSES.filter(x=>x.k!=='none').map(x=>'<option value="'+x.k+'"'+(x.k===p.k?' selected':'')+'>'+esc(x.short+' · '+x.sub)+'</option>').join('');
+  const times=[]; for(let m=7*60;m<=17*60;m+=STEP) times.push('<option value="'+m+'"'+(m===min?' selected':'')+'>'+hm(m)+'</option>');
+  if(min!=null && min%STEP) times.unshift('<option value="'+min+'" selected>'+hm(min)+'</option>');
+  const body=
+    (g?'<div class="p-note p-note-wait" style="margin-bottom:12px">✨ Suggested for '+esc(PBY[g.equip].short)+', '+wd(g.day)+' '+md(g.day)+' at '+hm(g.min)+'.'+(g.late?' This is after the due date: no earlier day had room.':g.tight?' Later than '+CFG.idealBuffer+' workdays before due.':'')+'</div>':'')+
+    (j.proofLg?'<img class="proof" src="'+esc(j.proofLg)+'" alt="Proof">':'')+
+    '<dl class="kv" style="margin:12px 0">'+
+      '<dt>Customer</dt><dd>'+esc(j.cust)+' · order '+esc(j.order)+'</dd>'+
+      (j.nick?'<dt>Job</dt><dd>'+esc(j.nick)+'</dd>':'')+
+      '<dt>Print</dt><dd>'+esc([j.type,j.loc].filter(Boolean).join(' · '))+'</dd>'+
+      '<dt>Qty</dt><dd>'+(j.qty||0).toLocaleString()+(j.screens?' · '+j.screens+' screens':'')+(j.heavy?' · '+(j.heavy>=.99?'fleece':Math.round(j.heavy*100)+'% fleece'):'')+'</dd>'+
+      '<dt>Run time</dt><dd>'+dur(jobMin(j,equip))+(j.heavy&&/^Press/.test(equip)?' (fleece +'+Math.round(j.heavy*(CFG.fleece-1)*100)+'%)':'')+'</dd>'+
+      '<dt>Due</dt><dd>'+(j.due?wd(j.due)+' '+md(j.due):'No due date')+(j.prio?' · '+esc(j.prio):'')+' '+bufTxt+'</dd>'+
+      (j.lis.length?'<dt>Garments</dt><dd><span id="mGarm">'+esc(j.types.join(', ')||'…')+'</span>'+(j.allIn?'':(j.arrival?' · expected '+md(j.arrival):' · not checked in'))+'</dd>':'')+
+      '<dt>Ready</dt><dd class="prep">'+prep+'</dd>'+
+    '</dl>'+
+    '<div class="p-label" style="margin-bottom:6px">'+(j.start||g?'Move to':'Schedule on')+'</div>'+
+    '<div class="row3"><select class="sel" id="mPress">'+pressOpts+'</select><input class="inp" type="date" id="mDay" value="'+(ds||nextWorkday(shopToday(),1))+'"><select class="sel" id="mTime"><option value="">Next open</option>'+times.join('')+'</select></div>'+
+    '<div class="p-label" style="margin:12px 0 6px">Scheduling notes</div><textarea class="inp" id="mNotes" placeholder="For the press crew">'+esc(j.notes)+'</textarea>';
+  const foot=g?
+    '<button class="p-btn p-btn-quiet" onclick="skipGhost(\''+rid+'\')">Skip this one</button><button class="p-btn p-btn-quiet" onclick="saveCard(\''+rid+'\')">Put it where I picked</button><button class="p-btn p-btn-main" onclick="placeGhost(\''+rid+'\')">Place here</button>':
+    (j.start?'<button class="p-btn p-btn-quiet" onclick="closeModal();unschedule(\''+rid+'\')">Unschedule</button>':'')+'<button class="p-btn p-btn-main" onclick="saveCard(\''+rid+'\')">Save</button>';
+  showModal(esc(j.ID)+' '+(j.flags?esc(j.flags):''),body,foot);
+  if(j.lis.length) garmentNames(j).then(names=>{ const el=document.getElementById('mGarm'); if(!el||!names.length) return;
+    el.textContent=names.slice(0,3).join(', ')+(names.length>3?' +'+(names.length-3)+' more':''); }); }
+async function saveCard(rid){
+  const j=S.jobs[rid];
+  const pk=document.getElementById('mPress').value, ds=document.getElementById('mDay').value, tm=document.getElementById('mTime').value;
+  const notes=document.getElementById('mNotes').value;
+  if(!ds||isWeekend(ds)){ toast('Pick a weekday'); return; }
+  closeModal();
+  if(notes!==j.notes){ const old=j.notes; j.notes=notes; const f={}; f[F.notes]=notes;
+    patchMany([{rid,fields:f}]).catch(e=>{ j.notes=old; toast(e.message,null,null,true); }); }
+  S.ghosts=S.ghosts.filter(g=>g.rid!==rid); delete S.why[rid];
+  const p=PBY[pk]; const curDay=day(j), curMin=startMin(j);
+  if(tm===''){ if(pk===pressOf(j).k && ds===curDay) { render(); if(notes!==j.notes) toast('Notes saved'); return; }
+    return moveJob(rid,pk,ds,null); }
+  const min=+tm; if(pk===pressOf(j).k && ds===curDay && min===curMin){ render(); return; }
+  const equip=p.name; const items=cellItems(pk,ds).filter(x=>x.rid!==rid&&!x.ghost);
+  const idx=items.filter(x=>x.min<=min).length;
+  // exact time picked: keep it, and only push later jobs that would overlap
+  const ch=[{rid,equip,day:ds,min}]; let end=min+jobMin(j,equip), last=j;
+  for(let i=idx;i<items.length;i++){ const x=items[i]; const need=Math.ceil((end+co(last,S.jobs[x.rid]))/STEP)*STEP; if(x.min>=need) break;
+    ch.push({rid:x.rid,equip:S.jobs[x.rid].equip,day:ds,min:need}); end=need+x.len; last=S.jobs[x.rid]; }
+  applyChanges(ch,moveLabel(rid,pk,ds,min)+(ch.length>1?' · '+(ch.length-1)+' after it moved later':'')); }
+
+/* ---------------- modal, toast, settings ---------------- */
+function showModal(title,body,foot){
+  S.modal=true;
+  document.getElementById('modalHost').innerHTML='<div class="p-scrim" onclick="if(event.target===this)closeModal()"><div class="p-modal" role="dialog" aria-modal="true" style="width:min(600px,100%)">'+
+    '<div class="p-modal-h"><span class="p-h2">'+title+'</span><button class="p-modal-x" onclick="closeModal()" aria-label="Close">✕</button></div>'+
+    '<div class="p-modal-b">'+body+'</div><div class="p-modal-f">'+foot+'</div></div></div>'; }
+function closeModal(){ S.modal=false; document.getElementById('modalHost').innerHTML=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+let toastT=null;
+function toast(msg,btn,fn,alert){
+  let t=document.getElementById('toast'); if(t) t.remove();
+  t=document.createElement('div'); t.id='toast'; t.className='p-toast'+(alert?' is-alert':''); t.innerHTML='<span>'+esc(msg)+'</span>';
+  if(btn){ const b=document.createElement('button'); b.className='p-btn'; b.textContent=btn; b.onclick=()=>{ t.remove(); fn(); }; t.appendChild(b); }
+  document.body.appendChild(t); clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),alert?9000:6000); }
+function openSettings(){
+  const fri=[['0','No Friday shift'],['1','Press 1 only'],['2','Both presses']].map(o=>'<button class="p-tab'+(String(CFG.fri)===o[0]?' is-on':'')+'" onclick="setFri('+o[0]+')">'+o[1]+'</button>').join('');
+  const hrs=PRESSES.filter(p=>p.k!=='none'&&!p.opt).map(p=>'<label class="p-field" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><span>'+esc(p.short)+'</span><input class="inp" style="width:90px" type="number" step="0.25" min="0" max="14" value="'+p.hours+'" data-k="'+p.k+'"></label>').join('');
+  showModal('Settings',
+    '<div class="p-label" style="margin-bottom:6px">Fridays</div><div class="p-tabs" style="display:flex;gap:8px;flex-wrap:wrap">'+fri+'</div>'+
+    '<p class="p-hint">Off after this week. Turn it back on for busy season (2027: both presses).</p>'+
+    '<div class="p-label" style="margin:14px 0 6px">Hours per day</div><div style="display:grid;gap:6px" id="hrsBox">'+hrs+'</div>'+
+    '<div class="p-label" style="margin:14px 0 6px">Suggest</div>'+
+    '<label style="display:flex;align-items:center;gap:8px;justify-content:space-between">Print this many workdays before due<input class="inp" style="width:90px" type="number" min="1" max="5" id="sBuf" value="'+CFG.idealBuffer+'"></label>'+
+    '<label style="display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:6px">Fleece takes longer on the presses (×)<input class="inp" style="width:90px" type="number" step="0.05" min="1" max="2" id="sFl" value="'+CFG.fleece+'"></label>'+
+    '<p class="p-hint">Saved on this computer.</p>',
+    '<button class="p-btn p-btn-main" onclick="saveSettings()">Save</button>'); }
+function setFri(n){ CFG.fri=n; document.querySelectorAll('.p-modal .p-tabs .p-tab').forEach((b,i)=>b.classList.toggle('is-on',i===n)); }
+function saveSettings(){
+  document.querySelectorAll('#hrsBox input').forEach(i=>{ CFG.hours[i.dataset.k]=+i.value; PBY[i.dataset.k].hours=+i.value; });
+  CFG.idealBuffer=Math.max(1,+document.getElementById('sBuf').value||2); CFG.fleece=Math.max(1,+document.getElementById('sFl').value||1.35);
+  writeLS(CFG_KEY,JSON.stringify(CFG)); closeModal(); if(S.ghosts.length) suggest(); else render(); toast('Settings saved'); }
+function toggleSide(open){ document.getElementById('side').classList.toggle('open',open); document.getElementById('scrimSide').classList.toggle('open',open); }
+function renderTokenBox(){
+  document.getElementById('cal').innerHTML='<div class="tokenbox"><b class="p-h2">Airtable token</b><span class="p-hint">Paste your Airtable token once. It stays on this computer, like the other Pine apps.</span>'+
+    '<input class="inp" id="tok" type="password" placeholder="pat…"><button class="p-btn p-btn-main" onclick="saveToken()">Save and load</button></div>'; }
+function saveToken(){ const v=document.getElementById('tok').value.trim(); if(!v) return; writeLS('pine_at_key',v); load(); }
+
+/* ---------------- start ---------------- */
+window.pineBusy=()=>!!(S.drag&&S.drag.on)||S.modal||S.busy>0||S.ghosts.length>0;
+document.getElementById('practicePill').hidden=!PRACTICE;
+goToday();
+load();
+setInterval(()=>{ if(!document.hidden && !window.pineBusy()) load(); },5*60*1000);
+</script>
+<script src="pine-update.js" data-link="pine-schedule.html"></script>
+<script>document.getElementById('ver').textContent='v'+((window.PineUpdate&&PineUpdate.ver)||VER);</script>
+</body>
+</html>
