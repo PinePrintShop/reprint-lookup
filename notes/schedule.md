@@ -79,3 +79,17 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - Holidays: Day Fill had July 3 hard-coded. Add a holiday list if wanted.
 - Day Fill's back-room finishing strip and helper flag.
 - Hold/Pin that everyone sees (needs a field).
+
+## 2026-10-14 · v2: press colors
+- **Press 1 and Press 2 have their own colors.** These are from direction A in `pine-colors.html` (Stephen's pick): Press 1 (Next) is 7683 blue `#426DA9` with white text, and Press 2 (You) is 637 sky `#4EC3E0` with black text.
+- **Where the colors show:**
+  - row headers
+  - job cards
+  - fill bars
+  - the P1/P2 chips in Month view
+  - the press tag on unscheduled cards
+- **What stays the same:**
+  - Suggested cards stay yellow and dashed.
+  - Over-capacity bars and late cards stay red.
+  - Embroidery and heat stay plain until Whitney picks their colors.
+- Tested with mocked Airtable (drag, Suggest, Place all, Month).
