@@ -76,5 +76,5 @@ The plan is to combine the apps early next year, so they need one look first.
 | Heat press | 540 `#003057` | Red 032 `#EF3340` |
 
 - **Same in both:** each press and department has one color in every app. 107 yellow stays "main button / waiting on you", and the black bar stays.
-- **Stephen (Oct 14): A for the presses.** Press 1 is 7683 blue and Press 2 is 637 sky. Embroidery, heat press, and A vs B overall are still open with Whitney.
+- **Stephen (Oct 14): A for the presses** at first, then **B for everything** the same day ("the more muted colorways"). Schedule v6 uses B: Press 1 7473, Press 2 7563, Embroidery 7579, Heat Red 032, on cream `#EFE2CD`. Warnings are black "!" marks because red means heat press.
 - Canvas version (editable, private): https://claude.ai/artifact/KPpUGp25pmtjEQrdTX7YuR
