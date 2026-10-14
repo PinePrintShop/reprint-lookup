@@ -56,3 +56,11 @@ The plan is to combine the apps early next year, so they need one look first.
 - Seps shows grey "?" ink swatches.
 - Day Fill's sticky header band is offset.
 - Screens wraps the ID onto two lines on the iPad.
+
+## 2026-10-14 · Whitney's (Art Director) tweaks
+- **Logo:** the Pine logo sits in a **black square**, as on Pine design proposals and mood boards. New `.p-mark` component in three sizes (`-sm` 40, default 64, `-lg` 120). On the black top bar the square is the bar's left end.
+- **Headlines in capitals:** `.p-h1`, `.p-display` and the top bar's app name are uppercase. Mixed case in Poppins Black was hard to read.
+- **Spacing:**
+  - Poppins Black is no longer squeezed: tracking went from −.01/−.02em to +.005em, with slightly wider word spaces (.08em).
+  - Small section labels went from .07em tracking to .03em, with word spacing at .14em, so "ON A REAL SCREEN" and "MOVING THE APPS OVER" read evenly.
+- **Section label width:** section labels hug their text instead of stretching across the page.
