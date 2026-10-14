@@ -50,3 +50,7 @@
 - **Badges:** Receiving's static badge is gone. Catching's badge is live: Press 1/2 jobs finished in the last 3 days and not caught yet.
 - **Loading:** stats load once even though both page load and token-save trigger them. Ticker labels are 12px.
 - **Tested** with mocked Airtable: every stat line, the badge, and 9 queries per load.
+
+## 2026-10-14 · v173: Schedule in the menu
+- "Sales & office" now has **Schedule** (`pine-schedule.html`) in place of Day Fill. Schedule does what Day Fill did, and more.
+- `pine-day-fill.html` still works for anyone who has it saved.
