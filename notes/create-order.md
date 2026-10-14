@@ -420,3 +420,11 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - **The side column is hidden on this screen,** so the list gets the full width (up to 1100px, centered). It comes back once an order is picked.
 - **Phone:** the number is on the left, with the name, the date and the lines tag stacked to its right.
 - **Tested** with mocked Airtable on desktop 1440/2000 and an emulated iPhone, plus the full v15 flow. No errors, no sideways scroll.
+
+## 2026-10-14 — v17: uses the whole desktop window
+- Stephen: "max out the frame on a desktop for this page and the next page."
+- **Page width:** the 1400px cap is gone, so both the order picker and the order page fill the browser window, with a 20px margin.
+- **Order picker:** the 1100px cap is gone too. On screens 1500px and wider, the Created, Rep and Lines columns get more room.
+- **Order page:** on screens 1500px and wider, the side column (checklist + deal emails) grows with the window, between 400 and 560px. That gives the emails more reading width, and the forms take the rest.
+- **iPad and phone layouts** are unchanged.
+- **Tested** with mocked Airtable at 2000px and on an emulated iPhone, running the full flow. No errors, no sideways scroll.
