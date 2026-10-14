@@ -203,3 +203,9 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - 300 tees, 4 screens, Press 1: 1h 52m → 1h 44m.
   - 150 bandanas, 4 screens, Press 1: 1h 40m → 1h 11m.
   - 96 bandanas, 1 screen, Press 2: 53m → 40m.
+
+## 2026-10-14 · v10: 90% fill cushion
+**Stephen asked:** "is the new timing conservative?" Not really. The calibrated job times come out about 4–8% shorter than actual, and 100% is a typical full day, so half of real days fit more and half fit less. He chose to have Suggest fill days to 90%.
+- **Suggest** only fills a lane-day up to **90%** of its press time per day. That leaves about 40 min of cushion on Press 1 and 35 min on Press 2. It's editable in Settings ("Suggest fills each day to": 80–100%). Before this, it filled up to 105%.
+- **Dragging by hand** can still go past 90%. The "!" warning shows above 100%.
+- Tested with mocked Airtable: every day Suggest filled landed between 56% and 88%.
