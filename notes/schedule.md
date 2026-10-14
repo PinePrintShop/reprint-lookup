@@ -214,3 +214,8 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - **Flatstock:** Pantone **7683** denim `#426DA9`, from the brand's other palette, with white text (black reads poorly on it).
 - **Finishing:** dusty plum `#8E6C8A`, with black text. It isn't a brand Pantone; the brand book says "feel free to get creative". The muted brand colors left are taken (teal, mustard, burnt orange, Red 032), and the remaining ones are too bright (sky, 107 yellow) or too dark (540 navy). Plum differs from the other lanes in both color and lightness.
 - **Where they show:** cards, machine chips, day-header loads, Day view headers and bars, Month chips and unscheduled tags, same as the other lanes.
+
+## 2026-10-14 · v12: ink changes count
+- v9–v11 left planned ink changes out of Press 1/2 job time. They now add **15 min each**.
+- That's measured: jobs with 1 ink change ran 15 min over the model and jobs with 2 ran about 26 min over (1,888-job history). Airtable's Ink Change time field assumes 25 min each.
+- The count comes from Ink Change time ÷ 25 min.
