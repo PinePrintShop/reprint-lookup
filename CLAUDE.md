@@ -5,6 +5,7 @@ Single-file HTML apps on GitHub Pages (`https://pineprintshop.github.io/reprint-
 ## Every app update
 - **New version file for each change** (`pine-catching-v151.html` → `v152`). Old versions stay untouched; links on the shop floor point at specific versions.
 - **Always-latest links:** every main app has a permanent link that redirects to the current version (`pine-operator.html`, `pine-catching.html`, `damage-log.html`, `receiving.html`, `price-o-matic.html`, `pine-line-item-review.html`, … full list in `notes/ipad-links.md`). The iPads use these as their home-screen icons. **When you ship a new version, update the one `location.replace` line in that app's permanent link**, or the iPads keep the old one.
+- **Self-update + version on screen** (every app, starting with its next version): add `<script src="pine-update.js" data-link="<permanent link>.html"></script>`, define `window.pineBusy` (true while someone is mid-task), call `PineUpdate.check()` from the app's Refresh button, and show the version (`'v'+PineUpdate.ver`) somewhere small. iPads then move to new versions on their own. Catching has its own copy of this since v154.
 - **Fix the bugs AND review the flow and UI.** Every cleanup also looks at how the screen is used:
   - finger and mouse travel
   - what's on screen at each step
