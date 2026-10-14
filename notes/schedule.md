@@ -151,3 +151,22 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - **Same chips every day:** each day shows the same machines in the same spots, three per row. That's Press 1 and Press 2 always, plus any other machine with work anywhere in the view.
 - **Faded chips:** a machine with nothing that day shows "P2 –", and a closed day shows "P1 off".
 - **Labels:** the sewing machines are BT (Bartacker) and PB (Post-bed). Both used to be "SW".
+
+## 2026-10-14 · v8: one lane per person/department
+**Stephen:** all the heat presses are one person, and embroidery + sewing are one person, so group them.
+- **Lanes:** the board works in four lanes:
+
+  | Lane | Machines | Hours/day |
+  |---|---|---|
+  | Press 1 | ROQ Next | 8.25 |
+  | Press 2 | ROQ You | 8 |
+  | Embroidery & sewing | Tajima, Bartacker, Post-bed | 8 |
+  | Heat press | D3, Tag, Hat | 7 |
+
+  Flatstock, Finishing and Split show only when they have work. Each lane has one machine chip, one Day view column, one load % against that person's hours (Settings), and one capacity for ✨ Suggest.
+- **Jobs keep their exact machine in Airtable** (Equipment). Every card shows its machine (EM, BT, PB, D3, TAG, HAT), now in Day view too.
+- **Moving a job:**
+  - Within its lane, it keeps its machine.
+  - Into another lane, it takes that lane's main machine (Tajima or D3).
+  - To pick an exact machine, tap the card and use the press picker.
+- Tested with mocked Airtable using mixed machines: a Tag job moved within Heat stayed on Tag, a Press 1 job moved to Heat became D3, and the Heat lane load counted D3 + Tag together.
