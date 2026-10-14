@@ -220,3 +220,34 @@ Trimmed wording that repeated itself:
 - **Tested** with mocked Airtable by rendering the finished PDF with pdf.js and checking the logo corner:
   - Normal Chromium: v155 and v156 both have the logo.
   - With every image blocked from canvas, as a worst-case Safari: v155 has no logo (317 dark px) and v156 has it (3,010 dark px). See the screenshot check in `logo156t.js`.
+
+## v157 — department handoff on mixed orders (Oct 14)
+**Why (Stephen):** each department packs its own work. Embroidery packs on its desktop. Catching packs apparel and bandanas on the iPads. All-heat-press orders get packed by Heat press. Mixed orders usually ship together but sometimes split, and today nothing on screen connects the departments.
+
+**New Airtable field (agreed with Stephen 10/14):** Orders › **Packing Handoff** (`fldu2NmUdYx6yd9DU`, long text).
+- One line per handoff, e.g. "Oct 14 3:10pm · 👕 Apparel done · 85 pcs · 2 boxes · Shipping prep".
+- Shorts and extras are NOT kept here. They stay on the Line Items (final per size, extras, extras sent), and the slip reads them from there.
+- No automation watches the field.
+
+**What the app does:**
+- **Departments** come from the imprint's press: 👕 Apparel (P1, P2, Flatstock), 🧵 Embroidery (Tajima) and 🔥 Heat press (heat press, D3, hat press, tag press).
+  - Who's done comes from the imprints' Caught flags in Airtable, so the Embroidery desktop and the iPads always agree.
+- **Header chips on mixed orders,** e.g. "👕 Apparel ✓ · 2 boxes · Shipping prep · 🧵 Embroidery · not done yet (you)" with "whoever finishes last packs it". One-department orders look the same as before.
+- **Finishing first is a handoff card:**
+  - "Apparel's part is done · still waiting on Embroidery".
+  - Number of boxes (− 1 +) and **Pick-Up / Shipping prep** (set by default from the shipping method), then **✓ Hand off**, which writes the line.
+  - No customer slip. The order goes to Partially Completed, same as before.
+- **Ship my part now instead:**
+  - It confirms first, then logs "shipped separately (Shipment 1)".
+  - The slip opens with the other department's items left off and says "Shipment 1 · the rest of your order ships separately".
+- **Finishing last is "You're packing this order":**
+  - A checklist built from the handoff lines, e.g. "☐ Add 👕 Apparel's 2 boxes from Shipping prep".
+  - 🖨 Packing slip unlocks only when everything is ticked. The slip covers all departments' items, with shorts and extras from the Line Items.
+  - It logs "packed the whole order". If a part shipped earlier, the checklist says so, those items are left off, and the slip says "Shipment 2".
+- **Bug fixed along the way:** on a mixed order with both parts scheduled the same day, finishing a department's last item jumped to the other department's job, even on a different press tab, and the order card never showed. Now "done" is judged per department.
+- **Slip support:** items can start out left off (`_slipOpts[order] = {leaveOff, note}`), with a custom bottom note.
+- **Tested** with mocked Airtable, P1 + Embroidery on order 90010:
+  - Apparel first: handoff of 2 boxes to Shipping prep, then Partially Completed.
+  - Embroidery last: the checklist locks the slip until ticked; the slip has tees and hats; logs "packed the whole order"; then Caught – Awaiting Ship.
+  - Ship my part now: the hats are left off and the note says Shipment 1.
+  - Regression checks pass: single-department order card, Completed-tab search, slip in both the browser and home-screen app. No errors.
