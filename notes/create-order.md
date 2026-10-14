@@ -407,3 +407,16 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
   - `STOCK` in the code is a list, so other stock styles can be added as more chips.
 - **Product Type** now toggles: "all types ▾" shows every type, and "common only ▴" folds back to the five common ones. A rare type that's already picked stays visible when folded.
 - **Tested** on desktop + emulated iPhone with mocked Airtable (toggle open/close, 4800 chips, Sand and Royal as one size, cached reload). No errors.
+
+## 2026-10-14 — v16: order picker cleaned up for desktop
+- Stephen: the "Which order?" list looked messy on desktop. The cards were all different widths (each sized to its customer name), the "Line Item Review →" links floated far off to the right, the rep name moved around, and an empty side panel sat next to the list.
+- **Now it's one table:** Order · Customer · Created · Rep · Lines.
+  - Every row is the same width and the columns line up.
+  - Long customer names are cut short with "…" and show in full on hover.
+  - The Lines column shows an amber **needs lines** tag, or "N lines" plus a **Review →** link that stays in its own row.
+  - Orders that already have lines are a little grayer.
+  - The whole row opens the order (Enter works too).
+- **Search and the filter buttons** share one row. The intro is one short line, including the timer note that was in the side panel.
+- **The side column is hidden on this screen,** so the list gets the full width (up to 1100px, centered). It comes back once an order is picked.
+- **Phone:** the number is on the left, with the name, the date and the lines tag stacked to its right.
+- **Tested** with mocked Airtable on desktop 1440/2000 and an emulated iPhone, plus the full v15 flow. No errors, no sideways scroll.
