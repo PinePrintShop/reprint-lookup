@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pine Color Directions</title>
+<!-- 2026-10-14: two color directions from the Pine Brand Standards palettes, mocked on Schedule, Catching and Pine Central.
+     For Whitney (Art Director) to review. Mockups only, made-up customers. Nothing here changes the apps. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+body{margin:0;background:var(--p-cream-lt)}
+.wrap{max-width:1360px;margin:0 auto;padding:24px 16px 80px}
+.hero{display:flex;gap:20px;align-items:center;margin:8px 0 18px}
+.hero p{margin:6px 0 0;color:var(--p-ink-2);max-width:760px}
+.switch{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 24px}
+.pals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;margin-bottom:28px}
+.pal h3{margin:0 0 10px}
+.sws{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.sw{height:104px;border-radius:8px;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;font:700 13px/1.25 var(--p-sans)}
+.sw b{font-size:15px}
+.pal p{color:var(--p-ink-2);font-size:15px;margin:10px 0 0}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;color:var(--p-ink-2);font-size:15px;margin-bottom:36px}
+.rules b{color:var(--p-black)}
+.dir{margin:36px 0}
+.dir>h2{margin:0 0 4px}
+.dir>.p-hint{margin:0 0 16px}
+.shot{margin:18px 0 6px}
+.shot .cap{font:700 14px/1.2 var(--p-sans);margin:0 0 8px;display:flex;gap:8px;align-items:center}
+.scaler{position:relative;width:100%;margin-right:auto;overflow:hidden;border-radius:12px;box-shadow:var(--p-shadow);background:#fff}
+.scaler>.mk{position:absolute;left:0;top:0;transform-origin:0 0}
+.hide{display:none}
+@media (max-width:860px){.pals,.rules{grid-template-columns:1fr}.sws{grid-template-columns:repeat(5,minmax(0,1fr))}.sw{height:84px;font-size:12px}}
+
+/* ---------- palettes ---------- */
+.A{--g:#F7F0E4;--panel:#EFE2CD;--p1:#426DA9;--p1i:#fff;--p2:#4EC3E0;--p2i:#141412;--em:#FF8200;--emi:#141412;--ht:#003057;--hti:#fff}
+.B{--g:#EFE2CD;--panel:#F7F0E4;--p1:#1E988A;--p1i:#141412;--p2:#D69A2D;--p2i:#141412;--em:#DC582A;--emi:#141412;--ht:#EF3340;--hti:#141412}
+/* !important: these win over the component rules (a press color always shows) */
+.c-p1{background:var(--p1)!important;color:var(--p1i)!important} .c-p2{background:var(--p2)!important;color:var(--p2i)!important}
+.c-em{background:var(--em)!important;color:var(--emi)!important} .c-ht{background:var(--ht)!important;color:var(--hti)!important}
+
+/* ---------- shared mockup bits ---------- */
+.mk{font-family:var(--p-sans);color:#141412;background:var(--g);display:flex;flex-direction:column;overflow:hidden}
+.mk *{box-sizing:border-box}
+.bar{background:#141412;color:#fff;display:flex;align-items:center;gap:14px;height:56px;padding-right:16px;flex:none}
+.bar .p-mark{width:56px;height:56px}
+.bar .app{font:900 18px/1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.bar .v{font:700 12px/1 var(--p-sans);color:rgba(255,255,255,.6)}
+.bar .sp{flex:1}
+.mb{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:6px;border:2px solid #141412;background:#fff;font:700 14px/1 var(--p-sans);color:#141412}
+.mb.on-dark{background:transparent;color:#fff;border-color:#fff}
+.mb.y{background:#FBE122}
+.seg{display:inline-flex;border:2px solid #141412;border-radius:999px;overflow:hidden}
+.seg span{padding:0 13px;min-height:36px;display:flex;align-items:center;font:700 14px/1 var(--p-sans);background:#fff}
+.seg span+span{border-left:2px solid #141412}
+.seg .on{background:#141412;color:#FBE122}
+.sec{font:900 14px/1 var(--p-display);text-transform:uppercase;background:#141412;color:#fff;padding:8px 10px;width:fit-content;letter-spacing:.03em;word-spacing:.14em}
+
+/* schedule */
+.sch .tools{display:flex;align-items:center;gap:10px;padding:8px 16px;background:#fff;border-bottom:1px solid rgba(20,20,18,.14);flex:none}
+.sch .rng{font:900 19px/1 var(--p-display);text-transform:uppercase}
+.sch .body{flex:1;display:flex;min-height:0}
+.sch .side{width:270px;flex:none;background:var(--panel);border-right:1px solid rgba(20,20,18,.14);padding:12px;display:flex;flex-direction:column;gap:8px}
+.sch .sc{background:#fff;border-radius:8px;border:1.5px solid rgba(20,20,18,.2);padding:8px;display:flex;flex-direction:column;gap:5px}
+.sch .sc .l1{display:flex;gap:6px;align-items:baseline}.sch .sc .l1 b{font-size:15px}.sch .sc .l1 span{font-size:12px;color:#4A453C}
+.tg{display:inline-flex;align-items:center;font:700 12px/1 var(--p-sans);padding:5px 7px;border-radius:4px}
+.tg.o{border:1.5px solid #141412;padding:4px 6px}
+.tg.k{background:#141412;color:#FBE122}
+.sch .grid{flex:1;margin:12px;display:grid;grid-template-columns:118px repeat(5,minmax(0,1fr));border-radius:10px;overflow:hidden;background:#fff;border:1px solid rgba(20,20,18,.3);align-content:start}
+.sch .dh{background:#141412;color:#fff;padding:8px 10px;display:flex;justify-content:space-between;font:700 13px/1 var(--p-sans)}
+.sch .dh b{font:900 14px/1 var(--p-display);text-transform:uppercase}
+.sch .dh.today{background:#FBE122;color:#141412}
+.sch .rh{padding:10px;display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(20,20,18,.3)}
+.sch .rh b{font:900 15px/1.05 var(--p-display);text-transform:uppercase}.sch .rh span{font:700 12px/1 var(--p-sans);opacity:.85}
+.sch .cell{border-top:1px solid rgba(20,20,18,.3);border-left:1px solid rgba(20,20,18,.12);padding:6px;display:flex;flex-direction:column;gap:4px;min-height:120px}
+.sch .cell.off{background:#F7F0E4}
+.sch .fill{display:flex;align-items:center;gap:6px;font:700 12px/1 var(--p-sans);color:#4A453C}
+.sch .fill i{flex:1;height:7px;border-radius:4px;background:#EFE2CD;overflow:hidden;display:flex}
+.sch .fill i u{display:block;height:100%}
+.sch .card{border-radius:6px;padding:5px 7px;font:400 12px/1.3 var(--p-sans)}
+.sch .card b{font-size:14px}
+.sch .card.ghost{border:2px dashed #141412;background:#FEF6C2;color:#141412}
+.offl{font:700 12px/1 var(--p-sans);color:#7A7363;text-transform:uppercase;letter-spacing:.06em}
+
+/* catching */
+.cat .tabs{display:flex;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid rgba(20,20,18,.14);flex:none}
+.cat .tab{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px;border-radius:999px;font:700 16px/1 var(--p-sans);border:2px solid #141412;background:#fff}
+.cat .tab .n{font:800 13px/1 var(--p-sans);border-radius:999px;padding:4px 8px}
+.cat .tab.sel .n{background:#fff;color:#141412}
+.cat .main{flex:1;display:flex;gap:16px;padding:16px;min-height:0}
+.cat .job{flex:1;display:flex;flex-direction:column;background:#fff;border-radius:14px;overflow:hidden;border:1.5px solid rgba(20,20,18,.2)}
+.cat .jh{padding:14px 18px;display:flex;align-items:center;gap:14px}
+.cat .jh .id{font:900 34px/1 var(--p-display)}
+.cat .jh .t{font:700 16px/1.2 var(--p-sans)}
+.cat .jb{display:flex;gap:18px;padding:18px;flex:1}
+.cat .proof{height:200px;border-radius:10px;background:var(--panel);display:flex;align-items:center;justify-content:center;font:700 14px/1 var(--p-sans);color:#4A453C}
+.cat .big{font:900 64px/1 var(--p-display)}
+.cat .prog{height:12px;border-radius:6px;background:var(--panel);overflow:hidden;display:flex}
+.cat .szs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.cat .sz{display:flex;flex-direction:column;align-items:center;gap:6px;background:#fff;border-radius:10px;padding:10px 4px;border:1.5px solid rgba(20,20,18,.2)}
+.cat .sz small{font:700 13px/1 var(--p-sans);color:#4A453C}.cat .sz b{font:900 30px/1 var(--p-display)}
+.cat .bb{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:0 22px;border-radius:8px;border:2px solid #141412;font:800 17px/1 var(--p-sans);background:#fff}
+.cat .q{background:#fff;border-radius:10px;border:1.5px solid rgba(20,20,18,.2);padding:10px;display:flex;gap:10px;align-items:center}
+.cat .q .pk{font:800 13px/1 var(--p-sans);padding:8px;border-radius:6px;min-width:36px;text-align:center}
+.cat .q b{font-size:16px;display:block}.cat .q span{font-size:13px;color:#4A453C}
+
+/* central */
+.cen{flex-direction:row}
+.cen .nav{width:220px;flex:none;background:#141412;display:flex;flex-direction:column;padding-bottom:16px}
+.cen .logo{height:150px;display:flex;align-items:center;justify-content:center}
+.cen .logo .p-logo{width:110px;color:#fff}
+.cen .ni{display:flex;align-items:center;gap:10px;padding:10px 16px;font:700 14px/1 var(--p-sans);color:#D8D3C6;text-transform:uppercase;letter-spacing:.06em}
+.cen .ni.on{background:#2A2925;color:#fff;box-shadow:inset 4px 0 0 #FBE122}
+.cen .dot{width:12px;height:12px;border-radius:3px;flex:none;background:#fff}
+.cen .col{flex:1;display:flex;flex-direction:column;min-width:0}
+.cen .mach{display:flex}
+.cen .mach div{flex:1;display:flex;align-items:center;gap:8px;padding:0 14px;height:44px;font:800 13px/1 var(--p-sans);text-transform:uppercase;letter-spacing:.06em}
+.cen .mach small{font:700 12px/1 var(--p-sans);text-transform:none;letter-spacing:0;opacity:.9}
+.cen .tick{background:#141412;color:#D8D3C6;display:flex;gap:22px;align-items:center;padding:0 16px;height:38px;white-space:nowrap;overflow:hidden;font:700 12px/1 var(--p-sans);text-transform:uppercase;letter-spacing:.06em}
+.cen .tick span span{padding:4px 6px;border-radius:3px;margin-right:8px}
+.cen .home{flex:1;padding:22px 28px;display:flex;flex-direction:column;gap:18px}
+.cen .greet{font:900 44px/1 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em}
+.cen .presses{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.cen .pc{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;min-height:150px}
+.cen .pc b{font:900 18px/1 var(--p-display);text-transform:uppercase}
+.cen .pc small{font:700 13px/1 var(--p-sans);opacity:.9}
+.cen .pc .j{font:800 16px/1.2 var(--p-sans)}
+.cen .pc .pb{height:8px;border-radius:4px;background:rgba(255,255,255,.5);display:flex;overflow:hidden}
+.cen .pc .pb u{background:#141412;display:block}
+.cen .tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.cen .tile{display:flex;flex-direction:column;justify-content:flex-end;gap:4px;height:96px;padding:12px 14px;border-radius:10px;background:#141412;color:#fff}
+.cen .tile b{font:900 16px/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.cen .tile span{font:400 13px/1.2 var(--p-sans);color:#D8D3C6}
+.cen .tile.y{background:#FBE122;color:#141412}.cen .tile.y span{color:#141412}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Color</span><span class="p-bar-ver">Directions · Oct 14, 2026</span>
+  <div class="p-bar-sp"><a class="p-btn p-btn-dark" href="pine-style.html" style="border-color:#fff">Style v2 ↗</a></div></header>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1 class="p-h1">More color: two directions</h1>
+      <p>Both come from the color palettes in the Pine Brand Standards. Each press and department gets one color, used the same way in every app. Shown on three apps: Schedule (desktop), Catching (iPad) and the Pine Central home. These are mockups with made-up jobs; the apps haven't changed.</p>
+    </div>
+  </div>
+
+  <div class="pals">
+    <div class="pal">
+      <h3 class="p-h2">A · Creativity is our currency <span class="p-tag p-tag-wait" style="vertical-align:middle">Stephen's pick for the presses</span></h3>
+      <div class="sws">
+        <div class="sw" style="background:#426DA9;color:#fff"><b>7683</b>Press 1 · Next</div>
+        <div class="sw" style="background:#4EC3E0"><b>637</b>Press 2 · You</div>
+        <div class="sw" style="background:#FF8200"><b>151</b>Embroidery</div>
+        <div class="sw" style="background:#003057;color:#fff"><b>540</b>Heat press</div>
+        <div class="sw" style="background:#FBE122"><b>107</b>Needs you, main button</div>
+      </div>
+      <p>Bright and loud, like the triceratops print. Both presses are blues (dark and light) so they read as one department.</p>
+    </div>
+    <div class="pal">
+      <h3 class="p-h2">B · Consume design</h3>
+      <div class="sws">
+        <div class="sw" style="background:#1E988A"><b>7473</b>Press 1 · Next</div>
+        <div class="sw" style="background:#D69A2D"><b>7563</b>Press 2 · You</div>
+        <div class="sw" style="background:#DC582A"><b>7579</b>Embroidery</div>
+        <div class="sw" style="background:#EF3340"><b>Red 032</b>Heat press</div>
+        <div class="sw" style="background:#EFE2CD;box-shadow:inset 0 0 0 1px rgba(20,20,18,.15)"><b>EFE2CD</b>Page ground</div>
+      </div>
+      <p>Warmer and earthier, like the 100% Water Based paint cans. The cream becomes the page. Red 032 for heat press means problems move to black "!" tags.</p>
+    </div>
+  </div>
+  <div class="rules">
+    <div><b>Same rule in both:</b> Press 1, Press 2, Embroidery and Heat each get one color. You see it on the Schedule rows and cards, Catching's press tabs, and Central's press cards and ticker.</div>
+    <div><b>Yellow still means "you":</b> the one main button and "waiting on you" stay Pantone 107, so the new colors never compete with it. The black top bar and logo square stay.</div>
+    <div><b>Readable:</b> text on color is black or white, whichever reads best (white only on 7683 and 540). The colors also differ in lightness, so color-blind crew can tell them apart.</div>
+  </div>
+
+  <div class="switch" role="group" aria-label="Show">
+    <button class="p-tab is-on" data-show="both">Both directions</button>
+    <button class="p-tab" data-show="A">Only A</button>
+    <button class="p-tab" data-show="B">Only B</button>
+  </div>
+
+  <section class="dir" data-dir="A"><h2 class="p-h1">A · Creativity is our currency</h2><p class="p-hint">7683 · 637 · 151 · 540 on cream</p><div class="shots"></div></section>
+  <section class="dir" data-dir="B"><h2 class="p-h1">B · Consume design</h2><p class="p-hint">7473 · 7563 · 7579 · Red 032 on Pine cream</p><div class="shots"></div></section>
+</div>
+
+<!-- One set of mockups; each direction gets a copy with its own palette class. -->
+<template id="tpl">
+  <div class="shot"><div class="cap">Schedule · desktop</div><div class="scaler" data-w="1280" data-h="800"><div class="mk sch" style="width:1280px;height:800px">
+    <div class="bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="app">Schedule</span><span class="v">v1</span><span class="sp"></span><span class="mb on-dark">Settings</span><span class="mb on-dark">Refresh</span></div>
+    <div class="tools"><span class="rng">Oct 12 – Oct 16</span><span class="sp" style="flex:1"></span>
+      <div class="seg"><span class="on">All</span><span class="c-p1">Press 1</span><span class="c-p2">Press 2</span><span class="c-em">Embroidery</span><span class="c-ht">Heat</span></div>
+      <div class="seg"><span>Day</span><span>3 Day</span><span class="on">Week</span><span>Month</span></div><span class="mb y">✨ Suggest</span></div>
+    <div class="body">
+      <div class="side">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font:900 15px/1 var(--p-display);text-transform:uppercase">Unscheduled</span><span class="tg" style="background:#141412;color:#fff;border-radius:999px">6</span></div>
+        <div class="sc"><div class="l1"><b>11061-A</b><span>Trailhead Coffee</span></div><div><span class="tg c-p1">Press 1</span> <span class="tg o">240</span> <span class="tg k">Hard deadline</span></div></div>
+        <div class="sc"><div class="l1"><b>11062-A</b><span>Lupine Dog Rescue</span></div><div><span class="tg c-p2">Press 2</span> <span class="tg o">500</span></div></div>
+        <div class="sc"><div class="l1"><b>11065-A</b><span>Spoke &amp; Chain Bikes</span></div><div><span class="tg c-p1">Press 1</span> <span class="tg o">1,200</span></div></div>
+        <div class="sc"><div class="l1"><b>11064-A</b><span>Foothills Rugby</span></div><div><span class="tg c-p2">Press 2</span> <span class="tg o">36</span></div></div>
+        <div class="sc"><div class="l1"><b>11067-A</b><span>Canyon Brewing</span></div><div><span class="tg c-ht">Heat · D3</span> <span class="tg o">150</span></div></div>
+        <div class="sc"><div class="l1"><b>11066-A</b><span>Ridgeline Design</span></div><div><span class="tg c-em">Embroidery</span> <span class="tg o">60</span> <span class="tg k">Hard deadline</span></div></div>
+      </div>
+      <div class="grid" data-sched></div>
+    </div>
+  </div></div></div>
+
+  <div class="shot"><div class="cap">Catching · iPad</div><div class="scaler" data-w="1180" data-h="820"><div class="mk cat" style="width:1180px;height:820px">
+    <div class="bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="app">Catching</span><span class="v">v158</span><span class="sp"></span><span style="font:700 14px/1 var(--p-sans);color:rgba(255,255,255,.75)">Dryer 1 · 2:14 pm</span></div>
+    <div class="tabs">
+      <span class="tab sel c-p1" style="border-color:var(--p1);box-shadow:0 0 0 3px #141412">Press 1 <span class="n">3</span></span>
+      <span class="tab" style="border-color:var(--p2);box-shadow:inset 0 -6px 0 var(--p2)">Press 2 <span class="n c-p2">2</span></span>
+      <span class="tab" style="border-color:var(--em);box-shadow:inset 0 -6px 0 var(--em)">Embroidery <span class="n c-em">1</span></span>
+      <span class="tab" style="border-color:var(--ht);box-shadow:inset 0 -6px 0 var(--ht)">Heat <span class="n c-ht">1</span></span>
+      <span style="flex:1"></span><span class="tab">Completed</span></div>
+    <div class="main">
+      <div class="job">
+        <div class="jh c-p1"><span class="id">10919-A</span><span class="t">Foothills Rugby<br>Front · Discharge · 4 screens</span><span style="flex:1"></span><span class="tg k" style="font-size:13px;padding:6px 9px">Hard deadline · Fri</span></div>
+        <div class="jb">
+          <div style="width:230px;flex:none;display:flex;flex-direction:column;gap:10px"><div class="proof">[Proof image]</div><div style="font:700 14px/1.4 var(--p-sans);color:#4A453C">Bella Canvas 3001<br>Black · 300 ordered</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:baseline;gap:12px"><span class="big">212</span><span style="font:700 18px/1 var(--p-sans);color:#4A453C">of 300 caught</span></div>
+            <div class="prog"><span style="width:71%;background:var(--p1)"></span></div>
+            <div class="szs"><div class="sz"><small>S</small><b>24</b></div><div class="sz"><small>M</small><b>60</b></div><div class="sz"><small>L</small><b>72</b></div><div class="sz"><small>XL</small><b>40</b></div><div class="sz" style="background:#FEF6C2;border-color:#141412"><small>2XL</small><b>16</b></div><div class="sz"><small>3XL</small><b>0</b></div></div>
+            <div style="display:flex;gap:8px"><span class="tg" style="background:#141412;color:#fff;font-size:13px;padding:7px 10px">Damage logged · 2</span><span class="tg o" style="font-size:13px">Extras · 4</span></div>
+            <span style="flex:1"></span>
+            <div style="display:flex;gap:10px"><span class="bb">Log damage</span><span class="bb">Pause</span><span style="flex:1"></span><span class="bb" style="background:#FBE122;min-width:220px">Mark caught</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="width:300px;flex:none;display:flex;flex-direction:column;gap:10px">
+        <span class="sec">Up next</span>
+        <div class="q"><span class="pk c-p1">P1</span><div><b>10920-B</b><span>150 bandanas · Spoke &amp; Chain</span></div></div>
+        <div class="q"><span class="pk c-p1">P1</span><div><b>10921-C</b><span>72 · back · Ridgeline</span></div></div>
+        <div class="q"><span class="pk c-p2">P2</span><div><b>10923-A</b><span>144 · front · Trailhead</span></div></div>
+        <div class="q"><span class="pk c-p2">P2</span><div><b>10924-B</b><span>96 bandanas · Canyon</span></div></div>
+        <div class="q"><span class="pk c-em">EM</span><div><b>10926-A</b><span>48 · left chest · Lupine</span></div></div>
+        <div class="q"><span class="pk c-ht">HT</span><div><b>10927-A</b><span>120 · neck label · Foothills</span></div></div>
+      </div>
+    </div>
+  </div></div></div>
+
+  <div class="shot"><div class="cap">Pine Central · home</div><div class="scaler" data-w="1280" data-h="800"><div class="mk cen" style="width:1280px;height:800px">
+    <div class="nav">
+      <div class="logo"><span class="p-logo" aria-hidden="true"></span></div>
+      <div class="ni on">Home</div>
+      <div style="font:700 12px/1 var(--p-sans);color:#8A857A;padding:14px 16px 6px;letter-spacing:.08em;text-transform:uppercase">Production</div>
+      <div class="ni"><span class="dot"></span>Seps</div><div class="ni"><span class="dot"></span>Screens</div><div class="ni"><span class="dot"></span>Ink</div>
+      <div class="ni"><span class="dot"></span>Operator</div>
+      <div class="ni"><span class="dot"></span>Catching<span style="flex:1"></span><span class="tg" style="background:#FBE122;color:#141412;border-radius:999px;padding:3px 7px">2</span></div>
+      <div class="ni"><span class="dot"></span>Receiving</div>
+      <div class="ni"><span class="dot" style="background:#FBE122"></span>Schedule</div>
+      <span style="flex:1"></span><div style="font:700 12px/1 var(--p-sans);color:#8A857A;padding:0 16px">Pine Central v173</div>
+    </div>
+    <div class="col">
+      <div class="mach"><div class="c-p1">ROQ Next <small>running</small></div><div class="c-p2">ROQ You <small>setup</small></div><div class="c-em">Embroidery <small>running</small></div><div class="c-ht">Heat press <small>idle</small></div></div>
+      <div class="tick"><span><span style="background:#FBE122;color:#141412">Today</span>18 jobs on the schedule</span><span><span class="c-p1">Press 1</span>1,250 impressions yesterday</span><span><span class="c-p2">Press 2</span>640 impressions yesterday</span><span><span class="c-em">Embroidery</span>455,850 stitches yesterday</span><span><span class="c-ht">Heat press</span>286 pieces yesterday</span></div>
+      <div class="home">
+        <div style="display:flex;align-items:flex-end;gap:16px"><div><div class="greet">Good afternoon!</div><div style="font:400 16px/1 var(--p-sans);color:#4A453C;margin-top:8px">Wednesday · Oct 14</div></div><span style="flex:1"></span><span style="font:900 40px/1 var(--p-display)">2:14PM</span></div>
+        <span class="sec">On the floor now</span>
+        <div class="presses">
+          <div class="pc c-p1"><b>Press 1</b><small>ROQ Next</small><span style="flex:1"></span><span class="j">10919-A · Foothills Rugby</span><span class="pb"><u style="width:71%"></u></span><small>88 left · done about 2:50</small></div>
+          <div class="pc c-p2"><b>Press 2</b><small>ROQ You</small><span style="flex:1"></span><span class="j">10923-A · setting up</span><span class="pb"><u style="width:10%"></u></span><small>4 screens · starts about 2:30</small></div>
+          <div class="pc c-em"><b>Embroidery</b><small>Tajima 6-head</small><span style="flex:1"></span><span class="j">10926-A · Lupine</span><span class="pb"><u style="width:40%"></u></span><small>29 left · done about 3:30</small></div>
+          <div class="pc c-ht"><b>Heat press</b><small>D3 · Tag · Hat</small><span style="flex:1"></span><span class="j">Nothing running</span><span class="pb"><u style="width:0%"></u></span><small>Next: 10927-A at 3:00</small></div>
+        </div>
+        <span class="sec">Apps</span>
+        <div class="tiles">
+          <div class="tile"><b>Seps</b><span>Art dept</span></div><div class="tile"><b>Screens</b><span>Burn and reclaim</span></div><div class="tile"><b>Ink</b><span>Mix queue</span></div>
+          <div class="tile"><b>Operator</b><span>Run the presses</span></div><div class="tile"><b>Catching</b><span>Count and pack</span></div><div class="tile"><b>Receiving</b><span>Check in garments</span></div>
+          <div class="tile y"><b>Schedule</b><span>31 to schedule</span></div><div class="tile"><b>Create order</b><span>From a deal</span></div><div class="tile"><b>Line Item Review</b><span>Proofs, send</span></div>
+          <div class="tile"><b>Price-O-Matic</b><span>Quotes</span></div><div class="tile"><b>Damage Log</b><span>Refunds</span></div><div class="tile"><b>Purchasing</b><span>Order garments</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</template>
+
+<script>
+// Schedule grid content (same for both directions; colors come from the palette class)
+const DAYS=[['Mon','Oct 12'],['Tue','Oct 13'],['Wed','Oct 14'],['Thu','Oct 15'],['Fri','Oct 16']];
+const ROWS=[
+  ['p1','Press 1','ROQ Next',['59%','59%','45%','80%'],[
+    [['8:30','10901-A','300 · 4 scr · 1h 52m'],['10:30','10902-B','150 · bandana · 1h 40m'],['1:00p','10903-C','72 · 3 scr · 48m']],
+    [['8:30','10910-A','300 · 4 scr · 1h 52m'],['10:30','10911-B','150 · bandana · 1h 40m'],['1:00p','10912-C','72 · 3 scr · due tomorrow']],
+    [['8:30','10919-A','300 · 4 scr · 1h 52m'],['10:30','10920-B','150 · bandana · 1h 40m']],
+    [['8:30','10928-A','300 · 4 scr · 1h 52m'],['10:30','10929-B','150 · bandana · 1h 40m'],['G','11063-A','suggested · 72 · 6 scr']]]],
+  ['p2','Press 2','ROQ You',['31%','31%','31%','56%'],[
+    [['8:30','10905-A','144 · 2 scr · 59m'],['11:00','10906-B','96 · bandana · 53m']],
+    [['8:30','10914-A','144 · 2 scr · 59m'],['11:00','10915-B','96 · bandana · 53m']],
+    [['8:30','10923-A','144 · 2 scr · 59m'],['11:00','10924-B','96 · bandana · 53m']],
+    [['8:30','10932-A','144 · 2 scr · 59m'],['9:30','11068-A','96 · 2 scr · due tomorrow'],['G','11061-B','suggested · 240 · 1 scr']]]],
+  ['em','Embroidery','Tajima 6-head',['12%','12%','12%','26%'],[[['9:00','10908-A','48 · left chest · 56m']],[['9:00','10917-A','48 · left chest · 56m']],[['9:00','10926-A','48 · left chest · 56m']],[['9:00','10935-A','48 · left chest · 56m'],['G','11066-A','suggested · 60 · 1h 10m']]]],
+  ['ht','Heat · D3','Heat press',['29%','29%','29%','29%'],[[['10:00','10909-A','120 · neck label · 2h']],[['10:00','10918-A','120 · neck label · 2h']],[['10:00','10927-A','120 · neck label · 2h']],[['10:00','10936-A','120 · neck label · 2h']]]]
+];
+function schedHtml(){
+  let h='<div style="background:#141412"></div>'+DAYS.map((d,i)=>'<div class="dh'+(i===2?' today':'')+'"><b>'+d[0]+'</b><span>'+d[1]+'</span></div>').join('');
+  ROWS.forEach(([k,name,sub,pct,cells])=>{
+    h+='<div class="rh c-'+k+'"><b>'+name+'</b><span>'+sub+'</span></div>';
+    for(let i=0;i<5;i++){
+      if(i===4){ h+='<div class="cell off"><span class="offl">No Friday shift</span></div>'; continue; }
+      h+='<div class="cell"><div class="fill"><i><u class="c-'+k+'" style="width:'+pct[i]+'"></u></i>'+pct[i]+'</div>'+
+        cells[i].map(j=>j[0]==='G'?'<div class="card ghost"><b>✨ '+j[1]+'</b><br>'+j[2]+'</div>':'<div class="card c-'+k+'"><b>'+j[0]+' '+j[1]+'</b><br>'+j[2]+'</div>').join('')+'</div>';
+    }
+  });
+  return h; }
+document.querySelectorAll('.dir').forEach(sec=>{
+  const node=document.getElementById('tpl').content.cloneNode(true);
+  node.querySelectorAll('.mk').forEach(m=>m.classList.add(sec.dataset.dir));
+  node.querySelector('[data-sched]').innerHTML=schedHtml();
+  sec.querySelector('.shots').appendChild(node);
+});
+// scale each fixed-size mockup to the page width
+function fit(){ document.querySelectorAll('.scaler').forEach(s=>{ const w=+s.dataset.w,h=+s.dataset.h; s.style.maxWidth=w+'px'; const k=Math.min(1,s.clientWidth/w);
+  s.style.height=(h*k)+'px'; s.firstElementChild.style.transform='scale('+k+')'; }); }
+addEventListener('resize',fit); fit();
+document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-show]').forEach(x=>x.classList.toggle('is-on',x===b));
+  document.querySelectorAll('.dir').forEach(s=>s.classList.toggle('hide',b.dataset.show!=='both'&&s.dataset.dir!==b.dataset.show)); fit(); });
+</script>
+</body>
+</html>
