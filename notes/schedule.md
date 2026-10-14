@@ -229,3 +229,15 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - **Placing a job** with no Allocated (drag, card move, Suggest, Place all) fills it from the estimate, rounded up to 5 min, in the same write. Operator, the Board and the Airtable calendar then show the same length. Existing Allocated values are never overwritten by a move, and Undo puts them back.
 - **Estimate** is the calibrated model, now the same numbers as Airtable's Estimated Run Time (see `schedule-calibration.md`).
 - Tested with mocked Airtable: dropping an unscheduled job wrote Equipment + Start + Allocated 40 min. Setting Allocated to 90 on a card wrote 5,400 s, and the job became 90 min on the board.
+
+## 2026-10-14 · v14: Allocated in 15-min steps; unlinked imprints; formula errors
+**Stephen's screenshot:** proof pictures were missing, and "[object Object]" showed after the job IDs.
+- **Cause:** those imprints (e.g. 10957-E, 10996-A, 10627-C) have **no Line Items linked** in Airtable. So they have no qty (Total/Active Impressions 0), no proof (it comes from the line items), and no garments, and the *Due Date Warning* formula returns `#ERROR!`. The API sends that as an object, which printed as "[object Object]".
+- **Fixes:**
+  - Status icons only show text values, so formula errors are hidden.
+  - Unlinked imprints get a **"No line items"** tag instead of "Not received". ✨ Suggest skips them and explains why.
+  - With no proof, the **Seps** file's thumbnail is used as the picture when there is one.
+- **Allocated** filled from the estimate, and the "Use estimate" button, round **up to the next 15 min** (was 5). The minutes box steps by 15.
+- Tested with mocked Airtable:
+  - An unlinked imprint with an `#ERROR!` warning showed "No line items", no "[object Object]", and the Suggest reason.
+  - A drop filled Allocated at 45 and 75 min for 40- and 71-minute estimates.
