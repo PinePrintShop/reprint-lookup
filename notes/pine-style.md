@@ -78,3 +78,5 @@ The plan is to combine the apps early next year, so they need one look first.
 - **Same in both:** each press and department has one color in every app. 107 yellow stays "main button / waiting on you", and the black bar stays.
 - **Stephen (Oct 14): A for the presses** at first, then **B for everything** the same day ("the more muted colorways"). Schedule v6 uses B: Press 1 7473, Press 2 7563, Embroidery 7579, Heat Red 032, on cream `#EFE2CD`. Warnings are black "!" marks because red means heat press.
 - Canvas version (editable, private): https://claude.ai/artifact/KPpUGp25pmtjEQrdTX7YuR
+
+- **Oct 14, Schedule v11:** Flatstock = 7683 denim `#426DA9` (white text). Finishing = dusty plum `#8E6C8A` (not a brand Pantone; picked to match B's muted style).
