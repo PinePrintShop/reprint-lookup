@@ -202,3 +202,18 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
 ## v125 — Get ready card, shorter (Oct 5)
 - The header is just **"Get ready"**. "· next up" and "follows Up next" repeated the Up next column next to it.
 - With nothing left in the queue it says **"Last job — nothing to stage."**
+
+## v126 — "Catch it →" for Embroidery and Heat press (Oct 14)
+- Stephen: Embroidery and Heat press run their machines and catch their own work, both on desktops.
+- Catching stays one app; Operator now links straight into it.
+- **When a Tajima or Heat Press job is marked complete** (✓ Complete or End Run), a pop-up asks **"Catch it now?"**: "Catch it →" or "Later — it stays under Done today".
+- **Catch it →** opens Catching in its own browser tab (`pine-catching.html?press=em|ht&job=<imprint id>&from=operator`). It opens on that exact job, with only that press's tab and a **← Operator** button back. Practice carries over.
+- **Done today rows** on Tajima and Heat Press get a yellow **🧺 Catch it** button, for counting later. The name on a done row that's also the current job is readable now.
+- Presses 1/2 and Flatstock don't get the prompt; Catching iPads catch those. Split jobs don't either.
+- **Self-update (`pine-update.js`):** Operator now moves to new versions by itself whenever nothing is in setup or a run, and no pop-up is open. Refresh also checks. The version was already in the header (v126).
+- **Tested** with mocked Airtable (practice):
+  - Heat press complete shows the prompt, and Catch it opens the right link.
+  - The Done row has the button, and it opens the same link.
+  - P1 complete shows no prompt.
+  - pineBusy is false when idle.
+  - No errors.

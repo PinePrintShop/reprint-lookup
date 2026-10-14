@@ -251,3 +251,15 @@ Trimmed wording that repeated itself:
   - Embroidery last: the checklist locks the slip until ticked; the slip has tees and hats; logs "packed the whole order"; then Caught – Awaiting Ship.
   - Ship my part now: the hats are left off and the note says Shipment 1.
   - Regression checks pass: single-department order card, Completed-tab search, slip in both the browser and home-screen app. No errors.
+
+## v158 — opened from Operator ("Catch it →") (Oct 14)
+- `?press=em|ht&job=<imprint record id>&from=operator` (sent by Operator v126):
+  - **One press only:** the other press tabs are hidden, and the iPad's saved press choice isn't changed.
+  - **Opens that exact job.** It loads even if it wasn't scheduled for today (Embroidery and Heat press run from an open queue): load asks Airtable for today's imprints OR that record.
+  - Already caught? It shows "already caught ✓", with the order under Completed.
+  - **← Operator** button in the top bar closes the tab back to Operator, or goes to `pine-operator.html`.
+- The self-update keeps those parameters.
+- **Tested** with mocked Airtable:
+  - Embroidery job 90010 opens on its own with only the Embroidery tab showing and the back button visible.
+  - Saved press is untouched.
+  - The pack-the-order flow runs end to end from there.
