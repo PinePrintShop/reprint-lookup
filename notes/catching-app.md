@@ -212,3 +212,11 @@ Trimmed wording that repeated itself:
   - Left-off items don't print and aren't in the PDF. The buttons never print. The PDF rebuilds after each change.
   - Only the slip changes. Nothing is written to Airtable.
 - **Tested** with mocked Airtable: 4 items → leave 1 off → print media shows 3 items and 0 buttons, PDF capture shows 3. The order-card slip path still opens with no errors.
+
+## v156 — logo in the PDF on Safari too (Oct 14)
+- Stephen: after v155 the logo showed in the PDF on Chrome, but still not on Safari.
+- **Cause:** v155 swapped the logo to a PNG inside the copy of the page that html2canvas captures. Safari keeps reporting the old (SVG) source until the new image finishes loading. html2canvas reads that and still draws the SVG blank.
+- **Fix:** the capture now doesn't draw the logo at all; it's hidden in the capture. After the page image goes into the PDF, the PNG logo is stamped onto page 1 at the same spot with jsPDF. That takes no canvas or browser image step, so it works in any browser.
+- **Tested** with mocked Airtable by rendering the finished PDF with pdf.js and checking the logo corner:
+  - Normal Chromium: v155 and v156 both have the logo.
+  - With every image blocked from canvas, as a worst-case Safari: v155 has no logo (317 dark px) and v156 has it (3,010 dark px). See the screenshot check in `logo156t.js`.
