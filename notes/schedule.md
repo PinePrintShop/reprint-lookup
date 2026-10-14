@@ -241,3 +241,9 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - Tested with mocked Airtable:
   - An unlinked imprint with an `#ERROR!` warning showed "No line items", no "[object Object]", and the Suggest reason.
   - A drop filled Allocated at 45 and 75 min for 40- and 71-minute estimates.
+
+## 2026-10-14 · v15: only jobs whose garments are ordered
+**Stephen:** the list was pulling in orders that aren't ordered yet.
+- **Unscheduled list and ✨ Suggest** now start at **Ordered - In Production**. That covers Ordered, Pre-press, Scheduled/Screened & Inbound, Received & Staged, On-Press and Delayed.
+- **"Ready to Order"** (garments not ordered yet) is left out.
+- **Mockups:** Stephen wants them on Day view only, which is how it already worked. A brief try at thumbnails on Week/3 Day cards was taken back out before shipping.
