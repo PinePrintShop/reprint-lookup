@@ -145,3 +145,9 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - "Not received"
   - overdue due dates and the reasons Suggest couldn't place a job
 - `pine-colors.html` now marks B as the pick.
+
+## 2026-10-14 · v7: day-header load chips line up
+**Stephen:** the load chips changed from day to day (only the machines with work that day), so they wrapped differently and looked messy.
+- **Same chips every day:** each day shows the same machines in the same spots, three per row. That's Press 1 and Press 2 always, plus any other machine with work anywhere in the view.
+- **Faded chips:** a machine with nothing that day shows "P2 –", and a closed day shows "P1 off".
+- **Labels:** the sewing machines are BT (Bartacker) and PB (Post-bed). Both used to be "SW".
