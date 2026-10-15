@@ -3,7 +3,9 @@
 ## Which device each app is built for (Stephen, 2026-10-15)
 - **iPad (floor, touch, 56px buttons):** Operator, Catching.
 - **Desktop (mouse, wide screens, use the full width):** Purchasing, Receiving, Seps, Screens, Ink, Damage Log.
-- Not on Stephen's list yet: Schedule, Production Board, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup and Pine Central. Ask before assuming.
+- **Also desktop** (Stephen confirmed): Schedule, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup.
+- **Wall TV:** Production Board.
+- Pine Central: not listed yet.
 - Every app still has to work on an iPad and a phone. The list sets which layout gets designed first and tested hardest.
 
 ## 2026-10-12

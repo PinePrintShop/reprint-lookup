@@ -16,7 +16,7 @@ Single-file HTML apps on GitHub Pages (`https://pineprintshop.github.io/reprint-
 - **Practice mode** (`?practice=1`) on apps that write to Airtable: writes are faked, nothing is saved.
 - **Test with mocked Airtable** (Playwright, Chromium preinstalled) before shipping, and screenshot the key screens. Then commit → PR → merge, and give normal `https://` links (live and practice).
 - Add a dated entry to the app's file in `notes/` describing what changed and why.
-- **Design for the app's device first:** iPad apps are Operator and Catching. Desktop apps are Purchasing, Receiving, Seps, Screens, Ink and the Damage Log, so use the full screen width (two-pane on wide screens). The full list is in `notes/ipad-links.md`.
+- **Design for the app's device first:** iPad apps are Operator and Catching. Desktop apps are Purchasing, Receiving, Seps, Screens, Ink, the Damage Log, Schedule and the office apps (Price-O-Matic, Line Item Review, Create order, KPIs, Reprints). The Production Board is a wall TV. On desktop, use the full screen width (two-pane on wide screens). The full list is in `notes/ipad-links.md`.
 
 ## Airtable
 - Talk to Stephen before large Airtable changes (new fields, changed options, bulk edits). Small additive changes are OK once agreed.
