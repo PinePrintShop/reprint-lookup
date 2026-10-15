@@ -263,3 +263,41 @@ Trimmed wording that repeated itself:
   - Embroidery job 90010 opens on its own with only the Embroidery tab showing and the back button visible.
   - Saved press is untouched.
   - The pack-the-order flow runs end to end from there.
+
+## v159 — Pine style v2, self-update fix, Completed counts right away (Oct 15)
+- **Pine style v2:** Poppins Black and `pine-style-v2.css`. Only black, white, cream and Pantone 107 yellow are used. Red shows only for damage counts, errors and "set shipping". Nothing is under 12px. Main floor buttons are 56px.
+- **Top bar:** the same black bar as the other apps: Pine logo, CATCHING, the version (v159) and the Practice pill.
+  - Press tabs have each press's Schedule color dot. On the iPad they use short names (P1, P2, Flat, Embroidery, Heat), so all six fit on one row in landscape, even in practice. In v158, Heat Press was cut off.
+  - A press with nothing to catch shows no number.
+  - "Active" is gone: tapping a press is Active. Completed sits after the presses.
+  - The 🔑 button only shows until a token is set. After that, "Change Airtable token" is at the bottom of Completed.
+  - The practice pill is the reset button.
+- **Work screen:**
+  - Order # is a black-and-yellow badge, and the title is in Poppins.
+  - **✓ Done** is the one yellow button. A picked size is yellow.
+  - Counted reasons turn black with a yellow number. Team reasons are white, Other is cream and Unsure is dashed, so the two buckets stay apart without red and amber.
+  - The − button moved to the bottom corner, so it no longer covers the reason name (e.g. "MILL FLAW").
+  - The work screen is tighter, so the Jawn / Unsure / Undo row fits on a 1024×768 iPad without scrolling.
+  - Embroidery's 4-across reasons no longer overlap the Other row.
+- **Pop-ups and toasts** (order complete, hand off, pack, review, sort the unsure pieces, proof viewer, update bar) all use the shared look.
+  - The order # is the one big number.
+  - Next ▸ is yellow on the order card. On the pack card, the slip is yellow once everything is ticked.
+- **Completed tab:**
+  - Poppins title and a big "N jobs caught today" number.
+  - The any-order box is labeled "Packing slip for any order".
+  - The order # on each card is gone, since the order header already shows it. Imprint IDs are badges.
+- **Self-update bug:** v154–158 counted any open job as "mid-catch". The work screen always has a job open, so iPads never moved to a new version by themselves.
+  - Now `pineBusy` is true only when someone is mid-task: a tap in the last 3 minutes, the Undo window, a save in flight, an open pop-up or slip, or typed text.
+  - Tallies already survive a reload (v146), so an idle iPad reloads into the new version. `?practice=1` and the Operator parameters are kept.
+- **Bug: a line item caught on this iPad disappeared from both lists until Refresh.** It now moves to Completed right away. That fixes:
+  - the Completed count and list
+  - the line-item list's "n/N" (it said 1/1 instead of 2/2)
+  - the order card's damage count
+  - the **Packing Handoff** line, which only counted the last line item ("30 pcs" instead of "57 of 60 pcs (3 short)")
+- Also: the page no longer scrolls 56px under the work screen (padding left over from the old sticky submit bar).
+- **Not changed:** Airtable reads and writes; the printed packing slip.
+- **Tested** with mocked Airtable (Playwright) at 1024×768, 768×1024, 390×844 and 1440×900.
+  - Flows: tally → Review → Done → next line item → hand off (mixed order) → pick-up order card → bandana → Completed. Also Embroidery opened from Operator → pack card checklist → slip, and Unsure → sort the unsure pieces.
+  - Live-mode writes are identical to v158, except the corrected handoff text. Practice sends no writes.
+  - Update check: idle iPad reloads with the job open; busy shows the bar.
+  - No page errors and no text under 12px.
