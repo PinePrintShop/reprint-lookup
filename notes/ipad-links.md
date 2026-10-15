@@ -8,11 +8,11 @@
 | App | Permanent link | Opens now |
 |---|---|---|
 | Operator | `pine-operator.html` | v127 |
-| Catching | `pine-catching.html` | v159 |
-| Damage Log | `damage-log.html` | v18 |
+| Catching | `pine-catching.html` | v160 |
+| Damage Log | `damage-log.html` | v19 |
 | Ink Queue | `pine-ink-queue.html` | v94 |
 | Purchasing | `pine-purchasing.html` | v106 |
-| Receiving | `receiving.html` | receiving-dashboard v73 |
+| Receiving | `receiving.html` | receiving-dashboard v74 |
 | Production Board | `pine-production-board.html` | v41 |
 | Seps | `seps.html` | v34 |
 | Screens | `screens.html` | v21 |
