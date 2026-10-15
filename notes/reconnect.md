@@ -1,4 +1,14 @@
-# Sales Targets (`sales-targets.html`)
+# Reconnect (was Sales Targets)
+
+## 2026-10-15 · v2: renamed to Reconnect
+**Stephen:** "can we change it from sales target to outreach Q1 or something more about it being an outreach helper with historical order history but make it sound better than that"
+- **New name:** Reconnect. The top bar says RECONNECT, and the big tile says "Worth a call · Q1 2027".
+- **Links:**
+  - The permanent link is now `reconnect.html`.
+  - The old `sales-targets.html` link forwards to it.
+  - Nothing else changed: same rules and same screens.
+- **Settings and Contacted / Skip marks carry over:** they're stored under the same browser keys.
+
 
 Which past customers sales should reach out to for the coming quarter (Q1 2027 by default), from the order history in Airtable. A desktop office app (wide screen first), also works on an iPad or phone.
 

@@ -50,3 +50,10 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
   - 2000×1000: 471×364 → 815×630 (3×); portrait 471×609 → 527×682.
 - **iPad and phone (below 1400px) unchanged** (screenshots pixel-identical to v22 at 1024, 768, 390 and 1399 wide). Same Airtable reads and writes as v22.
 - **Tested** (Playwright, mocked Airtable, made-up customers) at 1440×900, 1920×1080, 2000×1000, 1024×768, 390×844: Imaged, Undo, link sep file, print notes, ink drag, Undo imaged send the same PATCH bodies as v22 at every size; practice 0 writes; failed save puts the imprint back; list toggle hides / shows, survives a reload, works when browser storage is blocked; ↑/↓ with the list hidden; calendar jump; proof viewer opens. No page errors, no text under 12px, no sideways scroll.
+
+## 2026-10-15 · v24: no small mockup above the big one; dragging an ink scrolls
+**Stephen:** "do we need that white bar and smaller mockup above the bigger mockup"
+- **Header:** on wide screens the open imprint's header no longer shows the small proof or the ink strip. The inks are already listed beside the big mockup. The header is shorter, so the mockup starts higher and gets a little bigger: portrait proofs about 12–16% more area, landscape up to 6%.
+- **Dragging an ink:** hold it within about 90px of the top or bottom of the job and the job scrolls, the same as Seps v37.
+- **Unchanged:** list cards and the iPad and phone layouts.
+- **Tested:** all v23 flows send the same writes at 1440, 1024 and 390 (live, practice and failed save). Practice mode sends 0 writes. No text under 12px and no sideways scroll.
