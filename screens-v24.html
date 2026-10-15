@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- Screens v24 (2026-10-15): the open imprint on wide screens drops the small proof and the ink strip from its header
      (Stephen: "do we need that white bar and smaller mockup above the bigger mockup"); the big mockup starts higher.
-     The inks are listed beside it. Airtable writes: same as v23.
+     The inks are listed beside it. Dragging an ink near the top/bottom edge scrolls (as in Seps v37). Airtable writes: same as v23.
      Screens v23 (2026-10-15): the mockup is the focus on desktop (two panes, >=1400px).
      - The queue column is narrower (380–440px, was 560–640px); list cards keep thumb + ID, design, customer, Screens / Qty.
      - The open imprint's proof takes ~60% of the right pane, stays put while the inks/notes scroll, fills the pane's
@@ -2836,7 +2836,34 @@ function inkDragLeave(e) {
   e.stopPropagation();
 }
 
+// v24 (same as Seps v37): while an ink is dragged, holding it near the top or bottom edge scrolls the job (the right pane on wide
+// screens, the page otherwise), so the lowest ink can go straight to the top.
+var dragAuto = { y: null, raf: 0 };
+function dragScroller() { return (isWide() && document.getElementById('splitDetail')) || null; }
+function dragAutoTick() {
+  dragAuto.raf = 0;
+  if (dragSrcIid == null || dragAuto.y == null) return;
+  var box = dragScroller(), top, bottom;
+  if (box) { var r = box.getBoundingClientRect(); top = r.top; bottom = r.bottom; }
+  else { var bar = document.querySelector('.p-bar'), f = document.getElementById('filters'); top = Math.max(bar ? bar.getBoundingClientRect().bottom : 0, f && !f.hidden ? f.getBoundingClientRect().bottom : 0); bottom = window.innerHeight; }
+  var done = document.querySelector('.sp-done'); if (done) { var dt = done.getBoundingClientRect().top; if (dt > top && dt < bottom) bottom = dt; }
+  var zone = 90, step = 0;
+  if (dragAuto.y < top + zone) step = -Math.ceil((top + zone - dragAuto.y) / 6);
+  else if (dragAuto.y > bottom - zone) step = Math.ceil((dragAuto.y - (bottom - zone)) / 6);
+  if (step) { if (box) box.scrollTop += step; else window.scrollBy(0, step); }
+  dragAuto.raf = requestAnimationFrame(dragAutoTick);
+}
+document.addEventListener('dragover', function(e) {
+  if (dragSrcIid == null) return;
+  dragAuto.y = e.clientY;
+  if (!dragAuto.raf) dragAuto.raf = requestAnimationFrame(dragAutoTick);
+}, true);
+function dragAutoStop() { dragAuto.y = null; if (dragAuto.raf) cancelAnimationFrame(dragAuto.raf); dragAuto.raf = 0; }
+document.addEventListener('dragend', dragAutoStop, true);
+document.addEventListener('drop', dragAutoStop, true);
+
 function inkDragEnd(e) {
+  dragSrcIid = null; dragSrcRecId = null;
   document.querySelectorAll('.ink-row').forEach(function(r) {
     r.classList.remove('dragging');
     r.classList.remove('drag-over');

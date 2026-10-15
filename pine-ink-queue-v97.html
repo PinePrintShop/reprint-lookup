@@ -1,5 +1,22 @@
 <!DOCTYPE html>
-<!-- Ink Queue v96 (2026-10-15): the mockup and the inks are the job (Stephen: "Ink is really focused on Mockups and then
+<!-- Ink Queue v97 (2026-10-15): moving through the jobs, and a bigger mockup (Stephen on v96).
+     - Open job: the white head with a small mockup above the big one is gone. One slim head: ID, design, tags like
+       REORDER, then customer #order · location · press · print date; Pcs / Inks and Mark ready on the right. The ink
+       chips left the head (the ink cards beside the proof show the same inks). The big proof starts higher and is bigger.
+     - List: "N need ink · Tightest runway" is one line. Under each day, a slim order line (customer left, cut with …;
+       the #order badge right, in a fixed column so they line up) and its imprint cards straight below. No per-order
+       open/close. Cards are compact for the 380-440px list: thumbnail, ID + design, "Bandana · Press 2 · 120 pcs ·
+       2 inks", ink chips wrap.
+     - Days: today and the next 3 days with jobs start open, later days start closed with their count, "On press today"
+       starts closed when all its inks are ready. Opening or closing a day is remembered for the session. A search or
+       a filter opens every day.
+     - Up/down walk every job and open a closed day on the way. After Mark ready, the next job that still needs ink
+       opens (two panes as before; now in place too), even when it's in a closed day.
+     - Dragging an ink near the top or bottom of the job scrolls it, faster nearer the edge (same as Seps v37).
+     - No proof: the job says "No proof in Airtable" and names the line item to add it to (with a link), or says the
+       imprint has no line item. PDF proofs show their large thumbnail.
+     Same Airtable writes as v96. One new read: the line item name, only when an open job has no proof.
+     Ink Queue v96 (2026-10-15): the mockup and the inks are the job (Stephen: "Ink is really focused on Mockups and then
      adding the correct colors and looks like that is hard to read / use right now"), and the 4x2 Rollo labels were checked.
      - Two panes (1400px+): the list is narrower (380-440px, was 560-640) and "Hide list" in the filter row gives the open job
        the whole width (remembered on this computer; up/down still move between jobs).
@@ -36,7 +53,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ink Queue v96 — Pine</title>
+<title>Ink Queue v97 — Pine</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -85,14 +102,17 @@ body{font-size:15px}
 .day.collapsed>.day-h .chev{transform:rotate(-90deg)}
 .day.collapsed>.day-b{display:none}
 .day.is-done .p-lc{background:#FCFAF6}
-/* order groups */
+/* v97 order lines: customer left (cut with …), then fixed columns on the right so the #order badges line up.
+   No open/close per order: its imprint cards sit straight below. */
 .ord + .ord{margin-top:var(--p-s3)}
-.ord-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 0 0 4px;cursor:pointer;user-select:none}
-.ord-h b{font:800 15px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.ord-h .n{margin-left:auto;font-size:13px;color:var(--p-ink-2);white-space:nowrap}
-.ord-h .chev{width:36px;height:36px}
-.ord.collapsed .ord-b{display:none}
-.ord.collapsed .ord-h .chev{transform:rotate(-90deg)}
+.ord-h{display:grid;grid-template-columns:minmax(0,1fr) 84px 80px;align-items:center;column-gap:8px;min-height:30px;padding:0 4px 6px}
+.ord-name{font:800 14px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ord-n{font-size:13px;color:var(--p-ink-2);white-space:nowrap;text-align:right}
+.ord-h .p-id{justify-self:end}
+/* v97 one-line queue summary at the top of the list */
+.iq-sum{margin:0 0 var(--p-s2);font-size:var(--p-fs-s);line-height:28px;color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iq-sum b{color:var(--p-black)}
+.wrap>.iq-sum{margin-top:var(--p-s3)}
 
 /* job card (.p-lc) */
 .p-lc-head.is-tap:hover{background:var(--hover)}
@@ -131,6 +151,8 @@ body{font-size:15px}
 .jd-in{display:grid;gap:var(--p-s4)}
 /* v96: side by side once there's room — the proof is the bigger half, the inks beside it */
 @container (min-width:760px){ .jd-in{grid-template-columns:minmax(0,58fr) minmax(380px,42fr);align-items:start} }
+/* v97: on wide screens (job 1300px+) the proof takes a bit more, so the mockup is bigger; the ink cards keep 420px+ */
+@container (min-width:1300px){ .jd-in{grid-template-columns:minmax(0,64fr) minmax(420px,36fr)} }
 /* two panes: the picked job's head stays on top while its inks scroll (overflow:clip keeps sticky working) */
 .p-split-detail>.p-lc{overflow:clip}
 .p-split-detail>.p-lc>.p-lc-head{position:sticky;top:calc(-1 * var(--p-s4));z-index:5;background:var(--p-white);border-bottom:1px solid var(--p-line)}
@@ -138,7 +160,7 @@ body{font-size:15px}
 /* the proof stays in view (under the sticky job head) while the ink column scrolls */
 @container (min-width:760px){
   .p-split-detail .jd-proof{position:sticky;top:var(--jd-top,96px)}
-  .p-split-detail .proof-area img{max-height:calc(100vh - var(--p-split-top,120px) - var(--jd-top,96px) - 124px);max-height:calc(100dvh - var(--p-split-top,120px) - var(--jd-top,96px) - 124px)}
+  .p-split-detail .proof-area img{max-height:calc(100vh - var(--p-split-top,120px) - var(--jd-top,96px) - 80px);max-height:calc(100dvh - var(--p-split-top,120px) - var(--jd-top,96px) - 80px)}   /* v97: 124 -> 80, the slimmer head gave the room */
 }
 .proof-area{position:relative;cursor:zoom-in;min-height:160px;display:grid;place-items:center;background:var(--p-white);padding:8px}
 .proof-area img{width:100%;height:auto;display:block;max-height:60vh;object-fit:contain}
@@ -300,6 +322,33 @@ body{font-size:15px}
 .p-toast{z-index:260}
 .p-toast[hidden]{display:none}
 
+/* v97 compact list cards (two panes, 380-440px list): thumbnail · ID + design · "Front · Press 1 · 144 pcs · 2 inks" · chips */
+.p-split-list .p-lc-head.is-list{grid-template-columns:72px minmax(0,1fr) auto;grid-template-areas:"id main act" ". tags tags";gap:8px 12px;padding:10px 12px;align-items:start}
+.is-list .p-lc-id{align-self:start}
+.is-list .p-lc-title{font-size:15px;line-height:1.35}
+.is-list .p-lc-title .p-id{margin-right:6px;vertical-align:1px}
+.is-list .p-lc-sub b{color:var(--p-black);font-weight:800}
+.is-list .p-lc-act{flex-direction:column;align-items:flex-end;gap:2px}
+.is-list .p-lc-act .p-btn{padding:0 12px}
+.is-list .p-lc-act .save-pip.idle{display:none}
+.is-list .p-lc-sub .nw{white-space:nowrap}
+/* v97 the open job's head: one slim band (ID + design + tags, then the facts), Pcs / Inks and Mark ready on the right */
+.p-lc-head.is-detail{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"main nums act";gap:4px 20px;padding:10px 16px;min-height:0}
+.is-detail .p-lc-title{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:20px;line-height:1.25}
+.is-detail .p-lc-title .p-id{font-size:15px}
+.is-detail .p-lc-sub{margin-top:3px}
+.is-detail .p-lc-act{flex-direction:row-reverse;align-items:center;gap:10px}
+.is-detail .p-lc-act .save-pip{min-height:0}
+.p-split-detail>.p-lc>.p-lc-body{padding-top:var(--p-s3)}
+/* in place: an open card drops its small mockup and ink chips (the big proof and the ink cards are right below) */
+.wrap:not(.is-split) .p-lc.is-open>.p-lc-head .jc-thumb,.wrap:not(.is-split) .p-lc.is-open>.p-lc-head .p-tag.sw{display:none}
+/* v97 no proof: say why and where to add it */
+.proof-miss{min-height:240px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px;padding:32px 28px;max-width:560px;margin:0 auto;width:100%}
+.proof-miss b{font:800 20px/1.25 var(--p-sans)}
+.proof-miss p{color:var(--p-ink-2);font-size:var(--p-fs-s)}
+.proof-miss .li{color:var(--p-black);font-weight:800;overflow-wrap:anywhere}
+.proof-miss .p-btn{font-size:var(--p-fs-s);padding:0 14px;text-decoration:none}
+
 /* iPad portrait and phone */
 @media (max-width:1023px){ .p-lc-head .jc-thumb{width:80px;height:56px} }
 @media (max-width:700px){
@@ -308,6 +357,8 @@ body{font-size:15px}
   .p-chips{margin:0 -16px;padding:0 16px 2px}
   .w-long{display:none}.w-short{display:inline}
   .wrap{padding:0 12px 140px}
+  .ord-h{grid-template-columns:minmax(0,1fr) auto auto}
+  .proof-miss{padding:24px 16px}
   .p-lc-id.thumbed{flex-direction:row}
   .p-lc-head .jc-thumb{width:72px;height:48px}
   .p-lc-act{flex-direction:row;align-items:center;justify-content:space-between}
@@ -320,7 +371,7 @@ body{font-size:15px}
 <body class="p-app">
 <header class="p-bar">
   <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
-  <span class="p-bar-app">Ink Queue</span><span class="p-bar-ver" id="ver">v96</span>
+  <span class="p-bar-app">Ink Queue</span><span class="p-bar-ver" id="ver">v97</span>
   <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
   <div class="p-bar-sp">
     <button class="p-barbtn" id="refreshBtn" type="button" onclick="refreshNow()" title="Reload from Airtable and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
@@ -436,7 +487,9 @@ var F = {
   inkNotes:    'fldk0Zbjyuh5NEIE8',  // v77: Ink Notes (singleLineText) on Imprints
   orderStatus: 'fldNROVFSsBwLUOYW',  // v88: Order Status lookup — client-side filter for pipeline fetch
   printMethod: 'fldjNCuaGOkWgzH2K',  // v88.1: Imprint Type (method) — skip non-ink types (embroidery/supacolor/etc)
+  lineItems:   'fldsvntAy1QHEoDAg',  // v97: Line Items link (read only) — names the line item when a job has no proof
 };
+var TLI = 'tblJx5UlwO7oMSk5H', LI_REF = 'fldU6oLyZnxhhm2kX';   // v97: Line Items table + its name (Line Item Reference)
 
 var FI = {
   name:        'fldojKv3gqT312q2R',
@@ -1940,7 +1993,6 @@ window.onload = function() {
     showMenu(true);
     return;
   }
-  prunePastCollapsedDays();
   loadJobs();
 };
 
@@ -2278,9 +2330,9 @@ function refreshCardInkStrip(impRecId) {
     var rb = heads[i].querySelector('.ready-btn');
     if (rb) rb.outerHTML = readyBtnHtml(rec, mode === 'detail' || (mode === 'inplace' && openDetailId === impRecId));
     var tags = heads[i].querySelector('.p-lc-tags');
-    if (tags) tags.innerHTML = cardTagsHtml(rec);
+    if (tags) tags.innerHTML = cardTagsHtml(rec, mode);
     var nums = heads[i].querySelector('.p-lc-nums');
-    if (nums) nums.innerHTML = cardNumsHtml(rec);
+    if (nums) nums.innerHTML = cardNumsHtml(rec, mode);
     var lc = heads[i].closest('.p-lc');
     if (lc) lc.classList.toggle('no-ink', !inkIdsOf(rec).length);
   }
@@ -2526,7 +2578,7 @@ function loadJobs() {
 
   var flds = [F.imprintId, F.orderNum, F.startTime, F.loc, F.inks, F.inkNames,
     F.inkType, F.inksReady, F.isRepeat, F.prevImprint, F.printNotes,
-    F.proofs, F.qty, F.customer, F.printDesc, F.press, F.screens, F.printMethod, F.orderStatus
+    F.proofs, F.qty, F.customer, F.printDesc, F.press, F.screens, F.printMethod, F.orderStatus, F.lineItems
   ];
   if (F.inkNotes) flds.push(F.inkNotes); // v76: only if field ID has been configured
   flds = flds.map(function(f) { return 'fields%5B%5D=' + f; }).join('&');
@@ -2575,7 +2627,7 @@ var RUNWAY_BENCHMARK = 4;    // v92: working-days-to-print benchmark. >4 green, 
 function loadPipeline() {
   var flds = [F.imprintId, F.orderNum, F.loc, F.inks, F.inkNames, F.inkType, F.inksReady,
     F.isRepeat, F.prevImprint, F.printNotes, F.proofs, F.qty, F.customer, F.printDesc,
-    F.press, F.screens, F.startTime, F.orderStatus, F.printMethod];
+    F.press, F.screens, F.startTime, F.orderStatus, F.printMethod, F.lineItems];
   if (F.inkNotes) flds.push(F.inkNotes);
   flds = flds.map(function(f) { return 'fields%5B%5D=' + f; }).join('&');
   var filter = encodeURIComponent("AND({fld2a1CPcDMSD26PS}=FALSE(),{fldfqtIgcEfIlIeQk}=BLANK())");
@@ -2746,7 +2798,7 @@ function runwayHtml(counts) {
     if (wd === null) continue;
     if (min === null || wd < min) { min = wd; minRec = r; }
   }
-  var need = '<b>' + counts.all + '</b> ' + (counts.all === 1 ? 'job needs' : 'jobs need') + ' ink';
+  var need = '<b>' + counts.all + '</b> need ink';
   var rw;
   if (min === null) rw = '<span class="p-tag p-tag-done">&#10003; All scheduled ink caught up</span>';
   else {
@@ -2756,11 +2808,13 @@ function runwayHtml(counts) {
     if (minRec) {
       var cust = minRec.fields[F.customer] || '', on = getOrderNum(minRec.fields) || '';
       var dObj = new Date(toDateKey(new Date(minRec.fields[F.startTime])) + 'T12:00:00');
-      tail = ' ' + escHtml((cust ? cust + ' ' : '') + (on ? '#' + on : '') + ' · ' + dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+      tail = ' ' + escHtml((cust ? cust + ' ' : '') + (on ? '#' + on : '') + (min === 0 ? '' : ' · ' + dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })));
     }
     rw = 'Tightest runway <span class="p-tag ' + cls + '">' + val + '</span>' + tail;
   }
-  return '<div class="p-head runway"><span class="p-section">Ink queue</span><span class="p-head-sum">' + need + ' · ' + rw + '</span></div>';
+  // v97: one line (was a page head with an INK QUEUE box and two lines); the whole text is in the tooltip
+  var line = need + ' · ' + rw;
+  return '<div class="iq-sum runway" title="' + line.replace(/<[^>]+>/g, '') + '">' + line + '</div>';
 }
 
 var WIDE = window.matchMedia ? window.matchMedia('(min-width:1400px)') : null;
@@ -2772,8 +2826,16 @@ function renderAll() {
   renderChips(counts);
   var mode = isWide() ? 'list' : 'inplace';
   var filt = function(arr) { return arr.filter(function(r) { return passesFilter(r, activeFilter) && passesSearch(r); }); };
-  var h = runwayHtml(counts), any = false, first = null;
-  function add(html, recs) { if (html) { h += html; any = true; if (!first && recs.length) first = recs[0].id; } }
+  var h = runwayHtml(counts), any = false, first = null, firstAny = null;
+  // v97: the first pick is the first job that still needs ink (v96: the first card, even a ready one)
+  function add(html, recs) {
+    if (!html) return;
+    h += html; any = true;
+    if (!firstAny && recs.length) firstAny = recs[0].id;
+    if (!first) for (var i = 0; i < recs.length; i++) if (!recs[i].fields[F.inksReady]) { first = recs[i].id; break; }
+  }
+  // v97: a search or a filter opens every day; otherwise today and the next OPEN_DAYS days with jobs start open
+  dayForceOpen = !!searchQ.trim() || activeFilter !== 'all';
 
   if (activeFilter !== 'nodate') {
     // v94: On press today — pinned on top, ready and not ready
@@ -2781,31 +2843,31 @@ function renderAll() {
     if (op.length) {
       var nr = op.filter(function(r) { return !r.fields[F.inksReady]; }).length;
       add(groupHtml('onpress', 'On press today', nr ? '<span class="p-tag p-tag-wait">' + nr + ' need ink</span>' : '<span class="p-tag p-tag-done">&#10003; Inks ready</span>',
-        plural(op.length, 'imprint'), op, mode, ' is-press'), op);
+        plural(op.length, 'imprint'), op, mode, ' is-press', nr > 0), op);
     }
     // upcoming days, each with its working-day countdown (v88)
     var up = filt(s.upcoming), byDay = {}, days = [];
     up.forEach(function(r) { var dk = toDateKey(new Date(r.fields[F.startTime])); if (!byDay[dk]) { byDay[dk] = []; days.push(dk); } byDay[dk].push(r); });
     days.sort();
     var tom = toDateKey(addDays(new Date(), 1));
-    days.forEach(function(dk) {
+    days.forEach(function(dk, di) {
       var cd = printCountdown(dk);
       var lbl = dk === tom ? 'Tomorrow' : new Date(dk + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
       var tcls = (cd.sc === 'd1' || cd.sc === 'd2' || cd.sc === 'd3') ? 'p-tag-wait' : 'p-tag-soft';
-      add(groupHtml(dk, lbl, '<span class="p-tag ' + tcls + '">' + cd.label + '</span>', plural(byDay[dk].length, 'imprint'), byDay[dk], mode, ''), byDay[dk]);
+      add(groupHtml(dk, lbl, '<span class="p-tag ' + tcls + '">' + cd.label + '</span>', plural(byDay[dk].length, 'imprint'), byDay[dk], mode, '', di < OPEN_DAYS), byDay[dk]);
     });
   }
   // v88: No date (pipeline) — not ready, unscheduled; capped
   var pipe = filt(s.pipeline), extra = 0;
   if (pipe.length > PIPELINE_RENDER_CAP) { extra = pipe.length - PIPELINE_RENDER_CAP; pipe = pipe.slice(0, PIPELINE_RENDER_CAP); }
   if (pipe.length) add(groupHtml('pipeline', 'No date', '<span class="p-tag p-tag-soft">Not scheduled</span>',
-    plural(pipe.length, 'imprint') + (extra ? ' (+' + extra + ' more)' : ''), pipe, mode, ' is-pipe'), pipe);
+    plural(pipe.length, 'imprint') + (extra ? ' (+' + extra + ' more)' : ''), pipe, mode, ' is-pipe', !any), pipe);
   // v90: Completed — All view only
   if (activeFilter === 'all') {
     var done = s.completed.filter(passesSearch), dx = 0;
     if (done.length > COMPLETED_RENDER_CAP) { dx = done.length - COMPLETED_RENDER_CAP; done = done.slice(0, COMPLETED_RENDER_CAP); }
     if (done.length) add(groupHtml('completed', 'Completed', '<span class="p-tag p-tag-done">&#10003; Ready</span>',
-      plural(done.length, 'imprint') + (dx ? ' (+' + dx + ' more)' : '') + ' · tap ✓ Ready to reopen one', done, mode, ' is-done'), done);
+      plural(done.length, 'imprint') + (dx ? ' (+' + dx + ' more)' : '') + ' · tap ✓ Ready to reopen one', done, mode, ' is-done', !any), done);
   }
   if (!any) {
     var msg = searchQ.trim() ? 'Nothing matches “' + escHtml(searchQ.trim()) + '”' + (activeFilter !== 'all' ? ' here. Try All.' : '.')
@@ -2815,7 +2877,7 @@ function renderAll() {
             : 'No ink work to prep — all caught up';
     h += '<div class="msg"><b>' + msg + '</b></div>';
   }
-  paint(h, mode, first);
+  paint(h, mode, first || firstAny);
 }
 
 function plural(n, w) { return '<b>' + n + '</b> ' + w + (n === 1 ? '' : 's'); }
@@ -2835,6 +2897,7 @@ function paint(h, mode, first) {
     sl.innerHTML = h;
     sl.scrollTop = keep;
     if (!pickId || !findRec(pickId)) pickId = first || null;
+    if (pickId) openDayOf(pickId);   // v97: the picked job's day is open
     if ((sd.getAttribute('data-id') || '') !== (pickId || '') || !sd.firstChild) showDetailPane(pickId);
     else { refreshCardInkStrip(pickId); syncDetailCls(); }
     markPicked();
@@ -2856,10 +2919,13 @@ function paint(h, mode, first) {
   }
 }
 
-// One page-head group (a day, On press, No date, Completed) with its order sub-groups.
-var collapsedOrders = {};
-function groupHtml(key, title, tagHtml, sumHtml, recs, mode, cls) {
-  var collapsed = isDayCollapsed(key);
+// One page-head group (a day, On press, No date, Completed) with its order lines.
+// v97: defOpen = how the day starts (today + the next OPEN_DAYS days with jobs). The open job's day is always open.
+var OPEN_DAYS = 3, dayForceOpen = false;
+function groupHtml(key, title, tagHtml, sumHtml, recs, mode, cls, defOpen) {
+  var openId = mode === 'list' ? pickId : openDetailId;
+  var holdsOpen = !!openId && recs.some(function(r) { return r.id === openId; });
+  var collapsed = !dayForceOpen && !holdsOpen && isDayCollapsed(key, defOpen);
   var h = '<section class="day' + cls + (collapsed ? ' collapsed' : '') + '" id="dg-' + key + '">';
   h += '<div class="p-head day-h" onclick="toggleDayGroup(\'' + key + '\')"><button class="chev" type="button" aria-label="Show or hide ' + escHtml(title) + '" aria-expanded="' + (!collapsed) + '" onclick="event.stopPropagation();toggleDayGroup(\'' + key + '\')">&#9660;</button><span class="p-section">' + escHtml(title) + '</span>' + tagHtml +
        '<span class="p-head-sum">' + sumHtml + '</span></div>';
@@ -2868,14 +2934,12 @@ function groupHtml(key, title, tagHtml, sumHtml, recs, mode, cls) {
   recs.forEach(function(r) { var on = getOrderNum(r.fields) || 'no-order'; if (!map[on]) { map[on] = []; keys.push(on); } map[on].push(r); });
   keys.forEach(function(on) {
     var grec = map[on], customer = grec[0].fields[F.customer] || '';
-    var gid = 'og-' + key + '-' + on;
-    h += '<div class="ord' + (collapsedOrders[gid] ? ' collapsed' : '') + '" id="' + gid + '">';
-    h += '<div class="ord-h" onclick="toggleOrderGroup(\'' + gid + '\')"><b>' + escHtml(customer || '—') + '</b>' +
-         (on !== 'no-order' ? '<span class="p-id">#' + escHtml(on) + '</span>' : '') +
-         '<span class="n">' + grec.length + ' imprint' + (grec.length === 1 ? '' : 's') + '</span><span class="chev" aria-hidden="true">&#9660;</span></div>';
-    h += '<div class="ord-b">';
+    h += '<div class="ord" id="og-' + key + '-' + on + '">';
+    h += '<div class="ord-h"><b class="ord-name" title="' + escHtml(customer) + '">' + escHtml(customer || '—') + '</b>' +
+         '<span class="ord-n">' + (grec.length > 1 ? grec.length + ' imprints' : '') + '</span>' +
+         (on !== 'no-order' ? '<span class="p-id">#' + escHtml(on) + '</span>' : '<span></span>') + '</div>';
     grec.forEach(function(r) { h += cardHtml(r, mode); });
-    h += '</div></div>';
+    h += '</div>';
   });
   h += '</div></section>';
   return h;
@@ -2892,8 +2956,16 @@ function abbreviateInkName(fullName) {
 
 // v76 (v83, v95): the card's tags row — needs-you first (No inks, TBA slots to fill), then the ink
 // swatches (real ink colors), ink types and Reorder. TBA slots (seps placeholders) aren't swatches.
-function cardTagsHtml(rec) {
+function cardTagsHtml(rec, mode) {
   var f = rec.fields;
+  if (mode === 'detail') {   // v97: the open job's head keeps the needs-you tags and Reorder inline; the ink cards show the inks
+    var dt = '', nt = 0;
+    if (!(f[F.inks] || []).length) dt += '<span class="p-tag p-tag-wait">No inks</span>';
+    inkIdsOf(rec).forEach(function(iid) { if (inkCache[iid] && isTbaInk(inkCache[iid])) nt++; });
+    if (nt) dt += '<span class="p-tag p-tag-wait">' + nt + (nt === 1 ? ' color' : ' colors') + ' to fill</span>';
+    if (f[F.isRepeat]) dt += '<span class="p-tag p-tag-soft">Reorder</span>';
+    return dt;
+  }
   var ids = inkIdsOf(rec);
   var h = '';
   if (!(f[F.inks] || []).length) h += '<span class="p-tag p-tag-wait">No inks</span>';
@@ -2913,9 +2985,11 @@ function cardTagsHtml(rec) {
   if (f[F.isRepeat]) h += '<span class="p-tag p-tag-soft">Reorder</span>';
   return h;
 }
-function cardNumsHtml(rec) {
+function realInkCount(rec) { return inkIdsOf(rec).filter(function(iid) { return !isTbaInk(inkCache[iid]); }).length; }
+function cardNumsHtml(rec, mode) {
+  if (mode === 'list') return '';   // v97: the compact list card says "144 pcs · 2 inks" on its sub-line
   var qty = getQty(rec.fields);
-  var real = inkIdsOf(rec).filter(function(iid) { return !isTbaInk(inkCache[iid]); }).length;
+  var real = realInkCount(rec);
   return (qty ? '<span class="p-num"><small>Pcs</small><b>' + qty + '</b></span>' : '') +
          '<span class="p-num' + (real ? '' : ' is-quiet') + '"><small>Inks</small><b>' + real + '</b></span>';
 }
@@ -2930,6 +3004,20 @@ function cardMainHtml(rec, mode) {
     sub.push(st ? 'Prints ' + new Date(toDateKey(new Date(st)) + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'No print date');
   }
   var note = F.inkNotes ? (f[F.inkNotes] || '') : '';
+  var idb = '<span class="p-id">' + escHtml(f[F.imprintId] || '—') + '</span>';
+  if (mode === 'detail') {   // v97: one slim head — ID + design + tags, then the facts
+    return '<span class="p-lc-title">' + idb + '<span>' + escHtml(printDesc) + '</span>' + cardTagsHtml(rec, 'detail') + '</span>' +
+      '<span class="p-lc-sub">' + escHtml(sub.filter(Boolean).join(' · ')) + '</span>';
+  }
+  if (mode === 'list') {     // v97: compact — ID + design, then "Front · Press 1 · 144 pcs · 2 inks"
+    var qty = getQty(f), real = realInkCount(rec);
+    var bits = sub.filter(Boolean).map(escHtml);
+    if (qty) bits.push('<span class="nw"><b>' + qty + '</b> pcs</span>');
+    bits.push('<span class="nw"><b>' + real + '</b> ' + (real === 1 ? 'ink' : 'inks') + '</span>');
+    return '<span class="p-lc-title">' + idb + escHtml(printDesc) + '</span>' +
+      '<span class="p-lc-sub">' + bits.join(' · ') + '</span>' +
+      (note ? '<span class="p-lc-note"><b>Ink note:</b> ' + escHtml(note) + '</span>' : '');
+  }
   return '<span class="p-lc-title">' + escHtml(printDesc) + '</span>' +
     '<span class="p-lc-sub">' + escHtml(sub.filter(Boolean).join(' · ')) + '</span>' +
     (note && mode !== 'detail' ? '<span class="p-lc-note"><b>Ink note:</b> ' + escHtml(note) + '</span>' : '');
@@ -2946,17 +3034,17 @@ function headHtml(rec, mode, open) {
   var proofs = getProofs(f), thumb = proofs.length ? proofs[0].thumb : null;
   var tap = mode !== 'detail';
   var main = mode === 'detail' || (mode === 'inplace' && open);
-  var h = '<div class="p-lc-head' + (tap ? ' is-tap' : '') + '" data-head="' + id + '" data-mode="' + mode + '"' +
+  var h = '<div class="p-lc-head is-' + mode + (tap ? ' is-tap' : '') + '" data-head="' + id + '" data-mode="' + mode + '"' +
     (tap ? ' role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '" onclick="openJob(\'' + id + '\')" onkeydown="if(event.target===this&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();openJob(\'' + id + '\')}"' : '') + '>';
-  h += '<div class="p-lc-id thumbed"><span class="jc-thumb">' +
+  if (mode !== 'detail') h += '<div class="p-lc-id thumbed"><span class="jc-thumb">' +
     (thumb ? '<img src="' + escHtml(thumb) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
            : '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>') +
     (proofs.length > 1 ? '<span class="pc">' + proofs.length + '</span>' : '') + '</span>' +
-    '<span class="p-id">' + escHtml(impId) + '</span></div>';
+    (mode === 'list' ? '' : '<span class="p-id">' + escHtml(impId) + '</span>') + '</div>';   // v97: list cards put the ID by the design; the open job has no small mockup
   h += '<div class="p-lc-main">' + cardMainHtml(rec, mode) + '</div>';
-  h += '<div class="p-lc-nums">' + cardNumsHtml(rec) + '</div>';
+  if (mode !== 'list') h += '<div class="p-lc-nums">' + cardNumsHtml(rec, mode) + '</div>';
   h += '<div class="p-lc-act">' + readyBtnHtml(rec, main) + '<span class="save-pip idle" data-pip="' + id + '" role="status"></span></div>';
-  h += '<div class="p-lc-tags">' + cardTagsHtml(rec) + '</div>';
+  if (mode !== 'detail') h += '<div class="p-lc-tags">' + cardTagsHtml(rec, mode) + '</div>';
   h += '</div>';
   return h;
 }
@@ -3043,14 +3131,17 @@ function syncListBtn() {
   b.setAttribute('aria-pressed', String(LIST_HIDDEN));
 }
 // the next job down the list that still needs ink (for "Mark ready → next")
+// v97: every card in list order, closed days included (moving into a closed day opens it — see openDayOf)
 function visibleCardIds() {
   var cards = document.querySelectorAll('#splitList .p-lc, #root > .day .p-lc');
   var out = [];
-  var hidden = LIST_HIDDEN && isWide();   // v96: list folded away — ↑/↓ still walk it (skipping collapsed groups)
-  for (var i = 0; i < cards.length; i++) {
-    if (hidden ? !cards[i].closest('.collapsed') : cards[i].offsetParent !== null) out.push(cards[i].id.replace(/^card-/, ''));
-  }
+  for (var i = 0; i < cards.length; i++) out.push(cards[i].id.replace(/^card-/, ''));
   return out;
+}
+// v97: open the day that holds this card (remembered for the session, like a click on the day)
+function openDayOf(id) {
+  var c = $('card-' + id), d = c && c.closest('.day.collapsed');
+  if (d) toggleDayGroup(d.id.replace(/^dg-/, ''));
 }
 function nextJobAfter(id) {
   var ids = visibleCardIds(), i = ids.indexOf(id);
@@ -3080,49 +3171,33 @@ document.addEventListener('keydown', function(e) {   // v95: ↑/↓ move betwee
   var ids = visibleCardIds(), i = ids.indexOf(pickId), n = i + (e.key === 'ArrowDown' ? 1 : -1);
   if (n < 0 || n >= ids.length) return;
   e.preventDefault();
+  openDayOf(ids[n]);
   pickJob(ids[n], true);
   var hh = document.querySelector('#card-' + ids[n] + ' .p-lc-head'); if (hh) hh.focus({ preventScroll: true });
 });
 
-// Collapse/expand an order group (customer grouping within a date)
-function toggleOrderGroup(gid) {
-  var el = document.getElementById(gid);
-  if (!el) return;
-  el.classList.toggle('collapsed');
-  if (el.classList.contains('collapsed')) collapsedOrders[gid] = true; else delete collapsedOrders[gid];   // v95: survives a re-render
+// v97: days open or closed. Each day starts open or closed (see renderAll); a click on a day is remembered for the
+// session (sessionStorage, plus memory when storage is blocked). v96 kept closed days in localStorage for good.
+var DAY_OPEN_KEY = 'pine_inkq_days', dayMem = {};
+function getDayChoices() {
+  try { var j = sessionStorage.getItem(DAY_OPEN_KEY); if (j) return JSON.parse(j) || {}; } catch (e) {}
+  return dayMem;
 }
-
-// v72: Day-group collapse with localStorage persistence
-var DAY_COLLAPSE_KEY = 'pine_ink_day_collapsed';
-function getCollapsedDays() {
-  try { return JSON.parse(localStorage.getItem(DAY_COLLAPSE_KEY) || '{}'); } catch(e) { return {}; }
-}
-function saveCollapsedDays(map) {
-  try { localStorage.setItem(DAY_COLLAPSE_KEY, JSON.stringify(map)); } catch(e) {}
-}
-function isDayCollapsed(dayKey) {
-  return !!getCollapsedDays()[dayKey];
+function isDayCollapsed(dayKey, defOpen) {
+  var m = getDayChoices();
+  if (Object.prototype.hasOwnProperty.call(m, dayKey)) return !m[dayKey];
+  return !defOpen;
 }
 function toggleDayGroup(dayKey) {
   var el = document.getElementById('dg-' + dayKey);
   if (!el) return;
   el.classList.toggle('collapsed');
-  var cb = el.querySelector('.day-h .chev'); if (cb) cb.setAttribute('aria-expanded', el.classList.contains('collapsed') ? 'false' : 'true');
-  var map = getCollapsedDays();
-  if (el.classList.contains('collapsed')) map[dayKey] = true;
-  else delete map[dayKey];
-  saveCollapsedDays(map);
-}
-
-// v72: prune stale day-collapse state — drop entries from past dates so the map doesn't grow forever
-function prunePastCollapsedDays() {
-  var map = getCollapsedDays();
-  var today = toDateKey(new Date());
-  var changed = false;
-  Object.keys(map).forEach(function(k) {
-    if (k < today) { delete map[k]; changed = true; }
-  });
-  if (changed) saveCollapsedDays(map);
+  var open = !el.classList.contains('collapsed');
+  var cb = el.querySelector('.day-h .chev'); if (cb) cb.setAttribute('aria-expanded', open ? 'true' : 'false');
+  var m = getDayChoices();
+  m[dayKey] = open ? 1 : 0;
+  dayMem = m;
+  try { sessionStorage.setItem(DAY_OPEN_KEY, JSON.stringify(m)); } catch (e) {}
 }
 
 // TOGGLE DETAIL — in place, one job open at a time (below 1400px). The tapped card's header stays under the finger.
@@ -3201,7 +3276,14 @@ function renderDetail(id, el) {
     h += '<button class="p-btn" type="button" onclick="' + openFull + '">&#9974; Full screen</button>';
     h += '</div>';
   } else {
-    h += '<div class="proof-none">No proof on file</div>';
+    // v97: say why there's nothing to show, and where to add it (flatstock jobs often have no proof on the line item)
+    var lis = lineItemIdsOf(rec);
+    h += '<div class="proof-miss" id="proof-miss-' + id + '"><b>No proof in Airtable</b>';
+    if (lis.length) h += '<p>Add it to the line item' + (lis.length > 1 ? 's' : '') + ':</p><div class="li" id="proof-li-' + id + '">' + lis.map(function(x) { return escHtml(liNames[x] || '…'); }).join('<br>') + '</div>' +
+      lis.map(function(x) { return '<a class="p-btn" href="https://airtable.com/' + BASE + '/' + TLI + '/' + x + '" target="_blank" rel="noopener">Open ' + (lis.length > 1 ? escHtml(liNames[x] || 'line item') : 'the line item') + ' in Airtable</a>'; }).join('');
+    else h += '<p>This imprint isn\'t linked to a line item, so there\'s no proof to show. Link it to its line item in Airtable.</p>';
+    h += '</div>';
+    if (lis.some(function(x) { return !liNames[x]; })) loadLineItemNames(id, lis);
   }
   h += '</div>';
 
@@ -3255,6 +3337,23 @@ function renderDetail(id, el) {
 
   // Previous Imprint Inheritance — fetch linked prevs, filter by Location match, auto-seed
   if (isRepeat && prevImprint.length) loadPrevImprintsAndSeed(id);
+}
+
+// v97: line item names for the no-proof message (read only, cached; only asked for when an open job has no proof)
+var liNames = {};
+function lineItemIdsOf(rec) {
+  return (rec.fields[F.lineItems] || []).map(function(x) { return typeof x === 'string' ? x : (x && x.id) || ''; }).filter(Boolean);
+}
+function loadLineItemNames(impRecId, ids) {
+  var f = 'OR(' + ids.map(function(x) { return "RECORD_ID()='" + x + "'"; }).join(',') + ')';
+  api(TLI + '?returnFieldsByFieldId=true&fields%5B%5D=' + LI_REF + '&filterByFormula=' + encodeURIComponent(f) + '&pageSize=20').then(function(d) {
+    (d.records || []).forEach(function(r) { liNames[r.id] = String((r.fields || {})[LI_REF] || 'Line item'); });
+    var el = $('proof-li-' + impRecId);
+    if (el) el.innerHTML = ids.map(function(x) { return escHtml(liNames[x] || 'Line item (not found)'); }).join('<br>');
+    if (ids.length > 1) { var box = $('proof-miss-' + impRecId); if (box) box.querySelectorAll('a.p-btn').forEach(function(a, i) { a.textContent = 'Open ' + (liNames[ids[i]] || 'line item') + ' in Airtable'; }); }
+  }).catch(function(e) {
+    var el = $('proof-li-' + impRecId); if (el) el.textContent = 'Could not read the line item name';
+  });
 }
 
 // Full-screen PDF modal - fetches fresh URL before loading (operator v4 pattern)
@@ -4432,6 +4531,42 @@ function resetDragState() {
   dragState.sourceRow = null;
 }
 
+// v97: while an ink is dragged, holding it within 90px of the top or bottom of the job scrolls it, faster nearer
+// the edge — the right pane on wide screens, the page otherwise (below the sticky bar and filter row). Browsers
+// don't scroll an inner pane during a drag on their own (Stephen, same as Seps: "if I try to scroll up it doesn't
+// move the screen"). Same as Seps v37.
+var dragAuto = { y: null, raf: 0 };
+function dragScroller() {
+  var sd = isWide() && $('splitDetail');
+  return sd && dragState.impRecId && sd.contains($('inks-' + dragState.impRecId)) ? sd : null;
+}
+function dragAutoTick() {
+  dragAuto.raf = 0;
+  if (!dragState.inkRecId || dragAuto.y == null) return;
+  var box = dragScroller(), top, bottom;
+  if (box) { var r = box.getBoundingClientRect(); top = r.top; bottom = Math.min(r.bottom, window.innerHeight); }
+  else {
+    var bar = document.querySelector('.p-bar'), fl = $('filters');
+    top = Math.max(0, bar ? bar.getBoundingClientRect().bottom : 0, fl && getComputedStyle(fl).position === 'sticky' ? fl.getBoundingClientRect().bottom : 0);
+    bottom = window.innerHeight;
+  }
+  var bb = document.querySelector('.p-bbar:not([hidden])');   // a sticky bottom bar, if one shows, is the bottom edge
+  if (bb) { var bt = bb.getBoundingClientRect().top; if (bt > top && bt < bottom) bottom = bt; }
+  var zone = 90, step = 0;
+  if (dragAuto.y < top + zone) step = -Math.ceil((top + zone - dragAuto.y) / 6);
+  else if (dragAuto.y > bottom - zone) step = Math.ceil((dragAuto.y - (bottom - zone)) / 6);
+  if (step) { if (box) box.scrollTop += step; else window.scrollBy(0, step); }
+  dragAuto.raf = requestAnimationFrame(dragAutoTick);
+}
+document.addEventListener('dragover', function(e) {
+  if (!dragState.inkRecId) return;
+  dragAuto.y = e.clientY;
+  if (!dragAuto.raf) dragAuto.raf = requestAnimationFrame(dragAutoTick);
+}, true);
+function dragAutoStop() { dragAuto.y = null; if (dragAuto.raf) cancelAnimationFrame(dragAuto.raf); dragAuto.raf = 0; }
+document.addEventListener('dragend', dragAutoStop, true);
+document.addEventListener('drop', dragAutoStop, true);
+
 
 function clearAddInkForm(id) {
   var fields = ['ai-search-', 'ai-fullname-', 'ai-pantone-', 'ai-type-', 'ai-mfr-', 'ai-recipe-'];
@@ -4598,13 +4733,21 @@ function toggleReady(e, id) {
   var wide = isWide();
   var scroller = document.scrollingElement || document.documentElement;
   var sy = scroller ? scroller.scrollTop : 0;
-  if (nxt && wide && pickId === id) { var nx = nextJobAfter(id); if (nx) pickId = nx; }
-  if (nxt && !wide && openDetailId === id) { closeInPlace(id); openDetailId = null; }
+  var nx = null;
+  if (nxt && wide && pickId === id) { nx = nextJobAfter(id); if (nx) { openDayOf(nx); pickId = nx; } }
+  if (nxt && !wide && openDetailId === id) {
+    nx = nextJobAfter(id);
+    closeInPlace(id); openDetailId = null;
+    if (nx) { openDayOf(nx); openDetailId = nx; }
+  }
 
   // Optimistic: flip the field and re-render (ready jobs drop out of the queue)
   rec.fields[F.inksReady] = nxt;
   renderAll();
-  if (!wide && scroller) requestAnimationFrame(function() { scroller.scrollTop = sy; });
+  if (!wide && nx && openDetailId === nx) {   // v97: in place, the next job opens with its head near the top
+    var nc = $('card-' + nx);
+    if (nc) { var nb = $('body-' + nx); if (nb) nb.hidden = false; requestAnimationFrame(function() { window.scrollBy(0, nc.getBoundingClientRect().top - 72); }); }
+  } else if (!wide && scroller) requestAnimationFrame(function() { scroller.scrollTop = sy; });
   if (wide && pickId !== id) { var c = $('card-' + pickId); if (c) c.scrollIntoView({ block: 'nearest' }); }
 
   // Fire write (immediate). Revert + re-render on failure.
