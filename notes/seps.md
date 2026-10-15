@@ -54,8 +54,9 @@ The art department's separation queue: imprints that need a sep (separation) fil
 
   | Screen width | v35 | v36 | v36, list hidden |
   |---|---|---|---|
-  | 2000px | 496×383 | 855×661 | 1133×809 |
-  | 1440px | 272×210 | 506×391 | 797×616 |
+  | 2000px | 496×383 | 855×661 | about 915×707 |
+  | 1440px | 272×210 | 506×391 | about 785×607 |
+- The proof is capped at the height left under the job header, so the whole sheet shows without scrolling.
 - **Below 1400px** (iPad, phone): no change.
 - **Tested with mocked Airtable:**
   - The 26 v35 flows send the same writes on v36, and practice mode sends 0.

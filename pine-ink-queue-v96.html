@@ -2817,7 +2817,7 @@ function plural(n, w) { return '<b>' + n + '</b> ' + w + (n === 1 ? '' : 's'); }
 function paint(h, mode, first) {
   var root = $('root');
   if (mode === 'list') {
-    root.classList.add('is-split');
+    root.classList.add('is-split'); root.classList.toggle('list-hidden', LIST_HIDDEN);   // v96
     var sl = $('splitList'), sd = $('splitDetail');
     if (!sl || !sd) {
       root.innerHTML = '<div class="p-split"><div class="p-split-list" id="splitList"></div><div class="p-split-detail" id="splitDetail" data-id="" aria-live="polite"></div></div>';
@@ -2831,12 +2831,14 @@ function paint(h, mode, first) {
     else { refreshCardInkStrip(pickId); syncDetailCls(); }
     markPicked();
     setSplitTop();
+    syncListBtn();
   } else {
-    root.classList.remove('is-split');
+    root.classList.remove('is-split', 'list-hidden');
     var keepEl = openDetailId ? $('detail-' + openDetailId) : null;
     if (keepEl && !keepEl.firstChild) keepEl = null;
     if (keepEl) keepEl.parentNode.removeChild(keepEl);
     root.innerHTML = h;
+    syncListBtn();
     if (openDetailId) {
       var slot = $('detail-' + openDetailId);
       if (!slot) openDetailId = null;
@@ -2999,6 +3001,7 @@ function showDetailPane(id) {
     '<div class="p-lc-body"><div class="jd" id="detail-' + id + '"></div></div></section>';
   sd.scrollTop = 0;
   renderDetail(id, $('detail-' + id));
+  setProofTop();
 }
 function syncDetailCls() {
   var sd = $('splitDetail'), sec = sd && sd.querySelector('section.p-lc');
@@ -3008,12 +3011,37 @@ function syncDetailCls() {
 function setSplitTop() {
   var r = $('root'); if (!r) return;
   document.documentElement.style.setProperty('--p-split-top', Math.round(r.getBoundingClientRect().top + window.scrollY) + 'px');
+  setProofTop();
+}
+// v96: the big proof sticks just under the open job's sticky head
+function setProofTop() {
+  var sd = $('splitDetail'), hd = sd && sd.querySelector('section.p-lc>.p-lc-head');
+  if (hd) sd.style.setProperty('--jd-top', Math.max(0, hd.offsetHeight - 16 + 12) + 'px');
+}
+// v96: "Hide list" / "Show list" (two panes only) gives the open job the whole width. Remembered on this computer.
+var LIST_HIDDEN = false;
+try { LIST_HIDDEN = localStorage.getItem('pine_inkq_list_hidden') === '1'; } catch (e) {}
+function toggleList() {
+  LIST_HIDDEN = !LIST_HIDDEN;
+  try { localStorage.setItem('pine_inkq_list_hidden', LIST_HIDDEN ? '1' : '0'); } catch (e) {}
+  var r = $('root'); if (r && r.classList.contains('is-split')) r.classList.toggle('list-hidden', LIST_HIDDEN);
+  syncListBtn();
+  if (!LIST_HIDDEN && pickId) { var c = $('card-' + pickId); if (c) c.scrollIntoView({ block: 'nearest' }); }
+}
+function syncListBtn() {
+  var b = $('listBtn'); if (!b) return;
+  b.hidden = !isWide();
+  b.textContent = LIST_HIDDEN ? 'Show list' : 'Hide list';
+  b.setAttribute('aria-pressed', String(LIST_HIDDEN));
 }
 // the next job down the list that still needs ink (for "Mark ready → next")
 function visibleCardIds() {
   var cards = document.querySelectorAll('#splitList .p-lc, #root > .day .p-lc');
   var out = [];
-  for (var i = 0; i < cards.length; i++) if (cards[i].offsetParent !== null) out.push(cards[i].id.replace(/^card-/, ''));
+  var hidden = LIST_HIDDEN && isWide();   // v96: list folded away — ↑/↓ still walk it (skipping collapsed groups)
+  for (var i = 0; i < cards.length; i++) {
+    if (hidden ? !cards[i].closest('.collapsed') : cards[i].offsetParent !== null) out.push(cards[i].id.replace(/^card-/, ''));
+  }
   return out;
 }
 function nextJobAfter(id) {
@@ -3142,7 +3170,7 @@ function renderDetail(id, el) {
   var h = '<div class="jd-in">';
 
   // v96: the proof is the big half. Full-size image; prev / count / next and Full size sit UNDER it.
-  var openFull = 'openPmPdf(' + q + ',\'' + escHtml(impId).replace(/'/g, '&#39;') + '\')';
+  var openFull = 'openPmPdf(' + q + ',\'' + escHtml(String(impId).replace(/[\\']/g, '')) + '\')';
   h += '<div class="jd-proof">';
   if (proof) {
     detailProofs[id] = allProofs;   // v78: inline switcher state
@@ -3292,7 +3320,8 @@ function openPmPdf(recId, title) {
         return;
       }
       renderPmProofsBar();
-      loadPmProof(0);
+      var want = detailProofIdx[recId] || 0;   // v96: open on the proof shown in the job
+      loadPmProof(want < pmAllProofs.length ? want : 0);
     }).catch(function(e) {
       pmHideSpinner();
       console.error('[v78] Proof fetch failed:', e && e.message);
@@ -4911,7 +4940,7 @@ function openLabelOverlay(d) {
         if (loading) loading.style.display = 'none';
         iframe.style.display = 'block';
       };
-      iframe.src = url;
+      iframe.src = url + '#toolbar=0&navpanes=0&view=Fit';   // v96: just the label, no PDF toolbar over it
     }
   });
 }
@@ -4926,13 +4955,16 @@ function closeLabelOverlay() {
   currentLabelData = null;
 }
 
+// v96: Safari (Mac) prints the page around a PDF frame, not the PDF — it gets the PDF in its own tab instead.
+var IS_SAFARI = /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
 function printLabelFromIframe() {
   var iframe = document.getElementById('labelIframe');
-  if (iframe && iframe.contentWindow) {
-    try { iframe.contentWindow.print(); } catch(e) {
-      // Fallback if cross-origin blocks it
-      window.open(iframe.src, '_blank');
-    }
+  if (!iframe || !iframe.src) return;
+  var pdfUrl = iframe.src.split('#')[0];
+  if (IS_SAFARI) { window.open(pdfUrl, '_blank'); toast('The label opened in a new tab \u2014 print it from there (\u2318P)'); return; }
+  try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) {
+    // Fallback if the browser blocks it
+    window.open(pdfUrl, '_blank');
   }
 }
 
@@ -4955,7 +4987,10 @@ function printAllLabels(recId) {
 
   if (!labels.length) return;
   // For print all, open in new tab since we can't embed multiple pages in overlay
-  generateLabelPdf(labels, function(url) { window.open(url, '_blank'); });
+  generateLabelPdf(labels, function(url) {
+    window.open(url, '_blank');
+    toast(labels.length + ' label' + (labels.length === 1 ? '' : 's') + ' opened in a new tab, one per page \u2014 print from there');
+  });
 }
 
 function printLabel() {
@@ -4964,117 +4999,157 @@ function printLabel() {
 }
 
 // ─── PDF LABEL GENERATOR — AUTO-FIT ─────────────────────────────────────────
-// jsPDF draws at 72pt/inch. 4"x2" landscape = 288pt x 144pt.
-// Uses doc.getTextWidth() to measure and shrink until content fits — no clipping.
+// jsPDF draws at 72pt/inch. 4"x2" landscape = 288pt x 144pt: one label per PDF page, the page IS the label
+// (no margins, no rotation), so a Rollo set to 4x2in paper at 100% prints it 1:1. Pure black on white.
+// v96 (Stephen: "make sure that it will print correctly with a rollo printer"):
+//   - recipe text is bigger: tighter lines, "-" divider lines are a thin rule, and a long recipe goes to two
+//     columns instead of shrinking (v95 went down to 5pt — about 1.8mm, hard to read on a 203dpi thermal print)
+//   - long Pantone names ("1625 (Ward Sutton)", "TOPO off white") wrap onto 2-3 big lines instead of one small one
+//   - long ink names wrap to 2 lines in the band before shrinking; nothing ever runs off the label
+//   - characters the built-in PDF font can't draw (→, ≈, emoji…) are swapped, so they never print as garbage
+var LBL_MIN_PT = 7;   // smallest recipe text (v95: 5)
+function lblSafe(t) {
+  return String(t || '')
+    .replace(/[→⇒➝]/g, '->').replace(/←/g, '<-').replace(/≈/g, '~').replace(/≤/g, '<=').replace(/≥/g, '>=')
+    .replace(/ /g, ' ').replace(/[−‐‑]/g, '-')
+    .replace(/[^\x00-\xFF€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]/g, '');
+}
 function generateLabelPdf(labels, callback) {
   var jsPDF = window.jspdf && window.jspdf.jsPDF;
-  if (!jsPDF) { toast('The label maker is still loading \u2014 try again in a moment'); return; }
+  if (!jsPDF) { toast('The label maker is still loading — try again in a moment'); return; }
 
   var W = 288; // 4 inches
   var H = 144; // 2 inches
+  var PAD = 7; // 0.1in safe edge
 
   var doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: [H, W] });
+  doc.setProperties({ title: labels.length === 1 ? lblSafe(labels[0].name || 'Ink label') : labels.length + ' ink labels' });
 
   labels.forEach(function(d, idx) {
     if (idx > 0) doc.addPage([H, W], 'landscape');
 
-    var name    = d.name    || '';
-    var pantone = d.pantone || '';
-    var recipe  = d.recipe  || '';
+    var name    = lblSafe(d.name).trim();
+    var pantone = lblSafe(d.pantone).trim();
+    var lines   = lblSafe(d.recipe).split('\n').map(function(l) { return l.trim(); });
+    while (lines.length && !lines[lines.length - 1]) lines.pop();
+    while (lines.length && !lines[0]) lines.shift();
+    // collapse runs of blank lines; a "-" line is the shop's divider -> drawn as a rule
+    var items = [];
+    lines.forEach(function(l) {
+      var kind = !l ? 'gap' : (/^[-–—_=.]+$/.test(l) ? 'rule' : 'text');
+      if (kind !== 'text' && items.length && items[items.length - 1].kind !== 'text') return;
+      items.push({ kind: kind, text: l });
+    });
+    var nText = items.filter(function(it) { return it.kind === 'text'; }).length;
 
-    var lines = recipe ? recipe.split('\n') : [];
-    var filledLines = lines.filter(function(l){ return l.trim(); }).length;
+    doc.setFont('helvetica', 'bold');
+    function wrapWords(t, maxW) {   // greedy word wrap at the current font size (a too-long word stays whole)
+      var out = [], cur = '';
+      t.split(/\s+/).filter(Boolean).forEach(function(w) {
+        var tryL = cur ? cur + ' ' + w : w;
+        if (!cur || doc.getTextWidth(tryL) <= maxW) cur = tryL; else { out.push(cur); cur = w; }
+      });
+      if (cur) out.push(cur);
+      return out.length ? out : [''];
+    }
 
-    // ── Column layout ─────────────────────────────────────────────────────
-    var bandH   = 30;
-    var bodyTop = bandH + 3;
-    var bodyH   = H - bandH - 3;
-    var leftW   = W * 0.42;       // ~120pt left column for number
-    var leftPad = 6;              // inner padding left
-    var rightPad = 7;             // inner padding right
-    var rightColLeft = leftW + 4; // right column starts here
-    var rightColW    = W - rightColLeft - rightPad; // available width for recipe
-    var rightX       = W - rightPad; // right-align anchor
-
-    // ── Black top band ────────────────────────────────────────────────────
+    // ── Black top band: the ink name (1 line, else 2) ─────────────────────
+    var bandH = 28, nameLines = [name], namePt = 14, maxNameW = W - 2 * PAD;
+    for (namePt = 14; namePt >= 9; namePt -= 0.5) { doc.setFontSize(namePt); if (doc.getTextWidth(name) <= maxNameW) break; }
+    if (namePt < 9) {
+      for (namePt = 12; namePt >= 7; namePt -= 0.5) {
+        doc.setFontSize(namePt);
+        nameLines = wrapWords(name, maxNameW);
+        if (nameLines.length <= 2 && nameLines.every(function(l) { return doc.getTextWidth(l) <= maxNameW; })) break;
+      }
+      nameLines = nameLines.slice(0, 2);
+      bandH = Math.max(bandH, Math.ceil(nameLines.length * namePt * 1.12 + 8));
+    }
     doc.setFillColor(0, 0, 0);
     doc.rect(0, 0, W, bandH, 'F');
-
-    // ── Name — auto-shrink to fit band width ──────────────────────────────
-    doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 255, 255);
-    var namePt = 13;
-    var maxNameW = W - 16;
-    while (namePt > 6) {
-      doc.setFontSize(namePt);
-      if (doc.getTextWidth(name) <= maxNameW) break;
-      namePt -= 0.5;
-    }
-    doc.text(name, W / 2, bandH / 2 + namePt * 0.38, { align: 'center' });
-
-    // ── Pantone number — fill left column, auto-shrink to fit ────────────
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(namePt);
+    var nlh = namePt * 1.12, ny = bandH / 2 - (nameLines.length - 1) * nlh / 2 + namePt * 0.35;
+    nameLines.forEach(function(l, i) { doc.text(l, W / 2, ny + i * nlh, { align: 'center' }); });
     doc.setTextColor(0, 0, 0);
-    var maxNumW  = leftW - leftPad * 2;
-    var maxNumH  = bodyH - 8;
-    var numPt    = 72; // start large
-    var minNumPt = 10;
-    while (numPt > minNumPt) {
+
+    var bodyTop = bandH + 5, bodyBot = H - 6, bodyH = bodyBot - bodyTop;
+
+    // ── Recipe: largest size that fits, 1 column, else 2 columns ──────────
+    var LH = 1.2, GAP = 0.45;
+    function colHeight(arr, pt) { var t = 0; arr.forEach(function(it) { t += it.kind === 'text' ? pt * LH : pt * GAP; }); return t; }
+    function colWidth(arr) { var w = 0; arr.forEach(function(it) { if (it.kind === 'text') w = Math.max(w, doc.getTextWidth(it.text)); }); return w; }
+    function splitCols(arr) {
+      // split near the middle, preferring a divider; never start a column with a rule/gap
+      var half = Math.ceil(nText / 2), seen = 0, cut = arr.length;
+      for (var i = 0; i < arr.length; i++) { if (arr[i].kind === 'text') { seen++; if (seen === half) { cut = i + 1; break; } } }
+      for (var j = 0; j < arr.length; j++) if (arr[j].kind === 'rule') { var before = arr.slice(0, j).filter(function(x){return x.kind==='text';}).length; if (Math.abs(before - half) <= 1 && before > 0) { cut = j; break; } }
+      var a = arr.slice(0, cut), b = arr.slice(cut);
+      while (b.length && b[0].kind !== 'text') b.shift();
+      while (a.length && a[a.length - 1].kind !== 'text') a.pop();
+      return [a, b];
+    }
+    // recipe area width depends on how much the number needs; give the recipe at least 52% of the label
+    var leftW = nText ? W * 0.40 : W - 2 * PAD;
+    var recipeL = leftW + 6, recipeR = W - PAD, recipeW = recipeR - recipeL;
+    var cols = [items], rPt = 0;
+    if (nText) {
+      for (var pt = 14; pt >= LBL_MIN_PT; pt -= 0.5) {
+        doc.setFontSize(pt);
+        if (colHeight(items, pt) <= bodyH && colWidth(items) <= recipeW) { rPt = pt; break; }
+      }
+      if (!rPt || rPt < 9) {
+        // try two columns over a wider recipe area (the number gets a narrower column)
+        var two = splitCols(items), lw2 = W * 0.30, rL2 = lw2 + 6, cw = (W - PAD - rL2 - 10) / 2, pt2 = 0;
+        for (var p2 = 13; p2 >= LBL_MIN_PT; p2 -= 0.5) {
+          doc.setFontSize(p2);
+          if (Math.max(colHeight(two[0], p2), colHeight(two[1], p2)) <= bodyH && Math.max(colWidth(two[0]), colWidth(two[1])) <= cw) { pt2 = p2; break; }
+        }
+        if (pt2 > rPt) { cols = two; rPt = pt2; leftW = lw2; recipeL = rL2; recipeW = W - PAD - rL2; }
+      }
+      if (!rPt) rPt = LBL_MIN_PT;   // last resort: smallest size; lines are clipped to the label below
+    }
+
+    // ── Pantone number / name: fill the left column, wrap to up to 3 lines ─
+    var maxNumW = leftW - PAD - 2, maxNumH = bodyH - 4, numLines = [pantone], numPt;
+    for (numPt = 72; numPt > 10; numPt -= 1) {
       doc.setFontSize(numPt);
-      var tw = doc.getTextWidth(pantone);
-      var th = numPt * 1.15; // approximate cap height
-      if (tw <= maxNumW && th <= maxNumH) break;
-      numPt -= 1;
+      numLines = wrapWords(pantone, maxNumW);   // breaks only between words, never inside "7686"
+      var widest = 0; numLines.forEach(function(l) { widest = Math.max(widest, doc.getTextWidth(l)); });
+      var hgt = numPt * 0.72 + (numLines.length - 1) * numPt * 1.05;   // cap height + extra lines
+      if (numLines.length <= 3 && widest <= maxNumW && hgt <= maxNumH) break;
     }
-    var numX = leftPad + maxNumW / 2;
-    var numY = bodyTop + bodyH / 2 + numPt * 0.35;
-    doc.text(pantone, numX, numY, { align: 'center' });
+    doc.setFontSize(numPt);
+    var nlh2 = numPt * 1.05, blockH = numPt * 0.72 + (numLines.length - 1) * nlh2;
+    var numY = bodyTop + (bodyH - blockH) / 2 + numPt * 0.72;
+    var numX = PAD + maxNumW / 2;
+    numLines.forEach(function(l, i) { doc.text(l, numX, numY + i * nlh2, { align: 'center' }); });
 
-    // ── Recipe — auto-shrink font until all lines fit vertically ─────────
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-
-    // Find largest font size where all filled lines fit in bodyH
-    var rPt    = 10;
-    var minRPt = 5;
-    var recipeLineH, totalH;
-    while (rPt > minRPt) {
-      recipeLineH = rPt * 1.55;
-      // count vertical space needed (filled lines + gap lines)
-      totalH = 0;
-      lines.forEach(function(l) {
-        totalH += l.trim() ? recipeLineH : recipeLineH * 0.4;
-      });
-      if (totalH <= bodyH - 8) break;
-      rPt -= 0.5;
-    }
-
-    // Also shrink if any line is too wide for the right column
-    while (rPt > minRPt) {
+    // ── Recipe text (right-aligned columns, vertically centred) ───────────
+    if (nText) {
       doc.setFontSize(rPt);
-      var fits = true;
-      lines.forEach(function(l) {
-        if (l.trim() && doc.getTextWidth(l.trim()) > rightColW) fits = false;
+      doc.setLineWidth(0.9);
+      var colGap = 10, colW = cols.length > 1 ? (recipeW - colGap) / 2 : recipeW;
+      cols.forEach(function(col, ci) {
+        var right = recipeL + colW * (ci + 1) + colGap * ci;
+        var y = bodyTop + Math.max(0, (bodyH - colHeight(col, rPt)) / 2);
+        col.forEach(function(it) {
+          if (it.kind === 'text') {
+            if (y + rPt * LH <= bodyBot + 0.5) doc.text(it.text, right, y + rPt * 0.9, { align: 'right' });
+            y += rPt * LH;
+          } else {
+            if (it.kind === 'rule') doc.line(right - Math.min(colW, 60), y + rPt * GAP / 2, right, y + rPt * GAP / 2);
+            y += rPt * GAP;
+          }
+        });
       });
-      if (fits) break;
-      rPt -= 0.5;
     }
-
-    doc.setFontSize(rPt);
-    recipeLineH = rPt * 1.55;
-    var recipeY = bodyTop + 5;
-
-    lines.forEach(function(l) {
-      if (!l.trim()) { recipeY += recipeLineH * 0.4; return; }
-      doc.text(l.trim(), rightX, recipeY + rPt * 0.72, { align: 'right' });
-      recipeY += recipeLineH;
-    });
   });
 
   var pdfBlob = doc.output('blob');
   var url = URL.createObjectURL(pdfBlob);
   if (callback) callback(url);
-  setTimeout(function() { URL.revokeObjectURL(url); }, 120000);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 600000);   // v96: 10 min (v95: 2) so a slow print still finds it
 }
 
 // ─── MASTER PRINT MODAL ──────────────────────────────────────────────────────
@@ -5187,7 +5262,7 @@ document.addEventListener('keydown', function(e) {
         <iframe id="labelIframe" style="display:none" title="Label preview"></iframe>
       </div>
     </div>
-    <div class="p-modal-f"><span class="p-hint">4&Prime; × 2&Prime; Rollo label</span><button class="p-btn p-btn-quiet" type="button" onclick="closeLabelOverlay()">Close</button><button class="p-btn p-btn-main" type="button" onclick="printLabelFromIframe()">&#9113; Print</button></div>
+    <div class="p-modal-f"><span class="p-hint">4 × 2 in Rollo label. In the print box: paper 4 × 2 in, scale 100% (Actual size), margins None.</span><button class="p-btn p-btn-quiet" type="button" onclick="closeLabelOverlay()">Close</button><button class="p-btn p-btn-main" type="button" onclick="printLabelFromIframe()">&#9113; Print</button></div>
   </div>
 </div>
 
