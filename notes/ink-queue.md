@@ -13,7 +13,7 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
   - Today and the next 3 days with jobs start open; later days, No date and Completed start closed. A day you open or close stays that way for the session.
 - **Tightest runway:** working days until the nearest job that still needs ink. 4 is the benchmark.
 - **Filters:** All · No inks · Reorders · No date, plus a search (customer, order #, imprint, design).
-- **An open job shows** (two panes at 1400px+, with *Hide list*; the job doesn't scroll as a whole, only its inks column does):
+- **An open job shows** (two panes at 1100px+ since v99, with *Hide list*; the job doesn't scroll as a whole, only its inks column does):
   - its proofs, big, with a full-screen viewer
   - beside the proof, its inks: swatch, name, type, maker, updated date, the recipe as a list (*Edit recipe* to change it), Label, *Mixed today*, and Remove
   - Print notes and Ink notes, below the inks
@@ -25,6 +25,55 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
   - Inks: Pantone Number and Ink Type (from the name), Recipe, Display Hex, Manufacturer, Last Updated. It also creates new Inks.
 - **Reads the line item name** (Line Items › Line Item Reference) only when an open job has no proof.
 - The Airtable token comes from `pine_at_key` in the browser, the same as the other apps. `?practice=1` fakes every write.
+
+## 2026-10-15 · v99: the list shows all the cards, with bigger mockups
+**Why:** Stephen: "thoughts on best ways to organize the left side of the Ink queue? should it be similar to the seps and screens and just show all the cards...maybe bigger mockups and not the pantones since those would be when they open the card and maybe it can get tighter on the left side to make even more room for the mockup and pantones".
+
+- **List cards (two panes):**
+  - The same layout as Seps and Screens: day heads, a slim order line (customer left, #order right), then the cards.
+  - Each card has a bigger mockup on the left: 84×72 (v98: 40×40). It shows the whole proof with its aspect kept, so landscape proofs are readable.
+  - Next to it: the ID badge and the design (up to 2 lines), then "Front · Press 1 · **144** pcs".
+  - The ink chips are gone. There's **one status tag**:
+    - *No inks*
+    - *N to fill* (TBA slots)
+    - *N inks* (the ink names are in its tooltip)
+    - *✓ Ready*
+  - There's also a small *Note* tag when the job has an ink note (the whole note is in its tooltip), and *Reorder*.
+  - *Mark ready* left the list cards. It's in the open job's header, the screen's one yellow button. Completed reads "open one to reopen it".
+  - Day countdown tags are shorter in the list ("1 work day"; the whole text is in the tooltip) and are cut with … rather than running out of the list.
+- **A tighter list:** 280–320px (v98: 320–360). The open job gets that width.
+- **Two panes from 1100px wide** (v98: 1400), the same as Screens v26 and Seps v39. 1280 and 1366 laptops now get the static mockup and their own inks column.
+  - From 1100 to 1399px the gutters are 16px and the mockup and inks sit side by side from a 640px job.
+  - On narrow inks columns, *All labels* is just the 🏷 icon, so the toolbar stays on one row. At 1100–1279 the search box is 220px, so the filter chips and *Hide list* fit.
+  - On screens 860px tall or less (laptops), the paddings around the job are slimmer.
+- **Two columns of inks when they help:** when one column of inks overflows, the app tries two columns with the inks taking 60% of the job.
+  - It keeps two columns only if that shows every ink, or 2+ more than one column does, because the mockup gets smaller.
+  - It's re-checked when the job, its number of inks, the window size or *Hide list* change, never during a drag.
+- **Below 1100px:** nothing changed. The cards open in place and keep their chips and *Mark ready*, because that's the only place to act there.
+- **How many inks show without scrolling** (mocked jobs with real-length recipes, v98 → v99):
+
+  | Screen | 2 inks | 4 | 6 | 8 | 10 | Mockup box |
+  |---|---|---|---|---|---|---|
+  | 1366×768 | 2 → 2 | 4\* → 4 (two columns) | 5\* → 4 | 5\* → 4 | 5\* → 4 | in place → 514×448, static |
+  | 1440×900 | 2 → 2 | 4 → 4 | 4 → **6** (two columns) | 5 → 5 | 5 → **6** | 494×556 → 533×556 (390 wide in two columns) |
+  | 1920×1080 | 2 → 2 | 4 → 4 | 6 → 6 | 8 → 8 | 10 → 10 | 767×736 → 789×736 |
+
+  \* v98 was in place at 1366 (below its 1400px cut-off). Those counts are after scrolling the page so the job is at the top, and the mockup scrolls away with the inks. In v99 nothing scrolls but the inks column.
+
+  Also in v99: 1100×700 shows 2, 1280×720 shows 2, and 2000×1000 shows 2/4/6/8/8, with the mockup at 833×656 (v98: 811). At 1440, *Hide list* still shows all 6.
+- **Kept from v97/v98:**
+  - days open/close by default and are remembered for the session
+  - ↑/↓ go through all jobs
+  - after *Mark ready*, the next job that needs ink opens
+  - *Hide list*, the static mockup, the compact ink grid, drag reorder with auto-scroll, the no-proof message, practice mode and self-update
+- **Airtable writes:** the same as v98.
+  - The v98 write-compare flow gave identical writes (16, in the same order) at 1440×900, 1366×768 and 1100×700. v99 marks ready from the job header.
+  - Practice mode sends 0 writes.
+  - A 10-ink job: dragging the last ink to the top in one drag gave one write with the right order at 2000, 1440, 1366 and 1100.
+- **Tested** with mocked Airtable (made-up customers) at 2000, 1920, 1440, 1366, 1280, 1100, 1024 and 390:
+  - no page errors, no horizontal scroll and no text under 12px
+  - no overlaps on any list card (bounding boxes of the mockup, title, sub-line, tags and buttons, all 23 cards)
+  - day heads stay inside the list
 
 ## 2026-10-15 · v98: every ink in view, easier to scan
 **Why:** Stephen on v97: "can we look at making ink queue also not scroll in the pantones section as well easier to scan and review". In v97 each ink was a tall card (64px swatch, big name, type/maker/updated line, the recipe one part per line, then a row of buttons), so two inks filled the column. He also sent a screenshot of the list: on a card, long ink chips ("7687 DIRECT-TO-FABRIC -") ran under *Mark ready*.
