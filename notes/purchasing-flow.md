@@ -393,3 +393,24 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - Reviewed one PO (a 3-record PATCH) and turned on the hide filter.
   - Practice mode logged the writes without sending them.
   - Re-ran the v105 Ordering test.
+
+## 2026-10-15 — v107: Pine page kit (same bar, filter row and list cards as the other apps)
+- **Why:** Stephen approved making the apps feel the same, not just look the same (the page kit at the end of `pine-style-v2.css`).
+- **Top bar:** logo · PURCHASING · version · Practice pill (only in practice) · the four views (Ordering / Invoice check / Past orders / Reprints, with counts) · ↻ Refresh · ⚙.
+  - The token chip and the "Live" badge are gone from the bar. **⚙** holds the Airtable token (Change / Add token) and practice mode (Turn on / Turn off). A yellow dot on ⚙ means no token is set yet.
+  - The "1 Pick order → … 6 PO ✓" strip is gone. The line cards already number their steps.
+- **Past orders:** each PO is a list card: PO badge, warehouse, a sub-line (date · lines · pcs · orders), Freight and Airtable total, and **Mark reviewed / ✓ Reviewed** as its one button. Tapping the card opens its lines in place, one PO at a time.
+  - The "Hide reviewed" checkbox and the search moved into one filter row: search, then **To review (n)** / **All (n)** chips. They use the same remembered setting as before.
+  - Typing in the search no longer re-draws the whole page.
+- **Invoice check:** each cart is a list card (warehouse, UPS days · lines · pcs · orders, Freight, Cart total). The first cart is open; tap another to compare it. **✓ Order all** is the one yellow button.
+- **Reprints:** list cards with no black band: order badge, garment, customer · due · damaged sizes, and Damaged / Ordering / Reprint cost. Hard Deadline and ASAP are tags.
+  - One reprint is open at a time (the first one by default). Its **Mark replacement ordered** is the screen's only yellow button. After it saves, the next reprint opens.
+  - A closed card that has edits says **Edited · not saved**. The dropped "RE-PRINT" tag was on every card.
+- **One yellow per screen on Ordering:** Add to cart, bandana "Add all", the extras "Use all" and the small Fix / Add buttons are now black or outlined. ✓ Order all stays yellow.
+- **Bug fix:** practice mode now keeps its own cart (`pine_purch_v91_cart_practice`). Before, a practice "order" was saved to the shared cart, so in live mode that line could look already placed at a warehouse and drop out of the cart.
+- **Bug fix (phone):** a long line header ("✓ Ordered · PO …") stretched the stacked Ordering columns to about 550px wide, so the whole screen scrolled sideways. The columns now stay at the screen width.
+- `pineBusy` is now also true while a pop-up is open or a save is in flight.
+- **Tested with mocked Airtable (Playwright), 1024×768, 768×1024, 390×844 and 1440×900:**
+  - Live: put two lines in two carts, ran Order all, split a reprint (new "Shaka Wear" warehouse) and marked it ordered, and marked a PO reviewed. The PATCH/POST payloads match v106's exactly at every size.
+  - Practice: no writes sent.
+  - No page errors, nothing under 12px, no sideways scroll.
