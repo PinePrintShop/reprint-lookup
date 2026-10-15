@@ -130,7 +130,7 @@ body{font-size:15px}
 .jd{container-type:inline-size}
 .jd-in{display:grid;gap:var(--p-s4)}
 /* v96: side by side once there's room — the proof is the bigger half, the inks beside it */
-@container (min-width:760px){ .jd-in{grid-template-columns:minmax(0,58fr) minmax(340px,42fr);align-items:start} }
+@container (min-width:760px){ .jd-in{grid-template-columns:minmax(0,58fr) minmax(380px,42fr);align-items:start} }
 /* two panes: the picked job's head stays on top while its inks scroll (overflow:clip keeps sticky working) */
 .p-split-detail>.p-lc{overflow:clip}
 .p-split-detail>.p-lc>.p-lc-head{position:sticky;top:calc(-1 * var(--p-s4));z-index:5;background:var(--p-white);border-bottom:1px solid var(--p-line)}
@@ -181,10 +181,10 @@ body{font-size:15px}
 .ink-list{display:grid;gap:var(--p-s3)}
 .ink-list:empty{display:none}
 .inks-loading{padding:16px;color:var(--p-ink-2);font-size:var(--p-fs-s);background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg)}
-.ink-row{display:grid;grid-template-columns:24px 64px minmax(0,1fr);grid-template-areas:"drag chip head" "drag recipe recipe" "drag act act";gap:10px 12px;padding:12px 14px 10px 4px;
+.ink-row{display:grid;grid-template-columns:24px 64px minmax(0,1fr);grid-template-areas:"drag chip head" ". recipe recipe" "act act act";gap:10px 12px;padding:12px 14px 10px 4px;
   background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg)}
 .ink-row.is-prev{grid-template-columns:64px minmax(0,1fr);grid-template-areas:"chip head" "recipe recipe";padding-left:14px}
-.ink-drag-handle{grid-area:drag;display:flex;align-items:flex-start;padding-top:22px;justify-content:center;color:var(--p-ink-3);font-size:18px;cursor:grab;user-select:none;letter-spacing:-2px}
+.ink-drag-handle{grid-area:drag;display:flex;align-items:center;justify-content:center;color:var(--p-ink-3);font-size:18px;cursor:grab;user-select:none;letter-spacing:-2px}
 .ink-drag-handle:hover{color:var(--p-black)}
 .ink-drag-handle:active{cursor:grabbing}
 .ink-row.dragging{opacity:.4}
@@ -220,16 +220,24 @@ body{font-size:15px}
 .ink-recipe:focus{border-color:var(--p-black);box-shadow:0 0 0 3px var(--p-yellow)}
 .ink-rcp.editing .rcp-list{display:none}
 .ink-rcp:not(.editing) .ink-recipe{display:none}
-.ink-side{grid-area:act;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.ink-side .p-btn{font-size:13px;min-height:40px;padding:0 12px}
-.ink-side .rcp-edit{margin-right:auto}
+.ink-side{grid-area:act;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:4px}
+.ink-side .p-btn{font-size:13px;min-height:40px;padding:0 10px}
+.ink-side .p-btn-quiet{padding:0 6px}
+.ink-side-gap{flex:1 1 0}
+.ink-side .ic{margin-right:6px}
 .ink-side .p-btn.armed{background:var(--p-yellow-lt)}
 .ink-side .ink-remove-btn{padding:0 8px}
+/* narrower ink column (1400-1600px screens, iPad): smaller swatch + name so "PANTONE 7579 - DISCHARGE" fits */
+@container (max-width:1000px){
+  .ink-row{grid-template-columns:20px 52px minmax(0,1fr);gap:10px}
+  .ink-chip{width:52px;height:52px}
+  .ink-name,.ink-name-edit{font-size:17px;letter-spacing:0}
+  .ink-side .ic{display:none}
+}
 @container (max-width:560px){
   .ink-row{grid-template-columns:20px 48px minmax(0,1fr)}
   .ink-chip{width:48px;height:48px}
   .ink-name,.ink-name-edit{font-size:17px}
-  .ink-side .rcp-edit{margin-right:0;flex:1 1 100%}
 }
 /* swatch color popover */
 .chip-popover{position:fixed;z-index:150;width:250px;background:var(--p-white);border:2px solid var(--p-black);border-radius:var(--p-r-lg);box-shadow:var(--p-shadow);padding:var(--p-s3);display:grid;gap:8px}
@@ -3547,9 +3555,10 @@ function inkRowHtml(recId, iid, idx, d, isPrev) {
   if (!isPrev) {
     h += '<div class="ink-side">';
     h += '<button class="p-btn p-btn-quiet rcp-edit" type="button" id="rcpbtn-' + rowId + '" onclick="editRecipe(\'' + rowId + '\');event.stopPropagation()">Edit recipe</button>';
-    h += '<button class="p-btn ink-label-btn" type="button" onclick="openLabelByKey(\'' + lk + '\');event.stopPropagation()">&#127991; Label</button>';
-    h += '<button class="p-btn ink-ts-btn" type="button" id="tsbtn-' + iid + '" onclick="bumpInkUpdated(' + q + ',' + qi + ');event.stopPropagation()" title="Mark this ink as remixed today">&#128197; Mixed today</button>';
     h += '<button class="p-btn p-btn-quiet ink-remove-btn" type="button" onclick="removeInkRow(' + q + ',\'' + rowId + '\');event.stopPropagation()" title="Take this ink off the job">Remove</button>';
+    h += '<span class="ink-side-gap"></span>';
+    h += '<button class="p-btn ink-label-btn" type="button" onclick="openLabelByKey(\'' + lk + '\');event.stopPropagation()"><span class="ic">&#127991;</span>Label</button>';
+    h += '<button class="p-btn ink-ts-btn" type="button" id="tsbtn-' + iid + '" onclick="bumpInkUpdated(' + q + ',' + qi + ');event.stopPropagation()" title="Mark this ink as remixed today"><span class="ic">&#128197;</span>Mixed today</button>';
     h += '</div>';
   }
   h += '</div>';

@@ -12,17 +12,42 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
   - Inside each group, jobs are grouped by order.
 - **Tightest runway:** working days until the nearest job that still needs ink. 4 is the benchmark.
 - **Filters:** All · No inks · Reorders · No date, plus a search (customer, order #, imprint, design).
-- **An open job shows:**
-  - its proofs, with a full-size viewer
-  - Print notes and Ink notes
-  - its inks: swatch, name, type, recipe, created/updated dates, a label button, *Mixed today*, and Remove
+- **An open job shows** (two panes at 1400px+, with *Hide list*):
+  - its proofs, big, with a full-screen viewer
+  - beside the proof, its inks: swatch, name, type, maker, updated date, the recipe as a list (*Edit recipe* to change it), Label, *Mixed today*, and Remove
+  - Print notes and Ink notes, below the inks
   - Add ink (from the ink library or a new color), copy/paste colors between locations, and drag to reorder
   - *Fill from* the previous run, on reorders
-- **Labels:** 4×2 Rollo labels as a PDF, for one ink, all inks on a job, or any ink in the library (*Print a label*).
+- **Labels:** 4×2in Rollo labels as a PDF (one label per page, black on white), for one ink, all inks on a job, or any ink in the library (*Print a label*). Print settings: paper 4 × 2 in, scale 100% / Actual size, margins None.
 - **Writes to Airtable:**
   - Imprints: Inks (links and order), Inks Ready, Print Notes, Ink Notes. Opening a reorder also saves the inks, notes and ink types filled in from the previous run.
   - Inks: Pantone Number and Ink Type (from the name), Recipe, Display Hex, Manufacturer, Last Updated. It also creates new Inks.
 - The Airtable token comes from `pine_at_key` in the browser, the same as the other apps. `?practice=1` fakes every write.
+
+## 2026-10-15 · v96: the mockup and the inks first; Rollo labels checked
+**Why:** Stephen: "let's really explore usability for this as well. Ink is really focused on Mockups and then adding the correct colors and looks like that is hard to read / use right now", and "can you also look at the label logic in the ink queue and make sure that it will print correctly with a rollo printer".
+- **Two panes (1400px+):**
+  - The list is narrower (380–440px, was 560–640), the same as Seps v36 and Screens v23.
+  - *Hide list* in the filter row gives the open job the whole width. It's remembered on this computer, and ↑/↓ still move between jobs.
+- **The open job is the mockup and the inks:**
+  - The proof takes about 58% of the job and is as tall as the pane. It stays in view while the inks scroll.
+  - It loads Airtable's full-size image. v95 used the 512px thumbnail, which was blurry when shown big.
+  - ‹ 1/2 › and *Full screen* sit under the proof, not over it. Clicking the proof opens full screen on the proof you were looking at (v95 always opened the first one).
+  - The inks sit beside the proof as cards: a big swatch, the ink name in big type, the type tag, the maker and a small Updated date.
+  - The recipe reads as a list: part on the left, amount on the right, numbers lined up. A "-" line is a rule.
+  - *Edit recipe* (or a click on the recipe) opens the same box as before, and it saves the same way. v95 showed the recipe in a small box that cut it off.
+  - Created dates are gone. Label and *Mixed today* are small buttons, and Remove is a quiet text button.
+  - Print notes and Ink notes moved below the inks.
+  - Smaller screens: the proof sits above the inks once the job is narrower than 760px (phones), and the ink cards shrink a little on 1400–1600px screens and iPads.
+- **Labels (Rollo):**
+  - The label was already right for a Rollo: a 4×2in PDF, one label per page, no margins, no rotation, pure black on white. The shop's other label app (Receiving) prints 4×6 on its label printer. The ink label was always 4×2, so the Rollo in the ink room needs 4×2 stock and a 4×2 paper size.
+  - Recipes print bigger. v95 shrank long recipes to 5–7pt, which is hard to read on a 203dpi thermal print. Lines are now tighter and a "-" line is a thin rule. Normal recipes print at 9–14pt, and very long ones go into two columns before shrinking (never under 7pt).
+  - Long Pantone names ("1625 (Ward Sutton)", "TOPO off white", "Cool Gray 11 C") wrap onto 2–3 big lines, never inside a number. Long ink names wrap to 2 lines in the black band.
+  - Characters the PDF font can't draw (→, ≈, emoji) are swapped or dropped, so they can't print as garbage.
+  - A label now prints the recipe as it is on screen. v95 printed the recipe from when the ink list loaded, so a just-edited recipe printed the old one.
+  - The preview hides the PDF toolbar. On Safari, Print opens the PDF in a tab, because Safari can't print a PDF inside the page.
+  - The label pop-up says which print settings to use. *Print all labels* says the labels opened in a new tab, one per page.
+- **Airtable writes:** the same as v95. Checked with a write-by-write diff over name, recipe, drag reorder, notes, *Mixed today*, swatch color, remove, add (library and new), copy/paste, reorder seed, mark ready/undo and labels. Practice mode sends 0 writes.
 
 ## 2026-10-15 · v95
 **Why:** move to Pine style v2 and the page kit, build for the desktop, add self-update and practice mode, and fix the bugs found on the way.
