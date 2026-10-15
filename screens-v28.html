@@ -1,5 +1,15 @@
 <!DOCTYPE html>
-<!-- Screens v27 (2026-10-15): print notes size to their text (up to ~8 lines, then scroll); the fixed
+<!-- Screens v28 (2026-10-15): one job workspace with Seps v41 and Ink Queue v101 (Stephen OK'd the review, phase 1).
+     - Shared look from pine-job-v1.css (new): the same 72px bar and filter row (search · chips · Hide list on the right;
+       it was in the job header), day heads (▾ fold · date · one timing tag · count; days start open), an order line
+       (CUSTOMER · #order, new here; the cards no longer repeat them), ~96px list cards (80x64 mockup, ID + title,
+       location · type, screens · qty, one status tag + facts; no ink swatches, Stephen's call), the job header (ID + title
+       + tags, customer #order · location · type · press · print date, Screens · Qty, then ✓ Imaged), the mockup frame with
+       a footer only for a previous run (↩ Previous run · Full screen), 38px ink rows, notes with the label above.
+     - The Pantone color table moved to pine-pantone-v1.js (shared, byte-identical in all three apps).
+     - Words: "Repeat" -> "Reorder" (the Airtable field is the client-reorder checkbox "Repeat?"); chip "Reorders".
+     Same Airtable reads and writes as v27.
+     Screens v27 (2026-10-15): print notes size to their text (up to ~8 lines, then scroll); the fixed
      2-line box cut longer notes off (Stephen's screenshot). Airtable writes: same as v26.
      Screens v26 (2026-10-15): Stephen: "looks like it still scrolls on screens is there a way to not have it ever scroll on
      a desktop?" Two panes from 1100px wide (was 1400), so 1280 / 1366 / 1440-with-zoom laptops get the static layout
@@ -42,7 +52,7 @@
 <meta charset="UTF-8">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Screens v27 — Pine</title>
+<title>Screens v28 — Pine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
 <link rel="stylesheet" href="pine-style-v2.css">
@@ -70,17 +80,10 @@ body{font-size:15px}
 .msg.err b{color:var(--p-alert)}
 /* imprint cards (.p-lc) */
 .p-lc-head.is-tap:hover{background:#FBF7EF}
-.p-lc-id .p-id{font-size:15px;padding:6px 9px}
-.sc-thumb{width:64px;height:64px;flex:none;display:grid;place-items:center;padding:0;overflow:hidden;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r);cursor:zoom-in}
-.sc-thumb img{width:100%;height:100%;object-fit:contain;display:block}
 .p-lc-chev{font-size:18px;flex:0 0 auto!important}
 .p-lc-act:empty{display:none}
 /* two panes: the list cards have no action (it's on the right), so the numbers sit on the right of row 1 and the
    cards stay two rows tall (kit default puts the numbers on their own row) */
-.p-split-list .p-lc-head{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"id main nums" "tags tags tags"}
-.p-split-list .p-lc-nums{justify-content:flex-end}
-.p-split-list .p-num{text-align:right}
-.p-split-list .p-lc-act{display:none}
 .p-lc.is-leaving{opacity:0;transition:opacity .35s}
 .ink-strip{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;min-height:24px}
 .ink-strip:empty{display:none}
@@ -90,28 +93,13 @@ body{font-size:15px}
 .late{color:var(--p-alert)}
 /* open imprint */
 .sc-body{display:grid;grid-template-columns:minmax(200px,38%) minmax(0,1fr);gap:var(--p-s5);align-items:start}
-.sc-proof{display:flex;flex-direction:column;gap:var(--p-s2);min-width:0}
-.sc-proof-img{display:block;width:100%;padding:0;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r);cursor:zoom-in;overflow:hidden}
 .sc-proof-img img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain}
-.sc-proof-none{display:grid;place-items:center;min-height:200px;border:2px dashed var(--p-line-strong);border-radius:var(--p-r);color:var(--p-ink-2);font-weight:700}
 .sc-info{display:flex;flex-direction:column;gap:var(--p-s4);min-width:0}
 .sc-sec{display:flex;flex-direction:column;gap:var(--p-s2)}
 .sc-sec .p-label .p-hint{text-transform:none;letter-spacing:0;font-weight:400;margin-left:6px}
 .sc-linkrow{display:flex;gap:var(--p-s2);flex-wrap:wrap}
 .sc-linkrow .p-input{flex:1 1 240px;min-width:0}
-.ink-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r);min-height:52px}
-.ink-row + .ink-row{margin-top:6px}
-.ink-row.dragging{opacity:.4}
-.ink-row.drag-over{box-shadow:inset 0 3px 0 var(--p-black)}
-.ink-n{font:800 14px/1 var(--p-sans);font-variant-numeric:tabular-nums;color:var(--p-ink-3);min-width:16px;text-align:right}
-.drag-handle{width:20px;align-self:stretch;flex-shrink:0;display:grid;grid-template-columns:4px 4px;gap:4px;align-content:center;justify-content:center;cursor:grab;opacity:.45}
-.drag-handle:hover{opacity:.9}
-.drag-handle:active{cursor:grabbing}
-.drag-dot{width:4px;height:4px;border-radius:50%;background:var(--p-black)}
-.ink-chip{width:30px;height:30px;border-radius:4px;flex-shrink:0;border:1px solid rgba(20,20,18,.18);cursor:pointer}
 .ink-chip-empty{background:var(--p-white);border:2px dashed var(--p-line-strong)}
-.ink-body{flex:1;min-width:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.ink-name{font:700 15px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere}
 .inks-msg{color:var(--p-ink-2);font-size:14px;padding:4px 0}
 .inks-msg.err{color:var(--p-alert)}
 .inotes{min-height:72px}
@@ -156,24 +144,10 @@ body{font-size:15px}
 /* v23: two panes (>=1400px) — the mockup is the focus. Narrower queue (kit default is minmax(560px,640px)); the proof
    gets ~60% of the open imprint, sticks while the right side scrolls, and fills the pane's height with no frame. */
 @media (min-width:1100px){
-  .wrap.is-split .p-split{grid-template-columns:minmax(380px,440px) minmax(0,1fr)}
-  .wrap.is-split.list-off .p-split{grid-template-columns:minmax(0,1fr)}
-  .wrap.is-split.list-off .p-split-list{display:none}
-  /* list cards at 380–440px: thumb + ID span both rows on the left; design / customer on top, Screens / Qty under it */
-  .p-split-list .p-lc-head{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"id main" "id nums" "tags tags";column-gap:var(--p-s3);row-gap:6px}
-  .p-split-list .p-lc-id{flex-direction:column;align-items:flex-start;gap:6px}
-  .p-split-list .p-lc-nums{justify-content:flex-start;gap:var(--p-s4)}
-  .p-split-list .p-num{text-align:left;display:flex;align-items:baseline;gap:6px}
-  .p-split-list .p-num small{display:inline}
-  .p-split-list .p-num b{font-size:15px}
   .p-split-detail>.p-lc{overflow:clip}   /* clip, not hidden: lets the proof stick */
   .p-split-detail .p-lc-body{padding:var(--p-s3)}
   .p-split-detail .sc-body{grid-template-columns:minmax(0,3fr) minmax(360px,2fr);gap:var(--p-s4)}
   .wrap.list-off .p-split-detail .sc-body{grid-template-columns:minmax(0,3fr) minmax(400px,1.4fr)}
-  .p-split-detail .sc-proof{position:sticky;top:0}
-  .p-split-detail .sc-proof-img{background:none;border:0;border-radius:0}
-  .p-split-detail .sc-proof-img img{width:100%;height:auto;max-height:calc(100vh - var(--p-split-top,120px) - 48px);max-height:var(--sc-proof-h,calc(100dvh - var(--p-split-top,120px) - 48px));object-fit:contain;object-position:left top}
-  .p-split-detail .sc-proof .p-btns{align-self:stretch}
   .p-split-detail .p-lc-act{flex-wrap:wrap;justify-content:flex-end}
 }
 /* v25: two panes (>=1400px) — Stephen: "the left section is too big", "not having to scroll down if there is a lot of
@@ -182,31 +156,15 @@ body{font-size:15px}
    then tags + inks (wrap). The open imprint is a fixed-height column that never scrolls as a whole: slim header, then
    the mockup (fills the height, static) beside the controls column, which is the only part that scrolls. */
 @media (min-width:1100px){
-  .wrap.is-split .p-split{grid-template-columns:minmax(320px,360px) minmax(0,1fr)}
   .wrap.is-split.list-off .p-split{grid-template-columns:minmax(0,1fr)}
-  .p-split-list .p-lc-head{grid-template-columns:40px auto minmax(0,1fr);grid-template-areas:"thumb main main" "thumb pid nums" "tags tags tags";
-    column-gap:10px;row-gap:6px;padding:10px 12px;align-items:center}
-  .p-split-list .p-lc-id{display:contents}
-  .p-split-list .sc-thumb{grid-area:thumb;width:40px;height:40px;align-self:start}
-  .p-split-list .p-lc-id .p-id{grid-area:pid;justify-self:start;font-size:13px;padding:4px 6px}
-  .p-split-list .p-lc-title{font-size:15px}
-  .p-split-list .p-lc-sub{font-size:13px}
-  .p-split-list .p-lc-nums{gap:var(--p-s3);min-width:0;flex-wrap:wrap}
-  .p-split-list .p-num b{font-size:14px}
-  .p-split-list .p-lc-tags{min-width:0}
-  .p-split-list .ink-strip{gap:4px 10px;min-width:0}
-  .p-split-list .ink-pill{white-space:normal;overflow-wrap:anywhere}
   /* the open imprint: header on top, body fills the rest; only .sc-info scrolls */
   .p-split-detail{display:flex;flex-direction:column;overflow:hidden;padding-bottom:var(--p-s4)}
   .p-split-detail>.p-split-empty{flex:none}
   .p-split-detail>.p-lc{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-  .p-split-detail>.p-lc>.p-lc-head{flex:none;padding:8px 12px;min-height:0;row-gap:6px}
+  .p-split-detail>.p-lc>.p-lc-head{flex:none}
   .p-split-detail .p-lc-body{flex:1 1 auto;min-height:0}
   .p-split-detail .sc-body{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
-  .p-split-detail .sc-proof{position:static;min-height:0}
-  .p-split-detail .sc-proof-img{position:relative;flex:1 1 0;min-height:0}
-  .p-split-detail .sc-proof-img img{position:absolute;inset:0;width:100%;height:100%;max-height:100%;object-fit:contain;object-position:left top}
-  .p-split-detail .sc-proof .p-btns{flex:none}
+  .p-split-detail .sc-proof{min-height:0}
   .p-split-detail .sc-info{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 6px var(--p-s3) 2px}
 }
 /* v26: Stephen: "is there a way to not have it ever scroll on a desktop?" Two panes from 1100px (was 1400); the list is
@@ -214,8 +172,6 @@ body{font-size:15px}
    notes are one line each (label on the left), ink rows ~40px on one line, and when the inks still don't fit (more
    than 5) they go into two columns (.ink-2col, set by fitInks(), widens the column a little for that imprint). */
 @media (min-width:1100px) and (max-width:1399px){
-  .wrap.is-split .p-split{grid-template-columns:clamp(280px,23vw,320px) minmax(0,1fr);gap:var(--p-s4)}
-  .wrap.is-split{padding:0 16px}
 }
 @media (min-width:1100px){
   .p-split-detail .sc-body{gap:var(--p-s3)}
@@ -233,23 +189,7 @@ body{font-size:15px}
   .p-split-detail .sc-line>.inotes{flex:1 1 200px;min-width:0;width:auto;min-height:40px;padding:8px 10px;font-size:15px;line-height:1.3;resize:none;transition:height .12s}
   /* v27: height follows the text (JS below), was a fixed 62px that cut notes off */
   
-  .p-split-detail .ink-row{min-height:38px;padding:3px 8px 3px 4px;gap:8px}
-  .p-split-detail .ink-row + .ink-row{margin-top:4px}
-  .p-split-detail .drag-handle{width:16px}
-  .p-split-detail .ink-chip{width:24px;height:24px}
-  .p-split-detail .ink-body{flex-wrap:nowrap;gap:6px}
-  .p-split-detail .ink-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;overflow-wrap:normal}
-  .p-split-detail .ink-body .p-tag{flex:none;height:22px;padding:0 6px;font-size:12px}
-  .wrap .p-split-detail .sc-body.ink-2col{grid-template-columns:minmax(0,3fr) minmax(480px,2fr)}
-  .p-split-detail .ink-2col .ink-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:column;
-    grid-template-rows:repeat(var(--ink-rows,5),auto);gap:4px 8px}
-  .p-split-detail .ink-2col .ink-row + .ink-row{margin-top:0}
-  .p-split-detail .ink-2col .ink-body{flex-wrap:wrap;row-gap:2px}   /* a long name + type: the type goes under the name */
-  /* two columns: the name gets the room; the handle shows on hover (the whole row drags) */
-  .p-split-detail .ink-2col .ink-row{position:relative;padding-left:12px;gap:6px;cursor:grab}
-  .p-split-detail .ink-2col .drag-handle{position:absolute;left:1px;top:0;bottom:0;width:10px;opacity:0}
-  .p-split-detail .ink-2col .ink-row:hover .drag-handle{opacity:.6}
-  .p-split-detail .ink-2col .ink-name{font-size:13px}
+    .wrap .p-split-detail .sc-body.ink-2col{grid-template-columns:minmax(0,3fr) minmax(480px,2fr)}
 }
 @media (max-width:900px){ .sc-body{grid-template-columns:1fr} .sc-proof{max-width:440px} .p-filters .p-search{flex-basis:100%;max-width:none} }
 @media (max-width:700px){
@@ -257,19 +197,27 @@ body{font-size:15px}
   .p-filters .p-search{flex-basis:100%;max-width:none}
   .p-chips{margin:0 -16px;padding:0 16px 2px}
   .wrap{padding:0 12px 120px}
-  .sc-thumb{width:48px;height:48px}
   .p-lc-chev{display:none}
   .sc-proof-img img{max-height:240px}
   .cal-week{grid-template-columns:1fr}
   .cal-col{min-height:0}
   .pm-bar{padding:6px 8px}
 }
+/* v28: the shared job workspace (pine-job-v1.css) does the day heads, order lines, list cards, job header, mockup frame,
+   ink rows and notes. Screens-only bits on top of it: */
+@media (min-width:1100px){
+  .wrap.is-split.list-off .p-split{grid-template-columns:minmax(0,1fr)}
+  .wrap.is-split.list-off .p-split-list{display:none}
+}
+.sc-proof{min-width:0}
+.sc-info>.sc-sec{min-width:0}
+.ink-rows>.inks-msg{padding:8px 12px}
 </style>
 </head>
-<body class="p-app">
+<body class="p-app p-job">
 <header class="p-bar">
   <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
-  <span class="p-bar-app">Screens</span><span class="p-bar-ver" id="ver">v27</span>
+  <span class="p-bar-app">Screens</span><span class="p-bar-ver" id="ver">v28</span>
   <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
   <nav class="p-bar-views" role="tablist" aria-label="Views">
     <button type="button" role="tab" id="vtQueue" class="is-on" aria-selected="true" data-view="queue">Queue <span class="p-count" id="queueCount"></span></button>
@@ -290,9 +238,12 @@ body{font-size:15px}
 <div class="p-filters" id="filters">
   <input type="search" id="search" class="p-input p-search" placeholder="Imprint ID, order #, customer, design" aria-label="Search imprints">
   <div class="p-chips p-chips-inline" id="chips" role="tablist" aria-label="Filter"></div>
-  <div class="p-filters-end" id="calSpanWrap" hidden><select id="calSpan" class="p-select" aria-label="Weeks shown">
-    <option value="7">1 week</option><option value="14">2 weeks</option><option value="21">3 weeks</option><option value="28">4 weeks</option>
-  </select></div>
+  <div class="p-filters-end">
+    <span id="calSpanWrap" hidden><select id="calSpan" class="p-select" aria-label="Weeks shown">
+      <option value="7">1 week</option><option value="14">2 weeks</option><option value="21">3 weeks</option><option value="28">4 weeks</option>
+    </select></span>
+    <button type="button" class="p-btn p-job-listbtn" id="listToggle" data-listtoggle hidden></button>
+  </div>
 </div>
 <main class="wrap" id="root"><div class="msg"><b>Loading queue…</b></div></main>
 
@@ -348,6 +299,8 @@ var F = {
   repeat:     'flda9L7041ahNZT0b',
   prevImprint: 'fldAEQvMAAZX9gnhl',
   imprintIdGen:'fldHjjQ5lzm66ox5j', // v17: formula mirror of Imprint ID — used to label prev refs
+  location:   'fldKQIL0rSJBSeC8S', // v28: read for the card and job header (already in the full-record read)
+  press:      'fldv59OGU7EkBVofo', // v28: Equipment (press), job header only
 };
 
 var SKIP_TYPES = new Set([
@@ -499,6 +452,7 @@ function flatLookup(val) {
   return [val];
 }
 
+function selText(v) { v = Array.isArray(v) ? v[0] : v; if (!v) return ''; return typeof v === 'object' ? (v.name || '') : String(v); }
 function parseRecords(records) {
   var out = [];
   records.forEach(function(r) {
@@ -552,6 +506,8 @@ function parseRecords(records) {
       prevRefs: [],
       prevImprintId: (f[F.prevImprint]||[])[0] ? ((f[F.prevImprint][0].id)||f[F.prevImprint][0]) : null,
       c: cust,
+      loc: selText(f[F.location]),   // v28
+      press: selText(f[F.press]),    // v28
       pn: f[F.printNotes] || '',
       sepsUrl: f[F.sepUrl] || '',
       sep: f[F.separator] || '',
@@ -597,7 +553,7 @@ function isRecentDone(ymd) { return !!ymd && ymd >= prevWorkdayYmd(); }
 var FILTERS = [
   ['all', 'To image'],
   ['nofile', 'No sep file'],
-  ['repeat', 'Repeats'],
+  ['repeat', 'Reorders'],
   ['imaged', 'Imaged']
 ];
 function inQueue(r) { var s = state[r.id] || r; return s.sp && !s.b; }   // sep'd and not yet imaged
@@ -672,6 +628,7 @@ function render() {
   var root = $('root');
   root.classList.remove('is-split', 'list-off');
   $('calSpanWrap').hidden = viewMode !== 'cal';
+  syncListBtn();
   if (!LOADED) return;
   var filtered = applyFilters(ALL);
   if (viewMode === 'cal') { shownIds = []; root.innerHTML = renderCalendar(filtered); return; }
@@ -685,7 +642,7 @@ function render() {
   var groups = groupByDate(filtered);
   if (isWide()) { renderSplit(groups, filtered); return; }
   if (openId && shownIds.indexOf(openId) < 0) openId = '';
-  root.innerHTML = groups.map(function(g) { return dateHead(g) + g.records.map(function(r) { return card(r, '', r.id === openId); }).join(''); }).join('');
+  root.innerHTML = groups.map(function(g) { return dayGroup(g, ''); }).join('');
   afterRender();
 }
 
@@ -698,7 +655,7 @@ function renderSplit(groups, filtered) {
   root.classList.add('is-split');
   root.classList.toggle('list-off', LIST_OFF);
   root.innerHTML = '<div class="p-split"><div class="p-split-list" id="splitList">' +
-    groups.map(function(g) { return dateHead(g) + g.records.map(function(r) { return card(r, 'list', r.id === openId); }).join(''); }).join('') + '</div>' +
+    groups.map(function(g) { return dayGroup(g, 'list'); }).join('') + '</div>' +
     '<div class="p-split-detail" id="splitDetail" data-id="' + (pick ? pick.id : '') + '" aria-live="polite">' +
     (pick ? card(pick, 'detail', true) : '<div class="p-split-empty">Pick an imprint on the left</div>') + '</div></div>';
   setSplitTop();
@@ -720,57 +677,110 @@ function fitProof() {}
 // v25: the one part of the open imprint (two panes) that scrolls: sep file, inks, print notes.
 function detailScroller() { var d = isWide() && $('splitDetail'); return (d && d.querySelector('.sc-info')) || null; }
 
-function dateHead(g) {
-  var n = g.records.length, scr = g.records.reduce(function(a, r) { return a + (Number(r.s) || 0); }, 0);
-  var lbl, tag = '';
-  if (g.date === 'undated') lbl = 'No print date';
-  else {
-    var days = daysDiff(g.date);
-    lbl = days === 0 ? 'Today · ' + fmtDate(g.date) : days === 1 ? 'Tomorrow · ' + fmtDate(g.date) : fmtDate(g.date);
-    if (days < 0 && activeFilter !== DONE_TAB) tag = '<span class="p-tag p-tag-alert">' + (days === -1 ? 'Yesterday' : Math.abs(days) + ' days ago') + '</span>';
-  }
-  return '<div class="p-head"><span class="p-section">' + esc(lbl) + '</span>' + tag +
-    '<span class="p-head-sum"><b>' + n + '</b> imprint' + (n !== 1 ? 's' : '') + (scr ? ' · <b>' + scr + '</b> screen' + (scr !== 1 ? 's' : '') : '') + '</span></div>';
+// v28: the shared day head (pine-job-v1.css): ▾ fold · date box · ONE timing tag · round count; then each order's line
+// (CUSTOMER · #order) and its cards. Days start open; a fold is remembered for the session. The open imprint's day is
+// always open, and a search opens every day.
+var DAY_FOLD = {};
+try { DAY_FOLD = JSON.parse(sessionStorage.getItem('screens_folds') || '{}') || {}; } catch (e) {}
+function workDaysUntil(d) {
+  var t = new Date(); t.setHours(0,0,0,0);
+  var x = new Date(d + 'T00:00:00'); if (isNaN(x.getTime()) || x <= t) return 0;
+  var n = 0; while (t < x) { t.setDate(t.getDate() + 1); if (t.getDay() !== 0 && t.getDay() !== 6) n++; }
+  return n;
+}
+function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+function whenTag(date, doneTab) {
+  if (!date || date === 'undated') return '';
+  var days = daysDiff(date);
+  if (days < 0) return '<span class="p-tag ' + (doneTab ? 'p-tag-soft' : 'p-tag-alert') + ' p-job-when">' + plural(-days, 'day') + (doneTab ? ' ago' : ' late') + '</span>';
+  var soft = doneTab ? 'p-tag-soft' : 'p-tag-wait';
+  if (days === 0) return '<span class="p-tag ' + soft + ' p-job-when">Today</span>';
+  if (days === 1) return '<span class="p-tag ' + soft + ' p-job-when">Tomorrow</span>';
+  var wd = workDaysUntil(date);
+  return '<span class="p-tag ' + (wd <= 3 && !doneTab ? 'p-tag-wait' : 'p-tag-soft') + ' p-job-when" title="Prints in ' + plural(wd, 'work day') + '">in ' + wd + '<span class="p-job-wd"> work</span> day' + (wd === 1 ? '' : 's') + '</span>';
+}
+function dayGroup(g, mode) {
+  var key = g.date, n = g.records.length, scr = g.records.reduce(function(a, r) { return a + (Number(r.s) || 0); }, 0);
+  var holds = !!openId && g.records.some(function(r) { return r.id === openId; });
+  var closed = !!DAY_FOLD[key] && !holds && !($('search').value || '').trim();
+  var lbl = key === 'undated' ? 'No print date' : fmtDate(key);
+  var h = '<section class="p-job-dayg' + (closed ? ' is-closed' : '') + '" id="dg-' + key + '">' +
+    '<div class="p-job-day" data-fold="' + key + '"><button type="button" class="p-job-fold" data-fold="' + key + '" aria-expanded="' + !closed + '" aria-label="Show or hide ' + esc(lbl) + '">&#9662;</button>' +
+    '<span class="p-job-date">' + esc(lbl) + '</span>' + whenTag(key, activeFilter === DONE_TAB) +
+    '<span class="p-job-n" title="' + plural(n, 'imprint') + (scr ? ' · ' + plural(scr, 'screen') : '') + '">' + n + '</span></div><div class="p-job-dayb">';
+  var order = [], by = {};
+  g.records.forEach(function(r) { if (!by[r.o]) { by[r.o] = []; order.push(r.o); } by[r.o].push(r); });
+  order.forEach(function(o) {
+    var cust = by[o][0].c || 'No customer';
+    h += '<div class="p-job-order"><b class="p-job-cust" title="' + esc(cust) + '">' + esc(cust) + '</b><span class="p-job-ordno">#' + esc(o) + '</span></div>' +
+      by[o].map(function(r) { return card(r, mode, r.id === openId); }).join('');
+  });
+  return h + '</div></section>';
+}
+function toggleDay(key) {
+  var el = $('dg-' + key); if (!el) return;
+  var closed = !el.classList.contains('is-closed');
+  el.classList.toggle('is-closed', closed);
+  var b = el.querySelector('.p-job-fold'); if (b) b.setAttribute('aria-expanded', String(!closed));
+  if (closed) DAY_FOLD[key] = 1; else delete DAY_FOLD[key];
+  try { sessionStorage.setItem('screens_folds', JSON.stringify(DAY_FOLD)); } catch (e) {}
 }
 
 function numCell(label, v) { return '<span class="p-num"><small>' + label + '</small><b>' + esc(v) + '</b></span>'; }
 
-// mode '' = open in place (<1400px), 'list' = left pane, 'detail' = right pane
+// mode '' = open in place (<1100px), 'list' = left pane, 'detail' = right pane
+// v28: list / in-place cards are the shared ~96px card (80x64 mockup · ID + title · location · type · screens · qty ·
+// one status tag + facts; no ink swatches). The right pane's head is the shared job header with ✓ Imaged on the right.
+function statusTag(s) {
+  if (s.b) return '<span class="p-tag p-tag-done">&#10003; Imaged</span>';
+  if (!s.sepsUrl) return '<span class="p-tag p-tag-wait">No sep file</span>';
+  return '';
+}
+function factTags(r) {
+  var t = '';
+  if (r.rp) t += '<span class="p-tag p-tag-soft" title="The client is reordering something we printed before">Reorder</span>';
+  (r.prevRefs || []).forEach(function(p) { t += '<span class="p-tag p-tag-soft" title="Previous run">&#8617; ' + esc(p.label) + '</span>'; });
+  return t;
+}
+function imagedBtn(id, s) {
+  return s.b
+    ? '<button type="button" class="p-btn" data-imaged="' + id + '" data-v="0">Undo imaged</button>'
+    : '<button type="button" class="p-btn p-btn-main" data-imaged="' + id + '" data-v="1">&#10003; Imaged</button>';
+}
 function card(r, mode, isOpen) {
   var s = state[r.id] || r, id = r.id;
   var open = mode === 'detail' || (mode === '' && isOpen);
   var cls = 'p-lc' + (isOpen ? ' is-open' : '') + (s.b ? ' is-done' : '');
-  var thumb = '<button type="button" class="sc-thumb" data-proof="' + id + '" data-label="' + esc(r.i) + '" title="Open the proof" aria-label="Open the proof for ' + esc(r.i) + '">' +
-    '<img src="' + esc(r.thumbUrl) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"></button>';
-  var tags = '';
-  if (s.b) tags += '<span class="p-tag p-tag-done">&#10003; Imaged</span>';
-  if (!s.sepsUrl) tags += '<span class="p-tag p-tag-wait">No sep file</span>';
-  if (r.rp) tags += '<span class="p-tag p-tag-soft">Repeat</span>';
-  (r.prevRefs || []).forEach(function(p) { tags += '<span class="p-tag p-tag-soft" title="Previous run">&#8617; ' + esc(p.label) + '</span>'; });
-  var act = '';
-  if (open) act = s.b
-    ? '<button type="button" class="p-btn" data-imaged="' + id + '" data-v="0">Undo imaged</button>'
-    : '<button type="button" class="p-btn p-btn-main" data-imaged="' + id + '" data-v="1">&#10003; Imaged</button>';
-  if (mode === '') act += '<span class="p-lc-chev" aria-hidden="true">' + (open ? '&#9652;' : '&#9662;') + '</span>';
-  if (mode === 'detail') act = listToggleBtn() + act;   // v23: fold the queue away so the mockup gets the full width
-  var tapAttrs = mode === 'detail' ? '' : ' role="button" tabindex="0" data-open="' + id + '" aria-expanded="' + !!isOpen + '"';
-  var head = '<div class="p-lc-head' + (mode === 'detail' ? '' : ' is-tap') + '"' + tapAttrs + '>' +
-      '<div class="p-lc-id">' + (mode === 'detail' ? '' : thumb) + '<span class="p-id">' + esc(r.i) + '</span></div>' +   // v24: no small proof above the big one
-      '<div class="p-lc-main"><span class="p-lc-title">' + esc(r.n || r.i) + '</span>' +
-        '<span class="p-lc-sub">' + esc(r.c || 'No customer') + ' · #' + esc(r.o) + (r.t ? ' · ' + esc(r.t) : '') + '</span></div>' +
-      '<div class="p-lc-nums">' + (r.s ? numCell('Screens', r.s) : '') + (r.qty ? numCell('Qty', r.qty) : '') + '</div>' +
-      '<div class="p-lc-act">' + act + '</div>' +
-      (mode === 'detail' ? (tags ? '<div class="p-lc-tags">' + tags + '</div>' : '') :   // v24: the inks are listed beside the proof
-        '<div class="p-lc-tags">' + tags + '<span class="ink-strip" data-cinks="' + id + '">' + buildCardInkStrip(r) + '</span></div>') +
-    '</div>';
+  var head;
+  if (mode === 'detail') {
+    var sub = [(r.c || 'No customer') + ' #' + r.o, r.loc, r.t, r.press, r.due ? 'Prints ' + fmtDate(r.due) : 'No print date'].filter(Boolean).join(' · ');
+    head = '<div class="p-lc-head p-job-head">' +
+      '<div class="p-job-hmain"><div class="p-job-htitle"><span class="p-id p-job-hid">' + esc(r.i) + '</span><span class="p-job-hname">' + esc(r.n || r.i) + '</span>' +
+        statusTag(s) + factTags(r) + '</div><span class="p-job-hsub" title="' + esc(sub) + '">' + esc(sub) + '</span></div>' +
+      '<div class="p-job-hnums">' + (r.s ? numCell('Screens', r.s) : '') + (r.qty ? numCell('Qty', r.qty) : '') + '</div>' +
+      '<div class="p-job-hact">' + imagedBtn(id, s) + '</div></div>';
+  } else {
+    var nums = [r.s ? '<b>' + esc(r.s) + '</b> screen' + (Number(r.s) === 1 ? '' : 's') : '', r.qty ? '<b>' + esc(r.qty) + '</b> qty' : ''].filter(Boolean).join(' · ');
+    head = '<div class="p-lc-head is-tap p-job-card" role="button" tabindex="0" data-open="' + id + '" aria-expanded="' + !!isOpen + '">' +
+      '<button type="button" class="p-job-thumb sc-thumb" data-proof="' + id + '" data-label="' + esc(r.i) + '" title="Open the proof" aria-label="Open the proof for ' + esc(r.i) + '">' +
+        '<img src="' + esc(r.thumbUrl) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"></button>' +
+      '<span class="p-job-cbody">' +
+        '<span class="p-job-ctitle p-lc-title" title="' + esc(r.n || r.i) + '"><span class="p-id">' + esc(r.i) + '</span>' + esc(r.n || r.i) + '</span>' +
+        '<span class="p-job-csub">' + esc([r.loc, r.t].filter(Boolean).join(' · ') || '—') + '</span>' +
+        (nums ? '<span class="p-job-cnums">' + nums + '</span>' : '') +
+        '<span class="p-job-cfoot">' + statusTag(s) + factTags(r) + '</span>' +
+        (mode === '' && open ? '<span class="p-job-cact">' + imagedBtn(id, s) + '</span>' : '') +   // in place, the open card's ✓ Imaged
+      '</span></div>';
+  }
   return '<section class="' + cls + '" id="' + (mode === 'detail' ? 'dc-' : 'ic-') + id + '">' + head + (open ? cardBody(r, s, mode === 'detail') : '') + '</section>';
 }
 
 function cardBody(r, s, big) {
   var id = r.id;
   var proof = r.thumbUrl
-    ? '<button type="button" class="sc-proof-img" data-proof="' + id + '" data-label="' + esc(r.i) + '" title="Open the full proof"><img src="' + esc(big ? (r.fullUrl || r.thumbUrl) : r.thumbUrl) + '" alt="Proof ' + esc(r.i) + '"></button>'
-    : '<div class="sc-proof-none">No proof</div>';
+    ? '<button type="button" class="p-job-mockimg sc-proof-img" data-proof="' + id + '" data-label="' + esc(r.i) + '" title="Open the full proof"><img src="' + esc(big ? (r.fullUrl || r.thumbUrl) : r.thumbUrl) + '" alt="Proof ' + esc(r.i) + '"></button>'
+    : '<div class="p-job-mocknone">No proof</div>';
+  // v28: the mockup footer shows only for a previous run: ↩ Previous run · Full screen
   var prev = (r.prevRefs || []).map(function(p) {
     return '<button type="button" class="p-btn" data-proof="' + p.id + '" data-label="' + esc(p.label) + ' · previous run">&#8617; Previous run ' + esc(p.label) + '</button>';
   }).join('');
@@ -782,14 +792,16 @@ function cardBody(r, s, big) {
         '<button type="button" class="p-btn p-btn-dark" data-savelink="' + id + '">Save</button>' +
         '<button type="button" class="p-btn p-btn-quiet" data-cancellink="' + id + '">Cancel</button>' +
       '</div>';
+  var n = (r.inkIds || []).length;
   return '<div class="p-lc-body"><div class="sc-body">' +
-      '<div class="sc-proof' + (prev ? ' has-prev' : '') + '">' + proof + (prev ? '<div class="p-btns">' + prev + '</div>' : '') + '</div>' +
+      '<div class="p-job-mock sc-proof' + (prev ? ' has-prev' : '') + '">' + proof +
+        (prev ? '<div class="p-job-mockf">' + prev + '<button type="button" class="p-btn p-job-full" data-proof="' + id + '" data-label="' + esc(r.i) + '">&#9974; Full screen</button></div>' : '') + '</div>' +
       '<div class="sc-info">' +
         '<div class="sc-sec sc-line"><span class="p-label">Sep file</span>' + sep + '</div>' +   // v26: one line on desktop
-        '<div class="sc-sec"><span class="p-label">Inks · burn order<span class="p-hint">drag to reorder</span></span>' +
-          '<div class="ink-rows" id="inks-rows-' + id + '"><div class="inks-msg">Loading…</div></div></div>' +
-        '<div class="sc-sec sc-line"><label class="p-label" for="notes-' + id + '">Print notes</label>' +
-          '<textarea class="p-textarea inotes" id="notes-' + id + '" data-notes="' + id + '" placeholder="Notes for press">' + esc(s.pn || '') + '</textarea></div>' +
+        '<div class="sc-sec"><div class="p-job-inksh"><h3 class="p-section" id="inks-n-' + id + '">Inks (' + n + ')</h3><span class="p-hint">burn order · drag to reorder</span></div>' +
+          '<div class="ink-rows p-job-inklist" id="inks-rows-' + id + '"><div class="inks-msg">Loading…</div></div></div>' +
+        '<div class="p-job-notes"><label class="p-field"><span class="p-label">Print notes</span>' +   // v28: label above, the box grows
+          '<textarea class="p-textarea inotes" id="notes-' + id + '" data-notes="' + id + '" placeholder="Notes for press">' + esc(s.pn || '') + '</textarea></label></div>' +
       '</div>' +
     '</div></div>';
 }
@@ -807,18 +819,19 @@ function openCard(id) {
 // v23: "Hide list" / "Show list" on the open imprint (two panes only). Remembered on this computer.
 var LIST_OFF = false;
 try { LIST_OFF = localStorage.getItem('screens_list_off') === '1'; } catch (e) {}
-function listToggleBtn() {
-  return '<button type="button" class="p-btn" id="listToggle" data-listtoggle aria-pressed="' + LIST_OFF + '" title="' +
-    (LIST_OFF ? 'Show the queue again' : 'Hide the queue so the proof gets the full width · ↑/↓ still move between imprints') + '">' +
-    (LIST_OFF ? '&#8677; Show list' : '&#8676; Hide list') + '</button>';
+// v28: Hide list / Show list sits in the filter row (as in Seps and Ink); was in the job header.
+function syncListBtn() {
+  var b = $('listToggle'); if (!b) return;
+  b.hidden = !(isWide() && viewMode === 'queue' && LOADED);
+  b.textContent = LIST_OFF ? 'Show list' : 'Hide list';
+  b.setAttribute('aria-pressed', String(LIST_OFF));
+  b.title = LIST_OFF ? 'Show the queue again' : 'Hide the queue so the proof gets the full width · ↑/↓ still move between imprints';
 }
 function setListOff(on) {
   LIST_OFF = !!on;
   try { localStorage.setItem('screens_list_off', LIST_OFF ? '1' : '0'); } catch (e) {}
   $('root').classList.toggle('list-off', LIST_OFF);
-  fitProof();
-  var b = $('listToggle');
-  if (b) { var t = document.createElement('div'); t.innerHTML = listToggleBtn(); b.replaceWith(t.firstChild); $('listToggle').focus({ preventScroll: true }); }
+  fitProof(); syncListBtn(); fitInks();
   if (!LIST_OFF && openId) { var c = $('ic-' + openId); if (c) c.scrollIntoView({ block: 'nearest' }); }
 }
 function pickCard(id, scroll) {
@@ -1470,30 +1483,29 @@ function renderInkChips(id, byId) {
     var hexColor = inkHex(d);
     var chipStyle = hexColor ? 'background:' + hexColor + ';border-color:rgba(0,0,0,.15)' : '';
 
-    html += '<div class="ink-row" draggable="true" data-iid="' + escHtml(iid) + '" data-recid="' + escHtml(id) + '" data-idx="' + idx + '"' +
+    html += '<div class="ink-row p-job-ink" draggable="true" data-iid="' + escHtml(iid) + '" data-recid="' + escHtml(id) + '" data-idx="' + idx + '"' +
       ' ondragstart="inkDragStart(event)"' +
       ' ondragover="inkDragOver(event)"' +
       ' ondragleave="inkDragLeave(event)"' +
       ' ondrop="inkDrop(event)"' +
       ' ondragend="inkDragEnd(event)">';
     // Drag handle
-    html += '<div class="drag-handle" title="Drag to reorder">' +
-      '<div class="drag-dot"></div><div class="drag-dot"></div><div class="drag-dot"></div><div class="drag-dot"></div><div class="drag-dot"></div><div class="drag-dot"></div>' +
-      '</div>';
-    html += '<span class="ink-n">' + (idx + 1) + '</span>';   // v22: burn order number
+    html += '<div class="drag-handle p-job-ink-drag" title="Drag to reorder"><i></i><i></i><i></i><i></i><i></i><i></i></div>';   // v28: the shared 38px ink row
+    html += '<span class="ink-n p-job-ink-n">' + (idx + 1) + '</span>';   // v22: burn order number
     // v22: no grey "?" — an unknown color is an empty dashed swatch. Tapping a swatch previews another color on this
     // screen only (nothing is saved, same as v21).
-    html += '<div class="ink-chip' + (hexColor ? '' : ' ink-chip-empty') + '" id="chip-' + escHtml(iid) + '"' + (hexColor ? ' style="' + chipStyle + '"' : '') +
+    html += '<div class="ink-chip p-job-ink-sw' + (hexColor ? '' : ' ink-chip-empty') + '" id="chip-' + escHtml(iid) + '"' + (hexColor ? ' style="' + chipStyle + '"' : '') +
       ' title="' + (hexColor ? 'Preview another color (this screen only)' : 'No color on file \u2014 tap to preview one (this screen only)') + '" onclick="editChipColor(\'' + escHtml(iid) + '\',this);event.stopPropagation()"></div>';
     // v26 (desktop, as Seps v35): "Pantone 186 - OW" + an OW tag said the type twice; the tag says it once.
-    var shownName = typeName && isWide() ? name.replace(new RegExp('\\s+-\\s+' + typeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i'), '') : name;
-    html += '<div class="ink-body">';
-    html += '<div class="ink-name"' + (isWide() ? ' title="' + escHtml(name) + '"' : '') + '>' + escHtml(shownName) + '</div>';
+    var shownName = typeName ? name.replace(new RegExp('\\s+-\\s+' + typeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i'), '') : name;
+    html += '<div class="ink-body p-job-ink-main">';
+    html += '<div class="ink-name p-job-ink-name" title="' + escHtml(name) + '">' + escHtml(shownName) + '</div>';
     if (typeName) html += inkTypeBadge(typeName);
     html += '</div></div>';
   });
 
   el.innerHTML = html || '<div class="inks-msg">No inks assigned</div>';
+  var nEl = document.getElementById('inks-n-' + id); if (nEl) nEl.textContent = 'Inks (' + (rec.inkIds || []).length + ')';   // v28
   fitInks();
 }
 
@@ -1670,9 +1682,10 @@ function showToast(msg, err) { toast(msg, err); }   // older call sites (proof v
 
 /* ---------- wiring ---------- */
 document.addEventListener('click', function(e) {
-  var t = e.target.closest('button,[data-open],a');
+  var t = e.target.closest('button,[data-open],a,[data-fold]');
   if (!t) return;
   var d = t.dataset || {};
+  if (d.fold) { toggleDay(d.fold); return; }
   if (d.view) { setView(d.view); return; }
   if (d.filter) { setFilter(d.filter); return; }
   if (d.proof) { e.stopPropagation(); openProofModal(d.proof, d.label || ''); return; }

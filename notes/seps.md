@@ -139,6 +139,37 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - A 4-line note fits fully at 1440, 1280, 1024 and 390. In v39 at 1440 it showed 58px of 133px.
   - Same writes as v39.
 
+## 2026-10-15 · v41: one job workspace with Screens and Ink (phase 0 + 1)
+**Why:** the review of Seps v40, Screens v27 and Ink v100 found the same job drawn three ways. Stephen OK'd phase 0 + 1: Hide list in the filter row, "Qty" everywhere, Repeat ≠ Reorder, and no inks on list cards.
+- **Shared look** from the new `pine-job-v1.css` (also used by Screens v28 and Ink v101):
+  - **Bar and filter row:** the same 72px bar. Search says "Imprint ID, order #, customer, design". The chips sit together, and Hide list is on the right.
+  - **Day heads:** ▾ fold · date · one timing tag (red "2 days late", "Today", "Tomorrow", "in 3 work days") · the count in a circle. Days start open, and a fold is remembered for the session.
+  - **Order line:** CUSTOMER · #order.
+  - **List cards (~86–110px, were ~180):**
+    - 80×64 mockup, a small ID badge and the design name (2 lines at most)
+    - location · type, then "4 screens · 144 qty"
+    - one status tag plus facts (Reorder, ↩ previous run, ink coverage)
+    - **+ Claim beside the numbers**, no longer on its own row
+  - **Job header:**
+    - ID, design and tags on the first line
+    - customer #order · location · type · press · print date on the second
+    - Screens · Qty, then the yellow button, on the right
+  - **Mockup:** a white frame. Its footer shows only on a reorder: **↩ Previous run** and Fill from (moved from the Type row) and Full screen.
+  - **Inks:** a black "INKS (n of m)" box with the base chips beside it, then 38px rows (handle · burn # · swatch · name · type · ✕). Burn numbers now also show in place.
+  - **Print notes:** the label is above the box.
+- **Phase 0 fixes:**
+  - **Qty shows once** on Supacolor / Decopress jobs (it was in the header and again in the Order placed box).
+  - **Order placed is a normal yellow button.** When no cost is typed, the cost box is yellow and reads "Enter the cost first". Clicking still says so and puts the cursor in the box. v40 faded the button and gave the reason only in a tooltip.
+- **Pantone table:** moved to `pine-pantone-v1.js` (shared, the same in all three apps). The app keeps its own lookup.
+- **Repeat vs Reorder** (Stephen: Repeat = we're fixing an order we messed up or a shortage; Reorder = the client reorders something we printed before). Checked in Airtable (read only): the Imprints checkbox `flda9L7041ahNZT0b` is named **"Repeat?"** but is the client-reorder flag. Create Order ticks it when a past imprint is picked and links Previous Imprint ID, and all 156 imprints ticked in the last 45 days have a previous imprint and no Order Issue. So it now reads **Reorder** (chip: Reorders). There is no imprint field that marks a fix or shortage reprint. Fixes go through Order Issues (the imprint's Order Issues link, "Issue Re-print?" on the issue) and the old [REPRINT] checkboxes on the same imprint, last used in September. So no "Repeat" tag is shown. Showing one needs a new Imprints field (for example a lookup of the issue's "Issue Re-print?"), which needs Stephen's OK.
+- **New read:** Equipment (press) for the header. No new writes.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The 26 compare flows send the same writes as v40 at 1920, 1440, 1280, 1100, 1024 and 390. Practice mode sends 0 writes.
+  - Dragging the last of 10 inks to the top is one write in the right order, with the page and the pane not moving. Checked at 1920, 1440, 1366, 1280 and 1100, and in place at 1024.
+  - Fold, Hide list, ↑/↓, calendar jump and resizing across 1100 all work.
+  - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
+  - Laptop scroll is the same as v40.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.

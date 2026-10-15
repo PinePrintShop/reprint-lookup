@@ -85,7 +85,6 @@ button,input,select,textarea{font-family:inherit}
 @media (min-width:701px){ .p-filters{padding-left:24px;padding-right:24px} }
 .p-filters .p-select{width:auto;min-width:150px}
 .p-tab.zero{border-color:var(--p-line-strong);color:var(--p-ink-3)}
-.p-tab.sp-done-chip{margin-left:auto}
 /* page */
 .wrap{padding:0 24px 120px}
 .wrap.is-split{padding:0 24px}
@@ -95,15 +94,8 @@ button,input,select,textarea{font-family:inherit}
 .msg.err b{color:var(--p-alert)}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--p-line);border-top-color:var(--p-black);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:8px}
 @keyframes sp{to{transform:rotate(360deg)}}
-/* order line under a date */
-.sp-order{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:16px 2px 8px;font-size:var(--p-fs-s);color:var(--p-ink-2)}
-.sp-order b{font-size:var(--p-fs-m);color:var(--p-black);text-transform:uppercase;letter-spacing:.01em}
-.p-head+.sp-order{margin-top:4px}
 /* job card head */
 .p-lc-head.is-tap:hover{background:var(--p-cream-lt)}
-.p-lc-id .p-id{min-width:86px;text-align:center}
-.sp-thumb{width:56px;height:56px;object-fit:cover;border:1px solid var(--p-line);border-radius:4px;background:var(--p-white);cursor:zoom-in;display:block;flex:none}
-.sp-thumb-ph{width:56px;height:56px;border:1px dashed var(--p-line-strong);border-radius:4px;flex:none}
 .p-lc.is-done .p-lc-head{background:var(--p-cream-lt)}
 .cl-wrap{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .cl-hide{display:none!important}
@@ -117,15 +109,10 @@ button,input,select,textarea{font-family:inherit}
 .p-lc.is-open{overflow:clip}  /* kit .p-lc is overflow:hidden, which stops the proof and the Mark sep'd bar from sticking */
 .p-lc-body.sp-body{container-type:inline-size;padding:var(--p-s4)}
 .sp-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--p-s4);align-items:start}
-.sp-proof{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden;cursor:zoom-in;display:block;width:100%;padding:0}
-.sp-proof img{display:block;width:100%;height:auto;max-height:60vh;object-fit:contain}
-.sp-proof-none{display:grid;place-items:center;min-height:200px;color:var(--p-ink-3);font-weight:700;font-size:var(--p-fs-s);cursor:default}
 @container (min-width:620px){
   .sp-grid{grid-template-columns:minmax(220px,40%) minmax(0,1fr)}
   .sp-proof{position:sticky;top:72px}
-  .sp-proof img{max-height:none}
 }
-.p-split-detail .sp-proof{top:0}
 .sp-ctl{display:flex;flex-direction:column;gap:var(--p-s3);min-width:0}
 .sp-sec{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .sp-sec-h{font:800 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -164,7 +151,6 @@ button,input,select,textarea{font-family:inherit}
 .sp-cost.saved .p-input{border-color:var(--p-black);box-shadow:0 0 0 3px var(--p-cream)}
 .supa-cost-input::-webkit-outer-spin-button,.supa-cost-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .supa-cost-input{-moz-appearance:textfield}
-.sp-qty b{font-size:20px}
 /* inks */
 .bases-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .bases-row-lbl{font-size:var(--p-fs-s);color:var(--p-ink-2);margin-right:4px}
@@ -181,27 +167,14 @@ button,input,select,textarea{font-family:inherit}
 .slot-meta-count{color:var(--p-black)}
 .slot-meta-paid{color:var(--p-ink-2)}
 .slot-max{color:var(--p-black);background:var(--p-yellow);padding:2px 6px;border-radius:3px}
-.inks-rows{padding-right:4px;border-top:1px solid var(--p-line)}  /* v38: no inner scroll box (was max-height 420px): a long ink list made a scroll-inside-a-scroll, so a drag couldn't reach the top */
-.ink-row{display:flex;align-items:center;gap:10px;min-height:48px;padding:2px 0;border-bottom:1px solid var(--p-line);cursor:default;background:var(--p-white)}
-.ink-row.dragging{opacity:.4}
-.ink-row.drag-over{box-shadow:inset 0 3px 0 var(--p-black)}
-.drag-handle{width:20px;align-self:stretch;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:grab;opacity:.45}
-.drag-handle:hover{opacity:.9}
-.drag-handle:active{cursor:grabbing}
-.drag-dot{width:4px;height:4px;border-radius:50%;background:var(--p-black)}
-.ink-chip{width:30px;height:30px;border-radius:5px;flex-shrink:0;border:1px solid var(--p-line-strong);cursor:pointer}
-.ink-chip:hover{box-shadow:0 0 0 3px var(--p-cream)}
 .ink-chip-empty{background:repeating-linear-gradient(135deg,var(--p-white) 0 5px,var(--p-cream-lt) 5px 10px);border:1.5px dashed var(--p-line-strong)}
 .ink-chip-tba{background:var(--p-white);border:2px dashed var(--p-black)}
-.ink-body{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ink-name{font:700 var(--p-fs-s)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.ink-type-tag{height:22px}
 .ink-row.preview-chip{background:var(--p-yellow-lt)}
 .ink-row.preview-chip .ink-name::after{content:" \2014  not saved";color:var(--p-ink-2);font-weight:700;text-transform:none}
 .preview-tag{margin-left:4px}
-.ink-remove{flex-shrink:0;width:var(--p-tap);height:var(--p-tap);border-radius:var(--p-r);border:0;background:transparent;color:var(--p-ink-2);cursor:pointer;font-size:16px}
-.ink-remove:hover{background:var(--p-alert-lt);color:var(--p-alert)}
-.slot-placeholder{display:flex;align-items:center;gap:10px;min-height:48px;padding:2px 0 2px 30px;border-bottom:1px solid var(--p-line);color:var(--p-ink-2);cursor:pointer}
+.slot-placeholder{display:flex;align-items:center;gap:10px;min-height:38px;padding:2px 0 2px 30px;border-top:1px solid var(--p-line);color:var(--p-ink-2);cursor:pointer}
+.p-job-inklist>:first-child{border-top:0}
+.p-job-inklist>.inks-loading-sm{padding:8px 12px}
 .slot-placeholder:hover{background:var(--p-cream-lt);color:var(--p-black)}
 .slot-placeholder-chip{width:30px;height:30px;border-radius:50%;border:1.5px dashed var(--p-line-strong);flex-shrink:0;display:grid;place-items:center;font:800 var(--p-fs-xs)/1 var(--p-sans);color:var(--p-ink-2)}
 .slot-placeholder-lbl{font:700 var(--p-fs-s)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em}
@@ -291,56 +264,34 @@ button,input,select,textarea{font-family:inherit}
 #pmCanvas{border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,.6);max-width:100%;max-height:100%;object-fit:contain}
 .p-toast{z-index:300}
 /* two panes on wide screens (kit .p-split) */
-.p-split-list .p-lc-act{justify-content:flex-end}
 /* v36: the mockup is the focus. Narrower list, proof ~60% of the open job and as tall as the pane allows. */
-.is-split .p-split{grid-template-columns:minmax(380px,440px) minmax(0,1fr)}
 .is-split.list-hidden .p-split{grid-template-columns:minmax(0,1fr)}
 .is-split.list-hidden .p-split-list{display:none}
 .p-split-detail .sp-grid{grid-template-columns:minmax(0,3fr) minmax(400px,2fr)}
-.p-split-detail .sp-proof{border-color:var(--p-line);border-radius:var(--p-r)}
-.p-split-detail .sp-proof img{width:100%;height:auto;max-height:calc(100dvh - var(--p-split-top,120px) - 150px);object-fit:contain}  /* under the job header, whole sheet on first view */
-.p-split-list .p-lc-head .sp-thumb,.p-split-list .p-lc-head .sp-thumb-ph{width:48px;height:48px}
-.sp-listbtn{flex:none}
 /* v38: no floating bar. The button sits in the job's header (wide) or first in the controls (in place). */
 .sp-done{position:static;box-shadow:none}
 .p-lc-head .sp-done{border:0;padding:0;background:transparent;justify-content:flex-end;flex-wrap:nowrap}
 .p-lc-head .sp-done .p-btn-lg{min-height:48px}
 /* v38: wide screens: narrower list with compact cards; the open job fits the pane: the mockup stays put, only the controls scroll */
-.is-split .p-split{grid-template-columns:minmax(320px,360px) minmax(0,1fr)}
-.is-split .p-split-list .p-id-lg{font-size:var(--p-fs-l)}
-.is-split .p-split-list .p-lc-chev{display:none}
-.is-split .p-split-list .p-lc-head .sp-thumb,.is-split .p-split-list .p-lc-head .sp-thumb-ph{width:40px;height:40px}
 .p-split-detail{overflow:hidden;display:flex;flex-direction:column;padding-bottom:var(--p-s4)}
 .p-split-detail>.p-lc{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;margin-bottom:0}
 .p-split-detail>.p-lc>.p-lc-head{flex:none}
 .p-split-detail .sp-body{flex:1 1 auto;min-height:0;display:flex}
 .p-split-detail .sp-grid{flex:1;min-height:0;height:100%;align-items:stretch}
-.p-split-detail .sp-proof{position:static;height:100%;display:flex;align-items:flex-start;justify-content:center}
-.p-split-detail .sp-proof img{width:100%;height:100%;max-height:100%;object-fit:contain;object-position:center top}
 .p-split-detail .sp-ctl{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
 /* v36: in the narrower list the design name gets the full width.
    v37: the claim (+ Claim, or WHITNEY ✕) gets its own row under the tags. On the tag row it squeezed the tags into
    ~55px and they spilled over the claim tag (Stephen's screenshot). */
-.is-split .p-split-list .p-lc-head{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"id main" "id tags" "id act"}
-.is-split .p-split-list .p-lc-act{justify-content:flex-end}
-.p-split-list .p-lc-head{grid-template-areas:"id main act" "id tags tags"}  /* numbers are tags here, so no empty row */
-.p-split-list .p-lc-nums{display:none}
-.p-split-list .sp-order:first-of-type{margin-top:6px}
 /* v39: Stephen: "is there a way to not have it ever scroll on a desktop?" Two panes from 1100px (was 1400); the list is
    280–320px below 1400. The controls column is compact so a typical job fits without scrolling: Sep file, Separator and
    Print notes are one line each (label on the left), small base chips, ~38px ink rows, a slim PDF-scan row; when the
    inks still don't fit (more than 5) they go into two columns (.ink-2col, set by fitInks(), widens the column a little). */
 @media (min-width:1100px) and (max-width:1399px){
-  .is-split .p-split{grid-template-columns:clamp(280px,23vw,320px) minmax(0,1fr);gap:var(--p-s4)}
-  .wrap.is-split{padding:0 16px}
-  .is-split .p-split-list .p-id-lg{font-size:17px}
-  .is-split .p-split-list .p-lc-head{column-gap:10px;padding-left:12px;padding-right:12px}
 }
 .p-split-detail .p-lc-body.sp-body{padding:10px 12px}
 .p-split-detail .sp-grid{gap:var(--p-s3)}
 .p-split-detail .sp-ctl{gap:6px}
 .p-split-detail .sp-ctl>*{flex-shrink:0}   /* rows keep their height; the column scrolls instead */
-.p-split-detail>.p-lc>.p-lc-head{padding-top:8px;padding-bottom:8px;min-height:0}
 .p-split-detail .p-lc-head .sp-done .p-btn-lg{min-height:44px}
 .p-split-detail .sp-sec{padding:6px 10px;gap:4px}
 /* one-line sections are flat rows (like Type), only the inks keep their white box */
@@ -358,25 +309,13 @@ button,input,select,textarea{font-family:inherit}
 .p-split-detail .sp-ctl>.sp-row{gap:6px 10px}
 .p-split-detail .sp-ctl>.sp-row>.sp-lbl{flex:0 0 auto;min-width:95px;padding-left:11px;white-space:nowrap}
 /* inks: header + bases share a line when there's room */
-.p-split-detail .sp-ink-sec{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:10px}
-.p-split-detail .sp-ink-sec>.sp-sec-h{flex:0 0 auto}
-.p-split-detail .sp-ink-sec>.bases-row{flex:1 1 auto;gap:4px}
-.p-split-detail .sp-ink-sec>.inks-rows,.p-split-detail .sp-ink-sec>.ink-tools,.p-split-detail .sp-ink-sec>.scan-strip{flex:1 1 100%;min-width:0}
 .p-split-detail .slot-meta{padding-top:0}
 .p-split-detail .bases-row-lbl{display:none}   /* the chips say it (title on the row) */
 .p-split-detail .base-chip{min-height:32px;padding:0 9px;gap:5px;font-size:13px}
 .p-split-detail .base-chip-swatch{display:none}   /* the name says it; saves a line */
 .p-split-detail .slot-meta-paid{display:none}   /* "(6 of 6)"; the full text is the title */
-.p-split-detail .ink-row,.p-split-detail .slot-placeholder{min-height:38px;gap:8px}
 .p-split-detail .slot-placeholder{padding-left:24px}
 .p-split-detail .slot-placeholder-chip{width:24px;height:24px}
-.p-split-detail .drag-handle{width:14px}
-.ink-n{display:none}
-.p-split-detail .ink-n{display:inline;font:800 14px/1 var(--p-sans);font-variant-numeric:tabular-nums;color:var(--p-ink-3);min-width:16px;text-align:right;flex:none}
-.p-split-detail .ink-chip{width:24px;height:24px;border-radius:4px}
-.p-split-detail .ink-body{flex-wrap:nowrap;gap:6px}
-.p-split-detail .ink-type-tag{flex:none;height:22px;padding:0 6px;font-size:12px}
-.p-split-detail .ink-remove{width:32px;height:32px}
 .p-split-detail .ink-tools{gap:6px}
 .p-split-detail .add-slot-btn{padding:0 12px}
 .p-split-detail .add-ink-wrap{flex:1 1 160px}
@@ -385,17 +324,7 @@ button,input,select,textarea{font-family:inherit}
 .p-split-detail .scan-strip-title{min-height:28px}
 .p-split-detail .sp-ctl .p-btn.scan-btn{min-height:28px}
 .wrap .p-split-detail .sp-grid.ink-2col{grid-template-columns:minmax(0,3fr) minmax(480px,2fr)}
-.p-split-detail .ink-2col .inks-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:column;
-  grid-template-rows:repeat(var(--ink-rows,5),auto);column-gap:12px}
-.p-split-detail .ink-2col .ink-body{flex-wrap:wrap;row-gap:2px}   /* a long name + type: the type goes under the name */
 /* two columns: the name gets the room; the handle shows on hover (the whole row drags), the ✕ is narrower */
-.p-split-detail .ink-2col .ink-row{position:relative;padding-left:10px;cursor:grab}
-.p-split-detail .ink-2col .drag-handle{position:absolute;left:0;top:0;bottom:0;width:10px;opacity:0}
-.p-split-detail .ink-2col .ink-row:hover .drag-handle{opacity:.6}
-.p-split-detail .ink-2col .ink-row{gap:6px}
-.p-split-detail .ink-2col .ink-n{min-width:14px}
-.p-split-detail .ink-2col .ink-name{font-size:13px}
-.p-split-detail .ink-2col .ink-remove{width:26px}
 .p-split-detail .ink-2col .slot-placeholder{padding-left:10px}
 .p-split-detail .ink-2col .slot-placeholder-hint{display:none}
 /* A job scrolled to (calendar jump) stops below the sticky bar, which is taller once the views get their own row. */
@@ -403,7 +332,6 @@ button,input,select,textarea{font-family:inherit}
 @media (max-width:899px){ .wrap:not(.is-split) .p-lc{scroll-margin-top:140px} }
 /* iPad portrait and narrower */
 @media (max-width:1023px){
-  .p-lc-head .sp-thumb,.p-lc-head .sp-thumb-ph{width:48px;height:48px}
 }
 @media (max-width:700px){
   .p-bar{gap:8px}
@@ -411,7 +339,6 @@ button,input,select,textarea{font-family:inherit}
   .p-chips{margin:0 -16px;padding:0 16px 2px}
   .p-chips-inline{flex:1 1 100%;order:3}
   .p-filters-end{flex:1;margin-left:0}.p-filters-end .p-select{flex:1}
-  .p-tab.sp-done-chip{margin-left:0}
   .wrap{padding:0 12px 140px}
   .p-lc-body.sp-body{padding:12px}
   .sp-proof img{max-height:38vh}  /* the controls start on the first screen, the full proof is a tap away */
@@ -424,6 +351,27 @@ button,input,select,textarea{font-family:inherit}
   .slot-placeholder-hint{display:none}
 }
 @media (min-width:701px) and (max-width:1100px){ .cal-week{grid-template-columns:repeat(5,minmax(120px,1fr));overflow-x:auto} }
+/* v41: the shared job workspace (pine-job-v1.css) does the day heads, order lines, list cards, job header, mockup frame,
+   ink rows and notes. Seps-only bits on top of it: */
+.sp-ink-sec{display:flex;flex-direction:column;gap:6px;min-width:0}
+.p-job-inksh .bases-row{gap:4px}
+.p-job-inksh .slot-meta-count{color:inherit}
+.p-job-inksh .slot-meta-paid{display:none}   /* "(4 of 6)"; the full text is the tooltip */
+.p-job-inksh .slot-max{margin-left:4px}
+.p-job-cact .sp-claimed .p-tag{height:22px;font-size:12px}
+.p-job-cact .sp-x{width:28px;height:28px;font-size:14px}
+.p-job-cact .cl-picker{gap:4px}
+@media (max-width:1099px){ .p-job-cact .sp-x{width:var(--p-tap);height:var(--p-tap)} .p-job-cact .sp-claimed .p-tag{height:32px} }
+.sp-proof.p-job-mock{width:100%}
+.p-split-detail .sp-proof{height:100%}
+@container (min-width:620px){ .sp-proof .p-job-mockimg img{max-height:none} }
+.p-split-detail .sp-grid>.sp-proof{min-height:0}
+.p-job-mockf .sp-row{gap:6px}
+/* Order placed: an empty cost box says so (v40 faded the yellow button instead) */
+.sp-cost.need .p-input{background:var(--p-yellow-lt);border-color:var(--p-black)}
+.sp-cost.need .sp-lbl{color:var(--p-black);text-transform:none;letter-spacing:0;font-size:var(--p-fs-s)}
+.p-job-hact .sp-done{gap:10px}
+.p-job-hact .sp-cost .p-input{width:110px;min-height:44px}
 </style>
 </head>
 <body class="p-app p-job">
@@ -1321,11 +1269,13 @@ function cardHtml(r, mode) {
     (open && mode === '' ? '<div id="detail-slot-' + r.id + '"></div>' : '') + '</section>';
 }
 function qtyOf(r) { return typeof r.qty === 'number' && r.qty > 0 ? r.qty : 0; }
-function statusTag(r, s) {
+function statusTag(r, s, short) {
   if (DONE_BUSY[r.id]) return '<span class="p-tag p-tag-wait">Saving…</span>';
   if (s.sp) return '<span class="p-tag p-tag-done">&#10003; ' + (r.supa ? 'Ordered' : 'Sep’d') + '</span>';
   if (s.b) return '<span class="p-tag p-tag-done">Burned</span>';
-  if (s.sepsUrl) return '<span class="p-tag p-tag-soft">' + (s.sepsUrl !== (r.sepsUrl || '') ? 'Sep file from last run' : '&#10003; Sep file') + '</span>';
+  if (s.sepsUrl) return s.sepsUrl !== (r.sepsUrl || '')
+    ? '<span class="p-tag p-tag-soft" title="Sep file from the last run · saved when you mark it sep’d">' + (short ? '&#8617; Sep file' : 'Sep file from last run') + '</span>'
+    : '<span class="p-tag p-tag-soft">&#10003; Sep file</span>';
   return '';
 }
 function factTags(r, s, withPrev) {
@@ -1351,8 +1301,8 @@ function headHtml(r, mode) {
       '<span class="p-job-ctitle p-lc-title" title="' + esc(r.n || r.i) + '"><span class="p-id">' + esc(r.i) + '</span>' + esc(r.n || r.i) + '</span>' +
       '<span class="p-job-csub">' + esc([r.loc, r.t || 'No type set'].filter(Boolean).join(' · ')) + '</span>' +
       (nums ? '<span class="p-job-cnums">' + nums + '</span>' : '') +
-      '<span class="p-job-cfoot">' + statusTag(r, s) + factTags(r, s, true) +
-        '<span class="cl-wrap p-job-cact" id="sc-' + id + '">' + claimMarkup(id, s.sep) + '</span></span>' +   // v41: Claim inline (was its own row)
+      '<span class="p-job-cfoot p-lc-tags">' + statusTag(r, s, true) + factTags(r, s, true) + '</span>' +
+      '<span class="cl-wrap p-job-cact" id="sc-' + id + '">' + claimMarkup(id, s.sep) + '</span>' +   // v41: Claim inline (was its own row)
     '</span></div>';
 }
 // v41: the job header: ID + design + tags, then customer #order · location · type · press · print date; Screens · Qty and
@@ -2810,7 +2760,7 @@ function renderInkChips(id, byId) {
     var tba = !hexColor && (isTbaInk(pantoneNo) || isTbaInk(name));
     var chipStyle = hexColor ? 'background:' + hexColor : '';
     var isPreview = iid.indexOf('preview-') === 0;
-    var rowCls = 'ink-row' + (isPreview ? ' preview-chip' : '');
+    var rowCls = 'ink-row p-job-ink' + (isPreview ? ' preview-chip' : '');   // v41: the shared 38px ink row
 
     html += '<div class="' + rowCls + '" draggable="true" data-iid="' + escHtml(iid) + '" data-recid="' + escHtml(id) + '" data-idx="' + idx + '"' +
       ' ondragstart="inkDragStart(event)"' +
@@ -2819,20 +2769,18 @@ function renderInkChips(id, byId) {
       ' ondrop="inkDrop(event)"' +
       ' ondragend="inkDragEnd(event)">';
     // Drag handle
-    html += '<div class="drag-handle" title="Drag to reorder">' +
-      '<div class="drag-dot"></div><div class="drag-dot"></div><div class="drag-dot"></div><div class="drag-dot"></div>' +
-      '</div>';
-    html += '<span class="ink-n">' + (idx + 1) + '</span>';   // v39: burn order number (shown in two panes only)
+    html += '<div class="drag-handle p-job-ink-drag" title="Drag to reorder"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
+    html += '<span class="ink-n p-job-ink-n">' + (idx + 1) + '</span>';   // v39: burn order number (v41: everywhere)
     html += hexColor
-      ? '<div class="ink-chip" id="chip-' + escHtml(iid) + '" style="' + chipStyle + '" title="Click to adjust" onclick="editChipColor(\'' + escHtml(iid) + '\',this);event.stopPropagation()"></div>'
-      : '<div class="ink-chip ' + (tba ? 'ink-chip-tba' : 'ink-chip-empty') + '" id="chip-' + escHtml(iid) + '" title="' + (tba ? 'TBA \u2014 the ink room picks the color' : 'No color on file \u2014 click to preview one') + '" onclick="editChipColor(\'' + escHtml(iid) + '\',this);event.stopPropagation()"></div>';
-    html += '<div class="ink-body">';
+      ? '<div class="ink-chip p-job-ink-sw" id="chip-' + escHtml(iid) + '" style="' + chipStyle + '" title="Click to adjust" onclick="editChipColor(\'' + escHtml(iid) + '\',this);event.stopPropagation()"></div>'
+      : '<div class="ink-chip p-job-ink-sw ' + (tba ? 'ink-chip-tba' : 'ink-chip-empty') + '" id="chip-' + escHtml(iid) + '" title="' + (tba ? 'TBA \u2014 the ink room picks the color' : 'No color on file \u2014 click to preview one') + '" onclick="editChipColor(\'' + escHtml(iid) + '\',this);event.stopPropagation()"></div>';
+    html += '<div class="ink-body p-job-ink-main">';
     // v35: "Pantone 186 C - OW" + an OW tag said the type twice; the tag says it once.
     var shownName = typeName ? name.replace(new RegExp('\\s+-\\s+' + typeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i'), '') : name;
-    html += '<div class="ink-name" title="' + escHtml(name) + '">' + escHtml(shownName) + '</div>';
+    html += '<div class="ink-name p-job-ink-name" title="' + escHtml(name) + '">' + escHtml(shownName) + '</div>';
     if (typeName) html += inkTypeBadge(typeName);
     html += '</div>';
-    html += '<button class="ink-remove" title="Remove from this imprint" onclick="removeInkFromImprint(\'' + escHtml(id) + '\',\'' + escHtml(iid) + '\');event.stopPropagation()">\u2715</button>';
+    html += '<div class="p-job-ink-x"><button class="ink-remove" title="Remove from this imprint" onclick="removeInkFromImprint(\'' + escHtml(id) + '\',\'' + escHtml(iid) + '\');event.stopPropagation()">\u2715</button></div>';
     html += '</div>';
   });
 

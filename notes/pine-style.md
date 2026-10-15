@@ -102,3 +102,37 @@ The demo is in `pine-style.html` under "Page kit". The rules list and the app st
   - The version tag hides under 420px.
   - New pieces: `.p-chips-inline` (few chips share the search line), `.p-lc-check` checkbox slot so IDs line up, `.p-lc.is-sel` selected card, `.p-menu` for the ⚙ drop-down (token, practice).
 - **Two-pane desktop layout `.p-split`** (from Damage Log v21): at 1400px and wider, the list is on the left and the picked record fills the right, each with its own scroll. Below that, cards open in place. Desktop apps use the full width. Stephen saw v20 capped at 1100px on a wide screen: "is there a reason this doesn't take up more of the screen".
+
+## 2026-10-15 · Job workspace: `pine-job-v1.css` (Seps v41, Screens v28, Ink Queue v101)
+**Why:** the review of the three pre-press apps found the same imprint drawn three ways: list cards, ID badge, day heads, job header, Previous run, ink rows and notes. Stephen OK'd phase 0 + 1.
+**Load order:** `pine-style-v2.css`, then `pine-job-v1.css`, then the app's `<style>`. `<body class="p-app p-job">`. Each piece is prefixed `p-job-`.
+1. **Bar:** 72px in every app.
+2. **Filter row:** search ("Imprint ID, order #, customer, design") · chips · on the right the app's own button, then Hide list (`.p-job-listbtn`).
+3. **Day head:** `section.p-job-dayg > .p-job-day` holds ▾ `.p-job-fold` · `.p-job-date` (black box) · one `.p-tag.p-job-when` (red "2 days late", "Today", "Tomorrow", "in 3 work days"; "work" hides below 1600px) · the count `.p-job-n`. `.is-closed` folds the day.
+4. **Order line:** `.p-job-order` = `.p-job-cust` (CUSTOMER, cut with …) · `.p-job-ordno` (#order).
+5. **List card** `.p-lc-head.p-job-card`, ~96px:
+   - an 80×64 `.p-job-thumb`
+   - `.p-job-ctitle`: a small ID + title, 2 lines at most
+   - `.p-job-csub`: location · type
+   - `.p-job-cnums`: 4 screens · 144 qty, with the app's one action `.p-job-cact` beside it
+   - `.p-job-cfoot`: one status tag + facts
+   - no inks on cards
+6. **Job header** `.p-lc-head.p-job-head`:
+   - `.p-job-hid` ID badge (16px, the same everywhere) + `.p-job-hname` + tags
+   - `.p-job-hsub`: customer #order · location · type · press · print date
+   - `.p-job-hnums`: Screens · Qty (Ink adds Inks)
+   - `.p-job-hact`: the one yellow "✓ verb" button (44px)
+7. **Mockup:** `.p-job-mock` (white frame) with `.p-job-mockimg`. The `.p-job-mockf` footer appears only when needed: ‹ 1/N › · file name · ↩ Previous run (+ Fill from) · Full screen.
+8. **Inks:** `.p-job-inksh` = a black `.p-section` "INKS (n)" + the app's toolbar on one line. `.p-job-inklist` holds `.p-job-ink` rows, 38px:
+   - `.p-job-ink-drag` · `.p-job-ink-n` (burn #) · `.p-job-ink-sw` (28px swatch)
+   - `.p-job-ink-main` (name + type tag) · `.p-job-ink-x` (app extras)
+   - `.p-job-ink-sub` (Ink's recipe line)
+   - `.ink-2col` on an ancestor (set by each app's fitInks) makes two columns, 1–5 down the left and 6–10 down the right
+9. **Notes:** `.p-job-notes` with the labels above; the box grows with its text.
+
+**Shared Pantone table:** `pine-pantone-v1.js` holds the 1,404-line table that was byte-identical in all three apps, as one global, `PANTONE_HEX`. Each app keeps its own lookup function for now.
+
+**Shared files are versioned by name** and never changed after shipping. A change means `pine-job-v2.css` / `pine-pantone-v2.js`, so older app versions keep the file they were built with.
+
+**Next (phase 2, not built):** one shared script for two panes, Hide list, ↑/↓, day heads, drag, notes, proof viewer and the ⚙ menu. Later: Seps and Screens save swatch colors (an Airtable write, needs Stephen's OK), and a calendar in Ink.
+

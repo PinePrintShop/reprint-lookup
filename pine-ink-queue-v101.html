@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<!-- Ink Queue v101 (2026-10-15): one job workspace with Seps v41 and Screens v28 (Stephen OK'd the review, phase 0 + 1).
+     - Shared look from pine-job-v1.css (new): the same 72px bar (was 64), the filter row (search · chips · Print a label,
+       then Hide list), day heads (▾ fold · date · one timing tag "Tomorrow" / "in 3 work days" · count), the order line
+       (CUSTOMER · #order), ~96px list cards (80x64 mockup, ID + title, location · type, screens · qty, one status tag +
+       facts), the job header (ID + title + tags, customer #order · location · type · press · print date, Screens · Qty ·
+       Inks, then Mark ready), the mockup frame with a footer only when needed (‹ 1/N › · file · ↩ Previous run + Fill from,
+       moved from the inks toolbar · Full screen), and the notes (labels above, they grow).
+     - Ink rows are one 38px line like Seps / Screens: drag · burn order # (new) · swatch · Pantone + type ·
+       ✎ 🏷 📅 ✕, with the recipe on a line under it. Two columns when they don't fit (same fitInks rule).
+     - The runway line wraps instead of being cut off at 1440. "Pcs" -> "Qty". "Last run" -> "Previous run".
+     - The Pantone color table moved to pine-pantone-v1.js (shared, byte-identical in all three apps).
+     Same Airtable reads and writes as v100. -->
 <!-- Ink Queue v100 (2026-10-15): in the narrow list the day heads show the imprint count as a small number on the right
      (was "2 im…", cut off; Stephen's screenshot); full "2 imprints" in the tooltip. The day toggle no longer leaves a
      box outline after a click. Airtable writes: same as v99. -->
@@ -81,7 +93,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ink Queue v100 — Pine</title>
+<title>Ink Queue v101 — Pine</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -123,39 +135,14 @@ body{font-size:15px}
 
 /* runway (v92 KPI) in the first page head */
 .rw{font-weight:800}
-/* day groups (On press today · dates · No date · Completed) */
-.day-h{cursor:pointer;user-select:none;margin:var(--p-s5) 0 var(--p-s2) -8px;gap:var(--p-s2) var(--p-s3)}
-.day-h .chev{margin-right:-6px}
-@media (max-width:700px){ .day-h{margin-left:-4px} }
-.wrap>.day:first-of-type .day-h,.p-split-list .day:first-of-type .day-h{margin-top:var(--p-s3)}
-.chev{display:inline-grid;place-items:center;width:44px;height:44px;border:0;background:transparent;color:var(--p-black);font-size:14px;cursor:pointer;transition:transform .15s;border-radius:var(--p-r)}
-.chev:hover{background:var(--p-cream)}
-.day.collapsed>.day-h .chev{transform:rotate(-90deg)}
-.day.collapsed>.day-b{display:none}
 .day.is-done .p-lc{background:#FCFAF6}
 /* v97 order lines: customer left (cut with …), then fixed columns on the right so the #order badges line up.
    No open/close per order: its imprint cards sit straight below. */
 .ord + .ord{margin-top:var(--p-s3)}
-.ord-h{display:grid;grid-template-columns:minmax(0,1fr) auto 76px;align-items:center;column-gap:8px;min-height:30px;padding:0 4px 6px}
-.ord-name{font:800 14px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.ord-n{font-size:13px;color:var(--p-ink-2);white-space:nowrap;text-align:right}
-.ord-h .p-id{justify-self:end}
-/* v97 one-line queue summary at the top of the list */
-.iq-sum{margin:0 0 var(--p-s2);font-size:var(--p-fs-s);line-height:28px;color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.iq-sum b{color:var(--p-black)}
-.wrap>.iq-sum{margin-top:var(--p-s3)}
 
 /* job card (.p-lc) */
 .p-lc-head.is-tap:hover{background:var(--hover)}
 .p-split-list .p-lc.is-open>.p-lc-head.is-tap:hover{background:var(--p-cream)}
-.p-lc-id.thumbed{flex-direction:column;gap:6px;align-self:start}
-.jc-thumb{width:96px;height:64px;border-radius:4px;background:var(--p-white);border:1px solid var(--p-line);overflow:hidden;display:grid;place-items:center;position:relative;flex:none}
-.jc-thumb img{width:100%;height:100%;object-fit:contain}
-.jc-thumb svg{width:28px;height:28px;color:var(--p-ink-3)}
-.jc-thumb .pc{position:absolute;right:3px;bottom:3px;background:var(--p-black);color:var(--p-white);font:800 12px/1 var(--p-sans);padding:2px 5px;border-radius:3px}
-.p-lc-title .rep{margin-left:6px;vertical-align:2px}
-.p-lc-act{flex-direction:column;align-items:flex-end;gap:4px}
-.p-lc-act .p-btn{font-size:var(--p-fs-s);padding:0 14px}
 .sw-dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(20,20,18,.3);flex:none}
 .sw-dot.empty{background:var(--p-white);border-style:dashed}
 .p-tag.sw{text-transform:none;letter-spacing:.01em;font-size:13px}
@@ -170,13 +157,8 @@ body{font-size:15px}
 @keyframes pulse{50%{opacity:.3}}
 
 /* v96 two panes: narrower list so the open job (mockup + inks) gets the room; "Hide list" folds it away */
-.is-split .p-split{grid-template-columns:clamp(280px,20vw,320px) minmax(0,1fr)}   /* v99: 280-320 (v98: 320-360) */
-@media (max-width:1399px){ .is-split .p-split{gap:var(--p-s4)} .wrap.is-split{padding:0 16px} }   /* v99: 1100-1399 two panes, tighter gutters */
 .is-split.list-hidden .p-split{grid-template-columns:minmax(0,1fr)}
 .is-split.list-hidden .p-split-list{display:none}
-.iq-listbtn{flex:none}
-.p-split-list .p-lc-head .jc-thumb{width:84px;height:72px;padding:2px}   /* v99: a bigger mockup (v98: 40px); contain keeps the aspect */
-.p-split-list .p-lc-head .jc-thumb .pc{right:2px;bottom:2px;padding:1px 4px}
 
 /* open job: proof + inks (container-sized, so it works in place and in the right pane) */
 .p-lc-body{padding:var(--p-s4)}
@@ -187,7 +169,6 @@ body{font-size:15px}
 /* v97: on wide screens (job 1300px+) the proof takes a bit more, so the mockup is bigger; the ink cards keep 420px+ */
 /* v98: 55/45 so the inks get two columns (Stephen: no scrolling through the Pantones); the mockup is still the big half */
 @container jd (min-width:1300px){ .jd-in{grid-template-columns:minmax(0,55fr) minmax(420px,45fr)} }
-.jd-proof{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden;display:flex;flex-direction:column}
 /* v97 two panes: the open job never scrolls as a whole (Stephen: "would love for that mockup area be static").
    The pane is a fixed-height column: the slim head on top, the body fills the rest. The mockup fills the body
    height and stays put; only the inks column scrolls (many Pantones scroll in their own column). No sticky bars. */
@@ -211,19 +192,12 @@ body{font-size:15px}
 .proof-area img{width:100%;height:auto;display:block;max-height:60vh;object-fit:contain}
 .proof-none{padding:40px 16px;text-align:center;color:var(--p-ink-2);font-weight:700}
 /* prev / count / next and Full size sit UNDER the proof, never on it */
-.jd-proof-f{display:flex;align-items:center;gap:8px;padding:6px 8px;border-top:1px solid var(--p-line);min-height:56px}
-.jd-proof-f .p-btn{font-size:var(--p-fs-s);padding:0 14px}
-.jd-proof-f .pf-nav{min-width:44px;padding:0;font:800 22px/1 var(--p-sans)}
-.proof-nav-counter{font:700 var(--p-fs-s)/1 var(--p-sans);min-width:52px;text-align:center}
-.pf-name{flex:1;min-width:0;font-size:var(--p-fs-s);color:var(--p-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .jd-inks{display:flex;flex-direction:column;gap:var(--p-s2);min-width:0;container:inkcol / inline-size}
 /* v98: one toolbar row over the inks: Inks (N) · All labels · Copy colors · (Paste / Fill from / Last run) · + Add ink */
 .jd-h{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .jd-h .p-section{padding:7px 10px}
-.jd-h .p-btn{font-size:13px;min-height:36px;padding:0 10px}
 .jd-h .jd-add{margin-left:auto}
 .jd-h>span:empty{display:none}
-.jd-h .pop-from .p-select{min-height:36px;font-size:13px}
 .pop-from{display:inline-flex;align-items:center;gap:8px}
 .pop-from .p-select{width:auto;min-width:130px}
 /* v98: notes are one line each under the inks (side by side), and grow with their text */
@@ -250,29 +224,9 @@ body{font-size:15px}
 .ink-ac-none{padding:12px;font-size:14px;color:var(--p-ink-2)}
 /* v98 compact ink cards: drag handle · 40px swatch · Pantone number big + type tag · recipe on 1-2 lines · small actions.
    A grid: two columns when the inks column is 620px+, one below. No inner scroll box (a drag reaches the first ink). */
-.ink-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-items:start}
-@container inkcol (min-width:600px){ .ink-list{grid-template-columns:repeat(2,minmax(0,1fr))} }
-.ink-list:empty{display:none}
-.inks-loading{padding:16px;color:var(--p-ink-2);font-size:var(--p-fs-s);background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);grid-column:1/-1}
-.ink-row{display:grid;grid-template-columns:16px 40px minmax(0,1fr);grid-template-areas:"drag chip head" "drag recipe recipe" "act act act";gap:4px 10px;padding:8px 10px 6px 2px;
-  background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);min-width:0}
-.ink-row.is-prev{grid-template-columns:40px minmax(0,1fr);grid-template-areas:"chip head" "recipe recipe";padding:8px 10px}
-.ink-drag-handle{grid-area:drag;display:flex;align-items:center;justify-content:center;color:var(--p-ink-3);font-size:14px;cursor:grab;user-select:none;letter-spacing:-2px;align-self:stretch}
-.ink-drag-handle:hover{color:var(--p-black)}
-.ink-drag-handle:active{cursor:grabbing}
-.ink-row.dragging{opacity:.4}
-.ink-row.drag-over-top{box-shadow:inset 0 4px 0 var(--p-black)}
-.ink-row.drag-over-bottom{box-shadow:inset 0 -4px 0 var(--p-black)}
-.ink-chip{grid-area:chip;align-self:center;width:40px;height:40px;border-radius:var(--p-r);border:1px solid rgba(20,20,18,.25);cursor:pointer;display:grid;place-items:center;font:800 16px/1 var(--p-sans)}
-.ink-chip:hover{box-shadow:0 0 0 3px var(--p-cream-dk)}
-.ink-chip-empty{background:var(--p-cream-lt);border:2px dashed var(--p-line-strong);color:var(--p-ink-2)}
-.ink-body{grid-area:head;min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:24px}
 /* the name: Pantone number big, then the type tag; a click shows the name box (TBA slots show it straight away) */
 .ink-nm{display:flex;align-items:center;flex-wrap:wrap;gap:2px 8px;min-width:0;cursor:text;border-radius:var(--p-r)}
 .ink-nm:hover .nm-n{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
-.nm-n{font:800 19px/1.2 var(--p-sans);letter-spacing:.01em;text-transform:uppercase;overflow-wrap:anywhere;min-width:0}
-.ink-nm .p-tag{height:22px;padding:0 7px;font-size:12px}
-.ink-name{font:800 19px/1.2 var(--p-sans);text-transform:uppercase}
 .ink-name-edit{display:none;font:800 16px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.01em;color:var(--p-black);border:2px solid var(--p-line-strong);border-radius:var(--p-r);background:var(--p-white);width:100%;min-height:36px;padding:4px 8px;outline:none;text-overflow:ellipsis}
 .ink-row.naming .ink-name-edit{display:block}
 .ink-row.naming .ink-nm{display:none}
@@ -284,8 +238,6 @@ body{font-size:15px}
 .ink-meta{display:none}   /* v98: maker + Updated live in the tooltips (kept for the Mixed today stamp) */
 .ink-ts{font-size:13px;color:var(--p-ink-2)}
 /* recipe: one line per group (bases, then pigments — the shop's "-" line splits them), "part amount · part amount" */
-.ink-rcp{grid-area:recipe;min-width:0}
-.rcp-list{font-size:15px;line-height:1.35;cursor:text;padding:1px 0}
 .rcp-g{display:inline}
 .rcp-bar{display:inline-block;width:2px;height:15px;background:var(--p-black);vertical-align:-2px;margin-right:8px}
 .rcp-i{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;margin-right:14px}
@@ -299,32 +251,15 @@ body{font-size:15px}
 .ink-rcp:not(.editing) .ink-recipe{display:none}
 /* actions: small and quiet. Under the recipe in one row (words); on a wide one-column card they move up beside the
    name as small icons (each has a tooltip), so the card is only the name line and the recipe. */
-.ink-side{grid-area:act;display:flex;flex-wrap:wrap;gap:2px;align-items:center;justify-content:flex-end;margin-top:2px;padding-left:12px;border-top:1px solid var(--p-line);padding-top:3px}
-.ink-side .p-btn{font-size:13px;min-height:30px;padding:0 7px;border-color:transparent;background:transparent;font-weight:700;color:var(--p-ink-2)}
-.ink-side .p-btn:hover{background:var(--p-cream);border-color:var(--p-line);color:var(--p-black)}
-.ink-side .ic{display:none}
-.ink-side .p-btn.armed{background:var(--p-yellow-lt)}
-.ink-side .rcp-edit{margin-right:auto}
-@container inkcol (min-width:420px) and (max-width:599px){
-  .jd:not(.ink-2col) .ink-row{grid-template-columns:16px 40px minmax(0,1fr) auto;grid-template-areas:"drag chip head act" "drag chip recipe recipe";padding-bottom:8px;row-gap:2px}
-  .jd:not(.ink-2col) .ink-chip{align-self:start}
-  .jd:not(.ink-2col) .ink-side{border-top:0;margin:0;padding:0;gap:0;align-self:start;flex-wrap:nowrap}
-  .jd:not(.ink-2col) .ink-side .p-btn{min-width:32px;min-height:32px;padding:0 6px;font-size:15px}
-  .jd:not(.ink-2col) .ink-side .w{display:none}
-  .jd:not(.ink-2col) .ink-side .ic{display:inline;margin:0}
-  .jd:not(.ink-2col) .ink-side .rcp-edit{margin-right:0}
-}
 /* v99: when one column of inks doesn't fit and two columns show more (set by fitInks(), two panes only), the inks get
    two columns and a little more of the job's width (60/40), the way Screens v26 / Seps v39 do it */
 @container jd (min-width:640px){ .p-split-detail .jd.ink-2col .jd-in{grid-template-columns:minmax(0,40fr) minmax(0,60fr)} }
-.jd.ink-2col .ink-list{grid-template-columns:repeat(2,minmax(0,1fr))}
 .jd-inks>div[id^="seed-notice-"]:empty{display:none}   /* v99: no empty gap over the inks */
 /* v99: laptop heights (768-860px): slimmer paddings in two panes, so another ink fits */
 @media (min-width:1100px) and (max-height:860px){
   .is-split .p-split-list,.is-split .p-split-detail{padding-top:var(--p-s2)}
   .is-split .p-split-detail{padding-bottom:var(--p-s2)}
   .p-split-detail>.p-lc>.p-lc-body{padding:var(--p-s2) var(--p-s3) var(--p-s2)}
-  .p-lc-head.is-detail{padding:8px 14px}
 }
 /* v99: a narrow inks column (1100-1280 screens): All labels is the 🏷 icon (tooltip), so the toolbar stays one row */
 @container inkcol (max-width:419px){ .jd-h .w{display:none} }
@@ -392,44 +327,10 @@ body{font-size:15px}
 /* v99 list cards (two panes, 280-320px list): a bigger mockup on the left; ID + design, "Front · Press 1 · 144 pcs",
    then one status tag (No inks / N to fill / N inks / ✓ Ready) + Note + Reorder. No ink chips and no Mark ready here:
    the open job shows the inks and has Mark ready in its header. */
-.p-split-list .p-lc-head.is-list{grid-template-columns:84px minmax(0,1fr);grid-template-areas:"id main" "id foot";gap:4px 10px;padding:8px 10px 8px 8px;align-items:start}
-.p-split-list .p-lc-head.is-list>.p-lc-id{grid-area:id}
-.p-split-list .p-lc-head.is-list>.p-lc-main{grid-area:main;min-width:0}
-.lc-foot{grid-area:foot;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;min-width:0}
-.lc-foot>.p-lc-tags{display:contents}
-.lc-foot .p-tag{height:22px;padding:0 7px;font-size:12px;max-width:100%;min-width:0}
-.lc-foot .save-pip.idle{display:none}
 .p-lc-tags .p-tag{max-width:100%;min-width:0}
 .p-lc-tags{min-width:0}
 .p-tag.sw .sw-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.is-list .p-lc-title .p-id{font-size:12px;padding:3px 5px}
-.is-list .p-lc-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.is-list .p-lc-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-/* v97 day heads in the narrow list stay on one line: the count gives way (…) before anything wraps */
-.p-split-list .day-h{flex-wrap:nowrap;gap:8px;margin-left:-4px}
-.p-split-list .day-h .chev{width:32px;flex:none;margin-right:-4px}
-.p-split-list .day-h .p-section{flex:none;padding:8px 10px}
-.p-split-list .day-h .p-tag{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap}
-.p-split-list .day-h .tg-t{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.p-split-list .day-h .p-head-sum{flex:1 1 0}
-.p-split-list .day-h .p-head-sum{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.is-list .p-lc-id{align-self:start}
-/* v100: the day's imprint count is a small number at the right end of the head, never cut off */
-.p-split-list .day-h .day-n{margin-left:auto;flex:none;min-width:28px;height:28px;padding:0 8px;border-radius:14px;background:var(--p-white);border:1px solid var(--p-line);display:inline-flex;align-items:center;justify-content:center;font:800 13px/1 var(--p-sans);font-variant-numeric:tabular-nums}
-.day-h .chev:focus:not(:focus-visible){outline:none;box-shadow:none}
-.is-list .p-lc-title{font-size:15px;line-height:1.35}
-.is-list .p-lc-title .p-id{margin-right:6px;vertical-align:1px}
-.is-list .p-lc-sub b{color:var(--p-black);font-weight:800}
-/* v97 the open job's head: one slim band (ID + design + tags, then the facts), Pcs / Inks and Mark ready on the right */
-.p-lc-head.is-detail{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"main nums act";gap:4px 20px;padding:10px 16px;min-height:0}
-.is-detail .p-lc-title{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:20px;line-height:1.25}
-.is-detail .p-lc-title .p-id{font-size:15px}
-.is-detail .p-lc-sub{margin-top:3px}
-.is-detail .p-lc-act{flex-direction:row-reverse;align-items:center;gap:10px}
-.is-detail .p-lc-act .save-pip{min-height:0}
 .p-split-detail>.p-lc>.p-lc-body{padding-top:var(--p-s3)}
-/* in place: an open card drops its small mockup and ink chips (the big proof and the ink cards are right below) */
-.wrap:not(.is-split) .p-lc.is-open>.p-lc-head .jc-thumb,.wrap:not(.is-split) .p-lc.is-open>.p-lc-head .p-tag.sw{display:none}
 /* v97 no proof: say why and where to add it */
 .proof-miss{min-height:240px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px;padding:32px 28px;max-width:560px;margin:0 auto;width:100%}
 .proof-miss b{font:800 20px/1.25 var(--p-sans)}
@@ -438,28 +339,49 @@ body{font-size:15px}
 .proof-miss .p-btn{font-size:var(--p-fs-s);padding:0 14px;text-decoration:none}
 
 /* iPad portrait and phone */
-@media (max-width:1023px){ .p-lc-head .jc-thumb{width:80px;height:56px} }
 @media (max-width:700px){
   .p-bar{gap:8px}
   .p-filters .p-search{flex:1 1 0}
   .p-chips{margin:0 -16px;padding:0 16px 2px}
   .w-long{display:none}.w-short{display:inline}
   .wrap{padding:0 12px 140px}
-  .ord-h{grid-template-columns:minmax(0,1fr) auto auto}
   .proof-miss{padding:24px 16px}
-  .p-lc-id.thumbed{flex-direction:row}
-  .p-lc-head .jc-thumb{width:72px;height:48px}
-  .p-lc-act{flex-direction:row;align-items:center;justify-content:space-between}
-  .p-lc-act>.p-btn{flex:1 1 auto}
   .p-lc-body{padding:var(--p-s3)}
   .p-modal-f .p-btn{flex:1}
 }
+/* v101: the shared job workspace (pine-job-v1.css) does the day heads, order lines, list cards, job header, mockup frame,
+   ink rows and notes. Ink-only bits on top of it: */
+.ord + .ord{margin-top:0}
+.day.is-done .p-lc{background:#FCFAF6}
+.p-job-sum{margin-bottom:var(--p-s2)}
+.p-job-cact .save-pip.idle{display:none}
+.p-job-hact .save-pip{min-height:0}
+.p-job-head .p-lc-tags{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+.p-job-head .p-lc-tags:empty{display:none}
+.p-split-detail>.p-lc>.p-lc-head.p-job-head{border-bottom:1px solid var(--p-line)}
+.jd-proof.p-job-mock{min-height:0}
+.jd-proof .p-job-mockimg{display:grid;place-items:center}
+/* inks: one 38px line each, the recipe on a line under it; the burn order number is a counter, so it follows a drag */
+.ink-list{counter-reset:inkn}
+.ink-cn::before{counter-increment:inkn;content:counter(inkn)}
+.ink-list>.inks-loading{padding:10px 12px;color:var(--p-ink-2);font-size:var(--p-fs-s)}
+.ink-row.is-prev{padding-left:8px}
+.p-job-ink .ink-chip-empty{background:var(--p-cream-lt);border:2px dashed var(--p-line-strong);color:var(--p-ink-2)}
+.p-job-ink .ink-body{flex-wrap:wrap;row-gap:2px}
+.ink-nm{display:flex;align-items:center;gap:2px 8px;min-width:0;cursor:text;border-radius:var(--p-r)}
+.ink-nm .p-tag{flex:none;height:22px;padding:0 6px;font-size:12px}
+.ink-nm:hover .nm-n{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.ink-row.naming .ink-name-edit{flex:1 1 100%}
+.rcp-list{font-size:14px;line-height:1.35;cursor:text;padding:0}
+.ink-side .w{display:none}
+.ink-side .p-btn.armed{background:var(--p-yellow-lt);color:var(--p-black)}
+.ink-2col .ink-row.is-prev{padding-left:8px}
 </style>
 </head>
-<body class="p-app">
+<body class="p-app p-job">
 <header class="p-bar">
   <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
-  <span class="p-bar-app">Ink Queue</span><span class="p-bar-ver" id="ver">v100</span>
+  <span class="p-bar-app">Ink Queue</span><span class="p-bar-ver" id="ver">v101</span>
   <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
   <div class="p-bar-sp">
     <button class="p-barbtn" id="refreshBtn" type="button" onclick="refreshNow()" title="Reload from Airtable and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
@@ -473,9 +395,9 @@ body{font-size:15px}
   </div>
 </header>
 <div class="p-filters" id="filters">
-  <input type="search" id="q" class="p-input p-search" placeholder="Customer, order #, design" aria-label="Search the queue" oninput="onSearch(this.value)">
+  <input type="search" id="q" class="p-input p-search" placeholder="Imprint ID, order #, customer, design" aria-label="Search the queue" oninput="onSearch(this.value)">
   <div class="p-chips p-chips-inline" id="chips" role="tablist" aria-label="Filter"></div>
-  <div class="p-filters-end"><button class="p-btn iq-listbtn" id="listBtn" type="button" hidden onclick="toggleList()" title="Give the open job the whole width"></button><button class="p-btn" type="button" onclick="openMasterModal()">&#127991; <span class="w-long">Print a label</span><span class="w-short">Label</span></button></div>
+  <div class="p-filters-end"><button class="p-btn" type="button" onclick="openMasterModal()">&#127991; <span class="w-long">Print a label</span><span class="w-short">Label</span></button><button class="p-btn p-job-listbtn" id="listBtn" type="button" hidden onclick="toggleList()" title="Give the open job the whole width"></button></div>
 </div>
 <main class="wrap" id="root"><div class="msg"><b><span class="spin"></span>Loading the ink queue…</b></div></main>
 <div class="p-toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -1010,8 +932,6 @@ function refreshCardInkStrip(impRecId) {
   var heads = document.querySelectorAll('[data-head="' + impRecId + '"]');
   for (var i = 0; i < heads.length; i++) {
     var mode = heads[i].getAttribute('data-mode') || 'list';
-    var main = heads[i].querySelector('.p-lc-main');
-    if (main) main.innerHTML = cardMainHtml(rec, mode);
     var rb = heads[i].querySelector('.ready-btn');
     if (rb) rb.outerHTML = readyBtnHtml(rec, mode === 'detail' || (mode === 'inplace' && openDetailId === impRecId));
     var tags = heads[i].querySelector('.p-lc-tags');
@@ -1023,9 +943,6 @@ function refreshCardInkStrip(impRecId) {
   }
 }
 var refreshCardInkTypeTags = refreshCardInkStrip;   // v95: one place builds the tags row
-
-// v76: refresh chip strips on every card whose imprint links the given ink. Used
-// after an ink-name or hex edit so visual changes propagate without a reload.
 function refreshCardsLinkingInk(inkRecId) {
   var recs = allRecs();
   for (var i = 0; i < recs.length; i++) {
@@ -1499,7 +1416,7 @@ function runwayHtml(counts) {
   }
   // v97: one line (was a page head with an INK QUEUE box and two lines); the whole text is in the tooltip
   var line = need + ' · ' + rw;
-  return '<div class="iq-sum runway" title="' + line.replace(/<[^>]+>/g, '') + '">' + line + '</div>';
+  return '<div class="p-job-sum runway">' + line + '</div>';   // v101: wraps instead of being cut off
 }
 
 var WIDE = window.matchMedia ? window.matchMedia('(min-width:1100px)') : null;   // v99: two panes from 1100px (was 1400), like Screens v26 / Seps v39
@@ -1527,7 +1444,7 @@ function renderAll() {
     var op = filt(s.onpress);
     if (op.length) {
       var nr = op.filter(function(r) { return !r.fields[F.inksReady]; }).length;
-      add(groupHtml('onpress', mode === 'list' ? 'On press' : 'On press today', nr ? '<span class="p-tag p-tag-wait" title="' + nr + ' need ink">' + nr + (mode === 'list' ? ' need' : ' need ink') + '</span>' : '<span class="p-tag p-tag-done" title="Inks ready">&#10003;' + (mode === 'list' ? '' : ' Inks ready') + '</span>',   // v100: short in the narrow list
+      add(groupHtml('onpress', 'On press', nr ? '<span class="p-tag p-tag-wait p-job-when" title="Prints today · ' + nr + ' need ink">' + nr + ' need ink</span>' : '<span class="p-tag p-tag-done p-job-when" title="Prints today">&#10003; Inks ready</span>',
         plural(op.length, 'imprint'), op, mode, ' is-press', nr > 0), op);
     }
     // upcoming days, each with its working-day countdown (v88)
@@ -1537,23 +1454,24 @@ function renderAll() {
     var tom = toDateKey(addDays(new Date(), 1));
     days.forEach(function(dk, di) {
       var cd = printCountdown(dk);
-      var lbl = dk === tom ? 'Tomorrow' : new Date(dk + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      // v101: the date box is always the date; ONE timing tag says when: "Tomorrow" or "in 3 work days" (shared day head)
+      var lbl = new Date(dk + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
       var tcls = (cd.sc === 'd1' || cd.sc === 'd2' || cd.sc === 'd3') ? 'p-tag-wait' : 'p-tag-soft';
-      var cdl = mode === 'list' ? '<span class="tg-t">' + cd.label.replace(/^Prints in /, '').replace(/ work days?$/, function(m) { return m.indexOf('days') > 0 ? ' days' : ' day'; }) + '</span>' : cd.label;   // v100: "3 days" in the narrow list (work days; full text in the tooltip)   // v99: "1 work day" in the 280-320px list (full text in the tooltip)
-      add(groupHtml(dk, lbl, '<span class="p-tag ' + tcls + '" title="' + cd.label + '">' + cdl + '</span>', plural(byDay[dk].length, 'imprint'), byDay[dk], mode, '', di < OPEN_DAYS), byDay[dk]);
+      var cdl = dk === tom ? 'Tomorrow' : cd.wd > 0 ? 'in ' + cd.wd + '<span class="p-job-wd"> work</span> day' + (cd.wd === 1 ? '' : 's') : 'Today';
+      add(groupHtml(dk, lbl, '<span class="p-tag ' + tcls + ' p-job-when" title="' + cd.label + '">' + cdl + '</span>', plural(byDay[dk].length, 'imprint'), byDay[dk], mode, '', di < OPEN_DAYS), byDay[dk]);
     });
   }
   // v88: No date (pipeline) — not ready, unscheduled; capped
   var pipe = filt(s.pipeline), extra = 0;
   if (pipe.length > PIPELINE_RENDER_CAP) { extra = pipe.length - PIPELINE_RENDER_CAP; pipe = pipe.slice(0, PIPELINE_RENDER_CAP); }
-  if (pipe.length) add(groupHtml('pipeline', 'No date', mode === 'list' ? '' : '<span class="p-tag p-tag-soft">Not scheduled</span>',   // v100: the title says it in the narrow list
+  if (pipe.length) add(groupHtml('pipeline', 'No date', '',   // v101: the title says it (one look in every width)
     plural(pipe.length, 'imprint') + (extra ? ' (+' + extra + ' more)' : ''), pipe, mode, ' is-pipe', !any), pipe);
   // v90: Completed — All view only
   if (activeFilter === 'all') {
     var done = s.completed.filter(passesSearch), dx = 0;
     if (done.length > COMPLETED_RENDER_CAP) { dx = done.length - COMPLETED_RENDER_CAP; done = done.slice(0, COMPLETED_RENDER_CAP); }
-    if (done.length) add(groupHtml('completed', 'Completed', mode === 'list' ? '' : '<span class="p-tag p-tag-done">&#10003; Ready</span>',
-      plural(done.length, 'imprint') + (dx ? ' (+' + dx + ' more)' : '') + (mode === 'list' ? ' · open one to reopen it' : ' · tap ✓ Ready to reopen one'), done, mode, ' is-done', !any), done);
+    if (done.length) add(groupHtml('completed', 'Completed', '',
+      plural(done.length, 'imprint') + (dx ? ' (+' + dx + ' more)' : '') + ' · open one to reopen it', done, mode, ' is-done', !any), done);
   }
   if (!any) {
     var msg = searchQ.trim() ? 'Nothing matches “' + escHtml(searchQ.trim()) + '”' + (activeFilter !== 'all' ? ' here. Try All.' : '.')
@@ -1612,19 +1530,19 @@ function groupHtml(key, title, tagHtml, sumHtml, recs, mode, cls, defOpen) {
   var openId = mode === 'list' ? pickId : openDetailId;
   var holdsOpen = !!openId && recs.some(function(r) { return r.id === openId; });
   var collapsed = !dayForceOpen && !holdsOpen && isDayCollapsed(key, defOpen);
-  var h = '<section class="day' + cls + (collapsed ? ' collapsed' : '') + '" id="dg-' + key + '">';
-  h += '<div class="p-head day-h" onclick="toggleDayGroup(\'' + key + '\')"><button class="chev" type="button" aria-label="Show or hide ' + escHtml(title) + '" aria-expanded="' + (!collapsed) + '" onclick="event.stopPropagation();toggleDayGroup(\'' + key + '\')">&#9660;</button><span class="p-section">' + escHtml(title) + '</span>' + tagHtml +
-       (mode === 'list' ? '<span class="day-n" title="' + recs.length + ' imprint' + (recs.length === 1 ? '' : 's') + '">' + recs.length + '</span>'   // v100: just the number in the narrow list (was "2 im…")
-                        : '<span class="p-head-sum">' + sumHtml + '</span>') + '</div>';
-  h += '<div class="day-b">';
+  // v101: the shared day head (pine-job-v1.css): ▾ fold · date box · ONE tag · round count (full text in its tooltip)
+  var h = '<section class="day p-job-dayg' + cls + (collapsed ? ' collapsed is-closed' : '') + '" id="dg-' + key + '">';
+  h += '<div class="p-job-day day-h" onclick="toggleDayGroup(\'' + key + '\')"><button class="p-job-fold" type="button" aria-label="Show or hide ' + escHtml(title) + '" aria-expanded="' + (!collapsed) + '" onclick="event.stopPropagation();toggleDayGroup(\'' + key + '\')">&#9662;</button>' +
+       '<span class="p-job-date">' + escHtml(title) + '</span>' + tagHtml +
+       '<span class="p-job-n" title="' + String(sumHtml).replace(/<[^>]+>/g, '') + '">' + recs.length + '</span></div>';
+  h += '<div class="day-b p-job-dayb">';
   var keys = [], map = {};
   recs.forEach(function(r) { var on = getOrderNum(r.fields) || 'no-order'; if (!map[on]) { map[on] = []; keys.push(on); } map[on].push(r); });
   keys.forEach(function(on) {
     var grec = map[on], customer = grec[0].fields[F.customer] || '';
     h += '<div class="ord" id="og-' + key + '-' + on + '">';
-    h += '<div class="ord-h"><b class="ord-name" title="' + escHtml(customer) + '">' + escHtml(customer || '—') + '</b>' +
-         '<span class="ord-n">' + (grec.length > 1 ? grec.length + ' imprints' : '') + '</span>' +
-         (on !== 'no-order' ? '<span class="p-id">#' + escHtml(on) + '</span>' : '<span></span>') + '</div>';
+    h += '<div class="p-job-order"><b class="p-job-cust" title="' + escHtml(customer) + '">' + escHtml(customer || '—') + '</b>' +
+         (on !== 'no-order' ? '<span class="p-job-ordno">#' + escHtml(on) + '</span>' : '') + '</div>';   // v101: CUSTOMER · #order
     grec.forEach(function(r) { h += cardHtml(r, mode); });
     h += '</div>';
   });
@@ -1653,114 +1571,78 @@ function inkShortName(c) {
   return abbreviateInkName(c[FI.name] || '').replace(/[\s\-\u2013\u2014\u00b7:]+$/, '');
 }
 
-// v76 (v83, v95): the card's tags row — needs-you first (No inks, TBA slots to fill), then the ink
-// swatches (real ink colors), ink types and Reorder. TBA slots (seps placeholders) aren't swatches.
+// v101: one status tag (✓ Ready / No inks / N to fill / N inks) + facts (Note, Reorder). The ink swatches left the cards
+// in every width (the open job shows the inks). The job header keeps the needs-you tags and Reorder inline.
 function cardTagsHtml(rec, mode) {
   var f = rec.fields;
-  if (mode === 'detail') {   // v97: the open job's head keeps the needs-you tags and Reorder inline; the ink cards show the inks
+  var reo = f[F.isRepeat] ? '<span class="p-tag p-tag-soft" title="The client is reordering something we printed before">Reorder</span>' : '';
+  if (mode === 'detail') {
     var dt = '', nt = 0;
-    if (!(f[F.inks] || []).length) dt += '<span class="p-tag p-tag-wait">No inks</span>';
+    if (f[F.inksReady]) dt += '<span class="p-tag p-tag-done">&#10003; Ready</span>';
+    else if (!(f[F.inks] || []).length) dt += '<span class="p-tag p-tag-wait">No inks</span>';
     inkIdsOf(rec).forEach(function(iid) { if (inkCache[iid] && isTbaInk(inkCache[iid])) nt++; });
-    if (nt) dt += '<span class="p-tag p-tag-wait">' + nt + (nt === 1 ? ' color' : ' colors') + ' to fill</span>';
-    if (f[F.isRepeat]) dt += '<span class="p-tag p-tag-soft">Reorder</span>';
-    return dt;
+    if (nt && !f[F.inksReady]) dt += '<span class="p-tag p-tag-wait">' + nt + (nt === 1 ? ' color' : ' colors') + ' to fill</span>';
+    return dt + reo;
   }
-  if (mode === 'list') {     // v99: one status tag (the inks show when the job is open), + Note and Reorder
-    var lt = '', ln = 0, names = [];
-    inkIdsOf(rec).forEach(function(iid) { var c = inkCache[iid]; if (c && isTbaInk(c)) ln++; else if (c) names.push(inkShortName(c)); });
-    var lr = realInkCount(rec);
-    if (f[F.inksReady]) lt = '<span class="p-tag p-tag-done">&#10003; Ready</span>';
-    else if (!(f[F.inks] || []).length) lt = '<span class="p-tag p-tag-wait">No inks</span>';
-    else if (ln) lt = '<span class="p-tag p-tag-wait" title="' + ln + (ln === 1 ? ' ink slot is' : ' ink slots are') + ' still TBA">' + ln + ' to fill</span>';
-    else lt = '<span class="p-tag p-tag-soft"' + (names.length ? ' title="' + escHtml(names.join(' · ')) + '"' : '') + '>' + lr + (lr === 1 ? ' ink' : ' inks') + '</span>';
-    var lnote = F.inkNotes ? (f[F.inkNotes] || '') : '';
-    if (lnote) lt += '<span class="p-tag p-tag-soft" title="' + escHtml('Ink note: ' + lnote) + '">Note</span>';
-    if (f[F.isRepeat]) lt += '<span class="p-tag p-tag-soft">Reorder</span>';
-    return lt;
-  }
-  var ids = inkIdsOf(rec);
-  var h = '';
-  if (!(f[F.inks] || []).length) h += '<span class="p-tag p-tag-wait">No inks</span>';
-  var tba = 0, sw = '';
-  ids.forEach(function(iid) {
-    var c = inkCache[iid];
-    if (!c) { sw += '<span class="p-tag p-tag-soft sw"><i class="sw-dot empty"></i>…</span>'; return; }
-    if (isTbaInk(c)) { tba++; return; }
-    var full = c[FI.name] || '';
-    var hex = getPantoneHex(full, c);
-    var lbl = inkShortName(c);
-    sw += '<span class="p-tag p-tag-soft sw" title="' + escHtml(lbl) + '"><i class="sw-dot' + (hex ? '' : ' empty') + '"' + (hex ? ' style="background:' + hex + '"' : '') + '></i><span class="sw-t">' + escHtml(lbl) + '</span></span>';
-  });
-  if (tba) h += '<span class="p-tag p-tag-wait">' + tba + (tba === 1 ? ' color' : ' colors') + ' to fill</span>';
-  h += sw;
-  // ink types only when there are no swatches to show them (the swatch names already carry the type)
-  if (ids.length && !sw) (f[F.inkType] || []).forEach(function(t) { h += '<span class="p-tag p-tag-soft">' + escHtml(selName(t) || t) + '</span>'; });
-  if (f[F.isRepeat]) h += '<span class="p-tag p-tag-soft">Reorder</span>';
-  return h;
+  var lt = '', ln = 0, names = [];
+  inkIdsOf(rec).forEach(function(iid) { var c = inkCache[iid]; if (c && isTbaInk(c)) ln++; else if (c) names.push(inkShortName(c)); });
+  var lr = realInkCount(rec);
+  if (f[F.inksReady]) lt = '<span class="p-tag p-tag-done">&#10003; Ready</span>';
+  else if (!(f[F.inks] || []).length) lt = '<span class="p-tag p-tag-wait">No inks</span>';
+  else if (ln) lt = '<span class="p-tag p-tag-wait" title="' + ln + (ln === 1 ? ' ink slot is' : ' ink slots are') + ' still TBA">' + ln + ' to fill</span>';
+  else lt = '<span class="p-tag p-tag-soft"' + (names.length ? ' title="' + escHtml(names.join(' · ')) + '"' : '') + '>' + lr + (lr === 1 ? ' ink' : ' inks') + '</span>';
+  var lnote = F.inkNotes ? (f[F.inkNotes] || '') : '';
+  if (lnote) lt += '<span class="p-tag p-tag-soft" title="' + escHtml('Ink note: ' + lnote) + '">Note</span>';
+  return lt + reo;
 }
 function realInkCount(rec) { return inkIdsOf(rec).filter(function(iid) { return !isTbaInk(inkCache[iid]); }).length; }
+function screensOf(f) { var v = f[F.screens]; v = Array.isArray(v) ? v[0] : v; return Number(v) || 0; }
+// v101: the job header's numbers: Screens · Qty · Inks ("Qty", not "Pcs", in all three apps)
 function cardNumsHtml(rec, mode) {
-  if (mode === 'list') return '';   // v97: the compact list card says "144 pcs · 2 inks" on its sub-line
-  var qty = getQty(rec.fields);
-  var real = realInkCount(rec);
-  return (qty ? '<span class="p-num"><small>Pcs</small><b>' + qty + '</b></span>' : '') +
+  var qty = getQty(rec.fields), scr = screensOf(rec.fields), real = realInkCount(rec);
+  if (mode !== 'detail') return [scr ? '<b>' + scr + '</b> screen' + (scr === 1 ? '' : 's') : '', qty ? '<b>' + qty + '</b> qty' : ''].filter(Boolean).join(' · ');
+  return (scr ? '<span class="p-num"><small>Screens</small><b>' + scr + '</b></span>' : '') +
+         (qty ? '<span class="p-num"><small>Qty</small><b>' + qty + '</b></span>' : '') +
          '<span class="p-num' + (real ? '' : ' is-quiet') + '"><small>Inks</small><b>' + real + '</b></span>';
 }
-function cardMainHtml(rec, mode) {
-  var f = rec.fields;
-  var printDesc = f[F.printDesc] || f[F.imprintId] || '—';
-  var sub = [getLoc(f), pressStrOf(f)];
-  if (mode === 'detail') {
-    var on = getOrderNum(f);
-    sub.unshift((f[F.customer] || '') + (on ? ' #' + on : ''));
-    var st = f[F.startTime];
-    sub.push(st ? 'Prints ' + new Date(toDateKey(new Date(st)) + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'No print date');
-  }
-  var note = F.inkNotes ? (f[F.inkNotes] || '') : '';
-  var idb = '<span class="p-id">' + escHtml(f[F.imprintId] || '—') + '</span>';
-  if (mode === 'detail') {   // v97: one slim head — ID + design + tags, then the facts
-    return '<span class="p-lc-title">' + idb + '<span>' + escHtml(printDesc) + '</span>' + cardTagsHtml(rec, 'detail') + '</span>' +
-      '<span class="p-lc-sub">' + escHtml(sub.filter(Boolean).join(' · ')) + '</span>';
-  }
-  if (mode === 'list') {     // v99: ID + design, then "Front · Press 1 · 144 pcs" (inks and the note are tags below)
-    var qty = getQty(f);
-    var bits = sub.filter(Boolean).map(escHtml);
-    if (qty) bits.push('<b>' + qty + '</b> pcs');
-    return '<span class="p-lc-title" title="' + escHtml(printDesc) + '">' + idb + escHtml(printDesc) + '</span>' +
-      '<span class="p-lc-sub">' + bits.join(' · ') + '</span>';
-  }
-  return '<span class="p-lc-title">' + escHtml(printDesc) + '</span>' +
-    '<span class="p-lc-sub">' + escHtml(sub.filter(Boolean).join(' · ')) + '</span>' +
-    (note && mode !== 'detail' ? '<span class="p-lc-note"><b>Ink note:</b> ' + escHtml(note) + '</span>' : '');
-}
+function typeOf(f) { return selName(f[F.printMethod]) || ''; }
 function readyBtnHtml(rec, main) {
   var id = rec.id;
   if (rec.fields[F.inksReady]) return '<button class="p-btn p-btn-dark ready-btn" type="button" title="Inks are ready. Tap to reopen." onclick="toggleReady(event,\'' + id + '\')">&#10003; Ready</button>';
-  return '<button class="p-btn ready-btn' + (main ? ' p-btn-main' : '') + '" type="button" onclick="toggleReady(event,\'' + id + '\')">Mark ready</button>';
+  return '<button class="p-btn ready-btn' + (main ? ' p-btn-main' : '') + '" type="button" onclick="toggleReady(event,\'' + id + '\')">' + (main ? '&#10003; ' : '') + 'Mark ready</button>';
 }
 // mode: 'inplace' (opens below itself) · 'list' (left pane) · 'detail' (right pane head)
+// v101: list / in-place cards are the shared ~96px card; the right pane's head is the shared job header.
 function headHtml(rec, mode, open) {
   var f = rec.fields, id = rec.id;
   var impId = f[F.imprintId] || '—';
+  var printDesc = f[F.printDesc] || impId;
+  var pip = '<span class="save-pip idle" data-pip="' + id + '" role="status"></span>';
+  if (mode === 'detail') {
+    var on = getOrderNum(f), st = f[F.startTime];
+    var sub = [(f[F.customer] || 'No customer') + (on ? ' #' + on : ''), getLoc(f), typeOf(f), pressStrOf(f),
+      st ? 'Prints ' + new Date(toDateKey(new Date(st)) + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'No print date'].filter(Boolean).join(' · ');
+    return '<div class="p-lc-head p-job-head is-detail" data-head="' + id + '" data-mode="detail">' +
+      '<div class="p-job-hmain p-lc-main"><div class="p-job-htitle"><span class="p-id p-job-hid">' + escHtml(impId) + '</span><span class="p-job-hname">' + escHtml(printDesc) + '</span>' +
+        '<span class="p-lc-tags p-tags">' + cardTagsHtml(rec, 'detail') + '</span></div><span class="p-job-hsub" title="' + escHtml(sub) + '">' + escHtml(sub) + '</span></div>' +
+      '<div class="p-job-hnums p-lc-nums">' + cardNumsHtml(rec, 'detail') + '</div>' +
+      '<div class="p-job-hact">' + pip + readyBtnHtml(rec, true) + '</div></div>';
+  }
   var proofs = getProofs(f), thumb = proofs.length ? proofs[0].thumb : null;
-  var tap = mode !== 'detail';
-  var main = mode === 'detail' || (mode === 'inplace' && open);
-  var h = '<div class="p-lc-head is-' + mode + (tap ? ' is-tap' : '') + '" data-head="' + id + '" data-mode="' + mode + '"' +
-    (tap ? ' role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '" onclick="openJob(\'' + id + '\')" onkeydown="if(event.target===this&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();openJob(\'' + id + '\')}"' : '') + '>';
-  if (mode !== 'detail') h += '<div class="p-lc-id thumbed"><span class="jc-thumb">' +
+  var nums = cardNumsHtml(rec, mode);
+  var h = '<div class="p-lc-head is-tap p-job-card is-' + mode + '" data-head="' + id + '" data-mode="' + mode + '" role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '" onclick="openJob(\'' + id + '\')" onkeydown="if(event.target===this&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();openJob(\'' + id + '\')}">';
+  h += '<span class="p-job-thumb' + (thumb ? '' : ' is-none') + '">' +
     (thumb ? '<img src="' + escHtml(thumb) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
            : '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>') +
-    (proofs.length > 1 ? '<span class="pc">' + proofs.length + '</span>' : '') + '</span>' +
-    (mode === 'list' ? '' : '<span class="p-id">' + escHtml(impId) + '</span>') + '</div>';   // v97: list cards put the ID by the design; the open job has no small mockup
-  h += '<div class="p-lc-main">' + cardMainHtml(rec, mode) + '</div>';
-  if (mode !== 'list') h += '<div class="p-lc-nums">' + cardNumsHtml(rec, mode) + '</div>';
-  var actH = '<div class="p-lc-act">' + readyBtnHtml(rec, main) + '<span class="save-pip idle" data-pip="' + id + '" role="status"></span></div>';
-  if (mode === 'list') h += '<div class="lc-foot"><div class="p-lc-tags">' + cardTagsHtml(rec, mode) + '</div><span class="save-pip idle" data-pip="' + id + '" role="status"></span></div>';   // v99: tags only; Mark ready is in the open job's header
-  else {
-    h += actH;
-    if (mode !== 'detail') h += '<div class="p-lc-tags">' + cardTagsHtml(rec, mode) + '</div>';
-  }
-  h += '</div>';
+    (proofs.length > 1 ? '<span class="p-job-pc">' + proofs.length + '</span>' : '') + '</span>';
+  h += '<span class="p-job-cbody p-lc-main">' +
+    '<span class="p-job-ctitle p-lc-title" title="' + escHtml(printDesc) + '"><span class="p-id">' + escHtml(impId) + '</span>' + escHtml(printDesc) + '</span>' +
+    '<span class="p-job-csub">' + escHtml([getLoc(f), typeOf(f)].filter(Boolean).join(' · ') || pressStrOf(f) || '—') + '</span>' +
+    '<span class="p-job-cnums p-lc-nums">' + nums + '</span>' +
+    '<span class="p-job-cfoot p-lc-tags">' + cardTagsHtml(rec, mode) + '</span>' +
+    // below 1100px the card is the only place to act, so it keeps Mark ready (yellow when it's the open one)
+    '<span class="p-job-cact">' + (mode === 'inplace' ? readyBtnHtml(rec, open) : '') + pip + '</span>' +
+  '</span></div>';
   return h;
 }
 function cardHtml(rec, mode) {
@@ -1937,7 +1819,8 @@ function toggleDayGroup(dayKey) {
   if (!el) return;
   el.classList.toggle('collapsed');
   var open = !el.classList.contains('collapsed');
-  var cb = el.querySelector('.day-h .chev'); if (cb) cb.setAttribute('aria-expanded', open ? 'true' : 'false');
+  el.classList.toggle('is-closed', !open);   // v101: the shared day head's fold
+  var cb = el.querySelector('.p-job-fold'); if (cb) cb.setAttribute('aria-expanded', open ? 'true' : 'false');
   var m = getDayChoices();
   m[dayKey] = open ? 1 : 0;
   dayMem = m;
@@ -1998,27 +1881,33 @@ function renderDetail(id, el) {
 
   // v96: the proof is the big half. Full-size image; prev / count / next and Full size sit UNDER it.
   var openFull = 'openPmPdf(' + q + ',\'' + escHtml(String(impId).replace(/[\\']/g, '')) + '\')';
-  h += '<div class="jd-proof">';
+  // v101: the shared mockup frame. Its footer shows only when needed: ‹ 1/N › · file name (2+ proofs), ↩ Previous run +
+  // Fill from (a reorder; filled in when the previous runs load), Full screen.
+  var hasPrev = !!(isRepeat && prevImprint.length);
+  h += '<div class="jd-proof p-job-mock">';
   if (proof) {
     detailProofs[id] = allProofs;   // v78: inline switcher state
     detailProofIdx[id] = 0;
     var src = proof.full || proof.thumb;
     if (src) {
-      h += '<div class="proof-area" id="proof-area-' + id + '" onclick="' + openFull + '" title="Click for full screen">';
+      h += '<div class="proof-area p-job-mockimg" id="proof-area-' + id + '" onclick="' + openFull + '" title="Click for full screen">';
       h += '<img id="proof-img-' + id + '" src="' + escHtml(src) + '" alt="Proof for ' + escHtml(impId) + '" onerror="if(this.dataset.fb!==\'1\'&&this.dataset.thumb){this.dataset.fb=\'1\';this.src=this.dataset.thumb}else{this.style.display=\'none\'}" data-thumb="' + escHtml(proof.thumb || '') + '">';
       h += '</div>';
     } else {
-      h += '<div class="proof-area" onclick="' + openFull + '"><span class="proof-none">Click to open the PDF</span></div>';
+      h += '<div class="proof-area p-job-mockimg" onclick="' + openFull + '"><span class="proof-none">Click to open the PDF</span></div>';
     }
-    h += '<div class="jd-proof-f">';
-    if (proofCount > 1) {
-      h += '<button class="p-btn pf-nav" type="button" aria-label="Previous proof" onclick="cycleDetailProof(' + q + ',-1)">&#8249;</button>';
-      h += '<span class="proof-nav-counter" id="proof-counter-' + id + '">1 / ' + proofCount + '</span>';
-      h += '<button class="p-btn pf-nav" type="button" aria-label="Next proof" onclick="cycleDetailProof(' + q + ',1)">&#8250;</button>';
+    if (proofCount > 1 || hasPrev) {
+      h += '<div class="jd-proof-f p-job-mockf">';
+      if (proofCount > 1) {
+        h += '<button class="p-btn pf-nav p-job-nav" type="button" aria-label="Previous proof" onclick="cycleDetailProof(' + q + ',-1)">&#8249;</button>';
+        h += '<span class="proof-nav-counter p-job-mockn" id="proof-counter-' + id + '">1 / ' + proofCount + '</span>';
+        h += '<button class="p-btn pf-nav p-job-nav" type="button" aria-label="Next proof" onclick="cycleDetailProof(' + q + ',1)">&#8250;</button>';
+        h += '<span class="pf-name p-job-mockfn" id="proof-fn-' + id + '">' + escHtml(proof.filename || '') + '</span>';
+      }
+      h += '<span id="view-prev-' + id + '"></span><span id="populate-from-' + id + '"></span>';
+      h += '<button class="p-btn p-job-full" type="button" onclick="' + openFull + '">&#9974; Full screen</button>';
+      h += '</div>';
     }
-    h += '<span class="pf-name" id="proof-fn-' + id + '">' + escHtml(proof.filename || '') + '</span>';
-    h += '<button class="p-btn" type="button" onclick="' + openFull + '">&#9974; Full screen</button>';
-    h += '</div>';
   } else {
     // v97: say why there's nothing to show, and where to add it (flatstock jobs often have no proof on the line item)
     var lis = lineItemIdsOf(rec);
@@ -2033,13 +1922,13 @@ function renderDetail(id, el) {
 
   // Inks
   h += '<div class="jd-inks">';
-  // v98: one toolbar row: Inks (N) · All labels · Copy colors · Paste / Fill from / Last run · + Add ink
-  h += '<div class="jd-h"><span class="p-section" id="inks-hdr-lbl-' + id + '">Inks (' + inks.length + ')</span>';
+  // v98: one toolbar row: Inks (N) · All labels · Copy colors · Paste · + Add ink (v101: Fill from / Previous run moved under the mockup)
+  h += '<div class="jd-h p-job-inksh"><span class="p-section" id="inks-hdr-lbl-' + id + '">Inks (' + inks.length + ')</span>';
   h += '<button class="p-btn" type="button" id="print-all-btn-' + id + '" onclick="printAllLabels(' + q + ')" title="Print every ink label for this job"' + (inks.length ? '' : ' hidden') + '>&#127991;<span class="w"> All labels</span></button>';
   h += '<button class="p-btn" type="button" id="copy-inks-btn-' + id + '" onclick="copyInks(' + q + ')" title="Copy this location\'s colors"' + (inks.length ? '' : ' hidden') + '>Copy colors</button>';
   h += '<button class="p-btn" type="button" id="paste-inks-btn-' + id + '" onclick="pasteInks(' + q + ')" style="display:none"></button>';
-  h += '<span id="populate-from-' + id + '"></span><span id="view-prev-' + id + '"></span>';
-  h += '<button class="p-btn jd-add" type="button" id="add-ink-btn-' + id + '" onclick="toggleAddInk(' + q + ')" aria-expanded="false">+ Add ink</button></div>';
+  if (!proof && hasPrev) h += '<span id="populate-from-' + id + '"></span><span id="view-prev-' + id + '"></span>';   // no mockup, so no footer: they stay here
+  h += '<button class="p-btn jd-add p-job-push" type="button" id="add-ink-btn-' + id + '" onclick="toggleAddInk(' + q + ')" aria-expanded="false">+ Add ink</button></div>';
 
   // Seed notice — shown only if isRepeat and no location-matched prev (filled async)
   h += '<div id="seed-notice-' + id + '"></div>';
@@ -2058,13 +1947,13 @@ function renderDetail(id, el) {
   h += '</div>';
 
   // Ink rows
-  h += '<div class="ink-list" id="inks-' + id + '">';
+  h += '<div class="ink-list p-job-inklist" id="inks-' + id + '">';
   if (!inks.length) h += '<div class="inks-loading" id="no-inks-msg-' + id + '">No inks yet. Add one, or paste colors from another location.</div>';
   else h += '<div class="inks-loading"><span class="spin"></span>Loading recipes…</div>';
   h += '</div>';
 
   // v72 Print Notes (always editable) + Ink Notes — v96: below the inks, so the colors come first
-  h += '<div class="jd-notes">';
+  h += '<div class="jd-notes p-job-notes">';   // v101: labels above, the boxes grow
   h += '<label class="p-field" id="print-notes-' + id + '"><span class="p-label">Print notes</span><textarea class="p-textarea" id="pn-edit-' + id + '" placeholder="Notes for the press" oninput="onPrintNotesInput(' + q + ',this.value);noteGrow(this)">' + escHtml(printNotes) + '</textarea></label>';
   if (F.inkNotes) h += '<label class="p-field"><span class="p-label">Ink notes</span><textarea class="p-textarea" id="in-edit-' + id + '" placeholder="Quick notes for the ink room" oninput="onCardInkNotesInput(' + q + ',this.value);noteGrow(this)">' + escHtml(inkNotes) + '</textarea></label>';
   h += '</div>';
@@ -2372,13 +2261,15 @@ function inkRowHtml(recId, iid, idx, d, isPrev) {
   if (!isPrev && upd) tsHtml = '<div class="ink-timestamps"><span class="ink-ts">Updated <span>' + upd + '</span></span></div>';
   var tip = [d.name, d.mfr, upd ? 'Updated ' + upd : ''].filter(Boolean).join(' · ');
   var rowId = 'inkrow-' + recId + '-' + idx;
-  var h = '<div class="ink-row' + (isPrev ? ' is-prev' : '') + (!isPrev && d.isTba ? ' naming is-tba' : '') + '" id="' + rowId + '" data-ink-id="' + escHtml(iid) + '"' +
+  // v101: the shared one-line ink row (drag · burn # · swatch · Pantone + type · ✎ 🏷 📅 ✕) with the recipe on a line under it
+  var h = '<div class="ink-row p-job-ink' + (isPrev ? ' is-prev' : '') + (!isPrev && d.isTba ? ' naming is-tba' : '') + '" id="' + rowId + '" data-ink-id="' + escHtml(iid) + '"' +
     (isPrev ? '' : ' ondragover="onInkRowDragOver(event)" ondragleave="onInkRowDragLeave(event)" ondrop="onInkRowDrop(event,' + q + ',' + qi + ')"') + '>';
-  if (!isPrev) h += '<div class="ink-drag-handle" draggable="true" title="Drag to reorder" aria-hidden="true" ondragstart="onInkRowDragStart(event,' + q + ',' + qi + ')" ondragend="onInkRowDragEnd(event)">&#8942;&#8942;</div>';
+  if (!isPrev) h += '<div class="ink-drag-handle p-job-ink-drag" draggable="true" title="Drag to reorder" aria-hidden="true" ondragstart="onInkRowDragStart(event,' + q + ',' + qi + ')" ondragend="onInkRowDragEnd(event)"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
+  h += '<span class="p-job-ink-n ink-cn" title="Burn order"></span>';   // v101: burn order number (a CSS counter, so it follows a drag)
   // swatch = the real ink color (content, not UI chrome); tap to set a Display Hex override
-  h += '<div class="ink-chip' + (hexColor ? '' : ' ink-chip-empty') + '" id="chip-' + iid + '"' + (hexColor ? ' style="background:' + hexColor + '"' : '') +
+  h += '<div class="ink-chip p-job-ink-sw' + (hexColor ? '' : ' ink-chip-empty') + '" id="chip-' + iid + '"' + (hexColor ? ' style="background:' + hexColor + '"' : '') +
        ' role="button" tabindex="0" title="' + (hexColor ? 'Change the swatch color' : 'No color — tap to set one') + '" onclick="editChipColor(' + qi + ',this);event.stopPropagation()">' + (hexColor ? '' : '?') + '</div>';
-  h += '<div class="ink-body">';
+  h += '<div class="ink-body p-job-ink-main">';
   var nmH = inkNameShowHtml(d.pantone && !d.isTba ? d.pantone : d.name, d.type, d.name);
   if (isPrev) {
     h += '<div class="ink-nm" style="cursor:default" title="' + escHtml(tip) + '">' + nmH + '</div>';
@@ -2393,12 +2284,12 @@ function inkRowHtml(recId, iid, idx, d, isPrev) {
   h += '<div class="ink-meta">' + (d.mfr ? '<span>' + escHtml(d.mfr) + '</span>' : '') + tsHtml + '</div>';
   h += '</div>';
   var lk = isPrev ? '' : storeLabelData({ name: d.name, pantone: d.pantone, type: d.type, mfr: d.mfr, recipe: d.recipe });
-  h += '<div class="ink-rcp" id="rcp-' + rowId + '">';
+  h += '<div class="ink-rcp p-job-ink-sub" id="rcp-' + rowId + '">';
   h += '<div class="rcp-list"' + (isPrev ? '' : ' onclick="editRecipe(\'' + rowId + '\',true)" title="Click to edit the recipe"') + '>' + recipeListHtml(d.recipe) + '</div>';
   if (!isPrev) h += '<textarea class="ink-recipe" rows="7" aria-label="Recipe" placeholder="One part per line, e.g. 301 Matte - 600" data-lk="' + lk + '" oninput="onInkRecipeInput(' + q + ',' + qi + ',this.value);recipeLive(this)">' + escHtml(d.recipe || '') + '</textarea>';
   h += '</div>';
   if (!isPrev) {
-    h += '<div class="ink-side">';
+    h += '<div class="ink-side p-job-ink-x">';
     h += '<button class="p-btn rcp-edit" type="button" id="rcpbtn-' + rowId + '" title="Edit the recipe" onclick="editRecipe(\'' + rowId + '\');event.stopPropagation()">' + rcpBtnHtml(false) + '</button>';
     h += '<button class="p-btn ink-label-btn" type="button" title="Print this ink\'s label" onclick="openLabelByKey(\'' + lk + '\');event.stopPropagation()"><span class="ic">&#127991;</span><span class="w">Label</span></button>';
     h += '<button class="p-btn ink-ts-btn" type="button" id="tsbtn-' + iid + '" onclick="bumpInkUpdated(' + q + ',' + qi + ');event.stopPropagation()" title="' + escHtml(mixedTip(upd)) + '"><span class="ic">&#128197;</span><span class="w">Mixed today</span></button>';
@@ -2416,7 +2307,7 @@ function inkNameShowHtml(num, type, full) {
   if (!type) { var p = parseInkName(full || n); if (p && p.type) { t = p.type; n = p.pantone; } }
   n = n.replace(/^Pantone\s+/i, '');
   if (t && n.toLowerCase().slice(-t.length - 3).indexOf(' - ' + t.toLowerCase()) >= 0) n = n.slice(0, n.length - t.length - 3);
-  return '<span class="nm-n">' + escHtml(n || '—') + '</span>' + (t ? inkTypeBadge(t) : '');
+  return '<span class="nm-n p-job-ink-name">' + escHtml(n || '—') + '</span>' + (t ? inkTypeBadge(t) : '');
 }
 function startInkName(nm) {
   var row = nm.closest('.ink-row'); if (!row) return;
@@ -2768,7 +2659,7 @@ function renderViewPrevButton(recId) {
   if (!slot) return;
   var chosenPid = state.chosen.fields[F.imprintId] || state.chosen.id;
   slot.innerHTML =
-    '<button class="p-btn" type="button" onclick="openChosenPrevProof(\'' + recId + '\')">&#9974; Last run ' + escHtml(chosenPid) + '</button>';
+    '<button class="p-btn" type="button" onclick="openChosenPrevProof(\'' + recId + '\')" title="Open the previous run\u2019s proof">&#8617; Previous run ' + escHtml(chosenPid) + '</button>';
 }
 
 // Dropdown change — re-seed only fields whose current value exactly matches the last seeded
