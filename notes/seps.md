@@ -97,6 +97,40 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - With a 10-ink job, the page and the right pane don't scroll; only the controls column does.
   - No text under 12px and no sideways scroll at 2000, 1440, 1024 and 390.
 
+## 2026-10-15 · v39: the open job never scrolls on a desktop
+**Stephen** (on Screens; Seps works the same way): "looks like it still scrolls on screens is there a way to not have it ever scroll on a desktop?"
+- **Why it still scrolled:**
+  - The static two-pane layout only started at 1400px wide. A 1280 or 1366 laptop, or a 1440 screen with browser zoom, got the one-job-at-a-time layout, where the whole page scrolls.
+  - On wide screens the controls column scrolled for every job, even one with 3 inks (300px too tall at 1440×900). The causes were boxed sections, 44px buttons, 48px ink rows, the bases on two lines, a two-line ink search and an 88px notes box.
+- **Two panes from 1100px** (was 1400). Below 1400 the list is 280–320px, with a slightly smaller ID badge.
+- **Compact controls column** (two panes only):
+  - Type, Sep file, Separator and Print notes are one flat line each, label on the left. Only the inks keep their white box.
+  - The inks header and the base chips share a line when there's room. The chips are smaller and have no color dot, and "(6 of 6)" keeps "paid screens" in its tooltip.
+  - Ink rows are ~38px on one line: handle, number (burn order, new), swatch, name, type tag, ✕.
+  - When the inks still don't fit and there are more than 5, they go into two columns (1–5 down the left, 6–10 down the right) and the column gets a little wider for that job. The drag handle shows on hover; the whole row drags.
+  - "+ Add slot (TBA)" and the ink search share a line. "Inks found in the proof PDF" is a slim row.
+  - Print notes are a one-line box when empty, 2–3 lines with text, and grow while you type.
+  - Buttons in the column are 36px; Mark sep'd in the header is 44px. These are desktop, mouse-sized controls.
+- **Only beyond that** does the controls column scroll; the page and the right pane never do. Dragging an ink near its top or bottom still scrolls it.
+- **Fixed:** in v38, if the window was resized across the breakpoint with a job open, the in-body Mark sep'd button could be left behind or missing. It now moves with the layout.
+- **Does it scroll?** (page / right pane / controls column), jobs with 3, 6 and 10 inks:
+
+  | Window | v38 | v39 |
+  |---|---|---|
+  | 1100×700 | the page scrolls (one job at a time) | column scrolls 14 / 15 / 104px |
+  | 1280×720 | the page scrolls | 3 and 6 inks: nothing; 10 inks: column 84px |
+  | 1366×768 | the page scrolls | 3 and 6 inks: nothing; 10 inks: column 36px |
+  | 1440×900 | column scrolls 304 / 451 / 647px | nothing scrolls |
+  | 1536×864 | column scrolls 340 / 487 / 683px | nothing scrolls |
+  | 1920×1080 | column scrolls 22 / 169 / 415px | nothing scrolls |
+  | 2000×1000 | column scrolls 102 / 249 / 445px | nothing scrolls |
+- **Below 1100px unchanged:** screenshots are pixel-identical to v38 at 390, 768, 1024 and 1099 wide.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The 26 compare flows send the same writes as v38 at 1440, 1280, 1100 and 1024. The main flow (16 writes, live) is identical at 1440, and practice mode sends 0.
+  - Dragging the last of 10 inks to the top is one write in the right order at 1920, 1440, 1366, 1280 and 1100, with the page and pane not moving.
+  - Resizing across 1100px with a job open keeps one Mark sep'd button and keeps what you typed.
+  - No page errors, no text under 12px and no sideways scroll.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.
