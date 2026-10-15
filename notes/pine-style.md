@@ -101,3 +101,4 @@ The demo is in `pine-style.html` under "Page kit". The rules list and the app st
   - Bar views are 44px tall; under 900px they move to their own scrolling row.
   - The version tag hides under 420px.
   - New pieces: `.p-chips-inline` (few chips share the search line), `.p-lc-check` checkbox slot so IDs line up, `.p-lc.is-sel` selected card, `.p-menu` for the ⚙ drop-down (token, practice).
+- **Two-pane desktop layout `.p-split`** (from Damage Log v21): at 1400px and wider, the list is on the left and the picked record fills the right, each with its own scroll. Below that, cards open in place. Desktop apps use the full width. Stephen saw v20 capped at 1100px on a wide screen: "is there a reason this doesn't take up more of the screen".
