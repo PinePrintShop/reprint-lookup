@@ -130,15 +130,15 @@ body{font-size:15px}
 .jd{container-type:inline-size}
 .jd-in{display:grid;gap:var(--p-s4)}
 /* v96: side by side once there's room — the proof is the bigger half, the inks beside it */
-@container (min-width:900px){ .jd-in{grid-template-columns:minmax(0,58fr) minmax(360px,42fr);align-items:start} }
+@container (min-width:760px){ .jd-in{grid-template-columns:minmax(0,58fr) minmax(340px,42fr);align-items:start} }
 /* two panes: the picked job's head stays on top while its inks scroll (overflow:clip keeps sticky working) */
 .p-split-detail>.p-lc{overflow:clip}
 .p-split-detail>.p-lc>.p-lc-head{position:sticky;top:calc(-1 * var(--p-s4));z-index:5;background:var(--p-white);border-bottom:1px solid var(--p-line)}
 .jd-proof{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden;display:flex;flex-direction:column}
 /* the proof stays in view (under the sticky job head) while the ink column scrolls */
-@container (min-width:900px){
+@container (min-width:760px){
   .p-split-detail .jd-proof{position:sticky;top:var(--jd-top,96px)}
-  .p-split-detail .proof-area img{max-height:calc(100vh - var(--p-split-top,120px) - var(--jd-top,96px) - 92px);max-height:calc(100dvh - var(--p-split-top,120px) - var(--jd-top,96px) - 92px)}
+  .p-split-detail .proof-area img{max-height:calc(100vh - var(--p-split-top,120px) - var(--jd-top,96px) - 124px);max-height:calc(100dvh - var(--p-split-top,120px) - var(--jd-top,96px) - 124px)}
 }
 .proof-area{position:relative;cursor:zoom-in;min-height:160px;display:grid;place-items:center;background:var(--p-white);padding:8px}
 .proof-area img{width:100%;height:auto;display:block;max-height:60vh;object-fit:contain}
@@ -157,7 +157,7 @@ body{font-size:15px}
 .pop-from .p-select{width:auto;min-width:130px}
 .jd-notes{display:grid;grid-template-columns:1fr 1fr;gap:var(--p-s3);margin-top:var(--p-s2)}
 @container (max-width:560px){ .jd-notes{grid-template-columns:1fr} }
-@container (min-width:900px){ .jd-notes{grid-template-columns:1fr} }
+@container (min-width:760px){ .jd-notes{grid-template-columns:1fr} }
 .jd-notes .p-textarea{min-height:56px;font-size:var(--p-fs-s)}
 .jd-h{display:flex;align-items:center;gap:var(--p-s2);flex-wrap:wrap}
 .jd-h .p-section{margin-right:auto}
@@ -166,7 +166,7 @@ body{font-size:15px}
 .add-ink:not(.open){display:none}
 .add-ink-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--p-s3)}
 @container (max-width:560px){ .add-ink-grid{grid-template-columns:1fr} }
-@container (min-width:900px){ .add-ink-grid{grid-template-columns:1fr 1fr} .add-ink-grid>:first-child{grid-column:1/-1} }
+@container (min-width:760px){ .add-ink-grid{grid-template-columns:1fr 1fr} .add-ink-grid>:first-child{grid-column:1/-1} }
 .add-ink .p-field>.p-label{display:block}
 .add-ink .p-textarea{min-height:72px}
 .ink-search-wrap{position:relative}
