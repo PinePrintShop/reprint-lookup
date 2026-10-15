@@ -30,7 +30,7 @@
 | Price-O-Matic | `price-o-matic.html` | v105 |
 | Line Item Review | `pine-line-item-review.html` | v18 |
 | Create order | `create-order.html` | v17 |
-| Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v2 |
+| Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v3 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 
