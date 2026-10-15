@@ -15,6 +15,31 @@
 - **Practice mode:** `?practice=1`, or ⚙ → Practice. Nothing is saved. That includes the status change and box feedback.
 - **Airtable token:** stored on the device. Set it under ⚙ → Airtable token.
 
+## 2026-10-15 · v75: Pine page kit
+**Why:** the apps should feel the same, not just look the same. Receiving now matches Damage Log v20 and Purchasing v107.
+
+**What changed:**
+- **Bar:** mark · RECEIVING · version · Practice tag, then:
+  - Undo, only after a receive
+  - ↻ Refresh
+  - ⚙ menu (`.p-menu`) with the Airtable token (Save / Clear, and whether a token is saved) and the practice switch. This replaces the old ⚙ sheet and the separate token strip.
+- **One filter row (`.p-filters`):** search, then vendor and sort, then the filter chips on one line that scrolls sideways on a phone.
+- **Orders are `.p-lc` cards:**
+  - ID badge · customer, with the PO under it · Pieces · All here (the card's one action).
+  - The status tag is on row 2. Waiting and partly-in are cream facts, all in is black, a mis-ship is red.
+  - Cards open in place, one order at a time.
+  - Prints moved from the Print ▾ dropdown into the open card: Box labels · Job sheet · Old box label editor.
+- Date sections are still `.p-section` labels. Receive is still the one yellow button.
+- **Phone:** Pieces sits under the ID next to the tags, and All here is full width. The kit default puts Pieces on a row of its own.
+- No Airtable changes.
+
+**Tested:**
+- Payloads are identical to v74 for every flow: receive, receive with a count off, mis-ship, staging + Undo, resolve, All here.
+- Refresh keeps typed counts, and the payload after a refresh is the same as v74's.
+- Practice mode sent 0 writes.
+- Self-update: moves when idle, and shows the bar when busy.
+- No page errors. Nothing under 12px, no targets under 44px, and no sideways scroll on a phone.
+
 ## 2026-10-15 · v74: Refresh keeps typed counts
 **Why:** Refresh used to wipe counts that were typed but not received yet, so a box could be counted twice.
 
