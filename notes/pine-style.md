@@ -96,3 +96,8 @@ The demo is in `pine-style.html` under "Page kit". The rules list and the app st
 
 **First apps:** Central, Purchasing and the Damage Log.
 **Operator next version:** the ink-type tag goes cream (a fact, not "needs you").
+- **Kit fixes from the first apps (same day):**
+  - `hidden` now beats the inline-flex kit pieces.
+  - Bar views are 44px tall; under 900px they move to their own scrolling row.
+  - The version tag hides under 420px.
+  - New pieces: `.p-chips-inline` (few chips share the search line), `.p-lc-check` checkbox slot so IDs line up, `.p-lc.is-sel` selected card, `.p-menu` for the ⚙ drop-down (token, practice).

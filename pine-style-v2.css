@@ -239,3 +239,20 @@
   .p-num{text-align:left}
   .p-lc-act > *{flex:1 1 auto}
 }
+
+/* ---------- PAGE KIT fixes after the first three apps (Damage Log v20, Purchasing v107, Oct 15) ---------- */
+[hidden].p-tag,[hidden].p-barbtn,[hidden].p-btn,[hidden].p-lc,[hidden].p-chips,[hidden].p-tab{display:none!important}  /* `hidden` must win over inline-flex */
+.p-bar-views button,.p-bar-views a{min-height:var(--p-tap)}                    /* bar views were 36px; touch targets are 44px */
+@media (max-width:900px){ .p-bar-views{order:9;flex:1 1 100%;overflow-x:auto;scrollbar-width:none} .p-bar-views::-webkit-scrollbar{display:none} }
+@media (max-width:420px){ .p-bar-ver{display:none} .p-bar-app{font-size:16px} }
+.p-chips-inline{flex:1 1 auto;order:0}                                        /* few chips: share the line with search */
+/* list card: selection checkbox slot (keeps IDs lined up whether or not a card can be selected) + selected state */
+.p-lc-check{width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center}
+.p-lc.is-sel{background:var(--p-yellow-lt);border-color:var(--p-black)}
+.p-lc.is-sel .p-lc-body{background:var(--p-white)}
+/* ⚙ menu: a small card that drops from the gear (token, practice, other settings) */
+.p-menu{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(100% + 6px);z-index:40;width:min(340px,calc(100vw - 32px));
+  background:var(--p-white);color:var(--p-black);border:2px solid var(--p-black);border-radius:var(--p-r-lg);box-shadow:var(--p-shadow);padding:var(--p-s4);display:grid;gap:var(--p-s3)}
+.p-menu-row{display:grid;gap:6px}
+.p-menu-row + .p-menu-row{border-top:1px solid var(--p-line);padding-top:var(--p-s3)}
+.p-menu-label{font:800 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.03em;color:var(--p-ink-2)}
