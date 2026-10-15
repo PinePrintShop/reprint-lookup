@@ -2873,7 +2873,15 @@ function inkDragLeave(e) {
 // v24 (same as Seps v37): while an ink is dragged, holding it near the top or bottom edge scrolls the job (v25: the controls column on wide
 // screens, the page otherwise), so the lowest ink can go straight to the top.
 var dragAuto = { y: null, raf: 0 };
-function dragScroller() { return detailScroller(); }   // v25: the controls column (the right pane itself no longer scrolls)
+// v25: the nearest scrolling box around the dragged ink (the controls column on wide screens); none = the page.
+function dragScroller() {
+  var el = dragSrcIid != null ? document.querySelector('.ink-row.dragging') : null;
+  for (el = el && el.parentElement; el && el !== document.body; el = el.parentElement) {
+    var oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el;
+  }
+  return null;
+}
 function dragAutoTick() {
   dragAuto.raf = 0;
   if (dragSrcIid == null || dragAuto.y == null) return;

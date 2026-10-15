@@ -77,6 +77,26 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - Comparing v36 and v37, a drag from the bottom ink to the top sends the same single write.
   - The card was screenshotted before and after.
 
+## 2026-10-15 · v38: the mockup stays put; no floating button; narrower list
+**Stephen:** "still feel like the left section is too big and can we work on not having to scroll down if there is a lot of pantones etc would love for that mockup area be static and let's remove the floating buttons"
+- **At 1400px and wider:**
+  - **List:** 320–360px wide (was 380–440). Cards are more compact: smaller ID, 40px thumbnail, no ▸.
+  - **Open job:** it never scrolls as a whole.
+    - The mockup stays put and fills the height.
+    - Only the controls column scrolls: type, sep file, separator, inks, notes.
+    - When the next job opens, the controls column starts at the top.
+  - **Button:** Mark sep'd / Order placed (with qty and cost on Supacolor jobs) moved from the floating bottom bar into the job's header, next to Screens.
+- **Below 1400px:** the button is the first thing in the open job's controls. It no longer floats.
+- **The real cause of the Pantone drag problem:**
+  - The ink list had its own small scroll box (max 420px) inside the scrolling page. With many inks, the list scrolled inside a scroll, the bottom rows were clipped, and a drag couldn't reach the top.
+  - That box is gone, so the list is just part of the controls column.
+  - The drag auto-scroll now uses whichever box around the ink actually scrolls.
+  - Tested with 10 inks: the last ink went to the top in one drag, with one write.
+- **Tested:**
+  - The 26 v37 flows send the same writes on v38, and practice mode sends 0.
+  - With a 10-ink job, the page and the right pane don't scroll; only the controls column does.
+  - No text under 12px and no sideways scroll at 2000, 1440, 1024 and 390.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.

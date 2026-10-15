@@ -4550,10 +4550,15 @@ function resetDragState() {
 // don't scroll an inner pane during a drag on their own (Stephen, same as Seps: "if I try to scroll up it doesn't
 // move the screen"). Same as Seps v37.
 var dragAuto = { y: null, raf: 0 };
+// the nearest scrolling box around the dragged ink (the inks column on wide screens); none = the page scrolls.
+// The ink list itself never gets its own scroll box, so a drag can always reach the first ink.
 function dragScroller() {
-  var sd = isWide() && $('splitDetail'), col = sd && sd.querySelector('.jd-inks');
-  if (!col || !dragState.impRecId || !col.contains($('inks-' + dragState.impRecId))) return null;
-  return col;
+  var el = dragState.sourceRow;
+  for (el = el && el.parentElement; el && el !== document.body && el !== document.documentElement; el = el.parentElement) {
+    var oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el;
+  }
+  return null;
 }
 function dragAutoTick() {
   dragAuto.raf = 0;
