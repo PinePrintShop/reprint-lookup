@@ -153,3 +153,9 @@ Each customer gets a one-line **Why now**, e.g. "Ordered in Feb 2025 and Mar 202
 - Loads about 9,000 orders in three side-by-side streams by year created (about 90 requests, retries on Airtable's rate limit), with a progress bar.
 - **Tested** with mocked Airtable and made-up customers (Playwright): paging across the three streams, crafted cases for each reason (and for cancelled-only, $0-only, too-old and one-small-order customers that must not show), duplicate customer records merged, rep filter and its memory, reason chips, minimum spend, quarter switch, Copy list, marks, no token, no Airtable writes, no page errors, nothing under 12px, no sideways scroll at 1920, 1440, 1024, 768 and 390 wide. The scoring was also checked against the real order history outside the repo (counts only).
 - **Open questions for Stephen:** the thresholds in `RULES` (9 months for gone quiet, $1,500, the 4-month "overdue" window), whether "Gone quiet" should need a higher spend (it is the biggest group), and whether marks should be shared between reps (that would need a small Airtable field or table).
+
+## 2026-10-15 · v5: departed Pipedrive owners give way to the latest order's rep
+**Stephen** answered "yes" to: when the Pipedrive owner has left (Josh, Stephen, Grant and other old accounts), should the customer go to whoever took the latest order?
+- **Now:** if the Pipedrive org owner is no longer an active rep, the customer goes to the rep on their newest order who is still active (Chris, Patrick or Garrett). The detail says "newest order with an active rep (Pipedrive owner … has left)".
+- **Unassigned:** only customers with no active rep on any order show as "Unassigned (was …)". Active Pipedrive owners still win over the order rep.
+- **Tested:** the v4 suite on v5. The 4 checks that expected Grant- or Stephen-owned orgs to be Unassigned now show the latest active order rep, as intended. The other 87 checks pass, with 0 writes and no page errors.
