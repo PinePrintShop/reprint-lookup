@@ -43,6 +43,26 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - Failed save: the job stays and the toast says "Not saved". Double taps: one write. Practice: the same flows, 0 writes. Self-update: moves to the new version when idle, shows "Update now" when busy.
   - No page errors, no text under 12px, no sideways scroll, at most one yellow main button per screen.
 
+## 2026-10-15 · v36: the mockup is the focus on desktop
+**Stephen** (screenshot of v35 on a wide screen): "can we try and get a focus on the mockup and enlarge it maybe by reducing the left side? open to ideas to just make that mockup fuller"
+- **At 1400px and wider:**
+  - **Narrower list:** 380–440px, was 560–640. On a list card the Claim button moved to the tag row, so the design name gets the full width and doesn't wrap.
+  - **Bigger proof:** about 60% of the open job, was 40%. It stays in view and fills the height of the pane.
+  - **Sharper proof:** it loads Airtable's full-size image. Before, it used the 512px thumbnail, which would blur when shown bigger.
+  - **Hide list:** a "Hide list" button in the filter row gives the open job the whole width. The choice is remembered on this computer, and ↑/↓ still move between jobs.
+- **Proof size, landscape proof sheet:**
+
+  | Screen width | v35 | v36 | v36, list hidden |
+  |---|---|---|---|
+  | 2000px | 496×383 | 855×661 | about 915×707 |
+  | 1440px | 272×210 | 506×391 | about 785×607 |
+- The proof is capped at the height left under the job header, so the whole sheet shows without scrolling.
+- **Below 1400px** (iPad, phone): no change.
+- **Tested with mocked Airtable:**
+  - The 26 v35 flows send the same writes on v36, and practice mode sends 0.
+  - The Hide list choice is still there after a reload.
+  - No page errors, no text under 12px and no sideways scroll at 2000, 1440, 1024 or 390.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.

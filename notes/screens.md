@@ -38,3 +38,15 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
   - The grey "?" swatch for inks with no color is an empty dashed swatch.
 - **Same Airtable reads and writes as v21** (PATCH bodies compared in the test).
 - **Tested** (Playwright, mocked Airtable, made-up customers): 1440×900, 1024×768, 768×1024, 390×844. Live: Imaged, Undo, link sep file, print notes, ink drag, Undo imaged on the Imaged tab; the 4 shared PATCH bodies match v21 exactly. Practice: same flows, 0 writes. Failed save: the imprint comes back. No token: the ⚙ menu opens. No page errors, no text under 12px, no sideways scroll.
+
+## 2026-10-15 · v23: the mockup is the focus on desktop
+**Why:** Stephen, looking at the desktop two-pane view (Seps, and "same with Screens since they are similar"): "can we try and get a focus on the mockup and enlarge it maybe by reducing the left side? open to ideas to just make that mockup fuller". On a wide screen the queue took ~640px and the proof was only ~35–40% of the open imprint, inside a white frame. Same design as Seps v36.
+- **Narrower queue** (two panes, 1400px and wider): 380–440px instead of the kit's 560–640px (overridden in the app's own CSS, the kit is unchanged). List cards are re-laid for that width: proof thumb with the ID badge under it on the left, design / customer · #order · type on the right with Screens · Qty under them, tags and inks below. Long titles wrap; nothing is cut off.
+- **Bigger proof:** the proof takes ~60% of the open imprint (inks / sep file / notes get the rest, at least 360px). It has no white frame, sits flush left, stays put while the right side scrolls, and is as tall as the pane allows under the imprint's header, so the whole sheet shows without scrolling. On desktop it shows Airtable's full-size thumbnail (the 512px one looked soft when enlarged). Tap / click still opens the full proof.
+- **Hide list / Show list:** a plain button next to *Imaged* on the open imprint folds the queue away so the imprint (and its proof) gets the full width. Remembered on this computer (`screens_list_off` in the browser). ↑/↓ still move between imprints with the list hidden, and *Imaged* still opens the next one.
+- Proof size (made-up 1650×1275 landscape proof sheet / 1275×1650 portrait), v22 → v23:
+  - 1440×900: 258×199 → 516×399 (4× the area); portrait 258×334 → 450×582.
+  - 1920×1080: 440×340 → 814×629 (3.4×); portrait 440×570 → 589×762. List hidden: 919×710.
+  - 2000×1000: 471×364 → 815×630 (3×); portrait 471×609 → 527×682.
+- **iPad and phone (below 1400px) unchanged** (screenshots pixel-identical to v22 at 1024, 768, 390 and 1399 wide). Same Airtable reads and writes as v22.
+- **Tested** (Playwright, mocked Airtable, made-up customers) at 1440×900, 1920×1080, 2000×1000, 1024×768, 390×844: Imaged, Undo, link sep file, print notes, ink drag, Undo imaged send the same PATCH bodies as v22 at every size; practice 0 writes; failed save puts the imprint back; list toggle hides / shows, survives a reload, works when browser storage is blocked; ↑/↓ with the list hidden; calendar jump; proof viewer opens. No page errors, no text under 12px, no sideways scroll.
