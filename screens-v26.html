@@ -216,6 +216,7 @@ body{font-size:15px}
 @media (min-width:1100px){
   .p-split-detail .sc-body{gap:var(--p-s3)}
   .p-split-detail .sc-info{gap:10px}
+  .p-split-detail .sc-info>*{flex-shrink:0}   /* rows keep their height; the column scrolls instead */
   .p-split-detail .sc-sec{gap:6px}
   .p-split-detail .sc-line{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:10px;min-height:40px}
   .p-split-detail .sc-line>.p-label{flex:0 0 auto;min-width:96px;white-space:nowrap}
