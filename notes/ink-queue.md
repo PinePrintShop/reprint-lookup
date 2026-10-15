@@ -263,3 +263,31 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
 - **Day toggle:** clicking ▸ no longer leaves a box outline. The keyboard focus ring still shows.
 - **Unchanged:** wide in-place heads (below 1100px) keep the full text.
 - **Tested:** every day head at 1100, 1440 and 1920 shows its full tag and count (v99 cut all 10 at 1440). Same writes as v99.
+
+## 2026-10-15 · v101: one job workspace with Seps and Screens (phase 0 + 1)
+**Why:** the review found the same job drawn three ways in Seps, Screens and Ink. Stephen OK'd phase 0 + 1.
+- **Phase 0 fixes:**
+  - **Burn order numbers** on every ink row. They follow a drag.
+  - **The runway line** ("21 need ink · Tightest runway …") wraps instead of being cut off at 1440.
+- **Shared look** from the new `pine-job-v1.css`:
+  - **Bar and filter row:** the bar is 72px like Seps and Screens (it was 64). The filter row reads search · chips · Print a label · Hide list.
+  - **Day heads:**
+    - ▾ fold · the date (it was "Tomorrow" in the box) · one tag: "Tomorrow" or "in 3 work days"; On press shows "2 need ink" · the count in a circle
+    - No date and Completed have no tag
+    - the same days start open as before
+  - **Order line:** CUSTOMER · #order (it was a yellow badge).
+  - **List cards (~99px):** 80×64 mockup (+ proof count), ID + design, location · type, "2 screens · 144 qty", one status tag (✓ Ready / No inks / N to fill / N inks) + Note + Reorder. **In place, the cards lost the ink chips too.** Mark ready stays on them, since there's nowhere else to act.
+  - **Job header:**
+    - ID + design + tags · customer #order · location · type · press · print date
+    - **Screens · Qty · Inks** ("Qty", not "Pcs")
+    - **✓ Mark ready**
+  - **Mockup footer:** shows only when needed: ‹ 1/N › and the file name for 2+ proofs. **↩ Previous run** and Fill from moved here from the inks toolbar; "Last run" now reads "Previous run". Full screen.
+  - **Ink rows:** one 38px line (drag · burn # · 28px swatch · Pantone + type · ✎ 🏷 📅 ✕ as icons with tooltips) with the recipe on a line under it. Two columns when they don't fit (same fitInks rule, now numbered down the left, then the right). Laptops show more inks: at 1100×700 the inks column overflows by 187px (v100: 422px).
+  - **Notes:** both boxes keep their labels above and grow.
+- **Pantone table:** moved to `pine-pantone-v1.js` (shared).
+- **Reorder:** "Reorder" was already the right word. The field is the client-reorder checkbox; see seps.md v41 for the Airtable check. There is no field for a fix or shortage reprint ("Repeat"), so none is shown.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The v100 flows send the same 16 writes at 1920, 1440, 1100 and 1024 (in place). Practice mode sends 0 writes.
+  - Dragging the last of 10 inks to the top is one write in the right order at 2000, 1440, 1366 and 1100, and in place at 1024 (with auto-scroll).
+  - Fold, Hide list and ↑/↓ work.
+  - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.

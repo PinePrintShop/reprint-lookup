@@ -1,0 +1,177 @@
+/* =====================================================================
+   Pine job workspace  ·  pine-job-v1.css  ·  2026-10-15
+   One layout for the three pre-press apps: Seps v41, Screens v28, Ink Queue v101.
+   Stephen OK'd the plan on the "One Job Workspace" review (phase 1: shared look).
+   Load order:
+     <link rel="stylesheet" href="pine-style-v2.css">
+     <link rel="stylesheet" href="pine-job-v1.css">
+     <style> the app's own bits </style>
+   and give <body> the class "p-app p-job". Everything here is prefixed p-job- (except
+   the .ink-2col switch, which the apps' fitInks() already set).
+   Versioned by name: never edit this file once shipped. A change is pine-job-v2.css.
+
+   Pieces (same markup in all three apps):
+     1. bar        .p-job .p-bar              72px in every app (Ink's was 64)
+     2. filters    .p-filters-end .p-job-listbtn   the app's own button, then Hide list
+     3. day head   section.p-job-dayg > .p-job-day ( .p-job-fold ▾ · .p-job-date · .p-tag.p-job-when · .p-job-n )
+                   + .p-job-dayb (the day's cards); .is-closed folds it
+     4. order line .p-job-order ( .p-job-cust · .p-job-ordno )
+     5. list card  .p-lc-head.p-job-card ( .p-job-thumb · .p-job-cbody: .p-job-ctitle (ID + title, 2 lines)
+                   · .p-job-csub (location · type) · .p-job-cnums (4 screens · 144 qty)
+                   · .p-job-cfoot: status tag + fact tags + .p-job-cact (one app action) )   ≈96px
+     6. job header .p-lc-head.p-job-head ( .p-job-hmain: .p-job-htitle (ID .p-job-hid + .p-job-hname + tags)
+                   + .p-job-hsub · .p-job-hnums · .p-job-hact: the one yellow "✓ verb" button, 44px )
+     7. mockup     .p-job-mock ( .p-job-mockimg + .p-job-mockf footer only when needed:
+                   ‹ 1/N › · file name · ↩ Previous run · Full screen )
+     8. inks       .p-job-inksh (black INKS (n) + the app's toolbar) · .p-job-inklist > .p-job-ink rows
+                   ( .p-job-ink-drag · .p-job-ink-n burn # · .p-job-ink-sw 28px swatch · .p-job-ink-main
+                     (.p-job-ink-name + type tag) · .p-job-ink-x app extras · .p-job-ink-sub (Ink's recipe line) )
+     9. notes      .p-job-notes > .p-field ( .p-label above · textarea that grows with its text )
+   ===================================================================== */
+
+/* 1 — the same 72px black bar in all three */
+.p-job .p-bar{min-height:72px}
+
+/* 2 — filter row: chips together on the left; the app's own button, then Hide list, on the right */
+.p-job .p-filters-end{margin-left:auto;flex:none}
+.p-job-listbtn{flex:none}
+
+/* two panes (>=1100px): the same list width in all three */
+.p-job .is-split .p-split{grid-template-columns:clamp(300px,22vw,340px) minmax(0,1fr);gap:var(--p-s4)}
+@media (max-width:1399px){ .p-job .wrap.is-split{padding-left:16px;padding-right:16px} }
+
+/* 3 — day head: ▾ fold · date box · ONE timing tag · round count on the right */
+.p-job-dayg + .p-job-dayg{margin-top:var(--p-s3)}
+.p-job-day{display:flex;align-items:center;gap:8px;min-width:0;margin:var(--p-s4) 0 var(--p-s2);cursor:pointer;-webkit-user-select:none;user-select:none}
+.p-job-fold{flex:none;display:inline-grid;place-items:center;width:44px;height:44px;margin:-6px -6px -6px -10px;border:0;border-radius:var(--p-r);background:transparent;
+  color:var(--p-black);font-size:14px;cursor:pointer;transition:transform .15s}
+.p-split-list .p-job-fold{width:32px;height:32px;margin:0 -2px 0 -6px}
+.p-job-fold:hover{background:var(--p-cream)}
+.p-job-fold:focus:not(:focus-visible){outline:none}
+.p-job-dayg.is-closed .p-job-fold{transform:rotate(-90deg)}
+.p-job-dayg.is-closed>.p-job-dayb{display:none}
+.p-job-date{flex:none;display:inline-flex;align-items:center;background:var(--p-black);color:var(--p-white);font:900 13px/1 var(--p-display);text-transform:uppercase;
+  letter-spacing:.03em;word-spacing:.12em;padding:8px 10px;border-radius:2px;white-space:nowrap}
+.p-job-when{flex:0 1 auto;min-width:0;display:inline-block;line-height:21px;overflow:hidden;text-overflow:ellipsis}
+.p-job-n{margin-left:auto;flex:none;min-width:28px;height:28px;padding:0 8px;border-radius:14px;background:var(--p-white);border:1px solid var(--p-line);
+  display:inline-flex;align-items:center;justify-content:center;font:800 13px/1 var(--p-sans);font-variant-numeric:tabular-nums}
+@media (max-width:1599px){ .p-split-list .p-job-wd{display:none} }   /* "in 3 days" in the narrower list; the tooltip says work days */
+.p-job-sum{margin:var(--p-s3) 0 0;font-size:var(--p-fs-s);line-height:1.6;color:var(--p-ink-2)}   /* one summary line over the days (Ink: need ink · runway) */
+.p-job-sum b{color:var(--p-black)}
+.p-job-sum .p-tag{vertical-align:1px}
+
+/* 4 — order line: CUSTOMER · #order */
+.p-job-order{display:flex;align-items:baseline;gap:8px;min-width:0;margin:var(--p-s3) 2px 6px}
+.p-job-dayb>.p-job-order:first-child{margin-top:4px}
+.p-job-cust{font:800 14px/1.25 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-job-ordno{flex:none;font:700 14px/1.25 var(--p-sans);color:var(--p-ink-2);font-variant-numeric:tabular-nums}
+
+/* 5 — list card (≈96px): 80x64 mockup · ID + title (2 lines max) · location · type · numbers · status + facts + one action */
+.p-lc-head.p-job-card{display:grid;grid-template-columns:80px minmax(0,1fr);grid-template-areas:none;column-gap:10px;row-gap:0;align-items:start;
+  padding:8px 10px 8px 8px;min-height:0}
+.p-job-thumb{width:80px;height:64px;flex:none;position:relative;display:grid;place-items:center;padding:0;overflow:hidden;
+  background:var(--p-white);border:1px solid var(--p-line);border-radius:4px;color:var(--p-ink-3);cursor:zoom-in}
+.p-job-thumb img{display:block;width:100%;height:100%;object-fit:contain}
+.p-job-thumb svg{width:28px;height:28px}
+.p-job-thumb.is-none{border-style:dashed;cursor:inherit}
+.p-job-pc{position:absolute;right:2px;bottom:2px;background:var(--p-black);color:var(--p-white);font:800 12px/1 var(--p-sans);padding:1px 4px;border-radius:3px}
+.p-job-cbody{grid-area:auto;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t t" "s s" "n a" "f f";column-gap:6px;row-gap:1px;align-items:center}
+.p-job-ctitle.p-lc-title,.p-job-ctitle{grid-area:t;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;
+  font:800 15px/1.3 var(--p-sans);color:var(--p-black)}
+.p-job-ctitle .p-id{font-size:12px;padding:3px 5px;margin-right:6px;vertical-align:1px}
+.p-job-csub{grid-area:s}
+.p-job-cnums{grid-area:n}
+.p-job-csub,.p-job-cnums{display:block;font-size:13px;line-height:1.35;color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-job-cnums b{color:var(--p-black);font-weight:800;font-variant-numeric:tabular-nums}
+.p-job-cfoot{grid-area:f;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:3px;min-width:0}
+.p-job-cfoot:empty{display:none}
+.p-job-cfoot .p-tag{height:22px;padding:0 7px;font-size:12px;max-width:100%;min-width:0;overflow:hidden}
+.p-job-cact{grid-area:a;align-self:center;display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;max-width:170px}
+.p-job-cact:empty{display:none}
+.p-job-cact .p-btn{min-height:30px;padding:0 10px;font-size:13px}
+.p-lc.is-done .p-job-ctitle{color:var(--p-ink-3)}
+@media (max-width:1099px){ .p-job-cact .p-btn{min-height:var(--p-tap);padding:0 14px;font-size:var(--p-fs-s)} }   /* in place (iPad / phone): touch size */
+
+/* 6 — job header: ID + title + tags · customer #order · location · type · press · print date | numbers | ✓ button */
+.p-lc-head.p-job-head{display:flex;align-items:center;gap:8px 16px;padding:10px 14px;min-height:0;cursor:default}
+.p-job-hmain{grid-area:auto;flex:1 1 auto;min-width:0}
+.p-job-htitle{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0}
+.p-id.p-job-hid{font:800 16px/1 var(--p-sans);padding:6px 9px;letter-spacing:.02em}
+.p-job-hname{font:800 20px/1.25 var(--p-sans);min-width:0;overflow-wrap:anywhere}
+.p-job-htitle .p-tag{flex:none}
+.p-job-hsub{display:block;margin-top:3px;font-size:var(--p-fs-s);color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-job-hnums{flex:none;display:flex;gap:var(--p-s4);align-items:flex-end}
+.p-job-hnums:empty{display:none}
+.p-job-hnums .p-num{text-align:right}
+.p-job-hact{flex:none;display:flex;align-items:center;gap:10px}
+.p-job-hact .p-btn{min-height:44px}
+.p-job-hact .p-btn-main,.p-job-hact .p-job-go{padding:0 18px;font-size:17px}
+
+/* 7 — mockup pane: one frame; the footer only when there's something to put in it */
+.p-job-mock{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
+.p-job-mockimg{position:relative;display:block;flex:1 1 auto;width:100%;min-height:160px;padding:8px;border:0;border-radius:0;background:var(--p-white);cursor:zoom-in}
+.p-job-mockimg img{display:block;width:100%;height:auto;max-height:60vh;object-fit:contain}
+.p-split-detail .p-job-mock{height:100%}
+.p-split-detail .p-job-mockimg{min-height:0}
+.p-split-detail .p-job-mockimg img{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);max-height:none;object-fit:contain;object-position:center top}
+.p-job-mocknone{display:grid;place-items:center;min-height:200px;color:var(--p-ink-3);font-weight:700;font-size:var(--p-fs-s)}
+.p-job-mockf{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 8px;border-top:1px solid var(--p-line);min-height:52px}
+.p-job-mockf .p-btn{min-height:36px;padding:0 12px;font-size:14px}
+.p-job-mockf .p-job-nav{min-width:36px;padding:0;font:800 20px/1 var(--p-sans)}
+.p-job-mockn{font:700 14px/1 var(--p-sans);min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
+.p-job-mockfn{flex:1 1 80px;min-width:0;font-size:14px;color:var(--p-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-job-mockf .p-job-full{margin-left:auto}
+.p-job-mockf .p-select{width:auto;max-width:220px;min-height:36px;padding:4px 8px;font-size:14px}
+.p-job-mockf label{display:inline-flex;align-items:center;gap:6px;font:800 12px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.03em;color:var(--p-ink-2)}
+.p-job-mockf>span:empty{display:none}
+
+/* 8 — inks: black "INKS (n)" + the app's toolbar on one line, then 38px one-line rows */
+.p-job-inksh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:36px;min-width:0}
+.p-job-inksh>.p-section{flex:none;padding:7px 10px;font-size:13px}
+.p-job-inksh .p-btn{min-height:32px;padding:0 10px;font-size:13px}
+.p-job-inksh .p-hint{font-size:13px}
+.p-job-inksh .p-job-push{margin-left:auto}
+.p-job-inklist{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);min-width:0}
+.p-job-inklist:empty{display:none}
+.p-job-ink{display:grid;grid-template-columns:14px minmax(18px,auto) 28px minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:0;
+  min-height:38px;padding:3px 6px 3px 2px;border-top:1px solid var(--p-line);background:transparent;min-width:0}
+.p-job-ink:first-child{border-top:0}
+.p-job-ink-drag{grid-column:1;grid-row:1;align-self:stretch;width:14px;display:grid;grid-template-columns:3px 3px;gap:3px;align-content:center;justify-content:center;cursor:grab;opacity:.45;color:transparent;font-size:0;user-select:none}
+.p-job-ink-drag:hover{opacity:.9}
+.p-job-ink-drag:active{cursor:grabbing}
+.p-job-ink-drag>i{display:block;width:3px;height:3px;border-radius:50%;background:var(--p-black)}
+.p-job-ink-n{grid-column:2;grid-row:1;font:800 14px/1 var(--p-sans);font-variant-numeric:tabular-nums;color:var(--p-ink-3);text-align:right}
+.p-job-ink-sw{grid-column:3;grid-row:1;width:28px;height:28px;border-radius:5px;border:1px solid rgba(20,20,18,.25);cursor:pointer;padding:0;display:grid;place-items:center;font:800 13px/1 var(--p-sans);color:var(--p-ink-2)}
+.p-job-ink-sw:hover{box-shadow:0 0 0 3px var(--p-cream)}
+.p-job-ink-sw.is-empty{background:repeating-linear-gradient(135deg,var(--p-white) 0 5px,var(--p-cream-lt) 5px 10px);border:1.5px dashed var(--p-line-strong)}
+.p-job-ink-sw.is-tba{background:var(--p-white);border:2px dashed var(--p-black)}
+.p-job-ink-main{grid-column:4;grid-row:1;min-width:0;display:flex;align-items:center;gap:8px}
+.p-job-ink-name{font:800 16px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.p-job-ink-main .p-tag{flex:none;height:22px;padding:0 6px;font-size:12px}
+.p-job-ink-x{grid-column:5;grid-row:1;display:flex;align-items:center;gap:0}
+.p-job-ink-x:empty{display:none}
+.p-job-ink-x .p-btn,.p-job-ink-x button{min-width:30px;width:auto;height:30px;min-height:30px;padding:0 6px;border:0;border-radius:var(--p-r);background:transparent;
+  color:var(--p-ink-2);font:700 15px/1 var(--p-sans);cursor:pointer}
+.p-job-ink-x .p-btn:hover,.p-job-ink-x button:hover{background:var(--p-cream);color:var(--p-black)}
+.p-job-ink-sub{grid-column:4 / -1;grid-row:2;min-width:0;padding:0 0 4px}
+.p-job-ink.dragging{opacity:.4}
+.p-job-ink.drag-over,.p-job-ink.drag-over-top{box-shadow:inset 0 3px 0 var(--p-black)}
+.p-job-ink.drag-over-bottom{box-shadow:inset 0 -3px 0 var(--p-black)}
+/* two columns when the inks don't fit (the apps' fitInks() sets .ink-2col and --ink-rows): 1-5 down the left, 6-10 down the right */
+.ink-2col .p-job-inklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:column;grid-template-rows:repeat(var(--ink-rows,5),auto);column-gap:0}
+.ink-2col .p-job-ink{border-top:0;border-bottom:1px solid var(--p-line);position:relative;padding-left:10px;cursor:grab}
+.ink-2col .p-job-ink:nth-child(n){grid-template-columns:minmax(14px,auto) 28px minmax(0,1fr) auto}
+.ink-2col .p-job-ink-drag{position:absolute;left:0;top:0;bottom:0;width:10px;opacity:0}
+.ink-2col .p-job-ink:hover .p-job-ink-drag{opacity:.6}
+.ink-2col .p-job-ink-n{grid-column:1}
+.ink-2col .p-job-ink-sw{grid-column:2}
+.ink-2col .p-job-ink-main{grid-column:3;flex-wrap:wrap;row-gap:2px}
+.ink-2col .p-job-ink-x{grid-column:4}
+.ink-2col .p-job-ink-sub{grid-column:3 / -1}
+.ink-2col .p-job-ink-name{font-size:14px}
+
+/* 9 — notes: labels above, the box grows with its text */
+.p-job-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--p-s2);min-width:0}
+.p-job-notes .p-field{gap:3px;min-width:0}
+.p-job-notes .p-label{font-size:12px}
+.p-job-notes textarea.p-textarea{width:100%;min-height:40px;padding:8px 10px;font-size:15px;line-height:1.35;resize:none}

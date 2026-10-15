@@ -101,3 +101,26 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
 - **Tested:**
   - A 4-line note fits fully at 1440, 1280, 1024 and 390. In v26 at 1440 it showed 58px of 133px.
   - Same writes as v26.
+
+## 2026-10-15 · v28: one job workspace with Seps and Ink (phase 1)
+**Why:** the review found the same job drawn three ways in Seps, Screens and Ink. Stephen OK'd the shared layout.
+- **Shared look** from the new `pine-job-v1.css`:
+  - **Bar and filter row:** the same 72px bar and filter row. **Hide list moved from the job header to the right end of the filter row**, the same place as in Seps and Ink.
+  - **Day heads:** ▾ fold · date · one timing tag (red "3 days late", "Today", "Tomorrow", "in 4 work days") · the count in a circle. Days start open, and a fold is remembered for the session.
+  - **Order line (new):** CUSTOMER · #order. The cards no longer repeat the customer and order #.
+  - **List cards (~80–118px):** 80×64 mockup · ID + design · location · type · "4 screens · 144 qty" · one status tag (No sep file / ✓ Imaged) + facts (Reorder, ↩ previous run). **The ink swatches left the cards** (Stephen's call, as in Ink v99).
+  - **Job header:** ID + design + tags · customer #order · location · type · press · print date · Screens · Qty · ✓ Imaged.
+  - **Mockup:** a white frame. Its footer shows only for a previous run: ↩ Previous run · Full screen.
+  - **Inks:** a black "INKS (n)" box with "burn order · drag to reorder", then 38px one-line rows in one list.
+  - **Print notes:** the label is above the box.
+- **Pantone table:** moved to `pine-pantone-v1.js` (shared).
+- **Repeat vs Reorder** (Stephen: Repeat = we're fixing an order we messed up or a shortage; Reorder = the client reorders something we printed before). Checked in Airtable (read only): the Imprints checkbox `flda9L7041ahNZT0b` is named **"Repeat?"** but is the client-reorder flag. Create Order ticks it when a past imprint is picked and links Previous Imprint ID, and all 156 imprints ticked in the last 45 days have a previous imprint and no Order Issue. So it now reads **Reorder** in Screens too (chip: Reorders). There is no imprint field that marks a fix or shortage reprint. Fixes go through Order Issues (the imprint's Order Issues link, "Issue Re-print?" on the issue) and the old [REPRINT] checkboxes on the same imprint, last used in September. So no "Repeat" tag is shown. Showing one needs a new Imprints field (for example a lookup of the issue's "Issue Re-print?"), which needs Stephen's OK.
+- **Reads and writes:** Location and press are now shown. They were already in the full-record read. Writes are the same as v27.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The v27 flows send the same writes at 1920, 1440, 1366, 1280, 1100, 1024 and 390, live and with a failed save, and behave the same:
+    - Imaged and Undo
+    - link sep file, print notes, ink drag, Undo imaged
+    - proof viewer, calendar jump, ↑/↓
+  - Practice mode sends 0 writes.
+  - Dragging the last of 11 inks to the top is one write. Checked at 1920 through 1100, and in place at 1024.
+  - No page errors, no text under 12px, no sideways scroll and no overlapping card parts.
