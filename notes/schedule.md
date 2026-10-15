@@ -289,3 +289,27 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - The tag shows on the side card.
   - With today set to Wed 10/14, Suggest put a Ready to Order job on Tue 10/20 and a not-received job on Mon 10/19 (Friday has no shift).
   - The 12 v17 drag/edit flows send identical writes on v18.
+
+## 2026-10-15 · v19: search finds scheduled jobs too; start–end times on cards
+**Stephen:** "in the search area for scheduler can it just search everything scheduled as well and not just unscheduled. maybe a toggle or a button to just show unscheduled". Also: "can we also view start time and end time in the cards".
+- **Search:** under the search box there are two chips: **All** (the default) and **Unscheduled only**. The choice is remembered on this computer.
+  - With no search text, the list is the same as before in both states.
+  - With text and **All**, the matching unscheduled jobs come first, then a **Scheduled** section.
+  - The Scheduled section lists scheduled jobs that aren't finished, from any date. Each card shows the ID, day, start–end time, a press chip in its lane color, the customer and job, and tags (On press, order status, after due).
+  - It searches Imprint ID, order #, customer and job nickname. It asks Airtable once, 300 ms after typing stops, for the first 50 by start time. It merges those with what's already loaded, so a job you just moved shows where it is now.
+- **Tap a scheduled result:** the calendar jumps to that day, scrolls to the card and flashes it.
+  - The view stays the same, except Month switches to Week (Month cuts off at 7 jobs a day).
+  - If that machine was filtered out, the chips go back to All.
+  - On the iPad and phone, the list drawer closes.
+- **Scheduled results don't drag.** You drag from the calendar, where you can see what's around the job. Dragging from the list could drop a job onto another day without seeing the day it came from.
+- **Start–end times:** every calendar card shows the time range, e.g. "1:00p–2:45p". The end is start + the card's length (Allocated, else the estimate), the same length the board uses for placement. Suggested (dashed) cards show their suggested range.
+  - The job length is shown only on Day view cards now; elsewhere the range says it.
+  - 2 Week shows ranges. Month keeps the start time only (no room).
+  - The job card pop-up has a **Time** line (Start–End · day · length, or **Suggested** for a dashed card). Search results show the range too.
+  - On Day view cards, the ID wraps to the next line instead of being cut off.
+- **Tested with mocked Airtable** at 1440 / 1024 / 390:
+  - Typing "paddlers" sent 1 query, not 8. It found a Dec 3 job outside the loaded weeks and skipped a finished one. Tapping it jumped to Nov 30 – Dec 4 and flashed the card.
+  - "odell" showed 2 unscheduled and 11 scheduled jobs. Unscheduled only hid the scheduled ones and was still on after a reload.
+  - Dragging a result wrote nothing.
+  - The range updated right after a drop.
+  - The v17 drag/edit flows send identical writes to v18, and practice mode made 0 writes. No page errors and no text under 12 px.
