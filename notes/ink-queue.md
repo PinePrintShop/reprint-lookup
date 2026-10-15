@@ -26,6 +26,48 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
 - **Reads the line item name** (Line Items › Line Item Reference) only when an open job has no proof.
 - The Airtable token comes from `pine_at_key` in the browser, the same as the other apps. `?practice=1` fakes every write.
 
+## 2026-10-15 · v98: every ink in view, easier to scan
+**Why:** Stephen on v97: "can we look at making ink queue also not scroll in the pantones section as well easier to scan and review". In v97 each ink was a tall card (64px swatch, big name, type/maker/updated line, the recipe one part per line, then a row of buttons), so two inks filled the column. He also sent a screenshot of the list: on a card, long ink chips ("7687 DIRECT-TO-FABRIC -") ran under *Mark ready*.
+
+- **Compact ink cards:**
+  - A 40px swatch, the Pantone number in big type (7579) and the type tag (DISCHARGE) on one line.
+  - The recipe reads across, and wraps: "DC Base **419**  Super 75 **139**  | Yellow M3G **24.94**  Orange MGD **18.20** …". The amounts are bold. A short black bar marks the shop's "-" line (bases, then pigments). Most recipes take 1–3 lines (v97: one line per part).
+  - The maker and the Updated date moved to tooltips (on the name, and on *Mixed today*).
+  - A click on the name opens the name box (same save as before). TBA slots show the box straight away.
+  - Click the recipe or *Edit* to edit it, the same box and save as v96.
+- **Actions are small and quiet:** Edit, Label, Mixed today and Remove.
+  - On a two-column card they're one row of small grey words under the recipe.
+  - On a wide one-column card (1440 screens) they move up beside the name as small icons (✎ 🏷 📅 ✕, each with a tooltip). The card is then just the name line and the recipe.
+  - Drag the handle to reorder. Auto-scroll is the same as v97.
+- **A grid:**
+  - Inks sit in two columns once the inks column is 600px or wider (1920 and 2000 screens, or 1440 with *Hide list*), and one column below that.
+  - On wide screens the inks column is now 45% of the job (v97: 36%). It's 46% on 1400–1700px screens (v97: 42%).
+  - The mockup stays static and is still the bigger half. It's a little smaller: about 767px wide at 1920×1080 (v97: 896) and 811px at 2000×1000 (v97: 947, which was height-limited anyway).
+  - The column scrolls only when there are more inks than fit. There's still no inner scroll box, so the last ink goes to the top in one drag.
+- **One toolbar row** over the inks: Inks (N) · 🏷 All labels · Copy colors (· Paste / Fill from / Last run) · + Add ink on the right.
+- **Notes:** Print notes and Ink notes are one line each, side by side under the inks, and grow to show their text.
+- **How many inks show without scrolling** (mocked jobs with real-length recipes, v97 → v98):
+
+  | Screen | 2 inks | 4 | 6 | 8 | 10 |
+  |---|---|---|---|---|---|
+  | 1440×900 | 1 → 2 | 1 → 4 | 1 → 4 | 1 → 5 | 1 → 5 |
+  | 1440×900, list hidden | | | 1 → 6 | | |
+  | 1920×1080 | 2 → 2 | 2 → 4 | 2 → 6 | 2 → 8 | 2 → 10 |
+  | 2000×1000 | 1 → 2 | 1 → 4 | 1 → 6 | 1 → 7 | 1 → 8 |
+
+  At 1440 with the list showing, a 6-ink job with long recipes shows 4 at a time. Short recipes show more. *Hide list* shows all 6.
+- **List cards (Stephen's screenshot):**
+  - The ink chips and *Mark ready* now share one wrapping row. The button sits to the right of the last chip line, or on its own line, so a chip can never run under it.
+  - A very long chip is cut with … (the full name is in its tooltip).
+  - Chip names are tidied: the Pantone number plus the type, with the type in its normal case and no trailing " -". "7687 DIRECT-TO-FABRIC -" now reads "7687 Direct-to-fabric".
+  - Checked with 5 chips (long Direct-to-fabric names) and an ink note, at 2000, 1920, 1440, 1024 and 390. No chip overlaps a button (bounding boxes checked on every card). v97 overlapped at 1440 and wider.
+- **Below 1400px** the same compact cards are used (one column) in place, at 1024 and on phones.
+- **Airtable writes:** the same as v97.
+  - The v97 write-compare flow (name, recipe, drag reorder, labels, notes, *Mixed today*, swatch color, remove, add from library, add new, copy/paste, reorder seed, Mark ready, Undo, a No-date note): all 16 writes are identical, in the same order.
+  - Practice mode sends 0 writes.
+  - A 10-ink job: dragging the last ink to the top in one drag gave one write with the right order, at 2000 and 1440 (column scroll) and at 1024 (page scroll).
+- **Tested** with mocked Airtable (made-up customers): no page errors, no horizontal scroll and no text under 12px at 2000, 1920, 1440, 1024 and 390.
+
 ## 2026-10-15 · v97: a bigger, static mockup; a list you can move through
 **Why:** Stephen on v96:
 - "do we need that white bar and smaller mockup above the bigger mockup"
