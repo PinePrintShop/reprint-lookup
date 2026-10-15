@@ -313,3 +313,72 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - Dragging a result wrote nothing.
   - The range updated right after a drop.
   - The v17 drag/edit flows send identical writes to v18, and practice mode made 0 writes. No page errors and no text under 12 px.
+
+## 2026-10-15 · v20: lock-in, all proofs, Mike's notes
+Mike ran the schedule on real data for a few hours. Stephen had also asked for a way to lock jobs in.
+
+### Lock in (Stephen)
+- **One job:** the job card has a **Lock in** button (Unlock once it's locked).
+- **A whole day:** the **Lock in day · N** button.
+  - Week and 3 Day: at the bottom of each day. Day view: top right. 2 Week: in each day.
+  - It locks the day's unlocked jobs on the machines shown and asks first (not in practice).
+  - Today and later only. Month has no button; open the day.
+- **What it does:** ticks the Imprints **Scheduled** checkbox. Nothing else is written, and the status doesn't change. Undo unticks.
+- **Slack:** Airtable's bots read it.
+  - Once every print on an order is ticked, "Preliminary Scheduling Notification" posts the order.
+  - After that, any start-time change posts "There has been a change to this Scheduled Job" with the new days.
+- **Moving a locked job keeps it locked.** Airtable's change bot then tells Slack the new days. The move message ends "still locked in". To take the lock off, use Unlock on the job card.
+- **Locked jobs show a small black "✓ Locked"** on their calendar cards, and a Locked tag in the list and search results. It isn't a padlock, because Airtable's Due Date Warning already uses 🔒 for "deadline today".
+
+### Mike's notes
+- **Proofs:** "WARGAME is only showing the black/orange longsleeves, as opposed to the black/blue and white/red ones too"
+  - Cause: the imprint's Proof Images lookup has one file per line item, and every version since v1 showed only the first.
+  - The job card now shows every proof, named from the file (e.g. "1301-BK-WARGAME EXTERMINATOR"). Tap one for full size. The same file on two line items shows once.
+- **Color changes:** "could be neat to display how many color changes as well, if possible"
+  - With 2 or more different proofs, a **"3 colorways"** tag shows on the job card and the side card. It counts proofs. The app doesn't try to work out the actual ink changes from the art.
+  - When the job has Ink Change time in Airtable, the job card also says "2 ink changes planned".
+- **Side cards:** "I think just the location instead would be perf!" The side cards show the imprint **Location** (Front, Back, Left Chest…) instead of the nickname. Search still finds nicknames.
+- **15-minute logic:** "For suggested allocated time, suggest in 15 minute chunks … it should automatically go to the exact end time of the previous job (instead of adding 15 mins every time)"
+  - **Job length:** a job with no Allocated time uses the estimate **rounded up to 15 min**. That's on the side card, the calendar and the Allocated box. It's the same number placing the job writes as Allocated.
+  - **Dropping a job:** it starts at the **exact end of the job before it**. There's no changeover gap (11–30 min on the presses before) and no rounding up to the next 15. Jobs after it move only if they'd overlap, to the exact end of the one before.
+  - **Lunch and gaps:** add them by hand (pick a time on the card). Gaps you leave stay.
+  - **✨ Suggest is unchanged.** It still leaves the measured gaps between jobs.
+- **End time:** "would love to see the end time when clicking the cards". The job card's Time line reads "**8:30** to **10:15** · Thu Oct 15 · 1h 45m". It updates as you type a new Allocated time.
+- **Save moved jobs:** "when I click save, it keeps removing it from the sidebar and automatically putting it on the next day"
+  - For an unscheduled job, the card's press, day and time now start **blank**.
+  - Save with no day keeps the job in the list and saves only the other edits (Allocated, notes, and the press if one was picked).
+  - Filling in a day schedules it as before. With no press picked, it uses the job's own press or the likely one.
+- **Machine chips:** "it would be better if that remains static no matter what I'm selecting at the top!" The chips now filter **only the calendar**. The Unscheduled list stays the same. ✨ Suggest still follows the chips.
+- **Job name:** "see the job name on the cards when they're on the sched in addition to the job number"
+  - Calendar cards show the customer under the ID, e.g. "WARGAME Co.". That's the name the order carries in Airtable ("8373-WARGAME Co.").
+  - Week, 3 Day and Day: its own line. 2 Week: a second line, so the days are taller. Month: after the ID, cut off when there's no room.
+- **8:30 start:** "let's change the earliest start time when I drag it on a fresh day to be 8:30, not 8am!" The first job on an empty day starts 8:30, for drops, the card's "Next open" and Suggest.
+- **Turnaround:** "would be nice to see the turnaround calculator (shows how many business days it is)"
+  - The job card has a Turnaround line, e.g. "Prints on **day 11** · due on day 14 · today is day 8 · Business days since paid Tue Oct 6".
+  - It's counted the same way as Airtable's Imprints **Turnaround Calculator**, `WORKDAY_DIFF(Payment Received, Scheduled Start)`: Mon–Fri, and the day paid is day 1. That's the same count as POM's turnaround and the Orders Turnaround field.
+  - Fridays count even with no Friday shift, as they do in Airtable.
+  - With no payment yet, it says "Not paid yet".
+
+### Tested with mocked Airtable (1440 / 1024 / 768 / 390)
+- **Side cards and chips:**
+  - Side cards show Location and "3 colorways".
+  - Picking a machine chip left the list at 10 jobs.
+  - All 52 week cards show the customer.
+- **Proofs:** 4 proof files (one a duplicate) showed as 3 proofs, with "2 ink changes planned".
+- **Unscheduled job card:**
+  - Press, day and time were blank.
+  - Save with Allocated 60 wrote only Allocated, and the job stayed in the list.
+  - Picking only a press wrote only Equipment.
+  - Picking an empty day wrote 8:30.
+- **Turnaround:** matched an independent count of Mon–Fri days from payment.
+- **Locking:**
+  - Lock in wrote only `Scheduled: true`, and Unlock wrote `false`.
+  - The day button locked 12 jobs in one go, and Undo unticked them.
+  - Moving a locked job sent no lock change.
+  - Practice mode made 0 writes.
+- **Drag/edit flows (the v17 set) compared with v19:**
+  - Allocated, notes and unschedule writes are identical.
+  - Start times differ only as intended: a drop after a 10:15 end now starts 10:15 (was 10:30), an empty day starts 8:30 (was 8:00), and pushed jobs move to the exact end.
+  - Suggest picks moved a little, because unallocated lengths now round up to 15.
+- **Search:** the v19 search test still passes.
+- **Checks:** no page errors, no text under 12 px, no pop-up button under 44 px, no sideways scroll in any view.
