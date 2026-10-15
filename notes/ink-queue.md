@@ -252,3 +252,14 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
     - `pineBusy`
   - Practice mode sent 0 writes, both from `?practice=1` and from the ⚙ switch. There were no page errors.
   - Screens at 1920×1080, 1440×900, 1024×768, 768×1024 and 390×844. No text under 12px and no horizontal scroll.
+
+## 2026-10-15 · v100: day heads in the list don't get cut off
+**Stephen** (screenshot): on the left the day heads ended in "2 im…" and "3 i…".
+- **Day heads in the narrow list (two panes):**
+  - The imprint count is a small round number at the right end. The full "2 imprints" is in the tooltip.
+  - The tags are short: "3 days" (work days; "Prints in 3 work days" in the tooltip) and "2 need".
+  - "On press today" reads "On press".
+  - No date and Completed drop their tag, since the title already says it.
+- **Day toggle:** clicking ▸ no longer leaves a box outline. The keyboard focus ring still shows.
+- **Unchanged:** wide in-place heads (below 1100px) keep the full text.
+- **Tested:** every day head at 1100, 1440 and 1920 shows its full tag and count (v99 cut all 10 at 1440). Same writes as v99.

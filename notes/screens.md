@@ -93,3 +93,11 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
   - Dragging the last of 11 inks to the top is one write in the right order at 1920, 1440, 1366, 1280, 1100 and 1024.
   - The proof stays put and is fully visible. A new imprint and ↑/↓ start the controls column at the top. Hide list still works.
   - No page errors, no text under 12px, no sideways scroll, and no list cards cut off or overlapping at 1100–2000.
+
+## 2026-10-15 · v27: print notes show the whole note
+**Stephen** (screenshot): a longer print note was cut off after two lines in the box.
+- **Cause:** v26 gave the notes box on wide screens a fixed height: one line when empty, 62px when it had text, 128px while typing. Anything longer was cut off until you clicked in.
+- **Now:** the box sizes to its text, up to about 8 lines, then scrolls. It's one line when empty. It resizes on every redraw, while typing and on window resize.
+- **Tested:**
+  - A 4-line note fits fully at 1440, 1280, 1024 and 390. In v26 at 1440 it showed 58px of 133px.
+  - Same writes as v26.
