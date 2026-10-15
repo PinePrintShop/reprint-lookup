@@ -260,3 +260,20 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - Dragged an unscheduled job onto next Wednesday. It saved Press 1, 12:15 pm, 45 min Allocated.
   - Navigated next and back, and the view choice is remembered.
   - Re-ran the v15 test on v16 (Week drops, Press 2 only, Allocated edit). All passed.
+
+## 2026-10-15 · v17: Pine page kit (same feel as the other apps)
+**Stephen OK'd the page kit:** every app gets the same bar, filter row and cards. Mike is beta testing on real data, so scheduling, the time model and every Airtable write are unchanged.
+- **Bar:** Pine mark · SCHEDULE · version · Practice tag · the views (Day / 3 Day / Week / 2 Week / Month) · ↻ Refresh · ⚙. The views moved up from the tool row into the bar. Settings and Refresh were big outline buttons.
+- **⚙ menu:** Airtable token, practice on/off, and a Settings button that opens the shop settings (Fridays, press time, Suggest). With no token, the menu opens by itself.
+- **One filter row:** ‹ Today › and the dates · machine chips on one line (they scroll sideways on a phone) · ✨ Suggest. The separate "Machines" row is gone, so the calendar starts about 90 px higher on a phone.
+- **One yellow button:** ✨ Suggest. While a suggestion is on screen, **Place all** is the yellow one.
+- **Unscheduled list:** cards use the kit list card: picture, imprint ID badge, Qty and Time on the right, job name, then the tags. They still drag the same way. Touch still needs a hold, and grabbing the picture with a mouse still works (the v16 fix).
+- **Job card pop-up:** the Save / Place buttons stay in view while the middle scrolls. Before, you had to scroll down to Save on an iPad. It uses the kit inputs and tags, and every button is at least 44 px.
+- **Small fixes:**
+  - Tapping outside the ⚙ menu closes it without also opening the card under your finger.
+  - The version shown if the update check can't load said v15.
+- **Tested with mocked Airtable** at 1440 / 1024 / 768 / 390:
+  - The same 12 drags and edits ran on v16 and v17, and the Airtable writes were identical. They covered: drops in Week, Press 2 only, Suggest → Place all, Allocated 90, a card move to Press 2 at 10:00, notes, drag back to the list + Undo, a 2 Week drop, a Day view drop, and an iPad hold-to-drag from the drawer.
+  - Practice mode made 0 writes.
+  - A quick touch swipe doesn't drag.
+  - Checked: no page errors, no text under 12 px, no button under 44 px, and no sideways page scroll.

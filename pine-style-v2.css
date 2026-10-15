@@ -245,7 +245,7 @@
 .p-bar-views button,.p-bar-views a{min-height:var(--p-tap)}                    /* bar views were 36px; touch targets are 44px */
 @media (max-width:900px){ .p-bar-views{order:9;flex:1 1 100%;overflow-x:auto;scrollbar-width:none} .p-bar-views::-webkit-scrollbar{display:none} }
 @media (max-width:420px){ .p-bar-app{font-size:16px} .p-bar-ver{font-size:12px} }   /* the version always shows (CLAUDE.md) */
-.p-chips-inline{flex:1 1 auto;order:0}                                        /* few chips: share the line with search */
+.p-chips-inline{flex:1 1 0;order:0}                                        /* few chips: share the line with search */
 /* list card: selection checkbox slot (keeps IDs lined up whether or not a card can be selected) + selected state */
 .p-lc-check{width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center}
 .p-lc.is-sel{background:var(--p-yellow-lt);border-color:var(--p-black)}
