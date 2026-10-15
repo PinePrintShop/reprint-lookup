@@ -414,3 +414,20 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - Live: put two lines in two carts, ran Order all, split a reprint (new "Shaka Wear" warehouse) and marked it ordered, and marked a PO reviewed. The PATCH/POST payloads match v106's exactly at every size.
   - Practice: no writes sent.
   - No page errors, nothing under 12px, no sideways scroll.
+
+## 2026-10-15 — v108: desktop first (two panes at 1400px and wider)
+- **Why:** Stephen confirmed Purchasing is a desktop app. Damage Log v21 showed the two-pane layout, which is now in the kit as `.p-split`.
+- **Past orders, Invoice check, Reprints at 1400px and wider:** the list is on the left and the picked PO / cart / reprint is on the right. Each pane has its own scroll and keeps it across re-draws.
+  - The first one is picked by default. Click a card or use ↑/↓ to move between them.
+  - The layout re-draws when the window crosses 1400px.
+  - **Past orders:** Mark reviewed / ✓ Reviewed sits on the picked PO, and reviewed POs show a ✓ Reviewed tag in the list. With "To review" on, marking a PO reviewed moves the picked PO to the next one. The split stays when a search finds nothing.
+  - **Reprints:** the picked reprint's form is on the right. Edits are kept while you switch, and an edited reprint you're not looking at says "Edited · not saved". Mark replacement ordered is the one yellow button.
+  - **Invoice check:** ✓ Order all is full width under the cart list.
+- **Below 1400px:** cards open in place as in v107, now full width with 24px gutters (16px on a phone).
+- **Ordering:** still three columns using the full width. The side columns grow on big screens (320/400px from 1600px, 360/440px from 1900px).
+  - Carts and "Ordered today" no longer have black header bands: white card heads, and "Ordered today" shows a ✓ PO tag.
+- ⚙ now uses the kit's `.p-menu`. The Past orders chips share the search line (`.p-chips-inline`).
+- **Tested with mocked Airtable (Playwright) at 1920×1080, 1440×900, 1024×768 and 390×844:**
+  - Same flows as v107. Live writes are identical to v107 at every size (7 writes). Practice sends no writes.
+  - ↑/↓ moves the picked PO. Both panes end at the bottom of the window. One yellow button per screen.
+  - No page errors, nothing under 12px, no sideways scroll.
