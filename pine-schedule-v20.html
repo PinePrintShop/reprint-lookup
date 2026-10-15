@@ -698,8 +698,8 @@ function cardHtml(x,ds){
   const sub=[j.qty?j.qty.toLocaleString()+(j.screens?' · '+j.screens+' scr':''):'', S.view==='day'?dur(x.len):'', j.due?'due '+md(j.due):''].filter(Boolean).join(' · ');   // v19: length only on Day; the range says it elsewhere
   return '<div class="'+cls+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'" title="'+esc(j.ID+' '+j.nick)+'">'+
     (j.proof?'<img class="bigimg" src="'+esc(j.proof)+'" alt="" loading="lazy">':'<span class="bigimg"></span>')+
-    '<div style="min-width:0;flex:1"><div class="l1">'+(S.view!=='month'?'<span class="pkc">'+(PBY[x.equip]||PBY.none).pk+'</span>':'')+'<span class="tm">'+(x.ghost?'✨ ':'')+hmr(x.min,x.len)+'</span><span class="id">'+esc(j.ID)+'</span>'+(j.locked&&!x.ghost?LOCK_SVG:'')+flagsHtml(j)+'</div>'+
-    (j.cust?'<div class="cn">'+esc(j.cust)+'</div>':'')+   // v20: the job (customer) name next to the ID (Mike)
+    '<div style="min-width:0;flex:1"><div class="l1">'+(S.view!=='month'?'<span class="pkc">'+(PBY[x.equip]||PBY.none).pk+'</span>':'')+'<span class="tm">'+(x.ghost?'✨ ':'')+hmr(x.min,x.len)+'</span><span class="id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</div>'+
+    ((j.cust||j.locked&&!x.ghost)?'<div class="cn"><span class="cnt">'+esc(j.cust)+'</span>'+(j.locked&&!x.ghost?LOCK_BADGE:'')+'</div>':'')+   // v20: the job (customer) name under the ID (Mike); locked badge
     '<div class="l2">'+esc(sub)+'</div>'+(S.view==='day'?'<div class="l2">'+esc([j.loc,j.nick].filter(Boolean).join(' · '))+'</div>':'')+'</div></div>'; }
 
 function renderCal(){

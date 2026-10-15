@@ -431,3 +431,31 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - Same flows as v107. Live writes are identical to v107 at every size (7 writes). Practice sends no writes.
   - ↑/↓ moves the picked PO. Both panes end at the bottom of the window. One yellow button per screen.
   - No page errors, nothing under 12px, no sideways scroll.
+
+## 2026-10-15 · v109: group by garment + "Dark Grey Heather" ≠ "Dark Grey"
+- **Mike's ask:** "I think it could be nice to have the option to group by garment type as well as order reference. Reason being, sometimes I get an order or two different orders getting the same garments. It makes it much easier to get them and not confuse myself when I can see them all batched together. Right now my way of doing that is just going into my Apparel RFO in airtable and grouping them by garment instead of order reference. Then I switch it back."
+- **Group by: Order / Garment** sits above the left list. The choice is remembered on this computer (`pine_purch_group`).
+- **Garment view:**
+  - The left list has one entry per style (brand + style number, across every order), under its first due date. Each entry shows its colors, pcs still to buy and its orders ("2 orders · 10985, 10990").
+  - The middle shows the style with pcs to buy, then one section per color:
+    - **To buy** grid: one row per order (order badge, customer, due), its sizes with extras (+n) and a status (To order / In cart · warehouse / ✓ PO). The last row is the combined total per size. Tapping an order badge jumps to its line card.
+    - When a color has 2+ open lines: **All n open lines · pcs from [warehouse] → Add all to cart**. The menu is ranked by stock for the combined sizes ("✓ in stock for all" / "short XL 3/10"), then ship time, with the live price. Split lines are left for their own card.
+    - Then every line card for that color, each with its order on top (badge, customer, due, print date, **Open order →**). Marking ordered, extras, splits, cost, freight, notes and garment issue all work as in order view.
+- **Order view:** a line card says **Also on 10980 →** when the same garment (style + color) is still to order on another order. Tapping it opens the garment view at that color.
+- **Carts (both views):** the same garment from several orders in one cart is now one block, with a **Combined** size grid (what gets typed into the vendor site) and each order's sizes underneath, each with its own ✕.
+- **Color bug (Mike):** "It seems that it's having trouble distinguishing between 'dark grey heather' and 'dark grey' for this hoodie. You can see it suggests to change it in airtable. However, those ARE two different colorways. … I checked 'dark grey' on sanmar and it is def pulling that one bc there is no XL stock" (Bella Canvas 3739 Dark Grey Heather).
+  - **Cause:** SanMar's pricing and inventory name colors by their short catalog color, not the full name. With no exact match, the prefix step (v98) accepted a vendor name that is the *start* of ours: "DARKGREY" starts "DARKGREYHEATHER". So price and stock came from SanMar's Dark Grey, and the v102 "SanMar spells this color Dark Grey · Fix in Airtable" hint appeared. The v103 whole-word step had the same hole the other way round ("Dark Grey" → "Dark Grey Heather").
+  - **Fix:**
+    - An exact name always wins.
+    - SanMar's catalog colors are turned into its full names with `/sanmar/productinfo` (the same call Price-o-Matic makes).
+    - The fallbacks now run in this order: abbreviations spelled out (Dk/Gry/Hthr, Gray = Grey) → same words in another order (Navy Heather = Heather Navy) → a name cut short mid-word → one word 1–2 letters off (5+ letter words, so Grey ≠ Green) → whole word.
+    - Each fallback needs exactly one vendor color to fit, and finish words (Heather, Triblend, Marble, Solid…) must agree on both sides. So Black ≠ Black Heather and Dark Grey ≠ Dark Grey Heather, whichever side is longer.
+    - "Fix in Airtable" / the vendor-color picker isn't offered when another vendor has the exact name (S&S had "Dark Grey Heather"), or for a mere abbreviation.
+  - Vendor price grids weren't touched.
+- **Tested with mocked Airtable + mocked S&S / SanMar (pricing, productinfo, inventory XML) in Playwright, 1440×900, 1024×768 and 390×844:**
+  - **Color:** v108 on the same mock reproduces the bug: SanMar $14.00 (Dark Grey's price), Cincinnati dropped as short XL, and the Fix in Airtable hint. v109 shows $15.50 at SanMar Dallas and Cincinnati ✓ in stock, with no hint. It's the same without productinfo, through the abbreviation rule.
+  - **Color rules (20 pairs):** e.g. Dark Grey vs Dark Grey Heather never match either way. Black Heather ≠ Black. Colbalt → Cobalt and Orange → Safety Orange still work.
+  - **Garment view:** BC 3739 Dark Grey Heather on 10985 + 10990 gives a To buy row of 6/14/14/10/2 = 46. +1 M updates it. Add all to SanMar Cincinnati puts both in one merged cart block. Taking one out and back in works. ✓ Ordered wrote both lines (recM2, $15.50, extra M 1) and raised the garment cost.
+  - **Navigation:** "Also on 10980" opens the garment view, Open order goes back, and the choice survives a reload.
+  - **Order view flows (carts, Order all, reprint split, mark reviewed):** writes identical to v108 at every size. Practice mode: 0 writes.
+  - **Checks:** no page errors, nothing under 12px, no sideways scroll, one yellow button on Ordering.
