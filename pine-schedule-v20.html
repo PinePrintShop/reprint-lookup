@@ -115,11 +115,13 @@ body{background:var(--p-cream-lt)}
 .id{font:800 15px/1 var(--p-sans);font-variant-numeric:tabular-nums}
 
 /* v20: customer name on calendar cards, lock mark, proofs grid, turnaround, day lock */
-.jc .cn{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.day .jc .cn{font-size:14px;white-space:normal}
-.mc .cn{overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--p-ink-2)}
+.jc .cn,.mc .cn{display:flex;gap:6px;align-items:center;min-width:0;font-weight:700;font-size:13px}
+.cnt{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day .jc .cn{font-size:14px}
+.mc .cn{flex:1 1 auto;font-weight:400;color:var(--p-ink-2)}
 .mgrid.two .mc{flex-wrap:wrap;row-gap:1px}
-.mgrid.two .mc .cn{flex:1 0 100%;white-space:nowrap;font-weight:700;color:var(--p-black)}
+.mgrid.two .mc .cn{flex:1 0 100%;font-weight:700;color:var(--p-black)}
+.lkb{flex:none;font:800 12px/1 var(--p-sans);background:var(--p-black);color:var(--p-white);border-radius:3px;padding:2px 5px;white-space:nowrap}
 .lk{width:12px;height:12px;flex:none;align-self:center}
 .proofs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
 .proofs.one{grid-template-columns:1fr}
@@ -762,7 +764,7 @@ function renderMonth(cal){
     const MAX=two?99:7;
     items.slice(0,MAX).forEach(x=>{ const j=S.jobs[x.rid]; if(!j) return; const p=PBY[x.equip]||PBY.none;
       const pkc=p.ck||'';
-      h+='<div class="mc'+(x.ghost?' ghost':'')+(j.hd?' hd':'')+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'"><span class="pk '+pkc+'">'+p.pk+'</span><b>'+(two?hmr(x.min,x.len):hm(x.min))+'</b><span class="id" style="font-size:13px">'+esc(j.ID)+'</span>'+(j.locked&&!x.ghost?LOCK_SVG:'')+flagsHtml(j)+(j.cust?'<span class="cn">'+esc(j.cust)+'</span>':'')+'</div>'; });
+      h+='<div class="mc'+(x.ghost?' ghost':'')+(j.hd?' hd':'')+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'"><span class="pk '+pkc+'">'+p.pk+'</span><b>'+(two?hmr(x.min,x.len):hm(x.min))+'</b><span class="id" style="font-size:13px">'+esc(j.ID)+'</span>'+flagsHtml(j)+(!two&&j.locked&&!x.ghost?LOCK_BADGE:'')+(j.cust||two&&j.locked?'<span class="cn"><span class="cnt">'+esc(j.cust)+'</span>'+(two&&j.locked&&!x.ghost?LOCK_BADGE:'')+'</span>':'')+'</div>'; });
     if(items.length>MAX) h+='<button class="more" onclick="openDay(\''+ds+'\')">+'+(items.length-MAX)+' more</button>';
     if(two) h+=dayLockHtml(ds);   // v20: lock a day from 2 Week too (Month: open the day)
     h+='</div>'; });
@@ -816,6 +818,8 @@ function renderSide(){
 // v20: "3 colorways" = 3 different proofs on the print's line items (Mike counts color changes from them). Only shown for 2+.
 function cwTag(j){ return j.proofs.length>1?'<span class="p-tag p-tag-soft" title="'+j.proofs.length+' different proofs on this print\'s line items">'+j.proofs.length+' colorways</span>':''; }
 const LOCK_SVG='<svg class="lk" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 5V3.6a2.5 2.5 0 0 1 5 0V5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="5" width="8" height="6.2" rx="1.2" fill="currentColor"/></svg>';
+// on calendar cards: a small labeled badge (Airtable's Due Date Warning already uses a 🔒 emoji for "deadline today")
+const LOCK_BADGE='<span class="lkb" title="Locked in: Scheduled is ticked in Airtable">✓ Locked</span>';
 function lockTag(){ return '<span class="p-tag p-tag-done locktag" title="Locked in: Scheduled is ticked in Airtable">'+LOCK_SVG+'Locked</span>'; }
 /* ---------------- v19: search scheduled jobs too ---------------- */
 function qMatch(j,q){ return (j.ID+' '+j.nick+' '+j.cust+' '+j.order).toLowerCase().includes(q); }
