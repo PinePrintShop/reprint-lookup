@@ -248,3 +248,15 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - **"Ready to Order"** (garments not ordered yet) is left out.
 - **Mockups:** Stephen wants them on Day view only, which is how it already worked. A brief try at thumbnails on Week/3 Day cards was taken back out before shipping.
 - **Imprints with no Line Items linked** are no longer listed. A note at the bottom of the Unscheduled list names them ("N imprints not shown … link them or delete them: 10957-E, …"). On Oct 14 this covered 10957-E/F, 10996-A and 10627-C/D/E/I. Their orders are real, but those print records were never connected to line items, so there's no qty, mockup or garment.
+
+## 2026-10-15 — v16: 2 Week view + mouse drag fix
+**Stephen:** add a 2 week view.
+- **2 Week** sits between Week and Month. It shows this week and next as two Mon–Fri rows, with a thicker line between the weeks.
+  - Every job is listed (Month cuts off at 7 per day). Each day shows its load for every machine (P1, P2, EM, HT, FS, FN).
+  - ‹ › moves two weeks at a time. Tap a date to open that day.
+- **Dropping a job with no press** on a Month or 2 Week day now guesses the press the way Week does: the one machine shown, or else the likely press for that kind of job (Press 1 for screen print). Before, it only said "Pick a press first".
+- **Bug fix (was in v15 too):** grabbing a job by its mockup picture with a mouse started the browser's own image drag, so the card didn't move. That image drag is now blocked. Touch on the iPads wasn't affected.
+- **Tested with mocked Airtable** at 1440 / 1024 / 390 wide:
+  - Dragged an unscheduled job onto next Wednesday. It saved Press 1, 12:15 pm, 45 min Allocated.
+  - Navigated next and back, and the view choice is remembered.
+  - Re-ran the v15 test on v16 (Week drops, Press 2 only, Allocated edit). All passed.
