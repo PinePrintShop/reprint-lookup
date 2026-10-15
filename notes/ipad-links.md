@@ -18,7 +18,7 @@
 | Operator | `pine-operator.html` | v128 |
 | Catching | `pine-catching.html` | v161 |
 | Damage Log | `damage-log.html` | v21 |
-| Ink Queue | `pine-ink-queue.html` | v96 |
+| Ink Queue | `pine-ink-queue.html` | v97 |
 | Purchasing | `pine-purchasing.html` | v109 |
 | Receiving | `receiving.html` | receiving-dashboard v76 |
 | Production Board | `pine-production-board.html` | v41 |
