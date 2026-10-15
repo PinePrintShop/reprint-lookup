@@ -280,3 +280,6 @@
 .p-split-detail>.p-lc>.p-lc-head{cursor:default}
 .p-split-empty{display:grid;place-items:center;min-height:240px;border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);color:var(--p-ink-2);font-weight:700}
 body.has-bbar .p-split-list,body.has-bbar .p-split-detail{padding-bottom:96px}
+/* kit fixes from Screens v22: empty action slots take no room; the chevron never stretches on phones */
+.p-lc-act:empty,.p-lc-nums:empty{display:none}
+@media (max-width:700px){ .p-lc-act > .p-lc-chev{flex:0 0 auto} }

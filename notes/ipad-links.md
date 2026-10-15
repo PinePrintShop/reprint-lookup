@@ -18,14 +18,14 @@
 | Operator | `pine-operator.html` | v128 |
 | Catching | `pine-catching.html` | v161 |
 | Damage Log | `damage-log.html` | v21 |
-| Ink Queue | `pine-ink-queue.html` | v94 |
-| Purchasing | `pine-purchasing.html` | v108 |
+| Ink Queue | `pine-ink-queue.html` | v95 |
+| Purchasing | `pine-purchasing.html` | v109 |
 | Receiving | `receiving.html` | receiving-dashboard v76 |
 | Production Board | `pine-production-board.html` | v41 |
-| Seps | `seps.html` | v34 |
-| Screens | `screens.html` | v21 |
+| Seps | `seps.html` | v35 |
+| Screens | `screens.html` | v22 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v18 |
+| Schedule | `pine-schedule.html` | v20 |
 | Pine Central | `pine-central.html` | v174 |
 | Price-O-Matic | `price-o-matic.html` | v105 |
 | Line Item Review | `pine-line-item-review.html` | v18 |
