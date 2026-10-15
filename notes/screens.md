@@ -67,3 +67,29 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
 - Mockup (made-up 1650×1275 landscape proof sheet), v25 with the list showing: 1440×900 574×443 · 1920×1080 862×666 · 2000×1000 910×703 (landscape with a previous-run button: 846×654 at 2000).
 - **Below 1400px unchanged** (screenshots pixel-identical to v24 at 1024, 768, 390 and 1399 wide). Same Airtable writes as v24.
 - **Tested** (Playwright, mocked Airtable, made-up customers, imprints with 10 and 11 inks) at 1440×900, 1920×1080, 2000×1000: the page and the right pane don't scroll, the proof doesn't move while the controls column scrolls (scroll wheel over the proof does nothing), the whole proof and the previous-run button are visible, the list is readable; new imprint and ↑/↓ reset the column to the top; ink drag near the column top scrolls it. All v24 flows (Imaged, Undo, link sep file, print notes, ink drag, Undo imaged, proof viewer, calendar jump) send identical writes at 1920, 1440, 1024 and 390; practice 0 writes; failed save puts the imprint back. No page errors, no text under 12px, no sideways scroll.
+
+## 2026-10-15 · v26: the open imprint never scrolls on a desktop
+**Stephen:** "looks like it still scrolls on screens is there a way to not have it ever scroll on a desktop?"
+- **Why it still scrolled:** the static two-pane layout only started at 1400px wide. A 1280 or 1366 laptop, or a 1440 screen with browser zoom, got the one-card-at-a-time layout, where the whole page scrolls. On wide screens a job with many inks also made the controls column scroll (52–68px ink rows, a 72px notes box).
+- **Two panes from 1100px** (was 1400). Below 1400 the list is 280–320px (it was 320–360 above that, unchanged).
+- **Compact controls column** (two panes only):
+  - Sep file and print notes are one line each, label on the left.
+  - Ink rows are ~38px, all on one line: handle, number, swatch, name, type tag. The name no longer repeats the type ("Pantone 186 - OW" + OW tag is now "Pantone 186" + OW tag); the full name is in the tooltip.
+  - When the inks still don't fit and there are more than 5, they go into two columns (1–5 down the left, 6–10 down the right) and the column gets a little wider for that imprint. The drag handle shows on hover there; the whole row drags.
+  - Print notes are a one-line box when empty, 2–3 lines with text, and grow while you type.
+- **Only beyond that** does the controls column scroll; the page and the right pane never do. Dragging an ink near its top or bottom still scrolls it.
+- **Does it scroll?** (page / right pane / controls column), 3, 6 and 10 inks:
+
+  | Window | v25 | v26 |
+  |---|---|---|
+  | 1100×700, 1280×720, 1366×768 | the page scrolls (one card at a time) | nothing scrolls for 3, 6 or 10 inks |
+  | 1440×900 | 10 inks: controls column scrolls 258px | nothing scrolls (10 inks in one column) |
+  | 1536×864 | 6 inks: column scrolls 20px; 10 inks: 244px | nothing scrolls |
+  | 1920×1080 | nothing scrolls | nothing scrolls |
+  | 2000×1000 | 10 inks: column scrolls 76px | nothing scrolls |
+- **Below 1100px unchanged:** screenshots are pixel-identical to v25 at 390, 768, 1024 and 1099 wide.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - Imaged, Undo, link sep file, print notes, ink drag, Undo imaged, proof viewer and calendar jump send the same writes as v25 at 1920, 1440, 1366, 1280, 1100, 1024 and 390, live and with a failed save. Practice mode sends 0.
+  - Dragging the last of 11 inks to the top is one write in the right order at 1920, 1440, 1366, 1280, 1100 and 1024.
+  - The proof stays put and is fully visible. A new imprint and ↑/↓ start the controls column at the top. Hide list still works.
+  - No page errors, no text under 12px, no sideways scroll, and no list cards cut off or overlapping at 1100–2000.

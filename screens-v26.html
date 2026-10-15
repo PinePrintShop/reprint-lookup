@@ -2907,7 +2907,7 @@ function fitInks() {
   rowsEl.style.setProperty('--ink-rows', Math.ceil(n / 2));
   var keep = C.scrollTop;
   body.classList.remove('ink-2col');
-  if (n > 5 && C.scrollHeight > C.clientHeight + 1) body.classList.add('ink-2col');
+  if (n > 5 && C.scrollHeight > C.clientHeight) body.classList.add('ink-2col');
   C.scrollTop = keep;
 }
 var fitTimer = 0;
