@@ -3,7 +3,7 @@
 ## Which device each app is built for (Stephen, 2026-10-15)
 - **iPad (floor, touch, 56px buttons):** Operator, Catching.
 - **Desktop (mouse, wide screens, use the full width):** Purchasing, Receiving, Seps, Screens, Ink, Damage Log.
-- **Also desktop** (Stephen confirmed): Schedule, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup.
+- **Also desktop** (Stephen confirmed): Schedule, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup, Sales Targets.
 - **Wall TV:** Production Board.
 - Pine Central: not listed yet.
 - Every app still has to work on an iPad and a phone. The list sets which layout gets designed first and tested hardest.
@@ -22,7 +22,7 @@
 | Purchasing | `pine-purchasing.html` | v109 |
 | Receiving | `receiving.html` | receiving-dashboard v76 |
 | Production Board | `pine-production-board.html` | v41 |
-| Seps | `seps.html` | v36 |
+| Seps | `seps.html` | v37 |
 | Screens | `screens.html` | v23 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v20 |
@@ -30,6 +30,7 @@
 | Price-O-Matic | `price-o-matic.html` | v105 |
 | Line Item Review | `pine-line-item-review.html` | v18 |
 | Create order | `create-order.html` | v17 |
+| Sales Targets (desktop office app) | `sales-targets.html` | v1 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 

@@ -63,6 +63,20 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - The Hide list choice is still there after a reload.
   - No page errors, no text under 12px and no sideways scroll at 2000, 1440, 1024 or 390.
 
+## 2026-10-15 · v37: list cards fixed; dragging an ink scrolls the job
+**Stephen** sent a screenshot where "✓ ORDERED / ✓ SEP FILE" sat on top of "WHITNEY ✕". He also said: "the pantone cards are hard to move around like if I try to scroll up it doesn't move the screen and I have to move them one at a time instead of taking the lowest and moving it to the top".
+- **List cards on wide screens:**
+  - **Cause:** in v36 the claim shared the tag row, which squeezed the tags into about 55px, so they spilled over the claim tag.
+  - **Now:** the claim (+ Claim, or a name with ✕) gets its own row under the tags, on the right.
+- **Dragging an ink:**
+  - Hold it within about 90px of the top or bottom of the job and the job scrolls. The nearer the edge, the faster it scrolls.
+  - The bottom edge counts as the top of the Mark sep'd bar, which used to cover it.
+  - Works in the right pane on wide screens and on the page itself on smaller screens.
+  - The lowest ink can now go straight to the top in one drag.
+- **Tested:**
+  - Comparing v36 and v37, a drag from the bottom ink to the top sends the same single write.
+  - The card was screenshotted before and after.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.
