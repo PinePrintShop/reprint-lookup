@@ -76,3 +76,26 @@ The production manager's desk view of Order Issues. Used mostly on a laptop, som
   - The live write payloads match v18 field for field.
   - Practice mode sent 0 writes. There were no page errors.
   - At 1440×900 and 1024×768: hidden on an order needing approval (10501) and on an approved-but-unsent order (10503), shown on an order already sent (10506).
+
+## 2026-10-15 · v20
+**Why:** the Pine page kit, so the Damage Log feels like the other apps (same bar, one filter row, one list card, yellow only for your next move).
+- **Bar:** logo square, DAMAGE LOG, version, practice pill, then *Orders* (with the order count) / *Trends* as bar views, then *↻ Refresh* and *⚙*.
+  - The token and the practice switch moved into the ⚙ menu (the separate *Practice* / *Leave practice* button and the token strip are gone). The menu opens by itself when there's no token, and closes on a tap outside or Esc.
+- **One filter row:** search · date range · filter chips. The chips stay on one line and scroll sideways (they used to wrap to two rows on iPads). On Trends the *All / Apparel / Bandanas* switch is the chips (the separate "Show:" row is gone) and sits on the same line as the range.
+- **Page head:** ORDERS · "7 orders · $126.00 refunds need approval" · *Select all N to approve* on the right.
+- **Order cards** are the kit list card: checkbox · order # badge · customer, with "Last issue Oct 13 · 2 issues · 5 pcs" under it · Refund / Reprint would cost / Bandanas · one action. Status tags sit on the second row.
+  - The action is *Approve all N*. With nothing left to approve but a refund not sent, it's *✉ Send to bookkeeper*, so that takes one tap from the list.
+  - Cards open in place, one at a time. The tapped card stays put on screen when the one above it closes.
+  - Bandanas only shows when there are bandana costs. Selected cards get a yellow wash.
+- **Say it once:** the "N awaiting review" tag is gone (the *Approve all N* button says it), and so is the "N issues · N pcs" tag (it's in the line under the customer).
+- **Tag colors follow the kit:** "Reprint needs approval" is yellow (it needs you, it isn't a problem), and "Reprint in progress" is cream (a fact). Red stays for refund not sent, possible duplicate and negative qty.
+- *Approve selected* on the batch bar is still the only yellow button.
+- **Small fixes:**
+  - The batch bar stays visible when a filter or search hides the selected orders.
+  - The "didn't send" toast now names the real button (*Send to bookkeeper*).
+  - On iPad portrait, the mockup thumbnails on the card header are hidden and the money labels wrap, so the customer name has room.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The v19 flows ran on v20: approve, send an unsent refund, change a resolution, delete a duplicate, batch approve, mark a reprint done, mark a refund issued, and Trends. The live write payloads match v19 field for field (13 writes), with the same confirm texts.
+  - Practice sent 0 writes. A double tap on Send still makes 1 Order write. There were no page errors.
+  - Checked: no token, the ⚙ practice switch, a tap outside the menu, and one card open at a time.
+  - Screens at 1440×900, 1024×768, 768×1024 and 390×844: no text under 12px, no horizontal scroll, no control under 44px (the bar view tabs are 36px, as the kit sets them), chips on one line, and one yellow button.

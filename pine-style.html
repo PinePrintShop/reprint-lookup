@@ -142,6 +142,23 @@ body{margin:0}
  </div>
 </div></section>
 
+<section class="sec"><span class="p-section">Page kit</span>
+<p>Added Oct 15, so the apps feel the same as well as look the same: the same bar order, one filter row, one list card, and yellow only for your next move. Each app picks these up in its next version.</p>
+<div class="mock">
+ <div class="p-bar" style="position:static"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Damage Log</span><span class="p-bar-ver">v20</span><span class="p-tag p-tag-wait">Practice</span>
+  <nav class="p-bar-views" aria-label="Views"><button class="is-on">Orders <span class="p-count">7</span></button><button>Trends</button></nav>
+  <div class="p-bar-sp"><button class="p-barbtn">↻ <span class="p-barbtn-word">Refresh</span></button><button class="p-barbtn p-barbtn-icon" aria-label="Settings">⚙</button></div></div>
+ <div class="p-filters"><input class="p-input p-search" placeholder="Order # or customer" aria-label="Search"><div class="p-filters-end"><select class="p-input" aria-label="Range"><option>Last 90 days</option></select></div>
+  <div class="p-chips" role="tablist"><button class="p-tab is-on">Needs approval <span class="p-count">2</span></button><button class="p-tab">Not sent <span class="p-count">1</span></button><button class="p-tab">Awaiting review <span class="p-count">4</span></button><button class="p-tab">Check these <span class="p-count">1</span></button><button class="p-tab">Reprints <span class="p-count">2</span></button><button class="p-tab">All <span class="p-count">7</span></button></div></div>
+ <div class="in">
+  <div class="p-head"><span class="p-section">Orders</span><span class="p-head-sum"><b>2</b> need approval · <b>$126.00</b></span><div class="p-head-end"><button class="p-btn">Select all 2</button></div></div>
+  <div class="p-lc"><div class="p-lc-head is-tap"><span class="p-lc-id"><span class="p-lc-chev">▸</span><span class="p-id p-id-lg">10501</span></span><span class="p-lc-main"><span class="p-lc-title">Maple Hollow Coffee</span><span class="p-lc-sub">Last issue Oct 13 · 2 issues · 5 pcs</span></span><span class="p-lc-nums"><span class="p-num"><small>Refund</small><b>$38.00</b></span><span class="p-num is-quiet"><small>Reprint</small><b>$38.40</b></span></span><span class="p-lc-act"><button class="p-btn p-btn-dark">✓ Approve all 2</button></span><span class="p-lc-tags"><span class="p-tag p-tag-wait">Needs approval</span><span class="p-tag p-tag-soft">Print team</span></span></div></div>
+  <div class="p-lc is-open"><div class="p-lc-head is-tap"><span class="p-lc-id"><span class="p-lc-chev">▾</span><span class="p-id p-id-lg">10504</span></span><span class="p-lc-main"><span class="p-lc-title">Northside Running Club</span><span class="p-lc-sub">Last issue Oct 9 · 2 issues · 4 pcs</span></span><span class="p-lc-nums"><span class="p-num"><small>Refund</small><b>$88.00</b></span><span class="p-num is-quiet"><small>Reprint</small><b>$51.00</b></span></span><span class="p-lc-act"><button class="p-btn p-btn-dark">✓ Approve all 2</button></span><span class="p-lc-tags"><span class="p-tag p-tag-wait">Needs approval</span><span class="p-tag p-tag-alert">Possible duplicate</span></span></div>
+   <div class="p-lc-body"><div class="p-note">The open card's details go here. One card open at a time.</div></div></div>
+  <div class="p-btns p-btns-end" style="margin-top:16px"><button class="p-btn p-btn-main p-btn-lg">✓ Approve selected</button></div>
+ </div>
+</div></section>
+
 <section class="sec"><span class="p-section">Rules</span>
 <ol class="rules">
  <li>One yellow main button per screen.</li>
@@ -151,18 +168,23 @@ body{margin:0}
  <li>Nothing smaller than 12px. Touch targets at least 44px; 56px on the floor iPads.</li>
  <li>Order and imprint IDs are always the black-and-yellow badge.</li>
  <li>Pop-ups and toasts look and behave the same in every app.</li>
+ <li>The bar always runs: logo, app name, version, practice, the app's own views, then Refresh and ⚙ on the right. Token and practice live inside ⚙.</li>
+ <li>One filter row under the bar: search, chips on one line (they scroll sideways), sort on the right.</li>
+ <li>Lists use one card: ID, name and one sub-line, numbers on the right, one action. Tags on a second row. It opens in place, one at a time.</li>
+ <li>Yellow is your next move: one yellow button per screen, and yellow tags only for "needs you". Card actions are black or outlined; facts are cream.</li>
 </ol></section>
 
 <section class="sec"><span class="p-section">Moving the apps over</span>
 <p>Each app switches to this style in its next version, like the self-update rule. No big rewrite.</p>
 <div class="tablebox"><table class="status"><thead><tr><th>App</th><th>Today</th><th>Style v2</th></tr></thead><tbody>
-<tr><td>Operator</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
-<tr><td>Catching</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
-<tr><td>Damage Log</td><td>Shared v1</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Operator</td><td>Own colors</td><td><span class="p-tag p-tag-done">Done · v127</span></td></tr>
+<tr><td>Catching</td><td>Own colors</td><td><span class="p-tag p-tag-done">Done · v159</span></td></tr>
+<tr><td>Damage Log</td><td>Shared v1</td><td><span class="p-tag p-tag-done">Done · v18</span></td></tr>
 <tr><td>Line Item Review</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
 <tr><td>Create order</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
 <tr><td>Price-O-Matic</td><td>Own colors</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
-<tr><td>Purchasing · Receiving · Ink Queue</td><td>Mixed</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
+<tr><td>Purchasing · Receiving · Schedule</td><td>Mixed</td><td><span class="p-tag p-tag-done">Done · v106 · v73 · v16</span></td></tr>
+<tr><td>Ink Queue</td><td>Mixed</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
 <tr><td>Production Board · Seps · Screens · Day Fill · Pine Central</td><td>Mixed</td><td><span class="p-tag p-tag-wait">Next version</span></td></tr>
 </tbody></table></div></section>
 

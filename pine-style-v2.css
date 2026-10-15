@@ -167,3 +167,92 @@
 /* ---------- wall TV: everything one step bigger ---------- */
 .p-tv{font-size:20px}
 .p-tv .p-label,.p-tv .p-tag{font-size:16px}
+
+/* =====================================================================
+   PAGE KIT (2026-10-15) — so the apps feel the same, not just look the same.
+   Stephen OK'd the six rules on the "Pine App Feel Check" page. Additive: nothing above changes.
+   1. Bar order:  .p-mark · .p-bar-app · .p-bar-ver · practice .p-tag-wait · .p-bar-views (the app's own views)
+                  · .p-bar-sp → .p-barbtn Refresh (icon + word) · .p-barbtn ⚙ (token + practice live inside ⚙)
+   2. Filters:    one .p-filters row under the bar: search · chips (one line, scrolls sideways) · sort/end
+   3. List card:  .p-lc — ID · name + one sub-line · numbers (.p-num) · one action; tags on row 2; opens in place
+   4. Yellow:     one .p-btn-main per screen = your next move. Per-card actions are .p-btn / .p-btn-dark.
+                  Yellow tags (.p-tag-wait) only for "needs you"; facts are .p-tag-soft, done is .p-tag-done.
+   5. Opening:    lists open records in place (.p-lc.is-open + .p-lc-body), one at a time; pop-ups only for quick choices.
+   6. Central wears the same bar.
+   ===================================================================== */
+
+/* 1 — bar: the app's own views (tabs) and the two standard buttons */
+.p-bar-views{display:flex;gap:4px;padding:4px;border-radius:var(--p-pill);background:rgba(255,255,255,.1)}
+.p-bar-views button,.p-bar-views a{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border:0;border-radius:var(--p-pill);
+  background:transparent;color:var(--p-white);font:800 var(--p-fs-s)/1 var(--p-sans);cursor:pointer;text-decoration:none;white-space:nowrap}
+.p-bar-views .is-on,.p-bar-views [aria-selected="true"]{background:var(--p-yellow);color:var(--p-black)}
+.p-bar-views .p-count{font:800 var(--p-fs-xs)/1 var(--p-sans);background:rgba(255,255,255,.18);border-radius:var(--p-pill);padding:3px 7px}
+.p-bar-views .is-on .p-count{background:var(--p-black);color:var(--p-yellow)}
+.p-barbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--p-tap);min-width:var(--p-tap);padding:0 14px;
+  border:1.5px solid rgba(255,255,255,.45);border-radius:var(--p-r);background:transparent;color:var(--p-white);font:800 var(--p-fs-s)/1 var(--p-sans);cursor:pointer;white-space:nowrap}
+.p-barbtn:hover{border-color:var(--p-white);background:rgba(255,255,255,.08)}
+.p-barbtn-icon{padding:0}                      /* ⚙ only */
+@media (max-width:600px){ .p-barbtn .p-barbtn-word{display:none} .p-barbtn{padding:0} }
+
+/* 2 — one filter row under the bar */
+.p-filters{display:flex;align-items:center;gap:var(--p-s2) var(--p-s3);flex-wrap:wrap;padding:var(--p-s3) max(16px,env(safe-area-inset-right,0px)) var(--p-s3) max(16px,env(safe-area-inset-left,0px));
+  background:var(--p-white);border-bottom:1px solid var(--p-line)}
+.p-filters .p-search{flex:1 1 220px;min-width:0;max-width:420px}
+.p-chips{display:flex;gap:6px;flex:1 1 100%;order:3;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px;min-width:0}
+.p-chips::-webkit-scrollbar{display:none}
+.p-chips .p-tab{flex:0 0 auto}
+.p-filters-end{margin-left:auto;display:flex;gap:var(--p-s2);align-items:center}
+
+/* page head: title box + one-line summary + (optional) controls on the right */
+.p-head{display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap;margin:var(--p-s5) 0 var(--p-s3)}
+.p-head .p-section{margin:0}
+.p-head-sum{color:var(--p-ink-2);font-size:var(--p-fs-s)}
+.p-head-sum b{color:var(--p-black)}
+.p-head-end{margin-left:auto;display:flex;gap:var(--p-s2);align-items:center;flex-wrap:wrap}
+
+/* 3 — the list card */
+.p-lc{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
+.p-lc + .p-lc{margin-top:var(--p-s2)}
+.p-lc-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"id main nums act" ". tags tags tags";
+  gap:var(--p-s2) var(--p-s4);align-items:center;padding:var(--p-s3) var(--p-s4);min-height:var(--p-tap-lg)}
+.p-lc-head[role="button"],.p-lc-head.is-tap{cursor:pointer}
+.p-lc-id{grid-area:id;display:flex;gap:var(--p-s2);align-items:center}
+.p-lc-main{grid-area:main;min-width:0}
+.p-lc-title{display:block;font:800 var(--p-fs-m)/1.25 var(--p-sans);overflow-wrap:anywhere}
+.p-lc-sub{display:block;font-size:var(--p-fs-s);color:var(--p-ink-2);margin-top:2px}
+.p-lc-nums{grid-area:nums;display:flex;gap:var(--p-s4);align-items:flex-end}
+.p-lc-act{grid-area:act;display:flex;gap:var(--p-s2);align-items:center}
+.p-lc-tags{grid-area:tags;display:flex;gap:6px;flex-wrap:wrap}
+.p-lc-tags:empty{display:none}
+.p-num{text-align:right;line-height:1.1}
+.p-num small{display:block;font:800 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.03em;color:var(--p-ink-2)}
+.p-num b{font:800 17px/1.2 var(--p-sans);font-variant-numeric:tabular-nums}
+.p-num.is-quiet b{color:var(--p-ink-3)}
+.p-num.is-alert b{color:var(--p-alert)}
+.p-lc-chev{width:20px;color:var(--p-ink-3);font-weight:800;text-align:center}
+.p-lc.is-open{border:2px solid var(--p-black)}
+.p-lc.is-done .p-lc-title{color:var(--p-ink-3)}
+.p-lc-body{border-top:1px solid var(--p-line);background:var(--p-cream-lt);padding:var(--p-s4);display:flex;flex-direction:column;gap:var(--p-s3)}
+@media (max-width:700px){
+  .p-lc-head{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"id main" "nums nums" "tags tags" "act act"}
+  .p-lc-nums{justify-content:flex-start}
+  .p-num{text-align:left}
+  .p-lc-act > *{flex:1 1 auto}
+}
+
+/* ---------- PAGE KIT fixes after the first three apps (Damage Log v20, Purchasing v107, Oct 15) ---------- */
+[hidden].p-tag,[hidden].p-barbtn,[hidden].p-btn,[hidden].p-lc,[hidden].p-chips,[hidden].p-tab{display:none!important}  /* `hidden` must win over inline-flex */
+.p-bar-views button,.p-bar-views a{min-height:var(--p-tap)}                    /* bar views were 36px; touch targets are 44px */
+@media (max-width:900px){ .p-bar-views{order:9;flex:1 1 100%;overflow-x:auto;scrollbar-width:none} .p-bar-views::-webkit-scrollbar{display:none} }
+@media (max-width:420px){ .p-bar-ver{display:none} .p-bar-app{font-size:16px} }
+.p-chips-inline{flex:1 1 auto;order:0}                                        /* few chips: share the line with search */
+/* list card: selection checkbox slot (keeps IDs lined up whether or not a card can be selected) + selected state */
+.p-lc-check{width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center}
+.p-lc.is-sel{background:var(--p-yellow-lt);border-color:var(--p-black)}
+.p-lc.is-sel .p-lc-body{background:var(--p-white)}
+/* ⚙ menu: a small card that drops from the gear (token, practice, other settings) */
+.p-menu{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(100% + 6px);z-index:40;width:min(340px,calc(100vw - 32px));
+  background:var(--p-white);color:var(--p-black);border:2px solid var(--p-black);border-radius:var(--p-r-lg);box-shadow:var(--p-shadow);padding:var(--p-s4);display:grid;gap:var(--p-s3)}
+.p-menu-row{display:grid;gap:6px}
+.p-menu-row + .p-menu-row{border-top:1px solid var(--p-line);padding-top:var(--p-s3)}
+.p-menu-label{font:800 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.03em;color:var(--p-ink-2)}
