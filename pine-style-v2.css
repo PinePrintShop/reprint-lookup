@@ -241,7 +241,7 @@
 }
 
 /* ---------- PAGE KIT fixes after the first three apps (Damage Log v20, Purchasing v107, Oct 15) ---------- */
-[hidden].p-tag,[hidden].p-barbtn,[hidden].p-btn,[hidden].p-lc,[hidden].p-chips,[hidden].p-tab{display:none!important}  /* `hidden` must win over inline-flex */
+[hidden].p-tag,[hidden].p-barbtn,[hidden].p-btn,[hidden].p-lc,[hidden].p-chips,[hidden].p-tab,[hidden].p-menu{display:none!important}  /* `hidden` must win over inline-flex */
 .p-bar-views button,.p-bar-views a{min-height:var(--p-tap)}                    /* bar views were 36px; touch targets are 44px */
 @media (max-width:900px){ .p-bar-views{order:9;flex:1 1 100%;overflow-x:auto;scrollbar-width:none} .p-bar-views::-webkit-scrollbar{display:none} }
 @media (max-width:420px){ .p-bar-ver{display:none} .p-bar-app{font-size:16px} }
