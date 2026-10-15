@@ -1,7 +1,7 @@
 # Receiving dashboard
 
 ## What the app does
-- Permanent link: `receiving.html` (the iPad icon). Files are `receiving-dashboard-vNN.html`. `receiving-dashboard.html` is an old full copy; don't use it.
+- Runs on a **desktop** (Stephen, Oct 15), not the iPad. Permanent link: `receiving.html`. Files are `receiving-dashboard-vNN.html`. `receiving-dashboard.html` is an old full copy; don't use it.
 - Lists the garment lines that are ordered and not yet received, grouped by order and by print date. Lines that are open mis-ships, or that were received in the last 24h, also show.
 - **Receive a line:** count the box and type a count only where a size is different. Then tap Receive. A difference opens a check that can flag a mis-ship.
   - Writes the Line Item's Actual sizes and Received ✓.
@@ -14,6 +14,33 @@
 - **Printing:** after a receive, a panel walks through box labels (4×6, with the Box Logic Feedback "correct?" bar) and then the job sheet.
 - **Practice mode:** `?practice=1`, or ⚙ → Practice. Nothing is saved. That includes the status change and box feedback.
 - **Airtable token:** stored on the device. Set it under ⚙ → Airtable token.
+
+## 2026-10-15 · v76: desktop first, two panes
+**Why:** Receiving runs on a desktop, so it should use the width.
+
+**What changed:**
+- **At 1400px and wider, two panes** (kit `.p-split`, the same pattern as Damage Log v21):
+  - Left: the order list with its date labels.
+  - Right: the picked order, with the prints, the lines, the counting table and Receive.
+  - Each pane scrolls on its own.
+  - The first order is picked when the page opens. Click an order, or use ↑/↓, to move.
+  - The picked order opens its first waiting line, so you can start counting right away.
+  - The page re-draws when the window crosses 1400px.
+- **Below 1400px:** cards open in place as in v75, now full width with 24px gutters. At 1400px and wider the filter chips share one line with search.
+- **Typed counts:**
+  - They stay when you switch orders or Refresh, as in v74.
+  - A list card shows **Counts typed** so they aren't forgotten.
+  - They still count as busy for self-update.
+- **Fixed:** the Total row now counts blank sizes as "all there", the same way Receive does. Before, typing M = 8 of 10 showed "8 · −24"; now it shows "30 · −2".
+- No Airtable changes.
+
+**Tested:**
+- Payloads are identical to v75 at 1920, 1440, 1024 and 390 wide: receive, receive with a count off, mis-ship, staging + Undo, resolve, All here.
+- Typed counts survive switching orders and Refresh at every width.
+- ↑/↓ moves to the next order.
+- Practice mode sent 0 writes.
+- Self-update: moves when idle, and shows the bar when counts are typed.
+- No page errors, nothing under 12px, and no sideways scroll.
 
 ## 2026-10-15 · v75: Pine page kit
 **Why:** the apps should feel the same, not just look the same. Receiving now matches Damage Log v20 and Purchasing v107.

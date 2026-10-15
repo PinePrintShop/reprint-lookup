@@ -277,3 +277,15 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
   - Practice mode made 0 writes.
   - A quick touch swipe doesn't drag.
   - Checked: no page errors, no text under 12 px, no button under 44 px, and no sideways page scroll.
+
+## 2026-10-15 · v18: Ready to Order jobs show again
+**Stephen:** "can you see why the Scheduler isn't pulling in the jobs that got pushed through yesterday / today… It should show up when it is ready to order."
+- **Cause:** v15 started the list at **Ordered - In Production**, after Stephen's earlier "Garments ordered on". The orders moved forward yesterday and today were at **Ready to Order**, so the Schedule skipped them. In Airtable, Oct 15, every recent unscheduled print was on an order still at Awaiting Proof, Sent - Awaiting Payment or Ready to Order.
+- **Now:** the list and ✨ Suggest start at **Ready to Order**.
+  - Those jobs carry a yellow **"Garments not ordered"** tag.
+  - Suggest places them no sooner than **4 workdays out** (order + ship), unless the line has an arrival date. Jobs whose garments are ordered but not in yet keep the 2-workday rule.
+- **Tested with mocks:**
+  - The Airtable formula now includes Ready to Order.
+  - The tag shows on the side card.
+  - With today set to Wed 10/14, Suggest put a Ready to Order job on Tue 10/20 and a not-received job on Mon 10/19 (Friday has no shift).
+  - The 12 v17 drag/edit flows send identical writes on v18.
