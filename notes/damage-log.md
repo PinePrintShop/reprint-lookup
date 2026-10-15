@@ -66,3 +66,13 @@ The production manager's desk view of Order Issues. Used mostly on a laptop, som
   - The live write payloads match v17 field for field. The one difference is the dropped "$0.00" line.
   - Practice mode sent 0 writes. There were no page errors.
   - Screens at 1440×900, 1024×768, 768×1024 and 390×844. No text under 12px, no horizontal scroll, no visible control under 44px.
+
+## 2026-10-15 · v19
+**Why:** "Mark refund issued" showed while the refund was still waiting for approval, or approved but not sent. The bookkeeper can't issue a refund they haven't been asked for.
+- **QuickBooks step after the request:** *Copy refund for QuickBooks* and *Mark refund issued* now show only once a refund request has gone to the bookkeeper (at least one refund issue on the order is *In Refund Request*), or once the order is already marked Refund Issued (so *Undo refund issued* stays reachable).
+  - Copy goes with Mark issued because both belong to the bookkeeper's QuickBooks step.
+  - The *QuickBooks invoice* link and *Order in Airtable* still show at every step.
+- **Tested** (same mocks as v18):
+  - The live write payloads match v18 field for field.
+  - Practice mode sent 0 writes. There were no page errors.
+  - At 1440×900 and 1024×768: hidden on an order needing approval (10501) and on an approved-but-unsent order (10503), shown on an order already sent (10506).

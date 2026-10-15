@@ -301,3 +301,15 @@ Trimmed wording that repeated itself:
   - Live-mode writes are identical to v158, except the corrected handoff text. Practice sends no writes.
   - Update check: idle iPad reloads with the job open; busy shows the bar.
   - No page errors and no text under 12px.
+
+## v160 — bandana headline says what's left to catch (Oct 15)
+- **Why:** before anything was caught, the bandana headline said "0 · ORDER COMPLETE". Sizes nobody has tapped count as caught, so the screen claimed the order was done before the catcher started.
+- **Now:**
+  - Until the line item is Done, it says "**50** TO CATCH" (the line item's pieces).
+  - Once damage is tallied, it still says "N more to print to complete".
+  - After Done, the existing wording shows.
+- Other job types don't have a headline like this. The Done button's "30/30 caught" is a preview of what Done will save, so it stays.
+- **Tested** with the v159 mocks at 1024×768, 768×1024 and 390×844, before and after:
+  - Live writes are identical to v159 in the main, pack, unsure and bandana flows.
+  - Practice sent 0 writes.
+  - No page errors.

@@ -34,7 +34,7 @@
     b.setAttribute('style','position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483000;background:#141412;color:#fff;border-radius:12px;padding:10px 12px 10px 16px;display:flex;gap:12px;align-items:center;font:700 14px Helvetica,Arial,sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.35)');
     b.innerHTML='<span>New version ready (v'+nv+')</span>';
     var go=document.createElement('button'); go.textContent='Update now';
-    go.setAttribute('style','background:#E8E832;color:#141412;border:0;border-radius:8px;font:800 14px Helvetica,Arial,sans-serif;padding:9px 14px;cursor:pointer');
+    go.setAttribute('style','background:#FBE122;color:#141412;border:0;border-radius:8px;font:800 15px Helvetica,Arial,sans-serif;padding:12px 16px;min-height:44px;cursor:pointer');
     go.onclick=function(){ location.replace(url); }; b.appendChild(go); document.body.appendChild(b);
   }
   setTimeout(check,20000);
