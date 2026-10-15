@@ -313,3 +313,27 @@ Trimmed wording that repeated itself:
   - Live writes are identical to v159 in the main, pack, unsure and bandana flows.
   - Practice sent 0 writes.
   - No page errors.
+
+## v161 — Pine page kit around the work screen (Oct 15)
+- **Why:** Stephen wants every app to feel the same (`pine-style-v2.css` "PAGE KIT"). The tally/work screen is purpose-built and stays as it was.
+- **Top bar:**
+  - Logo · CATCHING · version · yellow "Practice" tag.
+  - The presses are the app's views (`.p-bar-views`), each with its color dot and job count. Completed is a view too. On a narrow iPad the presses use short names, and on a phone they get their own row.
+  - Then ↻ Refresh (the word hides on the iPad) and ⚙.
+- **⚙ menu:**
+  - Airtable token: Change / Add token. A yellow dot shows on ⚙ while no token is set.
+  - Practice mode: Turn on / Turn off, which reloads with or without `?practice=1`. Reset practice tallies sits here while practice is on.
+  - These replace the old practice pill and the 🔑 "Change Airtable token" link at the bottom of Completed.
+- **Completed:**
+  - A `.p-head` with "Completed" and "N jobs · N pcs caught today".
+  - "Packing slip for any order" is the one yellow button.
+  - Each order is a `.p-lc` card: order #, customer, garments, Jobs/Pcs, and a ✓ Caught time. Its own 🖨 Packing slip button is plain.
+  - A card opens in place, one at a time, to show its line items: imprint IDs, location, pcs and time. Tapping one shows the proof.
+- **Order complete / hand off / pack pop-ups:** one `.p-modal` shell.
+  - Title plus the order # badge, then a body, then actions at the bottom right with the main one last: Next ▸ / ✓ Hand off / 🖨 Packing slip.
+  - Undo and "Ship my part now instead" are quiet links.
+- **Not changed:** Airtable reads and writes, the work screen, the self-update.
+- **Tested** with mocked Airtable at 1024×768, 768×1024 and 390×844.
+  - Live writes are identical to v160 in the main, pack, unsure and bandana flows. Practice sent 0 writes.
+  - ⚙ opens, closes on an outside tap, and practice on reloads with `?practice=1`.
+  - The idle self-update still reloads, and no page errors.
