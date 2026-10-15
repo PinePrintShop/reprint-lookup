@@ -1123,7 +1123,7 @@ function openCard(rid,ghost){
 // v20: pop-up pieces
 function proofsHtml(j){ const ps=j.proofs; if(!ps.length) return j.proofLg?'<img class="proof" src="'+esc(j.proofLg)+'" alt="Seps file">':'';
   const inks=Math.round((j.inkChg||0)/1500);
-  return '<div class="proofs-h"><span class="p-label">'+(ps.length>1?ps.length+' proofs':'Proof')+'</span>'+cwTag(j)+(inks?'<span class="p-tag p-tag-soft" title="From Ink Change time in Airtable">'+inks+' ink change'+(inks===1?'':'s')+' planned</span>':'')+'</div>'+
+  return '<div class="proofs-h"><span class="p-label">Proof'+(ps.length>1?'s':'')+'</span>'+cwTag(j)+(inks?'<span class="p-tag p-tag-soft" title="From Ink Change time in Airtable">'+inks+' ink change'+(inks===1?'':'s')+' planned</span>':'')+'</div>'+
     '<div class="proofs'+(ps.length===1?' one':'')+'">'+ps.map(x=>'<a href="'+esc(x.full||x.lg||x.sm)+'" target="_blank" rel="noopener" title="Open full size"><img class="proof" src="'+esc(ps.length===1?(x.lg||x.sm):x.sm)+'" alt="Proof '+esc(x.name)+'" loading="lazy">'+(ps.length>1&&x.name?'<span>'+esc(x.name)+'</span>':'')+'</a>').join('')+'</div>'; }
 function whenHtml(j,ds,min,len){ return '<b>'+hm(min)+'</b> to <b>'+hm(min+Math.round(len))+'</b> · '+wd(ds)+' '+md(ds)+' · '+dur(len); }
 function liveWhen(){ const el=document.getElementById('mWhen'), j=S.jobs[S.modalRid]; if(!el||!j) return;
@@ -1137,7 +1137,7 @@ function taHtml(j,ds){
   if(ds) parts.push('prints on <b>day '+wdIncl(j.paid,ds)+'</b>');
   if(j.due) parts.push('due on day '+wdIncl(j.paid,j.due));
   if(!ds||t<=ds) parts.push('today is day '+wdIncl(j.paid,t));
-  return '<span class="ta">'+parts.join(' · ').replace(/^p/,'P').replace(/^d/,'D').replace(/^t/,'T')+'</span><span class="p-hint" style="display:block">Business days since paid '+wd(j.paid)+' '+md(j.paid)+', like Airtable\'s Turnaround Calculator.</span>'; }
+  return '<span class="ta">'+parts.join(' · ').replace(/^p/,'P').replace(/^d/,'D').replace(/^t/,'T')+'</span><span class="p-hint" style="display:block" title="Counted like Airtable\'s Turnaround Calculator: Mon–Fri, the day paid is day 1">Business days since paid '+wd(j.paid)+' '+md(j.paid)+'</span>'; }
 function lockRow(j){ const busy=j._saving?' disabled':'';
   return (j.locked?LOCK_SVG+'<b>Locked in</b><button type="button" class="p-btn p-btn-quiet"'+busy+' onclick="setLock([\''+j.rid+'\'],false)">Unlock</button>':
     '<span>Not locked in</span><button type="button" class="p-btn p-btn-dark"'+busy+' onclick="setLock([\''+j.rid+'\'],true)">'+LOCK_SVG+' Lock in</button>')+

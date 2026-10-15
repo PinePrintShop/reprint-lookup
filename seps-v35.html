@@ -13,6 +13,8 @@
      - Fixes: today was labelled "Tomorrow"; ink swatches showed a grey "?" for bases, bare Pantone numbers and named
        colors (and ignored the ink's Display Hex); a failed Sep'd save removed the job anyway and other failed saves
        still showed "saved"; double taps on Sep'd / Order placed / + Add slot; two quick ink adds overwrote each other.
+     - On iPad portrait and phones, an opened job (or a calendar jump) no longer lands under the taller sticky bar, and a
+       job opened low on the screen scrolls up so its controls show. The phone proof is shorter so the controls start sooner.
      Airtable writes: same fields and payloads as v34. -->
 <html lang="en">
 <head>
@@ -58,7 +60,7 @@ button,input,select,textarea{font-family:inherit}
 .sp-order b{font-size:var(--p-fs-m);color:var(--p-black);text-transform:uppercase;letter-spacing:.01em}
 .p-head+.sp-order{margin-top:4px}
 /* job card head */
-.p-lc-head.is-tap:hover{background:#FBF7EF}
+.p-lc-head.is-tap:hover{background:var(--p-cream-lt)}
 .p-lc-id .p-id{min-width:86px;text-align:center}
 .sp-thumb{width:56px;height:56px;object-fit:cover;border:1px solid var(--p-line);border-radius:4px;background:var(--p-white);cursor:zoom-in;display:block;flex:none}
 .sp-thumb-ph{width:56px;height:56px;border:1px dashed var(--p-line-strong);border-radius:4px;flex:none}
@@ -245,7 +247,7 @@ button,input,select,textarea{font-family:inherit}
 .pm-body{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px;position:relative}
 .pm-open-link{text-decoration:none}
 .lb-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.lb-spin{width:32px;height:32px;border:3px solid #333;border-top-color:var(--p-yellow);border-radius:50%;animation:sp .7s linear infinite}
+.lb-spin{width:32px;height:32px;border:3px solid var(--p-ink-2);border-top-color:var(--p-yellow);border-radius:50%;animation:sp .7s linear infinite}
 #pmCanvas{border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,.6);max-width:100%;max-height:100%;object-fit:contain}
 .p-toast{z-index:300}
 /* two panes on wide screens (kit .p-split) */

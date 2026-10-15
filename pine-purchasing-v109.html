@@ -450,7 +450,7 @@ h1,h2,.invtop h1{font-family:var(--p-display)!important;font-weight:900!importan
 .csub .cs-t{color:var(--p-ink-2);min-width:0}
 .csub .x{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px}
 @media (max-width:1100px){ .ohd{position:static} }
-@media (max-width:700px){ .gsum .go-o{min-width:130px} .lorder .linkbtn{margin-left:0} }
+@media (max-width:700px){ .gsum .go-o{min-width:130px} .gsum .gs{display:none} .lorder .linkbtn{margin-left:0} }
 </style>
 </head>
 <body>
@@ -1291,7 +1291,7 @@ function liveFor(k){ var g=k&&garmentByKey(k); if(g) g.lines.forEach(function(l)
 function openGarment(k){ CURG=k; renderOrders(); renderOrder(); $('order').scrollTop=0; liveFor(k); }
 /* jump between the two views from a line */
 function showGarment(id){ var l=lineById(id); if(!l) return; CURG=styleKey(l); if(GROUP!=='garment'){ GROUP='garment'; lsSet('pine_purch_group','garment'); paintGroup(); renderCarts(); }
-  renderOrders(); renderOrder(); liveFor(CURG); var el=$('gcol-'+lineColorKey(l)); $('order').scrollTop=el?el.offsetTop-8:0; }
+  renderOrders(); renderOrder(); liveFor(CURG); var el=$('gcol-'+lineColorKey(l)); if(el) el.scrollIntoView({block:'start'}); else $('order').scrollTop=0; }
 function showOrder(num){ GROUP='order'; lsSet('pine_purch_group','order'); paintGroup(); renderCarts(); openOrder(num); }
 function jumpLine(id){ var el=$('line-'+id); if(!el) return; el.scrollIntoView({block:'start',behavior:'smooth'}); el.classList.add('flash'); setTimeout(function(){ el.classList.remove('flash'); },1200); }
 function priTag(p){ return /hard/i.test(p)?'<span class="tag hard">Hard Deadline</span>':/asap/i.test(p)?'<span class="tag asap">ASAP</span>':''; }
