@@ -160,7 +160,7 @@ body{font-size:15px}
 /* the proof stays in view (under the sticky job head) while the ink column scrolls */
 @container (min-width:760px){
   .p-split-detail .jd-proof{position:sticky;top:var(--jd-top,96px)}
-  .p-split-detail .proof-area img{max-height:calc(100vh - var(--p-split-top,120px) - var(--jd-top,96px) - 80px);max-height:calc(100dvh - var(--p-split-top,120px) - var(--jd-top,96px) - 80px)}   /* v97: 124 -> 80, the slimmer head gave the room */
+  .p-split-detail .proof-area img{max-height:calc(100vh - var(--p-split-top,120px) - var(--jd-top,96px)- 124px);max-height:calc(100dvh - var(--p-split-top,120px) - var(--jd-top,96px) - 124px)}
 }
 .proof-area{position:relative;cursor:zoom-in;min-height:160px;display:grid;place-items:center;background:var(--p-white);padding:8px}
 .proof-area img{width:100%;height:auto;display:block;max-height:60vh;object-fit:contain}
