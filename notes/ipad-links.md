@@ -1,5 +1,11 @@
 # Always-latest links (iPads and computers)
 
+## Which device each app is built for (Stephen, 2026-10-15)
+- **iPad (floor, touch, 56px buttons):** Operator, Catching.
+- **Desktop (mouse, wide screens, use the full width):** Purchasing, Receiving, Seps, Screens, Ink, Damage Log.
+- Not on Stephen's list yet: Schedule, Production Board, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup and Pine Central. Ask before assuming.
+- Every app still has to work on an iPad and a phone. The list sets which layout gets designed first and tested hardest.
+
 ## 2026-10-12
 **Problem (Stephen):** updating an iPad meant opening the new version's link, adding it to the home screen, deleting the old icon, and pasting the Airtable key again. On iPad, each home-screen icon has its own storage, so a new icon starts with no key.
 
