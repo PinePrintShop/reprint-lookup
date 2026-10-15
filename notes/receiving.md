@@ -15,6 +15,24 @@
 - **Practice mode:** `?practice=1`, or ⚙ → Practice. Nothing is saved. That includes the status change and box feedback.
 - **Airtable token:** stored on the device. Set it under ⚙ → Airtable token.
 
+## 2026-10-15 · v74: Refresh keeps typed counts
+**Why:** Refresh used to wipe counts that were typed but not received yet, so a box could be counted twice.
+
+**What changed:**
+- Typed counts now carry across the reload for lines that are still open: the same record, still not received.
+- A line received elsewhere, or no longer on the list, drops its counts.
+- A toast says "Kept your counts on N lines". If the load fails, the counts stay.
+- Keeping the counts was chosen over a confirm question. They are physical counts of a box, so they stay true after a reload. The only risky case, a line received on another iPad, is dropped automatically.
+- There is no timed auto-reload in this app. The self-update reload is held back while counts are typed, as in v73.
+- The line's difference pill counts blank sizes as "all there", the same way Receive does. Before, typing M = 8 of 10 showed −24; now it shows −2.
+- No Airtable changes.
+
+**Tested:**
+- Type counts on two lines, have one of them received elsewhere, then Refresh: the open line keeps M = 8, the received line drops out, and Receive sends the same payload as without the refresh.
+- Payloads for every v73 flow, including All here, are identical to v73. Practice mode sent 0 writes.
+- Self-update: moves when idle, and shows the bar when counts are typed (also right after a Refresh).
+- No page errors. Checked at 1024×768 and 390×844.
+
 ## 2026-10-15 · v73: Pine style v2, self-update, cleanup
 **Style:**
 - Uses `pine-style-v2.css` and Poppins instead of `pine-design-v1.css`.
