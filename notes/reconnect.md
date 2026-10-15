@@ -1,5 +1,68 @@
 # Reconnect (was Sales Targets)
 
+## 2026-10-15 · v4 + worker v23: Pipedrive owners, Patrick's exclusions, and a $1k floor for no-rep cold customers
+**Stephen:** "yeah bring the Pipedrive worker route! Garrett still has a few clients he works with and sometimes Chris handles them...but Chris always marks them as Garrett. Yes 537 min spend of $1k is a good idea and a note that no rep is currently assigned...and to confirm before assigning"
+
+- **New file** `reconnect-v4.html` (permanent link `reconnect.html` now opens v4; same settings and marks).
+- **Pipedrive is on by default.** On every load the app reads worker v23's `GET /proxy/pipedrive/reconnect`, with the Airtable token as Bearer.
+  - The orders show first. Pipedrive is applied when it arrives, which can take a few tries (see "Worker v23" below).
+  - The header then says "Pipedrive: owners + last contact as of 3:42 pm".
+  - If the worker is still v22 (it answers "Pipedrive path not allowed"), or the route fails, v4 works exactly like v3. ⚙ "Pipedrive checks" then says "Off — worker v23 not deployed" or gives the error.
+  - `?pd=0` turns Pipedrive off.
+- **With Pipedrive:**
+  - **Rep = the Pipedrive organization owner.** Patrick Dawson → Patrick, Chris Hoffman → Chris, Garrett → Garrett.
+  - Owners who have left show as **Unassigned (was …)** so Stephen can hand them out. That covers Josh and Stephen, plus older Pipedrive accounts like Grant, who still owns many 2020-era organizations.
+  - When two Pipedrive organizations have the same name, an active rep wins.
+  - **Patrick's exclusions:** a customer tier, the Inactive / Platinum / Gold / Silver / Bronze Customer workflows, or an email sent since the quarter started. These customers leave Warm, Cold and Recent. The header shows "N left out by Pipedrive", and the new **Left out by Pipedrive** tab lists them with the reason. Other workflows (the drips) don't count.
+  - **Pipedrive's last activity counts as contact**, as in v3's hook. A cold customer with a call logged 7 months ago is Warm, and its "Why now" says so.
+  - **Matching:** Pipedrive organizations are matched to customers by normalized name, the same rule as duplicate customer records. A read-only check on real data, 2026-10-15, counts only, outside the repo:
+    - 100 of 100 organizations from the most recently won deals matched an Airtable customer.
+    - 97 of 100 from the oldest won deals (2020–21) matched.
+- **Garrett stays an active rep** (`RULES.activeReps` = Chris, Patrick, Garrett, always in the rep filter). Chris often handles Garrett's clients but marks the orders as Garrett, so "Garrett" in Airtable or Pipedrive can mean Chris did the work.
+- **Cold needs $1,000+ when there's no rep on file** (`RULES.coldNoRepMin`). Those cards and the detail say "No rep currently assigned — confirm before assigning", in plain grey, not red.
+  - On the real order history (Pipedrive off), Cold goes from 1,197 to 948, and its no-rep customers from 537 to 288.
+  - Warm (539) and Recent (70) are unchanged.
+- **Tested** with mocked Airtable and a mocked worker route (made-up names, Playwright), 91 checks:
+  - Pipedrive on, still loading (202 twice), worker v22 (403), 404, error and `?pd=0`
+  - owner mapping (Chris, Patrick, Garrett, and Josh / Stephen / Grant → Unassigned) and duplicate organization names
+  - each exclusion, plus a drip workflow and a last-quarter email that must not exclude
+  - the Left out tab, the cold $1k rule and its note
+  - Copy list, no token, no Airtable writes, no page errors, nothing under 12px, no sideways scroll at 1920 to 390
+- **Open questions for Stephen:**
+  - Organizations still owned in Pipedrive by people who left (Grant, Connor, Morgan, Trevor) now show as Unassigned, even when Patrick or Chris took the last order. Reassign them in Pipedrive, or should the Airtable rep win in that case?
+
+### Worker v23 (`GET /proxy/pipedrive/reconnect`)
+- **Read-only.** It returns `{ok, asOf, orgs:[{id, name, owner, lastActivity, lastEmailSent, tier, workflows}]}` for organizations with 1+ won deal. No emails, phones or person names.
+- **Auth:** the Airtable-token gate, plus the token must be able to read this base (1 Orders record, 1 field, cached 10 min). The route answers only `https://pineprintshop.github.io` (CORS). Every other route is unchanged; a unit test checks them against v22.
+- **Key:** `PIPEDRIVE_KEY` (the sales@ user, Chris, who sees every organization: checked 2026-10-15). No new secret is needed. The optional `PIPEDRIVE_RECONNECT_KEY` secret would replace it with an admin key if visibility ever changes.
+- **Where each field comes from:**
+  - The organizations are those of all deals. The worker reads deals 500 at a time, with only the workflow field and "last email sent".
+  - Owner, tier, won-deal count and last activity come from organizations, read 100 ids at a time.
+  - The last activity date comes from that activity.
+  - Workflows are "Enroll in Workflow" on any of the organization's deals and leads.
+  - Last email sent is the newest "Last email sent" on the organization's deals. Organizations have no such field, and persons would mean reading contact details.
+- **Subrequests:** about 110 Pipedrive calls for a full read. That is roughly 45 deal pages, 30 organization batches, 30 activity batches and a few for leads and field lists.
+  - Cloudflare's free plan allows 50 per request, so the worker reads in steps of 40 and answers 202 until it's done. The page asks again by itself, about 3 tries.
+  - On the paid plan, add the plain variable `RECONNECT_BUDGET` = `400` to finish in one request.
+  - The result is cached 1 hour. If Pipedrive rate-limits (429), the worker waits once and then the page retries.
+- **Tested** in Node with mocked Airtable and Pipedrive, 47 checks:
+  - auth 401/403, CORS, read-only guard
+  - only won organizations; exactly those 7 fields; no contact details
+  - workflow and tier labels from deals and leads; email and activity dates
+  - free-plan steps (at most 42 subrequests per request), the 400 budget in one request, 429 handling, cache
+  - 15 old routes byte-identical to v22
+
+### To deploy (Stephen)
+1. Open `https://pineprintshop.github.io/reprint-lookup/copy-worker.html`. It should say **Worker v23**. Click **Copy worker code**.
+2. Cloudflare dashboard → **Workers & Pages** → **pine-workers** → **Edit code**. Click into the code, select all, paste, then **Deploy**.
+3. No new secret is needed: it uses `PIPEDRIVE_KEY`.
+   - Optional: if the account is on the Workers paid plan, go to pine-workers → **Settings** → **Variables** and add `RECONNECT_BUDGET` = `400` (plain text) so the read finishes in one go.
+4. **Check it worked:** open `https://pineprintshop.github.io/reprint-lookup/reconnect.html` and wait a few seconds after the orders show.
+   - The header should read "Pipedrive: owners + last contact as of …", and a **Left out by Pipedrive** tab should appear.
+   - ⚙ → Pipedrive checks should say "On, as of …: N customer organizations, M matched".
+   - If it says "Off — worker v23 not deployed", the paste didn't deploy.
+   - If it says "Off — Pipedrive was still loading", click Refresh after a minute.
+
 ## 2026-10-15 · v3: Patrick's warm list, for everyone; Josh and Stephen removed
 **Stephen:** "here is the logic Patrick uses for reconnecting...can we review this against the one we built and make it similar to Patrick's but for everyone! and we can remove Josh and Stephen as Josh is no longer here and I am in a new position now and all of my past clients have been moved to either Chris or Patrick"
 

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<!-- Reconnect v4 (2026-10-15): Pipedrive on (Stephen: "yeah bring the Pipedrive worker route! Garrett still has a few
+     clients he works with and sometimes Chris handles them...but Chris always marks them as Garrett. Yes 537 min spend
+     of $1k is a good idea and a note that no rep is currently assigned...and to confirm before assigning").
+       - Reads worker v23's GET /proxy/pipedrive/reconnect (Airtable token as Bearer) on every load; ?pd=0 turns it off.
+         The orders show first; Pipedrive is applied when it arrives (the worker may answer 202 "still reading" a few
+         times on the free plan). If the route is missing (worker v22: 403 "path not allowed", or 404) or fails, the app
+         works exactly like v3 and ⚙ "Pipedrive checks" says why.
+       - With Pipedrive: rep = the org owner (Patrick Dawson → Patrick, Chris Hoffman → Chris, Garrett → Garrett).
+         Owners who left (Josh, Stephen, and older accounts like Grant) → "Unassigned (was …)". Garrett is always an
+         active rep (RULES.activeReps). Tier, the Inactive/Platinum/Gold/Silver/Bronze workflows, or an email sent since
+         the quarter started leave a customer out of Warm/Cold/Recent; they are counted and listed under the
+         "Left out by Pipedrive" tab. Pipedrive's last activity counts as contact (as in v3's hook).
+       - Customers are matched to Pipedrive organizations by normalized name (same rule as duplicate customers).
+       - Cold: customers with no rep on file need $1,000+ lifetime (RULES.coldNoRepMin); their cards say "No rep
+         currently assigned — confirm before assigning".
+     Reconnect v3 (2026-10-15): Patrick's "[WARM] Inactive Customers" logic, for everyone (Stephen: "make it similar
+     to Patrick's but for everyone! and we can remove Josh and Stephen").
+       - Main view "Warm · 4–12 months": 1+ paid order, nothing in the last 2 months, and the last order (any order,
+         incl. $0 reprints and open ones) between 4 and 12 months ago. "Gone quiet" is gone: older than 12 months is
+         "Cold · 12+ months" (12–36 months, not the default). "Recent · due by Qn": ordered in the last 4 months (but not
+         the last 2) and due for a reorder or ordered in that quarter before. "Ordered in Qn before" and "Due for a
+         reorder" stay as tags and as a filter within each view.
+       - Reps: Josh and Stephen are retired (RULES.retiredReps). A customer's rep is the newest order's rep who is
+         still active (sold something in the last 90 days and not retired); customers who only had Josh / Stephen
+         show as "Unassigned (was …)" so they can be handed out.
+       - Pipedrive (owner, last activity, last email sent, customer tier, workflow) is not in Airtable. The hook
+         (PD / applyPipedrive below) merges it when the worker gets a /proxy/pipedrive/reconnect route; off until then
+         (try with ?pd=1). Until then the warm window uses Airtable orders only.
+     Reconnect v2 (2026-10-15): renamed from Sales Targets (Stephen: "more about it being an outreach helper with historical
+     order history but make it sound better"). Same app and rules; the bar reads RECONNECT with a one-line purpose, and the
+     permanent link is reconnect.html (sales-targets.html still forwards here). Settings and marks carry over.
+     Sales Targets v1 (2026-10-15): new office app. Which past customers should sales call for the coming quarter
+     (Q1 2027 by default), from the order history in Airtable. Read-only: it never writes to Airtable, so there is no
+     practice mode. No customer data lives in this file; everything loads at runtime with the Airtable token saved on
+     this computer (pine_at_key). Contact names, emails and phones are not loaded (they live in Pipedrive).
+     v1 rules (replaced in v3, see above):
+       - Ordered in Q1 before: ordered in the same quarter last year and/or the year before.
+       - Due for a reorder: 2+ orders, the usual gap between them puts the next one between ~4 months ago and the end of
+         the target quarter.
+       - Gone quiet: $1,500+ lifetime or 2+ orders, nothing in the last 9 months (but something in the last 3 years).
+     Score 0-100 = past spend (up to 30) + number of orders (up to 15) + same-quarter history (up to 35)
+                   + due for a reorder (15) + ordered in the last 18 months (5).
+     "Contacted" / "Skip" marks are kept in this browser only (localStorage), never in Airtable. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reconnect v4 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+/* The Pine page kit (pine-style-v2.css) does the bar, filter row, page head, list cards and the two-pane split. App bits below. */
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+body{font-size:15px}
+.wrap{padding:0 24px 120px}
+.wrap.is-split{padding:0 24px}
+@media (min-width:701px){ .p-filters{padding-left:24px;padding-right:24px} }
+.p-filters .p-select{width:auto;min-width:150px}
+.p-filters-end{flex-wrap:wrap}
+.p-tab.zero{border-color:var(--p-line-strong);color:var(--p-ink-3)}
+.msg{padding:40px 16px;text-align:center;color:var(--p-ink-2)}
+.msg b{display:block;color:var(--p-black);font-size:18px;margin-bottom:6px}
+.msg.err b{color:var(--p-alert)}
+.bar-prog{height:8px;max-width:360px;margin:14px auto 0;background:var(--p-white);border:1px solid var(--p-line);border-radius:999px;overflow:hidden}
+.bar-prog i{display:block;height:100%;background:var(--p-black);width:0;transition:width .2s}
+/* summary tiles: one big number (targets), plain facts beside it */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:var(--p-s4) 0 0}
+.tile{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:12px 14px;min-width:0}
+.tile .p-label{display:block;margin-bottom:6px}
+.tile b{font:800 22px/1.1 var(--p-sans);font-variant-numeric:tabular-nums}
+.tile i{display:block;font-style:normal;color:var(--p-ink-2);font-size:13px;margin-top:4px}
+.tile.p-stat{border:0;background:var(--p-black);color:var(--p-white)}
+.tile.p-stat .p-big{font-size:34px}
+.tile.p-stat i{color:rgba(255,255,255,.75)}
+/* cards */
+.p-lc-head.is-tap:hover{background:#FBF7EF}
+.p-lc-id .score{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:2px solid var(--p-black);font:800 17px/1 var(--p-sans);font-variant-numeric:tabular-nums;background:var(--p-white)}
+.p-lc.is-marked .p-lc-title{color:var(--p-ink-3)}
+.p-lc-nums .p-num b{font-size:16px}
+.p-num.is-wide b{white-space:nowrap}
+.p-lc-chev{font-size:16px}
+.why{font-size:15px;line-height:1.45}
+.why b{font-weight:800}
+.facts{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--p-ink-2)}
+.facts b{color:var(--p-black)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.acts .p-hint{font-size:13px}
+/* month strip: which months they order in (count of years), target quarter outlined in yellow */
+.months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;max-width:640px}
+.mo{border:1.5px solid var(--p-line-strong);border-radius:6px;background:var(--p-white);text-align:center;padding:4px 0 5px;min-width:0}
+.mo span{display:block;font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2)}
+.mo b{display:block;font:800 15px/1.2 var(--p-sans);font-variant-numeric:tabular-nums;color:var(--p-ink-3)}
+.mo.n1{background:var(--p-cream);border-color:var(--p-cream-dk)}
+.mo.n1 b{color:var(--p-black)}
+.mo.n2{background:var(--p-black);border-color:var(--p-black)}
+.mo.n2 span{color:rgba(255,255,255,.8)}.mo.n2 b{color:var(--p-yellow)}
+.mo.tq{box-shadow:0 0 0 3px var(--p-yellow)}
+.legend{font-size:13px;color:var(--p-ink-2);margin-top:6px}
+.score-line{font-size:13px;color:var(--p-ink-2)}
+.norep{color:var(--p-ink-2)}
+.pd-line{white-space:nowrap}
+@media (max-width:700px){.pd-line{white-space:normal}}
+/* order history */
+.scroll{overflow-x:auto;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg)}
+.oh{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.oh th,.oh td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--p-line);vertical-align:top}
+.oh tr:last-child td{border-bottom:0}
+.oh th{font:700 12px var(--p-sans);letter-spacing:.04em;text-transform:uppercase;color:var(--p-ink-2);white-space:nowrap;background:var(--p-cream-lt)}
+.oh td.r,.oh th.r{text-align:right}
+.oh td.nw{white-space:nowrap}
+.oh tr.inq td{background:var(--p-yellow-lt)}
+.oh tr.zero td{color:var(--p-ink-3)}
+.oh .ref{display:block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oh a{color:var(--p-black);font-weight:700;text-underline-offset:3px;display:inline-flex;align-items:center;min-height:32px;white-space:nowrap}
+.oh .p-id{font-size:13px;padding:4px 6px}
+.sec-h{font:700 12px var(--p-sans);letter-spacing:.04em;text-transform:uppercase;color:var(--p-ink-2);margin-bottom:6px}
+.p-menu .p-input{font-size:15px}
+.p-menu p{font-size:14px;color:var(--p-ink-2)}
+.p-toast{z-index:120}
+/* the detail pane in the two-pane view */
+.p-split-detail .p-lc-head{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"id main act" "nums nums nums" "tags tags tags"}
+.p-split-detail .p-lc-nums{justify-content:flex-start}
+.p-split-detail .p-num{text-align:left}
+.p-split-detail .p-lc-title{font-size:20px}
+@media (max-width:700px){
+  .p-filters .p-search{flex-basis:100%;max-width:none}
+  .p-filters-end{flex:1;margin-left:0}.p-filters-end .p-select{flex:1 1 140px;min-width:0}
+  .p-chips{margin:0 -16px;padding:0 16px 2px}
+  .wrap{padding:0 12px 120px}
+  .tiles{grid-template-columns:1fr 1fr}.tile b{font-size:18px}.tile.p-stat .p-big{font-size:28px}
+  .p-head-end{margin-left:0;width:100%}.p-head-end .p-btn{flex:1}
+  .mo span{font-size:12px}.mo b{font-size:13px}
+  .months{gap:2px}
+}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Reconnect</span><span class="p-bar-ver" id="ver">v4</span>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Reload orders from Airtable and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="p-menu" id="gear" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row"><div class="p-menu-label">Airtable token</div>
+      <div class="p-menu-line"><input id="tokIn" class="p-input" type="password" placeholder="pat…" autocomplete="off" aria-label="Airtable token"><button class="p-btn p-btn-dark" id="tokSave" type="button">Save</button></div>
+      <p id="tokHint"></p></div>
+    <div class="p-menu-row"><div class="p-menu-label">Read-only</div><p>This app only reads orders. It never changes Airtable or Pipedrive.</p></div>
+    <div class="p-menu-row"><div class="p-menu-label">Pipedrive checks</div><p id="pdHint"></p></div>
+    <div class="p-menu-row"><div class="p-menu-label">Contacted / Skip marks</div>
+      <div class="p-menu-line"><p id="markHint"></p><button class="p-btn" id="clearMarks" type="button">Clear</button></div></div>
+  </div>
+</header>
+<div class="p-filters">
+  <input type="search" id="q" class="p-input p-search" placeholder="Search customer" aria-label="Search customers">
+  <div class="p-filters-end">
+    <select id="rep" class="p-select" aria-label="Sales rep"><option value="">All reps</option></select>
+    <select id="minSpend" class="p-select" aria-label="Lifetime spend at least">
+      <option value="0">Any spend</option><option value="500">$500+ lifetime</option><option value="1000">$1,000+ lifetime</option>
+      <option value="2500">$2,500+ lifetime</option><option value="5000">$5,000+ lifetime</option><option value="10000">$10,000+ lifetime</option>
+    </select>
+    <select id="sort" class="p-select" aria-label="Sort">
+      <option value="score">Sort: score</option><option value="spend">Sort: lifetime spend</option><option value="last">Sort: last order (oldest first)</option><option value="name">Sort: name</option>
+    </select>
+    <select id="tag" class="p-select" aria-label="Narrow by reason"></select>
+    <select id="qtr" class="p-select" aria-label="Target quarter"></select>
+  </div>
+  <div class="p-chips" id="chips" role="tablist" aria-label="Which customers"></div>
+</div>
+<main class="wrap" id="main"><div class="msg"><b>Loading order history…</b></div></main>
+<script>
+// Reconnect v4 — read-only. Loads Orders (selected fields only) and groups them by customer.
+var BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS';
+var F={ // Orders fields (returnFieldsByFieldId). No contact names / emails / phones, no rep emails.
+  cust:'fldjj1X0WYQOuqHYQ',      // Customer (link to Customers = company)
+  custName:'fldoRraeYHsgfeWhj',  // [TEXT] Customer Name
+  ref:'fldHarZYpYjQrJoof',       // Order Reference
+  num:'fld4S3B5yJANKlE7l',       // Invoice / Order Number
+  status:'fldhS4z28CdGmS1j5',    // Order Status
+  rep:'fldSPnWlnzz48ZZDD',       // Sales Person (name only)
+  paid:'fld5RAeEEGMltdES0',      // Payment Received Date
+  created:'fldXUjQHSeRaW5per',   // Creation Date
+  subtotal:'fldrtRZ4mHLKRAEff',  // Subtotal (no tax)
+  source:'fldE1muKiijQchB0h',    // Order Source (Repeat, Google, Referral…)
+  ptypes:'fld9yTE8jCe4BVJKt',    // Line Item Product Type Lookup
+  qty:'fldWQYE3o2IZjZXSU'        // Total Quantity Rollup
+};
+// The targeting rules in one place (open questions for Stephen: these thresholds).
+var RULES={
+  mergeDays:14,          // orders within 14 days of each other count as one buy (split orders) for the reorder rhythm
+  dueMinGap:45,          // a "usual gap" shorter than this is just an active customer, not a reorder signal
+  dueMaxGap:540,         // longer than ~18 months is not a rhythm
+  dueLookbackDays:120,   // a reorder that was due up to 4 months ago (and hasn't come) still counts as due
+  dueGaps:5,             // rhythm = median of the last 5 gaps
+  // Patrick's warm window (his Pipedrive filter, on Airtable orders). "Last touch" = newest order of any kind.
+  wonGapMonths:2,        // no paid order in the last 2 months ("Deal closed on is on or before 2 months ago")
+  warmMinMonths:4,       // warm = last touch before 4 months ago …
+  warmMaxMonths:12,      // … and after 12 months ago
+  coldMaxMonths:36,      // cold = 12 to 36 months ago (older is left out)
+  recentDays:548,        // +5 score if they ordered in the last 18 months
+  // Reps: retired reps never own a customer; active = sold something in the last activeRepDays.
+  retiredReps:['Josh','Stephen'],  // Josh left; Stephen moved roles (his clients went to Chris or Patrick)
+  activeReps:['Chris','Patrick','Garrett'],  // always active (Garrett still has a few clients; Chris often handles them but marks them Garrett)
+  activeRepDays:90,
+  coldNoRepMin:1000      // Cold: a customer with no rep on file needs $1,000+ lifetime to show (537 of 1,197 had no rep on Oct 15)
+};
+// Pipedrive's extra conditions (owner, last activity, last email sent, customer tier, workflow), from worker v23.
+// On by default; ?pd=0 turns it off. Read-only GET, Airtable-token gated (the worker also checks the token reads this base).
+var PD={enabled:!/[?&]pd=0\b/.test(location.search),url:'https://pine-workers.stephen-dab.workers.dev/proxy/pipedrive/reconnect',
+  status:'off',why:'',progress:'',asOf:null,byName:{},n:0,matched:0,
+  skipWorkflows:['Inactive Customer','Platinum Customer','Gold Customer','Silver Customer','Bronze Customer'],
+  owners:{'patrick dawson':'Patrick','chris hoffman':'Chris','garrett':'Garrett'}};  // Pipedrive user → Airtable short name (else first name)
+var DONE_STATUS={'Completed':1,'Shipped':1,'Partially Completed':1,'Caught - Awaiting Ship':1};
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTH=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+var state={orders:[],custs:[],all:[],pdOut:0,q:'',reason:'warm',tag:'',rep:'',minSpend:0,sort:'score',qtr:'',open:{},loading:false,loaded:false};
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function txt(v){if(v==null)return '';if(Array.isArray(v))return v.map(txt).filter(Boolean).join(', ');if(typeof v==='object')return v.name||'';return String(v);}
+function num(v){if(Array.isArray(v))return v.reduce(function(s,x){return s+num(x);},0);var n=Number(v);return isFinite(n)?n:0;}
+function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}return null;}
+function token(){return store('pine_at_key')||'';}
+function dayStart(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function parseDay(v){ // 'YYYY-MM-DD' = local day; a dateTime = the local day it falls on
+  if(!v)return null;var s=String(v);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+  var d=new Date(s);return isNaN(d)?null:dayStart(d);
+}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function addMonths(d,n){var y=d.getFullYear(),m=d.getMonth()+n,last=new Date(y,m+1,0).getDate();return new Date(y,m,Math.min(d.getDate(),last));}  // Jul 31 − 1 month = Jun 30
+function days(a,b){return Math.round((b-a)/864e5);}
+function fdate(d){return d?MON[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear():'';}
+function fmon(d){return d?MON[d.getMonth()]+' '+d.getFullYear():'';}
+function isoDay(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function atUrl(id){return 'https://airtable.com/'+BASE+'/'+T_ORD+'/'+id;}
+var toastT;function toast(m,err){var t=$('toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');document.body.appendChild(t);}
+  t.className='p-toast'+(err?' is-alert':'');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},err?5000:2800);}
+
+// ---------- the target quarter: the next 4 calendar quarters that start after today ----------
+var TODAY=dayStart(new Date());
+function quarters(){
+  var out=[],y=TODAY.getFullYear(),q=Math.floor(TODAY.getMonth()/3)+1;
+  for(var i=0;i<4;i++){q++;if(q>4){q=1;y++;}
+    var m0=(q-1)*3;out.push({key:y+'Q'+q,y:y,q:q,m0:m0,start:new Date(y,m0,1),end:new Date(y,m0+3,0),label:'Q'+q+' '+y,
+      short:'Q'+q,span:MON[m0]+'–'+MON[m0+2]});}
+  return out;
+}
+var QTRS=quarters();
+function curQ(){return QTRS.filter(function(x){return x.key===state.qtr;})[0]||QTRS[0];}
+
+// ---------- Airtable: GET only ----------
+async function atPage(formula,offset){
+  var p=new URLSearchParams();
+  Object.keys(F).forEach(function(k){p.append('fields[]',F[k]);});
+  p.set('returnFieldsByFieldId','true');p.set('pageSize','100');
+  if(formula)p.set('filterByFormula',formula);
+  if(offset)p.set('offset',offset);
+  for(var tries=0;;tries++){
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ORD+'?'+p,{headers:{Authorization:'Bearer '+token()}});
+    if(r.status===429&&tries<4){await new Promise(function(res){setTimeout(res,1500*(tries+1));});continue;}  // rate limit: wait and retry
+    var j=await r.json().catch(function(){return {};});
+    if(!r.ok)throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status));
+    return j;
+  }
+}
+// Three streams by the year the order was created, read side by side (≈3 requests a second, under Airtable's 5).
+var STREAMS=['YEAR(CREATED_TIME())<2022','AND(YEAR(CREATED_TIME())>=2022,YEAR(CREATED_TIME())<2025)','YEAR(CREATED_TIME())>=2025'];
+async function loadAll(onProgress){
+  var all=[];
+  await Promise.all(STREAMS.map(async function(f){
+    var offset=null;
+    do{var j=await atPage(f,offset);all=all.concat(j.records||[]);offset=j.offset;onProgress(all.length);}while(offset);
+  }));
+  return all;
+}
+var LOAD_ID=0;
+async function load(){
+  if(!token()){state.loaded=false;$('main').innerHTML='<div class="msg"><b>Add your Airtable token</b>Open ⚙ and paste the token. It is saved on this computer only.</div>';showMenu(true);return;}
+  var my=++LOAD_ID;state.loading=true;
+  $('main').classList.remove('is-split');
+  $('main').innerHTML='<div class="msg"><b>Loading order history…</b><span id="progTxt">Starting</span><div class="bar-prog"><i id="progBar"></i></div></div>';
+  try{
+    var pdP=loadPipedrive(my);
+    var recs=await loadAll(function(n){if(my!==LOAD_ID)return;var t=$('progTxt'),b=$('progBar');if(t)t.textContent=n.toLocaleString('en-US')+' orders read';if(b)b.style.width=Math.min(96,n/90)+'%';});
+    if(my!==LOAD_ID)return;
+    state.orders=recs.map(toOrder).filter(Boolean);
+    state.loaded=true;state.loading=false;
+    build();fillReps();render();   // orders first; Pipedrive is applied when it arrives (it can take a few tries)
+    pdP.then(function(){if(my!==LOAD_ID||!state.loaded)return;build();fillReps();render();});
+  }catch(e){
+    if(my!==LOAD_ID)return;state.loading=false;
+    $('main').innerHTML='<div class="msg err"><b>Couldn’t load orders</b>'+esc(e.message||e)+'. Check the token in ⚙, then Refresh.</div>';
+  }
+}
+function toOrder(r){
+  var c=r.fields||{},st=txt(c[F.status]);
+  if(st==='Cancelled / Voided')return null;
+  var paid=parseDay(c[F.paid]),created=parseDay(c[F.created]||r.createdTime);
+  var name=String(txt(c[F.custName])||'').trim();
+  var link=Array.isArray(c[F.cust])&&c[F.cust].length?(typeof c[F.cust][0]==='string'?c[F.cust][0]:c[F.cust][0].id):'';
+  if(!name&&!link)return null;
+  var pt=c[F.ptypes];pt=Array.isArray(pt)?pt.map(txt):(pt?[txt(pt)]:[]);
+  var uniq=[];pt.forEach(function(x){if(x&&uniq.indexOf(x)<0)uniq.push(x);});
+  return {id:r.id,cust:link,name:name,ref:txt(c[F.ref]),num:c[F.num]!=null?String(txt(c[F.num])):'',status:st,rep:txt(c[F.rep]),
+    date:paid||created,created:created,paid:!!paid,subtotal:num(c[F.subtotal]),source:txt(c[F.source]),ptypes:uniq,qty:num(c[F.qty])};
+}
+
+// ---------- grouping + targeting ----------
+function normName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9& ]+/g,' ').replace(/\b(inc|llc|co|the|ltd|corp)\b/g,' ').replace(/\s+/g,' ').trim();}
+function groupCustomers(orders){
+  // 1) by the Customer record id; 2) records whose names normalize the same are merged (duplicate customer records)
+  var byKey={},byName={};
+  orders.forEach(function(o){
+    var nk=normName(o.name),k=o.cust||('n:'+nk);
+    if(!byKey[k])byKey[k]={key:k,orders:[]};
+    byKey[k].orders.push(o);
+  });
+  Object.keys(byKey).forEach(function(k){
+    var g=byKey[k],nm=normName(g.orders[0].name)||k;
+    if(byName[nm]){byName[nm].orders=byName[nm].orders.concat(g.orders);byName[nm].ids.push(k);}
+    else byName[nm]={key:k,ids:[k],orders:g.orders.slice()};
+  });
+  return Object.keys(byName).map(function(k){return byName[k];});
+}
+function median(a){var s=a.slice().sort(function(x,y){return x-y;}),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function scoreCustomer(g,Q){
+  var all=g.orders.slice().sort(function(a,b){return a.date-b.date;});
+  var os=all.filter(function(o){return o.subtotal>0&&o.date;});
+  if(!os.length)return null;
+  var latest=all[all.length-1];
+  var c={key:g.key,name:latest.name||os[os.length-1].name,orders:all,counted:os};
+  assignRep(c,all);
+  c.spend=os.reduce(function(s,o){return s+o.subtotal;},0);
+  c.n=os.length;
+  c.last=os[os.length-1].date;
+  c.lastAmt=os.filter(function(o){return +o.date===+c.last;}).reduce(function(s,o){return s+o.subtotal;},0);
+  c.first=os[0].date;c.firstSource=os[0].source||'';
+  c.daysSince=days(c.last,TODAY);
+  c.lastAny=all.reduce(function(m,o){return o.date&&o.date>m?o.date:m;},c.last);  // any order: $0 reprints and open ones count as contact
+  c.open=all.some(function(o){return !DONE_STATUS[o.status]&&o.status&&days(o.date,TODAY)<=180;});
+  // months of the year they order in: count of distinct years per month
+  var mset={};os.forEach(function(o){mset[o.date.getMonth()+'-'+o.date.getFullYear()]=1;});
+  c.months=new Array(12).fill(0);Object.keys(mset).forEach(function(k){c.months[+k.split('-')[0]]++;});
+  var ranked=c.months.map(function(n,i){return [n,i];}).filter(function(x){return x[0]>0;}).sort(function(a,b){return b[0]-a[0]||a[1]-b[1];});
+  c.usual=ranked.length?ranked.slice(0,3).sort(function(a,b){return a[1]-b[1];}).map(function(x){return MON[x[1]];}):[];
+  // buys: orders within RULES.mergeDays of the previous buy are the same buy
+  var buys=[];os.forEach(function(o){if(buys.length&&days(buys[buys.length-1],o.date)<=RULES.mergeDays)return;buys.push(o.date);});
+  c.buys=buys.length;
+  // 1) same quarter in each past year
+  var qy={};os.forEach(function(o){var d=o.date;if(d.getMonth()>=Q.m0&&d.getMonth()<Q.m0+3&&d<Q.start){(qy[d.getFullYear()]=qy[d.getFullYear()]||[]).push(o);}});
+  c.qYears=Object.keys(qy).map(Number).sort();
+  c.qRecent=c.qYears.filter(function(y){return y>=Q.y-2&&y<=Q.y-1;});
+  c.qOlder=c.qYears.filter(function(y){return y<Q.y-2;});
+  c.qByYear={};c.qYears.forEach(function(y){var l=qy[y];c.qByYear[y]={amt:l.reduce(function(s,o){return s+o.subtotal;},0),first:l[0].date,n:l.length};});
+  c.qLastYear=c.qByYear[Q.y-1]?c.qByYear[Q.y-1].amt:0;
+  c.qTwoYears=c.qByYear[Q.y-2]?c.qByYear[Q.y-2].amt:0;
+  // 2) reorder rhythm
+  c.gap=null;c.next=null;c.due=false;
+  if(buys.length>=2){
+    var gaps=[];for(var i=Math.max(1,buys.length-RULES.dueGaps);i<buys.length;i++)gaps.push(days(buys[i-1],buys[i]));
+    var gp=median(gaps);
+    if(gp>=RULES.dueMinGap&&gp<=RULES.dueMaxGap){
+      c.gap=gp;c.next=addDays(buys[buys.length-1],Math.round(gp));
+      c.due=c.next>=addDays(TODAY,-RULES.dueLookbackDays)&&c.next<=Q.end;
+    }
+  }
+  c.reasons=[];if(c.qRecent.length)c.reasons.push('season');if(c.due)c.reasons.push('due');
+  // 3) Patrick's window (and Pipedrive's checks, when the worker provides them)
+  applyPipedrive(c);
+  segment(c);
+  // score 0–100, every part shown in the detail
+  c.pts={spend:Math.round(30*Math.sqrt(Math.min(c.spend,20000)/20000)),orders:Math.min(15,3*c.buys),
+    season:15*c.qRecent.length+(c.qOlder.length?5:0),due:c.due?15:0,recent:c.daysSince<=RULES.recentDays?5:0};
+  c.score=c.pts.spend+c.pts.orders+c.pts.season+c.pts.due+c.pts.recent;
+  c.why=whyNow(c,Q);
+  return c;
+}
+// Which view a customer is in. Same order as Patrick's filter; Pipedrive's lines only apply when PD data is loaded.
+function windows(){return {won:addMonths(TODAY,-RULES.wonGapMonths),warmEnd:addMonths(TODAY,-RULES.warmMinMonths),
+  warmStart:addMonths(TODAY,-RULES.warmMaxMonths),coldStart:addMonths(TODAY,-RULES.coldMaxMonths)};}
+function segment(c){
+  var W=windows(),t=c.lastAny;
+  if(c.pd&&c.pd.lastActivity&&c.pd.lastActivity>t)t=c.pd.lastActivity;  // a call / email logged in Pipedrive is contact too
+  c.touch=t;c.seg='';
+  if(c.last>W.won)return;                                       // paid order in the last 2 months: leave them be
+  if(t<W.warmEnd&&t>W.warmStart)c.seg='warm';                   // went quiet 4–12 months ago
+  else if(t<=W.warmStart&&t>=W.coldStart)c.seg='cold';          // 12–36 months ago
+  else if(t>=W.warmEnd&&!c.open&&c.reasons.length)c.seg='recent'; // active, but due again by the end of the target quarter
+  if(c.seg==='cold'&&!c.rep&&!c.wasRep&&c.spend<RULES.coldNoRepMin)c.seg='';  // nobody's customer and small: not worth a cold call
+  // c.pdOut (tier, workflow, emailed this quarter) keeps the view but moves the customer to "Left out by Pipedrive"
+}
+// Rep = the newest order's rep who is still active. Retired reps (and reps with no recent orders) never own a customer.
+var REPS={active:{},gone:{}};
+function findReps(orders){
+  var since=addDays(TODAY,-RULES.activeRepDays),act={},gone={};
+  RULES.activeReps.forEach(function(r){act[r]=0;});
+  orders.forEach(function(o){if(!o.rep)return;if(RULES.retiredReps.indexOf(o.rep)<0&&o.created&&o.created>=since)act[o.rep]=(act[o.rep]||0)+1;});
+  orders.forEach(function(o){if(o.rep&&!(o.rep in act))gone[o.rep]=1;});
+  RULES.retiredReps.forEach(function(r){gone[r]=1;});
+  REPS={active:act,gone:gone};
+}
+function assignRep(c,all){
+  var cur='',was='';
+  for(var i=all.length-1;i>=0;i--){var r=all[i].rep;if(!r)continue;if(isActiveRep(r)){cur=r;break;}if(!was)was=r;}
+  c.rep=cur;c.repSrc=cur?'order':'';c.wasRep=cur?'':was;  // wasRep: only Josh / Stephen (or another departed rep) on file
+}
+function isActiveRep(r){return !!r&&Object.prototype.hasOwnProperty.call(REPS.active,r)&&RULES.retiredReps.indexOf(r)<0;}
+function repKey(c){return c.rep||(c.wasRep?'__unassigned':'__none');}
+function repName(c){return c.rep||(c.wasRep?'Unassigned (was '+c.wasRep+')':'No rep on file');}
+var NO_REP='No rep currently assigned — confirm before assigning';
+function repShown(c){return c.rep||c.wasRep?repName(c):NO_REP;}  // cards + detail say it plainly
+
+// ---------- Pipedrive data (Patrick's other filter lines), worker v23 ----------
+// Answer: {ok:true, asOf, orgs:[{id, name, owner:"Patrick Dawson", lastActivity:"2026-05-02", lastEmailSent:"2026-09-30",
+//   tier:"Gold"|null, workflows:["Inactive Customer",…]}]} (no contact details). 202 {partial:true, retryMs} = still reading.
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+async function loadPipedrive(my){
+  PD.byName={};PD.n=0;PD.matched=0;PD.why='';PD.progress='';PD.asOf=null;
+  if(!PD.enabled){PD.status='off';return;}
+  PD.status='loading';
+  try{
+    for(var i=0;i<30;i++){
+      if(my!==LOAD_ID)return;
+      var r=await fetch(PD.url,{headers:{Authorization:'Bearer '+token()}});
+      var j=await r.json().catch(function(){return {};});
+      if(r.status===202&&j.partial){var g=j.progress||{};PD.progress=g.stage||'';paintPd();await sleep(Math.min(5000,Math.max(300,+j.retryMs||800)));continue;}
+      if(r.status===404||(r.status===403&&/path not allowed/i.test(j.error||''))){PD.status='missing';return;}  // worker v22 or older
+      if(!r.ok||!j.ok||!Array.isArray(j.orgs)){PD.status='error';PD.why=j.error||('worker answered '+r.status);return;}
+      mergePipedrive(j.orgs,j.asOf);return;
+    }
+    PD.status='error';PD.why='Pipedrive was still loading; Refresh in a minute';
+  }catch(e){PD.status='error';PD.why=(e&&e.message)||'could not reach the worker';}
+}
+function pdOwnerShort(full){var f=String(full||'').trim();if(!f)return '';return PD.owners[f.toLowerCase()]||f.split(/\s+/)[0];}
+function mergePipedrive(orgs,asOf){  // also callable by hand / tests: mergePipedrive([...]); build(); render();
+  PD.byName={};
+  (orgs||[]).forEach(function(o){var k=normName(o&&o.name);if(!k)return;
+    var la=parseDay(o.lastActivity),le=parseDay(o.lastEmailSent),wf=Array.isArray(o.workflows)?o.workflows:[];
+    var p=PD.byName[k]||(PD.byName[k]={owners:[],lastActivity:null,lastEmailSent:null,tier:'',workflows:[],orgs:0});
+    p.orgs++;                                                    // two Pipedrive orgs with the same name: one customer
+    if(o.owner)p.owners.push({full:String(o.owner).trim(),short:pdOwnerShort(o.owner),la:la});
+    if(la&&(!p.lastActivity||la>p.lastActivity))p.lastActivity=la;
+    if(le&&(!p.lastEmailSent||le>p.lastEmailSent))p.lastEmailSent=le;
+    if(o.tier&&!p.tier)p.tier=o.tier;
+    wf.forEach(function(w){if(p.workflows.indexOf(w)<0)p.workflows.push(w);});
+  });
+  PD.n=(orgs||[]).length;PD.asOf=asOf?new Date(asOf):new Date();if(isNaN(PD.asOf))PD.asOf=new Date();PD.status='on';
+}
+function pdOwner(p){  // an active rep wins over a departed one; then the org with the newest activity
+  var l=p.owners.slice().sort(function(a,b){return (isActiveRep(b.short)?1:0)-(isActiveRep(a.short)?1:0)||((b.la||0)-(a.la||0));});
+  return l[0]||null;
+}
+function thisQuarterStart(){return new Date(TODAY.getFullYear(),Math.floor(TODAY.getMonth()/3)*3,1);}
+function applyPipedrive(c){
+  c.pd=PD.status==='on'?PD.byName[normName(c.name)]||null:null;c.pdOut=[];
+  if(!c.pd)return;
+  var p=c.pd,own=pdOwner(p);
+  if(own){c.pdOwner=own.full;c.repSrc='pipedrive';
+    if(isActiveRep(own.short)){c.rep=own.short;c.wasRep='';}     // Pipedrive's org owner wins
+    else{c.rep='';c.wasRep=own.short;}}                          // Josh, Stephen, or an older account: hand it out
+  if(p.tier)c.pdOut.push(p.tier+' tier');
+  var wf=p.workflows.filter(function(w){return PD.skipWorkflows.indexOf(w)>-1;});if(wf.length)c.pdOut.push('In '+wf.join(', ')+' workflow');
+  if(p.lastEmailSent&&p.lastEmailSent>=thisQuarterStart())c.pdOut.push('Emailed '+fdate(p.lastEmailSent));
+}
+function pdAsOf(){var d=PD.asOf;if(!d)return '';var h=d.getHours(),m=('0'+d.getMinutes()).slice(-2);
+  return (isoDay(d)===isoDay(new Date())?'':fdate(d)+' ')+((h%12)||12)+':'+m+(h<12?' am':' pm');}
+function pdLine(){  // the header line: says when Pipedrive is applied (or still loading); nothing when it's off
+  if(PD.status==='on')return 'Pipedrive: owners + last contact as of '+pdAsOf();
+  if(PD.status==='loading')return 'Pipedrive: loading'+(PD.progress?' ('+PD.progress+')':'')+'…';
+  return '';
+}
+function paintPd(){var e=$('pdLine');if(e)e.textContent=pdLine();}
+
+function gapWords(g){var m=g/30.4;if(m>=10.5&&m<=13.5)return 'about once a year';if(m<1.6)return 'about every '+Math.round(g/7)+' weeks';return 'about every '+Math.round(m)+' months';}
+function monthsAgo(d){var m=(TODAY.getFullYear()-d.getFullYear())*12+TODAY.getMonth()-d.getMonth()-(TODAY.getDate()<d.getDate()?1:0);return m;}
+function whyNow(c,Q){
+  var s=[],ma=monthsAgo(c.lastAny);
+  var byPd=c.touch&&c.touch>c.lastAny;  // Pipedrive's last activity is newer than the last order
+  if(c.seg==='warm'&&byPd)s.push('Went quiet: last Pipedrive activity '+fdate(c.touch)+' ('+monthsAgo(c.touch)+' months ago); last order '+fdate(c.lastAny)+'.');
+  else if(c.seg==='warm')s.push('Went quiet: last order '+fdate(c.lastAny)+(+c.lastAny===+c.last?' ('+money(c.lastAmt)+')':'')+', '+ma+' months ago.');
+  else if(c.seg==='cold')s.push('Cold: nothing since '+MONTH[c.lastAny.getMonth()]+' '+c.lastAny.getFullYear()+' ('+ma+' months).');
+  if(c.pdOut&&c.pdOut.length)s.unshift('Left out by Pipedrive: '+c.pdOut.join('; ')+'.');
+  if(!(c.seg==='warm'&&byPd)&&c.pd&&c.pd.lastActivity&&c.pd.lastActivity>c.lastAny)s.push('Last Pipedrive activity '+fdate(c.pd.lastActivity)+' ('+monthsAgo(c.pd.lastActivity)+' months ago).');
+  if(c.qRecent.length){
+    var parts=c.qRecent.map(function(y){return fmon(c.qByYear[y].first);}),amts=c.qRecent.map(function(y){return c.qByYear[y].amt;});
+    var same=amts.length===2&&Math.abs(amts[0]-amts[1])<=Math.max(50,amts[0]*.03);
+    s.push('Ordered in '+parts.join(' and ')+' ('+(same?money(amts[0])+' each':amts.map(money).join(' and '))+')'
+      +(c.qOlder.length?'; also '+Q.short+' '+c.qOlder.join(', '):'')+'.');
+  }
+  if(c.due)s.push('Orders '+gapWords(c.gap)+'; next one '+(c.next<TODAY?'was due around ':'due around ')+fmon(c.next)+'.');
+  if(c.seg==='recent'&&!c.due)s.push('Last paid order '+fdate(c.last)+' ('+money(c.lastAmt)+').');
+  return s.join(' ');
+}
+function build(){
+  var Q=curQ();findReps(state.orders);
+  state.all=groupCustomers(state.orders).map(function(g){return scoreCustomer(g,Q);}).filter(Boolean);
+  state.custs=state.all.filter(function(c){return c.seg;});   // the "Left out by Pipedrive" ones stay here, with their own tab
+  state.pdOut=state.custs.filter(function(c){return c.pdOut.length;}).length;
+  PD.matched=state.all.filter(function(c){return c.pd;}).length;
+}
+
+// ---------- per-computer marks (never Airtable) ----------
+var MARKS={};try{MARKS=JSON.parse(store('pine_sales_marks')||'{}')||{};}catch(e){MARKS={};}
+function saveMarks(){store('pine_sales_marks',JSON.stringify(MARKS));}
+function mark(k){return MARKS[k]||null;}
+
+// ---------- filtering + render ----------
+// Views (one per customer): warm is Patrick's list and the default.
+function segLabel(s,Q){return s==='warm'?'Warm · 4–12 months':s==='cold'?'Cold · 12+ months':s==='recent'?'Recent · due by '+Q.short:s==='marked'?'Contacted / skipped':s==='pdout'?'Left out by Pipedrive':s;}
+function segs(){return PD.status==='on'?['warm','cold','recent','pdout','marked']:['warm','cold','recent','marked'];}
+function reasonLabel(r,Q){return r==='season'?'Ordered in '+Q.short+' before':r==='due'?'Due for a reorder':r;}
+function baseList(){ // rep + min spend + search + reason (the chips count within this)
+  var q=state.q.trim().toLowerCase();
+  return state.custs.filter(function(c){
+    return (!state.rep||repKey(c)===state.rep||c.rep===state.rep)&&c.spend>=state.minSpend&&(!q||c.name.toLowerCase().indexOf(q)>-1)
+      &&(!state.tag||c.reasons.indexOf(state.tag)>-1);
+  });
+}
+function reasonFilter(r){
+  if(r==='marked')return function(c){return !!mark(c.key);};
+  if(r==='pdout')return function(c){return c.pdOut.length>0;};             // the toggle: who Pipedrive left out, and why
+  return function(c){var m=mark(c.key);return c.seg===r&&!c.pdOut.length&&(!m||m.t!=='skip');};
+}
+function sorted(list){
+  var by={score:function(a,b){return b.score-a.score||b.spend-a.spend;},spend:function(a,b){return b.spend-a.spend;},
+    last:function(a,b){return a.last-b.last;},name:function(a,b){return a.name.localeCompare(b.name);}}[state.sort];
+  return list.slice().sort(function(a,b){var ma=mark(a.key)?1:0,mb=mark(b.key)?1:0;return state.reason==='marked'?by(a,b):(ma-mb||by(a,b));});  // contacted ones sink
+}
+function shownList(){return sorted(baseList().filter(reasonFilter(state.reason)));}
+function render(){
+  if(!state.loaded)return;
+  if(state.reason==='pdout'&&PD.status!=='on')state.reason='warm';
+  var Q=curQ(),base=baseList();
+  $('chips').innerHTML=segs().map(function(s){
+    var n=base.filter(reasonFilter(s)).length;
+    return '<button type="button" class="p-tab'+(state.reason===s?' is-on':'')+(n?'':' zero')+'" data-reason="'+s+'" role="tab" aria-selected="'+(state.reason===s)+'">'+esc(segLabel(s,Q))+' <span class="p-count">'+n+'</span></button>';
+  }).join('');
+  fillTag(Q);
+  var shown=shownList();state.shown=shown;
+  var ly=Q.y-1,ly2=Q.y-2;
+  var sum=function(f){return shown.reduce(function(s,c){return s+f(c);},0);};
+  var tiles='<div class="tiles">'
+    +'<div class="tile p-stat"><span class="p-label">'+esc(segLabel(state.reason,Q))+'</span><span class="p-big">'+shown.length.toLocaleString('en-US')+'</span><i>'+esc(repFilterName())+(state.minSpend?' · '+money(state.minSpend)+'+ lifetime':'')+'</i></div>'
+    +'<div class="tile"><span class="p-label">Their '+Q.short+' '+ly+' sales</span><b>'+money(sum(function(c){return c.qLastYear;}))+'</b><i>'+shown.filter(function(c){return c.qLastYear>0;}).length+' of them ordered then</i></div>'
+    +'<div class="tile"><span class="p-label">Their '+Q.short+' '+ly2+' sales</span><b>'+money(sum(function(c){return c.qTwoYears;}))+'</b><i>'+shown.filter(function(c){return c.qTwoYears>0;}).length+' of them ordered then</i></div>'
+    +'<div class="tile"><span class="p-label">Lifetime spend</span><b>'+money(sum(function(c){return c.spend;}))+'</b><i>'+sum(function(c){return c.n;}).toLocaleString('en-US')+' orders</i></div>'
+    +'</div>';
+  var W=windows(),segSum={warm:'last order '+fmon(W.warmStart)+' – '+fmon(W.warmEnd),cold:'last order '+fmon(W.coldStart)+' – '+fmon(W.warmStart),
+    recent:'ordered since '+fmon(W.warmEnd)+', due again by '+Q.span+' '+Q.y,marked:'on this computer',
+    pdout:'customer tier, a customer workflow, or emailed since '+fdate(thisQuarterStart())}[state.reason]||'';
+  var nOut=base.filter(reasonFilter('pdout')).length,pl=pdLine();
+  var head='<div class="p-head"><span class="p-section">Who to call</span><span class="p-head-sum"><b>'+shown.length+'</b> '+(shown.length===1?'customer':'customers')+' · '+esc(segSum)
+    +(state.reason!=='pdout'&&PD.status==='on'&&nOut?' · '+nOut+' left out by Pipedrive':'')
+    +(pl?' · <span class="pd-line" id="pdLine">'+esc(pl)+'</span>':'')+'</span>'
+    +'<div class="p-head-end"><button class="p-btn p-btn-main" type="button" id="copyBtn"'+(shown.length?'':' disabled')+'>Copy list ('+shown.length+')</button></div></div>';
+  var empty='<div class="msg"><b>Nobody here</b>'+(state.q.trim()?'No target matches “'+esc(state.q.trim())+'”.':state.reason==='marked'?'Nothing marked contacted or skipped on this computer yet.':'Try All reps, a lower spend, any reason or another view.')+'</div>';
+  if(isWide()){renderSplit(tiles,head,shown,empty);return;}
+  $('main').classList.remove('is-split');
+  $('main').innerHTML=tiles+head+(shown.length?shown.slice(0,state.limit||200).map(function(c){return card(c,'',false);}).join('')+more(shown):empty);
+}
+function more(shown){var lim=state.limit||200;return shown.length>lim?'<div class="msg"><button class="p-btn" type="button" data-more="1">Show '+Math.min(200,shown.length-lim)+' more ('+(shown.length-lim)+' left)</button></div>':'';}
+var WIDE=window.matchMedia?matchMedia('(min-width:1400px)'):null;
+function isWide(){return !!(WIDE&&WIDE.matches);}
+function renderSplit(tiles,head,shown,empty){
+  var ls=$('splitList'),ds=$('splitDetail'),keepL=ls?ls.scrollTop:0,keepD=ds?ds.scrollTop:0,keepId=ds?ds.getAttribute('data-id'):'';
+  var pick=shown.filter(function(c){return state.open[c.key];})[0]||shown[0];
+  state.pickKey=pick?pick.key:'';
+  var m=$('main');m.classList.add('is-split');
+  m.innerHTML=tiles+'<div class="p-split" id="split"><div class="p-split-list" id="splitList">'+head
+    +(shown.length?shown.slice(0,state.limit||200).map(function(c){return card(c,'list',pick&&c.key===pick.key);}).join('')+more(shown):empty)+'</div>'
+    +'<div class="p-split-detail" id="splitDetail" data-id="'+esc(pick?pick.key:'')+'" aria-live="polite">'
+    +(pick?card(pick,'detail',true):'<div class="p-split-empty">Pick a customer on the left</div>')+'</div></div>';
+  setSplitTop();
+  $('splitList').scrollTop=keepL;
+  $('splitDetail').scrollTop=(pick&&keepId===pick.key)?keepD:0;
+}
+function setSplitTop(){var s=$('split');if(!s)return;document.documentElement.style.setProperty('--p-split-top',Math.round(s.getBoundingClientRect().top+window.scrollY)+'px');}
+function card(c,mode,picked){
+  var Q=curQ(),mk=mark(c.key),open=mode==='detail'||(mode===''&&state.open[c.key]);
+  var tags=c.reasons.map(function(r){return '<span class="p-tag">'+esc(reasonLabel(r,Q))+'</span>';}).join('')
+    +(c.open?'<span class="p-tag p-tag-soft">Order in progress</span>':'')
+    +(mk?'<span class="p-tag '+(mk.t==='skip'?'p-tag-soft':'p-tag-done')+'">'+(mk.t==='skip'?'Skipped':'&#10003; Contacted')+' '+esc(fdate(new Date(mk.at)))+'</span>':'');
+  var nums='<div class="p-lc-nums">'
+    +'<span class="p-num"><small>Lifetime</small><b>'+money(c.spend)+'</b></span>'
+    +'<span class="p-num"><small>Orders</small><b>'+c.n+'</b></span>'
+    +'<span class="p-num is-wide"><small>Last order</small><b>'+esc(fmon(c.last))+' · '+money(c.lastAmt)+'</b></span></div>';
+  var sub=(c.rep||c.wasRep?esc(repName(c)):'<span class="norep">'+esc(NO_REP)+'</span>')+(c.usual.length?' · usually '+c.usual.join(', '):'');
+  var tap=mode!=='detail';
+  var head='<div class="p-lc-head'+(tap?' is-tap':'')+'"'+(tap?' data-open="'+esc(c.key)+'" role="button" tabindex="0" aria-expanded="'+(!!open)+'"':'')+'>'
+    +'<div class="p-lc-id"><span class="score" title="Score out of 100">'+c.score+'</span></div>'
+    +'<div class="p-lc-main"><span class="p-lc-title">'+esc(c.name)+'</span><span class="p-lc-sub">'+sub+'</span></div>'
+    +nums
+    +(mode===''?'<div class="p-lc-act"><span class="p-lc-chev" aria-hidden="true">'+(open?'&#9650;':'&#9660;')+'</span></div>':'<div class="p-lc-act"></div>')
+    +'<div class="p-lc-tags">'+tags+'</div></div>';
+  var cls='p-lc'+(open||picked?' is-open':'')+(mk?' is-marked':'');
+  return '<section class="'+cls+'" id="c-'+esc(c.key)+'">'+head+(open?body(c,Q):'')+'</section>';
+}
+function refRest(o,c){  // Order Reference is "1234-Customer": show only what the name and number don't already say
+  var r=String(o.ref||'').replace(/^\d+\s*-\s*/,'').trim();return (!r||normName(r)===normName(o.name)||normName(r)===normName(c.name))?'':r;}
+function body(c,Q){
+  var mk=mark(c.key);
+  var months='<div><div class="sec-h">Months they order in</div><div class="months">'+c.months.map(function(n,i){
+      var tq=i>=Q.m0&&i<Q.m0+3;
+      return '<div class="mo'+(n>=2?' n2':n===1?' n1':'')+(tq?' tq':'')+'" title="'+MONTH[i]+': ordered in '+n+' '+(n===1?'year':'years')+'"><span>'+MON[i][0]+'</span><b>'+(n||'·')+'</b></div>';
+    }).join('')+'</div><div class="legend">Number = how many years they ordered that month. Yellow outline = '+esc(Q.span)+'.</div></div>';
+  var repWhy=c.repSrc==='pipedrive'?(c.rep?'Pipedrive owner':'Pipedrive owner '+c.pdOwner+' has left: hand out'):c.rep?'newest order with an active rep':c.wasRep?'only '+c.wasRep+' on file: hand out':'no rep on any order';
+  var facts='<div class="facts">'+(c.rep||c.wasRep?'<span>Rep <b>'+esc(repName(c))+'</b> ('+esc(repWhy)+')</span>':'<span class="norep">'+esc(NO_REP)+'</span>')+'<span>Customer since <b>'+esc(fmon(c.first))+'</b></span>'
+    +(c.firstSource?'<span>First order came via <b>'+esc(c.firstSource)+'</b></span>':'')
+    +(c.gap?'<span>Orders <b>'+gapWords(c.gap)+'</b></span>':'')
+    +'<span>'+esc(Q.short)+' '+(Q.y-1)+': <b>'+money(c.qLastYear)+'</b></span><span>'+esc(Q.short)+' '+(Q.y-2)+': <b>'+money(c.qTwoYears)+'</b></span>'
+    +(c.pd?'<span>Pipedrive: '+[c.pd.ownerFull?'owner <b>'+esc(c.pd.ownerFull)+'</b>':'',c.pd.lastActivity?'last activity <b>'+esc(fdate(c.pd.lastActivity))+'</b>':'',
+      c.pd.lastEmailSent?'last email <b>'+esc(fdate(c.pd.lastEmailSent))+'</b>':'',c.pd.tier?'tier <b>'+esc(c.pd.tier)+'</b>':'',
+      c.pd.workflows.length?'workflows <b>'+esc(c.pd.workflows.join(', '))+'</b>':''].filter(Boolean).join(', ')+'</span>':'')+'</div>';
+  var p=c.pts;
+  var score='<div class="score-line">Score '+c.score+' = spend '+p.spend+' + orders '+p.orders+' + '+esc(Q.short)+' history '+p.season+' + due '+p.due+' + recent '+p.recent+'</div>';
+  var acts='<div class="acts">'
+    +(mk?'<button class="p-btn" type="button" data-unmark="'+esc(c.key)+'">Clear mark</button>'
+        :'<button class="p-btn p-btn-dark" type="button" data-mark="'+esc(c.key)+'" data-t="contact">&#10003; Mark contacted</button><button class="p-btn" type="button" data-mark="'+esc(c.key)+'" data-t="skip">Skip</button>')
+    +'<span class="p-hint">Marks stay on this computer only.</span></div>';
+  var rows=c.orders.slice().sort(function(a,b){return b.date-a.date;}).map(function(o){
+    var inq=o.date&&o.date.getMonth()>=Q.m0&&o.date.getMonth()<Q.m0+3;
+    return '<tr class="'+(inq?'inq':'')+(o.subtotal>0?'':' zero')+'"><td class="nw">'+esc(fdate(o.date))+(o.paid?'':' <span class="p-hint">(created)</span>')+'</td>'
+      +'<td>'+(o.num?'<span class="p-id">'+esc(o.num)+'</span> ':'')+(refRest(o,c)?'<span class="ref" title="'+esc(o.ref)+'">'+esc(refRest(o,c))+'</span>':'')+'</td>'
+      +'<td class="r nw">'+(o.subtotal>0?money(o.subtotal):'$0 <span class="p-hint">(not counted)</span>')+'</td>'
+      +'<td>'+esc(o.ptypes.join(', '))+'</td><td class="r">'+(o.qty?o.qty.toLocaleString('en-US'):'')+'</td>'
+      +'<td>'+esc(o.status)+(o.rep?' · '+esc(o.rep):'')+'</td>'
+      +'<td><a href="'+atUrl(o.id)+'" target="_blank" rel="noopener" aria-label="Open order in Airtable">Airtable &#8599;</a></td></tr>';
+  }).join('');
+  var table='<div><div class="sec-h">Order history · '+c.orders.length+' '+(c.orders.length===1?'order':'orders')+' (yellow = '+esc(Q.span)+')</div><div class="scroll"><table class="oh"><thead><tr><th>Paid</th><th>Order</th><th class="r">Subtotal</th><th>Products</th><th class="r">Qty</th><th>Status · rep</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  return '<div class="p-lc-body"><div class="p-note why"><b>Why now:</b> '+esc(c.why)+'</div>'+facts+months+score+acts+table+'</div>';
+}
+
+// ---------- copy list (TSV for a spreadsheet) ----------
+function tsv(){
+  var Q=curQ(),cols=['Customer','Rep','View','Score','Reasons','Why now','Lifetime spend','Orders','Last order','Last order amount','Usual months',Q.short+' '+(Q.y-1),Q.short+' '+(Q.y-2),'Mark (this computer)'];
+  var clean=function(v){return String(v==null?'':v).replace(/[\t\r\n]+/g,' ');};
+  return [cols.join('\t')].concat((state.shown||[]).map(function(c){var mk=mark(c.key);
+    return [c.name,repName(c),segLabel(c.seg,Q),c.score,c.reasons.map(function(r){return reasonLabel(r,Q);}).join(', '),c.why,Math.round(c.spend),c.n,isoDay(c.last),Math.round(c.lastAmt),c.usual.join(' '),Math.round(c.qLastYear),Math.round(c.qTwoYears),mk?(mk.t==='skip'?'Skipped':'Contacted')+' '+isoDay(new Date(mk.at)):''].map(clean).join('\t');
+  })).join('\n');
+}
+function copyList(){
+  var t=tsv(),n=(state.shown||[]).length;
+  var done=function(){toast('Copied '+n+' customers — paste into a spreadsheet');};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,function(){fallbackCopy(t)?done():toast('Couldn’t copy — try again',true);});}
+  else{fallbackCopy(t)?done():toast('Couldn’t copy — try again',true);}
+}
+function fallbackCopy(t){try{var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();var ok=document.execCommand('copy');a.remove();return ok;}catch(e){return false;}}
+
+// ---------- controls ----------
+function fillReps(){  // active reps only (busiest first) + the customers nobody owns now
+  var cnt={},gs={};state.custs.forEach(function(c){if(c.rep)cnt[c.rep]=(cnt[c.rep]||0)+1;if(c.wasRep)gs[c.wasRep]=1;});
+  Object.keys(REPS.active).forEach(function(r){if(!cnt[r])cnt[r]=0;});
+  var reps=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b);});
+  var gone=Object.keys(gs).sort();if(!gone.length)gone=RULES.retiredReps.slice();
+  if(state.rep&&state.rep.indexOf('__')!==0&&reps.indexOf(state.rep)<0){state.rep='';store('pine_sales_rep',null);}  // e.g. Josh / Stephen from v2
+  $('rep').innerHTML='<option value="">All reps</option>'+reps.map(function(r){return '<option value="'+esc(r)+'">'+esc(r)+'</option>';}).join('')
+    +'<option value="__unassigned">Unassigned (was '+esc(gone.join(' / ')||'a past rep')+')</option>'
+    +'<option value="__none">No rep on file</option>';  // older orders (before the Sales Person field was used) have no rep
+  $('rep').value=state.rep;
+}
+function repFilterName(){return state.rep==='__none'?'No rep on file':state.rep==='__unassigned'?'Unassigned':state.rep||'All reps';}
+function fillTag(Q){
+  $('tag').innerHTML='<option value="">Any reason</option><option value="season">'+esc(reasonLabel('season',Q))+'</option><option value="due">Due for a reorder</option>';
+  $('tag').value=state.tag;
+}
+$('qtr').innerHTML=QTRS.map(function(Q){return '<option value="'+Q.key+'">Target: '+Q.label+' ('+Q.span+')</option>';}).join('');
+state.qtr=QTRS[0].key;
+state.rep=store('pine_sales_rep')||'';
+state.minSpend=+(store('pine_sales_min')||0)||0;$('minSpend').value=String(state.minSpend);if($('minSpend').value!==String(state.minSpend)){state.minSpend=0;$('minSpend').value='0';}
+$('q').addEventListener('input',function(){state.q=this.value;state.limit=0;render();});
+$('rep').addEventListener('change',function(){state.rep=this.value;store('pine_sales_rep',this.value||null);state.limit=0;render();});
+$('minSpend').addEventListener('change',function(){state.minSpend=+this.value||0;store('pine_sales_min',String(state.minSpend));state.limit=0;render();});
+$('sort').addEventListener('change',function(){state.sort=this.value;render();});
+$('tag').addEventListener('change',function(){state.tag=this.value;state.limit=0;render();});
+$('qtr').addEventListener('change',function(){state.qtr=this.value;if(state.loaded){build();fillReps();render();}});
+$('refreshBtn').onclick=function(){if(window.PineUpdate&&PineUpdate.check)PineUpdate.check();load();};
+document.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('[data-reason],[data-open],[data-mark],[data-unmark],[data-more],#copyBtn');
+  if(!t)return;
+  if(t.id==='copyBtn'){copyList();return;}
+  if(t.dataset.reason){state.reason=t.dataset.reason;state.limit=0;render();return;}
+  if(t.dataset.more){state.limit=(state.limit||200)+200;render();return;}
+  if(t.dataset.mark){MARKS[t.dataset.mark]={t:t.dataset.t,at:Date.now()};saveMarks();paintMarkHint();render();toast(t.dataset.t==='skip'?'Skipped (this computer only)':'Marked contacted (this computer only)');return;}
+  if(t.dataset.unmark){delete MARKS[t.dataset.unmark];saveMarks();paintMarkHint();render();return;}
+  if(t.dataset.open){openCard(t.dataset.open);}
+});
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.open){e.preventDefault();e.target.click();}});
+function openCard(k){
+  if(isWide()){state.open={};state.open[k]=true;render();return;}
+  var was=!!state.open[k],el=$('c-'+k),top=el?el.getBoundingClientRect().top:null;
+  state.open={};if(!was)state.open[k]=true;
+  render();
+  var now=$('c-'+k);
+  if(now&&top!=null){var d=now.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);}
+  if(now&&now.getBoundingClientRect().top<0)now.scrollIntoView();
+}
+if(WIDE){var onWide=function(){if(state.loaded)render();};if(WIDE.addEventListener)WIDE.addEventListener('change',onWide);else if(WIDE.addListener)WIDE.addListener(onWide);}
+window.addEventListener('resize',function(){if(isWide())setSplitTop();});
+document.addEventListener('keydown',function(e){  // ↑/↓ move between customers in the two-pane view
+  if((e.key!=='ArrowDown'&&e.key!=='ArrowUp')||!isWide()||!state.shown||!state.shown.length)return;
+  var a=document.activeElement;
+  if(a&&(/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)||a.closest('#splitDetail,#gear')))return;
+  if(e.altKey||e.ctrlKey||e.metaKey)return;
+  var keys=state.shown.slice(0,state.limit||200).map(function(c){return c.key;}),i=keys.indexOf(state.pickKey),n=i+(e.key==='ArrowDown'?1:-1);
+  if(n<0||n>=keys.length)return;
+  e.preventDefault();state.open={};state.open[keys[n]]=true;render();
+  var c=$('c-'+keys[n]);if(c)c.scrollIntoView({block:'nearest'});
+});
+// ⚙ menu: token + what the marks are
+function paintMarkHint(){var n=Object.keys(MARKS).length;$('markHint').textContent=n?n+' marked on this computer':'None on this computer';$('clearMarks').disabled=!n;}
+function showMenu(on){
+  $('gear').hidden=!on;$('gearBtn').setAttribute('aria-expanded',on);
+  if(on){$('tokIn').value='';$('tokHint').textContent=token()?'Saved on this computer. Paste a new one to change it.':'Not set. Needed to read orders.';paintMarkHint();
+    $('pdHint').textContent=PD.status==='on'?'On, as of '+pdAsOf()+': '+PD.n.toLocaleString('en-US')+' customer organizations, '+PD.matched.toLocaleString('en-US')+' matched to customers here by name. Owner, tier, workflow, last email and last activity are applied; '+state.pdOut+' left out.'
+      :PD.status==='loading'?'Loading from Pipedrive…'
+      :PD.status==='missing'?'Off — worker v23 not deployed. Using Airtable orders only.'
+      :PD.status==='error'?'Off — '+PD.why+'. Using Airtable orders only.'
+      :'Off (?pd=0 in the link). Using Airtable orders only.';}
+}
+$('gearBtn').onclick=function(){showMenu($('gear').hidden);};
+document.addEventListener('pointerdown',function(e){if(!$('gear').hidden&&!e.target.closest('#gear,#gearBtn')&&token())showMenu(false);});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('gear').hidden&&token())showMenu(false);});
+$('tokIn').addEventListener('keydown',function(e){if(e.key==='Enter')$('tokSave').click();});
+$('tokSave').onclick=function(){var v=$('tokIn').value.trim();if(!v){toast('Paste the token first',true);return;}store('pine_at_key',v);showMenu(false);load();};
+$('clearMarks').onclick=function(){if(!confirm('Clear all Contacted / Skip marks on this computer?'))return;MARKS={};saveMarks();paintMarkHint();render();};
+// self-update: busy while the ⚙ menu is open or a search is typed (nothing here is ever unsaved in Airtable)
+window.pineBusy=function(){try{return !$('gear').hidden||!!state.q.trim()||state.loading;}catch(e){return true;}};
+// for tests: the computed targets (no writes, no network)
+window.__sales={state:state,RULES:RULES,build:build,curQ:curQ,PD:PD,REPS:function(){return REPS;},mergePipedrive:mergePipedrive,render:render};
+load();
+</script>
+<script src="pine-update.js" data-link="reconnect.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>

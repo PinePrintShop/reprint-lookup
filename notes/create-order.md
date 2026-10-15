@@ -428,3 +428,9 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - **Order page:** on screens 1500px and wider, the side column (checklist + deal emails) grows with the window, between 400 and 560px. That gives the emails more reading width, and the forms take the rest.
 - **iPad and phone layouts** are unchanged.
 - **Tested** with mocked Airtable at 2000px and on an emulated iPhone, running the full flow. No errors, no sideways scroll.
+
+## 2026-10-15 — Worker v23 (Reconnect, no Create order change)
+- Adds a read-only `GET /proxy/pipedrive/reconnect` for Reconnect v4. It returns one line per Pipedrive organization with a won deal: owner, last activity, last email sent, tier and workflows. No contact details.
+- Same Airtable-token gate, plus a check that the token can read the Pine base. The route answers only pineprintshop.github.io.
+- Uses `PIPEDRIVE_KEY`. Optional extras: the `PIPEDRIVE_RECONNECT_KEY` secret and the `RECONNECT_BUDGET` variable.
+- Every existing route is unchanged; a unit test checks them against v22. Details and deploy steps: `notes/reconnect.md`.
