@@ -249,7 +249,7 @@ Scheduler v13 and Day Fill v15 in one app. Purchasing schedules the presses here
 - **Mockups:** Stephen wants them on Day view only, which is how it already worked. A brief try at thumbnails on Week/3 Day cards was taken back out before shipping.
 - **Imprints with no Line Items linked** are no longer listed. A note at the bottom of the Unscheduled list names them ("N imprints not shown … link them or delete them: 10957-E, …"). On Oct 14 this covered 10957-E/F, 10996-A and 10627-C/D/E/I. Their orders are real, but those print records were never connected to line items, so there's no qty, mockup or garment.
 
-## 2026-10-15 — v16: 2 Week view + mouse drag fix
+## 2026-10-15 · v16: 2 Week view + mouse drag fix
 **Stephen:** add a 2 week view.
 - **2 Week** sits between Week and Month. It shows this week and next as two Mon–Fri rows, with a thicker line between the weeks.
   - Every job is listed (Month cuts off at 7 per day). Each day shows its load for every machine (P1, P2, EM, HT, FS, FN).
