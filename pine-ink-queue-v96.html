@@ -5105,7 +5105,7 @@ function generateLabelPdf(labels, callback) {
           doc.setFontSize(p2);
           if (Math.max(colHeight(two[0], p2), colHeight(two[1], p2)) <= bodyH && Math.max(colWidth(two[0]), colWidth(two[1])) <= cw) { pt2 = p2; break; }
         }
-        if (pt2 > rPt) { cols = two; rPt = pt2; leftW = lw2; recipeL = rL2; recipeW = W - PAD - rL2; }
+        if (pt2 >= rPt + 1.5) { cols = two; rPt = pt2; leftW = lw2; recipeL = rL2; recipeW = W - PAD - rL2; }
       }
       if (!rPt) rPt = LBL_MIN_PT;   // last resort: smallest size; lines are clipped to the label below
     }
