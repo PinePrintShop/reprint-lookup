@@ -23,7 +23,7 @@
 | Receiving | `receiving.html` | receiving-dashboard v76 |
 | Production Board | `pine-production-board.html` | v41 |
 | Seps | `seps.html` | v38 |
-| Screens | `screens.html` | v24 |
+| Screens | `screens.html` | v25 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v20 |
 | Pine Central | `pine-central.html` | v174 |
