@@ -9,20 +9,67 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
   - One group per upcoming print day, with a working-day countdown.
   - No date (the pipeline).
   - Completed: ready jobs, kept for 5 days after they print so one can be reopened.
-  - Inside each group, jobs are grouped by order.
+  - Inside each group, a slim line per order (customer, #order) with its imprint cards below.
+  - Today and the next 3 days with jobs start open; later days, No date and Completed start closed. A day you open or close stays that way for the session.
 - **Tightest runway:** working days until the nearest job that still needs ink. 4 is the benchmark.
 - **Filters:** All · No inks · Reorders · No date, plus a search (customer, order #, imprint, design).
-- **An open job shows** (two panes at 1400px+, with *Hide list*):
+- **An open job shows** (two panes at 1400px+, with *Hide list*; the job doesn't scroll as a whole, only its inks column does):
   - its proofs, big, with a full-screen viewer
   - beside the proof, its inks: swatch, name, type, maker, updated date, the recipe as a list (*Edit recipe* to change it), Label, *Mixed today*, and Remove
   - Print notes and Ink notes, below the inks
-  - Add ink (from the ink library or a new color), copy/paste colors between locations, and drag to reorder
+  - Add ink (from the ink library or a new color), copy/paste colors between locations, and drag to reorder (holding an ink near the top or bottom edge scrolls)
   - *Fill from* the previous run, on reorders
 - **Labels:** 4×2in Rollo labels as a PDF (one label per page, black on white), for one ink, all inks on a job, or any ink in the library (*Print a label*). Print settings: paper 4 × 2 in, scale 100% / Actual size, margins None.
 - **Writes to Airtable:**
   - Imprints: Inks (links and order), Inks Ready, Print Notes, Ink Notes. Opening a reorder also saves the inks, notes and ink types filled in from the previous run.
   - Inks: Pantone Number and Ink Type (from the name), Recipe, Display Hex, Manufacturer, Last Updated. It also creates new Inks.
+- **Reads the line item name** (Line Items › Line Item Reference) only when an open job has no proof.
 - The Airtable token comes from `pine_at_key` in the browser, the same as the other apps. `?practice=1` fakes every write.
+
+## 2026-10-15 · v97: a bigger, static mockup; a list you can move through
+**Why:** Stephen on v96:
+- "do we need that white bar and smaller mockup above the bigger mockup"
+- "can we fix the spacing on these so the names are left aligned and the order number imprint ids are right aligned"
+- "can we also walk through how best it might be for moving with jobs in this section on the left"
+- on dragging inks (same as Seps): "if I try to scroll up it doesn't move the screen and I have to move them one at a time instead of taking the lowest and moving it to the top"
+- then: "still feel like the left section is too big and can we work on not having to scroll down if there is a lot of pantones etc would love for that mockup area be static and let's remove the floating buttons"
+- and he asked why flatstock jobs show no mockup.
+
+- **The open job:**
+  - The tall white head with a small mockup is gone. One slim head: the ID, the design and tags like REORDER on one line, then customer #order · location · press · print date. Pcs, Inks and *Mark ready* are on the right.
+  - The ink chips left the head, because the ink cards beside the proof show the same inks. In place (below 1400px), an open card also hides its small mockup and chips.
+  - Two panes: the job never scrolls as a whole. The mockup fills the height and stays put, with ‹ 1/2 › under it. Only the inks column scrolls, so a job with many Pantones scrolls in that column. A new job starts at the top of its inks.
+  - On wide screens the proof takes 64% of the job (it was 58%). At 2000×1000 the mockup went from 810×594 to 896×676 and starts 86px higher.
+  - There are no floating or sticky bars. v96 had a sticky job head and a sticky proof; the fixed layout replaces both.
+- **The list (two panes):**
+  - It's narrower: 320–360px (v96: 380–440).
+  - "N need ink · Tightest runway …" is one line. The full text is in the tooltip.
+  - Under each day there's a slim order line: the customer on the left (cut with …), and the #order badge in a fixed column on the right, so the badges line up down the list. "2 imprints" shows only when an order has more than one.
+  - Orders don't open and close any more; their cards sit straight below. Most orders have one imprint, so the ▶ was an extra click for nothing.
+  - Compact cards:
+    - a 40px thumbnail
+    - the ID badge and the design, which gets the width
+    - "Bandana · Press 2 · **120** pcs · **2** inks"
+    - ink chips that wrap, with *Mark ready* at the bottom right
+  - Day heads stay on one line, and the count gives way first.
+- **Moving through the jobs:**
+  - Days start open for today and the next 3 days with jobs. Later days, No date and Completed start closed, with their count. *On press today* starts closed when all its inks are ready.
+  - Opening or closing a day is remembered for the session. v96 kept closed days in localStorage for good.
+  - A search or a filter opens every day. The open job's day is always open.
+  - The whole card is the click target. ↑/↓ walk every job and open a closed day on the way.
+  - The first job picked is the first one that still needs ink. v96 picked the first card, even a ready one.
+  - After *Mark ready*, the next job that still needs ink opens, even in a closed day. In place (below 1400px) it opens too, with its head near the top. v96 only closed the card.
+- **Dragging inks:** holding an ink within 90px of the top or bottom edge scrolls, faster nearer the edge. It scrolls the nearest scrolling box around the ink (the inks column in two panes, the page otherwise). This works the same way as Seps v37/v38. The ink list has no inner scroll box, so the last ink goes to the top in one drag.
+- **No proof (flatstock):** Airtable has flatstock proofs as PDFs on the line items, like the others. Some flatstock imprints have no proof on their line item (e.g. 10927-B, line item "10927-Pine Printshop-FLATSTOCK"), or no line item at all.
+  - The job now says **No proof in Airtable**, names the line item to add it to, and has *Open the line item in Airtable*.
+  - With no line item, it says so.
+  - The name is a new read-only lookup of Line Items › Line Item Reference, made only when an open job has no proof.
+  - PDF-only proofs (small and large thumbnails, no full) show their large thumbnail. This was checked.
+- **Airtable writes:** the same as v96.
+  - Checked with the v95/v96 write-compare flow (name, recipe, drag reorder, labels, notes, *Mixed today*, swatch color, remove, add from library, add new, copy/paste, reorder seed, Mark ready, Undo, a No-date note). All 16 writes are identical, in the same order.
+  - Practice mode sends 0 writes.
+  - A 10-ink job: dragging the last ink to the top in one drag gave one write with the right order, at 2000, 1440 and 1024 (in place, page scroll).
+- **Tested** with mocked Airtable (made-up customers): no page errors, no horizontal scroll and no text under 12px at 2000, 1440, 1024 and 390.
 
 ## 2026-10-15 · v96: the mockup and the inks first; Rollo labels checked
 **Why:** Stephen: "let's really explore usability for this as well. Ink is really focused on Mockups and then adding the correct colors and looks like that is hard to read / use right now", and "can you also look at the label logic in the ink queue and make sure that it will print correctly with a rollo printer".
