@@ -260,3 +260,23 @@
 .p-bar-views{min-width:0}
 @media (max-width:1180px){ .p-bar-views button,.p-bar-views a{padding:0 10px} }  /* narrow iPad landscape: more views fit */
 .p-menu-line{display:flex;align-items:center;justify-content:space-between;gap:var(--p-s3)}  /* status text + button in the ⚙ menu */
+
+/* ---------- PAGE KIT: two-pane list / detail for DESKTOP apps (from Damage Log v21, Oct 15) ----------
+   Desktop apps (Purchasing, Receiving, Seps, Screens, Ink, Damage Log, Schedule, office apps) use the full width.
+   At >=1400px: list left, picked record's detail right, each with its own scroll. Below that, cards open in place.
+   Markup: .p-split > .p-split-list (.p-head + .p-lc cards) + .p-split-detail (one .p-lc with head + .p-lc-body).
+   The app sets --p-split-top (px from the page top to the top of .p-split), marks the picked card .is-open,
+   renders the split only at >=1400px, and re-renders when the width crosses it. ↑/↓ moves between records. */
+.p-split{display:grid;grid-template-columns:minmax(560px,640px) minmax(0,1fr);gap:var(--p-s5);align-items:start}
+.p-split-list,.p-split-detail{height:calc(100vh - var(--p-split-top,120px));height:calc(100dvh - var(--p-split-top,120px));overflow-y:auto;overscroll-behavior:contain;padding:var(--p-s4) 4px var(--p-s6)}
+.p-split-list>.p-head:first-child{margin-top:0}
+.p-split-list .p-lc-head{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"id main act" "nums nums nums" "tags tags tags"}
+.p-split-list .p-lc-nums{justify-content:flex-start}
+.p-split-list .p-num{text-align:left}
+.p-split-list .p-lc.is-open{border:2px solid var(--p-black);box-shadow:inset 6px 0 0 var(--p-black)}
+.p-split-list .p-lc.is-open>.p-lc-head{background:var(--p-cream)}
+.p-split-list .p-lc.is-sel.is-open>.p-lc-head{background:var(--p-yellow-lt)}
+.p-split-detail>.p-lc{border:2px solid var(--p-black)}
+.p-split-detail>.p-lc>.p-lc-head{cursor:default}
+.p-split-empty{display:grid;place-items:center;min-height:240px;border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);color:var(--p-ink-2);font-weight:700}
+body.has-bbar .p-split-list,body.has-bbar .p-split-detail{padding-bottom:96px}

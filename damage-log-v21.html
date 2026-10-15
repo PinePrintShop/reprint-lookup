@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<!-- Damage Log v21 (2026-10-15): uses the desktop width. At 1400px and wider the Orders tab is two panes: the order list on
+     the left (its own scroll) and the picked order's detail on the right (its own scroll, under the filter row);
+     ↑/↓ move between orders. Below 1400px orders still open in place, but the page is full width with 24px gutters
+     (no 1100px cap), so the filter chips fit on one line when there's room. Trends charts sit side by side.
+     Same Airtable reads and writes as v20.
+     Damage Log v20 (2026-10-15): Pine page kit. Orders/Trends are bar views; Refresh is a bar button; the token and the
+     practice switch live in the ⚙ menu. Range + search + filter chips are one filter row (chips on one line, sideways
+     scroll; the Trends Show switch is the chips there). Order cards are kit list cards (ID · customer + last issue /
+     issues / pcs · Refund / Reprint would cost / Bandanas · Approve all N; status tags on row 2), open in place, one at
+     a time. "Select all N to approve" sits in the page head. Airtable writes unchanged.
+     Damage Log v19 (2026-10-15): 'Copy refund for QuickBooks' and 'Mark refund issued' show only once a refund request
+     has gone to the bookkeeper (an issue is In Refund Request), or the refund is already marked issued.
+     Damage Log v18 (2026-10-15): Pine style v2 (pine-style-v2.css, black top bar, cream/black/yellow, nothing under 12px,
+     44px targets), self-update (pine-update.js -> damage-log.html) with a Refresh button, practice pill + practice
+     stays in the URL, practice approvals no longer show a fake "Refund not sent", double-click guard on every write
+     (no second refund email), one toast at a time, shorter repeated text, unreachable packing-slip code removed. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Damage Log v21 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+/* v20: the Pine page kit (pine-style-v2.css) does the bar, filter row, page head and list cards. App-only bits below. */
+:root{--bg-soft:#FBF7EF;--border-dk:#CDBB9B;--ink2:var(--p-ink-2);--muted:var(--p-ink-3);--red:var(--p-alert)}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+body{font-size:15px}
+.szt,.tile b,.val,.cv{font-variant-numeric:tabular-nums}
+/* ⚙ menu: token + practice, drops down under the bar */
+.menu{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(100% + 6px);width:min(400px,calc(100vw - 32px));color:var(--p-black);
+  display:flex;flex-direction:column;gap:var(--p-s4);box-shadow:var(--p-shadow);font-size:var(--p-fs-m)}
+.menu-row{display:flex;gap:var(--p-s2);align-items:center}
+.menu-row .p-input{flex:1;min-width:0}
+.menu-row .menu-txt{flex:1;display:flex;flex-direction:column;gap:2px}
+.menu hr{border:0;border-top:1px solid var(--p-line)}
+/* filter row */
+.p-filters .p-select{width:auto;min-width:170px}
+@media (min-width:701px){ .p-filters{padding-left:24px;padding-right:24px} }  /* v21: full width, same 24px gutters as the page (was lined up with an 1100px cap, which clipped the chips) */
+.p-filters.is-trends .p-chips{flex:1 1 auto;order:0}  /* Trends has no search: Show chips + range share one line */
+.p-tab.zero{border-color:var(--p-line-strong);color:var(--muted)}
+.wrap{padding:0 24px 120px}  /* v21: no 1100px cap; full width with 24px gutters */
+.wrap.is-split{padding:0 24px}
+.wrap>.p-head:first-child{margin-top:var(--p-s4)}
+.msg{padding:40px 16px;text-align:center;color:var(--ink2)}
+.msg b{display:block;color:var(--p-black);font-size:18px;margin-bottom:6px}
+.msg.err b{color:var(--red)}
+/* order cards (.p-lc) */
+.p-lc-head.is-tap:hover{background:var(--bg-soft)}
+.p-lc.is-sel{border:2px solid var(--p-black)}
+.p-lc.is-sel>.p-lc-head{background:var(--p-yellow-lt)}
+.p-lc-id .p-id{min-width:72px;text-align:center}
+.p-lc-act .p-btn{min-height:var(--p-tap)}
+.ord-sel{position:relative;width:30px;height:30px;border:2px solid var(--p-black);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:var(--p-white);font-weight:900;font-size:18px;color:var(--p-yellow)}
+.ord-sel::after{content:'';position:absolute;inset:-8px}
+.ord-sel.on{background:var(--p-black)}
+.ord-sel-sp{width:30px;flex-shrink:0}
+.mk-strip{display:flex;gap:4px;flex-shrink:0}.mk-strip img{width:44px;height:44px;object-fit:contain;background:#fff;border:1px solid var(--p-line);border-radius:4px}
+/* open card body */
+.p-note.quiet{background:transparent;border-left-color:var(--border-dk);color:var(--ink2)}
+.p-note.act{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.p-note.act span{flex:1;min-width:220px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts .p-btn,.iss-act .p-btn{font-size:var(--p-fs-s)}
+.li{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r)}
+.li-h{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--p-line);flex-wrap:wrap}
+.li-h b{font-size:15px}
+.li-h small{color:var(--ink2);font-size:13px;flex:1}
+.li-h .lr{font:700 15px var(--p-sans);font-variant-numeric:tabular-nums}
+.short-n{color:var(--red)}
+.cost{border-radius:0;border-left:0;border-bottom:1px solid var(--p-line);background:var(--bg-soft)}
+.cost.differ{background:var(--p-yellow-lt);box-shadow:inset 4px 0 0 var(--p-yellow)}
+.szt{border-collapse:collapse;width:100%;font-size:14px}
+.szt th,.szt td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--p-line)}
+.szt th{font:700 12px var(--p-sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.szt td:first-child,.szt th:first-child{text-align:left;font:700 12px var(--p-sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);width:96px;white-space:nowrap}
+.szt tr.short td{color:var(--red);font-weight:700}
+.szt tr.dmg td{font-weight:700}
+.scroll{overflow-x:auto}
+.iss{padding:10px 12px;border-top:1px dashed var(--border-dk);display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}
+.iss .who{color:var(--ink2)}
+.iss .rsn{margin-top:4px}
+.iss .res{text-align:right;white-space:nowrap}
+.iss .res b{display:block;font-size:15px}
+.iss .res small{color:var(--ink2);font-size:13px}
+.iss a{color:var(--p-black);font-size:13px;font-weight:700;text-underline-offset:3px;display:inline-flex;align-items:center;min-height:44px}
+.iss .note{color:var(--ink2);font-size:13px}
+.li-mk{width:84px;height:84px;object-fit:contain;background:#fff;border:1px solid var(--p-line);border-radius:4px;cursor:zoom-in;flex-shrink:0;display:block}
+.iss-act{grid-column:1 / -1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.iss-act .p-select{width:auto;min-width:150px}
+/* batch bar: the one yellow button */
+.bbar{position:fixed;left:0;right:0;bottom:0;background:var(--p-black);color:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;align-items:center;flex-wrap:wrap;z-index:40;box-shadow:0 -4px 16px rgba(0,0,0,.2)}
+.bbar span{flex:1;min-width:200px;font-size:15px}
+.bbar .p-btn-clear{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}
+/* trends */
+.split{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.split .card{flex:1;min-width:240px}
+.split .big{font:700 30px var(--p-sans);font-variant-numeric:tabular-nums}
+.split .big small{font-size:13px;color:var(--ink2);font-weight:700}
+.split p{margin-top:6px;font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px}
+.tile{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:14px}
+.tile small{display:block;font:700 12px var(--p-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.tile b{font:700 26px var(--p-sans)}
+.tile i{display:block;font-style:normal;color:var(--ink2);font-size:13px;margin-top:3px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}  /* v21: 3-4 charts side by side on desktop */
+.card{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:14px}
+.card h3{font:900 16px/1.2 var(--p-display);letter-spacing:.005em;word-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.card p.sub{color:var(--ink2);font-size:13px;margin-bottom:12px}
+.hb{display:grid;grid-template-columns:minmax(90px,34%) 1fr auto;gap:8px 10px;align-items:center;font-size:13px}
+.hb .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .trk{height:14px;position:relative}
+.hb .fill{position:absolute;left:0;top:0;bottom:0;background:var(--p-black);border-radius:0 4px 4px 0;min-width:2px}
+.hb .val{text-align:right;white-space:nowrap}
+.hb .row{display:contents}
+.hb .row:hover .fill{background:var(--ink2)}
+.cols{display:flex;align-items:flex-end;gap:2px;height:150px;border-bottom:1px solid var(--border-dk);padding-top:20px}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;position:relative}
+.col .cf{width:100%;max-width:38px;background:var(--p-black);border-radius:4px 4px 0 0;min-height:2px}
+.col:hover .cf{background:var(--ink2)}
+.col .cv{font-size:12px;margin-bottom:3px;white-space:nowrap}
+.colx{display:flex;gap:2px;margin-top:4px}
+.colx span{flex:1;text-align:center;font-size:12px;color:var(--ink2);white-space:nowrap}
+.tt{position:fixed;pointer-events:none;background:var(--p-black);color:#fff;font-size:13px;padding:6px 9px;border-radius:4px;z-index:50;white-space:nowrap}
+.p-toast{z-index:120}
+body.has-bbar .p-toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+@media (max-width:1099px){ .mk-strip img:nth-child(n+2){display:none} }
+
+/* ===== KIT CANDIDATE (v21, 2026-10-15): two-pane list / detail — .p-split =====
+   For desktop list apps. At >=1400px the list sits on the left (its own scroll) and the picked record's detail on the
+   right (its own scroll), both filling the screen under the bar + filter row. Below 1400px the app keeps opening
+   records in place (.p-lc.is-open + .p-lc-body), so the markup below is only rendered when wide.
+   Markup:  <div class="p-split"><div class="p-split-list">.p-head + .p-lc cards</div>
+                                 <div class="p-split-detail"><section class="p-lc">head + .p-lc-body</section></div></div>
+   The app sets --p-split-top on :root = px from the top of the page to the top of .p-split (bar + filter row),
+   marks the picked card .p-lc.is-open in the list, and shows .p-split-empty in the detail when nothing is picked. */
+.p-split{display:grid;grid-template-columns:minmax(560px,640px) minmax(0,1fr);gap:var(--p-s5);align-items:start}
+.p-split-list,.p-split-detail{height:calc(100vh - var(--p-split-top,120px));height:calc(100dvh - var(--p-split-top,120px));overflow-y:auto;overscroll-behavior:contain;padding:var(--p-s4) 4px var(--p-s6)}
+.p-split-list>.p-head:first-child{margin-top:0}
+.p-split-list .p-lc-head{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"id main act" "nums nums nums" "tags tags tags"}
+.p-split-list .p-lc-nums{justify-content:flex-start}
+.p-split-list .p-num{text-align:left}
+.p-split-list .p-lc.is-open{border:2px solid var(--p-black);box-shadow:inset 6px 0 0 var(--p-black)}   /* the one you're looking at: black edge */
+.p-split-list .p-lc.is-open>.p-lc-head{background:var(--p-cream)}                                        /* (yellow wash stays = checked for approval) */
+.p-split-list .p-lc.is-sel.is-open>.p-lc-head{background:var(--p-yellow-lt)}
+.p-split-detail>.p-lc{border:2px solid var(--p-black)}
+.p-split-detail>.p-lc>.p-lc-head{cursor:default}
+.p-split-empty{display:grid;place-items:center;min-height:240px;border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);color:var(--p-ink-2);font-weight:700}
+body.has-bbar .p-split-list,body.has-bbar .p-split-detail{padding-bottom:96px}
+/* ===== end kit candidate ===== */
+.p-split-list .mk-strip img:nth-child(n+2){display:none}
+@media (min-width:701px) and (max-width:1023px){  /* iPad portrait: give the customer name room */
+  .mk-strip{display:none}
+  .p-lc-nums .p-num small{max-width:9em;margin-left:auto}
+}
+@media (max-width:700px){
+  .p-bar{gap:8px}
+  .p-filters .p-search{flex-basis:100%;max-width:none}
+  .p-filters-end{flex:1;margin-left:0}.p-filters-end .p-select{flex:1}
+  .p-chips{margin:0 -16px;padding:0 16px 2px}
+  .mk-strip{display:none}
+  .p-head-end{margin-left:0;width:100%}.p-head-end .p-btn{flex:1}
+  .li-h small{flex-basis:100%;order:3}.li-h b{flex:1}
+  .iss{grid-template-columns:1fr}.iss .res{text-align:left;white-space:normal}
+  .wrap{padding:0 12px 140px}
+  .tiles{grid-template-columns:1fr 1fr}.tile b{font-size:22px}
+}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Damage Log</span><span class="p-bar-ver" id="ver">v21</span>
+  <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
+  <nav class="p-bar-views" role="tablist" aria-label="Views"><button class="tab is-on" data-tab="orders" type="button" role="tab" aria-selected="true">Orders <span class="p-count" id="ordCount"></span></button><button class="tab" data-tab="trends" type="button" role="tab" aria-selected="false">Trends</button></nav>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Reload from Airtable and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="tokBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="menu p-card p-card-hl" id="tokPanel" role="dialog" aria-label="Settings" hidden>
+    <label class="p-field"><span class="p-label">Airtable token</span>
+      <span class="menu-row"><input id="tokIn" class="p-input" type="password" placeholder="pat…" autocomplete="off"><button class="p-btn p-btn-dark" id="tokSave" type="button">Save</button></span></label>
+    <hr>
+    <div class="menu-row"><span class="menu-txt"><b>Practice</b><span class="p-hint" id="practiceHint"></span></span><button class="p-btn" id="practiceBtn" type="button"></button></div>
+  </div>
+</header>
+<div class="p-filters">
+  <input type="search" id="q" class="p-input p-search" placeholder="Order # or customer" aria-label="Search orders">
+  <div class="p-filters-end"><select id="range" class="p-select" aria-label="Date range">
+    <option value="30">Last 30 days</option><option value="90" selected>Last 90 days</option>
+    <option value="180">Last 6 months</option><option value="365">Last 12 months</option>
+    <option value="mtd">This month</option><option value="ytd">Year to date</option>
+  </select></div>
+  <div class="p-chips" id="chips" role="tablist" aria-label="Filter"></div>
+</div>
+<main class="wrap" id="main"><div class="msg"><b>Loading damage log…</b></div></main>
+<div class="tt" id="tt" hidden></div>
+<script>
+// Damage Log v1 -- internal view of Order Issues grouped by order, then line item.
+// Reads Airtable directly (token in localStorage pine_at_key, same as the other apps).
+// Dollars come from the Order Issues formulas added 9/30/26 (Refund Amount, Reprint Cost,
+// Bandana Replacement Cost). The only write is Orders > Refund Issued (checkbox).
+// The packing slip shows ordered vs shipped per size with no dollars.
+// v21 -- desktop width: >=1400px two-pane list/detail (.p-split kit candidate), the picked order shows on the right;
+//        ↑/↓ move between orders. <1400px: open in place as v20, full width with 24px gutters. Trends use the width.
+// v20 -- Pine page kit: bar views (Orders/Trends), Refresh + ⚙ (token + practice) in the bar, one .p-filters row,
+//        .p-head with Select all, .p-lc order cards (open in place, one at a time). Same Airtable reads and writes.
+// v19 -- QuickBooks step (Copy refund for QuickBooks, Mark refund issued) shows only after the refund request went to
+//        the bookkeeper (refundRequested > 0) or once it's marked issued. Before that the bookkeeper has nothing to issue.
+// v18 -- Pine style v2 + self-update (pine-update.js, Refresh button, version in the bar). Practice pill; practice stays in
+//        the URL when toggled; practice approvals fake the refund request too. Writes ignore a second tap while one
+//        is saving (no double refund email). One toast at a time. Packing slip code removed (unused since v6).
+// v17 -- ONE bookkeeper email per order. Approving refunds (single, Approve all, batch) then writes one
+//        refund request to the Order (Refund Request Amount / Details / Count / At); the 'Refund Request
+//        (one per order)' automation emails finance when Refund Request At changes. Issues included get
+//        'In Refund Request'. Approved refunds not yet requested (e.g. approved in Airtable) are flagged
+//        'Refund not sent' with a Send button. A later refund on the same order sends an '(additional)' request.
+// v16 -- after 'Delete duplicate', re-reads that order's issues + line items from Airtable so the kept
+//        copy's Refund Amount and the line's final counts are current before anyone approves it.
+// v15 -- 'Check these' and 'Rules differ' only count issues still awaiting review; decided (approved / Resolved)
+//        orders drop off them and show a quiet 'already decided' note instead of the red warning.
+// v14 -- '✓ Mark reprint done' on approved, still-open reprints (sets Status = Completed, same as Catching's Complete).
+// v13 -- date dropdown adds This month / Year to date (rolling ranges unchanged).
+// v13 -- Trends: always-visible Apparel vs Bandanas panel + a 'Show:' switch above the charts.
+// v12 -- a reprint counts as finished when its issue is Completed OR Resolved (drops off the Reprints tab).
+// v11 -- mockups: proof thumbnails on the card header (lines with issues) and beside each line; tap for full size.
+// v10 -- 'Reprints' tab: orders with a RE-PRINT issue not yet Completed (awaiting approval or in progress).
+// v10 -- Select all is an on/off switch on every tab (acts on the orders shown, incl. search).
+// v9 -- '🗑 Delete duplicate' on unapproved issues flagged as possible duplicates (issue + its Damage Detail).
+// v9 -- 'No action' tab; '✓ Approve all (N)' on each card; checkbox batch-approve with a bar that
+// spells out refund emails + $ before sending. Approvals go through the same automation.
+// v8 -- Trends split: All / Apparel / Bandanas (Order Issues > Is Bandana). Garment chart shows
+// names (from the line item) instead of record IDs; the 'Other' bar no longer sets the scale.
+// v7 -- close out issues here: 'Change to' sets Change Resolution; 'Approve' checks Approve
+// Resolution, which fires the Order Issue Resolutions automation (refund email / reprint alert / Resolved).
+// v6 -- card header shows REPRINT WOULD COST (true reprint cost of the order's short lines) next
+// to Refund; packing slip moved to the Catching app (this app is the production manager's desk view).
+// v5 -- Phase 1 cost check: each line shows refund vs true reprint cost and the cost-based
+// suggestion next to today's; 'Rules differ' filter. Display only.
+// v4 -- refunds follow the real flow: approving a REFUND issue emails finance (automation), so
+// 'Needs approval' = unapproved REFUND issues; approved = 'Sent to bookkeeper'; the Orders
+// 'Refund Issued' checkbox is an optional QuickBooks confirmation on top.
+// v3 -- slip ships only extras QC marked as sent (Catching v143) when recorded; refund math shown
+// per issue; 'Awaiting review' = not yet approved (matches the Airtable interface); wow cost.
+// v2 -- slip shows extras: shipped = Final (ordered + extras - damages), not capped at ordered.
+var APP_VER='v20';
+var BASE='appJkaLk8DykjsgHR';
+var T_ISS='tblEplYB3mtIBBcpi',T_LI='tblJx5UlwO7oMSk5H',T_ORD='tbl8Tf0AeS9gnHOOS';
+var I={ // Order Issues
+  line:'fldZXHOSnXHsMfO7k',order:'fldMuogkCNFxYc4vk',orderNum:'fldUZqOYeyYjKvlk9',status:'fldfLAjmK6XZqki9S',
+  originator:'fldmhkNWneLhdNPLa',category:'fldl1rfconiE3AS4Z',acct:'fldh1ovXarDpku1Rq',
+  rPrint:'fld7xVRvbFbmUjOXo',rOther:'fld0BAAINhYymg2Zm',rLegacy:'fldRmXGHd5JxFq0gH',
+  changeRes:'fld8MpePrWmTmGjVm',res:'fldAT3sfeVSAqTRvk',refund:'fldvlOAwvSLBHEaVu',reprint:'fldnLgwAcyKzDVEwG',
+  bandana:'fldmCSSVctmyxvra7',dmgTotal:'fldC7uIwyU6QeHbZi',created:'fldYuJudwBRFz50h0',desc:'fldgpnNu2zyw43BFb',
+  photos:'fldV4qgs54Xu83wLL',garment:'fldl5nOI7tgZD02Yl',customer:'fldjAiXJUqTR1bL9Y',
+  approved:'fldpiZYluCb72W1vs',override:'fldDDsGkGtwa95U1q',catAuto:'fldNhJ2sPGMe1nDuD',
+  isBandana:'fldgwCU8xFlZuBxvI',dd:'fld8Y4gCuc9nSOMWl',reprintTrue:'fldHTK3iDWpgBgBiG',refundLine:'fldL96MsyBlDnLJSc',costSug:'fldL9kj7hrjBacwuq',sug:'fldKDNfJu7naIrGpS',
+  inReq:'fldArIjniDdbCvI4R'  // v17
+};
+var RP={OSFA:'fld4nkqV3r2BKiax4',XS:'fldPXEjdEACjLQeyC',S:'flde4uxHizOyXeM8w',M:'fldyMtViREOHsMxlJ',L:'fldSM6FWYBYTPEInQ',XL:'fldYpZJJOm90Bpj08','2XL':'fldbVjymquq9WlIoK','3XL':'fldNf5COqe1TQHGx4','4XL':'fldHoFm077F3ho2vI','5XL':'fldKrcdwQPbZSP1MZ'};
+var SIZES=['OSFA','XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+var L={ // Line Items: ordered / extra / final per size ('' = no such field)
+  ord:{OSFA:'fld2bgIlmPbANgLVK',XS:'fldVA9ZmYxhDxtnYZ',S:'fldCZr5lB6Jx80lfG',M:'fldzTs1qKe9IBxxSn',L:'fldnRLJxjUDa1mQTj',XL:'fldTRgdexcpBXXQPv','2XL':'fldin7j6uGO0uRTec','3XL':'fldpltq9fdRkrvIvt','4XL':'fldrsci7JnToa43Zd','5XL':'fldchnRSKFukouW6N','6XL':'fldI8gTtsEJwg33BI'},
+  ext:{OSFA:'fldKS4Jk6aZvxR4Nn',XS:'fldKcVhxgaclD1csp',S:'fldgf19Xi1VDqro4Q',M:'fldWxiQEIFsqwxFW1',L:'fldclPpJQpcXuT4Wn',XL:'fldWjibddJoIC1JGu','2XL':'fldgd2JZCSS3YBYX2','3XL':'fldbht14x4cRBPRVL','4XL':'fldLyB756Va085UDj','5XL':'fldHZ0WmjhzF34noZ','6XL':''},
+  fin:{OSFA:'fldxF1FDNSZQ4uBZ8',XS:'flde59VyAQmvWQ4Aa',S:'fldVBCBgKID04x7ec',M:'fldyHwPasbPej9YTu',L:'fldK1Q9TR1ESo3zeW',XL:'fldOkmQoWKCGy1peS','2XL':'fld3YQFjjp7lVXhhh','3XL':'fldCbA4usxjjB4tuk','4XL':'fldFHbRpKpvnyXlWC','5XL':'fldGPxvoiMLWzwLVX','6XL':''},
+  ref:'fldU6oLyZnxhhm2kX',order:'fld5r0tFvdpzWV5pA',total:'fldFfuKAcduwWQp8g',totalFinal:'fldwr1D4nF8Y1Tlvt',price:'fldtMZWzA4dfPxEXx',
+  type:'fld8LIkrBXv8WoRRb',desc:'fldKpcYiNDhlknPyv',brand:'fld0mdiAcrMmTY7CT',style:'fld9ifT5CjMdlLAYM',garment:'fldQg3ejR10sADyFV',
+  color:'fldoXTRyLP4SshFZ0',nick:'fldKb7r8o7uvj1iEd',prodDesc:'fldBGLb39lznbSibX',
+  proof:'flddhvdkKI31tFTdX',xSent:'fldCP4NyoHxawZwOt',xSentTot:'fldVcKknIW4cYNkEd',xRec:'fld35LhFoIzYyfDUv',wow:'fldFw7fWOsgqgtc8d'
+};
+var O={ // Orders
+  num:'fld4S3B5yJANKlE7l',cust:'fldoRraeYHsgfeWhj',contact:'fldwO1DrkCebInHlj',shipTo:'fldpHFCU70jZpuKs6',addr:'fldDf4gRxe2NoUVPy',
+  city:'fldh0KVzmy5QsWj2D',state:'fldTlayqsfEWPaph0',zip:'fld4uEiBVeL9w48R3',method:'fldpVCwzNucLLifXD',shipDate:'fldlMlDIr9hLYFfbL',
+  due:'fldphJYdlBNS0dmAK',refundIssued:'fldiyIhGbw9gYk4zS',qbo:'fldykkdxIu7nqdYct',lines:'fldU6fgrz6sU3wyIZ',status:'fldhS4z28CdGmS1j5',
+  tracking:'fldLjGNoUKrxuX0O7',
+  reqAmt:'fldMHMOtegaQYn78p',reqDetails:'fldga8BAM7XzmgDI9',reqAt:'fldvbbN1Mg9DevXHP',reqCount:'fld8XsrUQUxzcwkFq'  // v17
+};
+
+var PRACTICE=/[?&]practice=1/.test(location.search);
+var state={sel:{},kind:'all',tab:'orders',filter:'refund',q:'',range:90,issues:[],orders:{},lines:{},open:{}};
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function txt(v){if(v==null)return '';if(Array.isArray(v))return v.map(txt).filter(Boolean).join(', ');if(typeof v==='object')return v.name||v.id||'';return String(v);}
+function num(v){if(Array.isArray(v))return v.reduce(function(s,x){return s+num(x);},0);var n=Number(v);return isFinite(n)?n:0;}
+function ids(v){return Array.isArray(v)?v.map(function(x){return typeof x==='string'?x:(x&&x.id);}).filter(Boolean):[];}
+function money(n){return '$'+(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fdate(v){if(!v)return '';var d=new Date(String(v).length===10?v+'T12:00:00':v);return isNaN(d)?String(v):d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function token(){try{return localStorage.getItem('pine_at_key')||'';}catch(e){return '';}}
+var toastT;function toast(m,err){var t=$('toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');document.body.appendChild(t);}  // v18: one toast, newest wins
+  t.className='p-toast'+(err?' is-alert':'');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},err?5000:2800);}
+function atUrl(tbl,id){return 'https://airtable.com/'+BASE+'/'+tbl+'/'+id;}
+
+async function atList(tbl,fields,formula){
+  var out=[],offset=null;
+  do{
+    var p=new URLSearchParams();
+    fields.forEach(function(f){if(f)p.append('fields[]',f);});
+    p.set('returnFieldsByFieldId','true');
+    if(formula)p.set('filterByFormula',formula);
+    if(offset)p.set('offset',offset);
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+tbl+'?'+p,{headers:{Authorization:'Bearer '+token()}});
+    var j=await r.json();
+    if(!r.ok)throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status));
+    out=out.concat(j.records||[]);offset=j.offset;
+  }while(offset);
+  return out;
+}
+async function atById(tbl,fields,idList){
+  var out=[];
+  for(var i=0;i<idList.length;i+=40){
+    var chunk=idList.slice(i,i+40);
+    out=out.concat(await atList(tbl,fields,'OR('+chunk.map(function(id){return "RECORD_ID()='"+id+"'";}).join(',')+')'));
+  }
+  return out;
+}
+function vals(o){return Object.keys(o).map(function(k){return o[k];});}
+
+function sinceFormula(){  // v13
+  var d=new Date(),pad=function(n){return ('0'+n).slice(-2);};
+  if(state.range==='ytd')return "DATEADD(DATETIME_PARSE('"+d.getFullYear()+"-01-01'),-1,'minutes')";
+  if(state.range==='mtd')return "DATEADD(DATETIME_PARSE('"+d.getFullYear()+"-"+pad(d.getMonth()+1)+"-01'),-1,'minutes')";
+  return "DATEADD(TODAY(), -"+state.range+", 'days')";
+}
+function LI_FIELDS(){return [L.proof,L.ref,L.order,L.total,L.totalFinal,L.price,L.type,L.desc,L.brand,L.style,L.garment,L.color,L.nick,L.prodDesc,L.xSent,L.xSentTot,L.xRec,L.wow]
+  .concat(vals(L.ord),vals(L.ext),vals(L.fin));}
+async function load(){
+  if(!token()){$('main').innerHTML='<div class="msg err"><b>Airtable token needed</b>Paste your token in the &#9881; menu at the top right.</div>';showMenu(true);return;}
+  $('main').innerHTML='<div class="msg"><b>Loading damage log…</b>Issues from the '+esc($('range').selectedOptions[0].text.toLowerCase())+'.</div>';
+  try{
+    var iFields=vals(I).concat(vals(RP));
+    var since=sinceFormula();  // v13: rolling days, this month, or year to date
+    var iss=await atList(T_ISS,iFields,"IS_AFTER({"+I.created+"}, "+since+")");
+    var ordIds={},lineIds={};
+    iss.forEach(function(r){ids(r.fields[I.order]).forEach(function(x){ordIds[x]=1;});ids(r.fields[I.line]).forEach(function(x){lineIds[x]=1;});});
+    var liFields=LI_FIELDS();  // v16
+    // Issues missing Affected Order: find their order through the line item.
+    var li1=await atById(T_LI,liFields,Object.keys(lineIds));
+    li1.forEach(function(r){state.lines[r.id]=r;ids(r.fields[L.order]).forEach(function(x){ordIds[x]=1;});});
+    var ords=await atById(T_ORD,vals(O),Object.keys(ordIds));
+    state.orders={};ords.forEach(function(r){state.orders[r.id]=r;});
+    // Every line item on those orders (the packing slip lists all of them).
+    var need=[];ords.forEach(function(o){ids(o.fields[O.lines]).forEach(function(x){if(!state.lines[x])need.push(x);});});
+    (await atById(T_LI,liFields,need)).forEach(function(r){state.lines[r.id]=r;});
+    state.issues=iss.map(mapIssue);
+    // v3: every line where QC recorded extras sent in this range (for the wow cost tile)
+    try{state.wowLines=await atList(T_LI,[L.xSentTot,L.wow],"AND({"+L.xRec+"}, IS_AFTER(CREATED_TIME(), "+since+"))");}catch(e){state.wowLines=[];}
+    markDupes();
+    render();
+  }catch(e){
+    $('main').innerHTML='<div class="msg err"><b>Couldn’t load from Airtable</b>'+esc(e.message)+'</div>';
+  }
+}
+// Same line item + identical damaged sizes = possible double-log.
+function mapIssue(r){
+      var f=r.fields,oid=ids(f[I.order])[0];
+      if(!oid){var ln=state.lines[ids(f[I.line])[0]];oid=ln&&ids(ln.fields[L.order])[0];}
+      var sizes={};Object.keys(RP).forEach(function(k){var n=num(f[RP[k]]);if(n)sizes[k]=n;});
+      return {id:r.id,f:f,orderId:oid||'',lineId:ids(f[I.line])[0]||'',sizes:sizes,
+        refund:num(f[I.refund]),reprint:num(f[I.reprint]),bandana:num(f[I.bandana]),pcs:num(f[I.dmgTotal]),
+        res:txt(f[I.res]),changed:!!txt(f[I.changeRes]),status:txt(f[I.status]),created:f[I.created]||'',
+        reasons:[].concat(f[I.rPrint]||[],f[I.rOther]||[]).map(txt).filter(Boolean),legacy:(f[I.rLegacy]||[]).map(txt),
+        acct:txt(f[I.acct]),cat:txt(f[I.category])||txt(f[I.catAuto]),who:txt(f[I.originator]),garment:txt(f[I.garment]),
+        approved:f[I.approved]===true,ddIds:ids(f[I.dd]),bandanaLine:num(f[I.isBandana])>0,reprintTrue:num(f[I.reprintTrue]),refundLine:num(f[I.refundLine]),costSug:txt(f[I.costSug]),sug:txt(f[I.sug]),override:(f[I.override]===0||f[I.override])?num(f[I.override]):null,inReq:f[I.inReq]===true};
+}
+function markDupes(){
+  var seen={};
+  state.issues.forEach(function(x){
+    var k=x.lineId+'|'+SIZES.map(function(s){return x.sizes[s]||0;}).join(',');
+    if(!x.pcs)return;
+    (seen[k]=seen[k]||[]).push(x);
+  });
+  Object.keys(seen).forEach(function(k){if(seen[k].length>1)seen[k].forEach(function(x){x.dupe=true;});});
+}
+
+// ---- per-order model ----
+function proofOf(v){  // v11: first proof attachment -> {thumb, full}
+  var a=Array.isArray(v)?v.filter(function(x){return x&&typeof x==='object'&&x.url;})[0]:null;
+  if(!a)return null;
+  var t=a.thumbnails||{};
+  return {thumb:(t.large&&t.large.url)||(t.small&&t.small.url)||a.url,full:(t.full&&t.full.url)||a.url};
+}
+function lineModel(lr){
+  var f=lr.fields,rows={ord:{},ext:{},fin:{},dmg:{},shipped:{}},has=[];
+  SIZES.forEach(function(s){
+    var o=num(f[L.ord[s]]),e=L.ext[s]?num(f[L.ext[s]]):0,fi=L.fin[s]?num(f[L.fin[s]]):o;
+    if(!o&&!e&&!(L.fin[s]&&num(f[L.fin[s]])))return;
+    has.push(s);rows.ord[s]=o;rows.ext[s]=e;rows.fin[s]=fi;rows.dmg[s]=Math.max(0,o+e-fi);
+    rows.shipped[s]=Math.max(0,fi); // v2: extras ship to the customer, so shipped can exceed ordered
+  });
+  // v3: when QC recorded which extras went in the box, ship ordered-or-less plus only those.
+  var xRec=f[L.xRec]===true,xSent={};
+  String(txt(f[L.xSent])||'').split(',').forEach(function(p){var m=/^\s*([A-Z0-9]+)\s*:\s*(\d+)/.exec(p);if(m)xSent[m[1]]=+m[2];});
+  if(xRec)has.forEach(function(s){rows.shipped[s]=Math.max(0,Math.min(rows.fin[s],rows.ord[s]))+(xSent[s]||0);});
+  var name=[txt(f[L.brand]),txt(f[L.style]),txt(f[L.garment])].filter(Boolean).join(' ');
+  var color=txt(f[L.color]);
+  if(!name)name=txt(f[L.nick])||txt(f[L.prodDesc])||txt(f[L.ref]);
+  return {id:lr.id,ref:txt(f[L.ref]),name:name,color:color,desc:txt(f[L.desc]),type:txt(f[L.type]),sizes:has,rows:rows,
+    total:num(f[L.total]),totalFinal:num(f[L.totalFinal]),price:num(f[L.price]),
+    xRec:xRec,xSent:xSent,proof:proofOf(f[L.proof]),xSentTot:num(f[L.xSentTot]),wow:num(f[L.wow])};
+}
+function orderModel(oid){
+  var o=state.orders[oid],f=o?o.fields:{};
+  var iss=state.issues.filter(function(x){return x.orderId===oid;});
+  var lineIds=o?ids(f[O.lines]):[];
+  iss.forEach(function(x){if(x.lineId&&lineIds.indexOf(x.lineId)<0)lineIds.push(x.lineId);});
+  var lines=lineIds.map(function(id){return state.lines[id];}).filter(Boolean).map(lineModel);
+  var sum=function(k){return iss.reduce(function(s,x){return s+x[k];},0);};
+  var r2=function(n){return Math.round(n*100)/100;};
+  return {id:oid,num:txt(f[O.num])||txt(iss[0]&&iss[0].f[I.orderNum]),cust:txt(f[O.cust])||txt(iss[0]&&iss[0].f[I.customer]),f:f,issues:iss,lines:lines,
+    refund:r2(sum('refund')),reprint:r2(sum('reprint')),bandana:r2(sum('bandana')),pcs:sum('pcs'),
+    reprintWould:r2((function(){var seen={},t=0;iss.forEach(function(x){if(x.lineId&&!seen[x.lineId]&&x.reprintTrue){seen[x.lineId]=1;t+=x.reprintTrue;}});return t;})()),  // v6
+    open:iss.filter(function(x){return !x.approved&&x.status!=='Resolved'&&x.status!=='Completed';}).length,  // v3: same as the interface's Awaiting Review tab
+    dupes:iss.filter(function(x){return x.dupe;}).length,
+    dupesOpen:iss.filter(function(x){return x.dupe&&!x.approved&&x.status!=='Resolved'&&x.status!=='Completed';}).length,  // v15
+    differOpen:iss.filter(function(x){return x.costSug&&x.sug&&x.costSug!==x.sug&&!x.approved&&x.status!=='Resolved'&&x.status!=='Completed';}).length,  // v15
+    differ:iss.filter(function(x){return x.costSug&&x.sug&&x.costSug!==x.sug;}).length,
+    negative:lines.some(function(l){return l.totalFinal<0;}),
+    refundIssued:f[O.refundIssued]===true,
+    refundPending:iss.filter(function(x){return x.refund>0&&!x.approved;}).reduce(function(a,x){return a+x.refund;},0),  // v4
+    refundSent:iss.filter(function(x){return x.refund>0&&x.approved;}).reduce(function(a,x){return a+x.refund;},0),
+    refundUnsent:unsentRefunds(iss).reduce(function(a,x){return a+x.refund;},0),  // v17
+    refundRequested:iss.filter(function(x){return x.refund>0&&x.inReq;}).reduce(function(a,x){return a+x.refund;},0),  // v19: already in a refund request
+    reqAt:f[O.reqAt]||'',reqCount:num(f[O.reqCount]),
+    last:iss.reduce(function(m,x){return x.created>m?x.created:m;},'')};
+}
+function unsentRefunds(iss){return iss.filter(function(x){return x.res==='REFUND'&&x.approved&&x.refund>0&&!x.inReq;});}  // v17
+function reprintOpen(x){return x.res==='RE-PRINT'&&x.status!=='Completed'&&x.status!=='Resolved';}  // v12
+function awaitingIssues(o){return o.issues.filter(function(x){return !x.approved&&x.status!=='Resolved'&&x.status!=='Completed';});}  // v9
+function allOrders(){
+  var byId={};state.issues.forEach(function(x){byId[x.orderId]=1;});
+  return Object.keys(byId).map(orderModel).sort(function(a,b){return a.last<b.last?1:-1;});
+}
+var FILTERS=[
+  ['refund','Refund needs approval',function(o){return o.refundPending>0;}],
+  ['unsent','Not sent to bookkeeper',function(o){return o.refundUnsent>0;}],  // v17
+  ['review','Awaiting review',function(o){return o.open>0;}],
+  ['flags','Check these',function(o){return o.dupesOpen>0||(o.negative&&o.open>0);}],  // v15: only when something is still awaiting review
+  ['differ','Rules differ',function(o){return o.differOpen>0;}],  // v15
+  ['reprint','Reprints',function(o){return o.issues.some(reprintOpen);}],
+  ['noaction','No action',function(o){var a=awaitingIssues(o);return a.length>0&&a.every(function(x){return x.res==='NO ACTION';});}],
+  ['all','All',function(){return true;}]
+];
+
+function render(){
+  var list=allOrders();
+  $('ordCount').textContent=list.length;
+  var on=state.tab==='orders';
+  // v20: one filter row. Orders: the filters. Trends: the All / Apparel / Bandanas switch (was the "Show:" row).
+  $('chips').innerHTML=on?FILTERS.map(function(F){
+    var n=list.filter(F[2]).length;
+    return '<button type="button" class="p-tab chip'+(state.filter===F[0]?' is-on':'')+(n?'':' zero')+'" data-f="'+F[0]+'" role="tab" aria-selected="'+(state.filter===F[0])+'">'+F[1]+' <span class="p-count">'+n+'</span></button>';
+  }).join(''):kindChips();
+  $('q').hidden=!on;
+  $('q').parentNode.classList.toggle('is-trends',!on);
+  $('main').classList.remove('is-split');
+  if(!on){renderTrends();return;}
+  var F=FILTERS.filter(function(x){return x[0]===state.filter;})[0];
+  var q=state.q.trim().toLowerCase();
+  var shown=list.filter(F[2]).filter(function(o){return !q||String(o.num).indexOf(q)>-1||o.cust.toLowerCase().indexOf(q)>-1;});
+  if(!shown.length){$('main').innerHTML='<div class="msg"><b>Nothing here</b>'+(q?'No order matches “'+esc(state.q.trim())+'” under '+esc(F[1])+'. Try All.':state.filter==='refund'?'No refunds waiting for approval — everything has been sent to the bookkeeper.':'Try another filter or a longer date range.')+'</div>'+batchBar();document.body.classList.toggle('has-bbar',!!document.querySelector('.bbar'));return;}
+  // v10: select-all toggle on every tab, over the selectable orders currently shown (v20: in the page head)
+  var selectable=shown.filter(function(o){return awaitingIssues(o).length>0;});
+  state.shownSel=selectable.map(function(o){return o.id;});
+  var allOn=selectable.length>0&&selectable.every(function(o){return state.sel[o.id];});
+  var pend=shown.reduce(function(s,o){return s+o.refundPending;},0);
+  var head='<div class="p-head"><span class="p-section">Orders</span><span class="p-head-sum"><b>'+shown.length+'</b> '+(shown.length===1?'order':'orders')
+    +(pend>0?' · <b>'+money(pend)+'</b> refunds need approval':'')+'</span>'
+    +(selectable.length?'<div class="p-head-end"><button class="p-btn" type="button" data-selall="1" aria-pressed="'+allOn+'">'
+      +(allOn?'&#10005; Unselect all '+selectable.length:'&#9745; Select all '+selectable.length+' to approve')+'</button></div>':'')+'</div>';
+  if(isWide()){renderSplit(head,shown,list);return;}  // v21
+  $('main').innerHTML=head+shown.map(function(o){return orderCard(o);}).join('')+batchBar(list);
+  document.body.classList.toggle('has-bbar',!!document.querySelector('.bbar'));
+}
+// v21: desktop two-pane. The picked order = the one clicked (state.open), else the first one shown.
+var WIDE=window.matchMedia?matchMedia('(min-width:1400px)'):null;
+function isWide(){return !!(WIDE&&WIDE.matches);}
+function renderSplit(head,shown,list){
+  var ls=$('splitList'),ds=$('splitDetail'),keepL=ls?ls.scrollTop:0,keepD=ds?ds.scrollTop:0,keepId=ds?ds.getAttribute('data-id'):'';
+  var pick=shown.filter(function(o){return state.open[o.id];})[0]||shown[0];
+  state.shownIds=shown.map(function(o){return o.id;});state.pickId=pick?pick.id:'';
+  var m=$('main');m.classList.add('is-split');
+  m.innerHTML='<div class="p-split"><div class="p-split-list" id="splitList">'+head
+    +shown.map(function(o){return orderCard(o,'list',pick&&o.id===pick.id);}).join('')+'</div>'
+    +'<div class="p-split-detail" id="splitDetail" data-id="'+(pick?pick.id:'')+'" aria-live="polite">'
+    +(pick?orderCard(pick,'detail'):'<div class="p-split-empty">Pick an order on the left</div>')+'</div></div>'+batchBar(list);
+  document.body.classList.toggle('has-bbar',!!document.querySelector('.bbar'));
+  setSplitTop();
+  $('splitList').scrollTop=keepL;
+  $('splitDetail').scrollTop=(pick&&keepId===pick.id)?keepD:0;
+}
+function setSplitTop(){
+  var m=$('main');if(!m)return;
+  document.documentElement.style.setProperty('--p-split-top',Math.round(m.getBoundingClientRect().top+window.scrollY)+'px');
+}
+function pickOrder(id,scroll){  // v21: wide mode — show this order on the right
+  state.open={};state.open[id]=true;render();
+  var c=$('o-'+id);if(scroll&&c)c.scrollIntoView({block:'nearest'});
+}
+if(WIDE){var onWide=function(){if(state.issues.length)render();};if(WIDE.addEventListener)WIDE.addEventListener('change',onWide);else if(WIDE.addListener)WIDE.addListener(onWide);}
+window.addEventListener('resize',function(){if(isWide())setSplitTop();});
+document.addEventListener('keydown',function(e){  // v21: ↑/↓ move between orders in the two-pane view
+  if((e.key!=='ArrowDown'&&e.key!=='ArrowUp')||!isWide()||state.tab!=='orders'||!state.shownIds||!state.shownIds.length)return;
+  var a=document.activeElement;
+  if(a&&(/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)||a.closest('#splitDetail,#tokPanel')))return;
+  if(e.altKey||e.ctrlKey||e.metaKey)return;
+  var i=state.shownIds.indexOf(state.pickId),n=i+(e.key==='ArrowDown'?1:-1);
+  if(n<0||n>=state.shownIds.length)return;
+  e.preventDefault();pickOrder(state.shownIds[n],true);
+  var h=document.querySelector('#o-'+state.shownIds[n]+' [data-open]');if(h)h.focus({preventScroll:true});
+});
+function orderCard(o,mode,picked){  // v21: mode '' = open in place (v20), 'list' = left pane, 'detail' = right pane
+  mode=typeof mode==='string'?mode:'';
+  var tags=[];
+  if(o.refundPending>0)tags.push('<span class="p-tag p-tag-wait">Refund needs approval · '+money(o.refundPending)+'</span>');
+  if(o.refundIssued)tags.push('<span class="p-tag p-tag-done">&#10003; Refund issued</span>');
+  else if(o.refundSent>0&&!o.refundUnsent)tags.push('<span class="p-tag p-tag-done">Sent to bookkeeper'+(o.reqAt?' · '+esc(fdate(o.reqAt)):'')+'</span>');
+  if(o.refundUnsent>0)tags.push('<span class="p-tag p-tag-alert">Refund not sent · '+money(o.refundUnsent)+'</span>');  // v17
+  if(o.dupesOpen)tags.push('<span class="p-tag p-tag-alert">Possible duplicate</span>');
+  else if(o.dupes)tags.push('<span class="p-tag p-tag-soft">Duplicate · decided</span>');  // v15
+  if(o.negative)tags.push('<span class="p-tag p-tag-alert">Negative qty</span>');
+  if(o.differOpen)tags.push('<span class="p-tag p-tag-wait">Cost rule differs</span>');  // v15: only matters before approval
+  var rp=o.issues.filter(reprintOpen);  // v10/v12
+  if(rp.some(function(x){return !x.approved;}))tags.push('<span class="p-tag p-tag-wait">Reprint needs approval</span>');  // v20: needs you, not a problem
+  if(rp.some(function(x){return x.approved;}))tags.push('<span class="p-tag p-tag-soft">Reprint in progress</span>');  // v20: a fact
+  var aw=awaitingIssues(o).length;
+  // v20: the "N awaiting review" tag is gone; the "Approve all N" button on the same card says it.
+  var m=function(l,v){return '<span class="p-num'+(v?'':' is-quiet')+'"><small>'+l+'</small><b>'+money(v)+'</b></span>';};
+  var isOpen=mode==='list'?!!picked:mode==='detail'?true:!!state.open[o.id];
+  var th=o.lines.filter(function(l){return l.proof&&o.issues.some(function(x){return x.lineId===l.id;});}).slice(0,3);  // v11
+  return '<section class="p-lc'+(isOpen?' is-open':'')+(state.sel[o.id]&&mode!=='detail'?' is-sel':'')+'" id="'+(mode==='detail'?'d-':'o-')+o.id+'">'
+    +(mode==='detail'?'<div class="p-lc-head">'
+      :'<div class="p-lc-head is-tap" data-open="'+o.id+'" role="button" tabindex="0" '+(mode==='list'?'aria-current="'+isOpen+'"':'aria-expanded="'+isOpen+'"')+'>')
+    +'<span class="p-lc-id">'
+      +(mode==='detail'?'':aw?'<span class="ord-sel'+(state.sel[o.id]?' on':'')+'" data-sel="'+o.id+'" role="checkbox" aria-checked="'+!!state.sel[o.id]+'" aria-label="Select order '+esc(o.num)+' for batch approve">'+(state.sel[o.id]?'&#10003;':'')+'</span>':'<span class="ord-sel-sp"></span>')
+      +(mode==='detail'?'':'<span class="p-lc-chev" aria-hidden="true">'+(mode!=='list'&&isOpen?'&#9662;':'&#9656;')+'</span>')
+      +'<span class="p-id p-id-lg">'+esc(o.num||'?')+'</span>'
+      +(th.length&&mode!=='detail'?'<span class="mk-strip">'+th.map(function(l){return '<img src="'+esc(l.proof.thumb)+'" alt="'+esc(l.name)+' mockup" loading="lazy">';}).join('')+'</span>':'')
+    +'</span>'
+    +'<span class="p-lc-main"><span class="p-lc-title">'+esc(o.cust||'Unknown customer')+'</span><span class="p-lc-sub">Last issue '+esc(fdate(o.last).replace(/, \d{4}$/,''))+' · '+plural(o.issues.length,'issue')+' · '+o.pcs+' pcs</span></span>'
+    +'<span class="p-lc-nums">'+m('Refund',o.refund)+m('Reprint would cost',o.reprintWould)+(o.bandana?m('Bandanas',o.bandana):'')+'</span>'
+    +'<span class="p-lc-act">'+(aw?'<button class="p-btn p-btn-dark" type="button" data-apall="'+o.id+'">&#10003; Approve all '+aw+'</button>'
+      :o.refundUnsent>0?'<button class="p-btn p-btn-dark" type="button" data-sendreq="'+o.id+'">&#9993; Send to bookkeeper</button>':'')+'</span>'  // v20: unsent refund = the card's one action
+    +'<span class="p-lc-tags">'+tags.join('')+'</span>'
+    +'</div>'
+    +(isOpen&&mode!=='list'?'<div class="p-lc-body">'+orderBody(o)+'</div>':'')
+    +'</section>';
+}
+function kindChips(){  // v13 Show switch; v20: lives in the filter row on Trends
+  var A=state.issues.filter(function(x){return !x.bandanaLine;}).length,B=state.issues.length-A;
+  return [['all','All',state.issues.length],['apparel','Apparel',A],['bandana','Bandanas',B]].map(function(k){
+    return '<button type="button" class="p-tab chip'+(state.kind===k[0]?' is-on':'')+'" data-kind="'+k[0]+'" role="tab" aria-selected="'+(state.kind===k[0])+'">'+k[1]+' <span class="p-count">'+k[2]+'</span></button>';}).join('');
+}
+function orderBody(o){
+  var h='';
+  if(o.dupes&&!o.dupesOpen)h+='<div class="p-note quiet"><b>Duplicate already decided.</b> Remove the extra copy in Airtable only if you want trends exact.</div>';  // v15
+  else if(o.dupes)h+='<div class="p-note p-note-alert"><b>Possible duplicate:</b> '+o.dupes+' issues log the same sizes on the same line. Check before refunding, or it may be paid twice.</div>';
+  if(o.open)h+='<div class="p-note">Totals may change until the '+plural(o.open,'open issue')+' '+(o.open>1?'are':'is')+' decided.</div>';
+  if(o.negative)h+='<div class="p-note p-note-alert"><b>Negative quantity:</b> more damages than ordered + extras on a line. Usually a double-log or typo.</div>';
+  var qbo=txt(o.f[O.qbo]);
+  if(o.refundUnsent>0)h+='<div class="p-note p-note-alert act"><span><b>'+money(o.refundUnsent)+' approved, not sent to the bookkeeper yet.</b>'+(o.reqCount?' It goes as an additional request.':'')+'</span>'  // v17
+    +(awaitingIssues(o).length?'<button class="p-btn p-btn-dark" type="button" data-sendreq="'+o.id+'">&#9993; Send to bookkeeper</button>':'')+'</div>';  // v20: otherwise the button is the card's action
+  h+='<div class="acts">'
+    +((o.refundRequested>0||o.refundIssued)?'<button class="p-btn" type="button" data-copy="'+o.id+'">Copy refund for QuickBooks</button>':'')  // v19: QuickBooks step only after the request went out
+    +((o.refundRequested>0||o.refundIssued)?(o.refundIssued?'<button class="p-btn" type="button" data-issued="'+o.id+'" data-v="0">Undo refund issued</button>':'<button class="p-btn p-btn-dark" type="button" data-issued="'+o.id+'" data-v="1">&#10003; Mark refund issued</button>'):'')
+    +(qbo?'<a class="p-btn" href="'+esc(qbo)+'" target="_blank" rel="noopener">QuickBooks invoice</a>':'')
+    +'<a class="p-btn" href="'+atUrl(T_ORD,o.id)+'" target="_blank" rel="noopener">Order in Airtable</a>'
+    +'</div>';
+  o.lines.forEach(function(l){
+    var li=o.issues.filter(function(x){return x.lineId===l.id;});
+    if(!li.length)return; // internal view: only lines with issues (the slip shows all)
+    var lr=li.reduce(function(s,x){return s+x.refund;},0);
+    var short=Math.max(0,l.total-l.totalFinal);
+    var cx=li[0];  // v5: line-level cost check (same on every issue of the line)
+    var cost=(short&&cx&&cx.reprintTrue)?'<div class="p-note cost'+(cx.costSug===cx.sug?'':' differ')+'">'
+      +'<b>Cost check:</b> refund '+money(cx.refundLine)+' vs reprint '+money(cx.reprintTrue)+' ('+short+' short)'
+      +' · today suggests <b>'+esc(cx.sug)+'</b> · cost says <b>'+esc(cx.costSug)+'</b>'+(cx.costSug!==cx.sug?' ⚠':'')+'</div>':'';
+    h+='<div class="li"><div class="li-h">'+(l.proof?'<a href="'+esc(l.proof.full)+'" target="_blank" rel="noopener" title="Open mockup"><img class="li-mk" src="'+esc(l.proof.thumb)+'" alt="'+esc(l.name)+' mockup" loading="lazy"></a>':'')+'<b>'+esc(l.name)+(l.color?' — '+esc(l.color):'')+'</b><small>'+esc(l.ref)+(l.price?' · '+money(l.price)+'/pc':'')+(short?' · <b class="short-n">'+short+' short</b>':'')+'</small>'
+      +(lr?'<span class="lr">Refund '+money(lr)+'</span>':'')+'</div>'
+      +cost+'<div class="scroll"><table class="szt"><tr><th></th>'+l.sizes.map(function(s){return '<th>'+s+'</th>';}).join('')+'<th>Total</th></tr>'
+      +szRow('Ordered',l,'ord')+szRow('+ Extras',l,'ext')+szRow('Damaged',l,'dmg','dmg')+szRow('Final',l,'fin')+(l.xRec?szRow('Shipped',l,'shipped'):'')
+      +'</table></div>'
+      +li.map(issueRow).join('')+'</div>';
+  });
+  return h;
+}
+function szRow(label,l,k,cls){
+  var t=0,cells=l.sizes.map(function(s){var v=l.rows[k][s]||0;t+=v;return '<td>'+(v||(k==='ord'?0:'·'))+'</td>';}).join('');
+  if(k==='fin'&&t<l.total)cls='short';
+  return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+label+'</td>'+cells+'<td><b>'+t+'</b></td></tr>';
+}
+function refundMath(x){  // v3: say which rule produced the refund
+  var line=x.lineId&&state.lines[x.lineId]?lineModel(state.lines[x.lineId]):null,p=line?line.price:0;
+  if(!x.refund)return '';
+  if(x.override!=null)return 'Override: '+x.override+' × '+money(p);
+  if(x.cat==='Customer Initiated'&&String(x.created)>='2026-09-28')return 'Customer-reported: '+x.pcs+' damaged × '+money(p);
+  if(line){var sh=Math.max(0,line.total-line.totalFinal);return 'Short after extras: '+sh+' on line × '+money(p)+(Math.abs(sh*p-x.refund)>0.01?' (this issue’s share)':'');}
+  return '';
+}
+function issueRow(x){
+  var open=!x.approved&&x.status!=='Resolved'&&x.status!=='Completed';
+  var act=open?'<div class="iss-act"><button class="p-btn p-btn-dark" type="button" data-approve="'+x.id+'">&#10003; Approve '+esc(x.res||'')+'</button>'
+    +'<select class="p-select" data-change="'+x.id+'" aria-label="Change resolution"><option value="">Change to\u2026</option>'+['REFUND','RE-PRINT','NO ACTION'].filter(function(v){return v!==x.res;}).map(function(v){return '<option>'+v+'</option>';}).join('')+'</select></div>':'';
+  if(reprintOpen(x)&&x.approved)act=(act||'<div class="iss-act">').replace(/<\/div>$/,'')+'<button class="p-btn p-btn-dark" type="button" data-rpdone="'+x.id+'">&#10003; Mark reprint done</button></div>';  // v14
+  if(x.dupe)act=(act||'<div class="iss-act">').replace(/<\/div>$/,'')+(x.approved?'<small class="note">Duplicate already approved \u2014 remove it in Airtable if needed</small>':'<button class="p-btn p-btn-danger" type="button" data-deldup="'+x.id+'">&#128465; Delete duplicate</button>')+'</div>';  // v9
+  var amt=x.refund?money(x.refund)+' refund':x.reprint?money(x.reprint)+' reprint':x.bandana?money(x.bandana)+' bandanas':'$0';
+  var sz=SIZES.filter(function(s){return x.sizes[s];}).map(function(s){return x.sizes[s]+' '+s;}).join(', ');
+  var rs=(x.reasons.length?x.reasons:x.legacy);
+  return '<div class="iss"><div><b>'+esc(fdate(x.created))+'</b> <span class="who">· '+esc([x.who,x.cat,x.acct].filter(Boolean).join(' · '))+'</span><br>'
+    +(sz?esc(sz):'<i class="note">No sizes entered</i>')
+    +'<div class="rsn p-tags">'+rs.map(function(r){return '<span class="p-tag p-tag-soft">'+esc(r)+'</span>';}).join('')
+    +(x.dupe?'<span class="p-tag p-tag-alert">Duplicate? \u00b7 '+dupeAge(x)+' copy</span>':'')+(!x.approved&&x.status!=='Resolved'&&x.status!=='Completed'?'':(x.approved?'<span class="p-tag p-tag-done">Approved</span>':(x.status?'<span class="p-tag p-tag-soft">'+esc(x.status)+'</span>':'')))+'</div></div>'
+    +'<div class="res"><b>'+esc(x.res||'—')+(x.changed?' *':'')+'</b>'+esc(amt)+(refundMath(x)?'<br><small>'+esc(refundMath(x))+'</small>':'')+'<br><a href="'+atUrl(T_ISS,x.id)+'" target="_blank" rel="noopener">Open issue</a></div>'+act+'</div>';
+}
+
+// ---- QuickBooks copy ----
+function qbText(o){
+  var lines=['Order '+o.num+' — '+o.cust,'Damage refund'];
+  o.lines.forEach(function(l){
+    var lr=o.issues.filter(function(x){return x.lineId===l.id;}).reduce(function(s,x){return s+x.refund;},0);
+    if(!lr)return;
+    var short=Math.max(0,l.total-l.totalFinal);
+    lines.push('  '+l.name+(l.color?' '+l.color:'')+': '+short+' short × '+money(l.price)+' = '+money(lr));
+  });
+  lines.push('Total refund: '+money(o.refund));
+  return lines.join('\n');
+}
+async function copyQb(oid){
+  var t=qbText(orderModel(oid));
+  try{await navigator.clipboard.writeText(t);toast('Copied — paste into the QuickBooks refund memo');}
+  catch(e){window.prompt('Copy this:',t);}
+}
+async function atPatch(tbl,id,fields){
+  var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+tbl+'/'+id,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({fields:fields})});
+  if(!r.ok){var j=await r.json().catch(function(){return {};});throw new Error((j.error&&j.error.message)||('HTTP '+r.status));}
+}
+async function refreshIssue(id){
+  var rs=await atList(T_ISS,vals(I).concat(vals(RP)),"RECORD_ID()='"+id+"'");
+  if(!rs[0])return;
+  var fresh=mapIssue(rs[0]);
+  state.issues=state.issues.map(function(x){return x.id===id?fresh:x;});
+  markDupes();
+}
+async function refreshOrder(oid){  // v16: re-read one order's issues and line items
+  var iss=state.issues.filter(function(x){return x.orderId===oid;});
+  var issIds=iss.map(function(x){return x.id;}),lineIds={};
+  iss.forEach(function(x){if(x.lineId)lineIds[x.lineId]=1;});
+  var o=state.orders[oid];if(o)ids(o.fields[O.lines]).forEach(function(x){lineIds[x]=1;});
+  (await atById(T_LI,LI_FIELDS(),Object.keys(lineIds))).forEach(function(r){state.lines[r.id]=r;});
+  if(issIds.length){var fresh={};(await atById(T_ISS,vals(I).concat(vals(RP)),issIds)).forEach(function(r){fresh[r.id]=mapIssue(r);});
+    state.issues=state.issues.map(function(x){return fresh[x.id]||x;});}
+  state.issues.forEach(function(y){y.dupe=false;});markDupes();
+}
+function findIssue(id){return state.issues.filter(function(x){return x.id===id;})[0];}
+// ---- v9: batch approve ----
+function batchSummary(ids){
+  var list=allOrders().filter(function(o){return ids.indexOf(o.id)>-1;}),iss=[];
+  list.forEach(function(o){iss=iss.concat(awaitingIssues(o));});
+  var c={REFUND:0,'RE-PRINT':0,'NO ACTION':0},rf=0;
+  iss.forEach(function(x){c[x.res]=(c[x.res]||0)+1;if(x.res==='REFUND')rf+=x.refund;});
+  return {orders:list.length,issues:iss,c:c,refund:rf};
+}
+function summaryText(b){
+  var parts=[];
+  if(b.c['NO ACTION'])parts.push(b.c['NO ACTION']+' no action');
+  if(b.c.REFUND)parts.push(b.c.REFUND+' refund'+(b.c.REFUND>1?'s':'')+' '+money(b.refund));
+  if(b.c['RE-PRINT'])parts.push(b.c['RE-PRINT']+' reprint'+(b.c['RE-PRINT']>1?'s':''));
+  return plural(b.orders,'order')+' · '+plural(b.issues.length,'issue')+(parts.length?' ('+parts.join(', ')+')':'');
+}
+function batchBar(){
+  var ids=Object.keys(state.sel).filter(function(k){return state.sel[k];});
+  if(!ids.length)return '';
+  return '<div class="bbar"><span><b>'+esc(summaryText(batchSummary(ids)))+'</b></span>'
+    +'<button class="p-btn p-btn-clear" type="button" data-selclear="1">Clear</button>'
+    +'<button class="p-btn p-btn-main" type="button" data-batch="1">&#10003; Approve selected</button></div>';
+}
+async function approveMany(issues,label){
+  if(!issues.length)return;
+  var b={c:{REFUND:0,'RE-PRINT':0,'NO ACTION':0},refund:0};
+  issues.forEach(function(x){b.c[x.res]=(b.c[x.res]||0)+1;if(x.res==='REFUND')b.refund+=x.refund;});
+  var msg='Approve '+plural(issues.length,'issue')+(label?' on '+label:'')+'?\n';
+  if(b.c['NO ACTION'])msg+='\n• '+b.c['NO ACTION']+' no action → marked Resolved';
+  var rOrders={};issues.forEach(function(x){if(x.res==='REFUND')rOrders[x.orderId]=1;});var nOrd=Object.keys(rOrders).length;  // v17
+  if(b.c.REFUND)msg+='\n• '+b.c.REFUND+' refund'+(b.c.REFUND>1?'s':'')+' → '+nOrd+' email'+(nOrd>1?'s':'')+' to finance (one per order), '+money(b.refund)+' total';
+  if(b.c['RE-PRINT'])msg+='\n• '+b.c['RE-PRINT']+' reprint'+(b.c['RE-PRINT']>1?'s':'')+' → Slack reprint alert + order set to Mis-Print';
+  if(!confirm(msg))return;
+  if(PRACTICE){issues.forEach(function(x){x.approved=true;if(x.res==='REFUND'&&x.refund>0)x.inReq=true;});state.sel={};toast('Practice: not saved, no email sent');render();return;}  // v18: fake the request too
+  var done=0,fail=0;
+  for(var i=0;i<issues.length;i+=10){
+    var chunk=issues.slice(i,i+10);
+    try{
+      var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ISS,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},
+        body:JSON.stringify({records:chunk.map(function(x){var f={};f[I.approved]=true;return {id:x.id,fields:f};})})});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      chunk.forEach(function(x){x.approved=true;});done+=chunk.length;
+    }catch(e){fail+=chunk.length;}
+    await new Promise(function(res){setTimeout(res,250);});  // stay under Airtable's 5 req/s
+  }
+  state.sel={};render();
+  toast(fail?('Approved '+done+', '+fail+' failed — try again'):('Approved '+done+' — the automation takes it from here'),!!fail);
+  await sendRequestsFor(issues);  // v17
+}
+function dupeAge(x){  // v9: 'older' = the original, 'newer' = the likely double-log
+  var twins=state.issues.filter(function(y){return y.dupe&&y.lineId===x.lineId&&SIZES.every(function(s){return (y.sizes[s]||0)===(x.sizes[s]||0);});});
+  var oldest=twins.reduce(function(m,y){return !m||String(y.created)<String(m.created)?y:m;},null);
+  return oldest&&oldest.id===x.id?'older':'newer';
+}
+async function deleteDuplicate(id){  // v9
+  var x=findIssue(id);if(!x||x.approved)return;
+  var twin=state.issues.filter(function(y){return y.id!==id&&y.dupe&&y.lineId===x.lineId;})[0];
+  var sz=SIZES.filter(function(s){return x.sizes[s];}).map(function(s){return x.sizes[s]+' '+s;}).join(', ');
+  if(!confirm('Delete this duplicate issue?\n\n'+fdate(x.created)+' · '+sz+' · '+(x.acct||'')+'\n'+(twin?'The other copy ('+fdate(twin.created)+') stays.\n':'')+'\nIts Damage Detail record is removed too. Deleted records stay in Airtable’s trash for 7 days.'))return;
+  if(PRACTICE){state.issues=state.issues.filter(function(y){return y.id!==id;});state.issues.forEach(function(y){y.dupe=false;});markDupes();toast('Practice: not deleted');render();return;}
+  try{
+    for(var i=0;i<x.ddIds.length;i++){
+      var rd=await fetch('https://api.airtable.com/v0/'+BASE+'/tblESDoN1UO7KwSee/'+x.ddIds[i],{method:'DELETE',headers:{Authorization:'Bearer '+token()}});
+      if(!rd.ok&&rd.status!==404)throw new Error('Damage Detail: HTTP '+rd.status);
+    }
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ISS+'/'+id,{method:'DELETE',headers:{Authorization:'Bearer '+token()}});
+    if(!r.ok&&r.status!==404){var j=await r.json().catch(function(){return {};});throw new Error((j.error&&j.error.message)||('HTTP '+r.status));}
+    state.issues=state.issues.filter(function(y){return y.id!==id;});
+    state.issues.forEach(function(y){y.dupe=false;});markDupes();
+    toast('Duplicate deleted \u2014 refreshing\u2026');render();
+    await new Promise(function(r){setTimeout(r,1500);});  // v16: give Airtable's formulas a moment to recalc
+    try{await refreshOrder(x.orderId);toast('Duplicate deleted \u00b7 totals updated');}
+    catch(e2){toast('Deleted, but couldn\u2019t refresh \u2014 reload the page before approving',true);}
+    render();
+  }catch(e){toast('Couldn’t delete: '+e.message,true);}
+}
+async function markReprintDone(id){  // v14
+  var x=findIssue(id);if(!x)return;
+  if(!confirm('Mark this reprint done?\n\nSets the issue to Completed (same as tapping Complete in Catching). Use this when the reprint already ran and shipped.'))return;
+  if(PRACTICE){x.status='Completed';toast('Practice: not saved');render();return;}
+  try{var f={};f[I.status]='Completed';await atPatch(T_ISS,id,f);x.status='Completed';toast('Reprint marked done');render();}
+  catch(e){toast('Couldn’t save: '+e.message,true);}
+}
+// ---- v17: one refund request per order ----
+function requestText(o,list){
+  var out=[],prev=o.reqCount>0;
+  o.lines.forEach(function(l){
+    var amt=list.filter(function(x){return x.lineId===l.id;}).reduce(function(s,x){return s+x.refund;},0);
+    if(!amt)return;
+    var short=Math.max(0,l.total-l.totalFinal);
+    out.push('* '+l.name+(l.color?' '+l.color:'')+': '+money(amt)+' ('+short+' short \u00d7 '+money(l.price)+')');  // Markdown bullet (email body)
+  });
+  var loose=list.filter(function(x){return !o.lines.some(function(l){return l.id===x.lineId;});}).reduce(function(s,x){return s+x.refund;},0);
+  if(loose)out.push('* Other: '+money(loose));
+  var already=o.refundSent-list.reduce(function(s,x){return s+x.refund;},0);
+  if(prev&&already>0.005)out.push('','Additional to '+money(already)+' already requested.');  // v18: no 'Additional to $0.00'
+  return out.join('\n');
+}
+async function sendRequestsFor(issues){
+  if(PRACTICE)return;
+  var oids={};issues.forEach(function(x){if(x.res==='REFUND'&&x.refund>0&&x.orderId)oids[x.orderId]=1;});
+  for(var oid in oids){await sendRefundRequest(oid,false);}
+}
+async function sendRefundRequest(oid,ask){
+  var o=orderModel(oid),list=unsentRefunds(o.issues);
+  if(!list.length)return;
+  var amt=Math.round(list.reduce(function(s,x){return s+x.refund;},0)*100)/100;
+  if(ask&&!confirm('Send order '+o.num+' refund request to the bookkeeper?\n\n'+money(amt)+(o.reqCount?' (additional)':'')+' \u2014 one email to finance.'))return;
+  if(PRACTICE){list.forEach(function(x){x.inReq=true;});toast('Practice: not sent');render();return;}
+  try{
+    var f={};f[O.reqAmt]=amt;f[O.reqDetails]=requestText(o,list);f[O.reqCount]=o.reqCount+1;f[O.reqAt]=new Date().toISOString();
+    await atPatch(T_ORD,oid,f);
+    if(state.orders[oid])Object.keys(f).forEach(function(k){state.orders[oid].fields[k]=f[k];});
+    for(var i=0;i<list.length;i+=10){
+      var chunk=list.slice(i,i+10);
+      var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ISS,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},
+        body:JSON.stringify({records:chunk.map(function(x){var g={};g[I.inReq]=true;return {id:x.id,fields:g};})})});
+      if(!r.ok)throw new Error('marking issues: HTTP '+r.status);
+      chunk.forEach(function(x){x.inReq=true;});
+    }
+    toast('Refund request sent \u2014 '+money(amt)+' for order '+o.num);render();
+  }catch(e){toast('Refund request didn\u2019t send: '+e.message+' \u2014 use \u2709 Send to bookkeeper on the order',true);render();}
+}
+async function approveIssue(id){  // v7
+  var x=findIssue(id);if(!x)return;
+  var what=x.res==='REFUND'?'This sends finance one refund request for this order (covering '+money(x.refund)+' plus any other approved, unsent refunds on it) and marks the issue Resolved.'
+    :x.res==='RE-PRINT'?'This posts the RE-PRINT alert in Slack, sets the order to "Delayed - Mis-Print - Needs Order" and marks the issue In progress.'
+    :'This marks the issue Resolved (no refund, no reprint).';
+  if(!confirm('Approve '+x.res+'?\n\n'+what))return;
+  if(PRACTICE){x.approved=true;if(x.res==='REFUND'&&x.refund>0)x.inReq=true;toast('Practice: not saved, no email sent');render();return;}  // v18
+  try{var f={};f[I.approved]=true;await atPatch(T_ISS,id,f);toast('Approved — the automation takes it from here');
+    setTimeout(function(){refreshIssue(id).then(render).catch(function(){});},4000);
+    x.approved=true;render();
+    await sendRequestsFor([x]);  // v17
+  }catch(e){toast('Couldn’t approve: '+e.message,true);}
+}
+async function changeResolution(id,val){  // v7
+  var x=findIssue(id);if(!x||!val)return;
+  if(!confirm('Change this issue to '+val+'? (Sets Change Resolution; nothing is sent until you Approve.)')){render();return;}
+  if(PRACTICE){x.res=val;x.changed=true;toast('Practice: not saved');render();return;}
+  try{var f={};f[I.changeRes]=val;await atPatch(T_ISS,id,f);await refreshIssue(id);toast('Changed to '+val);render();}
+  catch(e){toast('Couldn’t change: '+e.message,true);render();}
+}
+async function setIssued(oid,v){
+  var o=orderModel(oid);
+  if(v&&!confirm('Mark order '+o.num+' refund ('+money(o.refund)+') as issued in QuickBooks?'))return;
+  if(PRACTICE){toast('Practice: not saved');if(state.orders[oid])state.orders[oid].fields[O.refundIssued]=!!v;render();return;}
+  try{
+    var body={fields:{}};body.fields[O.refundIssued]=!!v;
+    var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+T_ORD+'/'+oid,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){var j=await r.json().catch(function(){return {};});throw new Error((j.error&&j.error.message)||r.status);}
+    if(state.orders[oid])state.orders[oid].fields[O.refundIssued]=!!v;toast(v?'Marked refund issued':'Refund issued cleared');render();
+  }catch(e){toast('Couldn’t save: '+e.message,true);}
+}
+
+// ---- Trends ----
+function renderTrends(){
+  var iss=state.issues.filter(function(x){return state.kind==='all'||(state.kind==='bandana')===x.bandanaLine;});  // v8
+  if(!state.issues.length){$('main').innerHTML='<div class="msg"><b>No issues in this range</b></div>';return;}
+  if(!iss.length){iss=[];}
+  var sum=function(k,a){return (a||iss).reduce(function(s,x){return s+x[k];},0);};
+  var ords={};iss.forEach(function(x){ords[x.orderId]=1;});
+  // v13: side-by-side split (always shows both, whatever the switch says)
+  var A=state.issues.filter(function(x){return !x.bandanaLine;}),B=state.issues.filter(function(x){return x.bandanaLine;});
+  var S=function(a,k){return a.reduce(function(s,x){return s+x[k];},0);};
+  var col=function(t,a,extra){return '<div class="card"><h3>'+t+'</h3><p class="sub">'+plural(a.length,'issue')+'</p>'
+    +'<div class="big">'+S(a,'pcs').toLocaleString()+' <small>damaged pcs</small></div>'+extra+'</div>';};
+  var h='<div class="p-head"><span class="p-section">Trends</span><span class="p-head-sum">'+esc($('range').selectedOptions[0].text)+' · <b>'+plural(iss.length,'issue')+'</b>'+(state.kind==='all'?'':' ('+(state.kind==='bandana'?'bandanas':'apparel')+')')+'</span></div>'
+    +'<div class="split">'
+    +col('Apparel',A,'<p>Refunds <b>'+money(S(A,'refund'))+'</b> · Reprint cost <b>'+money(S(A,'reprint'))+'</b></p>')
+    +col('Bandanas',B,'<p>From stock <b>'+money(S(B,'bandana'))+'</b> · Refunds <b>'+money(S(B,'refund'))+'</b></p>')
+    +'</div>'
+    +'<div class="tiles">'  // v20: the Show switch is the chips in the filter row
+    +tile('Damaged pieces',sum('pcs').toLocaleString(),plural(iss.length,'issue')+' on '+plural(Object.keys(ords).length,'order'))
+    +tile('Refunds',money(sum('refund')),plural(iss.filter(function(x){return x.refund>0;}).length,'issue'))
+    +tile('Reprint cost',money(sum('reprint')),plural(iss.filter(function(x){return x.reprint>0;}).length,'issue'))
+    +(state.kind==='apparel'?'':tile('Bandanas from stock',money(sum('bandana')),plural(iss.filter(function(x){return x.bandana>0;}).length,'issue')))
+    +(state.kind==='bandana'?'':(function(){var w=0,n=0,rec=0;(state.wowLines||[]).forEach(function(r){var lf=r.fields;rec++;w+=num(lf[L.wow]);n+=num(lf[L.xSentTot]);});
+      return tile('Wow cost (extras sent)',money(w),rec?plural(n,'extra')+' sent on '+plural(rec,'recorded line'):'Starts with Catching v143');})())
+    +'</div><div class="grid2">';
+  // pieces by reason (an issue with 2 reasons counts toward both)
+  var byR={};iss.forEach(function(x){var rs=x.reasons.length?x.reasons:(x.legacy.length?x.legacy:['No reason']);rs.forEach(function(r){byR[r]=(byR[r]||0)+x.pcs;});});
+  h+=card('Damaged pieces by reason','An issue with two reasons counts toward both.',hbars(byR,function(v){return v.toLocaleString()+' pcs';}));
+  var byA={};iss.forEach(function(x){var k=x.acct||'Not set';byA[k]=(byA[k]||0)+x.pcs;});
+  h+=card('Damaged pieces by accountability','Print Team vs everything else (mill flaws, grease, wrinkles…).',hbars(byA,function(v){return v.toLocaleString()+' pcs';}));
+  var byM={};iss.forEach(function(x){var k=String(x.created).slice(0,7);if(k)byM[k]=(byM[k]||0)+x.refund+x.reprint+x.bandana;});
+  h+=card('Damage cost by month','Refunds + reprint cost + bandanas from stock.',cols(byM,money));
+  var byG={};iss.forEach(function(x){var k=garmentLabel(x);byG[k]=(byG[k]||0)+x.pcs;});  // v8: names, not record IDs
+  h+=card('Damaged pieces by garment','Top 8 garments in this range.',hbars(byG,function(v){return v.toLocaleString()+' pcs';},8));
+  h+='</div>';
+  $('main').innerHTML=h;
+}
+function plural(n,w){return n+' '+w+(n===1?'':'s');}
+function tile(l,v,sub){return '<div class="tile"><small>'+l+'</small><b>'+v+'</b><i>'+esc(sub)+'</i></div>';}
+function card(t,sub,body){return '<section class="card"><h3>'+t+'</h3><p class="sub">'+sub+'</p>'+body+'</section>';}
+// v8: the issue's Garment field is a link (comes back as record IDs), so name the garment
+// from its line item (brand + style # + garment type), e.g. "BC 3001 SS Tee".
+function garmentLabel(x){
+  var l=x.lineId&&state.lines[x.lineId];
+  if(l){var f=l.fields,n=[txt(f[L.brand]),txt(f[L.style]),txt(f[L.garment])].filter(Boolean).join(' ');if(n)return n;}
+  var g=String(x.garment||'');
+  return (!g||/^rec[A-Za-z0-9]{14}/.test(g))?'Unknown':g;
+}
+function hbars(obj,fmt,top){
+  var e=Object.keys(obj).map(function(k){return [k,obj[k]];}).sort(function(a,b){return b[1]-a[1];});
+  var rolled=false;
+  if(top&&e.length>top){var rest=e.slice(top).reduce(function(s,x){return s+x[1];},0);e=e.slice(0,top);if(rest){e.push(['Other',rest]);rolled=true;}}
+  var max=Math.max.apply(null,e.filter(function(x){return !(rolled&&x[0]==='Other');}).map(function(x){return x[1];}).concat([1]));  // v8: 'Other' doesn't set the scale
+  return '<div class="hb">'+e.map(function(x){
+    return '<div class="row" data-tip="'+esc(x[0]+': '+fmt(x[1]))+'"><span class="lab">'+esc(x[0])+'</span><span class="trk"><span class="fill" style="width:'+Math.min(100,x[1]/max*100)+'%'+(rolled&&x[0]==='Other'?';opacity:.35':'')+'"></span></span><span class="val">'+fmt(x[1])+'</span></div>';
+  }).join('')+'</div>';
+}
+function cols(obj,fmt){
+  var keys=Object.keys(obj).sort(),max=Math.max.apply(null,keys.map(function(k){return obj[k];}).concat([1]));
+  var lab=function(k){var d=new Date(k+'-15');return d.toLocaleDateString('en-US',{month:'short'})+(keys.length>6?'':' '+String(d.getFullYear()).slice(2));};
+  var peak=keys.reduce(function(m,k){return obj[k]>obj[m]?k:m;},keys[0]);
+  return '<div class="cols">'+keys.map(function(k){
+    return '<div class="col" data-tip="'+esc(lab(k)+': '+fmt(obj[k]))+'">'+(k===peak||k===keys[keys.length-1]?'<span class="cv">'+fmt(obj[k])+'</span>':'')+'<span class="cf" style="height:'+(obj[k]/max*100)+'%"></span></div>';
+  }).join('')+'</div><div class="colx">'+keys.map(function(k){return '<span>'+lab(k)+'</span>';}).join('')+'</div>';
+}
+
+// ---- events ----
+// v18: one write at a time. A second tap while a save is running (e.g. Send to bookkeeper twice) is ignored,
+// so the bookkeeper never gets two emails for one refund.
+var SAVING=0;
+function guard(fn){
+  if(SAVING){toast('Still saving the last change \u2014 one moment');return;}
+  SAVING++;var done=function(){SAVING--;};
+  try{Promise.resolve(fn()).then(done,done);}catch(e){done();}
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-sendreq],[data-rpdone],[data-deldup],[data-sel],[data-apall],[data-selall],[data-selclear],[data-batch],[data-open],[data-copy],[data-issued],[data-f],[data-tab],[data-approve],[data-kind]');if(!t)return;
+  if(t.dataset.kind){state.kind=t.dataset.kind;render();return;}
+  if(t.dataset.approve){guard(function(){return approveIssue(t.dataset.approve);});return;}
+  if(t.dataset.rpdone){guard(function(){return markReprintDone(t.dataset.rpdone);});return;}
+  if(t.dataset.deldup){guard(function(){return deleteDuplicate(t.dataset.deldup);});return;}
+  if(t.dataset.sel){state.sel[t.dataset.sel]=!state.sel[t.dataset.sel];render();return;}
+  if(t.dataset.selclear){state.sel={};render();return;}
+  if(t.dataset.selall){var ids2=state.shownSel||[],on=ids2.length&&ids2.every(function(id){return state.sel[id];});ids2.forEach(function(id){state.sel[id]=!on;});render();return;}  // v10: toggle
+  if(t.dataset.apall){var o=allOrders().filter(function(z){return z.id===t.dataset.apall;})[0];if(o)guard(function(){return approveMany(awaitingIssues(o),'order '+o.num);});return;}
+  if(t.dataset.batch){var bs=batchSummary(Object.keys(state.sel).filter(function(k){return state.sel[k];}));guard(function(){return approveMany(bs.issues,plural(bs.orders,'order'));});return;}
+  if(t.dataset.tab){state.tab=t.dataset.tab;[].forEach.call(document.querySelectorAll('.tab'),function(b){b.classList.toggle('is-on',b===t);b.setAttribute('aria-selected',b===t);});window.scrollTo(0,0);render();return;}
+  if(t.dataset.f){state.filter=t.dataset.f;render();return;}
+  if(t.dataset.sendreq){guard(function(){return sendRefundRequest(t.dataset.sendreq,true);});return;}  // v17
+  if(t.dataset.copy){copyQb(t.dataset.copy);return;}
+  if(t.dataset.issued){guard(function(){return setIssued(t.dataset.issued,t.dataset.v==='1');});return;}
+  if(t.dataset.open){openCard(t.dataset.open);}
+});
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.open){e.preventDefault();e.target.click();}});
+document.addEventListener('mousemove',function(e){
+  var t=e.target.closest&&e.target.closest('[data-tip]'),tt=$('tt');
+  if(!t){tt.hidden=true;return;}
+  tt.textContent=t.dataset.tip;tt.hidden=false;tt.style.left=Math.min(e.clientX+12,innerWidth-tt.offsetWidth-8)+'px';tt.style.top=(e.clientY+14)+'px';
+});
+$('q').addEventListener('input',function(){state.q=this.value;render();});
+document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.change){var v=t.value;if(SAVING){toast('Still saving the last change \u2014 one moment');t.value='';return;}guard(function(){return changeResolution(t.dataset.change,v);});}});
+$('range').addEventListener('change',function(){state.range=/^\d+$/.test(this.value)?Number(this.value):this.value;load();});
+$('refreshBtn').onclick=function(){  // v18: reload from Airtable + look for a new app version
+  if(SAVING){toast('Still saving the last change \u2014 one moment');return;}
+  if(window.PineUpdate&&PineUpdate.check)PineUpdate.check();
+  load();
+};
+// v20: one card open at a time, opened in place. The tapped card's header stays where the finger is, even when
+// the card that was open above it closes.
+function openCard(id){
+  if(isWide()){pickOrder(id,false);return;}  // v21
+  var was=!!state.open[id],el=$('o-'+id),top=el?el.getBoundingClientRect().top:null;
+  state.open={};if(!was)state.open[id]=true;
+  render();
+  var now=$('o-'+id);
+  if(now&&top!=null){var d=now.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);}
+  if(now&&now.getBoundingClientRect().top<0)now.scrollIntoView();
+}
+// v20: the ⚙ menu holds the token and the practice switch (they were separate bar buttons + a token strip).
+function showMenu(on){
+  $('tokPanel').hidden=!on;$('tokBtn').setAttribute('aria-expanded',on);
+  if(on){$('tokIn').value=token();}
+}
+$('tokBtn').onclick=function(){showMenu($('tokPanel').hidden);};
+document.addEventListener('pointerdown',function(e){if(!$('tokPanel').hidden&&!e.target.closest('#tokPanel,#tokBtn')&&token())showMenu(false);});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('tokPanel').hidden&&token())showMenu(false);});
+$('tokIn').addEventListener('keydown',function(e){if(e.key==='Enter')$('tokSave').click();});
+$('tokSave').onclick=function(){try{localStorage.setItem('pine_at_key',$('tokIn').value.trim());}catch(e){}showMenu(false);load();};
+function syncPractice(){  // v18: pill in the bar; v20: the switch in the ⚙ menu says what it does
+  $('practicePill').hidden=!PRACTICE;
+  $('practiceHint').textContent=PRACTICE?'On \u2014 nothing is saved':'Off \u2014 changes save to Airtable';
+  $('practiceBtn').textContent=PRACTICE?'Leave practice':'Turn on';
+  $('practiceBtn').setAttribute('aria-pressed',PRACTICE);
+}
+$('practiceBtn').onclick=function(){
+  if(SAVING){toast('Still saving the last change \u2014 one moment');return;}
+  PRACTICE=!PRACTICE;syncPractice();
+  try{var u=new URL(location.href);if(PRACTICE)u.searchParams.set('practice','1');else u.searchParams.delete('practice');history.replaceState(null,'',u);}catch(e){}  // v18: survives an app update / reload
+  toast(PRACTICE?'Practice on \u2014 nothing will be saved':'Practice off \u2014 changes save to Airtable');
+  showMenu(false);
+};
+syncPractice();
+// v18: self-update. Busy (= show an "Update now" bar instead of reloading) while a save runs, orders are
+// selected for approval, a resolution is being picked, the token box is open, or a card/search is open.
+window.pineBusy=function(){
+  try{
+    var a=document.activeElement;
+    return SAVING>0||Object.keys(state.sel).some(function(k){return state.sel[k];})
+      ||!$('tokPanel').hidden||!!(a&&a.dataset&&a.dataset.change)
+      ||(!isWide()&&Object.keys(state.open).some(function(k){return state.open[k];}))||!!state.q.trim();  // v21: a picked order in the two-pane view is not a task
+  }catch(e){return true;}
+};
+load();
+</script>
+<script src="pine-update.js" data-link="damage-log.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>

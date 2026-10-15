@@ -99,3 +99,20 @@ The production manager's desk view of Order Issues. Used mostly on a laptop, som
   - Practice sent 0 writes. A double tap on Send still makes 1 Order write. There were no page errors.
   - Checked: no token, the ⚙ practice switch, a tap outside the menu, and one card open at a time.
   - Screens at 1440×900, 1024×768, 768×1024 and 390×844: no text under 12px, no horizontal scroll, no control under 44px (the bar view tabs are 36px, as the kit sets them), chips on one line, and one yellow button.
+
+## 2026-10-15 · v21
+**Why:** Stephen uses the Damage Log on a wide desktop screen. v20 capped the page at 1100px, so about 2000px wide meant big empty margins, and the filter chips were cut off ("Reprints 4 (") even though there was room.
+- **1400px and wider: two panes.**
+  - The order list sits on the left (560–640px, its own scroll). The picked order's full detail fills the right (its own scroll, under the filter row).
+  - Click a card to show it on the right. ↑/↓ move between orders. The first order is picked by default.
+  - The picked card has a black edge and a cream head. A yellow wash still means "checked for approval".
+  - Checkboxes, *Select all* and the batch bar work as before. A picked order doesn't count as "busy" for self-update.
+- **Below 1400px:** orders still open in place (v20). The page is now full width with 24px gutters (16px on phones) instead of the 1100px cap.
+  - Why no cap: screens this size (iPads, laptops) are at most about 1400px wide, and the list cards already handle that width.
+  - The filter row and the list now line up, and the chips get the whole row.
+- **Filter row:** full width with 24px gutters. The chips fit on one line whenever there is room (1440 and 1920). On narrower screens they still scroll sideways.
+- **Trends:** the four charts sit side by side (3–4 across on desktop).
+- **Kit candidate:** the two-pane CSS (`.p-split`, `.p-split-list`, `.p-split-detail`, `.p-split-empty`, `--p-split-top`) is in the app under a "KIT CANDIDATE" comment, ready to move into `pine-style-v2.css`.
+- **Tested** (same mocks):
+  - At 1440, 1920 and 1024, the 13 live writes match v20 field for field. Practice mode sent 0 writes, and a double tap still sends one refund request. There were no page errors.
+  - At 1920, 1440, 1024 and 390: nothing under 12px, no horizontal scroll. At 1920 and 1440: no page scroll in two-pane mode and no clipped chips.
