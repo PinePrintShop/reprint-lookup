@@ -1,5 +1,45 @@
 # Reconnect (was Sales Targets)
 
+## 2026-10-15 · v3: Patrick's warm list, for everyone; Josh and Stephen removed
+**Stephen:** "here is the logic Patrick uses for reconnecting...can we review this against the one we built and make it similar to Patrick's but for everyone! and we can remove Josh and Stephen as Josh is no longer here and I am in a new position now and all of my past clients have been moved to either Chris or Patrick"
+
+Patrick's Pipedrive filter "[WARM] Inactive Customers (Patrick)": 1+ won deal, no deal closed in the last 2 months, last activity 4–12 months ago, not emailed this quarter, not in the Inactive Customer or Platinum/Gold/Silver/Bronze workflows, no customer tier, and owner = Patrick.
+
+- **New file** `reconnect-v3.html` (same permanent link `reconnect.html`, same settings and marks).
+- **Views (one per customer)** replace the v2 reason chips. Rules are in `RULES`:
+  - **Warm · 4–12 months** (the default; Patrick's list for every rep): 1+ paid order, no paid order in the last 2 months, and the last order of any kind (including $0 reprints and open orders, which mean we were in touch) between 4 and 12 months ago. The boundaries match Pipedrive's "before 4 months ago" and "after 12 months ago".
+  - **Cold · 12+ months**: last order 12 to 36 months ago. It is not the default, and it replaces most of v2's "Gone quiet".
+  - **Recent · due by Q1**: ordered in the last 4 months (but not the last 2), no order in progress, and either due for a reorder or ordered in that quarter before. These are the v2 targets Patrick's filter would skip.
+  - **"Ordered in Q1 before" and "Due for a reorder"** stay as tags and as a "reason" filter inside each view.
+- **Reps**:
+  - Josh and Stephen are retired (`RULES.retiredReps`). The rep filter shows only active reps, meaning reps on orders created in the last 90 days: Chris, Patrick and Garrett today.
+  - A customer's rep is the rep on their newest order who is still active.
+  - Customers who only ever had Josh or Stephen show as **Unassigned (was Josh)** or **Unassigned (was Stephen)**, so Stephen can hand them out. Airtable orders keep the old rep name, but Pipedrive has the new owner.
+  - A v2 rep setting of Josh or Stephen resets to All reps.
+- **Pipedrive conditions** (owner, last activity, last email sent, customer tier, workflow) are not in Airtable. The worker has no route that returns them per organization (`/proxy/pipedrive/deal` works per order and `/emails` per email address). The app has a hook ready:
+  - `loadPipedrive()` / `mergePipedrive()` read `GET /proxy/pipedrive/reconnect`. It is off until that route exists; add `?pd=1` to try it.
+  - When the data is there:
+    - The Pipedrive org owner becomes the rep.
+    - Pipedrive's last activity counts as a touch.
+    - A tier, those workflows, or an email sent this quarter leave the customer out ("N left out by Pipedrive").
+  - The route must stay read-only and Airtable-token gated, and should check the token can read this base (not only whoami). It must return no contact details.
+- **Copy list** gains Rep and View columns.
+- **Tested** with mocked Airtable and made-up customers (Playwright), 47 checks:
+  - the 2-, 4-, 12- and 36-month boundaries, a $0 reprint and an open order inside the window
+  - rep reassignment, active-rep detection, the Unassigned filter and the reset of an old Josh/Stephen setting
+  - a mocked Pipedrive route (owner override, tier, workflow, emailed this quarter, activity moving a cold customer to warm)
+  - views, reason filter, marks, Copy list, no token
+  - no Airtable writes, no page errors, nothing under 12px, no sideways scroll at 1920 to 390
+- **On the real order history** (counts only, 2026-10-15):
+  - Warm: 539 customers (Patrick 289, Chris 230, Garrett 3, Unassigned (was Stephen) 17).
+  - Cold: 1,197 (537 of them have no rep on file, from before 2024).
+  - Recent: 70.
+  - 82 former Josh customers (all cold) and 36 former Stephen customers are now Unassigned.
+- **Open questions for Stephen:**
+  - Is Garrett a sales rep? He has 9 orders in the last 90 days, so he shows in the filter. If not, add him to `retiredReps`.
+  - Should Cold need a minimum spend?
+  - Add the Pipedrive route to the worker? This would apply Patrick's other filter lines and the real owners.
+
 ## 2026-10-15 · v2: renamed to Reconnect
 **Stephen:** "can we change it from sales target to outreach Q1 or something more about it being an outreach helper with historical order history but make it sound better than that"
 - **New name:** Reconnect. The top bar says RECONNECT, and the big tile says "Worth a call · Q1 2027".
