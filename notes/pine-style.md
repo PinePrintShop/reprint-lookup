@@ -80,3 +80,19 @@ The plan is to combine the apps early next year, so they need one look first.
 - Canvas version (editable, private): https://claude.ai/artifact/KPpUGp25pmtjEQrdTX7YuR
 
 - **Oct 14, Schedule v11:** Flatstock = 7683 denim `#426DA9` (white text). Finishing = dusty plum `#8E6C8A` (not a brand Pantone; picked to match B's muted style).
+
+## 2026-10-15 · Page kit: the apps should feel the same, not just look the same
+**Why:** a side-by-side of the seven updated apps at iPad size ("Pine App Feel Check", private artifact) showed one look but seven ways to do the same thing. Refresh sat in four places, filters came in four shapes, there were three list-card layouts, and yellow was used for facts. Stephen said go on the six rules (Oct 15).
+
+**Added to `pine-style-v2.css`** (additive; nothing existing changed):
+1. **Bar order:** logo, app name, version, practice pill, the app's own views (`.p-bar-views`), then on the right `.p-barbtn` Refresh (icon + word) and ⚙. Token and practice live inside ⚙.
+2. **One filter row** `.p-filters` under the bar: search (`.p-search`), sort and range on the right (`.p-filters-end`), and chips `.p-chips` on one line that scrolls sideways.
+3. **Page head** `.p-head`: title box, one-line summary, controls on the right.
+4. **List card** `.p-lc`: ID, name and one sub-line, numbers (`.p-num`) on the right, one action, tags on row 2. It opens in place (`.is-open` + `.p-lc-body`), one at a time. It stacks on a phone.
+5. **Yellow is your next move:** one `.p-btn-main` per screen; card actions use `.p-btn-dark` or `.p-btn`; yellow tags only for "needs you".
+6. **Central wears the same bar.**
+
+The demo is in `pine-style.html` under "Page kit". The rules list and the app status table are updated.
+
+**First apps:** Central, Purchasing and the Damage Log.
+**Operator next version:** the ink-type tag goes cream (a fact, not "needs you").
