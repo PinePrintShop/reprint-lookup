@@ -1,0 +1,91 @@
+# Ink Queue (`pine-ink-queue.html`)
+
+The ink room's list of which inks to mix for upcoming jobs. Used on a desktop screen in the ink room.
+
+## What it does
+- **Reads** Imprints printing from 5 days ago to 14 days ahead, plus up to 120 unscheduled, not-ready imprints (the "No date" pipeline). Only orders from *Ordered - In Production* onward show. Non-ink work is skipped: embroidery, Supacolor, Decopress, patches/labels, finishing, heat and tag presses, and Size Tag locations.
+- **Groups:**
+  - On press today: all of today's ink jobs, ready or not.
+  - One group per upcoming print day, with a working-day countdown.
+  - No date (the pipeline).
+  - Completed: ready jobs, kept for 5 days after they print so one can be reopened.
+  - Inside each group, jobs are grouped by order.
+- **Tightest runway:** working days until the nearest job that still needs ink. 4 is the benchmark.
+- **Filters:** All · No inks · Reorders · No date, plus a search (customer, order #, imprint, design).
+- **An open job shows:**
+  - its proofs, with a full-size viewer
+  - Print notes and Ink notes
+  - its inks: swatch, name, type, recipe, created/updated dates, a label button, *Mixed today*, and Remove
+  - Add ink (from the ink library or a new color), copy/paste colors between locations, and drag to reorder
+  - *Fill from* the previous run, on reorders
+- **Labels:** 4×2 Rollo labels as a PDF, for one ink, all inks on a job, or any ink in the library (*Print a label*).
+- **Writes to Airtable:**
+  - Imprints: Inks (links and order), Inks Ready, Print Notes, Ink Notes. Opening a reorder also saves the inks, notes and ink types filled in from the previous run.
+  - Inks: Pantone Number and Ink Type (from the name), Recipe, Display Hex, Manufacturer, Last Updated. It also creates new Inks.
+- The Airtable token comes from `pine_at_key` in the browser, the same as the other apps. `?practice=1` fakes every write.
+
+## 2026-10-15 · v95
+**Why:** move to Pine style v2 and the page kit, build for the desktop, add self-update and practice mode, and fix the bugs found on the way.
+- **Pine style v2 + page kit:**
+  - `pine-style-v2.css` and Poppins replace `pine-design-v1.css`.
+  - The black bar has the Pine square, INK QUEUE, the version and the practice pill, then Refresh and ⚙.
+  - The token strip and 🔑 button moved into the ⚙ menu, next to the practice switch.
+  - One filter row: search, the four filter chips with counts, and *Print a label*.
+  - Each group has a page head: a title box, a tag and a count. The countdown tags are yellow when a job prints in 1–3 work days and cream after that.
+  - Tightest runway is in the first head. It's red under 4 work days, yellow at 4, and black ("done") above 4.
+  - Jobs are kit list cards:
+    - proof thumbnail and imprint ID badge
+    - design, location and press
+    - Pcs and Inks
+    - Mark ready
+    - row 2: *No inks* and *N colors to fill* (yellow), ink swatches, Reorder
+  - Ink swatches are still the real ink colors. Only the app chrome uses black, white, cream and yellow.
+  - Nothing is under 12px and there's no Courier. Buttons are 44px. Pop-ups are kit pop-ups, and alerts became one toast at a time.
+- **Desktop first:**
+  - At 1400px and wider there are two panes: the queue on the left and the picked job on the right. Each scrolls on its own, and the job's header stays at the top.
+  - ↑/↓ move between jobs.
+  - Narrower than 1400px, a job opens in place, one at a time.
+  - The open job puts the proof beside the inks when there's room, and above them when there isn't.
+- **Flow:**
+  - *Mark ready* on the open job is the screen's one yellow button. In the two panes, marking it moves straight to the next job that needs ink.
+  - A toast says "Inks ready ✓" and offers **Undo**.
+  - Ink Notes moved from every collapsed card into the open job, beside Print Notes. When a job has a note, its card shows it on one line.
+  - *+ Add ink* is a button over the ink list, and the form opens with the cursor in the search box.
+  - Refresh keeps the open job and re-reads ink names and colors. Before, it cleared the screen and kept ink names from the first load.
+  - Search is new.
+  - Chip counts now match what each chip shows.
+  - The separate ink-type tags show only when there are no swatches, because the swatch names already say the type.
+- **Self-update:** loads `pine-update.js` (link `pine-ink-queue.html`), and Refresh checks for a new version too.
+  - The app counts as busy while a save is running or queued, a pop-up or the ⚙ menu is open, someone is typing, the add-ink form is open, or (below 1400px) a job is open.
+- **Practice (new):** `?practice=1` or the ⚙ switch. Every PATCH/POST is stopped in one place (`api()`), and nothing is sent.
+  - The app answers with what would have come back, so the screen still behaves normally, for example when adding a new color.
+  - The pill shows, and the URL keeps practice on through a reload or an update.
+- **Bugs fixed:**
+  - "No date" jobs opened to an empty box. The app only looked them up among the dated jobs, so their edits also never reached the in-memory record.
+  - After one failed save, the card said "Save failed — click to retry" forever, and clicking did nothing. Now a new save clears it, and a failure shows a red toast.
+  - Removing an ink and then adding one could give two rows the same id, so the next Remove could take off the wrong ink.
+  - *Mixed today* on an ink with no Created date added a second "Updated" stamp.
+  - The page stopped loading if the PDF library didn't load.
+  - The *Copy colors* / *Print all* buttons were unstyled browser buttons (`.btn` didn't exist in the old CSS).
+  - Removed unused code: the inline PDF pager and the ↑/↓ reorder arrows (drag-and-drop replaced them in v73).
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - Flows run in v94 and v95 with the same edits:
+    - type a Pantone into a TBA slot
+    - recipe, Print notes, Ink notes
+    - Mixed today, swatch color, remove an ink
+    - add an ink from the library, add a new color
+    - copy and paste colors
+    - open a reorder (fills from the last run)
+    - Mark ready
+  - All 13 writes match v94 field for field. v95 adds two writes v94 couldn't make: Undo on Mark ready, and a note on a No-date job.
+  - Also tested:
+    - Update this color everywhere
+    - label preview
+    - Refresh keeping the open job
+    - switching between two panes and one at 1400px
+    - ↑/↓
+    - search
+    - a failing save (red toast, card stays not ready)
+    - `pineBusy`
+  - Practice mode sent 0 writes, both from `?practice=1` and from the ⚙ switch. There were no page errors.
+  - Screens at 1920×1080, 1440×900, 1024×768, 768×1024 and 390×844. No text under 12px and no horizontal scroll.
