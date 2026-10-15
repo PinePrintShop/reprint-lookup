@@ -253,6 +253,9 @@ button,input,select,textarea{font-family:inherit}
 .p-split-list .p-lc-head{grid-template-areas:"id main act" "id tags tags"}  /* numbers are tags here, so no empty row */
 .p-split-list .p-lc-nums{display:none}
 .p-split-list .sp-order:first-of-type{margin-top:6px}
+/* A job scrolled to (calendar jump) stops below the sticky bar, which is taller once the views get their own row. */
+.wrap:not(.is-split) .p-lc{scroll-margin-top:88px}
+@media (max-width:899px){ .wrap:not(.is-split) .p-lc{scroll-margin-top:140px} }
 /* iPad portrait and narrower */
 @media (max-width:1023px){
   .p-lc-head .sp-thumb,.p-lc-head .sp-thumb-ph{width:48px;height:48px}
@@ -266,6 +269,7 @@ button,input,select,textarea{font-family:inherit}
   .p-tab.sp-done-chip{margin-left:0}
   .wrap{padding:0 12px 140px}
   .p-lc-body.sp-body{padding:12px}
+  .sp-proof img{max-height:38vh}  /* the controls start on the first screen, the full proof is a tap away */
   .sp-sec{padding:12px}
   .cal-week{grid-template-columns:1fr}
   .cal-col{min-height:0}
@@ -884,7 +888,11 @@ function openCard(id, scroll) {
   render();
   var now = document.getElementById('ic-' + id);
   if (now && top != null) { var d = now.getBoundingClientRect().top - top; if (d) window.scrollBy(0, d); }
-  if (now && now.getBoundingClientRect().top < 64) window.scrollBy(0, now.getBoundingClientRect().top - 72);
+  // Keep the head below the sticky bar (it's taller under 900px, where the views get their own row).
+  var bar = document.querySelector('.p-bar'), under = (bar ? bar.getBoundingClientRect().bottom : 64) + 8;
+  if (now && now.getBoundingClientRect().top < under) window.scrollBy(0, now.getBoundingClientRect().top - under);
+  // A job opened low on the screen scrolls up so its controls show, not just its head (less scrolling on a phone).
+  if (!was && now && now.getBoundingClientRect().top > window.innerHeight * 0.45) window.scrollBy(0, now.getBoundingClientRect().top - under);
 }
 // Kept for old call sites.
 function toggleDetail(id) { openCard(id); }

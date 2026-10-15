@@ -3,8 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pine Schedule v19</title>
-<!-- Pine Schedule v19 (2026-10-15): search finds scheduled jobs too (Stephen). Under the search box: All (default) / Unscheduled only
+<title>Pine Schedule v20</title>
+<!-- Pine Schedule v20 (2026-10-15): Mike's notes after a few hours on real data, plus lock-in (Stephen).
+     Lock in: a job (pop-up) or a whole day (button under each day) ticks Imprints "Scheduled" (Slack bots read it); Unlock in the pop-up.
+     Moves keep the tick (Airtable's change bot posts the new days). Every proof on the imprint's line items shows (was only the first),
+     with "N colorways". Side cards show the print Location. Machine chips filter only the calendar. Calendar cards show the customer.
+     Drops start at the exact end of the job before (no gap, no rounding); an empty day starts 8:30. Job length without Allocated rounds
+     up to 15 min (what placing it writes). Unscheduled pop-up: press/day/time start blank, Save keeps it in the list.
+     Pop-up: start and end time, turnaround in business days from payment (same as Airtable's Turnaround Calculator).
+     Pine Schedule v19 (2026-10-15): search finds scheduled jobs too (Stephen). Under the search box: All (default) / Unscheduled only
      (remembered). With search text and All, a "Scheduled" section lists matching scheduled, not-finished jobs from any date (one Airtable
      query, 300 ms after typing stops, first 50 by start) merged with what's loaded. Tap one = the calendar jumps to its day (Month → Week),
      scrolls to the card and flashes it. Those result cards don't drag (drag from the calendar). No change to writes or the default list.
@@ -106,6 +113,28 @@ body{background:var(--p-cream-lt)}
 .p-tag.warn{border-color:var(--p-black);color:var(--p-black)} .p-tag.warn::before{content:"!";font-weight:900;margin-right:2px}
 .why{font-size:12px;color:var(--p-alert);font-weight:700}
 .id{font:800 15px/1 var(--p-sans);font-variant-numeric:tabular-nums}
+
+/* v20: customer name on calendar cards, lock mark, proofs grid, turnaround, day lock */
+.jc .cn{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day .jc .cn{font-size:14px;white-space:normal}
+.mc .cn{overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--p-ink-2)}
+.mgrid.two .mc{flex-wrap:wrap;row-gap:1px}
+.mgrid.two .mc .cn{flex:1 0 100%;white-space:nowrap;font-weight:700;color:var(--p-black)}
+.lk{width:12px;height:12px;flex:none;align-self:center}
+.proofs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.proofs.one{grid-template-columns:1fr}
+.proofs a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--p-ink-2);font-size:12px;min-width:0}
+.proofs a span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proofs .proof{max-height:170px}
+.proofs.one .proof{max-height:260px}
+.proofs-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.ta{font-variant-numeric:tabular-nums}
+.daylock{margin-top:auto;width:100%;justify-content:center}
+.daylocked{margin-top:auto;display:flex;gap:5px;align-items:center;justify-content:center;font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2);padding:8px 0}
+.mcell .daylock{font-size:13px;padding:0 8px}
+.dayhead{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:10px}
+.dayhead .daylock{width:auto;margin:0}.dayhead .daylocked{margin:0}
+#mLock{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 /* calendar */
 .main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
@@ -264,7 +293,7 @@ body,.p-app{background:var(--ground)}
 <div class="app">
   <header class="p-bar">
     <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
-    <span class="p-bar-app">Schedule</span><span class="p-bar-ver" id="ver">v17</span>
+    <span class="p-bar-app">Schedule</span><span class="p-bar-ver" id="ver">v20</span>
     <span class="p-tag p-tag-wait" id="practicePill" title="Practice mode: nothing is saved" hidden>Practice</span>
     <nav class="p-bar-views" id="viewSeg" role="tablist" aria-label="Views"></nav>
     <div class="p-bar-sp">
@@ -307,7 +336,7 @@ body,.p-app{background:var(--ground)}
 
 <script>
 /* ---------------- config ---------------- */
-const VER = 19;
+const VER = 20;
 const BASE='appJkaLk8DykjsgHR', TBL='tbln9oAGvz2PNBZLV';
 const PRACTICE = new URLSearchParams(location.search).get('practice')==='1';
 const F={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',start:'fldfqtIgcEfIlIeQk',
@@ -316,7 +345,8 @@ const F={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K
   ostat:'fldNROVFSsBwLUOYW',order:'fldZAIMnXPYF9LiXq',cust:'fldeLMIAC0ABQAjYJ',lis:'fldsvntAy1QHEoDAg',alloc:'fldvAqPl6Yq3bxASW',seps:'fld80YHri5mFmKpvt',recvd:'fldt30iqzfw7PrZVz',
   arrival:'fldl0irab6r0kzzNd',proof:'fldUOIfCd22MxevRm',notes:'fldjlfaH3dOBCtuTM',warn:'fldRVeADvQJAduiWZ',band:'fldo7l8t4IhhWoeXl',
   reprint:'fldXRqE3k67ZIOO8X',finished:'fldFuDZ68QdUMt3pM',caught:'fldIo2EmE7b25vtfS',running:'fldmnZof3Dce60JKv',sepd:'fldlMcHtldbifKzDN',
-  burned:'fldEL51Nwrxuyn9Zo',inksReady:'fld2a1CPcDMSD26PS'};
+  burned:'fldEL51Nwrxuyn9Zo',inksReady:'fld2a1CPcDMSD26PS',
+  locked:'fldYD2VrhaLfkXXkw',paid:'fldAl0uhEDCjqhHM4'};   // v20: Scheduled checkbox (lock-in; drives the Slack bots) and Payment Received (lookup)
 // Presses. hours = a normal day's capacity (edit in Settings). group drives the department tabs.
 const PRESSES=[
   {k:'p1',name:'Press 1 - ROQ NEXT',short:'Press 1',sub:'ROQ Next',g:'screen',hours:8.25,pk:'P1',ck:'p1',lane:'p1'},
@@ -356,7 +386,7 @@ const ACTIVE_STATUS=['Ready to Order','Ordered - In Production',   // v18: Ready
   'Pre-press','Scheduled, Screened','Received & Staged','On-Press','Delayed'];
 const NOT_ORDERED_LEAD=4;          // v18: Ready to Order (garments not ordered) -> Suggest waits 4 workdays (order + ship)
 function notOrdered(j){ return /Ready to Order/.test(j.ostat||''); }
-const DAY_START=8*60;              // shop opens 8:00
+const DAY_START=8*60+30;           // v20: the first job on an empty day starts 8:30 (Mike)
 const STEP=15;                     // start times land on 15-minute marks
 // v9 calibration from 1,888 Press 1/2 jobs, Oct 2025 – Oct 2026 (notes/schedule-calibration.md)
 const CAL={
@@ -425,9 +455,14 @@ function mkJob(r){
     recvd:arr(f[F.recvd]), arrival:toISO(f[F.arrival]), notes:f[F.notes]||'', alloc:(f[F.alloc]!=null&&+f[F.alloc]>0)?+f[F.alloc]:null, ostat:first(f[F.ostat])||'',
     flags:[f[F.warn],f[F.band],f[F.reprint]].map(first).filter(v=>typeof v==='string'&&v).join(''),   // formula errors arrive as {error:'#ERROR!'}
     finished:!!f[F.finished], caught:!!f[F.caught], running:!!f[F.running], sepd:!!f[F.sepd], burned:!!f[F.burned], inksReady:!!f[F.inksReady],
-    proof:null, proofLg:null};
-  const pr=(Array.isArray(f[F.proof])?f[F.proof]:[]).find(a=>a&&a.thumbnails);
-  if(pr){ j.proof=(pr.thumbnails.large||pr.thumbnails.small).url; j.proofLg=pr.thumbnails.large&&pr.thumbnails.large.url; }
+    proof:null, proofLg:null, proofs:[], locked:!!f[F.locked], paid:toISO(f[F.paid])};
+  // v20: every proof on the imprint's line items (one per line item, usually one per garment color). v1-v19 showed only the first.
+  // Same file on two line items (e.g. two styles in one color) counts once.
+  const seen=new Set();
+  (Array.isArray(f[F.proof])?f[F.proof]:[]).forEach(a=>{ if(!a||!a.thumbnails) return; const k=String(a.filename||a.id||'').toLowerCase(); if(k&&seen.has(k)) return; seen.add(k);
+    const t=a.thumbnails; j.proofs.push({sm:(t.large||t.small).url, lg:t.large&&t.large.url, full:a.url, name:proofName(a.filename)}); });
+  const pr=j.proofs[0];
+  if(pr){ j.proof=pr.sm; j.proofLg=pr.lg; }
   else { // no proof on the line items: use the Seps file's thumbnail if there is one
     const sp=(Array.isArray(f[F.seps])?f[F.seps]:[]).find(a=>a&&a.thumbnails);
     if(sp){ j.proof=(sp.thumbnails.large||sp.thumbnails.small).url; j.proofLg=sp.thumbnails.large&&sp.thumbnails.large.url; j.proofIsSeps=true; } }
@@ -436,6 +471,8 @@ function mkJob(r){
   j.hd=/hard/i.test(j.prio); j.asap=/asap/i.test(j.prio);
   j.allIn=j.recvd.length>0 && j.recvd.every(x=>x===true||x==='true'||x===1||x==='checked');
   return j; }
+// "V3 8373 | 1301-BK-WARGAME EXTERMINATOR.pdf" -> "1301-BK-WARGAME EXTERMINATOR"
+function proofName(fn){ fn=String(fn||'').replace(/\.[a-z0-9]{2,4}$/i,''); const i=fn.lastIndexOf('|'); return (i>=0?fn.slice(i+1):fn).trim(); }
 function pressOf(j){ return PBY[j.equip]||PBY.none; }
 function deptOf(j){ const p=PBY[j.equip]; return p&&p.k!=='none'?p.g:deptOfType(j.type); }
 function day(j){ return j.start?j.start.slice(0,10):null; }
@@ -481,9 +518,11 @@ function jobParts(j,equip){
 // estimate from the calibration (same numbers as Airtable's Estimated Run Time since 2026-10-14)
 function estMin(j,equip){ const t=jobParts(j,equip); return Math.max(STEP, Math.ceil(t.setup+t.run)); }
 // job length on the board: the scheduler's Allocated Production Time when set, else the estimate
-function jobMin(j,equip){ return j.alloc?Math.max(5,Math.ceil(j.alloc/60)):estMin(j,equip); }
+// v20: with no Allocated yet, the estimate rounded up to 15 min (Mike) = what placing the job writes as Allocated
 const ALLOC_STEP=15;   // Allocated rounds the estimate up to the next 15 min (Stephen), same grid as start times
-function allocFor(j,equip){ return Math.ceil(estMin(j,equip)/ALLOC_STEP)*ALLOC_STEP*60; }   // seconds
+function estStep(j,equip){ return Math.ceil(estMin(j,equip)/ALLOC_STEP)*ALLOC_STEP; }   // minutes
+function jobMin(j,equip){ return j.alloc?Math.max(5,Math.ceil(j.alloc/60)):estStep(j,equip); }
+function allocFor(j,equip){ return estStep(j,equip)*60; }   // seconds
 
 /* ---------------- Airtable ---------------- */
 async function atList(formula,maxPages){
@@ -659,8 +698,9 @@ function cardHtml(x,ds){
   const sub=[j.qty?j.qty.toLocaleString()+(j.screens?' · '+j.screens+' scr':''):'', S.view==='day'?dur(x.len):'', j.due?'due '+md(j.due):''].filter(Boolean).join(' · ');   // v19: length only on Day; the range says it elsewhere
   return '<div class="'+cls+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'" title="'+esc(j.ID+' '+j.nick)+'">'+
     (j.proof?'<img class="bigimg" src="'+esc(j.proof)+'" alt="" loading="lazy">':'<span class="bigimg"></span>')+
-    '<div style="min-width:0;flex:1"><div class="l1">'+(S.view!=='month'?'<span class="pkc">'+(PBY[x.equip]||PBY.none).pk+'</span>':'')+'<span class="tm">'+(x.ghost?'✨ ':'')+hmr(x.min,x.len)+'</span><span class="id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</div>'+
-    '<div class="l2">'+esc(sub)+'</div>'+(S.view==='day'?'<div class="l2">'+esc(j.cust)+(j.nick?' · '+esc(j.nick):'')+'</div>':'')+'</div></div>'; }
+    '<div style="min-width:0;flex:1"><div class="l1">'+(S.view!=='month'?'<span class="pkc">'+(PBY[x.equip]||PBY.none).pk+'</span>':'')+'<span class="tm">'+(x.ghost?'✨ ':'')+hmr(x.min,x.len)+'</span><span class="id">'+esc(j.ID)+'</span>'+(j.locked&&!x.ghost?LOCK_SVG:'')+flagsHtml(j)+'</div>'+
+    (j.cust?'<div class="cn">'+esc(j.cust)+'</div>':'')+   // v20: the job (customer) name next to the ID (Mike)
+    '<div class="l2">'+esc(sub)+'</div>'+(S.view==='day'?'<div class="l2">'+esc([j.loc,j.nick].filter(Boolean).join(' · '))+'</div>':'')+'</div></div>'; }
 
 function renderCal(){
   const cal=document.getElementById('cal');
@@ -670,7 +710,8 @@ function renderCal(){
   const colW=S.view==='day'?'minmax(230px,1fr)':'minmax(170px,1fr)';
   let h='';
   if(S.view==='day'){ // presses across, one day
-    h='<div class="grid day" style="grid-template-columns:repeat('+rows.length+','+colW+')">';
+    const dl=dayLockHtml(days[0]); h=dl?'<div class="dayhead">'+dl+'</div>':'';
+    h+='<div class="grid day" style="grid-template-columns:repeat('+rows.length+','+colW+')">';
     rows.forEach(p=>{ h+='<div class="gh '+ckLane(p.k)+'"><span class="dn">'+esc(p.short)+'</span><span class="sub">'+esc(p.sub)+'</span></div>'; });
     rows.forEach(p=>{ h+=cellHtml(p,days[0],placed,today); });
     h+='</div>';
@@ -688,7 +729,7 @@ function renderCal(){
       const items=placed.filter(x=>x.day===d && keys.has(laneOf(x.equip))).sort((a,b)=>a.min-b.min||PRESSES.indexOf(PBY[a.equip]||PBY.none)-PRESSES.indexOf(PBY[b.equip]||PBY.none)||(a.ghost-b.ghost));
       const anyOpen=rows.some(p=>isOpen(p,d));
       h+='<div class="dcell'+(anyOpen?'':' off')+(d<today?' past':'')+'" data-d="'+d+'">'+(anyOpen?'':'<div class="offl">'+(dow(d)===5?'No Friday shift':'Closed')+'</div>')+
-        items.map(x=>cardHtml(x,d).replace('class="jc','data-pk="'+laneOf(x.equip)+'" class="jc')).join('')+'</div>'; });
+        items.map(x=>cardHtml(x,d).replace('class="jc','data-pk="'+laneOf(x.equip)+'" class="jc')).join('')+dayLockHtml(d)+'</div>'; });
     h+='</div>';
   }
   if(!rows.length) h='<div class="empty">Pick a machine above.</div>';
@@ -721,15 +762,17 @@ function renderMonth(cal){
     const MAX=two?99:7;
     items.slice(0,MAX).forEach(x=>{ const j=S.jobs[x.rid]; if(!j) return; const p=PBY[x.equip]||PBY.none;
       const pkc=p.ck||'';
-      h+='<div class="mc'+(x.ghost?' ghost':'')+(j.hd?' hd':'')+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'"><span class="pk '+pkc+'">'+p.pk+'</span><b>'+(two?hmr(x.min,x.len):hm(x.min))+'</b><span class="id" style="font-size:13px">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</div>'; });
+      h+='<div class="mc'+(x.ghost?' ghost':'')+(j.hd?' hd':'')+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'"><span class="pk '+pkc+'">'+p.pk+'</span><b>'+(two?hmr(x.min,x.len):hm(x.min))+'</b><span class="id" style="font-size:13px">'+esc(j.ID)+'</span>'+(j.locked&&!x.ghost?LOCK_SVG:'')+flagsHtml(j)+(j.cust?'<span class="cn">'+esc(j.cust)+'</span>':'')+'</div>'; });
     if(items.length>MAX) h+='<button class="more" onclick="openDay(\''+ds+'\')">+'+(items.length-MAX)+' more</button>';
+    if(two) h+=dayLockHtml(ds);   // v20: lock a day from 2 Week too (Month: open the day)
     h+='</div>'; });
   cal.innerHTML=h+'</div>'; }
 
 function sideJobs(){
   const q=(document.getElementById('q').value||'').toLowerCase().trim();
   const ghosted=new Set(S.ghosts.map(g=>g.rid));
-  return Object.values(S.jobs).filter(j=>!j.start && !j.noLines && !ghosted.has(j.rid) && jobInSel(j) &&
+  // v20: the machine chips filter the calendar only; the list stays the same whatever is picked (Mike)
+  return Object.values(S.jobs).filter(j=>!j.start && !j.noLines && !ghosted.has(j.rid) &&
     (!q || (j.ID+' '+j.nick+' '+j.cust+' '+j.order).toLowerCase().includes(q))); }
 function renderSide(){
   const list=sideJobs(); const all=Object.values(S.jobs).filter(j=>!j.start).length;
@@ -748,12 +791,12 @@ function renderSide(){
         (j.proof?'<img class="sc-img" src="'+esc(j.proof)+'" alt="" loading="lazy" draggable="false">':'<span class="sc-img"></span>')+
         '<span class="p-lc-id"><span class="p-id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</span>'+
         '<span class="p-lc-nums">'+(j.qty?'<span class="p-num"><small>Qty</small><b>'+j.qty.toLocaleString()+'</b></span>':'')+'<span class="p-num"><small>Time</small><b>'+dur(jobMin(j))+'</b></span></span>'+
-        '<span class="p-lc-main"><span class="p-lc-sub">'+esc(j.nick||j.type)+'</span></span>'+
+        '<span class="p-lc-main"><span class="p-lc-sub" title="'+esc(j.nick)+'">'+esc(j.loc||j.nick||j.type)+'</span></span>'+   // v20: the print location (Front, Back…), not the nickname (Mike)
         '<span class="p-lc-tags"><span class="p-tag'+(p&&p.ck?' '+ckOf(p.k):' p-tag-soft')+'">'+esc(p&&p.k!=='none'?p.short:'No press yet')+'</span>'+
-        (j.noLines?'<span class="p-tag warn" title="This imprint has no Line Items linked in Airtable, so there is no qty, proof or garment to show">No line items</span>':j.allIn?'':notOrdered(j)?'<span class="p-tag p-tag-wait" title="The order is Ready to Order: garments haven\'t been ordered yet">Garments not ordered</span>':'<span class="p-tag warn" title="Not all garments are checked in">Not received</span>')+'</span>'+
+        (j.noLines?'<span class="p-tag warn" title="This imprint has no Line Items linked in Airtable, so there is no qty, proof or garment to show">No line items</span>':j.allIn?'':notOrdered(j)?'<span class="p-tag p-tag-wait" title="The order is Ready to Order: garments haven\'t been ordered yet">Garments not ordered</span>':'<span class="p-tag warn" title="Not all garments are checked in">Not received</span>')+cwTag(j)+(j.locked?lockTag():'')+'</span>'+
         '</div>'+(S.why[j.rid]?'<div class="why">'+esc(S.why[j.rid])+'</div>':'')+'</div>'; });
   });
-  const orphans=Object.values(S.jobs).filter(j=>!j.start && j.noLines && jobInSel(j)).map(j=>j.ID).sort();
+  const orphans=Object.values(S.jobs).filter(j=>!j.start && j.noLines).map(j=>j.ID).sort();
   if(orphans.length) h+='<div class="p-note" style="margin-top:14px"><b>'+orphans.length+' imprint'+(orphans.length===1?'':'s')+' not shown:</b> no line items linked in Airtable, so there is nothing to print yet. Link them or delete them: '+esc(orphans.join(', '))+'</div>';
   // v19: with search text and "All", scheduled jobs that match (from any date) follow the unscheduled ones
   const q=(document.getElementById('q').value||'').toLowerCase().trim();
@@ -764,12 +807,16 @@ function renderSide(){
         '<span class="p-lc-id"><span class="p-id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</span>'+
         '<span class="p-lc-nums"><span class="p-tag '+(p.ck?ckOf(p.k):'p-tag-soft')+'">'+esc(p.pk)+'</span></span>'+
         '<span class="p-lc-main"><b class="fwhen">'+wd(ds)+' '+md(ds)+' · '+hmr(startMin(j),jobMin(j))+'</b><span class="p-lc-sub">'+esc([j.cust,j.nick||j.type].filter(Boolean).join(' · '))+'</span></span>'+
-        '<span class="p-lc-tags">'+(j.running?'<span class="p-tag p-tag-wait">On press</span>':'')+(j.ostat?'<span class="p-tag p-tag-soft">'+esc(j.ostat)+'</span>':'')+(late?'<span class="p-tag warn">After due '+md(j.due)+'</span>':'')+'</span>'+
+        '<span class="p-lc-tags">'+(j.running?'<span class="p-tag p-tag-wait">On press</span>':'')+(j.ostat?'<span class="p-tag p-tag-soft">'+esc(j.ostat)+'</span>':'')+(late?'<span class="p-tag warn">After due '+md(j.due)+'</span>':'')+(j.locked?lockTag():'')+'</span>'+
         '</div></div>'; });
     if(!fl.length && !S.fBusy) h+='<div class="p-hint" style="padding:4px 2px">No scheduled job matches.</div>';
     if(S.fMore&&S.fq===q) h+='<div class="p-hint" style="padding:8px 2px">First 50 shown. Type more to narrow it down.</div>'; }
   document.getElementById('scope').innerHTML=[['all','All'],['uns','Unscheduled only']].map(o=>'<button type="button" class="p-tab'+(S.scope===o[0]?' is-on':'')+'" aria-pressed="'+(S.scope===o[0])+'" onclick="setScope(\''+o[0]+'\')">'+o[1]+'</button>').join('');
-  document.getElementById('sideList').innerHTML=h||'<div class="empty">'+(q?'Nothing matches “'+esc(q)+'”':'Nothing waiting'+(S.sel?' for these machines':''))+'.</div>'; }
+  document.getElementById('sideList').innerHTML=h||'<div class="empty">'+(q?'Nothing matches “'+esc(q)+'”':'Nothing waiting')+'.</div>'; }
+// v20: "3 colorways" = 3 different proofs on the print's line items (Mike counts color changes from them). Only shown for 2+.
+function cwTag(j){ return j.proofs.length>1?'<span class="p-tag p-tag-soft" title="'+j.proofs.length+' different proofs on this print\'s line items">'+j.proofs.length+' colorways</span>':''; }
+const LOCK_SVG='<svg class="lk" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 5V3.6a2.5 2.5 0 0 1 5 0V5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="5" width="8" height="6.2" rx="1.2" fill="currentColor"/></svg>';
+function lockTag(){ return '<span class="p-tag p-tag-done locktag" title="Locked in: Scheduled is ticked in Airtable">'+LOCK_SVG+'Locked</span>'; }
 /* ---------------- v19: search scheduled jobs too ---------------- */
 function qMatch(j,q){ return (j.ID+' '+j.nick+' '+j.cust+' '+j.order).toLowerCase().includes(q); }
 // scheduled, not finished, matching q: what's loaded (fresh, includes moves made here) + the all-dates search results
@@ -828,13 +875,16 @@ function planMove(rid,pk,ds,idx,forceEquip){
   if(idx==null||idx>items.length) idx=items.length;
   const len=jobMin(j,equip);
   const prev=items[idx-1];
-  let t=prev?prev.min+prev.len+co(S.jobs[prev.rid],j):(items[0]&&idx===0?Math.min(DAY_START,items[0].min):DAY_START);
-  t=Math.ceil(t/STEP)*STEP;
-  const changes=[{rid,equip,day:ds,min:t}];
-  let end=t+len, last=j;
-  for(let i=idx;i<items.length;i++){ const x=items[i]; const need=Math.ceil((end+co(last,S.jobs[x.rid]))/STEP)*STEP;
-    if(x.min>=need) break; changes.push({rid:x.rid,equip:S.jobs[x.rid].equip,day:ds,min:need}); end=need+x.len; last=S.jobs[x.rid]; }
-  return changes; }
+  // v20 (Mike): start at the exact end of the job before it, no changeover gap and no rounding to 15 min.
+  // The scheduler adds lunch or a gap by hand (pick a time in the pop-up); Allocated is already in 15-min steps.
+  const t=prev?prev.min+prev.len:(items[0]&&idx===0?Math.min(DAY_START,items[0].min):DAY_START);
+  return [{rid,equip,day:ds,min:t}].concat(pushLater(items,idx,t+len,ds)); }
+// later jobs that would overlap move to the exact end of the one before; the first one that already fits stops it,
+// so gaps the scheduler left on purpose (lunch, a late truck) stay
+function pushLater(items,idx,end,ds){ const out=[];
+  for(let i=idx;i<items.length;i++){ const x=items[i]; if(x.min>=end) break;
+    out.push({rid:x.rid,equip:S.jobs[x.rid].equip,day:ds,min:end}); end=end+x.len; }
+  return out; }
 // gap after job a before job b on the same lane: loading, takedown, cleanup (measured), longer on a product change
 function co(a,b){ if(!a||!b) return 0; const t=CAL.turn[laneOf(a.equip)]||[10,10]; return prodOf(a)===prodOf(b)?t[0]:t[1]; }
 
@@ -857,7 +907,7 @@ async function undo(before){
   S.busy++; render();
   try{ await patchMany(ups); S.busy--; render(); toast('Put back'+(PRACTICE?' (practice)':'')); }
   catch(e){ S.busy--; toast(e.message,null,null,true); load(); } }
-function moveLabel(rid,equip,ds,min){ const j=S.jobs[rid]; return j.ID+' → '+(PBY[equip]||PBY.none).short+', '+wd(ds)+' '+md(ds)+' '+hm(min); }
+function moveLabel(rid,equip,ds,min){ const j=S.jobs[rid]; return j.ID+' → '+(PBY[equip]||PBY.none).short+', '+wd(ds)+' '+md(ds)+' '+hm(min)+(j.locked?' · still locked in':''); }
 function moveJob(rid,pk,ds,idx,forceEquip){
   const j=S.jobs[rid]; const p=LBY[pk];
   if(p.k==='none'){ toast('Pick a press for '+j.ID+' first (tap the card)'); render(); return; }
@@ -906,7 +956,7 @@ function moveGhost(d,x,y){
   document.querySelectorAll('.ph').forEach(n=>n.remove());
   if(!t) return; t.el.classList.add('drop-on');
   if(t.dcol){ const cards=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid); const at=cards.find(c=>{ const r=c.getBoundingClientRect(); return y<r.top+r.height/2; });
-    const ph=document.createElement('div'); ph.className='ph'; if(at) t.el.insertBefore(ph,at); else t.el.appendChild(ph); }
+    const ph=document.createElement('div'); ph.className='ph'; const end=at||t.el.querySelector('.daylock,.daylocked'); if(end) t.el.insertBefore(ph,end); else t.el.appendChild(ph); }
   if(t.p){ const idx=dropIndex(t.el,y,d.rid); const cards=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid);
     const ph=document.createElement('div'); ph.className='ph'; if(cards[idx]) t.el.insertBefore(ph,cards[idx]); else t.el.appendChild(ph); }
   // keep the calendar scrolling while dragging near its edges
@@ -1034,28 +1084,34 @@ function openCard(rid,ghost){
   const buf=j.due&&ds?workdaysBetween(ds,j.due):null;
   const bufTxt=buf==null?'':buf<0?'<span class="p-tag warn">'+(-buf)+' workday'+(buf===-1?'':'s')+' after due</span>':buf===0?'<span class="p-tag warn">Prints on the due date</span>':buf===1?'<span class="p-tag p-tag-wait">1 workday before due</span>':'<span class="p-tag p-tag-soft">'+buf+' workdays before due</span>';
   const prep=[['Sep\'d',j.sepd],['Screens',j.burned],['Inks',j.inksReady],['Garments in',j.allIn]].map(x=>'<span class="p-tag'+(x[1]?' p-tag-done':'')+'">'+(x[1]?'✓ ':'')+x[0]+'</span>').join('');
-  const pressOpts=PRESSES.filter(x=>x.k!=='none').map(x=>'<option value="'+x.k+'"'+(x.k===p.k?' selected':'')+'>'+esc(x.short+' · '+x.sub)+'</option>').join('');
+  // v20 (Mike): an unscheduled job's press/day/time start blank, so Save doesn't put it on the next day. Its own press (if set) shows.
+  const blank=!g && !j.start;
+  const pressOpts=(p.k==='none'?'<option value="" selected>Press…</option>':'')+PRESSES.filter(x=>x.k!=='none').map(x=>'<option value="'+x.k+'"'+(x.k===p.k?' selected':'')+'>'+esc(x.short+' · '+x.sub)+'</option>').join('');
+  S.modalRid=rid;
   const times=[]; for(let m=7*60;m<=17*60;m+=STEP) times.push('<option value="'+m+'"'+(m===min?' selected':'')+'>'+hm(m)+'</option>');
   if(min!=null && min%STEP) times.unshift('<option value="'+min+'" selected>'+hm(min)+'</option>');
   const body=
     (g?'<div class="p-note p-note-wait" style="margin-bottom:12px">✨ Suggested for '+esc(PBY[g.equip].short)+', '+wd(g.day)+' '+md(g.day)+' at '+hm(g.min)+'.'+(g.late?' This is after the due date: no earlier day had room.':g.tight?' Later than '+CFG.idealBuffer+' workdays before due.':'')+'</div>':'')+
-    (j.proofLg?'<img class="proof" src="'+esc(j.proofLg)+'" alt="Proof">':'')+
+    proofsHtml(j)+
     '<dl class="kv" style="margin:12px 0">'+
       '<dt>Customer</dt><dd>'+esc(j.cust)+' · order '+esc(j.order)+'</dd>'+
       (j.nick?'<dt>Job</dt><dd>'+esc(j.nick)+'</dd>':'')+
       '<dt>Print</dt><dd>'+esc([j.type,j.loc].filter(Boolean).join(' · '))+'</dd>'+
       '<dt>Qty</dt><dd>'+(j.qty||0).toLocaleString()+(j.screens?' · '+j.screens+' screens':'')+(j.heavy?' · '+(j.heavy>=.99?'fleece':Math.round(j.heavy*100)+'% fleece'):'')+'</dd>'+
-      (min!=null&&ds?'<dt>'+(g?'Suggested':'Time')+'</dt><dd><b>'+hmr(min,jobMin(j,equip))+'</b> · '+wd(ds)+' '+md(ds)+' · '+dur(jobMin(j,equip))+'</dd>':'')+
+      (min!=null&&ds?'<dt>'+(g?'Suggested':'Time')+'</dt><dd id="mWhen" data-min="'+min+'" data-equip="'+esc(equip)+'">'+whenHtml(j,ds,min,jobMin(j,equip))+'</dd>':'')+
+      '<dt>Turnaround</dt><dd>'+taHtml(j,ds)+'</dd>'+
+      (!g&&(j.start||j.locked)?'<dt>Lock</dt><dd id="mLock">'+lockRow(j)+'</dd>':'')+
       '<dt>Estimate</dt><dd>'+(()=>{ const t=jobParts(j,equip); return dur(estMin(j,equip))+(t.setup?' · setup '+dur(t.setup)+' + printing '+dur(t.run):''); })()+'</dd>'+
-      '<dt>Allocated</dt><dd style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input class="p-input" style="width:110px" type="number" inputmode="numeric" min="0" step="15" id="mAlloc" value="'+(j.alloc?Math.round(j.alloc/60):'')+'" placeholder="'+estMin(j,equip)+'" aria-label="Allocated minutes"> min'+
-        '<button type="button" class="p-btn" onclick="document.getElementById(\'mAlloc\').value=\''+Math.ceil(estMin(j,equip)/ALLOC_STEP)*ALLOC_STEP+'\'">Use estimate ('+dur(Math.ceil(estMin(j,equip)/ALLOC_STEP)*ALLOC_STEP)+')</button>'+
+      '<dt>Allocated</dt><dd style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input class="p-input" style="width:110px" type="number" inputmode="numeric" min="0" step="15" id="mAlloc" value="'+(j.alloc?Math.round(j.alloc/60):'')+'" placeholder="'+estStep(j,equip)+'" aria-label="Allocated minutes" oninput="liveWhen()"> min'+
+        '<button type="button" class="p-btn" onclick="document.getElementById(\'mAlloc\').value=\''+estStep(j,equip)+'\';liveWhen()">Use estimate ('+dur(estStep(j,equip))+')</button>'+
         '<span class="p-hint" style="width:100%">What Operator, the Board and the Airtable calendar show. Blank = filled from the estimate when the job is placed.</span></dd>'+
       '<dt>Due</dt><dd>'+(j.due?wd(j.due)+' '+md(j.due):'No due date')+(j.prio?' · '+esc(j.prio):'')+' '+bufTxt+'</dd>'+
       (j.lis.length?'<dt>Garments</dt><dd><span id="mGarm">'+esc(j.types.join(', ')||'…')+'</span>'+(j.allIn?'':(j.arrival?' · expected '+md(j.arrival):' · not checked in'))+'</dd>':'')+
       '<dt>Ready</dt><dd class="prep">'+prep+'</dd>'+
     '</dl>'+
     '<div class="p-label" style="margin-bottom:6px">'+(j.start||g?'Move to':'Schedule on')+'</div>'+
-    '<div class="row3"><select class="p-select" id="mPress" aria-label="Press">'+pressOpts+'</select><input class="p-input" type="date" id="mDay" aria-label="Day" value="'+(ds||nextWorkday(shopToday(),1))+'"><select class="p-select" id="mTime" aria-label="Start time"><option value="">Next open</option>'+times.join('')+'</select></div>'+
+    '<div class="row3"><select class="p-select" id="mPress" aria-label="Press">'+pressOpts+'</select><input class="p-input" type="date" id="mDay" aria-label="Day" value="'+(blank?'':ds)+'"><select class="p-select" id="mTime" aria-label="Start time"><option value="">Next open</option>'+times.join('')+'</select></div>'+
+    (blank?'<p class="p-hint" style="margin:6px 0 0">Leave the day blank to keep it in the list. Or drag it onto the calendar.</p>':'')+
     '<div class="p-label" style="margin:12px 0 6px">Scheduling notes</div><textarea class="p-textarea" id="mNotes" placeholder="For the press crew" aria-label="Scheduling notes">'+esc(j.notes)+'</textarea>';
   const foot=g?
     '<button class="p-btn p-btn-quiet" onclick="skipGhost(\''+rid+'\')">Skip this one</button><button class="p-btn p-btn-quiet" onclick="saveCard(\''+rid+'\')">Put it where I picked</button><button class="p-btn p-btn-main" onclick="placeGhost(\''+rid+'\')">Place here</button>':
@@ -1064,17 +1120,66 @@ function openCard(rid,ghost){
   if(j.lis.length) garmentNames(j).then(names=>{ const el=document.getElementById('mGarm'); if(!el) return;
     if(!names.length){ el.textContent='Not listed on the line items'; return; }
     el.textContent=names.slice(0,3).join(', ')+(names.length>3?' +'+(names.length-3)+' more':''); }); }
+// v20: pop-up pieces
+function proofsHtml(j){ const ps=j.proofs; if(!ps.length) return j.proofLg?'<img class="proof" src="'+esc(j.proofLg)+'" alt="Seps file">':'';
+  const inks=Math.round((j.inkChg||0)/1500);
+  return '<div class="proofs-h"><span class="p-label">'+(ps.length>1?ps.length+' proofs':'Proof')+'</span>'+cwTag(j)+(inks?'<span class="p-tag p-tag-soft" title="From Ink Change time in Airtable">'+inks+' ink change'+(inks===1?'':'s')+' planned</span>':'')+'</div>'+
+    '<div class="proofs'+(ps.length===1?' one':'')+'">'+ps.map(x=>'<a href="'+esc(x.full||x.lg||x.sm)+'" target="_blank" rel="noopener" title="Open full size"><img class="proof" src="'+esc(ps.length===1?(x.lg||x.sm):x.sm)+'" alt="Proof '+esc(x.name)+'" loading="lazy">'+(ps.length>1&&x.name?'<span>'+esc(x.name)+'</span>':'')+'</a>').join('')+'</div>'; }
+function whenHtml(j,ds,min,len){ return '<b>'+hm(min)+'</b> to <b>'+hm(min+Math.round(len))+'</b> · '+wd(ds)+' '+md(ds)+' · '+dur(len); }
+function liveWhen(){ const el=document.getElementById('mWhen'), j=S.jobs[S.modalRid]; if(!el||!j) return;
+  const v=+document.getElementById('mAlloc').value; const len=v>0?Math.max(5,Math.round(v)):(j.alloc?jobMin(j):estStep(j,el.dataset.equip));
+  const g=S.ghosts.find(x=>x.rid===j.rid); el.innerHTML=whenHtml(j,g?g.day:day(j),+el.dataset.min,len); }
+// business days counted like Airtable's WORKDAY_DIFF (both ends count, Mon–Fri) = the Imprints "Turnaround Calculator" field
+function wdIncl(a,b){ if(!a||!b) return null; const sg=b<a?-1:1; const x=sg>0?a:b, y=sg>0?b:a; let n=0; for(let d=x;d<=y;d=addDays(d,1)) if(!isWeekend(d)) n++; return sg*n; }
+function taHtml(j,ds){
+  if(!j.paid) return '<span class="ta">Not paid yet</span>';
+  const t=shopToday(), parts=[];
+  if(ds) parts.push('prints on <b>day '+wdIncl(j.paid,ds)+'</b>');
+  if(j.due) parts.push('due on day '+wdIncl(j.paid,j.due));
+  if(!ds||t<=ds) parts.push('today is day '+wdIncl(j.paid,t));
+  return '<span class="ta">'+parts.join(' · ').replace(/^p/,'P').replace(/^d/,'D').replace(/^t/,'T')+'</span><span class="p-hint" style="display:block">Business days since paid '+wd(j.paid)+' '+md(j.paid)+', like Airtable\'s Turnaround Calculator.</span>'; }
+function lockRow(j){ const busy=j._saving?' disabled':'';
+  return (j.locked?LOCK_SVG+'<b>Locked in</b><button type="button" class="p-btn p-btn-quiet"'+busy+' onclick="setLock([\''+j.rid+'\'],false)">Unlock</button>':
+    '<span>Not locked in</span><button type="button" class="p-btn p-btn-dark"'+busy+' onclick="setLock([\''+j.rid+'\'],true)">'+LOCK_SVG+' Lock in</button>')+
+    '<span class="p-hint" style="width:100%">Ticks Scheduled in Airtable for the Slack bots. Moving it later keeps the lock.</span>'; }
+function paintLock(){ const el=document.getElementById('mLock'), j=S.jobs[S.modalRid]; if(el&&j) el.innerHTML=lockRow(j); }
+// tick or untick Imprints "Scheduled" (lock-in). No status change. Practice fakes it.
+async function setLock(rids,on,label){
+  rids=rids.filter(r=>S.jobs[r]&&S.jobs[r].locked!==on); if(!rids.length) return;
+  label=label||(rids.length===1?S.jobs[rids[0]].ID+(on?' locked in':' unlocked'):rids.length+' jobs '+(on?'locked in':'unlocked'));
+  rids.forEach(r=>{ S.jobs[r].locked=on; S.jobs[r]._saving=true; }); S.busy++; render(); paintLock();
+  try{ await patchMany(rids.map(r=>({rid:r,fields:{[F.locked]:on}})));
+    rids.forEach(r=>S.jobs[r]._saving=false); S.busy--; render(); paintLock();
+    toast(label+(PRACTICE?' (practice, not saved)':''),'Undo',()=>setLock(rids,!on,'Put back'+(PRACTICE?' (practice)':''))); }
+  catch(e){ rids.forEach(r=>{ S.jobs[r].locked=!on; S.jobs[r]._saving=false; }); S.busy--; render(); paintLock(); toast(e.message,null,null,true); } }
+// jobs a day's lock button covers: scheduled, not finished, on the machines shown
+function dayJobs(ds){ return Object.values(S.jobs).filter(j=>j.start && day(j)===ds && !j.finished && isSel(laneOf(j.equip))); }
+function dayLockHtml(ds){ if(ds<shopToday()) return ''; const js=dayJobs(ds); if(!js.length) return '';
+  const n=js.filter(j=>!j.locked).length;
+  if(!n) return '<div class="daylocked">'+LOCK_SVG+'All '+js.length+' locked in</div>';
+  return '<button type="button" class="p-btn daylock" onclick="lockDay(\''+ds+'\')" title="Tick Scheduled in Airtable for the '+n+' unlocked job'+(n===1?'':'s')+(S.sel?' on the machines shown':'')+'">'+LOCK_SVG+' Lock in day · '+n+'</button>'; }
+function lockDay(ds){ const js=dayJobs(ds).filter(j=>!j.locked); if(!js.length) return;
+  const what=js.length+' job'+(js.length===1?'':'s')+' on '+wd(ds)+' '+md(ds)+(S.sel?' ('+S.sel.map(k=>LBY[k].short).join(', ')+')':'');
+  if(!PRACTICE && !confirm('Lock in '+what+'?\n\nThis ticks Scheduled in Airtable. Slack posts an order once all of its prints are locked in.')) return;
+  setLock(js.map(j=>j.rid),true,'Locked in '+what); }
 async function saveCard(rid){
   const j=S.jobs[rid];
-  const pk=document.getElementById('mPress').value, ds=document.getElementById('mDay').value, tm=document.getElementById('mTime').value;
+  let pk=document.getElementById('mPress').value; const ds=document.getElementById('mDay').value, tm=document.getElementById('mTime').value;
   const notes=document.getElementById('mNotes').value;
   const av=document.getElementById('mAlloc').value.trim(); const newAlloc=av===''?null:Math.max(0,Math.round(+av))*60||null;
   if(newAlloc!==j.alloc){ const old=j.alloc; j.alloc=newAlloc; const f={}; f[F.alloc]=newAlloc;
     patchMany([{rid,fields:f}]).then(()=>{ render(); toast(j.ID+': allocated '+(newAlloc?dur(newAlloc/60):'cleared')+(PRACTICE?' (practice)':'')); }).catch(e=>{ j.alloc=old; render(); toast(e.message,null,null,true); }); }
+  const saveNotes=()=>{ if(notes!==j.notes){ const old=j.notes; j.notes=notes; const f={}; f[F.notes]=notes;
+    patchMany([{rid,fields:f}]).catch(e=>{ j.notes=old; toast(e.message,null,null,true); }); } };
+  // v20 (Mike): an unscheduled job with no day picked stays in the list; only the other edits save (a press picked here saves too)
+  if(!ds && !j.start && !S.ghosts.some(x=>x.rid===rid)){
+    closeModal(); saveNotes();
+    const np=PBY[pk]; if(np && np.k!=='none' && np.name!==j.equip){ const old=j.equip; j.equip=np.name; const f={}; f[F.equip]=np.name;
+      patchMany([{rid,fields:f}]).then(()=>toast(j.ID+': '+np.short+', still unscheduled'+(PRACTICE?' (practice)':''))).catch(e=>{ j.equip=old; render(); toast(e.message,null,null,true); }); }
+    render(); return; }
   if(!ds||isWeekend(ds)){ toast('Pick a weekday'); return; }
-  closeModal();
-  if(notes!==j.notes){ const old=j.notes; j.notes=notes; const f={}; f[F.notes]=notes;
-    patchMany([{rid,fields:f}]).catch(e=>{ j.notes=old; toast(e.message,null,null,true); }); }
+  if(!pk){ const ge=j.equip&&PBY[j.equip]?j.equip:guessEquip(j); if(!ge){ toast('Pick a press'); return; } pk=PBY[ge].k; }
+  closeModal(); saveNotes();
   S.ghosts=S.ghosts.filter(g=>g.rid!==rid); delete S.why[rid];
   const p=PBY[pk], lk=p.lane; const curDay=day(j), curMin=startMin(j);
   if(tm===''){ if(pk===pressOf(j).k && ds===curDay) { render(); if(notes!==j.notes) toast('Notes saved'); return; }
@@ -1083,9 +1188,7 @@ async function saveCard(rid){
   const equip=p.name; const items=cellItems(lk,ds).filter(x=>x.rid!==rid&&!x.ghost);
   const idx=items.filter(x=>x.min<=min).length;
   // exact time picked: keep it, and only push later jobs that would overlap
-  const ch=[{rid,equip,day:ds,min}]; let end=min+jobMin(j,equip), last=j;
-  for(let i=idx;i<items.length;i++){ const x=items[i]; const need=Math.ceil((end+co(last,S.jobs[x.rid]))/STEP)*STEP; if(x.min>=need) break;
-    ch.push({rid:x.rid,equip:S.jobs[x.rid].equip,day:ds,min:need}); end=need+x.len; last=S.jobs[x.rid]; }
+  const ch=[{rid,equip,day:ds,min}].concat(pushLater(items,idx,min+jobMin(j,equip),ds));
   applyChanges(ch,moveLabel(rid,equip,ds,min)+(ch.length>1?' · '+(ch.length-1)+' after it moved later':'')); }
 
 /* ---------------- modal, toast, settings ---------------- */
@@ -1094,7 +1197,7 @@ function showModal(title,body,foot){
   document.getElementById('modalHost').innerHTML='<div class="p-scrim" onclick="if(event.target===this)closeModal()"><div class="p-modal" role="dialog" aria-modal="true" style="width:min(600px,100%)">'+
     '<div class="p-modal-h"><span class="p-h2">'+title+'</span><button class="p-modal-x" onclick="closeModal()" aria-label="Close">✕</button></div>'+
     '<div class="p-modal-b">'+body+'</div><div class="p-modal-f">'+foot+'</div></div></div>'; }
-function closeModal(){ S.modal=false; document.getElementById('modalHost').innerHTML=''; }
+function closeModal(){ S.modal=false; S.modalRid=null; document.getElementById('modalHost').innerHTML=''; }
 document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return; if(!document.getElementById('gear').hidden&&token()) closeGear(); else closeModal(); });
 let toastT=null;
 function toast(msg,btn,fn,alert){
