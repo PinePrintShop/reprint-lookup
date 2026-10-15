@@ -131,6 +131,14 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - Resizing across 1100px with a job open keeps one Mark sep'd button and keeps what you typed.
   - No page errors, no text under 12px and no sideways scroll.
 
+## 2026-10-15 · v40: print notes show the whole note
+**Stephen** (screenshot): a longer print note was cut off after two lines in the box.
+- **Cause:** v39 gave the notes box on wide screens a fixed height: one line when empty, 62px when it had text, 128px while typing. Anything longer was cut off until you clicked in.
+- **Now:** the box sizes to its text, up to about 8 lines, then scrolls. It's one line when empty. It resizes on every redraw, while typing and on window resize.
+- **Tested:**
+  - A 4-line note fits fully at 1440, 1280, 1024 and 390. In v39 at 1440 it showed 58px of 133px.
+  - Same writes as v39.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.
