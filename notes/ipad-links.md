@@ -2,7 +2,7 @@
 
 ## Which device each app is built for (Stephen, 2026-10-15)
 - **iPad (floor, touch, 56px buttons):** Operator, Catching.
-- **Desktop (mouse, wide screens, use the full width):** Purchasing, Receiving, Seps, Screens, Ink, Damage Log.
+- **Desktop (mouse, wide screens, use the full width):** Purchasing, Receiving, Seps, Screens, Ink, Damage Log, Schedule, and the office apps (Price-O-Matic, Line Item Review, Create order, KPIs, Reprints).
 - **Also desktop** (Stephen confirmed): Schedule, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup.
 - **Wall TV:** Production Board.
 - Pine Central: not listed yet.
@@ -22,7 +22,7 @@
 | Purchasing | `pine-purchasing.html` | v108 |
 | Receiving | `receiving.html` | receiving-dashboard v76 |
 | Production Board | `pine-production-board.html` | v41 |
-| Seps | `seps.html` | v34 |
+| Seps | `seps.html` | v35 |
 | Screens | `screens.html` | v22 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v18 |
