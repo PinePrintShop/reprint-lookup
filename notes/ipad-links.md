@@ -1,5 +1,13 @@
 # Always-latest links (iPads and computers)
 
+## Which device each app is built for (Stephen, 2026-10-15)
+- **iPad (floor, touch, 56px buttons):** Operator, Catching.
+- **Desktop (mouse, wide screens, use the full width):** Purchasing, Receiving, Seps, Screens, Ink, Damage Log.
+- **Also desktop** (Stephen confirmed): Schedule, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup.
+- **Wall TV:** Production Board.
+- Pine Central: not listed yet.
+- Every app still has to work on an iPad and a phone. The list sets which layout gets designed first and tested hardest.
+
 ## 2026-10-12
 **Problem (Stephen):** updating an iPad meant opening the new version's link, adding it to the home screen, deleting the old icon, and pasting the Airtable key again. On iPad, each home-screen icon has its own storage, so a new icon starts with no key.
 
@@ -7,17 +15,17 @@
 
 | App | Permanent link | Opens now |
 |---|---|---|
-| Operator | `pine-operator.html` | v127 |
-| Catching | `pine-catching.html` | v160 |
+| Operator | `pine-operator.html` | v128 |
+| Catching | `pine-catching.html` | v161 |
 | Damage Log | `damage-log.html` | v20 |
 | Ink Queue | `pine-ink-queue.html` | v94 |
 | Purchasing | `pine-purchasing.html` | v107 |
-| Receiving | `receiving.html` | receiving-dashboard v74 |
+| Receiving | `receiving.html` | receiving-dashboard v75 |
 | Production Board | `pine-production-board.html` | v41 |
 | Seps | `seps.html` | v34 |
 | Screens | `screens.html` | v21 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v16 |
+| Schedule | `pine-schedule.html` | v17 |
 | Pine Central | `pine-central.html` | v174 |
 | Price-O-Matic | `price-o-matic.html` | v105 |
 | Line Item Review | `pine-line-item-review.html` | v18 |

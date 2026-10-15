@@ -237,3 +237,26 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
   - Practice and live, at 1024×768, 768×1024, 390×844 and 1440 desktop: machine pick → crew → setup ask → setup → review → run mode → pause + reason → resume → End Run → Next, then the Done summary, head setup (empty head, color picker, detail sheet), and Heat press complete + Catch it.
   - Live mode sends the same 18 writes as v126, apart from timestamps. Practice sends none. No page errors, no horizontal scroll, no text under 12px.
   - Self-update against a mocked newer link: idle reloads into it. With head setup open, or a log write in flight, it shows the "New version" bar instead.
+
+## v128 — Pine page kit (Oct 15)
+- **One bar on every screen, in kit order:**
+  - Pine mark, OPERATOR, version, then a yellow **Practice** tag.
+  - This press (badge + name, tap to switch) and the crew (tap to change) are the app's own controls (`.p-bar-views`).
+  - Then **↻ Refresh** and **⚙**. Refresh moved out of the page and still checks for a new version.
+  - The work screen no longer draws its own bar. The clock is gone; the iPad shows the time.
+- **⚙ menu** (`.p-menu`):
+  - Airtable token: type it in and Save. The old gear only reloaded the page.
+  - Practice: Start practice, or the jobs-from day picker, Reset practice and Leave practice. The bar is no longer crowded with practice controls.
+- **Machine picker uses kit list cards** (`.p-lc`): press badge · name + who's checked in · Jobs count · ›, with a status tag on row 2. Paused / setup done is yellow, fix needed is red, idle is cream. The whole card is one tap, at least 88px tall.
+- **Up next and Done today use kit rows** (`.p-list` / `.p-row`, at least 56px): the job you're on gets the yellow wash, the next job gets a "Next" tag, and Done rows are greyed.
+  - **"↑ Next" replaces the ▲▼ pair.** One 44px button makes that job the next one, so rows are about half as tall. Any order can still be built (tap ↑ Next in reverse order). The order is kept on the iPad, as before.
+  - Done rows: Catch it (black, no longer yellow) and Hold to reopen.
+- **Tags:**
+  - Facts are cream (`.p-tag-soft`): pcs, screens, location, ink type, estimated time. Ink type (Plastisol, Discharge…) and the split total used to be yellow.
+  - Yellow only means "needs you" (Now, Paused, Setup done, Practice).
+  - Flash heads, the "adjusted" drop ramp and flash chips are no longer yellow.
+- Self-update also waits while the ⚙ menu is open.
+- **Tested** with mocked Airtable at 1024×768, 768×1024 and 390×844:
+  - Live mode sends the same 18 writes as v127, apart from timestamps. Practice sends none. No page errors.
+  - ↑ Next reorders the list. The ⚙ menu opens, and closes on an outside tap.
+  - Self-update: idle reloads into the new version; with head setup open or a log write in flight, it shows the "New version" bar.

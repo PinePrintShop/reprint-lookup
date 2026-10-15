@@ -88,3 +88,6 @@
   - The same 9 Airtable queries as v173.
   - No writes, live or practice.
   - The ticker, Catching count, opening apps (permanent link redirects to the current version), press buttons, ⚙ token save/clear, View as, rail collapse and overlay, the phone Home square, practice pass-through, no token, and no page errors.
+
+## 2026-10-15 · Stephen on v174
+"Don't love the Central... we can work on that later." v174 stays live for now. Before the next Central version, ask what isn't working (the slim menu, the white tiles, the press band, or the app-open view).
