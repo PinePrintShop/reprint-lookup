@@ -105,7 +105,7 @@ body{font-size:15px}
 /* v97 order lines: customer left (cut with …), then fixed columns on the right so the #order badges line up.
    No open/close per order: its imprint cards sit straight below. */
 .ord + .ord{margin-top:var(--p-s3)}
-.ord-h{display:grid;grid-template-columns:minmax(0,1fr) 84px 80px;align-items:center;column-gap:8px;min-height:30px;padding:0 4px 6px}
+.ord-h{display:grid;grid-template-columns:minmax(0,1fr) auto 76px;align-items:center;column-gap:8px;min-height:30px;padding:0 4px 6px}
 .ord-name{font:800 14px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .ord-n{font-size:13px;color:var(--p-ink-2);white-space:nowrap;text-align:right}
 .ord-h .p-id{justify-self:end}
@@ -139,11 +139,12 @@ body{font-size:15px}
 @keyframes pulse{50%{opacity:.3}}
 
 /* v96 two panes: narrower list so the open job (mockup + inks) gets the room; "Hide list" folds it away */
-.is-split .p-split{grid-template-columns:minmax(380px,440px) minmax(0,1fr)}
+.is-split .p-split{grid-template-columns:minmax(320px,360px) minmax(0,1fr)}   /* v97: 320-360 (v96: 380-440) */
 .is-split.list-hidden .p-split{grid-template-columns:minmax(0,1fr)}
 .is-split.list-hidden .p-split-list{display:none}
 .iq-listbtn{flex:none}
-.p-split-list .p-lc-head .jc-thumb{width:72px;height:48px}
+.p-split-list .p-lc-head .jc-thumb{width:40px;height:40px}
+.p-split-list .p-lc-head .jc-thumb .pc{right:1px;bottom:1px;padding:1px 3px}
 
 /* open job: proof + inks (container-sized, so it works in place and in the right pane) */
 .p-lc-body{padding:var(--p-s4)}
@@ -153,14 +154,23 @@ body{font-size:15px}
 @container (min-width:760px){ .jd-in{grid-template-columns:minmax(0,58fr) minmax(380px,42fr);align-items:start} }
 /* v97: on wide screens (job 1300px+) the proof takes a bit more, so the mockup is bigger; the ink cards keep 420px+ */
 @container (min-width:1300px){ .jd-in{grid-template-columns:minmax(0,64fr) minmax(420px,36fr)} }
-/* two panes: the picked job's head stays on top while its inks scroll (overflow:clip keeps sticky working) */
-.p-split-detail>.p-lc{overflow:clip}
-.p-split-detail>.p-lc>.p-lc-head{position:sticky;top:calc(-1 * var(--p-s4));z-index:5;background:var(--p-white);border-bottom:1px solid var(--p-line)}
 .jd-proof{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden;display:flex;flex-direction:column}
-/* the proof stays in view (under the sticky job head) while the ink column scrolls */
+/* v97 two panes: the open job never scrolls as a whole (Stephen: "would love for that mockup area be static").
+   The pane is a fixed-height column: the slim head on top, the body fills the rest. The mockup fills the body
+   height and stays put; only the inks column scrolls (many Pantones scroll in their own column). No sticky bars. */
+.is-split .p-split-detail{overflow:hidden;display:flex;flex-direction:column;padding-bottom:var(--p-s4)}
+.p-split-detail>.p-split-empty{flex:none}
+.p-split-detail>.p-lc{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.p-split-detail>.p-lc>.p-lc-head{flex:none;border-bottom:1px solid var(--p-line)}
+.p-split-detail>.p-lc>.p-lc-body{flex:1 1 auto;min-height:0;display:block;padding:var(--p-s3) var(--p-s4) var(--p-s4)}
+.p-split-detail .jd{height:100%}
+.p-split-detail .jd-in{height:100%;overflow-y:auto}
 @container (min-width:760px){
-  .p-split-detail .jd-proof{position:sticky;top:var(--jd-top,96px)}
-  .p-split-detail .proof-area img{max-height:calc(100vh - var(--p-split-top,120px) - var(--jd-top,96px) - 80px);max-height:calc(100dvh - var(--p-split-top,120px) - var(--jd-top,96px) - 80px)}   /* v97: 124 -> 80, the slimmer head gave the room */
+  .p-split-detail .jd-in{overflow:hidden;align-items:stretch;grid-template-rows:minmax(0,1fr)}
+  .p-split-detail .jd-proof{min-height:0}
+  .p-split-detail .proof-area{flex:1 1 auto;min-height:0}
+  .p-split-detail .proof-area img{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);max-height:none;object-fit:contain}
+  .p-split-detail .jd-inks{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px}
 }
 .proof-area{position:relative;cursor:zoom-in;min-height:160px;display:grid;place-items:center;background:var(--p-white);padding:8px}
 .proof-area img{width:100%;height:auto;display:block;max-height:60vh;object-fit:contain}
@@ -323,7 +333,16 @@ body{font-size:15px}
 .p-toast[hidden]{display:none}
 
 /* v97 compact list cards (two panes, 380-440px list): thumbnail · ID + design · "Front · Press 1 · 144 pcs · 2 inks" · chips */
-.p-split-list .p-lc-head.is-list{grid-template-columns:72px minmax(0,1fr) auto;grid-template-areas:"id main act" ". tags tags";gap:8px 12px;padding:10px 12px;align-items:start}
+.p-split-list .p-lc-head.is-list{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"id main main" ". tags act";gap:6px 10px;padding:10px 10px 10px 12px;align-items:start}
+.is-list .p-lc-tags{align-self:center}
+.is-list .p-lc-act{align-self:end}
+.is-list .p-lc-title .p-id{font-size:12px;padding:3px 5px}
+/* v97 day heads in the narrow list stay on one line: the count gives way (…) before anything wraps */
+.p-split-list .day-h{flex-wrap:nowrap;gap:8px;margin-left:-4px}
+.p-split-list .day-h .chev{width:32px;flex:none;margin-right:-4px}
+.p-split-list .day-h .p-section{flex:none;padding:8px 10px}
+.p-split-list .day-h .p-tag{flex:none}
+.p-split-list .day-h .p-head-sum{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .is-list .p-lc-id{align-self:start}
 .is-list .p-lc-title{font-size:15px;line-height:1.35}
 .is-list .p-lc-title .p-id{margin-right:6px;vertical-align:1px}
@@ -3097,7 +3116,7 @@ function showDetailPane(id) {
     '<div class="p-lc-body"><div class="jd" id="detail-' + id + '"></div></div></section>';
   sd.scrollTop = 0;
   renderDetail(id, $('detail-' + id));
-  setProofTop();
+  var col = sd.querySelector('.jd-inks'); if (col) col.scrollTop = 0;   // v97: a new job starts at the top of its inks
 }
 function syncDetailCls() {
   var sd = $('splitDetail'), sec = sd && sd.querySelector('section.p-lc');
@@ -3107,12 +3126,6 @@ function syncDetailCls() {
 function setSplitTop() {
   var r = $('root'); if (!r) return;
   document.documentElement.style.setProperty('--p-split-top', Math.round(r.getBoundingClientRect().top + window.scrollY) + 'px');
-  setProofTop();
-}
-// v96: the big proof sticks just under the open job's sticky head
-function setProofTop() {
-  var sd = $('splitDetail'), hd = sd && sd.querySelector('section.p-lc>.p-lc-head');
-  if (hd) sd.style.setProperty('--jd-top', Math.max(0, hd.offsetHeight - 16 + 12) + 'px');
 }
 // v96: "Hide list" / "Show list" (two panes only) gives the open job the whole width. Remembered on this computer.
 var LIST_HIDDEN = false;
@@ -4532,13 +4545,20 @@ function resetDragState() {
 }
 
 // v97: while an ink is dragged, holding it within 90px of the top or bottom of the job scrolls it, faster nearer
-// the edge — the right pane on wide screens, the page otherwise (below the sticky bar and filter row). Browsers
+// the edge — the inks column on wide screens (the only part of the open job that scrolls), the page otherwise
+// (below the sticky bar). Ink Queue has no sticky bottom bar, so the window bottom is the bottom edge. Browsers
 // don't scroll an inner pane during a drag on their own (Stephen, same as Seps: "if I try to scroll up it doesn't
 // move the screen"). Same as Seps v37.
 var dragAuto = { y: null, raf: 0 };
+// the nearest scrolling box around the dragged ink (the inks column on wide screens); none = the page scrolls.
+// The ink list itself never gets its own scroll box, so a drag can always reach the first ink.
 function dragScroller() {
-  var sd = isWide() && $('splitDetail');
-  return sd && dragState.impRecId && sd.contains($('inks-' + dragState.impRecId)) ? sd : null;
+  var el = dragState.sourceRow;
+  for (el = el && el.parentElement; el && el !== document.body && el !== document.documentElement; el = el.parentElement) {
+    var oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el;
+  }
+  return null;
 }
 function dragAutoTick() {
   dragAuto.raf = 0;
@@ -4550,8 +4570,6 @@ function dragAutoTick() {
     top = Math.max(0, bar ? bar.getBoundingClientRect().bottom : 0, fl && getComputedStyle(fl).position === 'sticky' ? fl.getBoundingClientRect().bottom : 0);
     bottom = window.innerHeight;
   }
-  var bb = document.querySelector('.p-bbar:not([hidden])');   // a sticky bottom bar, if one shows, is the bottom edge
-  if (bb) { var bt = bb.getBoundingClientRect().top; if (bt > top && bt < bottom) bottom = bt; }
   var zone = 90, step = 0;
   if (dragAuto.y < top + zone) step = -Math.ceil((top + zone - dragAuto.y) / 6);
   else if (dragAuto.y > bottom - zone) step = Math.ceil((dragAuto.y - (bottom - zone)) / 6);
