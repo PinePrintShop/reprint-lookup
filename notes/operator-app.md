@@ -217,3 +217,23 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
   - P1 complete shows no prompt.
   - pineBusy is false when idle.
   - No errors.
+
+## v127 — Pine style v2 (Oct 15)
+- **Look:** Pine style v2 (`pine-style-v2.css`, Poppins). Only black, white, cream and 107 yellow; red only for errors. The press badges use the Schedule press colors (P1 teal, P2 ochre, Embroidery orange, Heat red, Flatstock denim).
+- **Same top bar as the other apps** on every screen: Pine logo, OPERATOR, version (`v127`, from `pine-update.js`) and the practice pill. The floating practice bar at the bottom is gone; it covered the machine list. Run mode and head setup also show the practice pill now.
+- **Work bar, fewer buttons:** the press badge and name are one tap to switch machines (was a separate "⇄ Switch"). The crew names are one tap to change crew (was a separate "Change crew").
+- **One yellow main button per screen**, 56px tall on the floor: Start Setup, Stop Setup, Approved · Start Run, End Run (Resume when paused), Next. Fix Needed and Pause are cream. The heads button stays black.
+- **Nothing under 12px** (tags were 8px, labels 9–10px). Touch targets are at least 44px: Up next ▲▼ (were 34×26), run-mode ✕ (was 24px), drop-ramp steppers, lightbox and close buttons, Hold to reopen.
+- The order # is the black-and-yellow ID badge. The job name and the big timer are in Poppins.
+- **Head setup** says "✓ Done" once, in the footer. The header's second "Done — back to run →" is gone, and it read wrong when setup was opened before a run. Hints are shorter.
+- **Bugs fixed:**
+  - Self-update could reload with head setup, a pop-up or the crew picker open (only setup/run phases counted as busy). It now also waits for pending head-settings saves, retries and log writes, and for a focused text box.
+  - On a phone the Start/End buttons were meant to stick to the bottom, but never did: the card's `overflow:hidden` trapped them. They stick now.
+  - The Undo toast covered the "Next: …" button after End Run in run mode, and the Done button in head setup. In those screens it sits at the top now.
+  - A Done-today row that is also the open job had white text on a light row.
+  - iPad portrait: the Up next ▲▼ sit side by side, and the two-column list no longer runs off the right edge.
+- **Not changed:** Airtable reads and writes (same field writes as v126).
+- **Tested** with mocked Airtable:
+  - Practice and live, at 1024×768, 768×1024, 390×844 and 1440 desktop: machine pick → crew → setup ask → setup → review → run mode → pause + reason → resume → End Run → Next, then the Done summary, head setup (empty head, color picker, detail sheet), and Heat press complete + Catch it.
+  - Live mode sends the same 18 writes as v126, apart from timestamps. Practice sends none. No page errors, no horizontal scroll, no text under 12px.
+  - Self-update against a mocked newer link: idle reloads into it. With head setup open, or a log write in flight, it shows the "New version" bar instead.
