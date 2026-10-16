@@ -479,3 +479,19 @@ Stephen: "in the create order it only lets me put in one number at a time meanin
 - **Tested:**
   - Emulated iPad tapping S, M, L, XL, 2XL: in v19 every box after the first was swapped out; in v20 none are. Sizes and totals end up the same (72 pcs).
   - The full order flow writes exactly what v19 wrote, live, with the quote, and in practice (practice: 0 writes).
+
+## 2026-10-16 — v21: ↩ Undo reorder
+Stephen: "How do I undo if I accidentally click a reorder" → "Yes" (to adding an undo button).
+
+- Tapping a past order on the Reorder screen copies its lines and imprints into the form. Nothing is saved until **Create order**.
+- **Before:** the only way back was Change order → confirm → open the same order again.
+- **Now:** a bar at the top of the form says "Copied from 10612 · nothing saved yet" with **↩ Undo reorder**. The "Copied …" message has the same button and stays up for 7 seconds.
+  - Undo clears the copy and goes straight back to the Reorder / New order screen.
+  - If sizes were already typed, it asks first.
+- The bar is gone once Create order starts writing. From then on it's in Airtable, so fix it in Line Item Review.
+- **Tested** with mocked Airtable (past order 10612):
+  - Reorder → bar and message show → Undo (bar) → back on the Reorder screen with no lines or imprints.
+  - Reorder again, sizes typed → Undo (message) asks first → cleared.
+  - New order still works after an undo.
+  - 0 Airtable writes throughout.
+  - The normal, quote and practice flows write exactly what v20 wrote.
