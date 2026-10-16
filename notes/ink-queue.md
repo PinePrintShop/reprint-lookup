@@ -308,3 +308,14 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
   - At 1100×700 the inks column overflows by 77px (v101: 187px).
   - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
 
+
+## 2026-10-16 · v103: opening a card on a phone no longer marks it ready
+**Stephen:** "Looks like in the ink app mobile when u open a card it marks it ready"
+- **Cause:** below 1100px, where cards open in place, a closed card showed a Mark ready button covering about the right third of the card (106×44px on a 364px card). A tap meant to open the card often landed on the button instead. That marked the job ready and didn't open it.
+- **Now:** a closed card shows only its status tag (✓ Ready / N inks / No inks / N to fill). The Mark ready button appears once the card is open, in the same spot, so it's a deliberate second tap. Reopening a ready job works the same way: open it, then tap ✓ Ready.
+- **Unchanged:** the desktop (two-pane) layout, which had no button on list cards.
+- **Tested:** iPhone 13 and iPad mini emulation.
+  - v102: a tap on the right side of a card sent 1 write (marked ready) and didn't open it.
+  - v103: the same tap opens the card with 0 writes, and Mark ready on the open card sends the 1 expected write.
+  - The 1440 write-compare against v102 is identical (16 = 16), and practice mode sends 0 writes.
+- **Fix in Airtable:** jobs marked ready by accident can be reopened. Find them under ✓ Ready, open each one and tap ✓ Ready to undo.
