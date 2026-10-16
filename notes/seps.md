@@ -170,6 +170,21 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
   - Laptop scroll is the same as v40.
 
+## 2026-10-16 · v42: the open job lines up with Screens and Ink
+**Why:** Stephen, comparing live Ink v101 and Screens v28 at ~2000px: "very subtle but you can see the ink and screen / sep box around the mockup is ever so slightly different if you scan back and forth....also it is ok to get this granular right? just trying to make this the best it can be and really visually flow".
+- **Shared geometry from the new `pine-job-v2.css`** (also used by Screens v29 and Ink Queue v102; see pine-style.md). Flipping between the three apps with a job open, the card, header, mockup frame, footer and controls column sit on the same pixels at 1100, 1366, 1440, 1920 and 2000 wide, with the list shown or hidden and with two columns of inks. Only the content differs.
+  - **Mockup : controls = 58 : 42** (was 3 : 2), the controls at least 400px, 12px between them. With two columns of inks: 45 : 55, the controls at least 480px.
+  - **The mockup footer is always there** (52px): file name · ↩ Previous run + Fill from (on a reorder; it was only shown then) · Full screen. Narrow mockups (under 460px, 1100px screens) show "↩ 9317-A" and "⛶" so it stays one line. The image sits top-left.
+  - Body padding 12px (8px on 768–860px tall laptops, which only Ink had). The header's first line stays one line (name and tags shorten with …).
+  - Controls column: 8px between rows (was 6px). Type, Sep file and Separator are the shared one-line rows: label 96px on the left in the standard label look (was bolder, 11px indented), 40px tall.
+- **Print notes:** a one-line note is a one-line box (40px). The resize code started from 2 rows, so it was 59px.
+- **New read:** the proof's file name, from the proof attachment Seps already reads. Airtable writes: same as v41.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The v41 compare flows send the same writes as v41 (19 + 7 steps, all the same). Practice mode sends 0 writes.
+  - Dragging the last of 10 inks to the top is one write in the right order at 1920, 1440, 1366, 1280 and 1100, and in place at 1024.
+  - The open job measured against Screens v29 and Ink v102 at 1100, 1366, 1440, 1920 and 2000 (also with the list hidden and with two columns of inks): pane, card, header, body, mockup frame, image, footer, gap and controls column are the same to the pixel.
+  - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.

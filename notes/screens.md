@@ -124,3 +124,19 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
   - Practice mode sends 0 writes.
   - Dragging the last of 11 inks to the top is one write. Checked at 1920 through 1100, and in place at 1024.
   - No page errors, no text under 12px, no sideways scroll and no overlapping card parts.
+
+## 2026-10-16 · v29: the open job lines up with Seps and Ink
+**Why:** Stephen, comparing live Ink v101 and Screens v28 at ~2000px: "very subtle but you can see the ink and screen / sep box around the mockup is ever so slightly different if you scan back and forth....also it is ok to get this granular right? just trying to make this the best it can be and really visually flow".
+- **Shared geometry from the new `pine-job-v2.css`** (also used by Seps v42 and Ink Queue v102; see pine-style.md). Flipping between the three apps with a job open, the card, header, mockup frame, footer and controls column sit on the same pixels at 1100, 1366, 1440, 1920 and 2000 wide, with the list shown or hidden and with two columns of inks. Only the content differs.
+  - **Mockup : controls = 58 : 42** (was 3 : 2, the controls at least 360px), the controls at least 400px, 12px between them. With two columns of inks: 45 : 55, the controls at least 480px.
+  - **The mockup footer is always there** (52px): file name · ↩ Previous run (it was only shown then) · Full screen. Narrow mockups (under 460px, 1100px screens) show "↩ 9317-A" and "⛶" so it stays one line. The image sits top-left.
+  - Body padding 12px (8px on 768–860px tall laptops, which only Ink had). The header's first line stays one line (name and tags shorten with …).
+  - Controls column: 8px between rows (was 10px), no 2px inset; Sep file is the shared one-line row; the inks block 8px apart (was 6px). Three header tags no longer push the mockup down at 1100px.
+- **Print notes:** a one-line note is a one-line box (40px). The resize code started from 2 rows, so it was 59px.
+- **New read:** the proof's file name, from the proof attachment Screens already reads. Airtable writes: same as v28.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The v28 flows send the same writes at 1920, 1440, 1366, 1280, 1100, 1024 and 390, live and with a failed save, and behave the same. Practice mode sends 0 writes.
+  - Dragging the last of 11 inks to the top is one write at 1920 through 1100, and in place at 1024.
+  - The open job measured against Seps v42 and Ink v102 at 1100, 1366, 1440, 1920 and 2000 (also with the list hidden and with two columns of inks): the same to the pixel.
+  - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
+

@@ -39,7 +39,7 @@
                      (.p-job-ink-name + type tag) · .p-job-ink-x app extras · .p-job-ink-sub (Ink's recipe line) )
      9. notes      .p-job-notes > .p-field ( .p-label above · textarea that grows with its text )
     10. open job   (v2, right pane) .p-lc-body.p-job-body > .p-job-grid > ( .p-job-mock · .p-job-ctl controls column:
-                   .p-job-line rows ( .p-job-lbl + the control ) · inks · notes )
+                   .p-job-line rows ( .p-job-lbl + the control ) · inks (an app's wrapper: .p-job-inksec) · notes )
    ===================================================================== */
 
 /* 1 — the same 72px black bar in all three */
