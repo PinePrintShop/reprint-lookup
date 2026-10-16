@@ -469,3 +469,13 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - **Create order** writes exactly what v18 wrote, then **PATCHes the quote: Quotes › Order = this order (keeps any links it has), Status = Won.** Practice fakes it.
 - The hidden pricing engine loads `price-o-matic-v107.html` (its pricing script is byte-identical to v106, checked by SHA-256 in the build).
 - **Tested** with mocked Airtable (incl. Quotes / Quote Lines) and the worker (scratchpad `office/v2/co_cmp.js`, `co_quote.js`): without a quote the 6 writes are identical to v18 (and the POM prices too); with Q-41 found by deal # 1: search by "Q-41", Fill from quote → 4 imprints (Front 1 scr No Base; Back 4 scr EZP Base + 1 ink change; Front embroidery ~5,000; Bandana 1 scr), 3 lines (1717 Graphite @ $12.70 with 72 pcs to size, Richardson 112 Black/White one size 48 @ $15.75 as Embroidered Apparel, 4800 bandana 250 @ $5.30 with the color to pick); after nicknames, pasted sizes and the bandana color, Create wrote 4 imprint POSTs, 1 line item POST (3 records) and the Quotes PATCH {Order: [order], Status: Won}. Practice: 0 writes in both flows. No page errors; nothing under 12px, one yellow button, no sideways scroll at 1920/1440/1280/1024.
+
+## 2026-10-16 — v20: sizes type like a number pad
+Stephen: "in the create order it only lets me put in one number at a time meaning when I select 1 it goes back to the alphabet on the keyboard."
+
+- **Cause:** each size box redrew the whole form when you left it. The box you'd just tapped was swapped for a new copy, and the iPad keyboard reopened on letters.
+- **Now:** while you move between size boxes, only the pcs count updates. The form (price, totals, checklist) redraws once you leave the sizes.
+- Number boxes also carry `pattern="[0-9]*"`, which opens the number keys on iPhone and iPad.
+- **Tested:**
+  - Emulated iPad tapping S, M, L, XL, 2XL: in v19 every box after the first was swapped out; in v20 none are. Sizes and totals end up the same (72 pcs).
+  - The full order flow writes exactly what v19 wrote, live, with the quote, and in practice (practice: 0 writes).
