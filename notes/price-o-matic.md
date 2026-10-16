@@ -433,3 +433,26 @@ Stephen sent phone screenshots: "Here is a few spacing things as well on mobile.
 - **"3 · Prints":** the hint ("Most quotes: one front print, 1–3 colors") was squeezed beside the heading and wrapped. It now sits on its own line under it.
 - **A closed print card** ("Back · 1 color") is just its title row now (74px instead of 92px).
 - These are phone-only CSS changes; pricing and desktop are unchanged. The vendor test still gives S&S + SanMar for 1717.
+
+## 2026-10-16 · v110: readability on phones
+Stephen: "And readability."
+
+A phone audit (every visible text's size and contrast at 390px) found mostly 12px labels and a few faint ones. Fixed:
+
+- **12px → 14px on phones:**
+  - price / piece labels, the pcs line in the bottom bar and "(entered)"
+  - add-on prices (+$0.50)
+  - the patch size note
+  - the garment box's stock table, prices and colors
+- **Garment box:**
+  - The "no photo" tile is smaller, and Dismiss is a ✕, so the garment name gets the width. It was breaking over five lines ("GARMENT- / DYED … T- / SHIRT").
+  - "Not carried" in the stock table is a dash instead of a faint dot.
+  - The color swatch isn't clipped.
+- **Garment cost:** the label sits on one line, with the box and the hint under it.
+- **Recent garments:** read left to right instead of centered.
+- **Faint text:**
+  - Quantities under the minimum (24) were 2.3:1 contrast; now dark grey with a strike-through.
+  - "Dynamic Patches" was 4.1:1 and is now readable.
+  - The "other" quantity placeholder is darker.
+- After the fix, the audit only flags the decorative "No photo" tile (12px).
+- Pricing is unchanged; the vendor test still gives S&S + SanMar.
