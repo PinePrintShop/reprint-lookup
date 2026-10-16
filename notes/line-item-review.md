@@ -376,3 +376,21 @@ Stephen: "Let's remove from the app sent awaiting payment but don't change Airta
   - With order 11019's deal at Awaiting Approval: Ready to send 0, Sent 1, the note shows, and a reload uses the saved check.
   - The full review flow writes exactly what v20 wrote (13 writes), and practice still writes 0.
 - **Later, if loading is slow:** a worker route that returns every order's deal stage in one call would replace the per-order lookups. That's a worker deploy for Stephen.
+
+## 2026-10-16 · v22: "sent" needs the proof email
+Stephen, on 11025 Underground Enterprises: "I would do that what you suggest."
+
+- **Why:** Chris moved 11025's deal to Awaiting Approval after emailing mockups, before any "Approve your proof & invoice" email. v21 then filed it under Sent.
+- **Now, a deal at Awaiting Approval** counts as sent only if its Pipedrive emails include "Approve your proof & invoice". That's the template's subject, and replies keep it.
+  - Without that email, the job stays in the queue.
+  - The order shows "Pipedrive deal is at Awaiting Approval · no "Approve your proof & invoice" email yet, so it stays in the queue."
+- **Unchanged:** Ready for Production, Awaiting Payment, Order Confirmed or a won deal still count as sent without the email check.
+- **Limits:**
+  - The worker returns a deal's 15 newest emails that it can read.
+  - A deal whose mailbox the worker can't read stays in the queue, which errs toward showing too much rather than hiding.
+- The saved check moved to a new key (`pine_lir_sent_v2`), so v21's answers aren't reused.
+- **Tested** with mocked Airtable and worker:
+  - Awaiting Approval with mockups only: stays in Ready to send, with the note.
+  - Awaiting Approval with the proof email: goes to Sent ("proof email sent").
+  - Awaiting Payment: goes to Sent.
+  - The full flow writes exactly what v20 wrote (13), and practice still writes 0.
