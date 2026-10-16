@@ -136,3 +136,19 @@ The demo is in `pine-style.html` under "Page kit". The rules list and the app st
 
 **Next (phase 2, not built):** one shared script for two panes, Hide list, ↑/↓, day heads, drag, notes, proof viewer and the ⚙ menu. Later: Seps and Screens save swatch colors (an Airtable write, needs Stephen's OK), and a calendar in Ink.
 
+
+## 2026-10-16 · `pine-job-v2.css` (Seps v42, Screens v29, Ink Queue v102)
+**Why:** Stephen, comparing Ink v101 and Screens v28 at ~2000px: "very subtle but you can see the ink and screen / sep box around the mockup is ever so slightly different if you scan back and forth....also it is ok to get this granular right? just trying to make this the best it can be and really visually flow". The open job used the shared pieces, but each app still had its own pane rules: Ink split the job 55 : 45 with a 16px gap and 12/16/16 padding and had an extra line under the header; Seps and Screens split 3 : 2 with a 12px gap; the mockup footer was there only sometimes; the controls column had 6, 8 or 10px between rows.
+**v2 = v1 + one geometry for the open job in the right pane.** Flipping between the three apps, the frame, the mockup and the controls sit on the same pixels at 1100–2000px; only the content differs. v1 stays as shipped for Seps v41, Screens v28 and Ink v101.
+1. **New, section 10, the open job (two panes):** markup `.p-lc-body.p-job-body > .p-job-grid > ( .p-job-mock · .p-job-ctl )`.
+   - the same pane padding, card and header; no extra line under the header (the body's top line is the one line)
+   - body padding 12px; 8px on short laptops (768–860px tall; this was Ink only)
+   - **mockup : controls = 58 : 42**, the controls at least 400px, 12px between them. Seps and Screens were 3 : 2, Ink 55 : 45. 58 : 42 keeps the mockup the bigger part, and gives Ink's recipe lines and Seps' Type / Sep file / Separator rows 430px at 1440 (Seps and Screens lose 14px of mockup there, Ink gains 54px).
+   - **two columns of inks** (`.ink-2col`): 45 : 55, the controls at least 480px (Seps and Screens were 3 : 2, Ink 40 : 60)
+   - the controls column `.p-job-ctl`: 8px between rows, no inset, only it scrolls
+   - one-line rows `.p-job-line` (label `.p-job-lbl` 96px on the left, `.p-label` look, 40px tall): Seps Type / Sep file / Separator, Screens Sep file
+   - an app's inks block `.p-job-inksec`: 8px apart, the same as the column
+   - notes: labels 12px, 3px above a 40px box with 15px text; the box grows to ~8 lines in all three
+2. **Header:** its first line stays one line (the name, then the tags, shorten with …), so 3 tags no longer push the mockup down at 1100px.
+3. **Mockup footer is always there** (52px): ‹ 1/N › (2+ proofs) · file name · ↩ Previous run (a reorder) + Fill from · Full screen. Under 460px wide the buttons drop their words (`.p-job-w`), so it stays one line. The image sits top-left (Ink centered it).
+4. **Inks header row** is 40px like the one-line rows.
