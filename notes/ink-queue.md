@@ -291,3 +291,20 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
   - Dragging the last of 10 inks to the top is one write in the right order at 2000, 1440, 1366 and 1100, and in place at 1024 (with auto-scroll).
   - Fold, Hide list and ↑/↓ work.
   - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
+
+## 2026-10-16 · v102: the open job lines up with Seps and Screens
+**Why:** Stephen, comparing live Ink v101 and Screens v28 at ~2000px: "very subtle but you can see the ink and screen / sep box around the mockup is ever so slightly different if you scan back and forth....also it is ok to get this granular right? just trying to make this the best it can be and really visually flow".
+- **Shared geometry from the new `pine-job-v2.css`** (also used by Seps v42 and Screens v29; see pine-style.md). Flipping between the three apps with a job open, the card, header, mockup frame, footer and controls column sit on the same pixels at 1100, 1366, 1440, 1920 and 2000 wide, with the list shown or hidden and with two columns of inks. Only the content differs.
+  - **Mockup : controls = 58 : 42** (was 55 : 45, 54 : 46 on narrower panes, the controls 320–420px; gap 16px), the controls at least 400px, 12px between them. With two columns of inks: 45 : 55, the controls at least 480px.
+  - **The mockup footer is always there** (52px): ‹ 1/N › (2+ proofs) · file name (was only for 2+ proofs) · ↩ Previous run + Fill from · Full screen; with no proof it holds ↩ Previous run and Fill from (they were in the inks toolbar). Narrow mockups (under 460px, 1100px screens) show "↩ 9317-A" and "⛶" so it stays one line. The image sits top-left.
+  - Body padding 12px (8px on 768–860px tall laptops, which only Ink had). The header's first line stays one line (name and tags shorten with …).
+  - Controls column: 8px between rows. No second line under the header (the header and body each drew one). Body padding was 12/16/16. The inks header row is 40px like the one-line rows in Seps and Screens.
+- **Notes:** the shared box (15px text, was 14px); they grow to ~8 lines like Seps and Screens (was ~6).
+- Airtable reads and writes: same as v101.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The v101 flows send the same 16 writes at 1920, 1440, 1100 and 1024 (in place). Practice mode sends 0 writes.
+  - Dragging the last of 10 inks to the top is one write in the right order at 2000, 1440, 1366 and 1100, and in place at 1024.
+  - The open job measured against Seps v42 and Screens v29 at 1100, 1366, 1440, 1920 and 2000 (also with the list hidden and with two columns of inks): the same to the pixel.
+  - At 1100×700 the inks column overflows by 77px (v101: 187px).
+  - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
+
