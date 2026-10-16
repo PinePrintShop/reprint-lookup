@@ -409,3 +409,18 @@ Links only: the step bar uses the always-latest links (`price-o-matic.html`, `pi
 - ⚙ hint: the token now also saves quotes. Inside Create order's hidden pricing frame the quote code does nothing.
 - **Prices identical to v106:** the main script (RATES, every price function and the screen code) is byte-identical (SHA-256 `5bda72fa808e2478…`, 254,879 characters); the quote code is a separate script that wraps `downloadPDF`, `showPDFPreview` and `renderCart`. Checked with mocked vendors: the same 1,051 engine results (tees/totes/fleece 1–6 colors ± underbase, multi-location, embroidery bands, Supacolor, Decopress, bandanas, import bandanas, flatstock, patches at 11 quantities) and 9 screen quotes (cart $3,778.00 / $5,843.00): identical.
 - **Tested** with mocked Airtable (scratchpad `office/v2/pom_quote_test.js`): create (1 quote + 3 lines), PDF again → PATCH + DELETE 3 + POST 3 (no duplicate), cart changed → PATCH + replace with 2 lines; no rep → asked first, remembered; no token → 0 writes + the hint; practice → 0 writes. No page errors; nothing under 12px, one yellow button, no sideways scroll at 1920/1440/1280/1024 (and 390). Screenshots: scratchpad `office/v2/`.
+
+## 2026-10-16 · v108: every vendor that sells the style is asked
+Stephen: "On the quote can we make sure to scan all vendors that sell that product. Right now the 1717 only pulls up S&S."
+
+- **Why 1717 showed only S&S:** SanMar was only asked for Bella+Canvas (BC3001), Gildan and SanMar's own brands (Port & Company, Port Authority, District, Sport-Tek). Comfort Colors never got a SanMar lookup.
+- **Now:** every brand SanMar sells gets a SanMar lookup under the mill's style number. It's the same list Purchasing v109 uses: Comfort Colors, Next Level, Hanes, Jerzees, Champion, Allmade, Fruit of the Loom, Alternative, Carhartt, Nike, The North Face, New Era, OGIO, Eddie Bauer, Russell Athletic, Rabbit Skins, Tultex, CornerStone, Red Kap, Bulwark and a few others.
+  - Next Level tries `NL3600` first, then `3600`.
+  - SanMar's answer must name the same brand, or it's dropped. It shows as "SanMar —" with the reason, so a different product that happens to share the number can't sneak in.
+- A bare `1717` still resolves to Comfort Colors 1717 through the S&S catalog, and SanMar is asked too.
+- Saved lookups were bumped from `pine_ss_price_v11_` to `v12_`, so styles looked up earlier today ask SanMar again.
+- **Unchanged:** the pricing rules, and the cheapest XS–XL vendor still sets the garment cost (sale price included). Create order's hidden price engine stays on v107, since pricing didn't change.
+- **Tested** with mocked vendors:
+  - Comfort Colors 1717: v107 asked S&S only. v108 asks S&S and SanMar, and the cheaper SanMar price wins.
+  - Next Level 3600 hits `NL3600`.
+  - A wrong-brand SanMar `3600` is dropped with "SanMar 3600 is SOME OTHER BRAND, not NEXT LEVEL".
