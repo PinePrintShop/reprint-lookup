@@ -376,3 +376,23 @@ Links only: the step bar's Review link opens Line Item Review v10. Nothing else 
 
 ## 2026-10-09 · v105
 Links only: the step bar uses the always-latest links (`price-o-matic.html`, `pine-line-item-review.html`), so future Review versions don't need a new POM. Create order's hidden pricing engine now loads v105.
+
+## 2026-10-16 · v106: the shared office look, step ② opens the real Create order
+**Why:** the review of Price-O-Matic, Create order and Line Item Review (Oct 16) found that step ② and the yellow quote button still opened the old read-only mockup `pom-create-order-live.html`, three different top bars, yellow meaning different things in each app, Courier numbers, green ticks and 77 CSS rules under 12px here. Stephen's answers:
+- *"Step ② and the quote button → the real Create order (create-order.html)."* Rename the quote button to **Create order →** ("the quote doesn't carry over yet").
+- *"Three apps sharing one look (pine-office-v1.css)."*
+- *"POM is desktop now (reps don't really quote on phones) — design for desktop (full width, two-pane on wide), keep phone usable but don't optimize."*
+- *"Price: Price-O-Matic wins for now."*
+
+**What changed (pricing is untouched):**
+- Pine style v2 + `pine-office-v1.css`: the same black bar as Create order and Line Item Review (logo, PRICE-O-MATIC, version from `PineUpdate.ver`, practice pill, the step nav **Quote › Order › Review**, Refresh, ⚙ with the shared Airtable token and practice). Practice carries to the next steps.
+- The product tabs, the turnaround pill, Start from and New quote moved to one filter row under the bar (they crowded the bar).
+- Full width (the 1560px cap is gone), builder on the left, price + breaks + quote on the right; the right column stays on screen and scrolls on its own. From 1500px Garment and Quantity sit side by side.
+- One yellow button: **Add to quote**. Picked buttons are black with yellow text; Create order → is black, and turns yellow when there's nothing to add. ✓ Added flashes black (done), not green. The vendor color picker is white with a black border.
+- $/pc is the one Poppins number. No Courier (tabular digits instead), nothing under 12px, only black/white/cream/yellow (red for real problems: not offered, out of stock).
+- Self-update: `pine-update.js` → `price-o-matic.html`. `pineBusy` is true while a quote is being built (a price on the builder or a line being edited); the quote itself survives a reload (it's saved on this computer).
+- Phone: Add to quote is only in the bottom bar (it showed twice).
+- `pom-create-order-live.html` is now a one-line redirect to `create-order.html` (keeps `?order=` / `?practice=`), so links in older versions land on the real app. The old mockup is kept as `pom-create-order-live-old.html`.
+
+**Prices identical to v105:** the main script (RATES, every pricing function and the screen code, 254,887 characters) is byte-identical (same SHA-256). Checked with mocked vendors: 3,835 engine prices (tees/totes/fleece 1–6 colors ± underbase, front+back, left chest + back + sleeve, 4 locations with ink changes, mixed run, shipping/AS Colour, all embroidery bands and applications, Supacolor sizes and gangs, Decopress, bandanas 1–4 colors ± hangers, import bandanas, flatstock, patches) at 11 quantities, plus 9 quotes through the screen (presets, breaks table, big price, cart total $3,778.00 / $5,843.00): all identical. Create order v18's hidden pricing engine loads v106.
+**Tested** at 1920/1440/1280/1024 and 390: no page errors, nothing under 12px, one yellow button, no sideways scroll. Screenshots: scratchpad `office/v1/`.

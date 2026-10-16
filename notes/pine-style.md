@@ -152,3 +152,20 @@ The demo is in `pine-style.html` under "Page kit". The rules list and the app st
 2. **Header:** its first line stays one line (the name, then the tags, shorten with …), so 3 tags no longer push the mockup down at 1100px.
 3. **Mockup footer is always there** (52px): ‹ 1/N › (2+ proofs) · file name · ↩ Previous run (a reorder) + Fill from · Full screen. Under 460px wide the buttons drop their words (`.p-job-w`), so it stays one line. The image sits top-left (Ink centered it).
 4. **Inks header row** is 40px like the one-line rows.
+
+## 2026-10-16 · Office apps: `pine-office-v1.css` (Price-O-Matic v106, Create order v18, Line Item Review v19)
+**Why:** the review of the three apps on the order path (Quote › Order › Review) found three top bars, three ways to draw an order, a line item, an imprint and a price, yellow meaning "add within a step" in one app and "the main action" in another, Courier numbers, green ticks and 77 / 14 / 15 CSS rules under 12px. Stephen (Oct 16): *"Three apps sharing one look (pine-office-v1.css)."*
+**Load order:** Poppins 800/900, `pine-style-v2.css`, then `pine-office-v1.css`, then the app's `<style>`. `<body class="p-app p-off">`. Each piece is prefixed `p-off-`.
+1. **Bar** `.p-bar.p-off-bar` (64px): logo · app name · version (`'v'+PineUpdate.ver`) · practice pill · the step nav `.p-off-steps` **Quote › Order #11031 › Review** (the current step is the yellow pill, the order number rides along) · the app's own bits (Line Item Review: who are you `.p-off-me`) · Refresh (`PineUpdate.check()`) · ⚙ `.p-menu` (token, practice). Under 1100px the steps get their own row.
+2. **Filter row:** the kit's `.p-filters`, kept on one line when it fits (search · chips · end).
+3. **Two panes** `.p-off-split > .p-off-pane.p-off-list + .p-off-pane` from 1200px; each scrolls on its own. The app sets `--p-off-top`; `.is-nolist` hides the list. Below 1200px it's one pane.
+4. **Order header** `.p-off-oh`: `#` badge (the pine-job header badge, 16px) · CUSTOMER · tags / rep · Hard/ASAP due · links `.p-off-link` (Deal ↗ · Art folder ↗ · Airtable ↗) | numbers (lines · pcs · total) | `.p-off-oh-act`: **the one yellow button, always top-right** (Create order / Send for signature).
+5. **Line item** `.p-off-li`: garment · color, size breakdown, imprint ID badges, one status tag, pcs · $/pc · line total, actions. `.is-compact` for lists (title wraps to 2 lines, no numbers).
+6. **Imprint row** `.p-off-imp`: ID badge · location · type · screens / nickname · inks · actions · notes.
+7. **Price block** `.p-off-price`: label · **$/pc as the one Poppins number** · line total · comparison numbers (Autoprice, margins) · actions.
+8. **Checklist** `.p-off-chk`: done = black ✓, open = empty ring.
+9. **Step buttons** `.p-off-stepbar > .p-off-step`: done = black ✓, only the next one yellow (Stephen: *"finished steps black (✓), only the next step to do is yellow"*).
+10. **Order row** `.p-off-orow`: # badge · CUSTOMER / created · rep · tag.
+**Rules used:** one yellow button per screen (Add to quote / Create order / the next approval step or Send); box saves are black; picked buttons black with yellow text; facts cream; done black; red only for real problems.
+**Versioned by name:** never edit after shipping; a change is `pine-office-v2.css`.
+**Next (not built):** one shared script for the bar (steps, Refresh, ⚙) — it's a small copy in each app for now; the Quotes table so a quote carries into Create order (Stephen's answer 3, a later step).

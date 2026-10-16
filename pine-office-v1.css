@@ -1,0 +1,203 @@
+/* =====================================================================
+   Pine office  ·  pine-office-v1.css  ·  2026-10-16
+   One look for the three office apps on the order path:
+     Price-O-Matic v106 (Quote) › Create order v18 (Order) › Line Item Review v19 (Review)
+   The review of the three (Oct 16) found three different top bars, three ways to draw an order, a line item,
+   an imprint and a price, and yellow meaning different things in each. Stephen OK'd one shared look (answer 5).
+   Load order (after the shared style):
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+     <link rel="stylesheet" href="pine-style-v2.css">
+     <link rel="stylesheet" href="pine-office-v1.css">
+     <style> the app's own bits </style>
+   and give <body> the class "p-app p-off". Everything here is prefixed p-off-.
+   Versioned by name: never edit this file once shipped. A change is pine-office-v2.css.
+
+   Pieces (same markup in all three apps):
+     1. bar          .p-bar.p-off-bar: .p-mark · .p-bar-app · .p-bar-ver ('v'+PineUpdate.ver) · practice .p-tag-wait
+                     · .p-off-steps (Quote › Order #11031 › Review; the current step is the yellow pill)
+                     · .p-bar-sp → the app's own bar bits (LIR: who are you .p-off-me) · .p-barbtn Refresh · .p-barbtn ⚙
+                     · .p-menu ⚙ drop-down (token, practice)
+     2. filter row   the kit's .p-filters under the bar (search · chips · end)
+     3. two panes    .p-off-split > .p-off-pane.p-off-list + .p-off-pane.p-off-work (each scrolls on its own, >=1200px)
+                     the app sets --p-off-top (px from the page top to the panes); .is-nolist hides the list
+     4. order header .p-off-oh: # badge · CUSTOMER · tags / rep · due · links (deal ↗ · art folder ↗ · Airtable ↗)
+                     · numbers (lines · pcs · total) · .p-off-oh-act: the ONE yellow button, always top-right
+     5. line item    .p-off-li: garment + color · size breakdown · imprint ID badges · one status tag
+                     · numbers (pcs · $/pc · line total) · actions. .is-compact for lists (no numbers)
+     6. imprint row  .p-off-imp: ID badge (the pine-job header badge) · location · type · screens / nickname · inks · actions
+     7. price block  .p-off-price: label · $/pc as the one Poppins number · line total · compare (Autoprice) · actions
+     8. checklist    .p-off-chk: done = black ✓, open = empty ring, problem = red ring
+     9. step buttons .p-off-stepbar > .p-off-step: done = black ✓, the next one = yellow, the rest white
+    10. order row    .p-off-orow: the list card for an order (CO's order list): # badge · CUSTOMER / created · rep · tag
+   Colors: black, white, cream, yellow only; red only for real problems. Nothing under 12px. No Courier.
+   ===================================================================== */
+
+/* 0 — base: tabular digits everywhere (no Courier), form controls take the page font */
+.p-off{font-variant-numeric:tabular-nums}
+.p-off button,.p-off input,.p-off select,.p-off textarea{font-family:inherit}
+.p-off a{color:inherit}
+.p-off-hide{display:none!important}
+
+/* 1 — the bar */
+.p-off .p-bar.p-off-bar{min-height:64px;gap:8px 12px;flex-wrap:nowrap}
+.p-off-bar .p-bar-app{white-space:nowrap}
+.p-off-bar .p-bar-ver{white-space:nowrap}
+.p-off-bar .p-tag{flex:none}
+.p-off-steps{flex:none;align-items:center}
+.p-off-steps a,.p-off-steps b{gap:6px}
+.p-off-steps b{display:inline-flex;align-items:center;min-height:var(--p-tap);padding:0 14px;border-radius:var(--p-pill);background:var(--p-yellow);color:var(--p-black);font:800 var(--p-fs-s)/1 var(--p-sans);white-space:nowrap}
+.p-off-steps .p-off-sep{color:rgba(255,255,255,.5);font:800 var(--p-fs-s)/1 var(--p-sans);padding:0 1px;user-select:none}
+.p-off-steps .p-off-ono{font-variant-numeric:tabular-nums}
+.p-off-bar .p-bar-sp{flex-wrap:nowrap;flex:none}
+.p-off-bar .p-bar-own{display:flex;align-items:center;gap:8px;min-width:0}
+/* LIR: who are you (a dark select on the bar) */
+.p-off-me{min-height:var(--p-tap);max-width:200px;border:1.5px solid rgba(255,255,255,.45);border-radius:var(--p-r);background:var(--p-black);color:var(--p-white);font:800 var(--p-fs-s)/1 var(--p-sans);padding:0 10px}
+.p-off-me.is-need{border-color:var(--p-yellow);box-shadow:0 0 0 2px var(--p-yellow)}
+.p-off-bar .p-menu{max-height:calc(100vh - 90px);overflow:auto}
+.p-off-bar .p-menu .p-btns{flex-wrap:nowrap}
+@media (max-width:1100px){ .p-off .p-bar.p-off-bar{flex-wrap:wrap} .p-off-steps{order:9;flex:1 1 100%;overflow-x:auto;scrollbar-width:none} .p-off-steps::-webkit-scrollbar{display:none} }
+@media (max-width:600px){ .p-off-me{max-width:130px} .p-off-steps a,.p-off-steps b{padding:0 10px} .p-off-steps .p-off-w{display:none} }
+
+/* 2 — filter row under the bar (the kit's .p-filters); in the office apps it stays on one line when it fits */
+.p-off .p-filters{flex-wrap:nowrap}
+.p-off .p-filters .p-chips{flex:0 1 auto;order:0;width:auto}
+.p-off .p-filters .p-tab{min-height:40px}
+.p-off .p-filters .p-search{flex:0 1 340px;min-width:180px}
+@media (max-width:900px){ .p-off .p-filters{flex-wrap:wrap} .p-off .p-filters .p-chips{flex:1 1 100%;order:3} .p-off .p-filters .p-search{flex:1 1 200px;max-width:none} }
+
+/* 3 — two panes (list | workspace) on desktop */
+.p-off-split{display:grid;grid-template-columns:var(--p-off-list,clamp(340px,24vw,460px)) minmax(0,1fr);gap:16px;padding:0 16px}
+.p-off-split.is-nolist{grid-template-columns:minmax(0,1fr)}
+.p-off-split.is-nolist>.p-off-list{display:none}
+.p-off-pane{min-width:0;height:calc(100vh - var(--p-off-top,128px));height:calc(100dvh - var(--p-off-top,128px));overflow-y:auto;overscroll-behavior:contain;padding:16px 2px 32px}
+.p-off-empty{display:grid;place-items:center;min-height:240px;border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);color:var(--p-ink-2);font-weight:700;padding:24px;text-align:center}
+@media (max-width:1199px){
+  .p-off-split{display:block;padding:0 16px}
+  .p-off-pane{height:auto;overflow:visible;padding:16px 0 32px}
+}
+
+/* 4 — order header: # badge · CUSTOMER · tags / facts · links | numbers | the one yellow button */
+.p-off-oh{display:flex;align-items:center;gap:10px 20px;background:var(--p-white);border:2px solid var(--p-black);border-radius:var(--p-r-lg);padding:12px 16px;min-width:0}
+.p-off-oh-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px}
+.p-off-oh-l1{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;min-width:0}
+.p-id.p-off-oh-id,.p-id.p-off-id{font:800 16px/1 var(--p-sans);padding:6px 9px;letter-spacing:.02em}   /* = .p-job-hid */
+.p-off-oh-cust{font:800 20px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;min-width:0;overflow-wrap:anywhere}
+.p-off-oh-l2{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.p-off-oh-l2 b{color:var(--p-black)}
+.p-off-links{display:inline-flex;gap:4px 12px;flex-wrap:wrap;align-items:center}
+.p-off-link{display:inline-flex;align-items:center;gap:4px;min-height:32px;font:700 var(--p-fs-s)/1.2 var(--p-sans);color:var(--p-black);text-decoration:underline;text-underline-offset:3px;background:none;border:0;padding:0;cursor:pointer;white-space:nowrap}
+.p-off-link:hover{text-decoration-thickness:2px}
+.p-off-link.is-off{color:var(--p-ink-3);text-decoration:none;cursor:default;font-weight:400}
+.p-off-oh-nums{flex:none;display:flex;gap:var(--p-s5);align-items:flex-end}
+.p-off-oh-nums:empty{display:none}
+.p-off-oh-nums .p-num b{font-size:18px}
+.p-off-oh-act{flex:none;display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:200px}
+.p-off-oh-act:empty{display:none}
+.p-off-oh-act .p-btn{min-height:48px}
+.p-off-oh-act .p-hint{font-size:var(--p-fs-xs);text-align:center}
+.p-off-oh.is-sticky{position:sticky;top:0;z-index:6;box-shadow:0 -16px 0 0 var(--p-cream-lt),var(--p-shadow)}
+@media (max-width:1000px){
+  .p-off-oh{flex-wrap:wrap}
+  .p-off-oh-main{flex-basis:100%}
+  .p-off-oh-nums{margin-right:auto}
+  .p-off-oh-act{min-width:0;flex:1 1 200px}
+}
+
+/* 5 — line item card */
+.p-off-li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"main nums act";gap:8px 18px;align-items:center;
+  background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:10px 14px;min-height:var(--p-tap-lg);text-align:left;width:100%;color:var(--p-black)}
+.p-off-li+.p-off-li{margin-top:8px}
+.p-off-li-main{grid-area:main;min-width:0;display:flex;flex-direction:column;gap:3px}
+.p-off-li-t{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;min-width:0}
+.p-off-li-n{flex:none;display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:12px;background:var(--p-cream);font:800 var(--p-fs-xs)/1 var(--p-sans)}
+.p-off-li-g{font:800 16px/1.3 var(--p-sans);min-width:0;overflow-wrap:anywhere}
+.p-off-li-sub{font-size:var(--p-fs-s);color:var(--p-ink-2);overflow-wrap:anywhere}
+.p-off-li-sz{font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.p-off-li-imps{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:3px}
+.p-off-li-imps .p-id{font-size:var(--p-fs-s)}
+.p-off-li-nums{grid-area:nums;display:flex;gap:var(--p-s4);align-items:flex-end}
+.p-off-li-nums:empty{display:none}
+.p-off-li-act{grid-area:act;display:flex;gap:6px;align-items:center}
+.p-off-li-act:empty{display:none}
+.p-off-li-act .p-btn{min-height:40px;padding:0 12px;font-size:var(--p-fs-s)}
+.p-off-li.is-on{border:2px solid var(--p-black);box-shadow:inset 6px 0 0 var(--p-black);background:var(--p-cream-lt)}
+.p-off-li.is-edit{border:2px solid var(--p-black);background:var(--p-yellow-lt)}
+button.p-off-li{cursor:pointer;font:inherit}
+button.p-off-li:hover{border-color:var(--p-black)}
+/* compact: list cards (no numbers); the title wraps to 2 lines instead of being cut */
+.p-off-li.is-compact{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"main act";padding:9px 12px;min-height:52px;gap:6px 10px}
+.p-off-li.is-compact .p-off-li-g{font-size:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.p-off-li.is-compact .p-off-li-foot{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;margin-top:2px}
+.p-off-li.is-compact .p-tag{height:22px;padding:0 7px}
+@media (max-width:700px){
+  .p-off-li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"main act" "nums nums"}
+  .p-off-li-nums .p-num{text-align:left}
+}
+
+/* 6 — imprint row */
+.p-off-imp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"id main act" ". note note";gap:6px 12px;align-items:center;
+  background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:10px 12px}
+.p-off-imp+.p-off-imp{margin-top:8px}
+.p-off-imp>.p-id{grid-area:id;align-self:start;font:800 16px/1 var(--p-sans);padding:6px 9px;letter-spacing:.02em}
+.p-off-imp-main{grid-area:main;min-width:0;display:flex;flex-direction:column;gap:2px}
+.p-off-imp-main b{font:800 15px/1.3 var(--p-sans);overflow-wrap:anywhere}
+.p-off-imp-main small{font-size:var(--p-fs-s);color:var(--p-ink-2);overflow-wrap:anywhere}
+.p-off-imp-act{grid-area:act;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.p-off-imp-act:empty{display:none}
+.p-off-imp-act .p-btn{min-height:36px;padding:0 10px;font-size:var(--p-fs-s)}
+.p-off-imp-note{grid-area:note;font-size:var(--p-fs-s);background:var(--p-cream-lt);border-radius:var(--p-r);padding:6px 8px;white-space:pre-wrap}
+.p-off-imp.is-edit{border:2px solid var(--p-black);background:var(--p-yellow-lt)}
+.p-off-imp.is-narrow{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"id main" "act act" "note note"}
+.p-off-imp.is-narrow .p-off-imp-act{justify-content:flex-start}
+@media (max-width:700px){ .p-off-imp{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"id main" "act act" "note note"} .p-off-imp-act{justify-content:flex-start} }
+
+/* 7 — price block: $/pc is the one Poppins number on the screen */
+.p-off-price{display:flex;flex-direction:column;gap:6px}
+.p-off-price .p-label{display:block}
+.p-off-price-big{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.p-off-price-big .p-big{color:var(--p-black)}
+.p-off-price-big small{font:700 var(--p-fs-m)/1 var(--p-sans);color:var(--p-ink-2)}
+.p-off-price-sub{font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.p-off-price-sub b{color:var(--p-black)}
+.p-off-price-cmp{display:flex;gap:var(--p-s5);flex-wrap:wrap;margin-top:4px}
+.p-off-price-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+
+/* 8 — checklist */
+.p-off-chk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:var(--p-fs-s)}
+.p-off-chk li{display:flex;gap:8px;align-items:flex-start;line-height:1.35}
+.p-off-chk li>i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--p-line-strong);display:inline-grid;place-items:center;font:900 var(--p-fs-xs)/1 var(--p-sans);margin-top:-1px}
+.p-off-chk li.is-done>i{background:var(--p-black);border-color:var(--p-black);color:var(--p-white)}
+.p-off-chk li.is-bad>i{border-color:var(--p-alert);color:var(--p-alert)}
+.p-off-chk li.is-opt{color:var(--p-ink-3)}
+
+/* 9 — step buttons (approvals): finished = black ✓, only the next step is yellow */
+.p-off-stepbar{display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr)) auto;gap:6px;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:6px}
+.p-off-step{display:flex;align-items:center;gap:8px;min-height:var(--p-tap);padding:0 12px;border:2px solid var(--p-line-strong);border-radius:var(--p-r);background:var(--p-white);color:var(--p-black);font:700 var(--p-fs-s)/1.2 var(--p-sans);text-align:left}
+.p-off-step>i{font-style:normal;flex:none;width:24px;height:24px;border-radius:50%;border:2px solid currentColor;display:inline-grid;place-items:center;font:900 var(--p-fs-xs)/1 var(--p-sans)}
+button.p-off-step{cursor:pointer}
+button.p-off-step:hover{border-color:var(--p-black)}
+.p-off-step.is-done{background:var(--p-black);border-color:var(--p-black);color:var(--p-white)}
+.p-off-step.is-done>i{background:var(--p-white);border-color:var(--p-white);color:var(--p-black)}
+.p-off-step.is-next{background:var(--p-yellow);border-color:var(--p-black);font-weight:800}
+.p-off-step:disabled{opacity:.5;cursor:default}
+.p-off-stepbar>.p-btn{min-height:var(--p-tap)}
+@media (max-width:699px){ .p-off-stepbar{grid-template-columns:repeat(2,minmax(0,1fr))} .p-off-stepbar>.p-btn{grid-column:1/-1} }
+
+/* 10 — order row (list card for an order) */
+.p-off-orow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"id cust cust" "id sub end";gap:2px 12px;align-items:center;width:100%;text-align:left;
+  background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:10px 12px;min-height:var(--p-tap-lg);cursor:pointer;color:var(--p-black);font:inherit}
+.p-off-orow+.p-off-orow{margin-top:6px}
+.p-off-orow:hover{border-color:var(--p-black)}
+.p-off-orow>.p-id{grid-area:id}
+.p-off-orow-cust{grid-area:cust;min-width:0;display:block;font:800 14px/1.3 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-off-orow-sub{grid-area:sub;min-width:0;display:block;font-size:var(--p-fs-s);color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-off-orow-end{grid-area:end;display:flex;align-items:center;gap:10px}
+.p-off-orow-end a{font:700 var(--p-fs-s)/1 var(--p-sans);white-space:nowrap;padding:6px 0}
+.p-off-orow.is-on{border:2px solid var(--p-black);box-shadow:inset 6px 0 0 var(--p-black);background:var(--p-cream)}
+.p-off-orow.is-has .p-off-orow-cust{color:var(--p-ink-2)}
+
+/* section label with a hint on the same line */
+.p-off-sec{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:0 0 10px}
+.p-off-sec .p-section{margin:0}
+.p-off-sec .p-hint{font-size:var(--p-fs-s)}
+.p-off-sec-end{margin-left:auto;display:flex;gap:8px;align-items:center}

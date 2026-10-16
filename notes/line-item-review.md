@@ -333,3 +333,23 @@ The Art Director asked for screenshots in comments, to point out small details t
   - Paste, file pick and ✕ work.
   - Post uploads to `fldIGuJmx4jPgYiB1` and then comments with the 📷 line and the mention; the thumbnail renders in the comment.
   - No errors.
+
+## 2026-10-16 · v19: the shared office look, art folder per order, done steps black
+**Why:** the review of the three order-path apps (Oct 16). Stephen's answers:
+- *"Step ② … → the real Create order."* The step nav's Order step opened the old mockup `pom-create-order-live.html`; it opens `create-order.html` now.
+- *"Art folder: one link per ORDER. LIR reads Orders › Artwork Folder Link first (fall back to the customer field / Customer Art if empty), and where LIR lets someone save an art folder, it saves to Orders › Artwork Folder Link."*
+- *"Price: Price-O-Matic wins for now; LIR may show Autoprice beside it for comparison (keep what it shows)."*
+- *"'Who are you' stays only in LIR."*
+- *"LIR step buttons: finished steps black (✓), only the next step to do is yellow."*
+
+**What changed (same Airtable writes as v18):**
+- The same black bar as Price-O-Matic and Create order: logo, LINE ITEM REVIEW, version, practice pill, **Quote › Order #11031 › Review**, who are you, Refresh, ⚙ (token, practice). Search, the five tabs and the salesperson chips are one filter row under it.
+- **Art folder:** reads Orders › Artwork Folder Link (`flddst7TDoJfSqb0s`, what Create order saves) first, then the customer's Customers › Art Folder (`fldxohp41phv6Qbms`). Customer art (`fldriiZiENIPeJRRV`) still shows as its own link. Line Item Review has no place to save a folder link (it didn't in v18 either), so nothing here writes one; "No art folder saved" points to Create order.
+- **Approval steps:** done = black with ✓, the next one = yellow, the rest white. When the proof is the next step, tapping it attaches the proof. Next → is black.
+- **The shared order header:** #, CUSTOMER, rep, Hard/ASAP + due, created, invoice fees, Art folder ↗, Customer art ↗, Airtable ↗ (this line), Archive order, lines · pcs · subtotal, and **Send for signature** top-right — greyed with "1 of 3 lines approved" until every line is approved, then yellow.
+- **List:** up to 460px wide on wide screens, and the line cards wrap the garment name onto a second line instead of cutting it. One status tag per line: Needs proof (white), Proof up (cream), Awaiting review / Quality ✓ · 1 to go (yellow), Ready to send (black).
+- Imprints, the price block ($/pc is the one Poppins number; Autoprice, margin/pc, margin and line margin beside it) and the line cards use the shared pieces. Box saves (Save notes, Save qty, Save price, Post, Save imprint) are black; the one yellow is the next step or Send.
+- Below 1200px it's one pane (the list, then the line, ‹ All line items goes back). On phones the approval steps show only in the bottom bar (they showed twice).
+- Fixed: closing the send sheet while page thumbnails were still drawing threw an error (v18 did it too).
+
+**Tested** with mocked Airtable, content API and worker (`office/v1/lir_cmp.js`): Awaiting review / Quality / Pricing approved and undo, sales notes, qty edit (M 20→22), price 14.75, a comment with @Whitney, an imprint nickname edit, a proof upload, Send for signature (PandaDoc through the worker + the order PATCH) and Archive. **The 13 writes are identical to v18.** The art folder link shows the order's folder for 11031 and falls back to the customer's for 11019. Practice: 0 writes. No page errors; nothing under 12px, one yellow button, no sideways scroll at 1920/1440/1280/1024/390.

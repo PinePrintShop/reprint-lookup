@@ -434,3 +434,23 @@ Built from the fresh mockup's flow on real data. It reuses pom-create-order-live
 - Same Airtable-token gate, plus a check that the token can read the Pine base. The route answers only pineprintshop.github.io.
 - Uses `PIPEDRIVE_KEY`. Optional extras: the `PIPEDRIVE_RECONNECT_KEY` secret and the `RECONNECT_BUDGET` variable.
 - Every existing route is unchanged; a unit test checks them against v22. Details and deploy steps: `notes/reconnect.md`.
+
+## 2026-10-16 — v18: the shared office look, two panes, no timer
+**Why:** the review of the three order-path apps (Oct 16): Create order had its own top bar, a timer nobody needed, the order list left ~70% of a 1920px screen empty, and yellow meant "add within a step" here but "the main action" elsewhere. Stephen's answers:
+- *"Remove Create order's timer/clock."*
+- *"Three apps sharing one look (pine-office-v1.css)."*
+- *"Art folder: one link per ORDER."* (Create order already saves it to Orders › Artwork Folder Link `flddst7TDoJfSqb0s`; unchanged.)
+- *"Step ② and the quote button → the real Create order."* (Price-O-Matic v106 and Line Item Review v19 now open this app.)
+- *"Inks stay in Proofing Notes (no change)."*
+
+**What changed (same Airtable reads and writes as v17):**
+- The same black bar as Price-O-Matic and Line Item Review: logo, CREATE ORDER, version, practice pill, the step nav **Quote › Order #11042 › Review** (Review opens Line Item Review on this order), Refresh (reloads the list and checks for a new version), ⚙ (token, practice). The timer is gone.
+- From 1200px: **two panes**. Orders waiting for proof on the left (search + Needs lines / Has lines / All in the filter row), the picked order on the right; each scrolls on its own. **Hide list** gives the order the whole width (remembered on this computer). Below 1200px it's the v17 flow: the list, then the order.
+- **The shared order header** stays at the top of the order: #, CUSTOMER, rep, Hard/ASAP + due date (Hard Deadline is now read for this), Deal ↗, Art folder ↗, Airtable ↗, Change order, lines · pcs · total, and the one yellow button top-right: **Create order** ("Finish the checklist first" until it's ready), then **Review 11042 →**. The totals and the Create button moved there from the side column, which keeps the checklist (done = black ✓) and the emails.
+- Add imprint / Add line item / Done are black now; yellow is only Create order. Picked buttons are black with yellow text.
+- Imprints and line items use the shared cards: ID badges, one status tag (✓ Ready / what's missing), pcs · $/pc · line total.
+- Pine style v2: four colors, no Courier, nothing under 12px (14 rules were), toasts are the kit's.
+- Self-update: `pine-update.js` → `create-order.html`; it won't reload while an order is being filled in.
+- The hidden pricing engine loads `price-o-matic-v106.html` (its pricing script is byte-identical to v105).
+
+**Tested** with mocked Airtable / Pipedrive / vendors (`office/v1/co_cmp.js`): the full flow — a repeat imprint (10612-A), a back print with an ink change and print notes, an embroidery imprint, 1717 Graphite with pasted sizes and notes, same garment next color with Pine's mix and a typed price, fixing Moss's spelling from the vendor check (PATCH Garments › Colorway), Bandana 4800 one size with shipping notes, the art folder link, Create. **The 6 writes are identical to v17** (Garment colorway PATCH, 3 imprint POSTs, line item POST, Orders › Artwork Folder Link PATCH). Practice: 0 writes. No page errors; nothing under 12px, one yellow button, no sideways scroll at 1920/1440/1280/1024/390.
