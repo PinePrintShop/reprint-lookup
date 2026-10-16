@@ -159,3 +159,5 @@ Each customer gets a one-line **Why now**, e.g. "Ordered in Feb 2025 and Mar 202
 - **Now:** if the Pipedrive org owner is no longer an active rep, the customer goes to the rep on their newest order who is still active (Chris, Patrick or Garrett). The detail says "newest order with an active rep (Pipedrive owner … has left)".
 - **Unassigned:** only customers with no active rep on any order show as "Unassigned (was …)". Active Pipedrive owners still win over the order rep.
 - **Tested:** the v4 suite on v5. The 4 checks that expected Grant- or Stephen-owned orgs to be Unassigned now show the latest active order rep, as intended. The other 87 checks pass, with 0 writes and no page errors.
+
+- **2026-10-16:** Stephen deployed worker v23. The code in Cloudflare matches `workers/pine-workers-v23.js`. Stephen confirmed Reconnect shows Pipedrive owners and last contact ("it is working!").
