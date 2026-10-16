@@ -91,3 +91,7 @@
 
 ## 2026-10-15 · Stephen on v174
 "Don't love the Central... we can work on that later." v174 stays live for now. Before the next Central version, ask what isn't working (the slim menu, the white tiles, the press band, or the app-open view).
+
+## 2026-10-16 · v175: KPIs open the permanent link
+- KPIs now have a permanent link, `pine-kpi.html`, which points at KPIs v23 (math matched to Airtable's KPI Tracker). Central's KPIs tile opens it, so future KPI versions show up without a new Central.
+- Nothing else changed.

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<!-- KPIs v23 (2026-10-16): the math now matches Airtable's KPI Tracker (Production Overview interface), tile for tile.
+     Stephen: "KPIs math is all wrong so maybe you scan those to really dial that in to match the Airtable KPI interface".
+     How: every KPI Tracker element was reverse-engineered on Oct 16 by pulling the exact records Airtable aggregates and
+     matching them record-for-record (notes/kpis.md has each filter and the values that day). This app pulls the same
+     fields through the REST API (all pages, no caps) and applies the same filters and the same median / average / sum.
+     Fixed from v22: hard-coded proof turn (6.4h) and embroidery spoilage (0%); print and bandana spoilage were one number
+     (a median over Order Issues); most tiles used the record's created date instead of the date the work happened;
+     fetches stopped after 1-6 pages; medians where Airtable averages and the other way round; "POs" counted line items.
+     Two Airtable tiles don't do what their subtitle says; this app shows what the subtitle says and the note under the
+     tile explains (Screens Scheduled "next 7 days" sums the PAST week in Airtable; Impressions Scheduled is this
+     calendar week, Sun-Sat). Read-only: never writes to Airtable. Pine style v2, self-update (pine-update.js). -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPIs v23 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<script src="pine-update.js" data-link="pine-kpi.html"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+.wrap{padding:20px max(16px,env(safe-area-inset-left,0px)) 48px;display:grid;gap:28px;max-width:2000px;margin:0 auto}
+.sec{display:grid;gap:12px;min-width:0}
+.sec-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sec-h h2{font:900 18px/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.02em;word-spacing:.1em}
+.sec-h p{font-size:14px;color:var(--p-ink-2)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.tile{background:#fff;border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.tile .lab{font:700 13px/1.25 var(--p-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--p-ink-2)}
+.tile .val{font:900 34px/1 var(--p-display);font-variant-numeric:tabular-nums;color:var(--p-black)}
+.tile .val small{font:700 16px var(--p-sans);margin-left:4px;color:var(--p-ink-2)}
+.tile .how{font-size:13px;color:var(--p-ink-2);line-height:1.35}
+.tile .bm{justify-self:start;font:700 12px/1 var(--p-sans);letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:5px 9px;border:1.5px solid var(--p-black);color:var(--p-black);background:#fff}
+.tile .bm.ok{background:var(--p-black);color:#fff}
+.tile .bm.over{border-color:var(--p-alert);color:var(--p-alert)}
+.tile.is-load .val{color:var(--p-ink-3)}
+.tile .flag{font-size:13px;color:var(--p-black);background:var(--p-yellow-lt);border-radius:6px;padding:6px 8px;line-height:1.35}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:12px}
+.chart{background:#fff;border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:14px 16px;display:grid;gap:10px;min-width:0}
+.chart h3{font:700 14px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--p-ink-2)}
+.bars{display:flex;align-items:flex-end;gap:6px;height:150px;min-width:0}
+.bar{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+.bar .n{font:700 12px/1 var(--p-sans);font-variant-numeric:tabular-nums;color:var(--p-black);white-space:nowrap}
+.bar .f{width:100%;max-width:44px;background:var(--p-black);border-radius:4px 4px 0 0;min-height:2px}
+.bar.cur .f{background:var(--p-yellow);box-shadow:inset 0 0 0 2px var(--p-black)}
+.bar .l{font:700 12px/1 var(--p-sans);color:var(--p-ink-2);white-space:nowrap}
+.chart .sub{font-size:13px;color:var(--p-ink-2)}
+.msg{background:#fff;border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:20px;font-size:16px}
+.msg b{display:block;margin-bottom:4px}
+.err{color:var(--p-alert)}
+.stamp{font-size:13px;color:var(--p-ink-2)}
+@media (max-width:640px){
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tile .val{font-size:28px}
+  .bars{gap:3px}.bar .n{font-size:12px}
+}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">KPIs</span><span class="p-bar-ver" id="ver">v23</span>
+  <div class="p-bar-sp">
+    <span class="stamp" id="stamp" style="color:rgba(255,255,255,.7)"></span>
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Reload from Airtable and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="p-menu" id="gear" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row"><div class="p-menu-label">Airtable token</div>
+      <div class="p-menu-line"><input id="tokIn" class="p-input" type="password" placeholder="pat…" autocomplete="off" aria-label="Airtable token"><button class="p-btn p-btn-dark" id="tokSave" type="button">Save</button></div>
+      <p id="tokHint"></p></div>
+    <div class="p-menu-row"><div class="p-menu-label">Read-only</div><p>This app only reads Airtable. The numbers use the same filters as Airtable's KPI Tracker (Production Overview).</p></div>
+  </div>
+</header>
+<main class="wrap" id="main"><div class="msg"><b>Loading…</b></div></main>
+<script>
+/* ===================== data ===================== */
+var BASE='appJkaLk8DykjsgHR',T_IMP='tbln9oAGvz2PNBZLV',T_LI='tblJx5UlwO7oMSk5H',T_ORD='tbl8Tf0AeS9gnHOOS',T_OI='tblEplYB3mtIBBcpi';
+// Imprints
+var I={turn:'fld1JsIFaaiWJoa8S',compl:'fldqPPnoNBuG73NyO',status:'fldNROVFSsBwLUOYW',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',equip:'fldv59OGU7EkBVofo',
+  allImp:'fld6gdEkaxIsjc0hG',actImp:'fldFipR4ddfqMPeAX',sched:'fldfqtIgcEfIlIeQk',screens:'fld8rgkIj1RPO97QU',burned:'fldEL51Nwrxuyn9Zo',burnedTs:'fldGE6YUG5NWIqq1g',
+  burnedDate:'fldzW4FHaX6ipY1ND',burnToPrint:'flddpzGNmklf5IyBX',screenTurn:'fld9fDRePPzrjJ5Ru',inks:'fld2a1CPcDMSD26PS',inksTs:'fldnNmTNevL1AHrXQ',inksToPrint:'fldTo1tati3FDI9yc'};
+// Line Items
+var L={type:'fld8LIkrBXv8WoRRb',total:'fldSMd8DkbypJiw2W',compl:'fldCEQUcgB8y1Mz8j',spoil:'fldssUScI3ocKv4W2',ploc:'fldOUb7DhzLBv2fC6',created:'fldl02e7TiLPg4v47',
+  status:'fldpCv8bxptGJ1gty',proofOk:'fldsVU7LXUN6LszvB',proofTime:'flddS4sRsVpAx65om',sepTs:'fldNUizijJ6KtCelU',sepTurn:'fldGvYqAaJKCC986S',impTypes:'fldRUAA4otOBtpABJ',
+  proofTs:'fldBZ0wfCG5nwqquj',pay:'fld1gvgoPhrHat4SE',tto:'fldZ0x5NHsTKyO4vj',recvTs:'fldmMViJMYizJfOev',rtp:'fldOzaoH7VoAdBSZV',ttr:'fldwISR19ZMfAQTS2',ordTs:'fldhDUejzo0Q4X92k',
+  received:'fldwaSkM0sJJ2oYsQ',supp:'fldj5Oq8JVUocLzS2',qty:'fldFfuKAcduwWQp8g',schedP:'fldtApg3WIZJHtarm',schedE:'fldNCZiwiXafhl7y3'};
+// Orders, Order Issues
+var O={status:'fldhS4z28CdGmS1j5',dtp:'fldJQVIGkEoCtxyz5',paid:'fld0PV2voxceYy9aQ'};
+var Q={cat:'fldl1rfconiE3AS4Z',res:'fldAT3sfeVSAqTRvk',ok:'fldpiZYluCb72W1vs',refund:'fldKpxD1dxMGnfVmr'};
+
+var SP_TYPES=['Discharge','No Base W/B','Bleed Blocker + W/B','EZP Base + W/B'];
+var SEP_TYPES=SP_TYPES.concat(['Flatstock']);
+var PATCH_TYPES=['Patch Application','Woven Label Application','Hem Label Application'];
+var EMB_CHART_TYPES=['Embroidery','Patch Application','Hem Label Application','Woven Label Application','Decopress - Leather','Decopress - Woven / Twill'];
+// A line item with more than one Order Issue looks up several spoilage values (one per issue). The API can't show how
+// Airtable's tile combines them. 'sum' (the line's total spoilage) gives 2.85% bandana on Oct 16; 'mean' 2.27%,
+// 'first' 2.23%. Check the live Bandana Spoilage tile and switch if it differs (notes/kpis.md).
+var SPOIL_RULE='sum';
+
+/* ===================== helpers ===================== */
+function $(id){return document.getElementById(id);}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+function token(){return store('pine_at_key')||'';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+var TZ='America/Denver';
+var fmtD=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'});
+function denverDate(ts){ if(!ts) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(ts)) return ts; /* a plain date stays as written */ var d=new Date(ts); if(isNaN(d)) return ''; return fmtD.format(d); }   // timestamp -> YYYY-MM-DD in Denver
+function first(v){ return Array.isArray(v)?v[0]:v; }
+function num(v){ v=first(v); if(v==null||v==='') return NaN; if(typeof v==='object') return NaN; var n=Number(v); return isFinite(n)?n:NaN; }  // {error:...} -> NaN
+function str(v){ if(v==null) return ''; if(Array.isArray(v)) return v.map(str).join(', '); if(typeof v==='object') return v.name||''; return String(v); }
+function addDays(ds,n){ var d=new Date(ds+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+function median(a){ if(!a.length) return NaN; var s=a.slice().sort(function(x,y){return x-y;}),m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function mean(a){ return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:NaN; }
+function sum(a){ return a.reduce(function(x,y){return x+y;},0); }
+var TODAY,Y0;   // Denver today, Jan 1 this year
+function within(ds,from,to){ return !!ds&&ds>=from&&ds<=to; }
+function pastDays(ds,n){ return within(ds,addDays(TODAY,-n),TODAY); }          // Airtable "past N days" / "past week" (n=7): today-n .. today
+function thisMonth(ds){ return !!ds&&ds.slice(0,7)===TODAY.slice(0,7); }
+function thisYear(ds){ return !!ds&&ds.slice(0,4)===TODAY.slice(0,4); }
+function weekStart(ds){ var d=new Date(ds+'T12:00:00Z'); return addDays(ds,-d.getUTCDay()); }   // Sunday
+function schedDate(v){ v=first(v); return v?String(v).slice(0,10):''; }   // Scheduled Start is shop time stored as UTC: take the date as written
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ===================== Airtable ===================== */
+var LOADING=false;
+async function pull(table,fields,formula){
+  var out=[],off=null,p=0;
+  do{
+    var u='https://api.airtable.com/v0/'+BASE+'/'+table+'?returnFieldsByFieldId=true&pageSize=100'+fields.map(function(f){return '&fields%5B%5D='+f;}).join('')+(formula?'&filterByFormula='+encodeURIComponent(formula):'')+(off?'&offset='+encodeURIComponent(off):'');
+    var r=await fetch(u,{headers:{Authorization:'Bearer '+token()}});
+    if(!r.ok){ var t=''; try{t=(await r.json()).error;t=t&&(t.message||t.type)||'';}catch(e){} var e=new Error('Airtable '+r.status+(t?': '+t:'')); e.status=r.status; throw e; }
+    var d=await r.json(); out=out.concat(d.records||[]); off=d.offset||null; p++;
+  }while(off&&p<400);
+  return out;
+}
+function vals(o){ return Object.keys(o).map(function(k){return o[k];}); }
+
+/* ===================== page ===================== */
+function tile(t){
+  var bm=t.bm?'<span class="bm '+(t.ok===true?'ok':t.ok===false?'over':'')+'">'+esc(t.bm)+'</span>':'';
+  return '<div class="tile"><div class="lab">'+esc(t.lab)+'</div><div class="val">'+t.val+'</div>'+bm+(t.how?'<div class="how">'+esc(t.how)+'</div>':'')+(t.flag?'<div class="flag">'+esc(t.flag)+'</div>':'')+'</div>';
+}
+function bars(title,keys,values,labels,cur,fmt,sub){
+  var mx=Math.max.apply(null,values.map(function(v){return isFinite(v)?v:0;}))||1;
+  return '<div class="chart"><h3>'+esc(title)+'</h3><div class="bars">'+keys.map(function(k,i){var v=values[i],ok=isFinite(v);
+    return '<div class="bar'+(k===cur?' cur':'')+'"><span class="n">'+(ok?fmt(v):'—')+'</span><span class="f" style="height:'+(ok?Math.max(2,Math.round(v/mx*112)):0)+'px"></span><span class="l">'+esc(labels[i])+'</span></div>';}).join('')+'</div>'+(sub?'<div class="sub">'+esc(sub)+'</div>':'')+'</div>';
+}
+function sec(title,note,body){ return '<section class="sec"><div class="sec-h"><h2>'+esc(title)+'</h2>'+(note?'<p>'+esc(note)+'</p>':'')+'</div>'+body+'</section>'; }
+function d1(v){ return isFinite(v)?(Math.round(v*10)/10).toLocaleString():'—'; }
+function d0(v){ return isFinite(v)?Math.round(v).toLocaleString():'—'; }
+function money(v){ return isFinite(v)?'$'+Math.round(v).toLocaleString():'—'; }
+function kmoney(v){ return !isFinite(v)?'—':v>=1000?'$'+(Math.round(v/100)/10).toLocaleString()+'k':'$'+Math.round(v); }
+function kn(v){ return !isFinite(v)?'—':v>=10000?(Math.round(v/100)/10)+'k':Math.round(v).toLocaleString(); }
+function pct(v){ return isFinite(v)?(Math.round(v*1000)/10).toFixed(1)+'%':'—'; }
+function hm(sec){ if(!isFinite(sec)) return '—'; var m=Math.round(sec/60); return Math.floor(m/60)+':'+String(m%60).padStart(2,'0'); }
+function days(v,unit){ return isFinite(v)?d1(v)+'<small>'+(unit||'days')+'</small>':'—'; }
+function lastMonths(n){ var out=[],y=+TODAY.slice(0,4),m=+TODAY.slice(5,7); for(var i=n-1;i>=0;i--){ var mm=m-i,yy=y; while(mm<1){mm+=12;yy--;} out.push(yy+'-'+String(mm).padStart(2,'0')); } return out; }
+function monthsThisYear(){ var out=[],m=+TODAY.slice(5,7); for(var i=1;i<=m;i++) out.push(TODAY.slice(0,4)+'-'+String(i).padStart(2,'0')); return out; }
+function mlab(k){ return MON[+k.slice(5,7)-1]; }
+
+async function load(manual){
+  if(!token()){ showMenu(true); $('main').innerHTML='<div class="msg"><b>Add your Airtable token</b>Open ⚙ (top right) and paste it. It stays on this computer.</div>'; return; }
+  if(LOADING) return; LOADING=true;
+  TODAY=denverDate(Date.now()); Y0=TODAY.slice(0,4)+'-01-01';
+  if(manual||!$('main').querySelector('.sec')) $('main').innerHTML='<div class="msg"><b>Loading from Airtable…</b>Pulling this year\'s imprints, line items, orders and order issues. This takes a few seconds.</div>';
+  try{
+    var liCut=(+TODAY.slice(0,4)-1)+'-08-01';
+    var R=await Promise.all([
+      // 1. imprints whose order completed in the last ~year (turnaround, impressions)
+      pull(T_IMP,[I.turn,I.compl,I.status,I.type,I.loc,I.equip,I.allImp],'IS_AFTER({'+I.compl+'},DATEADD(TODAY(),-380,"days"))').catch(function(e){
+        if(e.status!==422) throw e;   // a formula Airtable can't read on the rollup: fall back to created time
+        return pull(T_IMP,[I.turn,I.compl,I.status,I.type,I.loc,I.equip,I.allImp],'IS_AFTER(CREATED_TIME(),DATEADD(TODAY(),-560,"days"))'); }),
+      // 2. screens burned this year / last 40 days
+      pull(T_IMP,[I.screens,I.burned,I.burnedTs,I.burnedDate,I.burnToPrint,I.screenTurn],'OR(IS_AFTER({'+I.burnedTs+'},DATEADD(TODAY(),-40,"days")),YEAR({'+I.burnedDate+'})=YEAR(TODAY()))'),
+      // 3. inks ready in the last 35 days
+      pull(T_IMP,[I.inks,I.inksTs,I.inksToPrint],'AND({'+I.inks+'},IS_AFTER({'+I.inksTs+'},DATEADD(TODAY(),-35,"days")))'),
+      // 4. on the schedule from 15 days ago to 15 days ahead
+      pull(T_IMP,[I.sched,I.actImp,I.screens,I.status],'AND(IS_AFTER({'+I.sched+'},DATEADD(TODAY(),-15,"days")),IS_BEFORE({'+I.sched+'},DATEADD(TODAY(),15,"days")))'),
+      // 5. line items created since Aug 1 last year (spoilage, proofs, seps, purchasing, completed value)
+      pull(T_LI,vals(L),'IS_AFTER(CREATED_TIME(),"'+liCut+'")'),
+      // 6. open line items (incomplete work, scheduled value), any age
+      pull(T_LI,[L.type,L.total,L.status,L.pay,L.schedP,L.schedE],'AND(NOT(FIND("Completed",ARRAYJOIN({'+L.status+'}))),NOT(FIND("Cancelled",ARRAYJOIN({'+L.status+'}))),OR(ARRAYJOIN({'+L.pay+'})!="",ARRAYJOIN({'+L.schedP+'})!="",ARRAYJOIN({'+L.schedE+'})!=""))'),
+      // 7. orders created this month
+      pull(T_ORD,[O.status,O.dtp,O.paid],'IS_AFTER(CREATED_TIME(),DATEADD(TODAY(),-32,"days"))'),
+      // 8. order issues created this year
+      pull(T_OI,[Q.cat,Q.res,Q.ok,Q.refund],'IS_AFTER(CREATED_TIME(),DATEADD(TODAY(),-370,"days"))')
+    ]);
+    render(compute({done:R[0],burn:R[1],inks:R[2],sched:R[3],li:R[4],open:R[5],ord:R[6],oi:R[7]}));
+    $('stamp').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  }catch(e){
+    $('main').innerHTML='<div class="msg"><b class="err">Couldn\'t load from Airtable</b>'+esc(e.message)+(e.status===401||e.status===403?' · check the token in ⚙.':'')+'</div>';
+  }finally{ LOADING=false; }
+}
+
+/* ===================== the KPI Tracker math (filters from notes/kpis.md) ===================== */
+function compute(D){
+  var K={};
+  // ---- Turnaround: Payment Received -> Scheduled Start, work days. Order completed in the past 30 days, status Completed. Median.
+  var done30=D.done.filter(function(r){var f=r.fields; return pastDays(str(first(f[I.compl])).slice(0,10),30)&&str(f[I.status])==='Completed';});
+  function ta(pred){ var v=done30.filter(function(r){return pred(r.fields);}).map(function(r){return num(r.fields[I.turn]);}).filter(isFinite); return {v:median(v),n:v.length}; }
+  K.taPrint=ta(function(f){return SP_TYPES.indexOf(str(f[I.type]))>-1&&str(f[I.loc])!=='Bandana';});
+  K.taBand=ta(function(f){return str(f[I.loc])==='Bandana';});
+  K.taHeat=ta(function(f){return /^heat press/i.test(str(f[I.equip]));});
+  K.taEmb=ta(function(f){return str(f[I.type])==='Embroidery';});
+  K.taPatch=ta(function(f){return PATCH_TYPES.indexOf(str(f[I.type]))>-1;});
+  K.impDone30={v:sum(done30.map(function(r){var n=num(r.fields[I.allImp]);return isFinite(n)?n:0;})),n:done30.length};
+  // Median turnaround by month: order completed in the past year (no status filter)
+  var yAgo=(+TODAY.slice(0,4)-1)+TODAY.slice(4), taMo={};
+  D.done.forEach(function(r){var f=r.fields,d=str(first(f[I.compl])).slice(0,10),t=num(f[I.turn]); if(d&&d>=yAgo&&d<=TODAY&&isFinite(t)){(taMo[d.slice(0,7)]=taMo[d.slice(0,7)]||[]).push(t);}});
+  K.taMo=taMo;
+  // Impressions by month this year: status Completed, order completed this year, sum of all-time impressions
+  var impMo={},impSP={},impEmb={};
+  D.done.forEach(function(r){var f=r.fields,d=str(first(f[I.compl])).slice(0,10); if(!thisYear(d)||d>TODAY||str(f[I.status])!=='Completed') return;
+    var n=num(f[I.allImp]); n=isFinite(n)?n:0; var m=d.slice(0,7), t=str(f[I.type]);
+    impMo[m]=(impMo[m]||0)+n; if(SP_TYPES.indexOf(t)>-1) impSP[m]=(impSP[m]||0)+n; if(EMB_CHART_TYPES.indexOf(t)>-1) impEmb[m]=(impEmb[m]||0)+n; });
+  K.impMo=impMo; K.impSP=impSP; K.impEmb=impEmb;
+  // ---- Schedule
+  var wk0=weekStart(TODAY), wk1=addDays(wk0,6), nx=addDays(TODAY,7);
+  var schWeek=D.sched.filter(function(r){var f=r.fields;return within(schedDate(f[I.sched]),wk0,wk1)&&str(f[I.status]).indexOf('Complete')<0;});
+  K.impSched={v:sum(schWeek.map(function(r){var n=num(r.fields[I.actImp]);return isFinite(n)?n:0;})),n:schWeek.length};
+  var scrNext=D.sched.filter(function(r){return within(schedDate(r.fields[I.sched]),TODAY,nx);});
+  K.scrSched={v:sum(scrNext.map(function(r){var n=num(r.fields[I.screens]);return isFinite(n)?n:0;})),n:scrNext.length};
+  var schToday=D.sched.filter(function(r){return schedDate(r.fields[I.sched])===TODAY;});
+  K.today={imp:sum(schToday.map(function(r){var n=num(r.fields[I.actImp]);return isFinite(n)?n:0;})),jobs:schToday.length};
+  // ---- Screens
+  function bts(r){return denverDate(r.fields[I.burnedTs]);}
+  var b7=D.burn.filter(function(r){return pastDays(bts(r),7);}), bMo=D.burn.filter(function(r){return thisMonth(bts(r));});
+  function scr(a){return sum(a.map(function(r){var n=num(r.fields[I.screens]);return isFinite(n)?n:0;}));}
+  K.scr7={v:scr(b7),n:b7.length}; K.scrMo={v:scr(bMo),n:bMo.length};
+  var turnMo=bMo.filter(function(r){return r.fields[I.burned];}).map(function(r){return num(r.fields[I.screenTurn]);}).filter(isFinite);
+  K.scrTurn={v:mean(turnMo),n:turnMo.length};
+  var b2p=D.burn.filter(function(r){return r.fields[I.burned]&&pastDays(bts(r),30);}).map(function(r){return num(r.fields[I.burnToPrint]);}).filter(isFinite);
+  K.burnToPrint={v:mean(b2p),n:b2p.length};
+  var scrYr={}; D.burn.forEach(function(r){var d=str(r.fields[I.burnedDate]).slice(0,10); if(thisYear(d)&&d<=TODAY){var n=num(r.fields[I.screens]);scrYr[d.slice(0,7)]=(scrYr[d.slice(0,7)]||0)+(isFinite(n)?n:0);}});
+  K.scrYr=scrYr;
+  K.today.screens=sum(D.burn.filter(function(r){return bts(r)===TODAY;}).map(function(r){var n=num(r.fields[I.screens]);return isFinite(n)?n:0;}));
+  // ---- Inks ready: days before print, median, inks ready in the past 30 days
+  var ink=D.inks.filter(function(r){return r.fields[I.inks]&&pastDays(denverDate(r.fields[I.inksTs]),30);}).map(function(r){return num(r.fields[I.inksToPrint]);}).filter(isFinite);
+  K.inks={v:median(ink),n:ink.length};
+  K.today.inks=D.inks.filter(function(r){return r.fields[I.inks]&&denverDate(r.fields[I.inksTs])===TODAY;}).length;
+  // ---- Line items
+  function lt(f){var n=num(f[L.total]);return isFinite(n)?n:0;}
+  function ptype(f){return str(f[L.type]);}
+  function lstat(f){return str(f[L.status]);}
+  var PA='Printed Apparel',EA='Embroidered Apparel';
+  function compl7(t){var a=D.li.filter(function(r){return ptype(r.fields)===t&&pastDays(str(first(r.fields[L.compl])).slice(0,10),7);});return {v:sum(a.map(function(r){return lt(r.fields);})),n:a.length};}
+  K.compP=compl7(PA); K.compE=compl7(EA);
+  function sched7(t,fld){var a=D.open.filter(function(r){var f=r.fields;return ptype(f)===t&&within(schedDate(f[fld]),TODAY,nx)&&lstat(f).indexOf('Completed')<0;});return {v:sum(a.map(function(r){return lt(r.fields);})),n:a.length};}
+  K.schP=sched7(PA,L.schedP); K.schE=sched7(EA,L.schedE);
+  function incomplete(t){var a=D.open.filter(function(r){var f=r.fields,s=lstat(f);return ptype(f)===t&&str(f[L.pay])!==''&&s.indexOf('Completed')<0&&s.indexOf('Cancelled')<0;});return {v:sum(a.map(function(r){return lt(r.fields);})),n:a.length};}
+  K.incP=incomplete(PA); K.incE=incomplete(EA);
+  // proof turn: line created this month, not cancelled, proof quality approved; median seconds
+  var pt=D.li.filter(function(r){var f=r.fields;return thisMonth(denverDate(f[L.created]||r.createdTime))&&lstat(f).indexOf('Cancelled')<0&&f[L.proofOk];}).map(function(r){return num(r.fields[L.proofTime]);}).filter(isFinite);
+  K.proof={v:median(pt),n:pt.length};
+  // sep turn: sep'd in the past 30 days, screen-print imprints only; median work days
+  var sp=D.li.filter(function(r){var f=r.fields,ty=[].concat(f[L.impTypes]||[]).map(str);return pastDays(denverDate(first(f[L.sepTs])),30)&&ty.length&&ty.every(function(t){return SEP_TYPES.indexOf(t)>-1;});}).map(function(r){return num(r.fields[L.sepTurn]);}).filter(isFinite);
+  K.sep={v:median(sp),n:sp.length};
+  // proofs approved per week (Sun-Sat), last 9 weeks
+  var pw={},w0=addDays(wk0,-56); D.li.forEach(function(r){var d=denverDate(r.fields[L.proofTs]); if(d&&d>=w0&&d<=TODAY){var w=weekStart(d);pw[w]=(pw[w]||0)+1;}}); K.proofWk=pw;
+  // purchasing
+  var tto=D.li.filter(function(r){return thisMonth(denverDate(first(r.fields[L.pay])));}).map(function(r){return num(r.fields[L.tto]);}).filter(function(n){return isFinite(n)&&n>0;});
+  K.tto={v:median(tto),n:tto.length};
+  var rtp=D.li.filter(function(r){var f=r.fields;return pastDays(denverDate(f[L.recvTs]),30)&&(ptype(f)===PA||ptype(f)===EA);}).map(function(r){return num(r.fields[L.rtp]);}).filter(function(n){return isFinite(n)&&n>0;});
+  K.rtp={v:median(rtp),n:rtp.length};
+  var ttrRecs=D.li.filter(function(r){var f=r.fields;return pastDays(denverDate(f[L.ordTs]),30)&&f[L.received];});
+  function ttr(match){var a=ttrRecs.filter(function(r){return !match||str(r.fields[L.supp]).indexOf(match)>-1;}).map(function(r){return num(r.fields[L.ttr]);}).filter(isFinite);return {v:median(a),n:a.length};}
+  K.ttr=ttr(''); K.ttrSS=ttr('S&S'); K.ttrSM=ttr('Sanmar'); K.ttrCC=ttr('Carolina Creative'); K.ttrAS=ttr('AS Colour');
+  var recvToday=D.li.filter(function(r){return denverDate(r.fields[L.recvTs])===TODAY&&r.fields[L.received];});
+  K.today.garments=sum(recvToday.map(function(r){var n=num(r.fields[L.qty]);return isFinite(n)?n:0;})); K.today.lines=recvToday.length;
+  // spoilage: average over every line in the set (no Order Issue = 0)
+  function spoil(f){ var v=f[L.spoil]; if(Array.isArray(v)){ var a=v.map(Number).filter(isFinite); if(!a.length) return 0; return SPOIL_RULE==='sum'?sum(a):SPOIL_RULE==='first'?a[0]:mean(a); } var n=Number(v); return isFinite(n)?n:0; }
+  function isBand(f){ return [].concat(f[L.ploc]||[]).map(str).join(', ').indexOf('Bandana')>-1; }
+  function spAvg(pred,win){ var a=D.li.filter(function(r){var f=r.fields,d=str(first(f[L.compl])).slice(0,10);return win(d)&&pred(f);}); return {v:mean(a.map(function(r){return spoil(r.fields);})),n:a.length}; }
+  var p30=function(d){return pastDays(d,30);};
+  K.spBand=spAvg(isBand,p30);
+  K.spPrint=spAvg(function(f){return ptype(f)===PA&&!isBand(f);},p30);
+  K.spEmb=spAvg(function(f){return ptype(f)===EA;},p30);
+  var spAll={},spB={}; D.li.forEach(function(r){var f=r.fields,d=str(first(f[L.compl])).slice(0,10); if(!thisYear(d)||d>TODAY) return; var m=d.slice(0,7),s=spoil(f); (spAll[m]=spAll[m]||[]).push(s); if(isBand(f)) (spB[m]=spB[m]||[]).push(s);});
+  K.spAll=spAll; K.spB=spB;
+  // ---- Sales
+  var om=D.ord.filter(function(r){return thisMonth(denverDate(r.createdTime));});
+  K.orders={v:om.filter(function(r){return str(r.fields[O.status])!=='Cancelled / Voided';}).length};
+  var dtp=om.filter(function(r){return r.fields[O.paid]!=null&&r.fields[O.paid]!=='';}).map(function(r){return num(r.fields[O.dtp]);}).filter(isFinite);
+  K.dtp={v:mean(dtp),n:dtp.length};
+  // ---- Quality (Order Issues created this year)
+  var qc={},rp={},rf={};
+  D.oi.forEach(function(r){var d=denverDate(r.createdTime); if(!thisYear(d)) return; var m=d.slice(0,7),f=r.fields,res=str(f[Q.res]);
+    if(str(f[Q.cat])==='Customer Initiated') qc[m]=(qc[m]||0)+1;
+    if(res==='RE-PRINT'&&f[Q.ok]) rp[m]=(rp[m]||0)+1;
+    if(res==='REFUND'&&f[Q.ok]){var n=num(f[Q.refund]);rf[m]=(rf[m]||0)+(isFinite(n)?n:0);} });
+  K.qc=qc; K.rp=rp; K.rf=rf;
+  return K;
+}
+
+/* ===================== render ===================== */
+function bmLow(v,lim,label){ return isFinite(v)?{bm:label,ok:v<=lim}:{}; }
+function bmHigh(v,lim,label){ return isFinite(v)?{bm:label,ok:v>=lim}:{}; }
+function T(o,extra){ return tile(Object.assign(o,extra||{})); }
+function render(K){
+  var curM=TODAY.slice(0,7), h='';
+  h+=sec('Today','',
+    '<div class="tiles">'+
+    T({lab:'Impressions on today\'s schedule',val:kn(K.today.imp),how:K.today.jobs+' imprint'+(K.today.jobs===1?'':'s')+' scheduled today, not yet completed'})+
+    T({lab:'Screens burned today',val:d0(K.today.screens)})+
+    T({lab:'Garments received today',val:d0(K.today.garments),how:K.today.lines+' line item'+(K.today.lines===1?'':'s')})+
+    T({lab:'Inks ready today',val:d0(K.today.inks),how:'imprints marked Inks Ready'})+
+    '</div>');
+  h+=sec('Turnaround','Payment received → scheduled print, work days · median · orders completed in the past 30 days',
+    '<div class="tiles">'+
+    T({lab:'Printed apparel',val:days(K.taPrint.v),how:K.taPrint.n+' imprints · screen print, not bandanas'})+
+    T({lab:'Bandanas',val:days(K.taBand.v),how:K.taBand.n+' imprints'})+
+    T({lab:'Heat press',val:days(K.taHeat.v),how:K.taHeat.n+' imprints'})+
+    T({lab:'Embroidery',val:days(K.taEmb.v),how:K.taEmb.n+' imprints'})+
+    T({lab:'Patch & label apps',val:days(K.taPatch.v),how:K.taPatch.n+' imprints'})+
+    '</div>'+
+    '<div class="charts">'+(function(){var ks=lastMonths(13);return bars('Median turnaround by month',ks,ks.map(function(k){return K.taMo[k]?median(K.taMo[k]):NaN;}),ks.map(mlab),curM,d1,'Work days, payment → print · by the month the order was completed · past year');})()+'</div>');
+  h+=sec('Production','',
+    '<div class="tiles">'+
+    T({lab:'Impressions completed · 30 days',val:kn(K.impDone30.v),how:K.impDone30.n+' imprints on orders completed in the past 30 days'})+
+    T({lab:'Impressions scheduled · this week',val:kn(K.impSched.v),how:K.impSched.n+' imprints scheduled Sun–Sat this week, order not completed'})+
+    T({lab:'Screens imaged · 7 days',val:d0(K.scr7.v),how:K.scr7.n+' imprints burned in the past 7 days'})+
+    T({lab:'Screens imaged · this month',val:d0(K.scrMo.v),how:K.scrMo.n+' imprints burned this month'})+
+    T({lab:'Screens scheduled · next 7 days',val:d0(K.scrSched.v),how:K.scrSched.n+' imprints scheduled today through '+addDays(TODAY,7).slice(5).replace('-','/'),flag:'Airtable\'s "Next 7 days" screens tile actually adds up the past week. This one is the next 7 days.'})+
+    '</div>'+
+    '<div class="charts">'+(function(){var ks=monthsThisYear();return bars('Impressions by month · '+TODAY.slice(0,4),ks,ks.map(function(k){return K.impMo[k]||0;}),ks.map(mlab),curM,kn,'Completed orders, by completion month. Screen print '+kn(sum(ks.map(function(k){return K.impSP[k]||0;})))+' · embroidery & apps '+kn(sum(ks.map(function(k){return K.impEmb[k]||0;})))+' this year.');})()+
+      (function(){var ks=monthsThisYear();return bars('Screens by month · '+TODAY.slice(0,4),ks,ks.map(function(k){return K.scrYr[k]||0;}),ks.map(mlab),curM,d0,'By the day the screens were burned');})()+'</div>');
+  h+=sec('Value of work','Line totals',
+    '<div class="tiles">'+
+    T({lab:'Printed · completed 7 days',val:kmoney(K.compP.v),how:K.compP.n+' printed apparel lines on orders completed in the past 7 days'})+
+    T({lab:'Printed · scheduled next 7 days',val:kmoney(K.schP.v),how:K.schP.n+' lines, earliest print in the next 7 days'})+
+    T({lab:'Printed · incomplete work',val:kmoney(K.incP.v),how:K.incP.n+' paid lines on orders not completed'})+
+    T({lab:'Embroidered · completed 7 days',val:kmoney(K.compE.v),how:K.compE.n+' lines'})+
+    T({lab:'Embroidered · scheduled next 7 days',val:kmoney(K.schE.v),how:K.schE.n+' lines'})+
+    T({lab:'Embroidered · incomplete work',val:kmoney(K.incE.v),how:K.incE.n+' paid lines'})+
+    '</div>');
+  h+=sec('Art & prep','',
+    '<div class="tiles">'+
+    T({lab:'Proof turn · median',val:isFinite(K.proof.v)?hm(K.proof.v)+'<small>h:mm</small>':'—',how:K.proof.n+' lines created this month, created → 2nd eyes'},bmLow(K.proof.v,24*3600,'Under 24 h'))+
+    T({lab:'Sep turn · median',val:days(K.sep.v,'work days'),how:K.sep.n+' screen-print lines sep\'d in the past 30 days, paid → sep\'d'},bmLow(K.sep.v,2,'2 work days'))+
+    T({lab:'Screen turn · average',val:days(K.scrTurn.v,'work days'),how:K.scrTurn.n+' imprints burned this month, sep\'d → burned'},bmLow(K.scrTurn.v,4,'Under 4 work days'))+
+    T({lab:'Screens burned before print · average',val:days(K.burnToPrint.v,'work days'),how:K.burnToPrint.n+' imprints burned in the past 30 days',bm:'Benchmark: under 4 work days'})+
+    T({lab:'Inks ready before print · median',val:days(K.inks.v,'work days'),how:K.inks.n+' imprints, inks ready in the past 30 days',bm:'Benchmark: over 3 days'})+
+    '</div>'+
+    '<div class="charts">'+(function(){var ks=[];for(var i=8;i>=0;i--) ks.push(addDays(weekStart(TODAY),-7*i));return bars('Proofs approved per week',ks,ks.map(function(k){return K.proofWk[k]||0;}),ks.map(function(k){return (+k.slice(5,7))+'/'+(+k.slice(8,10));}),weekStart(TODAY),d0,'Line items marked Proof Quality Approved, weeks starting Sunday');})()+'</div>');
+  h+=sec('Purchasing','Median · work days',
+    '<div class="tiles">'+
+    T({lab:'Time to order',val:days(K.tto.v,'work days'),how:K.tto.n+' lines paid this month (lines ordered before payment are left out, as in Airtable)'},bmLow(K.tto.v,1,'1 work day'))+
+    T({lab:'Time to receive',val:days(K.ttr.v,'work days'),how:K.ttr.n+' lines ordered in the past 30 days and received'},bmLow(K.ttr.v,5,'Under 5 days'))+
+    T({lab:'S&S',val:days(K.ttrSS.v,'work days'),how:K.ttrSS.n+' lines'},bmLow(K.ttrSS.v,5,'Under 5 days'))+
+    T({lab:'SanMar',val:days(K.ttrSM.v,'work days'),how:K.ttrSM.n+' lines'},bmLow(K.ttrSM.v,5,'Under 5 days'))+
+    T({lab:'Carolina Creative',val:days(K.ttrCC.v,'work days'),how:K.ttrCC.n+' lines'},bmLow(K.ttrCC.v,5,'Under 5 days'))+
+    T({lab:'AS Colour',val:days(K.ttrAS.v,'work days'),how:K.ttrAS.n+' lines'},bmLow(K.ttrAS.v,5,'Under 5 days'))+
+    T({lab:'Received before print',val:days(K.rtp.v,'work days'),how:K.rtp.n+' apparel lines received in the past 30 days',bm:'Benchmark: under 4 days'})+
+    '</div>');
+  h+=sec('Sales','This calendar month',
+    '<div class="tiles">'+
+    T({lab:'Orders originated',val:d0(K.orders.v),how:'Orders created this month, not cancelled'})+
+    T({lab:'Days to payment · average',val:days(K.dtp.v),how:K.dtp.n+' paid orders created this month, 2nd eyes → payment'})+
+    '</div>');
+  h+=sec('Spoilage','Average over every line, zero when there\'s no damage · orders completed in the past 30 days',
+    '<div class="tiles">'+
+    T({lab:'Print spoilage',val:pct(K.spPrint.v),how:K.spPrint.n+' printed apparel lines, not bandanas'},bmLow(K.spPrint.v,0.03,'Under 3%'))+
+    T({lab:'Bandana spoilage',val:pct(K.spBand.v),how:K.spBand.n+' bandana lines'},bmLow(K.spBand.v,0.03,'Under 3%'))+
+    T({lab:'Embroidery spoilage',val:pct(K.spEmb.v),how:K.spEmb.n+' embroidered apparel lines'},bmLow(K.spEmb.v,0.03,'Under 3%'))+
+    '</div>'+
+    '<div class="charts">'+(function(){var ks=monthsThisYear();return bars('Average spoilage by month · all',ks,ks.map(function(k){return K.spAll[k]?mean(K.spAll[k]):NaN;}),ks.map(mlab),curM,pct,'By completion month');})()+
+      (function(){var ks=monthsThisYear();return bars('Bandana spoilage by month',ks,ks.map(function(k){return K.spB[k]?mean(K.spB[k]):NaN;}),ks.map(mlab),curM,pct,'');})()+'</div>');
+  h+=sec('Quality','Order Issues by the month they were logged',
+    '<div class="charts">'+(function(){var ks=monthsThisYear();return bars('Customer-initiated issues',ks,ks.map(function(k){return K.qc[k]||0;}),ks.map(mlab),curM,d0,'');})()+
+      (function(){var ks=monthsThisYear();return bars('Reprints issued',ks,ks.map(function(k){return K.rp[k]||0;}),ks.map(mlab),curM,d0,'Resolution RE-PRINT, approved');})()+
+      (function(){var ks=monthsThisYear();return bars('Refunds issued',ks,ks.map(function(k){return K.rf[k]||0;}),ks.map(mlab),curM,kmoney,'Resolution REFUND, approved');})()+'</div>');
+  $('main').innerHTML=h;
+}
+
+/* ===================== settings + refresh ===================== */
+function showMenu(on){ $('gear').hidden=!on; $('gearBtn').setAttribute('aria-expanded',on); if(on){ $('tokHint').textContent=token()?'A token is saved on this computer.':'No token yet.'; } }
+$('gearBtn').onclick=function(){showMenu($('gear').hidden);};
+document.addEventListener('pointerdown',function(e){if(!$('gear').hidden&&!e.target.closest('#gear,#gearBtn')&&token())showMenu(false);});
+$('tokSave').onclick=function(){var v=$('tokIn').value.trim();if(!v)return;store('pine_at_key',v);$('tokIn').value='';showMenu(false);load(true);};
+$('refreshBtn').onclick=async function(){ try{ if(window.PineUpdate&&PineUpdate.check&&await PineUpdate.check()) return; }catch(e){} load(true); };
+window.pineBusy=function(){ return LOADING||!$('gear').hidden; };
+load();
+setInterval(function(){ if(!document.hidden) load(); },30*60*1000);
+</script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>
