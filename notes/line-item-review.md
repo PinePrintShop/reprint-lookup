@@ -359,3 +359,20 @@ The Art Director asked for screenshots in comments, to point out small details t
 - The Pricing box shows **Quoted · Q-41 $11.50** next to Autoprice, read-only. It comes from the order's quote (Orders › Quotes `fldUKg4jFYXhEAu0q`, linked by Create order v19): the Quote Line with the same garment style # and color, else the same style and qty, else the same qty, else the order's only quote line. Hovering shows which quote line it is. Orders without a quote show nothing new.
 - Read once per load (two small reads: Quotes, then their Quote Lines). **No new writes.**
 - **Tested** (scratchpad `office/v2/lir_cmp.js`): the 13 writes are identical to v19, with and without a quote; 1717 Graphite / Moss / Richardson 112 Black/White each show their own quoted price ($14.20 / $11.50 / $17.00), 11019 (no quote) shows none. Practice: 0 writes. No page errors; nothing under 12px, one yellow button, no sideways scroll at 1920/1440/1280/1024.
+
+## 2026-10-16 · v21: jobs already sent leave the queue
+Stephen: "Let's remove from the app sent awaiting payment but don't change Airtable just how we show jobs in the app."
+
+- **Why:** reps send the proof and invoice from Pipedrive ("ACTION NEEDED: Approve your proof & invoice") and move the deal to Awaiting Approval. The Airtable order stays Awaiting Proof, so the job sat in Ready to send. On Oct 16, 29 jobs were in Ready to send and 28 of their deals were at Awaiting Approval.
+- **Now:** each Awaiting Proof order's Pipedrive deal is checked through the worker's read-only `/pipedrive/deal?order=` route (4 at a time).
+  - A deal at Awaiting Approval, Ready for Production, Awaiting Payment, Order Confirmed (or Order Confirmed: Proof & Invoice), or won counts as **sent**.
+  - Sent jobs leave Art to do / Review / Ready to send / All and go to a **Sent** tab, so they're still reachable when a customer asks for changes.
+  - The order shows "Sent · Pipedrive deal is at …" with a link to the deal.
+  - Its yellow "Send for signature" becomes a plain "Send again".
+- The check is remembered for 20 minutes on that computer; **Refresh** checks again.
+- If Pipedrive can't be reached or the deal isn't found, the job shows as before.
+- **Nothing is written** to Airtable or Pipedrive.
+- **Tested** with mocked Airtable and worker:
+  - With order 11019's deal at Awaiting Approval: Ready to send 0, Sent 1, the note shows, and a reload uses the saved check.
+  - The full review flow writes exactly what v20 wrote (13 writes), and practice still writes 0.
+- **Later, if loading is slow:** a worker route that returns every order's deal stage in one call would replace the per-order lookups. That's a worker deploy for Stephen.

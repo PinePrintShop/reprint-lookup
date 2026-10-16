@@ -28,7 +28,7 @@
 | Schedule | `pine-schedule.html` | v20 |
 | Pine Central | `pine-central.html` | v174 |
 | Price-O-Matic | `price-o-matic.html` | v110 |
-| Line Item Review | `pine-line-item-review.html` | v20 |
+| Line Item Review | `pine-line-item-review.html` | v21 |
 | Create order | `create-order.html` | v20 |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v5 |
 
