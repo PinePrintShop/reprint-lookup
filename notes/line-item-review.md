@@ -394,3 +394,14 @@ Stephen, on 11025 Underground Enterprises: "I would do that what you suggest."
   - Awaiting Approval with the proof email: goes to Sent ("proof email sent").
   - Awaiting Payment: goes to Sent.
   - The full flow writes exactly what v20 wrote (13), and practice still writes 0.
+
+## Monday plan (agreed Oct 16): "Send to client" counts as sent
+Stephen: "I am on mobile so I can't upload a new worker. So maybe we make this a Monday project!"
+
+- **Finding:** every deal gets a Pipedrive "Send to client" task when it moves to Awaiting Approval, and the reps tick it once the proof is out, however they sent it. On the 28 Ready-to-send jobs on Oct 16:
+  - 11 were ticked and had the proof email.
+  - 12 were ticked with no proof email visible, mostly Patrick's (Gmail or PandaDoc directly, or no template subject).
+  - 5 weren't ticked (10907, 10972, 11025, 11022, 10838) and really weren't sent.
+- **Plan:**
+  1. Worker v24: `/pipedrive/deal?order=` also returns whether the deal's "Send to client" task is done (read-only). Stephen pastes it into Cloudflare.
+  2. Line Item Review v23: a job counts as sent when the deal is at Awaiting Approval or later AND (the "Send to client" task is done OR the proof email is there).
