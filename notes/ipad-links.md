@@ -26,11 +26,12 @@
 | Screens | `screens.html` | v29 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v20 |
-| Pine Central | `pine-central.html` | v174 |
+| Pine Central | `pine-central.html` | v175 |
 | Price-O-Matic | `price-o-matic.html` | v110 |
 | Line Item Review | `pine-line-item-review.html` | v22 |
 | Create order | `create-order.html` | v21 |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v5 |
+| KPIs (desktop office app) | `pine-kpi.html` | v23 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 
