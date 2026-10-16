@@ -28,7 +28,11 @@
   - Line Total `flds296VbytvLYnfS`
   - Price Breaks `fldDKa39n0smi8Lft`
   - Quote Data `fldsj9rEcgPE57pNt` (JSON of the full Price-O-Matic line, so Create order can rebuild it exactly)
-- **Next:**
-  - Price-O-Matic saves the quote and its lines when the PDF is made, and puts Q-n on the PDF.
-  - Create order finds the quote by the order's Pipedrive deal # (or Q-n), fills in the line items from it, and links the Order.
-  - Price-O-Matic's price wins. Line Item Review keeps Autoprice beside it for comparison.
+- **Next:** see the 2026-10-16 · built entry below.
+
+## 2026-10-16 · built (Price-O-Matic v107, Create order v19, Line Item Review v20)
+- **Done:** Price-O-Matic saves the quote and its lines when the PDF is made (making it again updates the same quote and replaces its lines) and puts "Q-n" on the PDF. Details: `notes/price-o-matic.md` (v107).
+- **Done:** Create order finds the quote by the order's Pipedrive deal # (or a Q-number / customer search), "Fill from quote" fills the imprints and line items from Quote Data, and Create order links the Order (Quotes › Order) and sets Status Won. Details: `notes/create-order.md` (v19).
+- **Done:** Price-O-Matic's price wins (it is the line's Price / Piece). Line Item Review shows the quoted $/pc beside Autoprice, read-only. Details: `notes/line-item-review.md` (v20).
+- **Writes, all practice-safe:** POM: Quotes POST/PATCH, Quote Lines POST (10 per call) and DELETE (when a quote is re-made). Create order: one Quotes PATCH {Order, Status Won} after its usual writes. Neither table has automations.
+- **Still open:** Sizes on Quote Lines stays empty (Price-O-Matic doesn't take a size breakdown). Lost / Draft are never set by an app; set them by hand in Airtable.

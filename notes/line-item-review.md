@@ -353,3 +353,9 @@ The Art Director asked for screenshots in comments, to point out small details t
 - Fixed: closing the send sheet while page thumbnails were still drawing threw an error (v18 did it too).
 
 **Tested** with mocked Airtable, content API and worker (`office/v1/lir_cmp.js`): Awaiting review / Quality / Pricing approved and undo, sales notes, qty edit (M 20→22), price 14.75, a comment with @Whitney, an imprint nickname edit, a proof upload, Send for signature (PandaDoc through the worker + the order PATCH) and Archive. **The 13 writes are identical to v18.** The art folder link shows the order's folder for 11031 and falls back to the customer's for 11019. Practice: 0 writes. No page errors; nothing under 12px, one yellow button, no sideways scroll at 1920/1440/1280/1024/390.
+
+## 2026-10-16 · v20: the quoted price beside Price and Autoprice
+**Why:** Stephen: *"Price-O-Matic's price wins; LIR may show Autoprice beside it for comparison"* and *"Quotes Table looks great build away"*.
+- The Pricing box shows **Quoted · Q-41 $11.50** next to Autoprice, read-only. It comes from the order's quote (Orders › Quotes `fldUKg4jFYXhEAu0q`, linked by Create order v19): the Quote Line with the same garment style # and color, else the same style and qty, else the same qty, else the order's only quote line. Hovering shows which quote line it is. Orders without a quote show nothing new.
+- Read once per load (two small reads: Quotes, then their Quote Lines). **No new writes.**
+- **Tested** (scratchpad `office/v2/lir_cmp.js`): the 13 writes are identical to v19, with and without a quote; 1717 Graphite / Moss / Richardson 112 Black/White each show their own quoted price ($14.20 / $11.50 / $17.00), 11019 (no quote) shows none. Practice: 0 writes. No page errors; nothing under 12px, one yellow button, no sideways scroll at 1920/1440/1280/1024.
