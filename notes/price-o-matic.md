@@ -424,3 +424,12 @@ Stephen: "On the quote can we make sure to scan all vendors that sell that produ
   - Comfort Colors 1717: v107 asked S&S only. v108 asks S&S and SanMar, and the cheaper SanMar price wins.
   - Next Level 3600 hits `NL3600`.
   - A wrong-brand SanMar `3600` is dropped with "SanMar 3600 is SOME OTHER BRAND, not NEXT LEVEL".
+
+## 2026-10-16 · v109: phone spacing
+Stephen sent phone screenshots: "Here is a few spacing things as well on mobile."
+
+- **Picked price-break row:** it was yellow text on cream, unreadable, because the old phone style (black row, yellow text) only got half-updated to the cream look. There was also a tall black bar beside the qty. Now it's black text on cream with a black outline.
+- **Break rows** are shorter (about 57px instead of 75px), so more of the curve fits on screen.
+- **"3 · Prints":** the hint ("Most quotes: one front print, 1–3 colors") was squeezed beside the heading and wrapped. It now sits on its own line under it.
+- **A closed print card** ("Back · 1 color") is just its title row now (74px instead of 92px).
+- These are phone-only CSS changes; pricing and desktop are unchanged. The vendor test still gives S&S + SanMar for 1717.
