@@ -30,7 +30,7 @@
    ===================================================================== */
 
 /* 1 — the same 72px black bar in all three */
-.p-job .p-bar{min-height:72px}
+.p-job .p-bar{min-height:64px}  /* 2026-10-17: 64px in every Pine app */
 
 /* 2 — filter row: chips together on the left; the app's own button, then Hide list, on the right */
 .p-job .p-filters-end{margin-left:auto;flex:none}

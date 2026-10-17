@@ -169,3 +169,9 @@ The demo is in `pine-style.html` under "Page kit". The rules list and the app st
 **Rules used:** one yellow button per screen (Add to quote / Create order / the next approval step or Send); box saves are black; picked buttons black with yellow text; facts cream; done black; red only for real problems.
 **Versioned by name:** never edit after shipping; a change is `pine-office-v2.css`.
 **Next (not built):** one shared script for the bar (steps, Refresh, ⚙) — it's a small copy in each app for now; the Quotes table so a quote carries into Create order (Stephen's answer 3, a later step).
+
+## 2026-10-17 — one bar height (64px) everywhere
+Stephen, flipping between Purchasing and Catching: "if you scroll back and forth between these two the operator button seem a little bigger".
+- Bars with views in them were 72px (10px padding + the 52px views pill), bars without views 64px, Catching's own bar 60px, and Seps / Screens / Ink were held at 72px by `pine-job-v1/v2.css`.
+- Fixed in the shared files, so every app (old versions too) picks it up without a new version: `pine-style-v2.css` — `.p-bar` 6px top/bottom padding, min-height 64px (also Catching's `.press-bar.p-bar`); `pine-job-v1.css` / `pine-job-v2.css` — 64px instead of 72px.
+- Measured all 17 current apps at 1440 wide (and Catching, Operator, Screens at iPad 1180): all 64px.
