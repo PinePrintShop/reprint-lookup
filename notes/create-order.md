@@ -502,3 +502,9 @@ Stephen (screenshot): "this on create order is hard to work through on the right
 - **Quote moved to the top of the form column** (it already went above the form on narrower screens). It's the first thing used on an order. Typing in its search keeps focus.
 - **The right side is Checklist + Deal emails.** Checklist is one tight wrapped line with a small label; emails get all the remaining height (at least 240px), finder buttons on one row (scrolls sideways), smaller "tap into a field" hint. At 1440×800 the emails themselves now show (they were hidden under the tools).
 - If the window is too short even for that, the right column scrolls with the page and the emails box is 75% of the window (`fitSide()`).
+
+## 2026-10-17 — v23: the quote is optional
+Stephen: "I think the POM will mostly be for basic quotes...I think it is cool that it can push through a create order...but Create Order and Line Item Review should still be pretty standalone but with that nice feature if they start using it".
+- No saved quote for the order → the Quote box is one quiet line: "QUOTE · No saved quote · Find one". Quotes for the customer but none with the deal # → "2 saved quotes for this customer · Show". Tapping opens the search / list (and it stays open while you search).
+- A quote found by the Pipedrive deal # still opens in full with Fill in from quote — the "nice feature" when POM is used.
+- Line Item Review has no quote step; nothing changed there.
