@@ -461,3 +461,10 @@ A phone audit (every visible text's size and contrast at 390px) found mostly 12p
 Stephen: "Just work on the apps we are using".
 - "Quote copied" is a fading Pine note; "No price at N pcs…" and "Could not generate PDF" are a Pine message that stays until OK (was alert()). The last-resort box that shows the quote text (no share, no clipboard) stays a browser box so the text can be copied. Pricing untouched.
 - Checked: the "price changed · reset" note under the big price is already 14px Helvetica (a v106 rule overrides the old inline 10px).
+
+## 2026-10-17 — v112: laptop / desktop flow
+Stephen (laptop screenshot): "not a huge fan of how the spacing is on a laptop desktop. Can we look into that and try and find a better flow".
+- **Right column used from the start.** The price + quote column was empty until something was priced (a third of the screen blank), and "Pick how it's decorated to see pricing" sat at the bottom of the left side. That box is now the price card's placeholder at the top of the right column: PRICE / PIECE, a grey "$—", what's still needed (or why there's no price, e.g. a size Supacolor can't do), and "Lines you add to the quote show up here." The real price card replaces it as soon as there's a price.
+- **One column of steps.** Garment, Quantity and Prints stack on every screen. On wide screens Garment and Quantity used to sit side by side at different heights, leaving a big empty box under Quantity.
+- **Quantity is one tight row.** The minimum-order line only takes space when there is a minimum; "other" is the same height as the quantity buttons.
+- Checked at 1000, 1440 and 1680 wide, empty and priced (48 pcs, 1-colour front screen print). Pricing untouched.

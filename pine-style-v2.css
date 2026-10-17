@@ -283,3 +283,10 @@ body.has-bbar .p-split-list,body.has-bbar .p-split-detail{padding-bottom:96px}
 /* kit fixes from Screens v22: empty action slots take no room; the chevron never stretches on phones */
 .p-lc-act:empty,.p-lc-nums:empty{display:none}
 @media (max-width:700px){ .p-lc-act > .p-lc-chev{flex:0 0 auto} }
+
+/* 2026-10-17 — one bar height everywhere (Stephen: "if you scroll back and forth between these two the [top bar] seem a
+   little bigger"). Bars with views in them were 72px (10px padding + the 52px views pill), bars without were 64px and
+   Catching's own bar 60px. Now every bar is 64px: 6px padding, and the views pill (44px buttons + 4px) fits exactly. */
+.p-bar{padding-top:6px;padding-bottom:6px;min-height:64px}
+html .p-bar.press-bar{min-height:64px}
+
