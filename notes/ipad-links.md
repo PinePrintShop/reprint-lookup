@@ -21,7 +21,7 @@
 | Ink Queue | `pine-ink-queue.html` | v103 |
 | Purchasing | `pine-purchasing.html` | v109 |
 | Receiving | `receiving.html` | receiving-dashboard v76 |
-| Production Board | `pine-production-board.html` | v41 |
+| Production Board | `pine-production-board.html` | v42 |
 | Seps | `seps.html` | v42 |
 | Screens | `screens.html` | v29 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
