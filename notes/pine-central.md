@@ -95,3 +95,6 @@
 ## 2026-10-16 · v175: KPIs open the permanent link
 - KPIs now have a permanent link, `pine-kpi.html`, which points at KPIs v23 (math matched to Airtable's KPI Tracker). Central's KPIs tile opens it, so future KPI versions show up without a new Central.
 - Nothing else changed.
+
+## 2026-10-17 · v176: Reprints open the permanent link
+- Reprints now have a permanent link, `reprints.html`, which points at Reprints v4. Nothing else changed.
