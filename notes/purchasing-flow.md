@@ -459,3 +459,8 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
   - **Navigation:** "Also on 10980" opens the garment view, Open order goes back, and the choice survives a reload.
   - **Order view flows (carts, Order all, reprint split, mark reviewed):** writes identical to v108 at every size. Practice mode: 0 writes.
   - **Checks:** no page errors, nothing under 12px, no sideways scroll, one yellow button on Ordering.
+
+## 2026-10-17 — v110: weekend cleanup (no browser pop-ups)
+Stephen: "Just work on the apps we are using" (weekend round of small leftovers).
+- The 11 browser pop-ups (alert) for problems — bad freight amount, "Enter the PO # first", "Each row needs a warehouse and a PO #", failed saves and comments — are now the black Pine message bar at the bottom. A problem stays up (red edge) until OK; a normal note fades after 3 s.
+- The old green note bar is now the same black Pine bar. The "are you sure" questions (confirm) are unchanged.

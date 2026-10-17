@@ -337,3 +337,9 @@ Trimmed wording that repeated itself:
   - Live writes are identical to v160 in the main, pack, unsure and bandana flows. Practice sent 0 writes.
   - ⚙ opens, closes on an outside tap, and practice on reloads with `?practice=1`.
   - The idle self-update still reloads, and no page errors.
+
+## 2026-10-17 — v162: weekend cleanup (no browser pop-ups)
+Stephen: "Just work on the apps we are using".
+- Browser pop-ups (alert) — "Some writes failed", "Pick a team and reason for each one", the any-order lookup, "Allow pop-ups…" — are now a Pine message at the top with a finger-sized OK (56px). It stays until tapped, so a failed write isn't missed. "Token cleared" is a normal fading note.
+- Self-update waits while a problem message is up (added to pineBusy), so a reload can't wipe an error nobody has read.
+- Remember: Catching keeps its own version number (`APP_VER`) for self-update — bump it with every version, or the app keeps reloading into itself.
