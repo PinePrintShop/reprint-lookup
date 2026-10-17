@@ -474,3 +474,10 @@ Stephen on v112: "looking better...but this is getting covered" (the quote's Cre
 - Cause: the right column is pinned to the window with a max height, and its cards were allowed to shrink — so the Quote card was squeezed and clipped instead of the column scrolling.
 - Cards now keep their full height. The column stays pinned only while everything fits; when price + breaks + quote are taller than the window, it scrolls with the page like the left side (`fitRail()`, after every cart render and on resize).
 - With lines already in the quote, the empty price placeholder is one short line ("Next line: Pick how it's decorated…"), so the quote sits right under it.
+
+## 2026-10-17 — v114: every print on the Quote PDF
+Stephen (PDF next to the quote line): "Looks like the quote pdf is missing some printing information".
+- The PDF's line under the column headings showed ONE print per quote line — for screen print it fell back to the last print, so a Front 2-screen + Back 3-screen tee showed only "Back · Screen Print: 3 screens · Tees / Totes".
+- Now every print is listed: one line when they fit ("Front · … + Back · …"), otherwise one print per line, text shrunk to fit the row (never under 7pt; past that, one shortened line). Bandanas / flatstock / patches unchanged.
+- Brand fixes on the PDF: prices in Helvetica (were Courier); the quoted-row bar is Pine yellow #FBE122 (was #E8E832).
+- Tested: Front 2c + Back 3c at 100 pcs → PDF shows both prints on two lines. Pricing untouched.
