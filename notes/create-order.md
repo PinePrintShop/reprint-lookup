@@ -495,3 +495,10 @@ Stephen: "How do I undo if I accidentally click a reorder" → "Yes" (to adding 
   - New order still works after an undo.
   - 0 Airtable writes throughout.
   - The normal, quote and practice flows write exactly what v20 wrote.
+
+## 2026-10-17 — v22: the right side on a laptop
+Stephen (screenshot): "this on create order is hard to work through on the right side box" — the Quote box squeezed to just its title, the deal emails in a small scrolling strip under the checklist.
+- Cause: the right column is pinned to the window and capped at its height; Quote, Checklist and Emails squeezed each other.
+- **Quote moved to the top of the form column** (it already went above the form on narrower screens). It's the first thing used on an order. Typing in its search keeps focus.
+- **The right side is Checklist + Deal emails.** Checklist is one tight wrapped line with a small label; emails get all the remaining height (at least 240px), finder buttons on one row (scrolls sideways), smaller "tap into a field" hint. At 1440×800 the emails themselves now show (they were hidden under the tools).
+- If the window is too short even for that, the right column scrolls with the page and the emails box is 75% of the window (`fitSide()`).
