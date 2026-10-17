@@ -38,3 +38,11 @@ Stephen, with a phone screenshot: "I know this is for a tv and not mobile. But i
   - The time-off card sits in the page under the board.
   - Draw, Note, Arrange and Full screen are hidden on phones (TV tools).
 - The TV view is unchanged: the same tests at 1920×1080 pass ("next" moves on tap and comes back on undo, Arrange hides it and counts as busy, 0 writes).
+
+## 2026-10-17 — v44: phone layout, round 2
+Stephen on v43's phone view: "Still bad".
+- A phone held sideways (short screen) now gets the phone layout too; it was still getting the five TV columns.
+- Top bar on phones: two tidy rows (Pine, PRODUCTION, date, version / ‹ Today › … Roster, Dark, ↻).
+- Each press shows what's left: crossed-off jobs fold into one "✓ N done · show" line (tap to open; stays open on re-render). Platen lines only show between jobs still to run when folded.
+- Each press header carries its own progress (done / total impressions, %, thin yellow bar) and the 🎯 stretch line, so the separate progress strip is hidden on phones. A press with nothing scheduled is one line ("nothing today").
+- TV view unchanged (checked at 1920×1080). Tested at 390×844, 430×932, 932×430 and in dark mode, with cross-off taps.
