@@ -468,3 +468,9 @@ Stephen (laptop screenshot): "not a huge fan of how the spacing is on a laptop d
 - **One column of steps.** Garment, Quantity and Prints stack on every screen. On wide screens Garment and Quantity used to sit side by side at different heights, leaving a big empty box under Quantity.
 - **Quantity is one tight row.** The minimum-order line only takes space when there is a minimum; "other" is the same height as the quantity buttons.
 - Checked at 1000, 1440 and 1680 wide, empty and priced (48 pcs, 1-colour front screen print). Pricing untouched.
+
+## 2026-10-17 — v113: the quote no longer gets covered
+Stephen on v112: "looking better...but this is getting covered" (the quote's Create order / Quote PDF cut off at the bottom of the right column).
+- Cause: the right column is pinned to the window with a max height, and its cards were allowed to shrink — so the Quote card was squeezed and clipped instead of the column scrolling.
+- Cards now keep their full height. The column stays pinned only while everything fits; when price + breaks + quote are taller than the window, it scrolls with the page like the left side (`fitRail()`, after every cart render and on resize).
+- With lines already in the quote, the empty price placeholder is one short line ("Next line: Pick how it's decorated…"), so the quote sits right under it.
