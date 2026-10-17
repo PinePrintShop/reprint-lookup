@@ -46,3 +46,8 @@ Stephen on v43's phone view: "Still bad".
 - Each press shows what's left: crossed-off jobs fold into one "✓ N done · show" line (tap to open; stays open on re-render). Platen lines only show between jobs still to run when folded.
 - Each press header carries its own progress (done / total impressions, %, thin yellow bar) and the 🎯 stretch line, so the separate progress strip is hidden on phones. A press with nothing scheduled is one line ("nothing today").
 - TV view unchanged (checked at 1920×1080). Tested at 390×844, 430×932, 932×430 and in dark mode, with cross-off taps.
+
+## 2026-10-17 — v45: weekend cleanup
+Stephen: "Just work on the apps we are using".
+- **Wifi drop no longer freezes the TV.** The board reloads every minute; a failed load used to open a browser box ("Could not load schedule") that stopped the board until someone clicked OK. Now it keeps the last board up with a black bar: "Can't reach Airtable — showing the board from 2:41 PM. Trying again every minute." The bar goes away on the next good load. Tested by cutting the mock connection for two minutes.
+- The old `pine-design-v1.css` is no longer loaded. Compared every element's style v44 vs v45 (TV, phone, roster, time-off request): identical except the Arrange "Local layout" badge, now yellow/black instead of orange; the Arrange drop target is pale yellow.

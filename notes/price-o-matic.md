@@ -456,3 +456,8 @@ A phone audit (every visible text's size and contrast at 390px) found mostly 12p
   - The "other" quantity placeholder is darker.
 - After the fix, the audit only flags the decorative "No photo" tile (12px).
 - Pricing is unchanged; the vendor test still gives S&S + SanMar.
+
+## 2026-10-17 — v111: weekend cleanup (no browser pop-ups)
+Stephen: "Just work on the apps we are using".
+- "Quote copied" is a fading Pine note; "No price at N pcs…" and "Could not generate PDF" are a Pine message that stays until OK (was alert()). The last-resort box that shows the quote text (no share, no clipboard) stays a browser box so the text can be copied. Pricing untouched.
+- Checked: the "price changed · reset" note under the big price is already 14px Helvetica (a v106 rule overrides the old inline 10px).
