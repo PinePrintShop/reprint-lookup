@@ -27,3 +27,14 @@ Stephen: "Let's go! Onto the next" (the round of updates for the remaining apps)
   - Tapping 10959-A moves "next" on; tapping it again moves it back.
   - Arrange hides "next" and counts as busy.
   - 0 Airtable writes; no errors.
+
+## 2026-10-17 · v43: a phone layout
+Stephen, with a phone screenshot: "I know this is for a tv and not mobile. But it is pretty wild on mobile."
+- The TV sizes scale with the screen width, so a phone got five squeezed columns of tiny type, overlapping headers and a time-off card floating over the board.
+- **Now, under 760px wide:**
+  - Each press is a full-width section, one under another, on a normal scrolling page. Its header sticks to the top while you scroll through it.
+  - Text sizes are fixed and readable.
+  - The progress strip shows two presses to a row, and the legend wraps.
+  - The time-off card sits in the page under the board.
+  - Draw, Note, Arrange and Full screen are hidden on phones (TV tools).
+- The TV view is unchanged: the same tests at 1920×1080 pass ("next" moves on tap and comes back on undo, Arrange hides it and counts as busy, 0 writes).
