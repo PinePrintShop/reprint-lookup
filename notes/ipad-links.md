@@ -19,7 +19,7 @@
 | Catching | `pine-catching.html` | v167 |
 | Damage Log | `damage-log.html` | v21 |
 | Ink Queue | `pine-ink-queue.html` | v103 |
-| Purchasing | `pine-purchasing.html` | v110 |
+| Purchasing | `pine-purchasing.html` | v111 |
 | Receiving | `receiving.html` | receiving-dashboard v76 |
 | Production Board | `pine-production-board.html` | v47 |
 | Seps | `seps.html` | v42 |
