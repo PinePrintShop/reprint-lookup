@@ -98,3 +98,8 @@ Stephen: "we need dimensions and a drop down for the classic 3 pine box sizes an
 - Save weights also sends **box 1's dimensions** to the ShipStation order (an order holds one set) and adds every box's size to the notes line, e.g. "3 boxes: 5.2, 4.8, 6.1 lb (16.1 lb total) · sizes: L 24×16×14, M 24×16×6, Vendor 18×14×10". Reopening the order reads the sizes back from that line.
 - A vendor box without all three numbers stops the save with a plain message.
 - Tests: all mocked tests pass, including the new size checks; practice makes 0 writes.
+
+## 2026-10-19 · v9: carrier and service in plain words
+Stephen, about "Carrier ups_walleted / Service ups_ground": "can we clean that up to not show that...but what you showed me".
+- Shows "UPS (ShipStation account) · Ground", "UPS · 2nd Day Air", "FedEx · Ground", "USPS · Priority Mail" instead of ShipStation's codes. "ShipStation account" = UPS paid from the ShipStation balance (code `ups_walleted`). Hovering shows the raw code.
+- Airtable's Carrier field now gets the short name (UPS, FedEx, USPS) instead of the code.
