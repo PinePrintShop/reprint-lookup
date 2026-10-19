@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Create Order v24 — Pine</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<link rel="stylesheet" href="pine-office-v1.css">
+<style>
+/* Create order v18: Pine style v2 + pine-office-v1.css. Old tokens kept as names, mapped to the four brand colors. */
+:root{--bg:var(--p-cream-lt);--surface:#fff;--line:var(--p-line);--line2:var(--p-line-strong);--text:var(--p-black);--muted:var(--p-ink-3);--soft:var(--p-cream-lt);
+  --yellow:var(--p-yellow);--ytint:var(--p-yellow-lt);--red:var(--p-alert);--rtint:var(--p-alert-lt);--sans:var(--p-sans);--r:12px}
+*{margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text)}
+body{font-size:15px}
+button{cursor:pointer}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+h2{font-size:18px}
+.hint{font-size:var(--p-fs-xs);color:var(--muted)}
+.err{background:var(--rtint);border-left:4px solid var(--red);color:#7A1414;border-radius:6px;padding:8px 12px;font-size:14px;margin-top:8px}
+/* buttons: plain (white), dark (black, the step's own action), the one yellow is in the order header */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;border:2px solid var(--p-black);background:#fff;border-radius:6px;font-weight:700;font-size:15px;color:var(--p-black);text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--p-cream)}
+.btn.k,.btn.y{background:var(--p-black);color:#fff}
+.btn.k:hover,.btn.y:hover{background:#2B2A26}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.b{min-height:40px;padding:0 12px;border:1.5px solid var(--line2);background:#fff;border-radius:6px;font-size:14px;font-weight:700;color:var(--p-black)}
+.b:hover{border-color:var(--p-black)}
+.b.on{background:var(--p-black);border-color:var(--p-black);color:var(--p-yellow)}
+.b.sm{min-height:34px;padding:0 10px;font-size:13px}
+.b.num{min-width:44px}
+.link{background:none;border:0;color:var(--p-ink-2);text-decoration:underline;text-underline-offset:3px;font-size:14px;padding:4px 2px}
+.link:hover{color:var(--p-black)}
+.bts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:3px 8px;border-radius:4px;background:var(--p-cream);border:1.5px solid var(--p-cream-dk);color:var(--p-ink-2);white-space:nowrap}
+.tag.ok{background:var(--p-black);border-color:var(--p-black);color:#fff}
+.tag.need{background:var(--p-yellow);border-color:var(--p-black);color:var(--p-black)}
+.idtag{display:inline-block;font:800 13px/1 var(--sans);background:var(--p-black);color:var(--p-yellow);padding:4px 7px;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
+.idtag.sm{font-size:12px;padding:3px 5px}
+input.t,select.t{min-height:44px;border:2px solid var(--line2);border-radius:6px;padding:0 10px;background:#fff;font-size:15px;color:var(--p-black)}
+input.t:focus,select.t:focus,textarea.t:focus{border-color:var(--p-black);outline:none;box-shadow:0 0 0 3px var(--p-yellow)}
+input.t.sm,select.t.sm{min-height:36px;font-size:14px}
+input.t.under{border-color:var(--red);background:var(--rtint);color:var(--red)}
+textarea.t{border:2px solid var(--line2);border-radius:6px;padding:8px 10px;background:#fff;resize:vertical;min-height:44px;line-height:1.35;font-size:15px;color:var(--p-black)}
+textarea.tg{resize:none;overflow:hidden}
+.warn{color:var(--p-black)!important;font-weight:800}
+.okc{font-weight:700}
+/* order list (left pane) */
+.olh{display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap;margin-bottom:10px}
+.olh .hint{font-size:13px}
+.olempty{color:var(--p-ink-2);padding:16px 4px}
+/* reorder or new */
+.doors{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.door{border:2px solid var(--line2);border-radius:12px;padding:14px 16px;background:#fff;text-align:left;display:flex;flex-direction:column;gap:6px;color:var(--p-black)}
+.door:hover{border-color:var(--p-black)}
+.door b{font-size:17px}.door span{font-size:14px;color:var(--p-ink-2)}
+.door.main{border-color:var(--p-cream-dk);background:var(--p-cream);cursor:default}
+.past{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.po{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#fff;text-align:left;color:var(--p-black)}
+.po:hover{border-color:var(--p-black)}
+.po .th{display:flex;gap:4px}
+.po img,.po .noimg{width:64px;height:48px;border-radius:5px;border:1px solid var(--line);object-fit:contain;background:var(--soft)}
+.po .noimg{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
+.po .d b{font-weight:800}.po .d div{font-size:14px;color:var(--p-ink-2);margin-top:2px}
+.alnote{margin-bottom:10px}
+.art-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.art-in label{font-size:13px;font-weight:700;color:var(--p-ink-2)}.art-in input{flex:1;min-width:220px}.art-in a{font-size:14px;font-weight:700;color:var(--p-black)}
+.donebar{margin-top:10px}
+/* steps: section headers */
+.sec{padding-top:14px}
+.locked .p-off-li,.locked .p-off-imp,.locked .more{pointer-events:none}
+.cards{display:flex;flex-direction:column;gap:0;margin-bottom:12px}
+.quick{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0 4px}
+.gquick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.form{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--p-cream-lt)}
+.form.editing{border:2px solid var(--p-black);background:var(--ytint)}
+.fh{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.fh b{font-size:16px}
+.ff{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px 14px;align-items:start}
+.ff>.k{font-size:13px;font-weight:700;color:var(--p-ink-2);padding-top:12px}
+.ff>.k i{color:var(--p-black);font-style:normal}
+.ff input.t,.ff textarea.t{width:100%}
+.fixed{padding-top:11px;font-weight:700}
+.bts.sub{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line2)}
+.fb{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px}
+.fb .btn{min-width:160px}
+.rep{margin-top:8px}
+.artg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:340px;overflow:auto;padding:2px}
+.art{border:1px solid var(--line2);border-radius:8px;background:#fff;padding:6px;text-align:left;font-size:13px;color:var(--p-black)}
+.art:hover{border-color:var(--p-black)}
+.art img,.art .noimg{width:100%;height:70px;display:flex;align-items:center;justify-content:center;border-radius:4px;margin-bottom:4px;object-fit:contain;background:var(--soft);color:var(--muted);font-size:12px}
+.art b{font-weight:800}
+.gres{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.gres button{border:1px solid var(--line2);border-radius:8px;background:#fff;padding:9px 10px;text-align:left;font-size:15px;color:var(--p-black)}
+.gres button:hover{border-color:var(--p-black)}
+.gres span{font-size:13px;color:var(--p-ink-2)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border:1.5px solid var(--line2);background:#fff;border-radius:999px;font-size:14px;font-weight:700;color:var(--p-black)}
+.chip:hover{border-color:var(--p-black)}
+.pttog{font-weight:700}
+.ticks{display:flex;flex-direction:column;gap:6px}
+.tick{display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid var(--line2);border-radius:10px;padding:8px 10px;background:#fff;min-height:52px;color:var(--p-black)}
+.tick i{font-style:normal;width:24px;height:24px;border:2px solid var(--line2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:900;flex:none}
+.tick.on{border:2px solid var(--p-black);background:var(--p-cream-lt)}.tick.on i{background:var(--p-black);border-color:var(--p-black);color:#fff}
+.tick b{display:block;font-size:15px}.tick small{display:block;font-size:13px;color:var(--p-ink-2)}
+@media (min-width:1200px){.ticks{display:grid;grid-template-columns:1fr 1fr;gap:6px}}
+.ovr{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}.ovr label{font-size:13px;color:var(--p-ink-2)}.ovr input{flex:1;min-width:160px}
+pre.auto{white-space:pre-wrap;font:14px/1.45 var(--sans);background:#fff;border:1px dashed var(--line2);border-radius:6px;padding:8px 10px;min-height:44px}
+.szrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.szs{display:flex;gap:4px;flex-wrap:wrap}
+.szs label{display:flex;flex-direction:column;align-items:center;font:700 12px var(--sans);color:var(--p-ink-2);gap:2px}
+.szs input{width:50px;height:44px;border:2px solid var(--line2);border-radius:6px;text-align:center;font:700 15px var(--sans);font-variant-numeric:tabular-nums}
+.szs .qt{font:800 16px var(--sans);background:var(--p-black);color:#fff;border-radius:6px;padding:12px 12px;align-self:flex-end}
+.paste{flex:1;min-width:220px;display:flex;flex-direction:column;gap:2px}
+.paste input{min-height:44px;border:2px dashed var(--line2);background:#fff;border-radius:6px;padding:0 10px;font-size:15px}
+.paste small,.mixb small{font-size:12px;color:var(--p-ink-2)}
+.mixb{display:flex;flex-direction:column;gap:2px}
+/* vendor check */
+.vend{margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:14px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.vend .vrow{line-height:1.5}.vend .vrow b{display:inline-block;min-width:70px}
+.vend select.t.sm{min-height:34px;font-size:13px;max-width:240px}
+/* side: checklist + deal emails */
+.app{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:14px;align-items:start}
+.side{position:sticky;top:calc(var(--ohh,96px) + 14px);display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - var(--p-off-top,128px) - var(--ohh,96px) - 48px)}
+.side .rail{margin:0;flex:none}
+.rail .p-section{margin-bottom:12px}
+.rail .vwarn{margin-top:12px}
+.out{margin-top:12px;background:var(--soft);border-radius:8px;padding:10px;font-size:13px;white-space:pre-wrap;max-height:45vh;overflow:auto}
+.app.picking .side{display:none}
+.mailbox{flex:1;min-height:180px;overflow:auto;margin:0;padding:12px 14px}
+.mailbox .mh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.mailbox .mclose{display:none;margin-left:auto}
+.deal{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-top:4px}.deal a{color:var(--p-black)}
+.finders{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.mtools{position:sticky;top:-12px;background:#fff;z-index:3;padding:8px 0 6px;margin-top:-4px;border-bottom:1px solid var(--line)}
+.mtarget{font-size:13px;background:var(--p-cream);border-left:4px solid var(--p-black);border-radius:6px;padding:6px 10px;margin-top:8px}
+#mbody .msg{border-top:1px solid var(--line);padding-top:8px;margin-top:8px;font-size:14px;line-height:1.45}
+#mbody .msg.cust{border-left:3px solid var(--p-black);padding-left:8px}
+#mbody .mhd{margin-bottom:2px}
+#mbody .s{display:block;padding:4px 6px;margin:2px 0;border-radius:6px;cursor:pointer}
+#mbody .s:hover{background:var(--p-cream)}
+#mbody .s.used{background:var(--p-cream-dk)}
+#mbody .s.q{color:var(--p-ink-2);font-size:13px}
+#mbody .msg.shut .s{color:var(--p-ink-2)}
+#mbody .more{font-weight:700;color:var(--p-black)}
+#mbody .qbtn{border:0;background:none;color:var(--p-ink-2);font-size:13px;text-decoration:underline;padding:4px 6px}
+#mbody .quoted{border-left:2px solid var(--line2);margin-left:4px;padding-left:4px}
+#mbody mark{background:var(--p-yellow);color:var(--p-black);border-radius:2px;padding:0 1px}
+#mbody mark.cur{outline:2px solid var(--p-black)}
+#mbody .ql{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--p-ink-2);border:1px solid var(--line2);border-radius:4px;padding:0 3px}
+.onlybar{font-size:13px;margin-top:8px;color:var(--p-ink-2)}.onlybar input{vertical-align:middle;margin-right:4px}
+.mailfab{position:fixed;right:16px;bottom:16px;z-index:55;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none!important}
+input,textarea,select,button,.form,.sec{scroll-margin-top:var(--smt,110px);scroll-margin-bottom:84px}
+/* layout: two panes from 1200px (orders | the order). The order's own two columns (forms | checklist + emails) need room:
+   with the list showing from 1400px, with the list hidden from 1100px. Otherwise the emails open from a button. */
+@media (min-width:1400px){ .app:not(.picking){grid-template-columns:minmax(0,1fr) clamp(360px,26vw,500px)} }
+@media (min-width:1100px){ body.nolist .app:not(.picking){grid-template-columns:minmax(0,1fr) clamp(360px,28vw,500px)} }
+@media (max-width:1099px){
+  .app:not(.picking){grid-template-columns:minmax(0,1fr)}
+  .side{position:static;max-height:none}
+  .mailbox{display:none}.mailbox.open{display:block;position:fixed;inset:0;z-index:60;border-radius:0;max-height:none;padding:16px}
+  .mailbox.open .mclose{display:inline}body.noscroll{overflow:hidden}
+  .mailfab.show{display:inline-flex!important}
+}
+@media (min-width:1100px) and (max-width:1399px){
+  body:not(.nolist) .app:not(.picking){grid-template-columns:minmax(0,1fr)}
+  body:not(.nolist) .side{position:static;max-height:none}
+  body:not(.nolist) .mailbox{display:none}body:not(.nolist) .mailbox.open{display:block;position:fixed;inset:0;z-index:60;border-radius:0;max-height:none;padding:16px}
+  body:not(.nolist) .mailbox.open .mclose{display:inline}body.noscroll{overflow:hidden}
+  body:not(.nolist) .mailfab.show{display:inline-flex!important}
+}
+/* wide: bar + filter row on top, the two panes scroll on their own */
+@media (min-width:1200px){
+  html,body{height:100%;overflow:hidden}
+  #ohead{position:sticky;top:0;z-index:6}
+  #ohead .p-off-oh{box-shadow:0 -16px 0 0 var(--p-cream-lt),var(--p-shadow)}
+}
+@media (max-width:1199px){
+  #split.is-picking #work,#split:not(.is-picking) #olist{display:none}
+  body.is-open #filters{display:none}
+  #ohead{position:sticky;top:var(--toph,64px);z-index:6}
+  #ohead .p-off-oh{box-shadow:0 -16px 0 0 var(--p-cream-lt)}
+  #listBtn{display:none}
+}
+
+/* v22: the right column on a laptop — boxes keep their size, emails get the rest; too short -> scrolls with the page */
+.side>.qbox,.side>.rail{flex:none!important}
+.side .qbox{max-height:35vh;overflow:auto}
+.side .mailbox{min-height:240px}
+.side.side-tall{position:static!important;max-height:none!important}
+.side.side-tall .mailbox{flex:none;height:75vh}
+.side .p-section{background:none!important;color:var(--p-ink-2)!important;padding:0!important;font:800 12px/1.2 var(--p-sans)!important;letter-spacing:.08em;margin-bottom:8px!important}
+.side .qbox,.side .rail{padding:12px 14px!important}
+.side .qhd{margin-bottom:6px}
+.side .rail .p-off-chk{flex-direction:row;flex-wrap:wrap;gap:6px 16px}
+.side .rail .p-off-chk li{align-items:center}
+.side .rail .p-off-chk li>i{width:18px;height:18px;margin-top:0}
+.side .mailbox .mh{margin-bottom:2px}
+.side .mailbox .finders{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}
+.side .mailbox .finders .b{flex:none;min-height:36px;padding:0 10px}
+.side .mailbox #mtarget{font-size:13px;padding:6px 10px;margin-top:6px}
+#main .qbox-main{margin:0 0 16px}
+.qmini{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.qmini-l{font:800 12px/1 var(--p-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--p-ink-2)}
+#main .qbox-main:has(.qmini){padding:10px 16px!important}
+/* v21: ↩ Undo reorder */
+.reobar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+/* v19: the quote (Price-O-Matic v107 -> Quotes) */
+.side .qbox{margin:0;flex:0 1 auto;min-height:0;overflow:auto}
+#qboxTop .qbox{margin:14px 0 0}
+.qbox{padding:14px 16px}
+.qhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.qt1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qt1 b{font-size:16px}
+.qt2{font-size:14px;color:var(--p-ink-2);margin-top:4px}
+.qlines{list-style:none;margin:8px 0 0;padding:0;max-height:168px;overflow:auto;border-top:1px solid var(--line)}
+.qlines li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.qlines li span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
+.qact{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.qrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line2);border-radius:8px;background:#fff;padding:8px 10px;margin-top:6px;color:var(--p-black)}
+.qrow:hover{border-color:var(--p-black)}.qrow b{display:block;font-size:15px}.qrow small{display:block;font-size:13px;color:var(--p-ink-2)}
+.qnotes{margin-top:12px;font-size:14px}.qnotes ul{margin:6px 0 0 18px;padding:0}.qnotes li{margin:2px 0}
+#qsearch{width:100%}
+@media (max-width:700px){
+  #ohead{position:static}
+  .ff{grid-template-columns:1fr;gap:4px}.ff>.k{padding-top:8px}.fb .btn{min-width:0;flex:1}
+  .doors{grid-template-columns:1fr}.po{grid-template-columns:minmax(0,1fr)}.po .th{display:none}
+}
+</style>
+</head>
+<body class="p-app p-off">
+<header class="p-bar p-off-bar" data-pin>
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Create order</span><span class="p-bar-ver" id="ver">v24</span>
+  <span class="p-tag p-tag-wait" id="pracTag" hidden>Practice</span>
+  <nav class="p-bar-views p-off-steps" id="flowNav" aria-label="Order steps"></nav>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" onclick="refresh()" title="Reload the orders and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings" onclick="gear()">&#9881;</button>
+  </div>
+  <div class="p-menu" id="gearMenu" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row"><span class="p-menu-label">Airtable token</span><span class="p-hint">The same one the other Pine apps use. Kept on this device only.</span>
+      <div class="p-btns"><input class="p-input" id="tok" type="password" placeholder="pat…" autocomplete="off"><button class="p-btn p-btn-dark" type="button" onclick="saveTok()">Save</button></div></div>
+    <div class="p-menu-row"><div class="p-menu-line"><span><b>Practice</b><br><span class="p-hint" id="pracHint"></span></span><button class="p-btn" id="pracBtn" type="button" onclick="togglePractice()"></button></div></div>
+  </div>
+</header>
+<div class="p-filters" id="filters">
+  <input class="p-input p-search" id="oq" type="search" placeholder="Customer or order #" aria-label="Search orders" oninput="S.q=this.value;render()" autocomplete="off">
+  <div class="p-chips" id="chips" role="tablist" aria-label="Which orders"></div>
+  <div class="p-filters-end"><button class="p-btn" id="listBtn" type="button" onclick="toggleList()">Hide list</button></div>
+</div>
+<div class="p-off-split" id="split">
+  <aside class="p-off-pane p-off-list" id="olist" aria-label="Orders waiting for proof"></aside>
+  <main class="p-off-pane p-off-work" id="work">
+    <div id="ohead"></div>
+    <div id="qboxTop"></div>
+    <div class="app"><div id="main"></div><div class="side" id="side"><div class="panel qbox" id="qbox"></div><div class="panel rail" id="rail"></div><div class="panel mailbox" id="mailbox"></div></div></div>
+    <button class="mailfab btn k" id="mailfab" type="button" onclick="openMail()">✉ Deal emails</button>
+  </main>
+</div>
+<iframe id="pomEngine" src="price-o-matic-v107.html" style="display:none" aria-hidden="true" tabindex="-1" onload="engReady()"></iframe>
+<script src="pine-confirm.js"></script>
+<script>
+/* =====================================================================
+   Create order v24 (Oct 19): the "are you sure?" questions use the Pine confirm box (pine-confirm.js) instead of the
+   browser's grey pop-up. Same questions, same results; the yes button says the action.
+   Create order v23 (Oct 17): the quote is optional (Stephen: "Create Order and Line Item Review should still be pretty
+   standalone but with that nice feature if they start using it").
+   - No saved quote for the order -> the Quote box is one quiet line: "No saved quote · Find one". Quotes for this
+     customer but none with the deal # -> "2 saved quotes for this customer · Show". Tap to open the search / list.
+   - A quote found by the deal # still opens in full with "Fill in from quote", as before.
+   =====================================================================
+   Create order v22 (Oct 17): the right side on a laptop (Stephen: "this on create order is hard to work through on the
+   right side box" — screenshot: the Quote box squeezed to just its title, the deal emails in a small scrolling strip).
+   The right column was pinned to the window and capped at its height, so its three boxes squeezed each other.
+   - The Quote box is now at the top of the form column (above the forms, as it already was on narrower screens) — it's the first thing you use
+     on an order, and it was the box getting squeezed. The right side is the Checklist (one tight line, small label)
+     and the deal emails, which get all the rest of the height.
+   - Deal emails get at least 240px; their finder buttons are one row (scrolls sideways) and the "tap into a field"
+     hint is smaller, so more of the emails themselves show. If the window is too short for that, the right column scrolls with the
+     page instead of being pinned, and the emails box is 75% of the window tall.
+   =====================================================================
+   Create order v21 (Oct 16): ↩ Undo reorder (Stephen: "How do I undo if I accidentally click a reorder" -> "Yes").
+   - Tapping a past order on the Reorder screen copies its lines and imprints into the form (nothing is saved yet). A bar
+     at the top of the form now says what was copied, with ↩ Undo reorder: it clears the copy and goes back to the
+     Reorder / New order screen. Same button in the "Copied …" message. It asks first if sizes were already typed.
+   - Gone once Create order starts writing (then it's in Airtable: fix it in Line Item Review).
+   =====================================================================
+   Create order v20 (Oct 16): sizes type like a number pad (Stephen: "it only lets me put in one number at a time meaning
+   when I select 1 it goes back to the alphabet on the keyboard").
+   - Each size used to redraw the whole form on change, so the next box was swapped out and the iPad keyboard reopened on
+     letters. Now moving between size boxes only updates the pcs count; the form redraws when you leave the sizes.
+   - Number boxes also carry pattern="[0-9]*" so iPhones and iPads open the number keys.
+   =====================================================================
+   Create order v19 (Oct 16): the quote carries over (Stephen: "Quotes Table looks great build away"; "Price-O-Matic's
+   price wins").
+   - When an order opens, its quote is looked up in Airtable Quotes (saved by Price-O-Matic v107 with the PDF): by the
+     Pipedrive deal # of the order's deal (the same worker route that loads the emails), else quotes for this customer
+     to pick from, and a search box (Q-number or customer). The quote shows above the checklist: Q-n · date · rep ·
+     total · its lines.
+   - "Fill from quote" rebuilds the imprints and line items from the Quote Lines (Quote Data = the POM's cart line):
+     garment style + color -> Airtable Garments, qty (one size) or a sizes reminder with Pine's mix ready, Price / Piece
+     = the quoted price, prints -> imprints (location, screens / underbase, ink changes, stitch band, Supacolor size).
+     What can't be mapped (nicknames, sizes, a color or location that isn't in Airtable) is listed for the rep to finish.
+     Nothing is written until Create order, as before.
+   - Create order also links the quote to the order (Quotes › Order) and sets its Status to Won. Every other write is
+     the same as v18. Practice fakes it like the rest.
+   - The hidden pricing engine loads price-o-matic-v107.html (its pricing script is byte-identical to v106).
+   Create order v18 (Oct 16): Pine style v2 + the shared office look (pine-office-v1.css), same Airtable reads and writes as v17.
+   - The same black top bar as Price-O-Matic and Line Item Review: logo, app name, version, practice pill, the step nav
+     "Quote › Order #11042 › Review" (Review opens Line Item Review on this order), Refresh, ⚙ (token + practice).
+   - No timer/clock (Stephen, Oct 16).
+   - Two panes from 1200px: orders waiting for proof on the left, the picked order on the right (each scrolls on its own);
+     "Hide list" gives the order the whole width. Below 1200px it's the v17 flow (list, then the order).
+   - The shared order header on top of the order: #, CUSTOMER, rep, Hard/ASAP due, Deal ↗, Art folder ↗, Airtable ↗,
+     lines · pcs · total, and THE one yellow button top-right: Create order (Review → once created). The Add imprint /
+     Add line item buttons are black now (one yellow per screen).
+   - Line items and imprints use the shared cards (ID badges, one status tag, pcs · $/pc · line total).
+   - Self-update (pine-update.js -> create-order.html); it won't reload while an order is being filled in.
+   Create order v17 (Oct 14): uses the whole desktop window. No 1400px page cap, the order list fills the width,
+   and on wide screens the side column (checklist + deal emails) grows with the window.
+   Create order v16 (Oct 14): order picker cleaned up for desktop. One table: every row the same width, columns
+   line up (order · customer · created · rep · lines), the Line Item Review link sits in its row, and the empty
+   side column is gone on this screen (the list gets the full width).
+   Create order v15 (Oct 13): "Bandana 4800" quick pick under the garment search (loads the Carolina Creative 4800 colors
+   in one tap; one size). Product Type toggles between the common five and every type ("all types" / "common only").
+   Create order v14 (Oct 13): line item cards show each ticked imprint's full ID as a bigger tag ("10980-A"; nickname and
+   location on hover) and the size breakdown, so sales can check the order at a glance.
+   Create order v13 (Oct 13): vendor check in Line Item Creator (same S&S / SanMar / AS Colour calls and color matching as
+   Purchasing v105). After the garment + color is picked: each vendor that carries the brand shows what it calls the color
+   ("calls it Olive Gray · fix in Airtable", or its color list when Airtable's isn't one of theirs), the sizes it makes,
+   and stock against the sizes typed ("low: L needs 22, has 12" / "in stock (Reno has it all)" / AS Colour coming soon).
+   With no sizes ticked in Airtable, the vendors' sizes decide the size boxes / one-size. Warnings only; never blocks Create.
+   Create order v12 (Oct 13): a calmer scan (Stephen asked how the eye moves through it).
+   - Imprint Creator folds away after each Add: "+ Back print for the same garments", "+ Another imprint", "Repeat of past art".
+   - Yellow = add within a step (Add imprint / Add line item); black = Create order only. Quick buttons are plain.
+   - Fewer buttons per row: Imprint Type shows Screen print / Embroidery / Supacolor / Patch & label (+ more…);
+     Product Type shows the 5 usual ones (+ more…).
+   - Checklist: "not ticked on any line item" only once line items exist (and "aren't" for several); artwork link is grey.
+   - Email finders stay at the top of the email panel while it scrolls; imprint ticks are 2 across on wide screens;
+     toasts show at the top instead of over the Add buttons.
+   Create order v11 (Oct 13): only the sizes the garment is made in (Stephen: "we can't override what the garment maker
+   actually makes"). No "show all sizes" / "use sizes instead". Pasted sizes it isn't made in are skipped (with a toast);
+   a line holding one (from a reorder or "same sizes as last time") can't be added or created until it's cleared.
+   A garment with no sizes ticked in Airtable shows every size, with a note to tick them on the garment.
+   Create order v10 (Oct 13): sizes follow the garment in Airtable (Garments "Style" + the XS…6XL / OSFA boxes).
+   Only OSFA ticked -> one "Quantity" box saved as OSFA; real sizes ticked (fitted caps, tees) -> only those size boxes,
+   "show all sizes" to override; nothing ticked -> Cap / Beanie / Bandana / Tote Bag are one size, the rest show every size.
+   Pine's mix fills only the sizes the garment comes in. (Vendors aren't checked here; Purchasing does that.)
+   Create order v9 (Oct 13): the deal's emails are easier to read (Stephen: "pretty dense"). One sentence per line; the
+   quoted reply chain ("On … wrote:", "2 October at 13:13, … wrote:") and the signature are folded behind "▸ quoted
+   earlier email"; only the newest 2 emails are open; with a finder or search on, "Only the matching sentences" (on by
+   default) shows just those, under each email's sender. Forms are unchanged from v8.
+   Create order v8 (Oct 13): back to the Airtable forms sales already know, on one page.
+   1. Imprint Creator: Linked Orders filled in; Repeat? (past art with thumbnails); Imprint Type (all 26 Airtable choices as
+      buttons by family); Location (Airtable's 16); then per type: Screen print -> Screen Count + Ink Changes (0-4, + more);
+      Embroidery -> Stitch Count (estimate OK, POM bands as quick buttons); Supacolor -> Supacolor Transfer Size. Nickname,
+      Colors (typed: names / hex / PMS; goes into each line's Proofing Notes, which is what art reads), Imprint Notes.
+      "+ Back print for the same garments" after adding one.
+   2. Line Item Creator: Product Type (all 21), Garment + color, tick this order's imprint IDs (no more typing which imprint
+      goes where), Proofing Notes written from the ticks (editable), Line Item Notes (Sales Notes), patch / sticker size,
+      promo description, sizes (paste, Pine's mix), Price / Piece (POM shown), Additional Notes (Shipping, Finishing,
+      Production, Product Description), Women's / Youth. "+ Same garment, next color".
+   3. The deal's emails beside the forms (no AI): finder buttons highlight qty / sizes / colors / garments / placement /
+      inks / art / dates, a word search, and tapping a sentence adds it to the last field you were in.
+   The AI "read email & fill" of v2-v7 is gone. Writes are v7's plus Stitch Count, Supacolor Transfer Size and the
+   line-item note/size fields. Nothing is saved until Create order; ?practice=1 fakes every write.
+   Create order v7 (Oct 13): open questions get one-tap fixes (put a print on another line, Pine's usual size mix, paste artwork),
+     a tick to mark each handled and "copy open questions" for the reply; "copy to other lines" on every print; nicknames
+     and notes show in full. Needs worker v22 for the structured questions (v21 still works: plain text + size guesses).
+   Create order v6 (Oct 13): "Artwork folder" box (Google Drive link) -> new Orders field Artwork Folder Link
+   (flddst7TDoJfSqb0s, url, added with Stephen's OK). Saved on Create (PATCH of that one field only).
+   Order list pills: Needs lines (default) · Has lines · All. Orders that already have line
+   items are labeled "already entered · N lines" with a Line Item Review link, so they aren't doubled by accident.
+   Create order v5 (Oct 13): the web-form description is no longer shown or read (Stephen: details change a lot over
+   the email thread, so the emails are the source).
+   Create order v4 (Oct 13): the order's Pipedrive DEAL is the source.
+   - Worker v21 /pipedrive/deal?order=<#> finds the deal titled "<#> | …" and returns its fields (delivery,
+     deadline, web-form Project Description) and ONLY the emails linked to that deal: one order's conversation.
+   - No inbox lists, no thread picking, no other orders. An email that isn't on the deal shows once it's
+     linked to the deal in Pipedrive. The reader reads those emails (+ the web-form description).
+   Create order v3 (Oct 13):
+   - PRIVACY (Stephen: "customer's emails only"): the rep's own conversations + what the CUSTOMER wrote to any other
+     Pine address (quotes cut). Another rep's own emails never reach this page: the worker (v20) filters by
+     &inbox=<rep's addresses> and reads the rep's private mail with their own key (PIPEDRIVE_KEY_HELLO for Patrick).
+     Reps without an inbox set here get no emails. Emails are shown as conversations; the reader uses the
+     newest conversation the customer actually replied in.
+   Create order v2 (Oct 13):
+   - Emails: the order's rep's thread first (Patrick = hello@, Chris = sales@), other inboxes folded below (worker v19 sends to/cc).
+   - "Read email & fill": worker v19 /ai/order-from-email reads the rep's emails with Claude and returns a DRAFT
+     (lines: style, color, sizes; prints: location, type, colors, inks, print notes, repeat of a past imprint).
+     The draft is shown first; Apply fills the form. Nothing is saved until Create order.
+   - Print notes per print -> Imprints "Print Notes" (fldNuEzGIYI8FWqXu). Notes per line -> added under the print rows in Proofing Notes.
+   Create order v1. Fills the Awaiting Proof order Pipedrive made:
+   creates its Imprints, then its Line Items. ?practice=1 fakes every write.
+   Safe writes only (see notes/create-order.md, Oct 12 automation check):
+   - Imprint ID is NOT written: an automation copies it from "Imprint ID Generator",
+     which needs Linked Orders set in the same create call.
+   - Order Status is never written (status changes email the customer).
+   - Line items get both order links (Order Reference is what automations read).
+   - Never set Ready for 2nd Eyes, Ordered, Received; "UPDATE:" is kept out of Proofing Notes.
+   ===================================================================== */
+const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV', T_LI='tblJx5UlwO7oMSk5H';
+const PRACTICE=/[?&]practice=1/.test(location.search);
+const PROXY='https://pine-workers.stephen-dab.workers.dev/proxy';
+const O={num:'fld4S3B5yJANKlE7l',cust:'fldjj1X0WYQOuqHYQ',custName:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',due:'fldphJYdlBNS0dmAK',rep:'fldSPnWlnzz48ZZDD',ship:'fldrjFuIBn45ewFU5',lines:'fldU6fgrz6sU3wyIZ',lines2:'fldU6fgrz6sU3wyIZ',imps:'fldShbb1tOR0zwGIt',created:'fldXUjQHSeRaW5per',email:'fldtqZM37i9bKUPaT',proofLook:'fldzdj6DTD2TrACCf',art:'flddst7TDoJfSqb0s',hard:'fldMFfWyYJ6ZQDte6'};
+const G={kind:'fldkqIcOOLfBBVv8N',szXS:'fldqtCiqDEcvbp5NY',szS:'fldDnig5xvHwBEp47',szM:'fldFfI2Bz6Zd901fV',szL:'fldxddv4SOBQ79jLU',szXL:'flduZZd9EqXf5Ntxf',sz2XL:'fldZpjXegFmPwGExL',sz3XL:'fldaVCBI9azZ2fzCk',sz4XL:'fldEm0sh0qVbR8qqw',sz5XL:'fld221OWblbVqYZeY',sz6XL:'fldmHuYBdqOdaXTmv',szOSFA:'fldsBR0uVhjpEHyJh',name:'fldT4jfh2XV9lERef',product:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',cost:'fldRmgDAByrOWcHLO',ssColor:'fldUnCYQgAx8AhsMZ',mfr:'fldtL6paVNlfMRDj4',fleece:'fldi7NqFcF7S2p4mj'};
+const IP={stitch:'fld3nysvEoi0hb7iC',supSize:'flddqYCsxScYXQccG',pnotes:'fldNuEzGIYI8FWqXu',id:'fldDFfwFQ9B20n2kT',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',inkChanges:'fld6Tv0llCxjjyyHJ',nick:'fldyGOHRKNz00MaYQ',repeat:'flda9L7041ahNZT0b',prev:'fldAEQvMAAZX9gnhl',inksTxt:'fldMM5hp8kEpo3KKT',inks:'fldpNCCXTgHyDhvak',order:'flds9F80ZDkTH1M1t',proofs:'fldUOIfCd22MxevRm',created:'fldc7aezBfzoVPeAY'};
+const LF={sales:'fldG3tzTzUC3QQJ1I',prod:'fld4FjoCQ5bXdwjJj',ship:'fld7rY74m37acM2Ik',fin:'fldqsj7nZgHrtRbEn',desc:'fldBGLb39lznbSibX',promo:'fldrkl4UNBYf9QmNQ',patch:'fldDPldCW28Ts5CSt',sticker:'fldg7mDtQwtesvv6U',ref:'fld5r0tFvdpzWV5pA',orders:'fldckT7oPYh1rrBCI',ptype:'fld8LIkrBXv8WoRRb',garment:'fldZbOdGIoCk3Gan2',imprints:'fldTFz4ZzfOthqkg6',price:'fldtMZWzA4dfPxEXx',proof:'fldWdnT83KLEvBrg4',womens:'fld65C13J5BbKIWoI',youth:'fldLHtzJ3peAtr4X1',name:'fldU6oLyZnxhhm2kX',total:'fldSMd8DkbypJiw2W',tqty:'fldFfuKAcduwWQp8g',auto:'fldyMPijIsJW5XmI8',proofImg:'flddhvdkKI31tFTdX'};
+const SZF={XS:'fldVA9ZmYxhDxtnYZ',S:'fldCZr5lB6Jx80lfG',M:'fldzTs1qKe9IBxxSn',L:'fldnRLJxjUDa1mQTj',XL:'fldTRgdexcpBXXQPv','2XL':'fldin7j6uGO0uRTec','3XL':'fldpltq9fdRkrvIvt','4XL':'fldrsci7JnToa43Zd','5XL':'fldchnRSKFukouW6N','6XL':'fldI8gTtsEJwg33BI',OSFA:'fld2bgIlmPbANgLVK'};
+const SIZES=Object.keys(SZF), APP_SIZES=['XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+// v8: Airtable's own Location choices (v7 offered "Back Neck" / "Other", which aren't choices)
+const LOC_QUICK=['Front','Back','Left Chest','Left Sleeve','Right Sleeve','Hood','Size Tag'];
+const LOC_MORE=['Right Chest','Pocket','Back Hem','Front Hem','Bandana','Tea Towel','Flatstock','Multiple Locations','Outsourced Bandana'];
+const LOCS=LOC_QUICK.concat(LOC_MORE);
+
+const INKS=['No Base W/B','EZP Base + W/B','Bleed Blocker + W/B','Discharge'];
+const SUPA=['Wearable','1C Wearable','Blocker','1C Blocker','Headwear','1C Headwear','Promotional','1C Promotional','Reflective'].map(x=>'Supacolor - '+x);
+const FAM={'Screen print':INKS,'Embroidery':['Embroidery'],'Supacolor':SUPA,'Patch & label':['Patch Application','Hem Label Application','Woven Label Application','Patch/Label ONLY'],
+  'Decopress':['Decopress - Woven / Twill','Decopress - Leather','Decopress - Metallic','Decopress - Reflective'],'Flatstock':['Flatstock'],'Finishing':['Finishing - Fold & Bag','Finishing - UPC sticker','Finishing - Bandana Hanger']};
+// Airtable "Supacolor Transfer Size" choices, exactly (one has a trailing space)
+const SUP_SIZES=['1.5 X 1.5','2.5 X 2.5','4 X 4','11.7 X 11.7','4.7 X 2.8 ','A6 - 4.1 X 5.8','A5 - 5.8 X 8.3','A5 - 5.8 X 8.3 or 11.7 X 4.25','A5 - 5.8 X 8.3 GANG','A4 - 8.3 X 11.7','A4 - 8.3 X 11.7 or 16.5 X 5.85','A4 - 8.3 X 11.7 GANG','A3 - 11.7 X 16.5','A3 - 11.7 X 16.5 GANG'];
+const SUP_QUICK=['2.5 X 2.5','4 X 4','11.7 X 11.7','A3 - 11.7 X 16.5 GANG'];
+const STITCH_QUICK=[5000,7500,10000,15000,20000];   // the POM's embroidery bands
+const PT_ALL=['Printed Apparel','Embroidered Apparel','Flatstock Printing','Stickers','Embroidered Patches (50%)','Embroidered Patches (75%)','Embroidered Patches (100%)','Woven Patches','Woven Clip Labels','Sublimated Patches','DecoPress Patches','Leather Patches','Silicon Patches','Pins','Promo Product','Finishing','Pre-Order Setup Fees','Artwork','Live Printing','Contract Printing','Misc.'];
+const PT_QUICK=['Printed Apparel','Embroidered Apparel','Flatstock Printing','Stickers','Woven Patches'];
+const PATCH_SIZES=['1.5 inch','2 inch','2.5 inch','3 inch','3.5 inch','4 inch','4.5 inch','5 inch'], STICKER_SIZES=['2 inch','3 inch','4 inch','5 inch'];
+const isPatchPT=l=>/Patches|Clip Labels/.test(l.ptype);
+const isPromoPT=l=>/Promo|Finishing|Fees|Misc|Artwork|Pins|Live|Contract/.test(l.ptype);
+
+const famOf=t=>Object.keys(FAM).find(f=>FAM[f].includes(t))||'';
+const hasBase=t=>/EZP Base|Bleed Blocker/.test(t||'');
+const PT_MAIN=['Printed Apparel','Embroidered Apparel','Flatstock Printing','Woven Patches','Embroidered Patches (100%)','Stickers'];
+const RECENT_DAYS=45;
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=v=>v==null||isNaN(v)?'—':'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const sel=v=>v==null?'':(typeof v==='string'?v:(v.name||''));
+const numv=v=>typeof v==='number'&&isFinite(v)?v:0;
+const fq=s=>String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+const flds=a=>a.map(f=>'fields%5B%5D='+f).join('&');
+const thumb=a=>a?((a.thumbnails&&(a.thumbnails.large||a.thumbnails.small)||{}).url||a.url):'';
+const ago=d=>{ if(!d) return ''; const n=Math.round((Date.now()-new Date(d))/864e5), dt=new Date(d); return n<=0?'today':n===1?'yesterday':n<7?n+' days ago':dt.toLocaleDateString('en-US',n>300?{month:'short',year:'numeric'}:{month:'short',day:'numeric'}); };
+const fmtT=ms=>{ const s=Math.floor(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const isApparel=l=>/Apparel/.test(l.ptype);
+function toastUndo(t){ document.querySelectorAll('.p-toast').forEach(x=>x.remove()); const e=document.createElement('div'); e.className='p-toast'; e.setAttribute('role','status'); const sp=document.createElement('span'); sp.textContent=t; const b=document.createElement('button'); b.type='button'; b.className='p-btn'; b.textContent='↩ Undo'; b.onclick=undoReorder; e.append(sp,b); document.body.appendChild(e); setTimeout(()=>e.remove(),7000); }   // v21
+function toast(t){ document.querySelectorAll('.p-toast').forEach(x=>x.remove()); const e=document.createElement('div'); e.className='p-toast'; e.setAttribute('role','status'); e.textContent=t; document.body.appendChild(e); setTimeout(()=>e.remove(),2600); }  // v7: newest replaces the last
+let TOKEN=''; try{ TOKEN=localStorage.getItem('pine_at_key')||''; }catch(e){}
+function saveTok(){ TOKEN=$('tok').value.trim(); try{ localStorage.setItem('pine_at_key',TOKEN); }catch(e){} if(TOKEN) gearShow(false); S.awaiting=null; S.err=''; render(); loadAwaiting(); }
+async function at(table,params){
+  if(!TOKEN){ gearShow(true); throw new Error('Add your Airtable token in ⚙'); }
+  const r=await fetch(`https://api.airtable.com/v0/${BASE}/${table}?returnFieldsByFieldId=true&${params}`,{headers:{Authorization:'Bearer '+TOKEN}});
+  if(!r.ok) throw new Error('Airtable '+r.status+(r.status===401?' — check the token':'')); return r.json();
+}
+async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(table,params+(off?'&offset='+off:'')); out=out.concat(d.records||[]); off=d.offset||''; }while(off&&out.length<max); return out; }
+const byIds=ids=>encodeURIComponent('OR('+ids.map(x=>`RECORD_ID()='${x}'`).join(',')+')');
+// The only writes on this page. Practice mode fakes them.
+let FAKE=1;
+async function atWrite(method,table,records){
+  if(PRACTICE){ await new Promise(r=>setTimeout(r,120)); return {records:records.map(x=>({id:x.id||('recPRACTICE'+String(FAKE++).padStart(6,'0')),fields:x.fields}))}; }
+  const r=await fetch(`https://api.airtable.com/v0/${BASE}/${table}`,{method,headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify({records,typecast:true,returnFieldsByFieldId:true})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error('Airtable '+r.status+': '+((j.error&&(j.error.message||j.error.type))||'write failed'));
+  return j;
+}
+
+/* sizes typed or pasted from an email: "6 S, 6 M, 15 XL", "S-10 M-20", "10 small 20 med", "2X 3" */
+const SZ_ALIAS={xs:'XS','x-small':'XS',xsmall:'XS',s:'S',sm:'S',sml:'S',small:'S',m:'M',md:'M',med:'M',medium:'M',l:'L',lg:'L',lrg:'L',large:'L',xl:'XL',xlarge:'XL','x-large':'XL','2xl':'2XL',xxl:'2XL','2x':'2XL','xx-large':'2XL','3xl':'3XL',xxxl:'3XL','3x':'3XL','4xl':'4XL','4x':'4XL',xxxxl:'4XL','5xl':'5XL','5x':'5XL',osfa:'OSFA',os:'OSFA'};
+const SZW='xx-large|x-large|x-small|xsmall|xlarge|xxxxl|xxxl|xxl|5xl|4xl|3xl|2xl|5x|4x|3x|2x|xl|xs|small|sml|sm|medium|med|md|large|lrg|lg|osfa|os|s|m|l';
+function parseSizes(txt){ const out={}, t=String(txt).toLowerCase().replace(/[,;\/|()]/g,' ');
+  const re=new RegExp(`(\\d+)\\s*(?:x\\s+|-|:|=)?\\s*(${SZW})\\b|\\b(${SZW})\\s*(?:-|:|=|x)?\\s*(\\d+)`,'g');
+  let m; while((m=re.exec(t))){ const n=+(m[1]||m[4]), z=SZ_ALIAS[m[2]||m[3]]; if(z&&n) out[z]=(out[z]||0)+n; }
+  return out; }
+const szText=o=>SIZES.filter(z=>o[z]).map(z=>`${o[z]} ${z}`).join(', ');
+const qty=l=>Object.values(l.sizes).reduce((a,b)=>a+(b||0),0);
+/* v7: Pine's usual size mix. Unisex = average of 1,496 past apparel lines (24+ pcs) in Airtable, 10/13/26.
+   Women's has too few past lines to average, so it's a standard women's curve. */
+const MIX={unisex:{XS:2.3,S:15.9,M:27,L:29.3,XL:18.5,'2XL':6.2,'3XL':1},womens:{XS:8,S:22,M:30,L:25,XL:12,'2XL':3}};
+function mixSizes(total,womens,avail){ const c=MIX[womens?'womens':'unisex'], ks=Object.keys(c).filter(k=>!avail||!avail.some(z=>z!=='OSFA')||avail.includes(k)), sum=ks.reduce((a,k)=>a+c[k],0);
+  const r=ks.map(k=>{ const v=total*c[k]/sum; return {k,v,n:Math.floor(v)}; }); let left=total-r.reduce((a,x)=>a+x.n,0);
+  r.slice().sort((a,b)=>(b.v-b.n)-(a.v-a.n)).slice(0,left).forEach(x=>x.n++); const o={}; r.forEach(x=>{ if(x.n) o[x.k]=x.n; }); return o; }
+
+/* ---------- state ---------- */
+const S={awaiting:null,q:'',listF:'need',o:null,view:'pick',past:[],pastImps:[],pastLoaded:false,existing:[],prints:[],lines:[],seq:1,add:null,tab:'order',artQ:'',np:null,
+  t0:null,tEnd:null,busy:false,done:null,err:'',mail:null,ni:null,nl:null,niEdit:false,nlEdit:false,after:null,lastLine:null,find:null,fq:'',mi:-1,lastField:null,repQ:'',mailDrawn:null};
+const P=id=>S.prints.find(p=>p.id===id)||(S.ni&&S.ni.id===id?S.ni:null);
+const Ln=id=>S.lines.find(l=>l.id===id)||(S.nl&&S.nl.id===id?S.nl:null);
+const LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+// New imprints get the next letters after any the order already has (the Airtable automation counts the same way).
+const letterOf=p=>LETTERS[S.existing.length+S.prints.indexOf(p)]||'?';
+const pid=p=>`${S.o.num}-${letterOf(p)}`;
+const isSP=p=>famOf(p.type)==='Screen print';
+const screens=p=>isSP(p)?(p.scr||((p.colors||0)+(p.ub?1:0))):0;
+const linesWith=p=>S.lines.filter(l=>l.prints.includes(p.id));
+// v8: Ink Changes is the number sales picks (Stephen: just numbers)
+const inkChanges=p=>isSP(p)?(p.ic||0):0;
+
+/* ---------- loading ---------- */
+async function loadAwaiting(again){
+  if(!TOKEN){ gearShow(true); render(); return; }
+  try{ const recs=await atAll(T_ORD,`pageSize=100&${flds([O.num,O.cust,O.custName,O.created,O.rep,O.lines,O.status])}&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent('OR({Order Status}="Awaiting Proof",{Order Status}=BLANK())')}`,300);
+    S.awaiting=recs.map(r=>{const f=r.fields;return {id:r.id,num:f[O.num],name:String(f[O.custName]||'').trim(),created:f[O.created]||'',rep:sel(f[O.rep]),lines:(f[O.lines]||[]).length,blank:!f[O.status]};}).filter(o=>o.name&&o.num);
+  }catch(e){ S.awaiting=[]; S.err=e.message; }
+  render();
+  const want=new URLSearchParams(location.search).get('order');
+  if(want&&!again){ const o=(S.awaiting||[]).find(x=>String(x.num)===want); if(o) pickOrder(o.id); else toast('Order '+want+' isn\'t waiting for proof'); }
+}
+async function pickOrder(id){
+  S.err=''; S.view='loading'; S.o=null; render();
+  try{
+    const d=await at(T_ORD,`${flds(Object.values(O))}&filterByFormula=${byIds([id])}`), r=d.records&&d.records[0]; if(!r) throw new Error('Order not found');
+    const f=r.fields;
+    S.o={id:r.id,num:f[O.num],name:String(f[O.custName]||'').trim(),rep:sel(f[O.rep]),due:f[O.due]||'',ship:(f[O.ship]||[]).map(sel).join(', '),email:[].concat(f[O.email]||[]).map(String).find(x=>x.includes('@'))||'',lineCount:(f[O.lines]||[]).length,impIds:f[O.imps]||[],art:f[O.art]||'',hard:sel(f[O.hard])};
+    S.existing=[]; if(S.o.impIds.length){ const di=await at(T_IMP,`${flds([IP.id])}&filterByFormula=${byIds(S.o.impIds)}`); S.existing=(di.records||[]).map(x=>x.fields[IP.id]||'?').sort(); }
+    S.prints=[]; S.lines=[]; S.reo=null; S.done=null; S.made=null; S.t0=Date.now(); S.tEnd=null; S.mail=null; S.ni=null; S.nl=null; S.niEdit=S.nlEdit=false; S.after=S.lastLine=null; S.find=null; S.fq=''; S.lastField=null; S.qt=null; S.qfill=null;
+    await loadPast(S.o.name);
+    S.view=S.past.length?'door':'edit';
+    render(); loadMail();
+  }catch(e){ S.err=e.message; S.view='pick'; render(); }
+}
+async function loadPast(name){
+  S.past=[]; S.pastImps=[];
+  try{
+    const sortQ=`&sort%5B0%5D%5Bfield%5D=${O.created}&sort%5B0%5D%5Bdirection%5D=desc`;
+    const d=await at(T_ORD,`maxRecords=40&${flds([O.num,O.created,O.lines,O.imps,O.proofLook,O.status])}${sortQ}&filterByFormula=${encodeURIComponent(`AND({[TEXT] Customer Name}="${fq(name)}",{Order Status}!="Awaiting Proof",{Order Status}!="Cancelled / Voided",{Order Status}!=BLANK())`)}`);
+    S.past=(d.records||[]).map(r=>{const f=r.fields;return {id:r.id,num:f[O.num],created:f[O.created]||'',lineIds:f[O.lines]||[],impIds:f[O.imps]||[],thumbs:(f[O.proofLook]||[]).map(thumb).filter(Boolean),lines:null};}).filter(o=>o.lineIds.length);
+    const di=await at(T_IMP,`maxRecords=100&${flds(Object.values(IP))}&sort%5B0%5D%5Bfield%5D=${IP.created}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent(`FIND(LOWER("${fq(name)}"),LOWER({Customer Name Search}))`)}`);
+    S.pastImps=(di.records||[]).map(r=>{const f=r.fields;return {rid:r.id,id:f[IP.id]||'',type:sel(f[IP.type]),loc:sel(f[IP.loc]),screens:f[IP.screens]||0,stitch:f[IP.stitch]||0,supSize:sel(f[IP.supSize]),nick:f[IP.nick]||'',inks:f[IP.inksTxt]||'',inkIds:f[IP.inks]||[],created:(f[IP.created]||'').slice(0,10),thumb:thumb((f[IP.proofs]||[])[0]),order:(f[IP.order]||[])[0]};}).filter(m=>m.id);
+  }catch(e){ S.err='Past orders: '+e.message; }
+  S.pastLoaded=true;
+}
+async function loadMail(){
+  S.mail={loading:true}; render(); renderMail();
+  try{ const r=await fetch(PROXY+'/pipedrive/deal?order='+encodeURIComponent(S.o.num),{headers:{Authorization:'Bearer '+TOKEN}}); const j=await r.json();
+    if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+    if(!('deal' in j)) throw new Error('needs worker v21');
+    S.mail=j.deal?{deal:j.deal,msgs:j.messages||[]}:{none:`No Pipedrive deal titled "${S.o.num} | …" was found.`};
+  }catch(e){ S.mail={none:/v21|not allowed/.test(e.message)?'Emails need worker v21 (deploy it from copy-worker.html).':'Couldn\'t load the Pipedrive deal ('+e.message+').'}; }
+  render(); renderMail(); findQuotes();
+}
+const mapG0=r=>({id:r.id,name:String(r.fields[G.name]||'').trim(),style:String(r.fields[G.product]||'').trim(),color:String(r.fields[G.color]||'').trim(),cost:numv(r.fields[G.cost]),fleece:!!r.fields[G.fleece],ssColor:String(r.fields[G.ssColor]||'').trim(),kind:sel(r.fields[G.kind]),avail:['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','OSFA'].filter(z=>r.fields[G['sz'+z]])});
+// v15: a stock bandana style (4800) with Style "Other" and no sizes ticked is still one size (Sand is set up that way)
+const mapG=r=>{ const g=mapG0(r); if((!g.kind||g.kind==='Other')&&!g.avail.length&&(STOCK_BANDANAS.includes(g.style)||/\bbandana\b/i.test(g.name))) g.kind='Bandana'; return g; };
+const STOCK_BANDANAS=['4800'];
+let gTimer=null;
+function gSearch(lid,v){ const l=Ln(lid); l.gq=v; l.gres=null; render(); clearTimeout(gTimer); const q=v.trim(); if(q.length<2) return;
+  gTimer=setTimeout(async()=>{ try{
+      // Style # first (the usual case); brand / color words only if that finds nothing.
+      let recs=await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`FIND(UPPER("${fq(q)}"),UPPER({Product Number}))`)}`,200);
+      if(!recs.length){ try{ recs=await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent('AND('+q.toLowerCase().split(/\s+/).filter(Boolean).map(w=>`FIND("${fq(w)}",LOWER({Manufacturer}&" "&{Product Number}&" "&{Colorway}))`).join(',')+')')}`,200); }catch(e){} }
+      if(Ln(lid)&&Ln(lid).gq===v){ const by={}; recs.map(mapG).forEach(g=>{ const k=g.style||g.name; (by[k]=by[k]||[]).push(g); });
+        const ql=q.toLowerCase(), rank=k=>(k.toLowerCase().startsWith(ql)||k.toLowerCase().replace(/^[a-z]+/,'').startsWith(ql)?2:0);
+        Ln(lid).gres=Object.entries(by).sort((a,b)=>rank(b[0])-rank(a[0])||b[1].length-a[1].length).slice(0,8).map(([k,gs])=>({style:k,name:gs[0].name.replace(/\s*-\s*[^-]*$/,''),colors:gs})); render(); }
+    }catch(e){ if(Ln(lid)){ Ln(lid).gres=[]; Ln(lid).gerr=e.message; render(); } } },300); }
+// Garment names look like "Comfort Colors 1717 - Pepper"; show brand + style.
+const gLabel=g=>g?g.name.replace(/\s*-\s*[^-]*$/,'')||g.style:'';
+
+/* ---------- v8: drafts (the two forms) ---------- */
+const blankLine=()=>({id:'L'+(S.seq++),ptype:'Printed Apparel',g:null,colors:null,gq:'',gres:null,sizes:{},prints:[],inks:{},price:null,last:null,womens:false,youth:false,notes:null,
+  sales:'',prod:'',ship:'',fin:'',desc:'',promo:'',patch:'',sticker:'',more:false,ptMore:false});
+const blankImp=()=>({id:'P'+(S.seq++),nick:'',loc:'',type:'',fam:'',scr:0,colors:0,ub:false,ic:0,stitch:0,supSize:'',inks:'',pnotes:'',prev:null,with:null,rep:false,locMore:false,scrMore:false,icMore:false});
+const impDirty=p=>!!(p&&(p.type||p.nick.trim()||p.loc||p.prev));
+const lineDirty=l=>!!(l&&(l.g||l.colors||qty(l)||l.prints.length));
+function syncScr(p){ if(!isSP(p)){ p.colors=0; p.ub=false; return; } p.ub=hasBase(p.type); p.colors=Math.max(1,(p.scr||1)-(p.ub?1:0)); }
+function startNew(){ S.view='edit'; S.ni=blankImp(); S.nl=blankLine(); render(); }
+function newPrintFromPast(m){ const ex=S.prints.find(p=>p.prev&&p.prev.rid===m.rid); if(ex) return ex.id;
+  const p=Object.assign(blankImp(),{nick:m.nick,loc:m.loc,type:m.type,fam:famOf(m.type),scr:m.screens||0,stitch:m.stitch||0,supSize:m.supSize||'',inks:'',prev:m}); syncScr(p); S.prints.push(p); return p.id; }
+async function reorder(oid){
+  const po=S.past.find(x=>x.id===oid); S.reo={num:po.num,lines:S.lines.slice(),prints:S.prints.slice()}; S.view='loading'; render();   // v21: for ↩ Undo reorder
+  try{
+    const d=await at(T_LI,`${flds([LF.garment,LF.ptype,LF.price,LF.imprints,LF.total,LF.tqty,LF.auto,LF.womens,LF.youth].concat(Object.values(SZF)))}&filterByFormula=${byIds(po.lineIds)}`);
+    const recs=d.records||[], gids=[...new Set(recs.map(r=>(r.fields[LF.garment]||[])[0]).filter(Boolean))];
+    const gd=gids.length?await at(T_GAR,`${flds(Object.values(G))}&filterByFormula=${byIds(gids)}`):{records:[]}, gmap={}; (gd.records||[]).forEach(r=>gmap[r.id]=mapG(r));
+    S.lines=[];
+    recs.forEach(r=>{ const f=r.fields, l=blankLine(), sz={}; SIZES.forEach(z=>{ const v=numv(f[SZF[z]]); if(v) sz[z]=v; });
+      const pi=numv(f[LF.price]), lt=numv(f[LF.total]), tq=numv(f[LF.tqty]);
+      l.ptype=sel(f[LF.ptype])||'Printed Apparel'; l.g=gmap[(f[LF.garment]||[])[0]]||null; l.womens=!!f[LF.womens]; l.youth=!!f[LF.youth];
+      l.last={order:po.num,sizes:sz,price:pi||(lt&&tq?Math.round(lt/tq*100)/100:0)};
+      (f[LF.imprints]||[]).forEach(rid=>{ const m=S.pastImps.find(x=>x.rid===rid); if(m) l.prints.push(newPrintFromPast(m)); });
+      S.lines.push(l); });
+    S.view='edit'; S.ni=blankImp(); S.nl=blankLine(); render(); S.lines.forEach(l=>l.g&&vendorCheck(l.g)); toastUndo(`Copied ${po.num}: ${S.lines.length} line${S.lines.length===1?'':'s'}, ${S.prints.length} imprint${S.prints.length===1?'':'s'} as repeats. Tap ✎ on each line to enter the new sizes.`);
+  }catch(e){ S.reo=null; S.err=e.message; S.view='door'; render(); }
+}
+// v21: put the form back the way it was before the past order was copied, and show the Reorder / New order screen again
+async function undoReorder(){ const z=S.reo; if(!z||S.made||S.done) return;
+  const typed=S.lines.some(l=>Object.keys(l.sizes||{}).length)||(S.nl&&Object.keys(S.nl.sizes||{}).length);
+  if(typed&&!await PineConfirm.ask({title:`Undo the reorder of ${z.num}?`,body:'The copied lines and imprints, and the sizes you typed, are cleared. Nothing was saved to Airtable.',ok:'Undo reorder'})) return;
+  if(S.reo!==z||S.made||S.done) return;
+  S.lines=z.lines; S.prints=z.prints; S.ni=null; S.nl=null; S.niEdit=S.nlEdit=false; S.reo=null; S.err=''; S.view='door';
+  document.querySelectorAll('.p-toast').forEach(x=>x.remove()); render(); window.scrollTo({top:0}); toast('Reorder undone · nothing was saved'); }
+const vReoBar=()=>S.reo&&!S.made&&!S.done&&S.view==='edit'?`<div class="p-note reobar"><span>Copied from <b>${esc(S.reo.num)}</b> · nothing saved yet</span><button class="p-btn" type="button" onclick="undoReorder()">↩ Undo reorder</button></div>`:'';
+/* garment pick + sizes (work on the form's draft line too: Ln() finds it) */
+// v10: one size = a hat/beanie/bandana/tote (Garments "Style") or a garment with only OSFA ticked
+const ONE_STYLES=['Cap','Beanie','Bandana','Tote Bag','Paper'];
+// Airtable decides: only OSFA ticked = one size; real sizes ticked = those sizes (fitted caps); nothing ticked = go by Style
+// v13: when Airtable has no sizes ticked, the sizes the vendors make (S&S / SanMar / AS Colour) stand in
+const availOf=g=>!g?[]:g.avail.length?g.avail:vendorSizes(g).filter(z=>z==='OSFA'||['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'].includes(z));
+const oneSize=g=>{ if(!g) return false; const av=availOf(g); return av.length?(av.length===1&&av[0]==='OSFA'):(ONE_STYLES.includes(g.kind)||(!g.kind&&/\b(hat|cap|beanie|visor|bucket|tote|bandana)\b/i.test(g.name))); };
+// v11: only the sizes the garment is made in (no override: we can't print a size the maker doesn't make).
+// No sizes ticked on the garment in Airtable yet -> every size shows, with a note to tick them.
+const ALL_SZ=['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+const known=g=>availOf(g).length>0;
+const sizesFor=l=>{ const av=availOf(l.g).filter(z=>z!=='OSFA'); return av.length?ALL_SZ.filter(z=>av.includes(z)):ALL_SZ; };
+// sizes on a line the garment isn't made in (from a paste, a reorder or "same sizes as last time")
+const offSizes=l=>known(l.g)?Object.keys(l.sizes).filter(z=>l.sizes[z]&&!(oneSize(l.g)?z==='OSFA':availOf(l.g).includes(z))):[];
+function toOneSize(l){ if(oneSize(l.g)){ const q=qty(l); l.sizes=q?{OSFA:q}:{}; } }
+function pickStyle(lid,k){ const l=Ln(lid), r=l.gres[k]; l.colors=r.colors; l.g=r.colors.length===1?r.colors[0]:null; l.gq=''; l.gres=null; toOneSize(l); render(); if(l.g) vendorCheck(l.g); }
+function pickColor(lid,gid){ const l=Ln(lid); l.g=l.colors.find(g=>g.id===gid); toOneSize(l); render(); vendorCheck(l.g); }
+// v15: stock garments we order all the time, one tap to their color chips (exact Product Number, not a FIND)
+const STOCK=[{label:'🧣 Bandana 4800',num:'4800',mfr:'carolina',ptype:'Printed Apparel'}], stockCache={};
+async function pickStock(lid,k){ const x=STOCK[k], l=Ln(lid); l.ptype=x.ptype; l.gq=''; l.gres=null;
+  try{ let gs=stockCache[k];
+    if(!gs){ toast('Loading '+x.label.replace(/^\W+/,'')+'…'); const recs=await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`AND(TRIM({Product Number})="${x.num}",FIND("${x.mfr}",LOWER({Manufacturer}&"")))`)}`,200);
+      gs=stockCache[k]=recs.map(mapG).sort((a,b)=>a.color.localeCompare(b.color)); }
+    const L=Ln(lid); if(!L) return; if(!gs.length){ toast(`No ${x.num} in Airtable Garments`); return; }
+    L.colors=gs; L.g=gs.length===1?gs[0]:null; toOneSize(L); render(); if(L.g) vendorCheck(L.g);
+  }catch(e){ toast('Couldn\'t load it: '+e.message); } }
+function changeG(lid){ const l=Ln(lid); l.g=null; render(); focusSoon('gq_'+lid); }
+function otherStyle(lid){ const l=Ln(lid); l.g=null; l.colors=null; render(); focusSoon('gq_'+lid); }
+// v20: typing a size used to redraw the whole form, which swapped out the box you'd just tapped. The iPad keyboard then
+// reopened on letters after every number (Stephen: "when I select 1 it goes back to the alphabet"). While you move between
+// size boxes only the count updates; the form redraws once you leave the sizes.
+function setSz(lid,z,v){ const l=Ln(lid), n=Math.max(0,Math.round(+v||0)); if(n) l.sizes[z]=n; else delete l.sizes[z];
+  const inp=$(`sz_${lid}_${z}`), grid=inp&&inp.closest('.szs'); if(!grid){ render(); return; }
+  setTimeout(()=>{ const ae=document.activeElement;
+    if(!(ae&&ae.tagName==='INPUT'&&grid.isConnected&&grid.contains(ae))){ render(); return; }
+    const qt=grid.querySelector('.qt'); if(qt) qt.textContent=qty(l);
+    if(!grid.dataset.wait){ grid.dataset.wait='1'; grid.addEventListener('focusout',e=>{ if(!grid.contains(e.relatedTarget)) setTimeout(render,0); }); }
+  },0); }
+function pasteSz(lid,v){ const n=String(v).trim(); if(/^\d{1,4}$/.test(n)&&+n>0) return fillMix(lid,+n); const o=parseSizes(v); if(!Object.keys(o).length){ if(String(v).trim()) toast('Couldn\'t read sizes from that'); return; }
+  const l=Ln(lid), skip=known(l.g)?Object.keys(o).filter(z=>!availOf(l.g).includes(z)):[]; skip.forEach(z=>delete o[z]);
+  l.sizes=o; render(); toast(`${Object.values(o).reduce((a,b)=>a+b,0)} pcs: ${szText(o)}`+(skip.length?` · skipped ${skip.join(', ')}: ${gLabel(l.g)} isn't made in ${skip.length>1?'those':'that size'}`:'')); }
+function fillMix(lid,total){ const l=Ln(lid); if(!(total>0)) return toast('Type the total first'); l.sizes=mixSizes(total,l.womens,known(l.g)?availOf(l.g):null); render(); toast(`Pine's usual ${l.womens?'women\'s ':''}mix: ${szText(l.sizes)}`); }
+function osfaQty(lid,v){ const n=Math.max(0,Math.round(+v||0)); Ln(lid).sizes=n?{OSFA:n}:{}; render(); }
+function sameAsLast(lid){ const l=Ln(lid); l.sizes=Object.assign({},l.last.sizes); render(); }
+function setPT(lid,t){ const l=Ln(lid); l.ptype=t; l.ptManual=true; if(!isApparel(l)){ const q=qty(l); l.sizes=q?{OSFA:q}:{}; } render(); }
+// Embroidery-only lines are Embroidered Apparel; anything printed is Printed Apparel. Sales can still change it.
+function autoPT(l){ if(!isApparel(l)||l.ptManual) return; const ts=l.prints.map(id=>P(id)).filter(Boolean).map(p=>p.type); if(ts.length&&ts.every(t=>t==='Embroidery')) l.ptype='Embroidered Apparel'; else if(ts.some(t=>t!=='Embroidery')) l.ptype='Printed Apparel'; }
+const grow=el=>{ el.style.height='auto'; el.style.height=el.scrollHeight+2+'px'; };
+
+/* ---------- v8: Imprint Creator actions ---------- */
+function impFam(f){ const p=S.ni; p.fam=f; const ts=FAM[f]; p.type=ts.length===1?ts[0]:(ts.includes(p.type)?p.type:''); syncScr(p); render(); }
+function impType(t){ const p=S.ni; p.type=t; p.fam=famOf(t); syncScr(p); render(); }
+function impScr(n){ const p=S.ni; p.scr=n; syncScr(p); render(); }
+function impRepeat(on){ S.ni.rep=on; S.repQ=''; render(); if(on) focusSoon('repq'); }
+function impFromPast(rid){ const m=S.pastImps.find(x=>x.rid===rid), p=S.ni; if(!m) return;
+  Object.assign(p,{nick:m.nick,loc:m.loc,type:m.type,fam:famOf(m.type),scr:m.screens||0,stitch:m.stitch||0,supSize:m.supSize||'',prev:m,rep:false}); syncScr(p); render(); toast('Filled from '+m.id+'. It will be marked Repeat and linked to it.'); }
+function addImp(){ const p=S.ni, need=printNeed(p); if(need) return toast(need.replace(/^needs/,'Needs'));
+  if(!S.prints.includes(p)){ S.prints.push(p);
+    // "Back print for the same garments": goes on every line the first imprint is on
+    if(p.with) S.lines.forEach(l=>{ if(l.prints.includes(p.with)&&!l.prints.includes(p.id)) l.prints.push(p.id); });
+    S.after=p.id; S.impOpen=false; toast(`${pid(p)} added. Nothing is saved until Create order.`); }
+  S.ni=blankImp(); S.niEdit=false; render(); }
+function backPrint(){ const a=P(S.after); if(!a) return; const p=blankImp(); Object.assign(p,{type:a.type,fam:a.fam||famOf(a.type),loc:'Back',with:a.id}); syncScr(p); S.ni=p; S.impOpen=true; render(); focusSoon('imp_nick'); }
+async function editImp(id){ if(impDirty(S.ni)&&!S.niEdit&&!await PineConfirm.ask({title:'Drop the imprint you were filling in?',ok:'Drop it'})) return; if(!P(id)) return; S.ni=P(id); S.niEdit=true; render(); $('impform')&&$('impform').scrollIntoView({block:'start',behavior:'smooth'}); }
+async function rmImp(id){ if(S.made&&S.made.newId[id]) return toast('Already created in Airtable — fix it in Line Item Review');
+  const p=P(id); if(!await PineConfirm.ask({title:`Remove ${pid(p)} ${p.nick}?`,body:'It comes off every line item too.',ok:'Remove',danger:true})) return; if(!S.prints.includes(p)) return;
+  S.lines.concat(S.nl?[S.nl]:[]).forEach(l=>{ l.prints=l.prints.filter(x=>x!==id); delete l.inks[id]; }); S.prints=S.prints.filter(x=>x!==p); if(S.ni===p){ S.ni=blankImp(); S.niEdit=false; } render(); }
+function clearImp(){ S.ni=blankImp(); S.niEdit=false; if(S.prints.length) S.impOpen=false; render(); }
+function openImp(rep){ S.ni=blankImp(); S.impOpen=true; render(); if(rep) impRepeat(true); else $('impform')&&$('impform').scrollIntoView({block:'start',behavior:'smooth'}); }
+
+/* ---------- v8: Line Item Creator actions ---------- */
+function togImp(lid,id){ const l=Ln(lid); if(l.prints.includes(id)){ l.prints=l.prints.filter(x=>x!==id); delete l.inks[id]; }
+  else { l.prints.push(id); const also=S.prints.filter(p=>p.with===id&&!l.prints.includes(p.id)); also.forEach(p=>l.prints.push(p.id)); if(also.length) toast('Also ticked '+also.map(pid).join(', ')+' (made for the same garments)'); }
+  autoPT(l); render(); }
+function setLineInk(lid,id,v){ const l=Ln(lid), p=P(id); if(!v.trim()||v.trim()===p.inks) delete l.inks[id]; else l.inks[id]=v.trim(); }
+function addLine(){ const l=S.nl, ap=isApparel(l);
+  if(ap&&!l.g) return toast(l.colors?'Pick the color':'Pick the garment'); if(offSizes(l).length) return toast(`${gLabel(l.g)} isn't made in ${offSizes(l).join(', ')}. Remove it first.`); if(!qty(l)) return toast(ap?'Add the sizes':'Add the qty');
+  if(!S.lines.includes(l)){ S.lines.push(l); S.lastLine=l.id; toast(`Line ${S.lines.length} added${l.prints.length?'':' (no imprints ticked)'}. Nothing is saved until Create order.`); }
+  S.nl=blankLine(); S.nl.ptype=l.ptype; S.nlEdit=false; render(); }
+function nextColor(){ const a=Ln(S.lastLine); if(!a) return; const l=blankLine();
+  Object.assign(l,{ptype:a.ptype,ptManual:a.ptManual,colors:a.colors,g:null,prints:[...a.prints],inks:Object.assign({},a.inks),price:a.price,womens:a.womens,youth:a.youth,sales:a.sales,prod:a.prod,ship:a.ship,fin:a.fin,desc:a.desc});
+  S.nl=l; S.nlEdit=false; render(); $('lineform')&&$('lineform').scrollIntoView({block:'start',behavior:'smooth'}); }
+async function editLine(id){ if(lineDirty(S.nl)&&!S.nlEdit&&!await PineConfirm.ask({title:'Drop the line item you were filling in?',ok:'Drop it'})) return; if(!Ln(id)) return; S.nl=Ln(id); S.nlEdit=true; render(); $('lineform')&&$('lineform').scrollIntoView({block:'start',behavior:'smooth'}); }
+async function rmLine(id){ const l=Ln(id); if(S.made&&S.made.lines.some(x=>x.l===l)) return toast('Already created in Airtable — fix it in Line Item Review');
+  if(!await PineConfirm.ask({title:'Remove line '+(S.lines.indexOf(l)+1)+'?',ok:'Remove',danger:true})) return; if(!S.lines.includes(l)) return; S.lines=S.lines.filter(x=>x!==l); if(S.nl===l){ S.nl=blankLine(); S.nlEdit=false; } render(); }
+function clearLine(){ S.nl=blankLine(); S.nlEdit=false; render(); }
+
+/* ---------- POM price: the Price-O-Matic itself, loaded hidden (same as quotes) ---------- */
+let ENG=null;
+function engReady(){ try{ const w=$('pomEngine').contentWindow; if(w&&typeof w.computeApparelAt==='function'){ ENG=w; render(); } }catch(e){} }
+const fleeceOf=l=>!!(l.g&&(l.g.fleece||/hood|crew|fleece|sweat|zip/i.test(l.g.name)));
+const stitchBand=n=>n<=5000?'Up to 5,000':n<=7500?'5,000 - 7,500':n<=10000?'7,500 - 10,000':n<=15000?'10,000 - 15,000':'15,000 - 20,000';
+function pomImp(p,fleece,l){
+  const b={loc:p.loc||'Front',printType:fleece?'Fleece':'Tees / Totes',inkChanges:0,fleeceImpressions:0,supSize:p.supSize&&SUP_SIZES.includes(p.supSize)?p.supSize.trim():'4 X 4',supRecipe:'Wearable',supImprintsPerGang:1,decoSize:'2.5 X 2.5',decoMaterial:'Sim Woven / Twill',decoApplication:'Heat Press',embStitchBand:'Up to 5,000'};
+  if(isSP(p)) return Object.assign(b,{type:'Screenprint',screens:p.colors||1,underbase:!!p.ub,inkChanges:inkChanges(p)});
+  if(/^Supacolor - /.test(p.type)) return Object.assign(b,{type:'Supacolor',supRecipe:p.type.replace('Supacolor - ','')});
+  if(p.type==='Embroidery') return Object.assign(b,{type:'Embroidery',embStitchBand:p.stitch>20000?null:stitchBand(p.stitch||0)});
+  if(/Application$/.test(p.type)) return Object.assign(b,{type:'Embroidery',embStitchBand:p.type});
+  return null; }
+function pom(l){
+  if(!isApparel(l)) return {why:'type the price'}; if(!ENG) return {why:'loading POM rates…'};
+  const q=qty(l); if(!q) return {why:'add sizes for the POM price'}; if(!l.g) return {why:'pick the garment'}; if(!l.g.cost) return {why:'garment has no cost in Airtable'};
+  if(!l.prints.length) return {why:'tick an imprint for the POM price'};
+  const fl=fleeceOf(l), list=l.prints.map(id=>pomImp(P(id),fl,l));
+  if(list.some(x=>!x||x.embStitchBand===null)) return {why:'an imprint here isn\'t priced by the POM — type the price'};
+  // Same math as the POM's computeApparelAt, except each print is priced at the pieces it prints across the
+  // whole order (a front shared by a 100 and a 20 prints 120), like Airtable's autoprice.
+  const st={shipping:false,asColourLow:false,garmentCost:l.g.cost,fleece:fl,impressions:list};
+  try{ if(typeof ENG.impressionPrice==='function'&&typeof ENG.garmentPricing==='function'){
+      const imps=list.map((x,k)=>ENG.impressionPrice(x,(printQty(P(l.prints[k]))+(S.lines.includes(l)?0:q))||q)); if(imps.some(v=>v==null||!isFinite(v))) return {why:'no POM price at this qty'};
+      const pp=Math.round(((ENG.garmentPricing(st)+imps.reduce((a,b)=>a+b,0))/0.97)/0.05)*0.05; return {pp:Math.round(pp*100)/100}; }
+    const c=ENG.computeApparelAt(q,st); return c&&c.pricePerPiece?{pp:Math.round(c.pricePerPiece*100)/100}:{why:'no POM price at this qty'}; }catch(e){ return {why:'POM error: '+e.message}; } }
+const printQty=p=>linesWith(p).reduce((a,l)=>a+qty(l),0);
+const price=l=>l.price!=null?l.price:(pom(l).pp??null);
+
+/* ---------- checks ---------- */
+function lineNeed(l){ if(isApparel(l)&&!l.g) return 'pick the garment'; if(offSizes(l).length) return 'remove '+offSizes(l).join(', ')+' (not made in that size)'; if(!qty(l)) return isApparel(l)?'add sizes':'add the qty'; if(!l.prints.length&&isApparel(l)) return 'tick an imprint'; if(price(l)==null) return 'add a price'; return ''; }
+function printNeed(p){ return !p.type?'needs an imprint type':!p.loc?'needs a location':!p.nick.trim()?'needs a nickname':isSP(p)&&!screens(p)?'needs a screen count':p.type==='Embroidery'&&!(p.stitch>0)?'needs a stitch count (an estimate is fine)':/^Supacolor/.test(p.type)&&!p.supSize?'needs a transfer size':''; }
+function checks(){ const c=[], bad=S.lines.filter(lineNeed), pb=S.prints.filter(printNeed);
+  c.push([!pb.length&&(S.prints.length>0||(S.lines.length>0&&S.lines.every(l=>!isApparel(l)))),pb.length?`${pid(pb[0])}: ${printNeed(pb[0])}`:S.prints.length?`${S.prints.length} imprint${S.prints.length>1?'s':''} ready`:'Add the imprints']);
+  c.push([S.lines.length>0&&!bad.length,!S.lines.length?'Add a line item':bad.length?`Line ${S.lines.indexOf(bad[0])+1}: ${lineNeed(bad[0])}`:`${S.lines.length} line item${S.lines.length>1?'s':''} ready`]);
+  const unused=S.prints.filter(p=>!linesWith(p).length); if(unused.length&&S.lines.length) c.push([false,`${unused.map(pid).join(', ')} ${unused.length>1?'aren\'t':'isn\'t'} ticked on any line item yet`]);
+  if(!S.niEdit&&impDirty(S.ni)) c.push([false,'Imprint Creator has one not added yet']);
+  if(!S.nlEdit&&lineDirty(S.nl)) c.push([false,'Line Item Creator has one not added yet']);
+  if(S.existing.length+S.prints.length>26) c.push([false,'More than 26 imprints on one order']);
+  return c; }
+// What art reads: one row per ticked imprint, with the colors sales typed (per garment if changed)
+function proofNotes(l){ if(l.notes!=null) return l.notes;
+  return l.prints.map(id=>P(id)).filter(Boolean).map(p=>{ const ink=(l.inks[p.id]??p.inks)||'';
+    return `${pid(p)} ${p.loc} · ${p.nick}${isSP(p)?` · ${screens(p)} screen${screens(p)===1?'':'s'}`:` · ${p.type}`}${p.type==='Embroidery'&&p.stitch?' · ~'+Number(p.stitch).toLocaleString()+' stitches':''}${/^Supacolor/.test(p.type)&&p.supSize?' · '+p.supSize.trim():''}${ink?' · Colors: '+ink:''}${p.prev?' · repeat of '+p.prev.id:''}`; })
+    .join('\n').replace(/UPDATE:/gi,'Update -'); }
+
+/* ---------- create ---------- */
+async function create(){
+  if(S.busy||S.done) return; const c=checks(); if(!c.every(x=>x[0])) return toast('Finish the checklist first');
+  S.busy=true; S.err=''; render();
+  // A retry after a failure keeps what was already created (S.made) and only adds the rest, so nothing doubles.
+  const made=S.made=S.made||{imps:[],lines:[],newId:{}}, newId=made.newId, clean=s=>String(s||'').trim().replace(/UPDATE:/gi,'Update -');
+  try{
+    // 1. Imprints one at a time, in order, so the ID automation hands out A, B, C… in the order shown here.
+    for(const p of S.prints){ if(newId[p.id]) continue;
+      const f={[IP.order]:[S.o.id],[IP.type]:p.type,[IP.loc]:p.loc,[IP.nick]:p.nick.trim()}; if(p.pnotes.trim()) f[IP.pnotes]=clean(p.pnotes);
+      if(isSP(p)){ f[IP.screens]=screens(p); f[IP.inkChanges]=inkChanges(p); }
+      if(p.type==='Embroidery') f[IP.stitch]=Math.round(p.stitch);
+      if(/^Supacolor/.test(p.type)&&p.supSize) f[IP.supSize]=p.supSize;
+      if(p.prev){ f[IP.repeat]=true; f[IP.prev]=[p.prev.rid]; if(p.prev.inkIds&&p.prev.inkIds.length) f[IP.inks]=p.prev.inkIds; }
+      const r=await atWrite('POST',T_IMP,[{fields:f}]); newId[p.id]=r.records[0].id; made.imps.push({p,rid:r.records[0].id});
+    }
+    // 2. Line items, 10 per call. Both order links: automations read Order Reference.
+    const todo=S.lines.filter(l=>!made.lines.some(x=>x.l===l));
+    const recs=todo.map(l=>{ const f={[LF.ref]:[S.o.id],[LF.orders]:[S.o.id],[LF.ptype]:l.ptype,[LF.price]:price(l),[LF.imprints]:l.prints.map(x=>newId[x])};
+      if(l.g) f[LF.garment]=[l.g.id]; const n=proofNotes(l); if(n) f[LF.proof]=n; if(l.womens) f[LF.womens]=true; if(l.youth) f[LF.youth]=true;
+      [['sales','sales'],['prod','prod'],['ship','ship'],['fin','fin'],['desc','desc'],['promo','promo']].forEach(([k,fk])=>{ if(String(l[k]||'').trim()) f[LF[fk]]=clean(l[k]); });
+      if(l.patch&&isPatchPT(l)) f[LF.patch]=l.patch; if(l.sticker&&l.ptype==='Stickers') f[LF.sticker]=l.sticker;
+      Object.entries(l.sizes).forEach(([z,v])=>{ if(SZF[z]&&v) f[SZF[z]]=v; }); return {fields:f}; });
+    for(let i=0;i<recs.length;i+=10){ const r=await atWrite('POST',T_LI,recs.slice(i,i+10)); r.records.forEach((x,k)=>made.lines.push({l:todo[i+k],rid:x.id})); }
+    // 3. v6: the artwork folder link on the order (only that field)
+    if(S.o.art&&/^https?:\/\//i.test(S.o.art)&&!made.art){ await atWrite('PATCH',T_ORD,[{id:S.o.id,fields:{[O.art]:S.o.art}}]); made.art=true; }
+    // 4. v19: the quote this order came from -> Quotes › Order (keeps any links it has) + Status Won
+    const qs=S.qt&&S.qt.sel; if(qs&&!made.quote){ await atWrite('PATCH',T_Q,[{id:qs.id,fields:{[QF.order]:[...new Set((qs.order||[]).concat([S.o.id]))],[QF.status]:'Won'}}]); made.quote=qs.num||true; qs.status='Won'; qs.order=[...new Set((qs.order||[]).concat([S.o.id]))]; }
+    S.done=made; S.tEnd=Date.now(); S.busy=false; render(); toast(PRACTICE?'Practice: nothing was saved':'Order '+S.o.num+' created');
+    if(!PRACTICE) setTimeout(readBackIds,4000);
+  }catch(e){ S.busy=false; S.err=`Stopped: ${e.message}. Already in Airtable: ${made.imps.length} imprint${made.imps.length===1?'':'s'}, ${made.lines.length} line item${made.lines.length===1?'':'s'}. Fix the problem and press Finish creating — it only adds what's missing.`; render(); }
+}
+async function readBackIds(){ try{ const ids=S.done.imps.map(x=>x.rid); if(!ids.length) return; const d=await at(T_IMP,`${flds([IP.id])}&filterByFormula=${byIds(ids)}`); S.done.ids={}; (d.records||[]).forEach(r=>S.done.ids[r.id]=r.fields[IP.id]||''); render(); }catch(e){} }
+
+/* ---------- render ---------- */
+let pendingFocus=null; function focusSoon(id){ pendingFocus=id; setTimeout(()=>{ const e=$(id); if(e) e.focus(); pendingFocus=null; },0); }
+let rendering=false;
+// A field's "change" fires as you leave it, before the tap on the next field lands. Redrawing right then swaps out the field you
+// tapped, so the tap is lost (and typing goes nowhere). Wait a tick: focus has moved by then, and draw() puts it back.
+let deferred=false;
+// v22: pin the right column only while Quote + Checklist + 240px of emails fit in the window
+function fitSide(){ const sd=$('side'); if(!sd) return; sd.classList.remove('side-tall');
+  if(getComputedStyle(sd).position!=='sticky') return;
+  const cs=getComputedStyle(sd), room=parseFloat(cs.maxHeight)||(window.innerHeight-(parseFloat(cs.top)||0)-24);
+  const need=[...sd.children].reduce((h,c)=>h+(c.offsetParent?(c.classList.contains('mailbox')?240:c.offsetHeight)+12:0),0)-12;
+  if(need>room) sd.classList.add('side-tall'); }
+window.addEventListener('resize',()=>requestAnimationFrame(fitSide));
+function render(){ if(window.event&&window.event.type==='change'){ if(!deferred){ deferred=true; setTimeout(()=>{ deferred=false; render(); },0); } return; }
+  if(rendering){ setTimeout(render,0); return; } rendering=true; try{ draw(); document.querySelectorAll('textarea.tg').forEach(grow); } finally{ rendering=false; } }
+function draw(){
+  const ae=document.activeElement, keep=ae&&ae.id&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)?{id:ae.id,s:ae.selectionStart}:null;
+  if(S.view==='edit'){ if(!S.ni) S.ni=blankImp(); if(!S.nl) S.nl=blankLine(); }
+  $('main').innerHTML=S.view==='pick'?vEmpty():S.view==='loading'?'<div class="panel hint">Loading…</div>':S.view==='door'?vDoor():vEdit();
+  $('ohead').innerHTML=vOH(); $('olist').innerHTML=vList(); $('chips').innerHTML=vChips();
+  $('rail').innerHTML=vRail(); document.querySelector('.app').classList.toggle('picking',S.view==='pick');
+  { const qh=vQuote();   /* v22: the quote sits at the top of the form column, so the right side is for the emails */ $('qbox').innerHTML=''; $('qbox').style.display='none'; $('qboxTop').innerHTML=''; if(qh) $('main').insertAdjacentHTML('afterbegin',`<div class="panel qbox qbox-main">${qh}</div>`); }
+  $('split').classList.toggle('is-picking',S.view==='pick'); document.body.classList.toggle('is-open',S.view!=='pick'); syncList();
+  $('flowNav').innerHTML=flowNav('order',S.o&&S.view!=='pick'?S.o.num:'');
+  if(S.view==='edit'&&S.mailDrawn!==S.mail) renderMail(); else if(S.view!=='edit'&&S.mailDrawn){ S.mailDrawn=null; renderMail(); }
+  $('mailfab').classList.toggle('show',!!(S.o&&S.view==='edit'));
+  requestAnimationFrame(fitSide);   // v22
+  if(keep&&!pendingFocus){ const e=$(keep.id); if(e){ e.focus(); try{ e.setSelectionRange(keep.s,keep.s); }catch(_){} } }
+  measure();
+}
+const errHtml=()=>S.err?`<div class="err">${esc(S.err)}</div>`:'';
+/* ---------- v18: the order list (left pane from 1200px; the first screen below that) ---------- */
+function listParts(){ const q=S.q.toLowerCase().trim(), hit=o=>!q||o.name.toLowerCase().includes(q)||String(o.num).startsWith(q), recent=o=>!o.created||(Date.now()-new Date(o.created))/864e5<=RECENT_DAYS;
+  const base=(S.awaiting||[]).filter(hit).filter(o=>q||recent(o)), need=base.filter(o=>!o.lines), has=base.filter(o=>o.lines);
+  return {q,base,need,has,list:S.listF==='need'?need:S.listF==='has'?has:base}; }
+function vChips(){ if(!TOKEN||S.awaiting==null) return ''; const {base,need,has}=listParts();
+  const chip=(k,t,n)=>`<button class="p-tab${S.listF===k?' is-on':''}" role="tab" aria-selected="${S.listF===k}" onclick="S.listF='${k}';render()">${t} <span class="p-count">${n}</span></button>`;
+  return chip('need','Needs lines',need.length)+chip('has','Has lines',has.length)+chip('all','All',base.length); }
+function vList(){ if(!TOKEN) return `<div class="olempty">Add your Airtable token in ⚙ (top right) to start.</div>${errHtml()}`;
+  if(S.awaiting==null) return '<div class="olempty">Loading orders waiting for proof…</div>';
+  const {q,list}=listParts(), cur=S.o&&S.view!=='pick'?S.o.id:'';
+  const row=o=>`<div class="p-off-orow${o.lines?' is-has':''}${o.id===cur?' is-on':''}" tabindex="0" role="button" data-num="${o.num}" onclick="choose('${o.id}')" onkeydown="if(event.key==='Enter')choose('${o.id}')"><span class="p-id">${o.num}</span><span class="p-off-orow-cust" title="${esc(o.name)}">${esc(o.name)}</span><span class="p-off-orow-sub">${[ago(o.created)+(o.blank?' · no status':''),esc(o.rep)].filter(Boolean).join(' · ')}</span><span class="p-off-orow-end">${o.lines?`<span class="p-tag p-tag-soft">${o.lines} line${o.lines>1?'s':''}</span><a href="pine-line-item-review.html?order=${o.num}${PRACTICE?'&practice=1':''}" onclick="event.stopPropagation()">Review →</a>`:'<span class="p-tag p-tag-wait">Needs lines</span>'}</span></div>`;
+  return `<div class="olh"><span class="p-section">Waiting for proof <span class="p-count">${list.length}</span></span><span class="hint">${q?'any date':'last '+RECENT_DAYS+' days'} · made by Pipedrive</span></div>
+    ${list.length?list.slice(0,60).map(row).join(''):`<div class="olempty">${S.listF==='need'?'Every order waiting for proof has lines already.':S.listF==='has'?'No orders with lines yet.':'No order waiting for proof matches.'}</div>`}${S.view==='pick'?errHtml():''}`; }
+function vEmpty(){ return `<div class="p-off-empty"><div>${TOKEN?'Pick an order on the left.':'Add your Airtable token in ⚙ to start.'}<div class="p-hint" style="margin-top:6px;font-weight:400">Its imprints, then its line items. The deal's emails show beside the forms. Nothing is saved until Create order.</div></div></div>`; }
+const fmtDay=d=>{ const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-US',{month:'short',day:'numeric'}):esc(d); };
+const alNote=()=>{ const o=S.o; return o&&(o.lineCount||S.existing.length)?`<div class="p-note p-note-wait alnote">Already has ${o.lineCount} line${o.lineCount===1?'':'s'}${S.existing.length?' and imprints '+esc(S.existing.join(', ')):''}. New ones are added alongside.</div>`:''; };
+/* the shared order header: # · CUSTOMER · rep · due · links | lines · pcs · total | THE yellow button */
+function vOH(){ const o=S.o; if(!o||S.view==='pick') return '';
+  const pcs=S.lines.reduce((a,l)=>a+qty(l),0), tot=S.lines.reduce((a,l)=>a+(price(l)||0)*qty(l),0);
+  const due=o.due?`<span class="p-tag${o.hard==='ASAP'?' p-tag-wait':''}">${o.hard==='ASAP'?'ASAP · ':o.hard?'Hard · ':'Due '}${fmtDay(o.due)}</span>`:o.hard?`<span class="p-tag">${esc(o.hard)}</span>`:'';
+  const deal=S.mail&&S.mail.deal&&S.mail.deal.url, art=o.art&&/^https?:\/\//i.test(o.art)?o.art:'';
+  const links=(deal?`<a class="p-off-link" href="${esc(deal)}" target="_blank" rel="noopener">Deal ↗</a>`:'')
+    +(art?`<a class="p-off-link" href="${esc(art)}" target="_blank" rel="noopener">Art folder ↗</a>`:'<span class="p-off-link is-off">No art folder yet</span>')
+    +`<a class="p-off-link" href="https://airtable.com/${BASE}/${T_ORD}/${o.id}" target="_blank" rel="noopener">Airtable ↗</a><button class="p-off-link" type="button" onclick="leaveOrder()">Change order</button>`;
+  const nums=S.view==='edit'?`<div class="p-num"><small>Lines</small><b>${S.lines.length}</b></div><div class="p-num"><small>Pcs</small><b>${pcs}</b></div><div class="p-num"><small>Total · before 2XL+</small><b>${money(tot)}</b></div>`:'';
+  let act='';
+  if(S.view==='edit'){
+    if(S.done) act=`<a class="p-btn p-btn-main" href="pine-line-item-review.html?order=${o.num}${PRACTICE?'&practice=1':''}">Review ${o.num} →</a><span class="p-hint">${PRACTICE?'Practice: nothing was saved':'Created in Airtable'}</span>`;
+    else { const ok=checks().every(x=>x[0]); act=`<button class="p-btn p-btn-main" id="createBtn" type="button" onclick="create()" ${ok&&!S.busy?'':'disabled'}>${S.busy?'Creating…':S.made?'Finish creating':PRACTICE?'Create order (practice)':'Create order'}</button><span class="p-hint">${ok?'Nothing goes to Airtable until this.':'Finish the checklist first.'}</span>`; } }
+  return `<div class="p-off-oh"><div class="p-off-oh-main"><div class="p-off-oh-l1"><span class="p-id p-off-oh-id">#${o.num}</span><span class="p-off-oh-cust">${esc(o.name)}</span>${o.ship?`<span class="p-tag p-tag-soft">${esc(o.ship)}</span>`:''}</div>
+    <div class="p-off-oh-l2">${o.rep?`<b>${esc(o.rep)}</b>`:''}${due}<span class="p-off-links">${links}</span></div></div><div class="p-off-oh-nums">${nums}</div><div class="p-off-oh-act">${act}</div></div>`; }
+async function leaveOrder(){ if(!S.done&&(S.lines.length||S.prints.length)&&!await PineConfirm.ask({title:'Leave this order?',body:S.made?'Part of it is already in Airtable — finish it or fix it in Line Item Review.':'What you entered here is not saved.',ok:'Leave'})) return false;
+  S.reo=null; S.made=null; S.done=null; S.view='pick'; S.o=null; S.t0=null; S.err=''; S.mail=null; S.qt=null; S.qfill=null; renderMail(); render(); return true; }
+async function choose(id){ if(S.o&&S.o.id===id&&S.view!=='pick') return; if(S.o&&S.view!=='pick'&&!await leaveOrder()) return; pickOrder(id); }
+function nextOrder(){ S.reo=null; S.view='pick'; S.o=null; S.t0=null; S.done=null; S.made=null; S.mail=null; S.qt=null; S.qfill=null; renderMail(); render(); }
+function vDoor(){ const imgs=o=>o.thumbs.slice(0,3).map(u=>`<img src="${esc(u)}" loading="lazy" alt="">`).join('')||'<span class="noimg">no proof</span>';
+  return `<div class="panel">${alNote()}
+   <div class="doors"><div class="door main"><b>↻ Reorder: pick a past order below</b><span>Its garments come back, and its imprints as repeats (linked to the old ones). You enter the new sizes.</span></div>
+   <button class="door" onclick="startNew()"><b>＋ New order</b><span>Imprint Creator, then Line Item Creator. Past art is still one tap away (Repeat?).</span></button></div>
+   <div class="past">${S.past.map(o=>{ const imps=S.pastImps.filter(m=>m.order===o.id);
+     return `<button class="po" onclick="reorder('${o.id}')"><span class="th">${imgs(o)}</span><span class="d"><b>${o.num}</b> · ${ago(o.created)}<div>${o.lineIds.length} line${o.lineIds.length===1?'':'s'}${imps.length?' · '+imps.map(m=>esc(m.nick||m.loc)+' ('+esc(m.loc)+')').join(' + '):''}</div></span><span class="btn k">Reorder</span></button>`; }).join('')}</div>${errHtml()}</div>`; }
+function vArt(){ const v=S.o.art||'', bad=v&&!/^https?:\/\//i.test(v);
+  return `<div class="art-in"><label for="artf">Artwork folder</label><input class="t" id="artf" value="${esc(v)}" placeholder="Paste the Google Drive folder link" onchange="S.o.art=this.value.trim();render()" ${S.done?'disabled':''}>${v&&!bad?`<a href="${esc(v)}" target="_blank" rel="noopener">open ↗</a>`:''}${bad?'<span class="tag need">should start with https://</span>':''}</div>`; }
+
+/* ---------- v8: the page = order + Imprint Creator + Line Item Creator ---------- */
+const nextId=()=>S.o.num+'-'+(LETTERS[S.existing.length+S.prints.length]||'?');
+const impDesc=p=>[p.loc||'location?', isSP(p)?`${p.type} · ${screens(p)} scr${p.ic?' · '+p.ic+' ink change'+(p.ic>1?'s':''):''}`:p.type==='Embroidery'?`Embroidery${p.stitch?' · '+Number(p.stitch).toLocaleString()+' stitches':''}`:/^Supacolor/.test(p.type)?`${p.type.replace('Supacolor - ','Supacolor ')}${p.supSize?' · '+p.supSize.trim():''}`:(p.type||'type?')].join(' · ');
+function vEdit(){
+  let h=`<div class="panel${S.done?' locked':''}">${vReoBar()}${alNote()}${vArt()}${vQfillNotes()}${S.done?`<div class="p-note p-note-done donebar">${PRACTICE?'Practice run finished — nothing was saved.':'Created in Airtable.'} Changes from here go in <a href="pine-line-item-review.html?order=${S.o.num}${PRACTICE?'&practice=1':''}">Line Item Review</a>.</div>`:''}</div>`;
+  if(S.done) return h+vLists();
+  return h+`<div class="panel sec" id="impform"><div class="p-off-sec"><span class="p-section">1 · Imprints</span><span class="p-hint">Imprint Creator · one per location</span></div>${vImpList()}${vImpForm()}</div>
+    <div class="panel sec" id="lineform"><div class="p-off-sec"><span class="p-section">2 · Line items</span><span class="p-hint">Line Item Creator · one per garment color</span></div>${vLineList()}${vLineForm()}</div>${errHtml()}`; }
+function vLists(){ return `<div class="panel">${vImpList()}${vLineList()}</div>`; }
+function vImpList(){ if(!S.prints.length) return '';
+  return `<div class="cards">${S.prints.map(p=>{ const n=linesWith(p).length, need=printNeed(p), ed=S.ni===p;
+    return `<div class="p-off-imp${ed?' is-edit':''}"><span class="p-id">${pid(p)}</span><div class="p-off-imp-main"><b>${esc(p.nick||'(no nickname)')}</b><small>${esc(impDesc(p))}${p.prev?' · repeat of '+esc(p.prev.id):''}</small>${p.inks?`<small>Colors: ${esc(p.inks)}</small>`:''}<small class="${n?'':'warn'}">${n?'on '+n+' line item'+(n>1?'s':''):'not on a line item yet'}${need?' · '+need:''}</small></div><div class="p-off-imp-act">${S.done?'':`<button class="p-btn" onclick="editImp('${p.id}')">${ed?'Editing':'✎ Edit'}</button><button class="p-btn p-btn-quiet" onclick="rmImp('${p.id}')" aria-label="Remove ${pid(p)}">✕</button>`}</div></div>`; }).join('')}</div>`; }
+const FAM_QUICK=['Screen print','Embroidery','Supacolor','Patch & label'];
+function vImpForm(){ const p=S.ni, fam=p.fam||famOf(p.type), sp=fam==='Screen print', edit=S.niEdit, a=P(S.after);
+  if(S.prints.length&&!edit&&!S.impOpen&&!impDirty(p)) return `<div class="quick">${a&&S.prints.includes(a)?`<button class="btn" onclick="backPrint()">＋ Back print for the same garments</button>`:''}<button class="btn" onclick="openImp()">＋ Another imprint</button><button class="btn" onclick="openImp(true)">↻ Repeat of past art</button></div>`;
+  const quick='';
+  const btn=(on,label,js,cls='')=>`<button class="b${on?' on':''}${cls}" onclick="${js}">${label}</button>`;
+  let h=`${quick}<div class="form${edit?' editing':''}"><div class="fh"><b>${edit?'Editing '+pid(p):'Imprint Creator'}</b>${edit?'':`<span class="hint">this one becomes <span class="idtag">${nextId()}</span></span>`}${p.with&&P(p.with)?`<span class="tag">goes with ${pid(P(p.with))}</span>`:''}</div><div class="ff">
+    <span class="k">Linked Orders</span><div class="fixed">${S.o.num} · ${esc(S.o.name)}</div>
+    <span class="k">Repeat?</span><div><div class="bts">${btn(!p.rep&&!p.prev,'New art',`impRepeat(false)`)}${btn(p.rep||!!p.prev,'Repeat of past art',`impRepeat(true)`)}${p.prev?`<span class="tag">repeat of ${esc(p.prev.id)}</span> <button class="link" onclick="S.ni.prev=null;render()">undo</button>`:''}</div>${p.rep?vRepeat():''}</div>
+    <span class="k">Imprint Type <i>*</i></span><div><div class="bts">${Object.keys(FAM).filter(f=>FAM_QUICK.includes(f)||p.famMore||fam===f).map(f=>btn(fam===f,f,`impFam('${f}')`)).join('')}${p.famMore||!fam||FAM_QUICK.includes(fam)?(p.famMore?'':`<button class="link" onclick="S.ni.famMore=true;render()">more…</button>`):''}</div>
+      ${fam&&FAM[fam].length>1?`<div class="bts sub">${FAM[fam].map(t=>btn(p.type===t,esc(t.replace(/^(Supacolor|Decopress|Finishing) - /,'')),`impType('${t.replace(/'/g,"\\'")}')`)).join('')}</div>`:''}</div>
+    <span class="k">Location <i>*</i></span><div class="bts">${LOC_QUICK.map(x=>btn(p.loc===x,x,`S.ni.loc='${x}';render()`)).join('')}${p.locMore||LOC_MORE.includes(p.loc)?LOC_MORE.map(x=>btn(p.loc===x,x,`S.ni.loc='${x}';render()`)).join(''):`<button class="link" onclick="S.ni.locMore=true;render()">more…</button>`}</div>`;
+  if(sp) h+=`<span class="k">Screen Count <i>*</i></span><div><div class="bts">${[1,2,3,4,5,6,7,8].map(n=>btn(p.scr===n,n,`impScr(${n})`,' num')).join('')}${p.scrMore||p.scr>8?`<input class="t sm" id="imp_scr" inputmode="numeric" pattern="[0-9]*" value="${p.scr>8?p.scr:''}" placeholder="9+" onchange="impScr(Math.max(1,parseInt(this.value)||0))">`:`<button class="b num" onclick="S.ni.scrMore=true;render();focusSoon('imp_scr')">＋</button>`}</div>${hasBase(p.type)?'<div class="hint">Includes the underbase screen.</div>':''}</div>
+    <span class="k">Ink Changes <i>*</i></span><div class="bts">${[0,1,2,3,4].map(n=>btn(p.ic===n,n,`S.ni.ic=${n};render()`,' num')).join('')}${p.icMore||p.ic>4?`<input class="t sm" id="imp_ic" inputmode="numeric" pattern="[0-9]*" value="${p.ic>4?p.ic:''}" placeholder="5+" onchange="S.ni.ic=Math.max(0,parseInt(this.value)||0);render()">`:`<button class="b num" onclick="S.ni.icMore=true;render();focusSoon('imp_ic')">＋</button>`}</div>`;
+  if(p.type==='Embroidery') h+=`<span class="k">Stitch Count <i>*</i></span><div><div class="hint" style="margin-bottom:4px">Enter an estimate if design hasn't been digitized.</div><div class="bts"><input class="t" id="imp_stitch" inputmode="numeric" pattern="[0-9]*" style="width:120px" value="${p.stitch||''}" placeholder="e.g. 8,500" oninput="S.ni.stitch=parseInt(this.value.replace(/[^0-9]/g,''))||0">${STITCH_QUICK.map(n=>btn(p.stitch===n,'≈'+n.toLocaleString(),`S.ni.stitch=${n};render()`)).join('')}</div></div>`;
+  if(/^Supacolor/.test(p.type)) h+=`<span class="k">Transfer Size <i>*</i></span><div class="bts">${SUP_QUICK.map(z=>btn(p.supSize===z,esc(z.replace('A3 - ','').replace(' GANG',' gang')),`S.ni.supSize='${z}';render()`)).join('')}<select class="t sm" onchange="S.ni.supSize=this.value;render()"><option value="">all sizes…</option>${SUP_SIZES.map(z=>`<option${p.supSize===z?' selected':''} value="${esc(z)}">${esc(z)}</option>`).join('')}</select></div>`;
+  h+=`<span class="k">Imprint Nickname <i>*</i></span><input class="t" id="imp_nick" data-label="Imprint Nickname" value="${esc(p.nick)}" placeholder="e.g. GRIT Strength & Movement logo" oninput="S.ni.nick=this.value">
+    <span class="k">Colors</span><div><input class="t" id="imp_colors" data-label="Colors" value="${esc(p.inks)}" placeholder="what the customer asked for: Cream, #F3EBD7, PMS 7527…" oninput="S.ni.inks=this.value"><div class="hint">Goes into the Proofing Notes of each line item it's on (what art reads). Can be changed per garment.</div></div>
+    <span class="k">Imprint Notes / Special Instructions</span><textarea class="t tg" id="imp_notes" data-label="Imprint Notes" rows="2" placeholder="size, placement, anything for the press" oninput="S.ni.pnotes=this.value;grow(this)">${esc(p.pnotes)}</textarea>
+    </div><div class="fb"><button class="link" onclick="clearImp()">${edit?'stop editing':'Clear form'}</button>${edit?`<button class="btn k" onclick="addImp()">Done</button>`:`<button class="btn k" onclick="addImp()">Add imprint</button>`}</div></div>`;
+  return h; }
+function vRepeat(){ const q=(S.repQ||'').trim().toLowerCase(), list=S.pastImps.filter(a=>!q||[a.id,a.nick,a.loc,a.type].join(' ').toLowerCase().includes(q)).slice(0,60);
+  if(!S.pastImps.length) return `<div class="hint" style="margin-top:6px">${S.pastLoaded?'No past imprints on file for '+esc(S.o.name)+'.':'Loading past imprints…'}</div>`;
+  return `<div class="rep"><input class="t" id="repq" style="width:100%;margin-bottom:8px" placeholder="Search ${esc(S.o.name)} past art: name, location or order #" value="${esc(S.repQ||'')}" oninput="S.repQ=this.value;render()" autocomplete="off">
+    <div class="artg">${list.map(a=>`<button class="art" onclick="impFromPast('${a.rid}')">${a.thumb?`<img src="${esc(a.thumb)}" loading="lazy" alt="">`:'<span class="noimg">no proof</span>'}<b>${esc(a.id)}</b> ${esc(a.nick)}<br><span class="hint">${esc(a.loc)} · ${esc(a.type)}${a.screens?' · '+a.screens+' scr':''} · ${esc(a.created)}</span></button>`).join('')||'<span class="hint">No match</span>'}</div></div>`; }
+const offWarn=l=>offSizes(l).length?`<div class="p-note p-note-alert" style="margin-top:6px">${esc(gLabel(l.g))} isn't made in ${offSizes(l).join(', ')}. Clear ${offSizes(l).length>1?'those':'that'} before adding the line.</div>`:'';
+function vLineList(){ if(!S.lines.length) return '';
+  return `<div class="cards">${S.lines.map((l,i)=>{ const need=lineNeed(l), p=price(l), ed=S.nl===l, q=qty(l), vf=vendorFlag(l);
+    const imps=l.prints.map(id=>P(id)).filter(Boolean).map(x=>`<span class="p-id" title="${esc((x.nick||'')+' · '+x.loc)}">${pid(x)}</span>`).join('')||'<span class="warn">no imprints ticked</span>';
+    return `<div class="p-off-li${ed?' is-edit':''}"><div class="p-off-li-main"><div class="p-off-li-t"><span class="p-off-li-n">${i+1}</span><span class="p-off-li-g">${l.g?esc(gLabel(l.g))+' · '+esc(l.g.color):esc(l.ptype)}</span>${need?`<span class="p-tag p-tag-wait">${esc(need)}</span>`:'<span class="p-tag p-tag-done">✓ Ready</span>'}</div>
+      <div class="p-off-li-sz">${esc(szText(l.sizes).replace(/OSFA/,'one size'))||(l.qq?'quoted '+l.qq+' pcs · sizes needed':'no sizes yet')}${l.womens?' · women\'s':''}${l.youth?' · youth':''}${vf?` · <span class="warn">vendor: ${esc(vf)}</span>`:''}</div><div class="p-off-li-imps">${imps}</div></div>
+      <div class="p-off-li-nums"><div class="p-num"><small>Pcs</small><b>${q}</b></div><div class="p-num"><small>$/pc</small><b>${p!=null?money(p):'—'}</b></div><div class="p-num"><small>Line</small><b>${p!=null?money(p*q):'—'}</b></div></div>
+      <div class="p-off-li-act">${S.done?'':`<button class="p-btn" onclick="editLine('${l.id}')">${ed?'Editing':'✎ Edit'}</button><button class="p-btn p-btn-quiet" onclick="rmLine('${l.id}')" aria-label="Remove line ${i+1}">✕</button>`}</div></div>`; }).join('')}</div>`; }
+function vLineForm(){ const l=S.nl, edit=S.nlEdit, ap=isApparel(l), q=qty(l), r=pom(l), pp=r.pp??null, pr=price(l), under=pr!=null&&pp!=null&&pr<pp-0.001, a=Ln(S.lastLine);
+  const btn=(on,label,js,cls='')=>`<button class="b${on?' on':''}${cls}" onclick="${js}">${label}</button>`;
+  const quick=!edit&&!lineDirty(l)&&a&&S.lines.includes(a)&&a.colors&&a.colors.length>1?`<div class="quick"><button class="btn" onclick="nextColor()">＋ Same garment, next color</button><span class="hint">Keeps ${esc(gLabel(a.g))}, the ticked imprints, price and notes. Pick the color and sizes.</span></div>`:'';
+  let h=`${quick}<div class="form${edit?' editing':''}"><div class="fh"><b>${edit?'Editing line '+(S.lines.indexOf(l)+1):'Line Item Creator'}</b></div><div class="ff">
+    <span class="k">Product Type <i>*</i></span><div class="bts">${PT_QUICK.map(t=>btn(l.ptype===t,esc(t),`setPT('${l.id}','${t}')`)).join('')}${PT_ALL.filter(t=>!PT_QUICK.includes(t)&&(l.ptMore||l.ptype===t)).map(t=>btn(l.ptype===t,esc(t),`setPT('${l.id}','${t.replace(/'/g,"\\'")}')`)).join('')}<button class="link pttog" onclick="Ln('${l.id}').ptMore=${l.ptMore?'false':'true'};render()">${l.ptMore?'common only ▴':'all types ▾'}</button></div>
+    <span class="k">Linked Order <i>*</i></span><div class="fixed">${S.o.num} · ${esc(S.o.name)}</div>`;
+  if(ap){ h+=`<span class="k">Garment <i>*</i></span><div>`;
+    if(l.g) h+=`<div class="bts"><b>${esc(gLabel(l.g))} · ${esc(l.g.color)}</b><button class="link" onclick="changeG('${l.id}')">other color</button><button class="link" onclick="otherStyle('${l.id}')">other style</button></div>${vVendor(l)}`;
+    else if(l.colors) h+=`<div class="hint" style="margin-bottom:4px">${esc(gLabel(l.colors[0]))} · pick the color</div><div class="bts">${l.colors.map(g=>`<button class="chip" onclick="pickColor('${l.id}','${g.id}')">${esc(g.color)}</button>`).join('')}<button class="link" onclick="otherStyle('${l.id}')">other style</button></div>`;
+    else { h+=`<input class="t" style="width:100%" id="gq_${l.id}" placeholder="Style # or name: 1717, 5001, crewneck…" value="${esc(l.gq)}" oninput="gSearch('${l.id}',this.value)" autocomplete="off">`;
+      if(l.gres) h+=l.gres.length?`<div class="gres">${l.gres.map((x,k)=>`<button onclick="pickStyle('${l.id}',${k})"><b>${esc(x.name)}</b> <span>${x.colors.length} color${x.colors.length===1?'':'s'} · $${(x.colors[0].cost||0).toFixed(2)}</span></button>`).join('')}</div>`:`<div class="hint" style="margin-top:6px">${l.gerr?esc(l.gerr):'Not in Airtable Garments. Add it in Garment Creator first.'}</div>`;
+      else if(l.gq.trim().length>=2) h+='<div class="hint" style="margin-top:6px">Searching…</div>';
+      else h+=`<div class="gquick"><span class="hint">Stock:</span>${STOCK.map((x,k)=>`<button class="chip stock" onclick="pickStock('${l.id}',${k})">${x.label}</button>`).join('')}</div>`; }
+    h+=`</div>`; }
+  // which imprints go on this garment (replaces typing it into Proofing Notes)
+  h+=`<span class="k">Imprints${ap?' <i>*</i>':''}</span><div>${S.prints.length?`<div class="ticks">${S.prints.map(p=>{ const on=l.prints.includes(p.id);
+      return `<button class="tick${on?' on':''}" onclick="togImp('${l.id}','${p.id}')"><i>${on?'✓':''}</i><span class="idtag">${pid(p)}</span><span><b>${esc(p.nick||'(no nickname)')}</b><small>${esc(impDesc(p))}</small></span></button>`; }).join('')}</div>`:'<div class="hint" style="padding-top:8px">Add the imprints in step 1 first; they show up here to tick.</div>'}
+    ${l.prints.map(id=>P(id)).filter(p=>p&&(isSP(p)||p.type==='Embroidery')).map(p=>`<div class="ovr"><span class="idtag sm">${letterOf(p)}</span><label for="ink_${l.id}_${p.id}">Colors on this garment</label><input class="t" id="ink_${l.id}_${p.id}" data-label="Colors (${pid(p)})" value="${esc(l.inks[p.id]??p.inks)}" placeholder="${esc(p.inks||'e.g. Black')}" oninput="setLineInk('${l.id}','${p.id}',this.value)" onchange="render()"></div>`).join('')}</div>`;
+  h+=`<span class="k">Proofing Notes <i>*</i></span><div>${l.notes==null?`<pre class="auto">${esc(proofNotes(l))||'<span class="hint">Written from the ticked imprints.</span>'}</pre><button class="link" onclick="Ln('${l.id}').notes=proofNotes(Ln('${l.id}'));render();focusSoon('pn_${l.id}')">edit</button> <span class="hint">which imprints go where · what art reads</span>`
+      :`<textarea class="t tg" id="pn_${l.id}" data-label="Proofing Notes" rows="3" oninput="Ln('${l.id}').notes=this.value;grow(this)">${esc(l.notes)}</textarea><button class="link" onclick="Ln('${l.id}').notes=null;render()">back to automatic</button> <span class="hint">typed by hand · ticking imprints no longer updates it</span>`}</div>
+    <span class="k">Line Item Notes</span><textarea class="t tg" id="sales_${l.id}" data-label="Line Item Notes" rows="1" placeholder="Special instructions for production: fold and bag, size tags, REPEAT…" oninput="Ln('${l.id}').sales=this.value;grow(this)">${esc(l.sales)}</textarea>`;
+  if(isPatchPT(l)) h+=`<span class="k">Patch Size</span><div class="bts">${PATCH_SIZES.map(z=>btn(l.patch===z,z.replace(' inch','″'),`Ln('${l.id}').patch='${z}';render()`)).join('')}</div>`;
+  if(l.ptype==='Stickers') h+=`<span class="k">Sticker Size</span><div class="bts">${STICKER_SIZES.map(z=>btn(l.sticker===z,z.replace(' inch','″'),`Ln('${l.id}').sticker='${z}';render()`)).join('')}</div>`;
+  if(isPromoPT(l)) h+=`<span class="k">Description</span><input class="t" id="promo_${l.id}" data-label="Description" value="${esc(l.promo)}" placeholder="For promo: product # and color" oninput="Ln('${l.id}').promo=this.value">`;
+  if(ap&&l.g&&oneSize(l.g)) h+=`<span class="k">Quantity <i>*</i></span><div><div class="bts"><input class="t" id="sz_${l.id}_OSFA" data-label="Quantity" style="width:110px" inputmode="numeric" pattern="[0-9]*" value="${l.sizes.OSFA||''}" placeholder="qty" onchange="setSz('${l.id}','OSFA',this.value)"><span class="hint">one size (OSFA) · ${esc(l.g.kind||'one size')}</span></div>${offWarn(l)}</div>`;
+  else if(ap&&(l.g||q)){ const zs=(!l.g||!known(l.g)||l.g.avail.includes('OSFA')?['OSFA']:[]).concat(sizesFor(l));
+    h+=`<span class="k">Sizes <i>*</i></span><div><div class="szs">${zs.map(z=>`<label>${z}<input id="sz_${l.id}_${z}" inputmode="numeric" pattern="[0-9]*" value="${l.sizes[z]||''}" onchange="setSz('${l.id}','${z}',this.value)"></label>`).join('')}<span class="qt">${q}</span></div>${l.g&&!l.g.avail.length?(known(l.g)?`<div class="hint" style="margin-top:4px">Sizes from the vendor (none are ticked on this garment in Airtable).</div>`:`<div class="hint" style="margin-top:4px">${esc(gLabel(l.g))} has no sizes ticked in Airtable Garments and no vendor answer, so every size shows.</div>`):''}${offWarn(l)}
+      ${l.fromQ&&!q&&l.qq?`<div class="p-note p-note-wait" style="margin-top:6px">Quoted <b>${l.qq} pcs</b> on Q-${esc(l.fromQ.num)}. Type or paste the sizes, or Fill Pine's mix.</div>`:''}
+      <div class="szrow" style="margin-top:6px"><div class="paste"><small>Paste or type from the email</small><input id="paste_${l.id}" data-label="Sizes" data-chg="1" placeholder="6 S, 6 M, 15 XL, 5 2XL" onkeydown="if(event.key==='Enter'){event.preventDefault();const v=this.value;this.value='';setTimeout(()=>pasteSz('${l.id}',v),0)}" onpaste="setTimeout(()=>{pasteSz('${l.id}',this.value);this.value=''},0)" onchange="if(this.value){pasteSz('${l.id}',this.value);this.value=''}"></div>
+      <div class="mixb"><small>Pine's usual ${l.womens?'women\'s ':''}mix</small><div class="bts"><input class="t sm" id="mix_${l.id}" inputmode="numeric" pattern="[0-9]*" placeholder="total" style="width:76px" value="${l.qq&&!q?l.qq:''}"><button class="b" onclick="fillMix('${l.id}',parseInt($('mix_${l.id}').value)||0)">Fill</button></div></div></div>
+      ${l.last&&Object.keys(l.last.sizes).length?`<div class="hint" style="margin-top:4px">Last time (${l.last.order}): ${esc(szText(l.last.sizes))} <button class="link" onclick="sameAsLast('${l.id}')">use same sizes</button></div>`:''}
+      <div class="bts" style="margin-top:6px">${btn(l.womens,'Women\'s Garment',`Ln('${l.id}').womens=!Ln('${l.id}').womens;render()`)}${btn(l.youth,'Youth Garment',`Ln('${l.id}').youth=!Ln('${l.id}').youth;render()`)}</div></div>`; }
+  else if(!ap) h+=`<span class="k">Quantity <i>*</i></span><input class="t" id="oq_${l.id}" style="width:120px" inputmode="numeric" pattern="[0-9]*" value="${q||''}" placeholder="qty" onchange="osfaQty('${l.id}',this.value)">`;
+  h+=`<span class="k">Price / Piece</span><div class="bts"><input class="t${under?' under':''}" id="pr_${l.id}" style="width:110px" inputmode="decimal" value="${l.price!=null?l.price.toFixed(2):''}" placeholder="${pp!=null?pp.toFixed(2):'$ / pc'}" onchange="const v=parseFloat(this.value);Ln('${l.id}').price=isNaN(v)?null:v;render()"><span class="hint">${pp!=null?(l.price==null?'POM price '+money(pp)+' is used unless you type one':(under?'<b style="color:var(--red)">under</b> ':'')+'POM '+money(pp)+` · <button class="link" onclick="Ln('${l.id}').price=null;render()">use POM</button>`):esc(r.why||'')}${l.last&&l.last.price?' · last time '+money(l.last.price):''}${l.fromQ&&l.fromQ.pp!=null?' · quoted '+money(l.fromQ.pp)+' on Q-'+esc(l.fromQ.num):''}</span></div>
+    <span class="k"></span><div><button class="link" onclick="Ln('${l.id}').more=!Ln('${l.id}').more;render()">${l.more?'hide':'＋'} Additional Notes${!l.more&&[l.ship,l.fin,l.prod,l.desc].some(x=>String(x||'').trim())?' (has notes)':''}</button></div>`;
+  if(l.more) h+=`<span class="k">Shipping Notes</span><textarea class="t tg" id="ship_${l.id}" data-label="Shipping Notes" rows="1" placeholder="other ship-to, anything special about shipping" oninput="Ln('${l.id}').ship=this.value;grow(this)">${esc(l.ship)}</textarea>
+    <span class="k">Finishing Notes</span><textarea class="t tg" id="fin_${l.id}" data-label="Finishing Notes" rows="1" placeholder="after printing: rolled and tagged, bagged, folded…" oninput="Ln('${l.id}').fin=this.value;grow(this)">${esc(l.fin)}</textarea>
+    <span class="k">Production Notes</span><textarea class="t tg" id="prod_${l.id}" data-label="Production Notes" rows="1" placeholder="for the production team" oninput="Ln('${l.id}').prod=this.value;grow(this)">${esc(l.prod)}</textarea>
+    <span class="k">Product Description</span><input class="t" id="desc_${l.id}" data-label="Product Description" value="${esc(l.desc)}" placeholder="clear, simple description of the product" oninput="Ln('${l.id}').desc=this.value">`;
+  h+=`</div><div class="fb"><button class="link" onclick="clearLine()">${edit?'stop editing':'Clear form'}</button><button class="btn k" onclick="addLine()">${edit?'Done':'Add line item'}</button></div><div class="hint" style="margin-top:6px">Supplier for promo / patches / stickers and the proof upload stay in Line Item Review.</div></div>`;
+  return h; }
+function vRail(){ if(!S.o||S.view==='pick') return '';
+  if(S.view==='door'||S.view==='loading') return `<span class="p-section">Past work</span><div class="p-hint">${S.past.length} past orders · ${S.pastImps.length} past imprints on file for ${esc(S.o.name)}.</div>`;
+  const c=checks();
+  let h=`<span class="p-section">Checklist</span><ul class="p-off-chk">${c.map(([k,t])=>`<li class="${k?'is-done':''}"><i>${k?'✓':''}</i>${esc(t)}</li>`).join('')}<li class="${S.o.art?'is-done':'is-opt'}"><i>${S.o.art?'✓':''}</i>${S.o.art?'Artwork folder linked':'Artwork folder link (optional)'}</li></ul>`;
+  const vf=S.lines.map((l,i)=>[i+1,vendorFlag(l)]).filter(x=>x[1]); if(vf.length) h+=`<div class="p-note p-note-wait vwarn">${vf.map(([n,f])=>`Line ${n}: vendor ${f}`).join('<br>')}<div class="hint">Heads-up only; Create still works.</div></div>`;
+  if(!S.done&&S.err&&S.made) h+=`<div class="err">${esc(S.err)}</div>`;
+  if(S.done){ const d=S.done; h+=`<div class="out"><b>${PRACTICE?'Practice — nothing saved.':'Created in Airtable.'}</b>\n\n${d.imps.length} imprint${d.imps.length===1?'':'s'}\n${d.imps.map(x=>`• ${esc((d.ids&&d.ids[x.rid])||pid(x.p))} · ${esc(x.p.nick)} · ${esc(x.p.loc)}${x.p.prev?' · repeat of '+esc(x.p.prev.id):''}`).join('\n')}\n\n${d.lines.length} line item${d.lines.length===1?'':'s'}\n${d.lines.map(x=>`• ${esc(x.l.g?gLabel(x.l.g)+' '+x.l.g.color:x.l.ptype)} · ${qty(x.l)} pcs · ${money(price(x.l))}`).join('\n')}</div>
+    <div class="bts" style="margin-top:10px"><button class="link" onclick="nextOrder()">Next order</button></div>`; }
+  if(S.done&&S.done.quote) h=h.replace('</div>\n    <div class="bts"',`\n\nQuote Q-${esc(S.done.quote)} linked to ${esc(S.o.num)} · Won</div>\n    <div class="bts"`);
+  return h; }
+
+/* ---------- v8: the deal's emails, to read while filling in the forms ----------
+   No AI here. Finders highlight sentences by simple patterns; tapping a sentence adds it to the last field you were in. */
+const COLORW='black|white|grey|gray|heather|navy|olive|graphite|pepper|natural|bone|cream|ivory|red|blue|green|pink|purple|orange|yellow|gold|tan|khaki|brown|maroon|burgundy|charcoal|sand|forest|royal|teal|mint|sage|camo|vintage|faded|washed';
+const FINDERS=[
+  ['qty','Qty',/\b(?:qty|quantit(?:y|ies))\b|\b\d{1,5}\s+(?:[A-Za-z'’-]+\s+){1,4}(?:hats?|caps?|beanies?|shirts?|tees?|t-shirts?|hoodies?|crews?|crewnecks?|sweatshirts?|bandanas?|totes?|tanks?|polos?|jackets?)\b|\b\d{1,5}\s*(?:pcs|pieces?|pc|shirts?|tees?|t-shirts?|hats?|caps?|beanies?|hoodies?|crews?|crewnecks?|sweatshirts?|bandanas?|totes?|units?|each|total|dozen)\b|\b(?:we(?:'ll| will)|let's) (?:do|go with|start with) \d+|\b\d{2,5}\s+(?:of (?:each|them)|of the)\b/gi],
+  ['sizes','Sizes',/\b\d+\s*(?:x\s+)?(?:xs|sm|small|med|medium|lg|large|x-large|xl|xxl|2xl|3xl|4xl|osfa|s|m|l)\b(?!['’])|\b(?:sizes?|sizing|size breakdown|xs|xxl|2xl|3xl|4xl|osfa|youth|women'?s)\b/gi],
+  ['colors','Colors',new RegExp('\\b(?:'+COLORW+')\\b','gi')],
+  ['garments','Garments',/\b(?:comfort colors|bella(?:\s*\+?\s*canvas)?|gildan|independent|as colou?r|atonal|richardson|next level|cotton heritage|champion|carhartt|port (?:&|and) company|decky|valucap|yupoong|lane seven|los angeles apparel)\b|\b(?:t-?shirts?|tees?|shirts?|hoodies?|crew(?:neck)?s?|sweatshirts?|hats?|caps?|beanies?|totes?|tanks?|long ?sleeves?|jackets?|bandanas?|polos?)\b|(?<![($#.\d-])(?<!(?:pms|pantone|PMS|Pantone)\s?#?\s?)\b(?!(?:19|20)\d{2}\b)[A-Z]{0,3}\d{3,4}[A-Z]{0,2}\b(?![-).\d])/gi],
+  ['place','Placement',/\b(?:front|back|left chest|right chest|chest|sleeve|pocket|hood|neck|tag|hem|centered|full back|full front)\b|\b\d+(?:\.\d+)?\s*(?:"|”|in(?:ch(?:es)?)?\b)\s*(?:wide|tall|x)?/gi],
+  ['inks','Inks',/\b(?:pms|pantone)\s*#?\s*\d{2,4}(?:\s?(?:c|u|dc|ow|tcx))?\b|#[0-9a-f]{6}\b|\b(?:inks?|thread|underbase|discharge|water[- ]?based|plastisol|puff|metallic|embroider\w*|stitch\w*|(?:one|two|three|four|five|1|2|3|4|5)[- ]colou?r)\b/gi],
+  ['art','Art',/\b(?:art(?:work)?|logos?|designs?|mock-?ups?|proofs?|vector|files?|\.ai|\.pdf|\.png|\.svg|attached|drive|dropbox|print[- ]ready)\b/gi],
+  ['dates','Dates',/\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:st|nd|rd|th)?\b|\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b|\b(?:deadline|due|need(?:ed)? (?:them |it )?by|event|in[- ]hand|ship(?:ping)?|pick ?up|asap|rush)\b/gi]];
+const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function mailRe(){ if(S.fq&&S.fq.trim().length>=2) return new RegExp(reEsc(S.fq.trim()),'gi'); const f=FINDERS.find(x=>x[0]===S.find); return f?f[2]:null; }
+// v9: an email = what this person wrote (one sentence per line) + the quoted chain and signature folded away
+const QUOTE_RE=/(?:^|\s)(?:On\s[^\n]{4,200}?wrote:|\d{1,2}\s+[A-Z][a-z]+(?:\s+\d{4})?\s+at\s+\d{1,2}:\d{2},[^\n]{2,200}?wrote:|[A-Z][a-z]{2,8},?\s+[A-Z][a-z]+\s+\d{1,2},?\s+\d{4}[^\n]{0,40}?wrote:|-{2,}\s*Original Message|From:\s[^\n]{2,200}?(?:Sent|Date):)/;
+const SIG_RE=/\s-{4,}\s|\n--\s*\n|\nSent from my |\n(?:Thanks|Thank you|Best|Cheers|Regards)[,!]?\s*\n[^\n]{0,40}\n[^\n]{0,60}(?:\d{3}\)?[ .-]\d{3}|@|\.com)/;
+function splitMsg(t){ t=String(t||'').replace(/\r/g,''); let main=t, quoted='';
+  const q=t.search(QUOTE_RE); if(q>=0){ main=t.slice(0,q); quoted=t.slice(q); }
+  const g=main.search(SIG_RE); if(g>0) main=main.slice(0,g);
+  return {main:sentences(main.split('\n').filter(l=>!/^\s*>/.test(l)).join('\n')), quoted:sentences(quoted.replace(/^\s+/,''))}; }
+function sentences(t){ return String(t||'').split(/\n+/).map(s=>s.trim()).filter(Boolean)
+  .flatMap(line=>line.split(/(?<=[.!?:)])\s+(?=[A-Z0-9"“(•\-])/)).map(s=>s.trim()).filter(s=>s.length>1); }
+function hl(text,re){ const e=esc(text); if(!re) return e; re.lastIndex=0; return e.replace(re,m=>'<mark>'+m+'</mark>'); }
+const hits=(s,re)=>{ if(!re) return false; re.lastIndex=0; const r=re.test(esc(s)); re.lastIndex=0; return r; };
+function renderMail(){ const box=$('mailbox'); if(!box) return; const m=S.mail; S.mailDrawn=S.view==='edit'?m:null;
+  if(!S.o||S.view!=='edit'||!m){ box.innerHTML=S.o&&S.view==='edit'?'':`<div class="hint">The order's Pipedrive emails show here, next to the forms.</div>`; return; }
+  let h=`<div class="mh"><b>Deal emails</b><button class="link mclose" onclick="closeMail()">close</button></div>`;
+  if(m.loading){ box.innerHTML=h+'<div class="hint">Loading the Pipedrive deal…</div>'; return; }
+  if(m.none){ box.innerHTML=h+`<div class="hint">${esc(m.none)}</div>`; return; }
+  const d=m.deal, msgs=(m.msgs||[]).filter(x=>x.text||x.snippet);
+  h+=`<div class="mtools"><div class="deal"><a href="${esc(d.url)}" target="_blank" rel="noopener"><b>${esc(d.title)}</b> ↗</a><span class="hint">${esc(d.owner||'')}${d.deadline?' · '+esc(d.deadline):''}${d.dueDate?' '+esc(d.dueDate):''}${d.delivery?' · '+esc(d.delivery):''}</span></div>`;
+  if(!msgs.length){ box.innerHTML=h+`<div class="tag need" style="display:inline-block;margin-top:6px;white-space:normal">No emails are linked to this deal. In Pipedrive, open the customer's email and link it to the deal.</div>`; return; }
+  h+=`<div class="finders">${FINDERS.map(([k,t])=>`<button class="b sm${S.find===k&&!S.fq?' on':''}" onclick="setFind('${k}')">${t}</button>`).join('')}</div>
+    <div class="bts" style="margin-top:6px"><input class="t sm" id="mailq" style="flex:1;min-width:120px" placeholder="Find a word: olive, hoodie, PMS…" value="${esc(S.fq||'')}" oninput="S.fq=this.value;renderMailBody()"><span class="hint" id="mcount"></span><button class="b sm" onclick="nextMark()">next ›</button></div>
+    <div class="mtarget" id="mtarget"></div></div><div id="mbody"></div>`;
+  box.innerHTML=h; renderMailBody(); showTarget(); }
+function renderMailBody(){ const b=$('mbody'); if(!b) return; const re=mailRe(), msgs=(S.mail.msgs||[]).filter(x=>x.text||x.snippet);
+  S.mOpen=S.mOpen||{}; S.qOpen=S.qOpen||{}; const only=re&&S.only!==false; let n=0, shown=0, h='';
+  if(re) h+=`<div class="onlybar"><label><input type="checkbox" ${only?'checked':''} onchange="S.only=this.checked;renderMailBody()"> Only the matching sentences</label></div>`;
+  else if(!msgs.some(x=>x.cust)) h+=`<div class="hint" style="margin:6px 0">Only Pine's emails are on this deal; the customer's words may be in the quoted part (▸).</div>`;
+  const line=(s,q)=>`<div class="s${q?' q':''}" onclick="insSent(this)">${q&&only?'<span class="ql">quoted</span> ':''}${hl(s,re)}</div>`;
+  // a quoted sentence that someone already wrote in their own email on this deal is shown once, there
+  const norm=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(), own=new Set(), parts=msgs.map(x=>splitMsg(x.text||x.snippet));
+  parts.forEach(p=>p.main.forEach(s=>own.add(norm(s)))); parts.forEach(p=>{ p.quoted=p.quoted.filter(s=>!own.has(norm(s))&&![...own].some(o=>o.length>20&&norm(s).includes(o))); });
+  msgs.forEach((x,i)=>{ const p=parts[i], who=esc(String(x.from||'').replace(/\s*<.*$/,'').replace(/"/g,'')), hd=`<div class="mhd"><b>${who}</b> <span class="hint">${ago(x.date)}${x.subject?' · '+esc(x.subject):''}</span></div>`;
+    if(only){ const a=p.main.filter(s=>hits(s,re)), qq=p.quoted.filter(s=>hits(s,re)); if(!a.length&&!qq.length) return; shown++;
+      h+=`<div class="msg${x.cust?' cust':''}">${hd}${a.map(s=>line(s)).join('')}${qq.map(s=>line(s,true)).join('')}</div>`; return; }
+    const open=S.mOpen[x.id]??(i<2), qo=S.qOpen[x.id];
+    h+=`<div class="msg${x.cust?' cust':''}${open?'':' shut'}">${hd}`;
+    if(!open) h+=`<div class="s" onclick="S.mOpen['${x.id}']=true;renderMailBody()">${esc((p.main[0]||p.quoted[0]||'').slice(0,90))}… <span class="more">open ▸</span></div>`;
+    else { h+=p.main.map(s=>line(s)).join('')||'<div class="hint">(nothing new, only a quoted reply)</div>';
+      if(p.quoted.length) h+=`<button class="qbtn" onclick="S.qOpen['${x.id}']=!S.qOpen['${x.id}'];renderMailBody()">${qo?'▾ hide':'▸'} quoted earlier email${qo?'':' ('+p.quoted.length+' lines)'}</button>${qo?`<div class="quoted">${p.quoted.map(s=>line(s,true)).join('')}</div>`:''}`;
+      if(i>=2) h+=`<button class="qbtn" onclick="S.mOpen['${x.id}']=false;renderMailBody()">close</button>`; }
+    h+=`</div>`; });
+  if(only&&!shown) h+=`<div class="hint" style="margin-top:8px">Nothing found.</div>`;
+  b.innerHTML=h; n=b.querySelectorAll('mark').length; const c=$('mcount'); if(c) c.textContent=re?n+' found':''; S.mi=-1; }
+function setFind(k){ S.find=S.find===k&&!S.fq?null:k; S.fq=''; renderMail(); const mk=document.querySelector('#mbody mark'); if(mk) nextMark(); }
+function nextMark(){ const ms=[...document.querySelectorAll('#mbody mark')]; if(!ms.length) return; ms.forEach(x=>x.classList.remove('cur')); S.mi=((S.mi??-1)+1)%ms.length; ms[S.mi].classList.add('cur'); ms[S.mi].scrollIntoView({block:'center',behavior:'smooth'}); }
+function showTarget(){ const t=$('mtarget'); if(!t) return; const f=S.lastField&&$(S.lastField); t.innerHTML=f?`Tap a sentence to add it to <b>${esc(f.dataset.label)}</b>`:'Tap into a field (nickname, colors, notes, sizes…), then tap a sentence here to add it.'; }
+document.addEventListener('focusin',e=>{ const t=e.target; if(t&&t.dataset&&t.dataset.label&&t.id&&$('main').contains(t)){ S.lastField=t.id; showTarget(); } });
+function insSent(el){ const txt=el.textContent.trim(), f=S.lastField&&$(S.lastField);
+  if(!f){ (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('Copied. Tap into a field first to add it straight in.'),()=>toast('Tap into a field first, then tap the sentence')); return; }
+  f.value=f.value.trim()?f.value.replace(/\s+$/,'')+(f.tagName==='TEXTAREA'?'\n':' · ')+txt:txt;
+  f.dispatchEvent(new Event('input',{bubbles:true})); if(f.dataset.chg) f.dispatchEvent(new Event('change',{bubbles:true}));
+  el.classList.add('used'); toast('Added to '+f.dataset.label);
+  if($('mailbox').classList.contains('open')){ closeMail(); setTimeout(()=>{ const g=$(S.lastField); if(g){ g.scrollIntoView({block:'center'}); } },50); } }
+function openMail(){ $('mailbox').classList.add('open'); document.body.classList.add('noscroll'); renderMail(); }
+function closeMail(){ $('mailbox').classList.remove('open'); document.body.classList.remove('noscroll'); }
+
+/* ---------- v13: vendor check (same calls and matching as Purchasing v105) ----------
+   After a garment + color is picked: which of S&S / SanMar / AS Colour carry it, what they call the color, which sizes
+   they make, and their stock against the sizes typed. Warnings only; nothing here blocks Create. */
+const SS_BRAND_SLUG={'47 brand':1,'adams headwear':1,'adidas':1,'alleson athletic':1,'allpro':1,'alpine fleece':1,'american apparel':1,'anetik':1,
+  'artisan collection by reprime':1,'atlantis headwear':1,'augusta':1,'augusta sportswear':1,'authentic pigment':1,'badger':1,'bagedge':1,'bayside':1,
+  'bella':1,'bella canvas':1,'bella + canvas':1,'bellacanvas':1,'berne apparel':1,'big accessories':1,'boxercraft':1,'bulwark':1,'c2 sport':1,
+  'carmel towel company':1,'champion':1,'chef designs':1,'classic caps':1,'code five':1,'colortone':1,'columbia':1,'comfort colors':1,'comfortwash':1,
+  'comfortwash by hanes':1,'core365':1,'devon jones':1,'devon and jones':1,'dickies':1,'doggie skins':1,'dri duck':1,'econscious':1,'fairway greene':1,
+  'flexfit':1,'gildan':1,'hanes':1,'harriton':1,'holloway':1,'huk':1,'imperial':1,'independent trading':1,'independent trading co':1,'infinity her':1,
+  'j america':1,'jaanuu':1,'jerzees':1,'kastlfel':1,'kati':1,'kishigo':1,'lane seven':1,'lat':1,'lat apparel':1,'legacy':1,'liberty bags':1,'locale':1,
+  'los angeles apparel':1,'mo':1,'m o':1,'marmot':1,'meret':1,'mv sport':1,'nautica':1,'next level':1,'next level apparel':1,'ninja transfers':1,'nomadix':1,
+  'north end':1,'oad':1,'oakley':1,'onna':1,'outdoor cap':1,'paragon':1,'pukka':1,'puma golf':1,'qtees':1,'q tees':1,'rabbit skins':1,'realtree':1,
+  'recover':1,'red kap':1,'richardson':1,'russell athletic':1,'shaka wear':1,'shaka':1,'softshirts':1,'sportsman':1,'spyder':1,'sublivie':1,'swannies':1,
+  'tasc performance inc':1,'tasc':1,'team 365':1,'the game':1,'threadfast':1,'threadfast apparel':1,'top of the world':1,'tridri':1,'tultex':1,'ultraclub':1,
+  'under armour':1,'unionwear':1,'us blanks':1,'valucap':1,'vineyard vines':1,'weatherproof':1,'yp classics':1,'zero restriction':1};
+const SANMAR_BRANDS=['port company','port authority','sport tek','district','new era','nike','ogio','eddie bauer','carhartt','the north face','gildan','hanes',
+  'jerzees','bella canvas','next level','comfort colors','allmade','champion','fruit of the loom','anvil','alternative','cornerstone','red house','rabbit skins',
+  'volunteer knitwear','tultex','russell athletic','red kap','bulwark'];
+const normBrand=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+const inBrands=(list,bn)=>!!bn&&(list.includes(bn)||list.some(k=>k.indexOf(bn+' ')===0));
+const ssCarries=bn=>!!bn&&(!!SS_BRAND_SLUG[bn]||Object.keys(SS_BRAND_SLUG).some(k=>k.indexOf(bn+' ')===0));
+function brandMatch(a,b){ a=normBrand(a); b=normBrand(b); if(!a||!b) return false; return a===b||a.indexOf(b)>=0||b.indexOf(a)>=0||a.split(' ')[0]===b.split(' ')[0]; }
+const SIZE_NORM={XXL:'2XL',XXXL:'3XL',XXXXL:'4XL','2X':'2XL','3X':'3XL','4X':'4XL','5X':'5XL','6X':'6XL','ONE SIZE':'OSFA',OS:'OSFA',OSFA:'OSFA',OSFM:'OSFA','ADJ':'OSFA','ADJUSTABLE':'OSFA',SMALL:'S',MEDIUM:'M',LARGE:'L','X-LARGE':'XL'};
+const vSize=s=>{ s=String(s||'').toUpperCase().trim(); return SIZE_NORM[s]||s; };
+const colorKey=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function editDist(a,b){ if(Math.abs(a.length-b.length)>2) return 9; const d=[]; for(let i=0;i<=a.length;i++) d[i]=[i]; for(let j=0;j<=b.length;j++) d[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++) d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[a.length][b.length]; }
+// exact, then prefix, then 1-2 letters off (one candidate only), then whole-word ("Orange" = "Safety Orange")
+function colorRows(rows,color){ const ck=colorKey(color); let use=rows.filter(r=>colorKey(r.color)===ck);
+  if(!use.length&&ck) use=rows.filter(r=>{ const k=colorKey(r.color); return k&&(k.indexOf(ck)===0||ck.indexOf(k)===0); });
+  if(!use.length&&ck.length>=4){ const lim=ck.length>=7?2:1; let best=null, tie=false; const seen={};
+    rows.forEach(r=>{ const k=colorKey(r.color); if(!k||seen[k]) return; seen[k]=1; const dd=editDist(ck,k); if(dd>lim) return; if(!best||dd<best.d){ best={k,d:dd}; tie=false; } else if(dd===best.d) tie=true; });
+    if(best&&!tie) use=rows.filter(r=>colorKey(r.color)===best.k); }
+  if(!use.length&&color){ const w=String(color).toUpperCase().split(/[^A-Z0-9]+/).filter(x=>x.length>=3), hit={};
+    if(w.length) rows.forEach(r=>{ const vw=String(r.color||'').toUpperCase().split(/[^A-Z0-9]+/); if(w.every(x=>vw.includes(x))) hit[colorKey(r.color)]=1; });
+    const hk=Object.keys(hit); if(hk.length===1) use=rows.filter(r=>colorKey(r.color)===hk[0]); }
+  return use; }
+const VREQ={}; const once=(k,fn)=>VREQ[k]||(VREQ[k]=fn().catch(e=>({err:e.message||'no answer'})));
+const errOf=(d,f)=>(d&&d.errors&&d.errors[0]&&d.errors[0].message)||(d&&(d.error||d.message))||f;
+const lsJSON=(k,d)=>{ try{ const v=JSON.parse(localStorage.getItem(k)||'null'); return v==null?d:v; }catch(e){ return d; } };
+const lsSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
+// S&S warehouse codes -> city (Purchasing v100). DS = dropship, never stock.
+const SS_CODE={IL:'Lockport',NV:'Reno',KS:'Olathe',OH:'West Chester',MA:'Middleboro',GA:'McDonough',PA:'Reading',TX:'Ft. Worth',FO:'Orlando',CN:'Fresno'};
+const SM_WHSE={1:'Seattle',2:'Cincinnati',3:'Dallas',4:'Reno',5:'Robbinsville',6:'Jacksonville',7:'Minneapolis',12:'Phoenix',31:'Richmond'};
+function ssCatalog(){ return once('ss|catalog',async()=>{ const ts=+(lsJSON('pine_ss_catalog_ts_v1',0))||0, c=lsJSON('pine_ss_catalog_v1',null);
+  if(Array.isArray(c)&&c.length&&Date.now()-ts<864e5) return c;
+  const d=await (await fetch(PROXY+'/styles/?fields=brandName,styleName,title')).json(); if(!Array.isArray(d)) return {err:errOf(d,'style list unavailable')};
+  const out=d.map(s=>({brandName:s.brandName||'',styleName:s.styleName||'',title:s.title||'',_search:((s.brandName||'')+' '+(s.styleName||'')+' '+(s.title||'')).toLowerCase()}));
+  lsSet('pine_ss_catalog_v1',JSON.stringify(out)); lsSet('pine_ss_catalog_ts_v1',String(Date.now())); return out; }); }
+async function ssName(brand,style){ const c=await ssCatalog(); if(!Array.isArray(c)) return null; const su=String(style).toUpperCase(), hits=c.filter(s=>String(s.styleName||'').toUpperCase()===su);
+  const pick=hits.filter(s=>brandMatch(s.brandName,brand))[0]||(hits.length===1?hits[0]:null); return pick?pick.brandName+' '+pick.styleName:null; }
+function ssRows(brand,style){ return once('ss|'+brand+'|'+style,async()=>{ const fl='styleName,brandName,sizeName,colorName,qty,warehouses';
+  const tries=[await ssName(brand,style),(brand?brand+' ':'')+style,style].filter((t,i,a)=>t&&a.indexOf(t)===i); let d=null, why='';
+  for(let i=0;i<tries.length&&!Array.isArray(d);i++){ try{ d=await (await fetch(PROXY+'/products/?style='+encodeURIComponent(tries[i])+'&fields='+fl)).json(); }catch(e){ d=null; } if(!Array.isArray(d)) why=errOf(d,'no answer'); }
+  if(!Array.isArray(d)||!d.length) return {err:/not found|discontinued/i.test(why)||(Array.isArray(d)&&!d.length)?'not at S&S':why};
+  let mine=d.filter(p=>brandMatch(p.brandName,brand)); if(!mine.length) mine=d;
+  return mine.map(p=>({color:p.colorName,size:p.sizeName,wh:(Array.isArray(p.warehouses)?p.warehouses:[]).map(w=>{ const ab=String(w.warehouseAbbr||w.abbr||w.warehouse||'').toUpperCase(); return {name:SS_CODE[ab]||'',qty:+(w.qty!=null?w.qty:w.quantity)||0}; }).filter(w=>w.name)})); }); }
+function sanmarCodes(brand,style){ const b=normBrand(brand), s=String(style).toUpperCase();
+  if(/^(port (and |& )?co(mpany)?|port authority|district|sport ?tek)$/.test(b)) return [{code:s}]; if(b==='bella canvas') return [{code:s.indexOf('BC')===0?s:'BC'+s}];
+  if(!inBrands(SANMAR_BRANDS,b)) return []; const out=[]; if(/^next level/.test(b)&&s.indexOf('NL')!==0) out.push({code:'NL'+s,guard:true}); out.push({code:s,guard:true}); return out; }
+function sanmarRows(code){ return once('sm|'+code,async()=>{ const d=await (await fetch(PROXY+'/sanmar/pricing?style='+encodeURIComponent(code))).json();
+  if(!d||!d.ok||!Array.isArray(d.items)) return {err:errOf(d,'not at SanMar')}; return d.items.map(it=>({color:it.color,size:it.size})); }); }
+const xt=(el,tag)=>{ const n=el.getElementsByTagName(tag)[0]; return n?n.textContent.trim():''; };
+function sanmarStock(code){ return once('smi|'+code,async()=>{ const txt=await (await fetch(PROXY+'/sanmar/inventory?style='+encodeURIComponent(code))).text(), doc=new DOMParser().parseFromString(txt,'text/xml'), out=[];
+  Array.prototype.forEach.call(doc.getElementsByTagName('sku'),s=>{ out.push({color:xt(s,'color'),size:xt(s,'size'),wh:Array.prototype.map.call(s.getElementsByTagName('whse'),w=>({name:xt(w,'whseName')||SM_WHSE[+xt(w,'whseID')]||'',qty:+xt(w,'qty')||0}))}); });
+  return out.length?out:{err:'no SanMar stock answer'}; }); }
+const ascSoon=v=>Object.keys(v||{}).some(k=>{ const x=v[k]; return (/soon/i.test(k)&&x===true)||(typeof x==='string'&&/coming\s*soon|pre-?order/i.test(x)); });
+function ascRows(code){ return once('asc|'+code,async()=>{ const out=[];
+  for(let page=1;page<=10;page++){ const r=await fetch(PROXY+'/ascolour/catalog/products/'+encodeURIComponent(code)+'/variants?pageSize=250&pageNumber='+page); if(!r.ok){ if(page===1) return {err:'not at AS Colour'}; break; }
+    const rows=((await r.json())||{}).data||[]; rows.forEach(v=>{ if(!v.discontinued) out.push({sku:String(v.sku||'').toUpperCase(),color:v.colour,size:v.sizeCode,soon:ascSoon(v)}); }); if(rows.length<250) break; }
+  return out; }); }
+function ascStock(code){ return once('asci|'+code,async()=>{ const out=[], pre=String(code).toUpperCase()+'-';
+  for(let page=1;page<=10;page++){ const r=await fetch(PROXY+'/ascolour/inventory/items?skuFilter='+encodeURIComponent(code)+'&pageSize=250&pageNumber='+page); if(!r.ok) break;
+    const rows=((await r.json())||{}).data||[]; rows.forEach(x=>{ const sku=String(x.sku||'').toUpperCase(); if(sku.indexOf(pre)===0) out.push({sku,qty:+(x.quantity!=null?x.quantity:x.qty)||0,wh:String(x.warehouse||x.location||'').toUpperCase()}); }); if(rows.length<250) break; }
+  return out; }); }
+const isRows=x=>Array.isArray(x)&&x.length>0;
+// one vendor's answer for this color -> {color (their spelling), exact, sizes:[...], byWh:{wh:{size:qty}}, total:{size:qty}}
+function summarize(vendor,rows,color){ const use=colorRows(rows,color); if(!use.length) return {vendor,miss:true,colors:[...new Set(rows.map(r=>r.color).filter(Boolean))].sort()};
+  const sizes=[], byWh={}, total={}; use.forEach(r=>{ const z=vSize(r.size); if(!sizes.includes(z)) sizes.push(z); (r.wh||[]).forEach(w=>{ const b=(byWh[w.name]=byWh[w.name]||{}); b[z]=(b[z]||0)+w.qty; total[z]=(total[z]||0)+w.qty; }); });
+  const vc=use[0].color; return {vendor,color:vc,exact:colorKey(vc)===colorKey(color),sizes,byWh,total,hasStock:Object.keys(byWh).length>0}; }
+const VC={};   // garment record id -> {loading} | {list:[vendor results], none:'why'}
+const brandOf=g=>{ const s=String(g.name||'').split(' - ')[0].trim(), t=s.split(/\s+/); return t.length>1?t.slice(0,-1).join(' '):''; };
+async function vendorCheck(g){ if(!g||VC[g.id]&&!VC[g.id].stale) return; VC[g.id]={loading:true}; render();
+  const brand=brandOf(g), bn=normBrand(brand), style=g.style, color=g.color, out=[], jobs=[], why={};
+  if(ssCarries(bn)) jobs.push(ssRows(brand,style).then(rows=>{ if(!isRows(rows)){ why['S&S']=(rows&&rows.err)||'not at S&S'; return; } out.push(summarize('S&S',rows,g.ssColor||color)); }));
+  const smc=sanmarCodes(brand,style);
+  if(smc.length) jobs.push((async()=>{ let last='not at SanMar'; for(const c of smc){ const rows=await sanmarRows(c.code); if(!isRows(rows)){ last=(rows&&rows.err)||last; continue; }
+      if(c.guard&&!colorRows(rows,color).length){ last='SanMar '+c.code+' has no '+color; continue; }
+      const inv=await sanmarStock(c.code), wh={}; (isRows(inv)?inv:[]).forEach(x=>{ wh[colorKey(x.color)+'|'+vSize(x.size)]=x.wh; });
+      const invOk=isRows(inv); out.push(summarize('SanMar',rows.map(r=>({color:r.color,size:r.size,wh:wh[colorKey(r.color)+'|'+vSize(r.size)]||(invOk?[{name:'(none)',qty:0}]:[])})),color)); return; } why['SanMar']=last; })());
+  if(bn==='as colour'||bn==='ascolour') jobs.push(Promise.all([ascRows(style),ascStock(style)]).then(([rows,inv])=>{ if(!isRows(rows)){ why['AS Colour']=(rows&&rows.err)||'not at AS Colour'; return; }
+      const bySku={}; (isRows(inv)?inv:[]).forEach(x=>{ (bySku[x.sku]=bySku[x.sku]||[]).push({name:x.wh==='CA'||/CA/.test(x.wh)?'CA':x.wh==='NC'||/NC/.test(x.wh)?'NC':'CA + NC',qty:x.qty}); });
+      const s=summarize('AS Colour',rows.map(r=>({color:r.color,size:r.size,wh:bySku[r.sku]||[]})),color);
+      const mine=colorRows(rows,color); if(mine.length&&!mine.some(r=>bySku[r.sku])) s.soon=true; out.push(s); }));
+  await Promise.all(jobs);
+  VC[g.id]=out.length?{list:out.sort((a,b)=>['S&S','SanMar','AS Colour'].indexOf(a.vendor)-['S&S','SanMar','AS Colour'].indexOf(b.vendor)),why}:{none:jobs.length?Object.values(why)[0]||'no vendor answer':`${brand||'This brand'} isn't checked (S&S, SanMar and AS Colour only)`};
+  render(); }
+const vcOf=g=>g&&VC[g.id];
+// sizes the vendors make (union), when Airtable has none ticked
+function vendorSizes(g){ const v=vcOf(g); if(!v||!v.list) return []; const s=new Set(); v.list.filter(x=>!x.miss).forEach(x=>x.sizes.forEach(z=>s.add(z))); return [...s]; }
+// stock vs the sizes typed: per vendor, the sizes short across all its warehouses, and a warehouse that has everything
+function stockCheck(l){ const v=vcOf(l.g); if(!v||!v.list) return null; const need=l.sizes, ks=Object.keys(need).filter(z=>need[z]>0); if(!ks.length) return null;
+  return v.list.filter(x=>!x.miss&&x.hasStock).map(x=>{ const short=ks.filter(z=>(x.total[z]||0)<need[z]).map(z=>({z,need:need[z],have:x.total[z]||0}));
+    const one=Object.keys(x.byWh).find(w=>ks.every(z=>(x.byWh[w][z]||0)>=need[z])); return {vendor:x.vendor,short,one}; }); }
+const niceColor=c=>{ c=String(c||'').trim(); return c===c.toUpperCase()?c.toLowerCase().replace(/(^|[\s\/-])([a-z])/g,(m,a,b)=>a+b.toUpperCase()):c; };
+async function fixColor(gid,pick){ const l=S.nl&&S.nl.g&&S.nl.g.id===gid?S.nl:S.lines.find(x=>x.g&&x.g.id===gid); if(!l) return; const g=l.g, nu=niceColor(pick), old=g.color;
+  if(!nu||nu===old) return; if(!await PineConfirm.ask({title:`Change this garment's color in Airtable from "${old}" to "${nu}"?`,body:'Every order using this garment will show the new spelling.',ok:'Change color'})) return render();
+  try{ await atWrite('PATCH',T_GAR,[{id:g.id,fields:{[G.color]:nu}}]); }catch(e){ return toast('Couldn\'t update: '+e.message); }
+  [S.nl].concat(S.lines).forEach(x=>{ if(x&&x.g&&x.g.id===gid){ x.g.color=nu; x.g.name=x.g.name.replace(/ - .*$/,' - '+nu); } });
+  (l.colors||[]).forEach(c=>{ if(c.id===gid){ c.color=nu; c.name=c.name.replace(/ - .*$/,' - '+nu); } });
+  toast(PRACTICE?`Practice — would change ${old} → ${nu}`:`Fixed in Airtable: ${old} → ${nu}`); VC[gid]={stale:true}; vendorCheck(l.g); }
+// the block under the garment in Line Item Creator
+function vVendor(l){ const g=l.g; if(!g) return ''; const v=vcOf(g);
+  if(!v||v.loading||v.stale) return `<div class="vend"><span class="hint">Checking vendors for ${esc(gLabel(g))} · ${esc(g.color)}…</span></div>`;
+  if(v.none) return `<div class="vend"><span class="hint">Vendors: ${esc(v.none)}.</span></div>`;
+  let h='<div class="vend">'; const st=stockCheck(l)||[], anyExact=v.list.some(x=>!x.miss&&x.exact);
+  v.list.forEach(x=>{ h+=`<div class="vrow"><b>${esc(x.vendor)}</b> `;
+    if(x.miss&&anyExact) h+=`<span class="hint">doesn't carry ${esc(g.color)} in ${esc(g.style)}</span>`;
+    else if(x.miss) h+=`<span class="warn">has no color called ${esc(g.color)} for ${esc(g.style)}.</span> <select class="t sm" onchange="if(this.value)fixColor('${g.id}',this.value)"><option value="">Pick theirs to fix Airtable…</option>${x.colors.slice().sort((a,b)=>{ const w=String(g.color).toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean), sc=c=>w.some(t=>c.toUpperCase().includes(t))?0:1; return sc(a)-sc(b)||a.localeCompare(b); }).map(c=>`<option value="${esc(c)}">${esc(niceColor(c))}</option>`).join('')}</select>`;
+    else { h+=x.exact?`<span class="okc">✓ ${esc(niceColor(x.color))}</span>`:(anyExact?`<span class="hint">calls it ${esc(niceColor(x.color))}</span>`:`<span class="warn">calls it ${esc(niceColor(x.color))}</span> <span class="hint">(Airtable: ${esc(g.color)})</span> <button class="link" onclick="fixColor('${g.id}','${esc(x.color).replace(/'/g,"\\'")}')">fix in Airtable</button>`);
+      h+=` <span class="hint">· ${x.sizes.map(z=>z==='OSFA'?'one size':z).join(' ')}</span>`;
+      const s=st.find(y=>y.vendor===x.vendor);
+      if(x.soon) h+=` <span class="warn">· lists this color but has no stock yet (coming soon)</span>`;
+      else if(!x.hasStock) h+=` <span class="hint">· no stock info</span>`;
+      else if(s) h+=s.short.length?` <span class="warn">· low: ${s.short.map(y=>`${y.z==='OSFA'?'':y.z+' '}needs ${y.need}, has ${y.have}`).join(' · ')}</span>`:` <span class="okc">· in stock${s.one?' ('+esc(s.one)+' has it all)':''}</span>`;
+      else h+=` <span class="hint">· ${Object.values(x.total).reduce((a,b)=>a+b,0).toLocaleString()} in stock</span>`; }
+    h+=`</div>`; });
+  // Airtable's size boxes vs what the vendors make
+  const vs=vendorSizes(g); if(known(g)&&vs.length){ const miss=vs.filter(z=>!g.avail.includes(z)&&ALL_SZ.concat(['OSFA']).includes(z)); if(miss.length) h+=`<div class="vrow hint">Vendors also make ${miss.join(', ')} (not ticked in Airtable).</div>`; }
+  return h+'</div>'; }
+// short status for the line cards and the checklist
+function vendorFlag(l){ const v=l.g&&vcOf(l.g); if(!v||!v.list) return ''; const ok=v.list.filter(x=>!x.miss); if(!ok.length) return 'color?'; const st=stockCheck(l)||[];
+  if(st.length&&st.every(x=>x.short.length)) return 'low stock'; if(!ok.some(x=>x.exact)) return 'spelling'; if(v.list.some(x=>x.soon)) return 'coming soon'; return ''; }
+
+/* ---------- v19: the quote (Quotes / Quote Lines, saved by Price-O-Matic v107 with the quote PDF) ----------
+   Found by the order's Pipedrive deal # (the deal the emails come from), else this customer's quotes to pick from,
+   or searched by Q-number / customer. "Fill from quote" rebuilds the imprints and line items; nothing is written until
+   Create order, which also links the quote to the order and marks it Won. Price-O-Matic's price wins (Stephen). */
+const T_Q='tblZNUTfj6VfK6oQx', T_QL='tbljlrtUFTWlAYSav';
+const QF={num:'fldh6oYoQzaLgJZt1',date:'fldlIT3dglFtsm1zE',rep:'fldjQrjmvvTROYcOZ',cust:'fldZyze7GKixWgsof',deal:'fldmnLNCQUrLRBYOH',status:'fldE0CSpMJnKOFzOh',total:'fldWdp85QylkT65ls',notes:'fldaI7X4KlP7UmWlk',order:'fld9weNcXuTZiDqaa',ver:'fldi1xxm49NHohh9Q',lines:'flduyX96TKTc4A1eJ'};
+const QL={line:'fldXr35Fs4XM2WuBa',quote:'fldl6j4sMRu5vgOZ6',ptype:'fldUkIq6BRh063DnE',style:'fldVfvIOyQ9c7DvHg',color:'fldEkffqOI43A4TmP',qty:'fldXZBTHFnTpvrR3y',sizes:'fldWcnaEmk0nBoj7N',prints:'fld31JSgfm0SknVIp',pp:'fldyDk23N00qhEvOI',total:'flds296VbytvLYnfS',breaks:'fldDKa39n0smi8Lft',data:'fldsj9rEcgPE57pNt'};
+const mapQ=r=>{ const f=r.fields; return {id:r.id,num:f[QF.num],date:f[QF.date]||'',rep:String(f[QF.rep]||''),cust:String(f[QF.cust]||'').trim(),deal:f[QF.deal]||null,status:sel(f[QF.status]),total:numv(f[QF.total]),order:f[QF.order]||[],lineIds:f[QF.lines]||[],lines:null}; };
+async function qFind(formula,max){ const d=await at(T_Q,`maxRecords=${max||10}&${flds(Object.values(QF))}&sort%5B0%5D%5Bfield%5D=${QF.date}&sort%5B0%5D%5Bdirection%5D=desc&filterByFormula=${encodeURIComponent(formula)}`); return (d.records||[]).map(mapQ); }
+const qCustF=n=>`AND({Customer}!="",OR(FIND(LOWER("${fq(n)}"),LOWER({Customer})),FIND(LOWER({Customer}),LOWER("${fq(n)}"))))`;
+async function findQuotes(){ const o=S.o; if(!o||!TOKEN) return; const deal=+(S.mail&&S.mail.deal&&S.mail.deal.id)||0;
+  const op=!!(S.qt&&S.qt.open); S.qt={loading:true,open:op}; render();   // v23: keep it open if the rep opened it
+  try{ let list=[], by='';
+    if(deal>0){ list=await qFind(`{Pipedrive Deal #}=${deal}`); by='deal'; }
+    if(!list.length&&o.name){ list=await qFind(qCustF(o.name)); by='customer'; }
+    if(S.o!==o) return;
+    S.qt={list,by,q:'',sel:null,open:op};
+    // only a deal-# match is picked for the rep; a quote already on another order isn't
+    const auto=by==='deal'?list.find(q=>!q.order.length||q.order.includes(o.id)):null;
+    if(auto) await qPick(auto.id,true); else render();
+  }catch(e){ if(S.o===o){ S.qt={list:[],err:'Quotes: '+e.message,q:''}; render(); } } }
+let qTimer=null;
+function qSearch(v){ const t=S.qt||(S.qt={list:[]}); t.q=v; clearTimeout(qTimer); const x=v.trim(); if(!x){ findQuotes(); return; } if(x.length<2&&!/\d/.test(x)) return render();
+  qTimer=setTimeout(async()=>{ const o=S.o; try{ const m=x.match(/^q?\s*-?\s*(\d+)$/i), list=await qFind(m?`{Quote #}=${+m[1]}`:`FIND(LOWER("${fq(x)}"),LOWER({Customer}&""))`,15);
+      if(S.o!==o||!S.qt||S.qt.q!==v) return; S.qt.list=list; S.qt.by='search'; S.qt.err=''; render(); }catch(e){ if(S.qt){ S.qt.err='Quotes: '+e.message; render(); } } },300); }
+async function qLines(q){ if(!q.lineIds.length) return [];
+  const recs=await atAll(T_QL,`pageSize=100&${flds(Object.values(QL))}&filterByFormula=${byIds(q.lineIds)}`,100);
+  const n=x=>(x.data&&Number.isFinite(x.data.i))?x.data.i:(parseInt(x.label)||0);
+  return recs.map(r=>{ const f=r.fields; let data=null; try{ data=JSON.parse(f[QL.data]||'null'); }catch(e){}
+    return {id:r.id,label:String(f[QL.line]||''),ptype:sel(f[QL.ptype]),style:String(f[QL.style]||'').trim(),color:String(f[QL.color]||'').trim(),qty:numv(f[QL.qty]),sizes:String(f[QL.sizes]||''),prints:String(f[QL.prints]||''),pp:f[QL.pp]!=null?numv(f[QL.pp]):null,total:numv(f[QL.total]),data}; }).sort((a,b)=>n(a)-n(b)); }
+async function qPick(id,auto){ const t=S.qt; const q=t&&(t.list||[]).find(x=>x.id===id); if(!q) return; t.sel=q; t.auto=!!auto; render();
+  if(!q.lines){ try{ q.lines=await qLines(q); }catch(e){ q.lines=[]; q.lerr=e.message; } render(); } }
+function qOpen(){ if(!S.qt) return; S.qt.open=true; render(); focusSoon('qsearch'); }   // v23
+function qDrop(){ if(!S.qt||S.done) return; S.qt.open=true; S.qt.sel=null; S.qt.auto=false; if(S.qfill) S.qfill=null; render(); focusSoon('qsearch'); }
+
+/* the POM's cart line -> Create order's imprints + line items */
+const QLOC={'front':'Front','back':'Back','left chest':'Left Chest','right chest':'Right Chest','left sleeve':'Left Sleeve','right sleeve':'Right Sleeve','size tag':'Size Tag','pocket':'Pocket','hood':'Hood'};
+const QSTITCH={'Up to 5,000':5000,'5,000 - 7,500':7500,'7,500 - 10,000':10000,'10,000 - 15,000':15000,'15,000 - 20,000':20000};
+function qImp(m){ const loc=QLOC[String(m.loc||'Front').trim().toLowerCase()]||'', from=String(m.loc||'Front');
+  if(m.type==='Screenprint') return {type:m.underbase?'EZP Base + W/B':'No Base W/B',loc,scr:(m.screens||1)+(m.underbase?1:0),ic:m.inkChanges||0,from,ink:true};
+  if(m.type==='Size Tags 1C') return {type:'No Base W/B',loc:loc||'Size Tag',scr:1,ic:0,from};
+  if(m.type==='Embroidery'){ const b=m.embStitchBand||'Up to 5,000'; if(/Application$/.test(b)) return {type:b,loc,from}; return {type:'Embroidery',loc,stitch:QSTITCH[b]||5000,from,band:b}; }
+  if(m.type==='Supacolor'){ const t='Supacolor - '+(m.supRecipe||'Wearable'); if(!SUPA.includes(t)) return null; return {type:t,loc,supSize:SUP_SIZES.find(z=>z.trim()===String(m.supSize||'').trim())||'',from}; }
+  if(m.type==='Decopress'){ const mt=String(m.decoMaterial||''); return {type:'Decopress - '+(/leather/i.test(mt)?'Leather':/metal/i.test(mt)?'Metallic':/reflect/i.test(mt)?'Reflective':'Woven / Twill'),loc,from}; }
+  return null; }
+const qStyle=x=>{ const vg=x.data&&x.data.vg; return String((vg&&vg.style)||(x.style||'').split(/\s+/).pop()||'').trim(); };
+const PATCH_PT={'Embroidered':'Embroidered Patches (100%)','Woven':'Woven Patches','Clip Label':'Woven Clip Labels'};
+async function fillFromQuote(){ const q=S.qt&&S.qt.sel; if(!q||!q.lines||!q.lines.length||S.done) return;
+  if(S.made) return toast('Part of this order is already in Airtable. Finish it or fix it in Line Item Review.');
+  if((S.lines.length||S.prints.length||impDirty(S.ni)||lineDirty(S.nl))&&!await PineConfirm.ask({title:`Replace what's entered here with quote Q-${q.num}?`,ok:'Replace'})) return;
+  if(S.done||S.made||S.qt?.sel!==q) return;
+  S.view='edit'; S.prints=[]; S.lines=[]; S.ni=blankImp(); S.nl=blankLine(); S.niEdit=S.nlEdit=false; S.after=S.lastLine=null; S.impOpen=false;
+  S.qfill={qid:q.id,num:q.num,busy:true,notes:[]}; render();
+  const notes=[], keyed={}, gby={};
+  // one Airtable Garments lookup per style (exact Product Number), plus the Bandana 4800 colors if a bandana was quoted
+  const styles=[...new Set(q.lines.filter(x=>((x.data&&x.data.product)||'apparel')==='apparel').map(qStyle).filter(Boolean))];
+  await Promise.all(styles.map(async st=>{ try{ gby[st]=(await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`TRIM({Product Number})="${fq(st)}"`)}`,200)).map(mapG); }catch(e){ gby[st]=[]; } }));
+  let band=null; if(q.lines.some(x=>x.data&&x.data.product==='bandana')){ const x=STOCK[0]; try{ band=stockCache[0]||(stockCache[0]=(await atAll(T_GAR,`pageSize=100&${flds(Object.values(G))}&filterByFormula=${encodeURIComponent(`AND(TRIM({Product Number})="${x.num}",FIND("${x.mfr}",LOWER({Manufacturer}&"")))`)}`,200)).map(mapG).sort((a,b)=>a.color.localeCompare(b.color))); }catch(e){ band=[]; } }
+  if(!S.qfill||S.qfill.qid!==q.id||S.o==null) return;   // the rep moved on while loading
+  const tick=(l,r)=>{ const k=JSON.stringify([r.type,r.loc,r.scr||0,r.ic||0,r.stitch||0,r.supSize||'']); let p=keyed[k];
+    if(!p){ p=Object.assign(blankImp(),{type:r.type,fam:famOf(r.type),loc:r.loc,scr:r.scr||0,ic:r.ic||0,stitch:r.stitch||0,supSize:r.supSize||'',fromQ:r}); syncScr(p); S.prints.push(p); keyed[k]=p; }
+    if(!l.prints.includes(p.id)) l.prints.push(p.id); };
+  q.lines.forEach((x,i)=>{ const d=x.data||{}, prod=d.product||'apparel', s=d.snap||{}, l=blankLine(), lab='Line '+(i+1), qq=x.qty||d.qty||0;
+    const pp=x.pp!=null?x.pp:(d.quotedUnit!=null?Math.round(d.quotedUnit*100)/100:null);
+    l.price=pp; l.fromQ={num:q.num,pp,qty:qq,label:x.label};
+    if(prod==='apparel'){ l.ptype='Printed Apparel'; const vg=d.vg||null, st=qStyle(x), brand=(vg&&vg.brand)||'', color=(vg&&vg.color)||x.color||'';
+      const all=gby[st]||[], mine=all.filter(g=>!brand||!brandOf(g)||brandMatch(brandOf(g),brand)), pool=mine.length?mine:all;
+      if(!st) notes.push(`${lab}: pick the garment (the quote line is "${x.label.replace(/^\d+\s*·\s*/,'')}")`);
+      else if(!pool.length){ notes.push(`${lab}: ${[brand,st].filter(Boolean).join(' ')} isn't in Airtable Garments. Add it in Garment Creator, then pick it.`); l.gq=st; }
+      else { const m=color?colorRows(pool.map(g=>({color:g.color,g})).concat(pool.filter(g=>g.ssColor).map(g=>({color:g.ssColor,g}))),color):[];
+        if(m.length){ l.g=m[0].g; l.colors=pool.length>1?pool:null; if(colorKey(l.g.color)!==colorKey(color)&&colorKey(l.g.ssColor)!==colorKey(color)) notes.push(`${lab}: quoted ${color}, Airtable calls it ${l.g.color}. Check it's the same.`); }
+        else { l.colors=pool; notes.push(`${lab}: pick the color${color?' (quoted '+color+')':''}`); } }
+      const sz=parseSizes(x.sizes||'');
+      if(l.g&&oneSize(l.g)) l.sizes={OSFA:qq};
+      else if(Object.keys(sz).length) l.sizes=sz;
+      else { l.qq=qq; notes.push(`${lab}: sizes for the ${qq} pcs quoted`); }
+      (s.impressions||[]).filter(m=>m&&m.type).forEach(m=>{ const r=qImp(m); if(r) tick(l,r); else notes.push(`${lab}: the ${m.loc||''} ${m.type} print has no Airtable imprint type here; add it by hand`); });
+      if(s.shipping) notes.push(`${lab}: shipping was quoted. Add the ship-to in Shipping Notes if it's not the usual.`);
+    } else if(prod==='bandana'){ const b=s.bandana||{}; l.ptype='Printed Apparel'; l.sizes={OSFA:qq};
+      if(band&&band.length){ l.colors=band; notes.push(`${lab}: pick the bandana color`); } else { l.gq='4800'; notes.push(`${lab}: pick the bandana (4800)`); }
+      tick(l,{type:'No Base W/B',loc:'Bandana',scr:b.colors||1,ic:b.inkChanges||0,from:'Bandana',ink:true});
+      if(b.hangers){ l.fin='Bandana hangers (quoted)'; l.more=true; }
+    } else if(prod==='ibandana'){ const b=s.ibandana||{}; l.ptype='Promo Product'; l.sizes={OSFA:qq};
+      l.promo=`Import bandana · ${b.gsm||'80 GSM'} · ${b.colors==='DIGITAL'?'digital print':(b.colors||1)+' color'+((b.colors||1)>1?'s':'')}`;
+      notes.push(`${lab}: import bandanas came in as Promo Product. Check the product type.`);
+    } else if(prod==='flatstock'){ const f=s.flatstock||{}; l.ptype='Flatstock Printing'; l.sizes={OSFA:qq};
+      tick(l,{type:'Flatstock',loc:'Flatstock',from:'Flatstock'}); if(f.paper||f.printsPerSheet>1) l.prod=`${f.paper||'French'} paper${f.printsPerSheet>1?' · '+f.printsPerSheet+' up':''} · ${f.colors||1} color${(f.colors||1)>1?'s':''} (quoted)`;
+    } else if(prod==='patches'){ const pt=s.patches||{}; l.ptype=PATCH_PT[pt.type]||'Embroidered Patches (100%)'; l.sizes={OSFA:qq};
+      const m=String(pt.size||'').match(/^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/i), z=m&&m[1]===m[2]?m[1]+' inch':'';
+      if(z&&PATCH_SIZES.includes(z)) l.patch=z; else if(pt.size) notes.push(`${lab}: patch size ${pt.size} isn't one of Airtable's; pick the closest`);
+      if(!PATCH_PT[pt.type]) notes.push(`${lab}: check the product type (quoted ${pt.type||'patches'})`);
+    } else { l.ptype='Misc.'; l.sizes={OSFA:qq}; notes.push(`${lab}: check the product type (quoted "${x.label}")`); }
+    autoPT(l); S.lines.push(l); });
+  // what the rep finishes on the imprints: nicknames always, plus what the quote couldn't say
+  if(S.prints.length) notes.unshift(`${S.prints.map(pid).join(', ')}: add ${S.prints.length>1?'nicknames':'a nickname'}`);
+  S.prints.forEach(p=>{ const r=p.fromQ||{};
+    if(!p.loc) notes.push(`${pid(p)}: pick the location (quoted ${r.from})`);
+    if(r.ink) notes.push(`${pid(p)}: ${p.type} is from the quote (${p.ub?'underbase':'no underbase'}). Check the ink.`);
+    if(r.band) notes.push(`${pid(p)}: ~${Number(p.stitch).toLocaleString()} stitches is the quote's band (${r.band}). Put the real count in when it's digitized.`); });
+  S.qfill={qid:q.id,num:q.num,notes}; S.lastLine=S.lines.length?S.lines[S.lines.length-1].id:null;
+  render(); S.lines.forEach(l=>l.g&&vendorCheck(l.g));
+  toast(`Filled from Q-${q.num}: ${S.lines.length} line${S.lines.length===1?'':'s'}, ${S.prints.length} imprint${S.prints.length===1?'':'s'}. Finish what's listed above the imprints.`); }
+
+function vQuote(){ if(!S.o||S.view==='pick'||S.view==='loading') return ''; const t=S.qt||{loading:true};
+  if(!TOKEN) return '';
+  let h=`<div class="qhd"><span class="p-section">Quote</span>${t&&t.sel&&!S.done?'<button class="link" onclick="qDrop()">not this one</button>':''}</div>`;
+  // v23: the quote is optional — one quiet line until there's a quote by the deal #, or the rep opens it
+  if(!t.sel&&!t.open&&!t.q&&!t.err){ const n=(t.list||[]).length;
+    const msg=!t||t.loading?'Looking for a saved quote…':n&&t.by==='customer'?`${n} saved quote${n===1?'':'s'} for this customer`:'No saved quote';
+    return `<div class="qmini"><span class="qmini-l">Quote</span><span class="hint">${msg}</span>${t&&!t.loading?`<button class="link" type="button" onclick="qOpen()">${n&&t.by==='customer'?'Show':'Find one'}</button>`:''}</div>`; }
+  if(!t||t.loading) return h+'<div class="hint">Looking for this order\'s quote…</div>';
+  if(t.sel){ const q=t.sel, other=q.order.length&&!q.order.includes(S.o.id);
+    h+=`<div class="qt1"><span class="p-id">Q-${esc(q.num)}</span><b>${esc(q.cust||'(no customer)')}</b>${q.status?`<span class="p-tag${q.status==='Won'?' p-tag-done':''}">${esc(q.status)}</span>`:''}</div>
+      <div class="qt2">${[fmtDay(q.date),esc(q.rep),money(q.total),q.lineIds.length+' line'+(q.lineIds.length===1?'':'s')].filter(Boolean).join(' · ')}${t.auto?' · found by the deal #':''}</div>`;
+    const filled=S.qfill&&S.qfill.qid===q.id&&!S.qfill.busy;
+    h+=filled?'':q.lines?(q.lines.length?`<ul class="qlines">${q.lines.map(x=>`<li><span>${esc(x.label.replace(/^\d+\s*·\s*/,''))}</span><span>${x.qty} · ${money(x.pp)}</span></li>`).join('')}</ul>`:`<div class="hint" style="margin-top:6px">${q.lerr?'Couldn\'t load its lines: '+esc(q.lerr):'This quote has no lines.'}</div>`):'<div class="hint" style="margin-top:6px">Loading its lines…</div>';
+    if(other) h+=`<div class="p-note p-note-wait" style="margin-top:8px">This quote is already linked to another order.</div>`;
+    if(S.done) h+=S.done.quote?`<div class="p-note p-note-done" style="margin-top:8px">${PRACTICE?'Practice: would link it to':'Linked to'} #${esc(S.o.num)} · Won</div>`:'';
+    else h+=`<div class="qact">${S.view!=='loading'?`<button class="btn k" type="button" onclick="fillFromQuote()" ${q.lines&&q.lines.length&&!(S.qfill&&S.qfill.busy)?'':'disabled'}>${S.qfill&&S.qfill.busy?'Filling…':S.qfill&&S.qfill.qid===q.id?'Fill again':'Fill from quote'}</button>`:''}<span class="hint">Create order links it to #${esc(S.o.num)} and marks it Won.</span></div>`;
+    if(filled&&!S.done) h+=`<div class="hint" style="margin-top:8px">Filled in: its lines are the line items now. What's left is listed above the imprints.</div>`;
+    return h; }
+  const list=t.list||[];
+  h+=`<input class="t" id="qsearch" type="search" placeholder="Q-number or customer" value="${esc(t.q||'')}" oninput="qSearch(this.value)" autocomplete="off" aria-label="Find a quote">`;
+  if(!t.q&&t.by==='customer'&&list.length) h+=`<div class="hint" style="margin-top:6px">None has this deal's #. Quotes for ${esc(S.o.name)}:</div>`;
+  else if(!list.length) h+=`<div class="hint" style="margin-top:6px">${t.q?'No quote matches.':'No quote for this deal or customer. Search by Q-number or customer.'}</div>`;
+  h+=list.map(q=>`<button class="qrow" type="button" onclick="qPick('${q.id}')"><span class="p-id">Q-${esc(q.num)}</span><span><b>${esc(q.cust||'(no customer)')}</b><small>${[fmtDay(q.date),esc(q.rep),money(q.total),q.status?esc(q.status):''].filter(Boolean).join(' · ')}${q.order.length&&!q.order.includes(S.o.id)?' · on another order':''}</small></span></button>`).join('');
+  if(t.err) h+=`<div class="err">${esc(t.err)}</div>`;
+  return h; }
+// what the quote couldn't fill in, above the forms where the rep works
+function vQfillNotes(){ const f=S.qfill; if(!f||f.busy||!f.notes||!f.notes.length||S.done) return '';
+  return `<div class="p-note p-note-wait qnotes"><b>From quote Q-${esc(f.num)}: to finish</b><ul>${f.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`; }
+
+/* ---------- v18: the shared bar (steps, Refresh, ⚙) and the two panes ---------- */
+/* Quote › Order › Review: the same step nav in all three apps. Carries the order number and ?practice=1. */
+const FLOW={quote:'price-o-matic.html',order:'create-order.html',review:'pine-line-item-review.html'};
+function flowNav(cur,num){ const pr=/[?&]practice=1/.test(location.search), q=o=>{ const a=[]; if(o) a.push('order='+encodeURIComponent(o)); if(pr) a.push('practice=1'); return a.length?'?'+a.join('&'):''; };
+  const st=[['quote','Quote',FLOW.quote+(pr?'?practice=1':'')],['order','Order'+(num?' <span class="p-off-ono">#'+esc(num)+'</span>':''),FLOW.order+q(num)],['review','Review',FLOW.review+q(num)]];
+  return st.map(([k,l,h],i)=>(i?'<span class="p-off-sep" aria-hidden="true">›</span>':'')+(k===cur?`<b aria-current="step">${l}</b>`:`<a href="${h}" onclick="try{saveCartLS()}catch(e){}">${l}</a>`)).join(''); }
+function gearShow(on){ const m=$('gearMenu'); if(!m) return; m.hidden=!on; $('gearBtn').setAttribute('aria-expanded',String(!!on)); if(on&&$('tok')&&!$('tok').value) $('tok').value=TOKEN; }
+function gear(){ gearShow($('gearMenu').hidden); }
+document.addEventListener('pointerdown',e=>{ const m=$('gearMenu'); if(m&&!m.hidden&&TOKEN&&!e.target.closest('#gearMenu,#gearBtn')) gearShow(false); });
+function syncPractice(){ $('pracTag').hidden=!PRACTICE; $('pracHint').textContent=PRACTICE?'On: Create order saves nothing.':'Off: Create order writes to Airtable.'; $('pracBtn').textContent=PRACTICE?'Turn off':'Turn on'; }
+function togglePractice(){ const u=new URL(location.href); if(PRACTICE) u.searchParams.delete('practice'); else u.searchParams.set('practice','1'); location.href=u.toString(); }
+async function refresh(){ try{ if(window.PineUpdate&&PineUpdate.check&&await PineUpdate.check()) return; }catch(e){}
+  if(!TOKEN){ gearShow(true); return; } await loadAwaiting(true); toast('Orders refreshed'); }
+const isWide=()=>window.matchMedia('(min-width:1200px)').matches;
+// v19: is the side column (checklist + emails) beside the forms? Otherwise it's below them and the quote shows on top.
+const sideBeside=()=>{ try{ return $('side').classList.contains('side-tall')||getComputedStyle($('side')).position==='sticky'; }catch(e){ return true; } };   // v22: an unpinned tall side is still beside
+let LAST_SIDE=null;
+let LAST_WIDE=isWide();
+S.hideList=false; try{ S.hideList=localStorage.getItem('pine_co_hidelist')==='1'; }catch(e){}
+function toggleList(){ S.hideList=!S.hideList; try{ localStorage.setItem('pine_co_hidelist',S.hideList?'1':''); }catch(e){} render(); }
+function syncList(){ const w=isWide(), hide=w?S.hideList:S.view!=='pick';
+  $('split').classList.toggle('is-nolist',w&&S.hideList); document.body.classList.toggle('nolist',hide);
+  $('listBtn').textContent=S.hideList?'Show list':'Hide list'; $('oq').hidden=$('chips').hidden=w&&S.hideList; }
+/* heights: --toph (bar), --p-off-top (bar + filter row: where the panes start), --ohh (order header), --smt (scroll margin) */
+function measure(){ const bar=document.querySelector('[data-pin]'), f=$('filters'), r=document.documentElement.style; if(!bar) return;
+  const th=bar.offsetHeight, fh=f&&f.offsetParent?f.offsetHeight:0, oh=document.querySelector('#ohead .p-off-oh'), ohh=oh?oh.offsetHeight:0;
+  r.setProperty('--toph',th+'px'); r.setProperty('--p-off-top',(th+fh)+'px'); r.setProperty('--ohh',ohh+'px'); r.setProperty('--smt',((isWide()?0:th)+ohh+12)+'px'); }
+try{ new ResizeObserver(measure).observe(document.querySelector('[data-pin]')); }catch(e){}
+window.addEventListener('beforeunload',e=>{ if(S.o&&!S.done&&(S.lines.length||S.prints.length)){ e.preventDefault(); e.returnValue=''; } });
+window.addEventListener('resize',()=>{ document.querySelectorAll('textarea.tg').forEach(grow); const w=isWide(), sb=sideBeside(); if(w!==LAST_WIDE||sb!==LAST_SIDE){ LAST_WIDE=w; LAST_SIDE=sb; render(); } else measure(); });
+syncPractice(); render(); loadAwaiting(); if(!TOKEN) gearShow(true);
+</script>
+<script>window.pineBusy=()=>!!(S.busy||(S.o&&S.view!=='pick'&&!S.done&&(S.prints.length||S.lines.length||impDirty(S.ni)||lineDirty(S.nl))));</script>
+<script src="pine-update.js" data-link="create-order.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>

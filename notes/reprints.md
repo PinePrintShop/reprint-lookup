@@ -46,3 +46,8 @@ Stephen: "Let's go! Onto the next" (the round of updates for the remaining apps)
   - undo: one PATCH restoring them
   - practice: 0 writes
   - desktop and phone screenshots
+
+## 2026-10-19 — v5: Pine confirm box
+- "Link … as a reorder of …?" (asked when the new imprint already has a link or the customers differ) now uses the shared Pine box (`pine-confirm.js`) instead of the browser's grey pop-up. The yes button says **Link**.
+- Nothing else changed.
+- **Tested** with mocked Airtable: Cancel → no write; Link → one update to the new imprint (Previous Imprint ID + Repeat?). Practice: 0 writes. No errors.

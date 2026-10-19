@@ -464,3 +464,17 @@ The Extras & Spoilage rules are now standard for printed apparel (from Oct 13). 
 Stephen: "Just work on the apps we are using" (weekend round of small leftovers).
 - The 11 browser pop-ups (alert) for problems — bad freight amount, "Enter the PO # first", "Each row needs a warehouse and a PO #", failed saves and comments — are now the black Pine message bar at the bottom. A problem stays up (red edge) until OK; a normal note fades after 3 s.
 - The old green note bar is now the same black Pine bar. The "are you sure" questions (confirm) are unchanged.
+
+## 2026-10-19 — v111: half-saved orders, quoted vs buying, Pine "are you sure" box
+- **Half-saved orders.** When "✓ Ordered" partly failed, v110 said "That cart was not marked ordered — try again", even if some lines had already saved and gone to Receiving. Trying again then wrote those lines twice.
+  - Now the message names every line that saved ("in Receiving", or "part ordered" for a split) and every line that didn't, with the reason (e.g. "Airtable 500 · Server error").
+  - Saved lines leave the cart. Failed ones stay, and **Retry the N that failed** writes only those, on the same PO. Order all works the same way across carts.
+  - How: lines are still written 10 at a time. If a batch fails, each line in it is tried once on its own, so the app knows exactly which ones saved.
+  - If the lines saved but raising the garment's cost failed, the message says that separately instead of calling the order failed.
+- **Quoted vs buying.** Price-O-Matic v115 quotes the vendor's regular case price for the chosen colour. Each line's Blank cost box now shows, for example, "Quoted $2.99 SanMar · buying $3.25 S&S (−$19.52 on this order)". The amount covers all sizes: 2XL and up use the quote's own size prices. A loss shows in red.
+  - Where it comes from (read only): Line Item › Orders › Quotes (linked by Create order) › Quote Lines › Quote Data. That's the blank price quoted and its size prices. The vendor comes from the quote's "Garment: $2.99 SanMar regular" line, which POM writes from v115 on. Older quotes show the price without a vendor.
+  - It's matched by style # and colour, or by style # alone when the quote has only one line of that style. Orders with no linked quote show nothing new.
+  - **The quoted vendor goes first** in the warehouse list (and in the garment view's "All open lines from" menu), when one of its warehouses has the whole line in stock. It's marked "Quoted". If it doesn't have the stock, the order is the same as before.
+  - No new Airtable fields. Vendor price grids weren't touched.
+- **"Are you sure?"** All 9 browser confirm() questions are now the Pine box (pine-confirm.js), with the action on the yes button ("Mark ordered", "Add supplier", "Change color"…).
+- **Tested** (Playwright, mocked Airtable + S&S/SanMar, 1440×900): one of 3 line writes returns 500. 2 lines are saved and marked ordered, 1 stays in the cart, and the message lists both. Retry sent exactly one PATCH (that line only, Ordered + same PO). Order all with 2 carts and one failure gives the same kind of message. The quoted line shows −$19.52 on the mock (76 pcs) and "same as quoted" for the IND4000 line. SanMar Cincinnati, the quoted vendor with stock, is listed first. Practice mode: 0 writes. No page errors, nothing under 12px, no sideways scroll.
