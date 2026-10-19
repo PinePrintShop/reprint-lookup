@@ -382,3 +382,9 @@ Mike ran the schedule on real data for a few hours. Stephen had also asked for a
   - Suggest picks moved a little, because unallocated lengths now round up to 15.
 - **Search:** the v19 search test still passes.
 - **Checks:** no page errors, no text under 12 px, no pop-up button under 44 px, no sideways scroll in any view.
+
+## 2026-10-19 — v21: "Imprint Ready?" on every card
+Stephen: "can we add the already existing function in airtable > imprints 'Imprint Ready?' On the cards in the same place I see the due date emojis and bandanas emoji. It would be very helpful to see that right away!"
+- Imprints field `fldzVhAgy4FnzQX2a` (formula → 👍 / 🛑; the same one the Production Board reads) is loaded and shown FIRST in the emoji row after the job ID — calendar cards (Day / 3 Day / Week / 2 Week / Month), the Unscheduled side list and the job pop-up. Hover says "Imprint Ready? (Airtable)".
+- The rule stays in Airtable's formula (Stephen pasted it): presses / flatstock = goods received + inks ready + screens burned; embroidery = goods received; patches / woven labels, sewing, heat press = goods + transfers/trims received; finishing types always 👍.
+- Tested with mocks in Week / Day / Month: the mark shows on every card, no errors.
