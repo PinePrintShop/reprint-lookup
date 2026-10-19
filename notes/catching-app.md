@@ -367,3 +367,15 @@ Stephen: "The right panel for jobs is showing the sched pretty weird. Can you ch
 - Now, on every machine: colour (bold, up to 2 lines, no longer cut at one) / pieces · garment (pieces first so they're never cut off) / a small status line only when needed: ✓ Done, N dmg, Saved, or the scheduled day.
 - When every line item of an order has the same day, it shows once under the order header ("from Tue 10/6"), not on each card.
 - Load tests from v165 re-run on v166 (normal / carry-over hanging / failing): today's jobs always load.
+
+## 2026-10-19 — v167: no duplicate damage emails, Run Finished ticked, Pine "are you sure?" box
+- **Duplicate Order Issues (each one emails).** Since v165, Embroidery / Heat Press jobs stay for days, but Catching only remembered the issues it created for 36 hours, and only on that iPad. A job caught later, or on the other catching iPad, could create the same issue again.
+  - Before creating an issue, Catching now asks Airtable: is there already a Quality Control issue for this line item and this team (Print Team / Other) on this run? (Line item = the issue's line-item record-id lookup `fldE1ppkgqcSbCCzh`; same split half for P1/P2 splits; created from 4 days before the scheduled start, or, for a reprint, after the reprint's own issue — so an old run never blocks a new one.)
+  - Found: nothing is created, and the catcher sees "…damage was already logged (other iPad or earlier). No new issue." Changes go through the Damage Log.
+  - Can't ask Airtable (Wi-Fi drop, error): nothing is created. The catcher sees "Couldn't check Airtable for an earlier issue… tap Retry." Better a retry than a second email.
+  - This iPad now remembers its issues for 8 days (was 36 h) and keeps tallies 8 days (was 2), so a carried-over card updates its own issue with the running total, as same-day "Update QC" always did. A second reprint of the same line item starts fresh.
+- **Run Finished.** Catching an Embroidery or Heat Press job (Tajima, Heat press, D3, Hat Press, Tag Press) now also ticks Run Finished on its imprint(s), only if it isn't ticked yet. Screen print is unchanged (Operator ticks it on the press). Practice mode fakes it like every other write. Older Emb jobs already caught since July are not backfilled (that would be a bulk edit; ask first).
+- **Pop-ups.** The three browser confirm() boxes (practice reset, practice on/off, ship my part alone) are the shared Pine box (`pine-confirm.js`) with the action on the yes button. Practice on/off only asks when a save is still going; it asked every time before, because tapping the switch counted as "busy".
+- Warning toasts stay 5 s (were 3 s, too short to read). Self-update waits while the Pine box is open.
+- APP_VER 167.
+- Tested with mocked Airtable at 1180×820: no issue found → 1 created, a re-submit updates it (no 2nd check, no 2nd create); issue found → 0 created + message; check fails → 0 created + error and Retry; catching sets Run Finished only on the Embroidery imprint (not the screen print one, not the Heat one already ticked); practice sent 0 writes.
