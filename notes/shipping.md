@@ -90,3 +90,11 @@ Stephen: "for shipping app let's not use the box logic right now and maybe just 
 - The app no longer reads Boxes Packed or the box estimate, and no longer writes Boxes Packed. Queue cards don't show a box count. (Catching v168 still saves Boxes Packed; the field is there when we want to use it again.)
 - Weights, the internal-notes line ("3 boxes: 5.2, 4.8, 6.1 lb") and everything else are unchanged. All mocked tests pass; practice makes 0 writes.
 - Stephen asked where the list comes from: **To ship** = every Airtable order with Order Status "Caught - Awaiting Ship". When everything's gone out it's empty; search finds any order.
+
+## 2026-10-19 · v8: box sizes and dimensions
+Stephen: "we need dimensions and a drop down for the classic 3 pine box sizes and then one for vendor boxes which can vary in sizes".
+- Each box row has a size menu: **Pine S 12×12×6, Pine M 24×16×6, Pine L 24×16×14** (the same sizes Receiving prints on box labels), or **Vendor box…**, which opens L × W × H boxes (inches).
+- New boxes start with the size of the box above; the first box starts with the last size used on this computer (Pine M the very first time).
+- Save weights also sends **box 1's dimensions** to the ShipStation order (an order holds one set) and adds every box's size to the notes line, e.g. "3 boxes: 5.2, 4.8, 6.1 lb (16.1 lb total) · sizes: L 24×16×14, M 24×16×6, Vendor 18×14×10". Reopening the order reads the sizes back from that line.
+- A vendor box without all three numbers stops the save with a plain message.
+- Tests: all mocked tests pass, including the new size checks; practice makes 0 writes.
