@@ -161,3 +161,8 @@ Each customer gets a one-line **Why now**, e.g. "Ordered in Feb 2025 and Mar 202
 - **Tested:** the v4 suite on v5. The 4 checks that expected Grant- or Stephen-owned orgs to be Unassigned now show the latest active order rep, as intended. The other 87 checks pass, with 0 writes and no page errors.
 
 - **2026-10-16:** Stephen deployed worker v23. The code in Cloudflare matches `workers/pine-workers-v23.js`. Stephen confirmed Reconnect shows Pipedrive owners and last contact ("it is working!").
+
+## 2026-10-19 — v6: Pine confirm box
+- "Clear all Contacted / Skip marks" now asks in the shared Pine box (`pine-confirm.js`) instead of the browser's grey pop-up. It says only this computer's marks are cleared; the button is a red **Clear marks**.
+- Nothing else changed. Still read-only in Airtable.
+- **Tested:** Cancel keeps the marks, Clear marks clears them, no network writes, no errors.

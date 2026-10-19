@@ -508,3 +508,9 @@ Stephen: "I think the POM will mostly be for basic quotes...I think it is cool t
 - No saved quote for the order → the Quote box is one quiet line: "QUOTE · No saved quote · Find one". Quotes for the customer but none with the deal # → "2 saved quotes for this customer · Show". Tapping opens the search / list (and it stays open while you search).
 - A quote found by the Pipedrive deal # still opens in full with Fill in from quote — the "nice feature" when POM is used.
 - Line Item Review has no quote step; nothing changed there.
+
+## 2026-10-19 — v24: Pine confirm box
+- The "are you sure?" questions now use the shared Pine box (`pine-confirm.js`) instead of the browser's small grey pop-up: undo a reorder, drop a half-filled imprint or line, remove an imprint or line, leave an order, fix a garment color in Airtable, replace the form with a quote.
+- Same questions and results. The yes button says what happens ("Remove", "Leave", "Change color", "Replace"); Remove is red.
+- Nothing else changed.
+- **Tested** with mocked Airtable: Cancel on the color fix → no write; Change color → one Garments update. Leave order: Cancel stays, Leave moves on. Remove line: Esc keeps it, Remove removes it. Practice: 0 writes. No errors.
