@@ -58,3 +58,9 @@ Stephen (laptop screenshot): "this spacing looks weird on the production board a
 - Press headers: the operator chips / "+ add" sit on the same row as the press name (wrap under it only when there's no room) — headers are about half as tall.
 - Laptop widths (761–1279px): Arrange / Draw / Note / Full screen are icon buttons (the bar ran off the right edge at ~1000px), and job rows use tighter columns so the full job number fits (was "1095…").
 - TV (1920) and phone layouts checked; TV only gets the shorter headers.
+
+## 2026-10-19 — v47
+Stephen: "in the production board it looks like those top pills get hidden if you shrink the screen...I know it is going to be on a big screen but just saying".
+- Top bar never hides buttons now: up to 1439px wide the buttons are icon-only, and if it still doesn't fit the bar wraps to a second row instead of cutting the right-hand buttons off. Checked 800–1680px; TV (1920) unchanged.
+- Day rollover: the TV moves to the new day on its own after midnight (it used to stay on yesterday until someone reloaded), unless someone had picked a different day.
+- Auto-refresh skips while someone is mid-task (arranging / drawing / writing a note), and an older slow load can no longer overwrite a newer one.
