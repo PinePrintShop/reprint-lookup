@@ -405,3 +405,26 @@ Stephen: "I am on mobile so I can't upload a new worker. So maybe we make this a
 - **Plan:**
   1. Worker v24: `/pipedrive/deal?order=` also returns whether the deal's "Send to client" task is done (read-only). Stephen pastes it into Cloudflare.
   2. Line Item Review v23: a job counts as sent when the deal is at Awaiting Approval or later AND (the "Send to client" task is done OR the proof email is there).
+
+## 2026-10-19 · v23: no second PandaDoc after a failed save · "Send to client" counts as sent
+- **Double packet send fixed.**
+  - Before: PandaDoc sent the packet, then the Airtable save (link + *Sent - Awaiting Payment*) failed. The app said "Didn't send", and a retry sent the customer a second, billed PandaDoc.
+  - Now, once PandaDoc says it went, the app never says "didn't send". The sent document (link and id) is remembered on this computer before the Airtable save.
+  - If the save fails, the sheet says "Sent to pat@… ✓ — but saving to Airtable failed". The order header's button becomes *Retry save*, and a red note says "Sent to the customer, but saving to Airtable failed" with a link to the PandaDoc.
+  - *Retry save* only re-tries the Airtable save. Send stays blocked for that order until the save goes through, even after a reload.
+  - Before any send, the order is re-read from Airtable. If it has a PandaDoc link the sheet didn't show (sent from another screen) or is already *Sent - Awaiting Payment*, nothing is sent. *Send again* on an order you already saw still works as before.
+- **"Send to client" counts as sent** (the Monday plan, needs worker v24).
+  - A deal at Awaiting Approval counts as sent when its "Send to client" task is ticked OR the proof email is there.
+  - Later stages and won deals still count as sent, as in v22, so a confirmed job never drops back into Ready to send.
+  - The Sent note says why: "Send to client ✓ Oct 18" or "proof email".
+  - A waiting job says '"Send to client" not ticked and no "Approve your proof & invoice" email yet'.
+  - With the old worker (v23, no task field) it works exactly like v22. The saved check moved to `pine_lir_sent_v3`.
+- **Pine confirm box** (pine-confirm.js) replaces the browser's confirm(): leaving unsaved notes, 0 pieces, archive, undo a step, no proof yet, losing money, "Some checks need a look" (red *Send anyway*), leaving practice.
+- **Tested** (Playwright, mocked Airtable + worker, 1440×900):
+  - Airtable save 500 after the send: 1 PandaDoc, toast "Sent … saving to Airtable failed", *Retry save* in the sheet and the header, still there after a reload.
+  - A retry that fails again doesn't send. The next *Retry save* saves the DOC1 link + status, still 1 PandaDoc, and the pending record is cleared.
+  - Order already given a new PandaDoc link elsewhere: 0 sends.
+  - The checks confirm: Cancel sends 0. *Send anyway* makes 1 send and 1 save.
+  - Practice: 0 sends, 0 writes.
+  - Worker v24: ticked shows Sent "Send to client ✓ Oct 18"; not ticked with no email stays in the queue; the proof email shows Sent "proof email".
+  - Worker v23 (no field): the v22 results. There were no page errors.

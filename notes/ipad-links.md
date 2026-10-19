@@ -17,7 +17,7 @@
 |---|---|---|
 | Operator | `pine-operator.html` | v128 |
 | Catching | `pine-catching.html` | v167 |
-| Damage Log | `damage-log.html` | v21 |
+| Damage Log | `damage-log.html` | v22 |
 | Ink Queue | `pine-ink-queue.html` | v103 |
 | Purchasing | `pine-purchasing.html` | v111 |
 | Receiving | `receiving.html` | receiving-dashboard v76 |
@@ -28,7 +28,7 @@
 | Schedule | `pine-schedule.html` | v22 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v116 |
-| Line Item Review | `pine-line-item-review.html` | v22 |
+| Line Item Review | `pine-line-item-review.html` | v23 |
 | Create order | `create-order.html` | v24 |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v23 |

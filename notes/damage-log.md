@@ -116,3 +116,22 @@ The production manager's desk view of Order Issues. Used mostly on a laptop, som
 - **Tested** (same mocks):
   - At 1440, 1920 and 1024, the 13 live writes match v20 field for field. Practice mode sent 0 writes, and a double tap still sends one refund request. There were no page errors.
   - At 1920, 1440, 1024 and 390: nothing under 12px, no horizontal scroll. At 1920 and 1440: no page scroll in two-pane mode and no clipped chips.
+
+## 2026-10-19 · v22
+**Why:** a refund request that failed halfway could email finance twice, and "This month" could include the evening of the last day of the month before.
+- **One email per refund request, even after a failed save.**
+  - The email comes from the "Refund Request (one per order)" automation. It fires when the Order's *Refund Request At* changes (checked in Airtable, read-only). Approving an issue only posts the Slack alert. It doesn't email finance.
+  - v21 wrote the Order (with *Refund Request At*) first and marked the issues *In Refund Request* after. If marking the issues failed, the email had already gone, but the refund still showed "Refund not sent". *Send to bookkeeper* then emailed finance again, as an "(additional)" request.
+  - v22 marks the issues first. Then it writes the amount, details, count and *Refund Request At* together in one save, so the email goes last, once.
+  - The request is remembered on this computer from the moment it starts. If anything fails, the order shows "Refund request didn't finish — the bookkeeper hasn't been emailed $X yet" and the button says *Finish sending*.
+  - *Finish sending* picks up the same request (same amount and text). It re-reads the Order first. If *Refund Request Count* already shows this request (the save landed but the answer got lost), it writes nothing more.
+  - On another computer, a first request that stopped halfway is still caught: issues are *In Refund Request* but the Order has no request yet. A stuck additional request only shows on the computer that started it.
+- **Months use the shop's clock.** *This month* and *Year to date* start at local midnight (v21 used UTC midnight, which is 6pm the day before in Denver). The "Damage cost by month" chart groups by local month. An entry at 7:30pm on Oct 31 now counts in October.
+- **Pine confirm box** (pine-confirm.js) replaces the browser's grey confirm pop-ups. It names the action on the yes button: *Approve*, *Send to bookkeeper*, *Mark done*, *Mark issued*. *Delete* (duplicate) is red.
+- **Tested** (Playwright, mocked Airtable, 1440×900, Denver time):
+  - Marking the issues fails, so no *Refund Request At* write. The order shows *Finish sending*, and still does after a reload. Retrying makes exactly 1 email-field write (amount $20, count 1), after the issues.
+  - The Order save landed but answered 500, so the retry re-read it and wrote nothing (1 write in total).
+  - The Order save failed, so the retry wrote once (count 1). The issues were marked only once.
+  - Approve with the new confirm: Cancel writes nothing. Approve writes *Approve Resolution* plus one refund request.
+  - Practice made 0 writes and saved nothing on the computer.
+  - The month start is 2026-10-01 06:00Z (Oct 1 at midnight in Denver). There were no page errors.
