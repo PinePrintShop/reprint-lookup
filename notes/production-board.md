@@ -51,3 +51,10 @@ Stephen on v43's phone view: "Still bad".
 Stephen: "Just work on the apps we are using".
 - **Wifi drop no longer freezes the TV.** The board reloads every minute; a failed load used to open a browser box ("Could not load schedule") that stopped the board until someone clicked OK. Now it keeps the last board up with a black bar: "Can't reach Airtable — showing the board from 2:41 PM. Trying again every minute." The bar goes away on the next good load. Tested by cutting the mock connection for two minutes.
 - The old `pine-design-v1.css` is no longer loaded. Compared every element's style v44 vs v45 (TV, phone, roster, time-off request): identical except the Arrange "Local layout" badge, now yellow/black instead of orange; the Arrange drop target is pale yellow.
+
+## 2026-10-19 — v46: header spacing on laptops
+Stephen (laptop screenshot): "this spacing looks weird on the production board app".
+- The date broke onto two lines ("Oct" / "19"); it's one line now ("MON Oct 19").
+- Press headers: the operator chips / "+ add" sit on the same row as the press name (wrap under it only when there's no room) — headers are about half as tall.
+- Laptop widths (761–1279px): Arrange / Draw / Note / Full screen are icon buttons (the bar ran off the right edge at ~1000px), and job rows use tighter columns so the full job number fits (was "1095…").
+- TV (1920) and phone layouts checked; TV only gets the shorter headers.
