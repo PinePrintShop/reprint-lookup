@@ -208,3 +208,8 @@
 - Practice mode sent no writes.
 - Self-update moves to a newer version when idle and shows the bar when counts are typed.
 - No page errors. No text under 12px and no touch targets under 44px on the phone screen. Date headers are correct in Mountain time.
+
+## 2026-10-19 · v78: Receive back on top
+Stephen (screenshot of v77): "I like the recieve all button on the top of the page just feels more intuitive".
+- The Receive button is back at the top right of each line, across from Flag Mis-ship, with the one-line hint under it. Enter in a count box still receives.
+- Nothing else changed. v77's tests pass (except the one that checked the old button spot), and the saves are identical to v77.
