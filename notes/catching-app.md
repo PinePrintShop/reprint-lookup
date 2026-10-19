@@ -360,3 +360,10 @@ Stephen: "it is not pulling any jobs for any machine" (v163 live). v164 = v162 (
 - v163 failed live ("not pulling any jobs for any machine"). Ran v163 locally on the real records (39 imprints from Airtable): the app code is fine (44 jobs). Older uncaught Embroidery/Heat Press imprints (1,258 past 200 days) all belong to finished orders, so the result set was small. Likely cause: the single formula checked every imprint (10,000+) against its order-status lookup; too slow for Airtable, and a hung request never reached v163's fallback (it only caught errors). Not confirmable from here (no live REST access in this session).
 - v165: today's jobs use the same query as v162/v164, on their own. Carry-over is a separate light query (uncaught Embroidery + Heat Press, start in the last 60 days to 3 days ahead, no lookup fields in the formula); finished orders dropped on the iPad. 8-second limit; slow or failing → today's jobs only.
 - Tested on the real records: normal (44 jobs, carry-overs tagged, a Completed order dropped), carry query hanging (today's 12 jobs after 8 s), carry query failing (today's 12 jobs at once).
+
+## 2026-10-19 — v166: one Line items layout on every machine
+Stephen: "The right panel for jobs is showing the sched pretty weird. Can you check this on heat press and see how all of the machines tell their info and ways to make it cohesive".
+- Checked on the real 10/19 data (Heat, Embroidery, P1). v163's date pill sat on the same row as the name and squeezed the colour + garment to a couple of letters; on Heat press every card showed only "FROM TUE 10/6".
+- Now, on every machine: colour (bold, up to 2 lines, no longer cut at one) / pieces · garment (pieces first so they're never cut off) / a small status line only when needed: ✓ Done, N dmg, Saved, or the scheduled day.
+- When every line item of an order has the same day, it shows once under the order header ("from Tue 10/6"), not on each card.
+- Load tests from v165 re-run on v166 (normal / carry-over hanging / failing): today's jobs always load.
