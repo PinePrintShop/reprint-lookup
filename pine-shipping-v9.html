@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<!-- Pine Shipping v9 (2026-10-19): carrier and service in plain words ("UPS (ShipStation account) · Ground" instead of ups_walleted / ups_ground);
+     Airtable's Carrier gets the short name (UPS, FedEx, USPS). The raw ShipStation code is in the hover text.
+     v8 (2026-10-19): box size + dimensions on every box (Stephen: "we need dimensions and a drop down for the classic 3 pine box sizes
+     and then one for vendor boxes which can vary in sizes"). Pine S 12x12x6, M 24x16x6, L 24x16x14 (same as Receiving's box labels);
+     Vendor box = type L x W x H. Box 1's dimensions go on the ShipStation order; every box's size is in the notes line.
+     v7 (2026-10-19): no box-count logic for now (Stephen: "let's not use the box logic right now and maybe just make a quick add boxes").
+     Every order starts at 1 box; "+ Add box" adds a row (and keeps the scale reading going), × removes one. Boxes Packed is not read or written here.
+     v6 (2026-10-19): rebuilt from scratch (v5 never went live). Desktop app for the shipping computer.
+     Left: the queue (Order Status = Caught - Awaiting Ship), a "Shipped today" tab and a search for any order.
+     Right: one order — Airtable vs ShipStation address side by side (differences highlighted, sync either way),
+     "Add to ShipStation" for orders that have no ShipStation order yet, weigh each box (Mettler / any HID POS scale
+     over WebHID), blind ship + bill-to-customer's-account options, "Open in ShipStation" (labels are still bought
+     there), then "Check for label" -> "Mark shipped" writes tracking/carrier/ship date/shipment id/cost and
+     Order Status = Completed to Airtable. Practice (?practice=1) fakes every Airtable and ShipStation write. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipping v9 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+*{margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+.menu-line{display:flex;gap:var(--p-s2);align-items:center;justify-content:space-between}
+.menu-line .p-input{flex:1;min-width:0}
+.p-bar{position:sticky}
+.scalebtn.is-steady{border-color:var(--p-yellow);color:var(--p-yellow)}
+.p-filters{padding-left:24px;padding-right:24px}
+.p-filters .p-search{max-width:520px}
+.wrap{padding:0 24px}
+/* two panes from 1400px; stacked below */
+@media (max-width:1399px){
+  .p-split{display:block}
+  .p-split-list,.p-split-detail{height:auto!important;overflow:visible}
+  .p-split-detail{padding-top:0}
+}
+.p-split{grid-template-columns:minmax(460px,540px) minmax(0,1fr)}
+.p-lc-head.is-tap:hover{background:#FBF7EF}
+.msg{padding:40px 16px;text-align:center;color:var(--p-ink-2)}
+.msg b{display:block;color:var(--p-black);font-size:18px;margin-bottom:6px}
+.msg.err b{color:var(--p-alert)}
+/* detail */
+.d-head{display:flex;gap:var(--p-s3);align-items:center;flex-wrap:wrap;padding:var(--p-s4);background:var(--p-white);border-bottom:1px solid var(--p-line)}
+.d-head .d-title{flex:1;min-width:220px}
+.d-title b{display:block;font:800 20px/1.2 var(--p-sans);overflow-wrap:anywhere}
+.d-title span{display:block;color:var(--p-ink-2);font-size:var(--p-fs-s);margin-top:2px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;padding:10px var(--p-s4);background:var(--p-white);border-bottom:1px solid var(--p-line)}
+/* one column (notes, address, weigh, options, label); from 1700px two columns: notes/address/options | weigh/label */
+.d-grid{display:flex;flex-direction:column;gap:var(--p-s4);padding:var(--p-s4)}
+.d-col{display:contents}
+.a-notes{order:1}.a-addr{order:2}.a-weigh{order:3}.a-opts{order:4}.a-label{order:5}
+.d-grid.is-finish .a-label{order:0}   /* label bought: Mark shipped goes to the top */
+@media (min-width:1700px){
+  .d-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}
+  .d-col{display:flex;flex-direction:column;gap:var(--p-s4);min-width:0}
+}
+.sec{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:var(--p-s4);display:flex;flex-direction:column;gap:var(--p-s3);align-self:stretch;min-width:0}
+.sec-h{display:flex;gap:var(--p-s3);align-items:center;flex-wrap:wrap}
+.sec-h .p-hint{flex:1}
+.shipnotes{font-size:var(--p-fs-m);white-space:pre-wrap;overflow-wrap:anywhere}
+.shipnotes b{display:block;font-size:var(--p-fs-xs);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.othernotes{white-space:pre-wrap;overflow-wrap:anywhere}
+/* compare table */
+.cmp{width:100%;border-collapse:collapse;font-size:15px}
+.cmp th{font:700 var(--p-fs-xs)/1.2 var(--p-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--p-ink-2);text-align:left;padding:6px 8px;border-bottom:2px solid var(--p-black)}
+.cmp td{padding:8px;border-bottom:1px solid var(--p-line);vertical-align:top;overflow-wrap:anywhere}
+.cmp td:first-child{font:700 var(--p-fs-xs)/1.6 var(--p-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--p-ink-2);width:96px}
+.cmp tr.is-diff td{background:var(--p-yellow-lt)}
+.cmp tr.is-diff td:first-child{box-shadow:inset 4px 0 0 var(--p-yellow);color:var(--p-black)}
+.cmp .ne{color:var(--p-ink-3)}
+.cmp .ne-bad{color:var(--p-alert);font-weight:700}
+/* forms */
+.fgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.fgrid .s2{grid-column:span 2}.fgrid .s3{grid-column:span 3}.fgrid .s6{grid-column:span 6}.fgrid .s1{grid-column:span 1}
+@media (max-width:700px){.fgrid{grid-template-columns:minmax(0,1fr)}.fgrid>*{grid-column:auto!important}}
+/* weigh */
+.boxctl{display:flex;align-items:center;gap:6px}
+.boxctl .p-btn{min-width:44px;padding:0;font-size:22px}
+.boxctl b{min-width:84px;text-align:center;font-size:var(--p-fs-m)}
+.scaleline{display:flex;gap:var(--p-s3);align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:var(--p-r);background:var(--p-cream);font-weight:700}
+.scaleline .rd{font:800 20px/1 var(--p-sans);font-variant-numeric:tabular-nums}
+.scaleline .p-hint{flex:1}
+.boxes{display:flex;flex-direction:column;gap:6px}
+.boxrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:4px 8px;border-radius:var(--p-r);border:2px solid transparent}
+.boxrow label{width:64px}
+.boxrow input[data-box]{width:140px}
+.boxrow .p-select{width:auto;min-width:190px}
+.boxrow .vd{display:inline-flex;align-items:center;gap:4px}
+.boxrow .vd input{width:64px;font-size:16px}
+.boxrow.is-active{border-color:var(--p-black);background:var(--p-yellow-lt)}
+.boxrow label{font-weight:700}
+.boxrow input{font-variant-numeric:tabular-nums;font-size:18px;font-weight:700}
+.boxrow input.is-live{color:var(--p-ink-2);font-style:italic}
+.wtotal{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.wtotal .p-big{font-size:36px}
+/* label */
+.ship{border:1px solid var(--p-line);border-radius:var(--p-r);padding:10px 12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px 16px}
+.ship .p-label{display:block;margin-bottom:2px}
+.ship b{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.cand{display:flex;gap:12px;align-items:center;border:1px solid var(--p-line);border-radius:var(--p-r);padding:10px 12px}
+.cand div{flex:1}
+details.more summary{cursor:pointer;font-weight:700;font-size:var(--p-fs-s);min-height:32px;display:flex;align-items:center}
+@media (max-width:700px){.wrap{padding:0 12px}.p-filters{padding-left:12px;padding-right:12px}}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Shipping</span><span class="p-bar-ver" id="verTag">v9</span>
+  <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
+  <nav class="p-bar-views" role="tablist" aria-label="Views">
+    <button type="button" role="tab" data-view="queue" aria-selected="true" class="is-on">To ship <span class="p-count" id="cQueue"></span></button>
+    <button type="button" role="tab" data-view="done" aria-selected="false">Shipped today <span class="p-count" id="cDone"></span></button>
+  </nav>
+  <div class="p-bar-sp">
+    <button class="p-barbtn scalebtn" id="scaleBtn" type="button" title="Connect the USB scale">&#9878; <span class="p-barbtn-word" id="scaleWord">Connect scale</span></button>
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Reload from Airtable and ShipStation, and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="p-menu" id="menu" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row">
+      <span class="p-menu-label">Airtable token</span>
+      <span class="menu-line"><input type="password" class="p-input" id="tokInput" placeholder="pat…" autocomplete="off" spellcheck="false" aria-label="Airtable token"><button class="p-btn p-btn-dark" type="button" id="tokSave">Save</button></span>
+      <span class="p-hint" id="tokState"></span>
+    </div>
+    <div class="p-menu-row">
+      <span class="p-menu-label">Practice</span>
+      <span class="menu-line"><span class="p-hint" id="practiceHint"></span><button class="p-btn" id="practiceBtn" type="button"></button></span>
+    </div>
+  </div>
+</header>
+<div class="p-filters" id="filters">
+  <input type="search" id="q" class="p-input p-search" placeholder="Find any order: number or customer" aria-label="Find any order">
+  <div class="p-filters-end"><span class="p-hint" id="ssState"></span></div>
+</div>
+<main class="wrap" id="main"><div class="msg"><b>Loading…</b></div></main>
+<div class="p-toast" id="toast" role="status" hidden></div>
+
+<script src="pine-confirm.js"></script>
+<script>
+// ===== config =====
+var BASE='appJkaLk8DykjsgHR', T_ORDERS='tbl8Tf0AeS9gnHOOS';
+var WORKER='https://pine-workers.stephen-dab.workers.dev/proxy/shipstation/';
+var F={
+  num:'fld4S3B5yJANKlE7l', ref:'fldHarZYpYjQrJoof', cust:'fldoRraeYHsgfeWhj', status:'fldhS4z28CdGmS1j5',
+  method:'fldrjFuIBn45ewFU5', acct:'fldoOZSIN4PpJcQ4V',
+  contact:'fldpHFCU70jZpuKs6', addr:'fldDf4gRxe2NoUVPy', city:'fldh0KVzmy5QsWj2D', state:'fldTlayqsfEWPaph0', zip:'fld4uEiBVeL9w48R3',
+  phone:'fldRK2p80OPfhxzPv', email:'fldSQShbnSLkVQ8uK',
+  shipNotes:'fldBonIzc2NKa6TYD', notes:'fldh9WFXo6qhAahaQ', orderNotes:'fldzzDJNF6rvTCmRq', handoff:'fldu2NmUdYx6yd9DU',
+  estBoxes:'fldIbPucKznpcZQqI', boxesPacked:'fldu7dXQAwg3S974s', due:'fldphJYdlBNS0dmAK', qty:'fldWQYE3o2IZjZXSU', garments:'fldqTKwC8ctX59UeP',
+  tracking:'fldLjGNoUKrxuX0O7', carrier:'fldjSezoa5NtveYvm', shipDate:'fldlMlDIr9hLYFfbL', shipmentId:'fldBvbKYP48LiKO1Z', cost:'fldK95tJ2WHYKxzM8'
+};
+var ST_AWAIT='Caught - Awaiting Ship', ST_DONE='Completed';
+// v8: Pine's three box sizes (same as Receiving's box labels), inches; V = vendor box, typed in
+var PBOX={S:{l:12,w:12,h:6},M:{l:24,w:16,h:6},L:{l:24,w:16,h:14}};
+function lastBoxKind(){try{var k=localStorage.getItem('pine_ship_lastbox');return k==='S'||k==='M'||k==='L'||k==='V'?k:'M';}catch(e){return 'M';}}
+function newDim(){var k=lastBoxKind();return {k:k,l:'',w:'',h:''};}
+function dimOf(d){if(!d)return null;if(d.k!=='V')return PBOX[d.k];var l=+d.l,w=+d.w,h=+d.h;return l>0&&w>0&&h>0?{l:l,w:w,h:h}:null;}
+function dimTxt(d){var x=dimOf(d);return (d.k==='V'?'Vendor':d.k)+' '+(x?x.l+'×'+x.w+'×'+x.h:'?');}
+// v9: ShipStation codes -> plain words
+function carrierBase(c){c=String(c||'').toLowerCase();if(!c)return '';if(/^ups/.test(c))return 'UPS';if(/^fedex/.test(c))return 'FedEx';if(/^(stamps_com|usps|endicia|express_1)/.test(c))return 'USPS';if(/^dhl/.test(c))return 'DHL';if(/^ontrac/.test(c))return 'OnTrac';
+  return c.replace(/_/g,' ').replace(/\b\w/g,function(x){return x.toUpperCase();});}
+function carrierName(c){var b=carrierBase(c);return /walleted/i.test(String(c||''))?b+' (ShipStation account)':b;}
+function serviceName(s){s=String(s||'').toLowerCase();if(!s)return '';
+  s=s.replace(/^(ups|fedex|usps|dhl|ontrac)_/,'').replace(/_/g,' ');
+  return s.replace(/\b\w/g,function(x){return x.toUpperCase();}).replace(/\b(\d)(St|Nd|Rd|Th)\b/g,function(m,d,t){return d+t.toLowerCase();});}
+function codeName(c,svc){return [carrierName(c),serviceName(svc)].filter(Boolean).join(' · ');}
+var NOTE_TAG='Pine Shipping · ';   // our line in the ShipStation order's internal notes
+var PRACTICE=/[?&]practice=1/.test(location.search);
+
+// ===== state =====
+var S={view:'queue',q:'',queue:[],done:[],search:null,ssMap:{},ssErr:'',loadErr:'',pick:null,warehouses:null,
+  D:null};   // D = the open order's working state
+var SAVING=0, autoTimer=null, boxTimer=null;
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function txt(v){if(v==null)return '';if(Array.isArray(v))return v.map(txt).filter(Boolean).join(', ');if(typeof v==='object')return v.name||'';return String(v);}
+function lines(v){if(v==null)return [];if(Array.isArray(v))return v.map(txt).map(function(s){return s.trim();}).filter(Boolean);var s=txt(v).trim();return s?[s]:[];}
+function fv(r,k){return r&&r.fields?r.fields[F[k]]:undefined;}
+function ft(r,k){return txt(fv(r,k)).trim();}
+function token(){try{return localStorage.getItem('pine_at_key')||'';}catch(e){return '';}}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmtDate(s){if(!s)return '';var m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return s;return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]+' '+(+m[3]);}
+function money(n){return '$'+(Math.round(n*100)/100).toFixed(2);}
+function r2(n){return Math.round(n*100)/100;}
+function fmtLb(n){return String(r2(n)).replace(/\.0+$/,'');}
+var toastT=null;
+function toast(msg,bad){var t=$('toast');t.textContent=msg;t.classList.toggle('is-alert',!!bad);t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},bad?6000:3200);}
+
+// ===== Airtable =====
+function atUrl(path){return 'https://api.airtable.com/v0/'+BASE+'/'+T_ORDERS+(path||'');}
+async function atList(formula,max){
+  var out=[],offset='';
+  do{
+    var p=new URLSearchParams();
+    Object.keys(F).forEach(function(k){p.append('fields[]',F[k]);});
+    p.set('returnFieldsByFieldId','true');p.set('filterByFormula',formula);p.set('pageSize','100');
+    if(max)p.set('maxRecords',String(max));
+    if(offset)p.set('offset',offset);
+    var r=await fetch(atUrl('?'+p),{headers:{Authorization:'Bearer '+token()}});
+    if(!r.ok)throw new Error('Airtable '+r.status+(r.status===401||r.status===403?' — check the token in ⚙':''));
+    var j=await r.json();out=out.concat(j.records||[]);offset=j.offset||'';
+  }while(offset);
+  return out;
+}
+async function atGet(id){
+  var r=await fetch(atUrl('/'+id+'?returnFieldsByFieldId=true'),{headers:{Authorization:'Bearer '+token()}});
+  if(!r.ok)throw new Error('Airtable '+r.status);return r.json();
+}
+async function atPatch(id,fields){
+  if(PRACTICE){console.log('[practice] Airtable PATCH',id,fields);return {id:id,fields:fields,practice:true};}
+  var r=await fetch(atUrl('/'+id),{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({fields:fields,returnFieldsByFieldId:true})});
+  if(!r.ok){var t='';try{t=(await r.json()).error.message;}catch(e){}throw new Error('Airtable save failed ('+r.status+')'+(t?': '+t:''));}
+  return r.json();
+}
+function mergeRec(rec,fields){Object.keys(fields).forEach(function(k){rec.fields[k]=fields[k];});}
+
+// ===== ShipStation (V1, through the Pine worker) =====
+async function ssReq(path,body){
+  var opt={headers:{Authorization:'Bearer '+token()}};
+  if(body!==undefined){opt.method='POST';opt.headers['Content-Type']='application/json';opt.body=JSON.stringify(body);}
+  var r;
+  try{r=await fetch(WORKER+path,opt);}catch(e){throw new Error('Could not reach ShipStation (network)');}
+  var t=await r.text(),j=null;try{j=t?JSON.parse(t):null;}catch(e){}
+  if(!r.ok){var m=j&&(j.Message||j.message||j.error||j.ExceptionMessage);throw new Error('ShipStation '+r.status+(m?': '+m:''));}
+  return j;
+}
+function ssGet(path){return ssReq(path);}
+async function ssPost(path,body){
+  if(PRACTICE){console.log('[practice] ShipStation POST',path,body);var o=JSON.parse(JSON.stringify(body));if(!o.orderId)o.orderId=-1;o.practice=true;return o;}
+  return ssReq(path,body);
+}
+
+// ===== matching an Airtable order to ShipStation =====
+// The Zap that makes ShipStation orders uses orderKey = the bare Pine number and orderNumber = "Order Reference"
+// ("10982-Customer"). ?orderNumber= is a loose prefix search, so we match exactly here.
+function ssMatches(list,rec){
+  var key=String(ft(rec,'num')),ref=ft(rec,'ref');
+  return (list||[]).filter(function(o){
+    if(!o||o.orderStatus==='cancelled')return false;
+    var on=String(o.orderNumber||'');
+    return String(o.orderKey||'')===key||on===key||(ref&&on===ref)||on.indexOf(key+'-')===0;
+  });
+}
+function ssResolve(list,rec){
+  var m=ssMatches(list,rec);
+  var open=m.filter(function(o){return o.orderStatus!=='shipped';});
+  var shipped=m.filter(function(o){return o.orderStatus==='shipped';});
+  if(open.length===1)return {state:'ok',order:open[0]};
+  if(open.length>1)return {state:'multi',cands:open};
+  if(shipped.length)return {state:'ok',order:shipped[shipped.length-1]};
+  return {state:'none'};
+}
+
+// ===== address compare =====
+var ABBR={street:'st',avenue:'ave',av:'ave',road:'rd',drive:'dr',boulevard:'blvd',lane:'ln',court:'ct',place:'pl',suite:'ste',apartment:'apt',
+  north:'n',south:'s',east:'e',west:'w',northeast:'ne',northwest:'nw',southeast:'se',southwest:'sw',parkway:'pkwy',highway:'hwy',circle:'cir',
+  terrace:'ter',trail:'trl',square:'sq',building:'bldg',floor:'fl',room:'rm',mount:'mt',fort:'ft',center:'ctr',centre:'ctr',expressway:'expy',
+  freeway:'fwy',junction:'jct',point:'pt',route:'rte',number:'#',no:'#',unit:'unit'};
+var STATES={alabama:'al',alaska:'ak',arizona:'az',arkansas:'ar',california:'ca',colorado:'co',connecticut:'ct',delaware:'de',florida:'fl',georgia:'ga',
+  hawaii:'hi',idaho:'id',illinois:'il',indiana:'in',iowa:'ia',kansas:'ks',kentucky:'ky',louisiana:'la',maine:'me',maryland:'md',massachusetts:'ma',
+  michigan:'mi',minnesota:'mn',mississippi:'ms',missouri:'mo',montana:'mt',nebraska:'ne',nevada:'nv','new hampshire':'nh','new jersey':'nj',
+  'new mexico':'nm','new york':'ny','north carolina':'nc','north dakota':'nd',ohio:'oh',oklahoma:'ok',oregon:'or',pennsylvania:'pa',
+  'rhode island':'ri','south carolina':'sc','south dakota':'sd',tennessee:'tn',texas:'tx',utah:'ut',vermont:'vt',virginia:'va',washington:'wa',
+  'west virginia':'wv',wisconsin:'wi',wyoming:'wy','district of columbia':'dc'};
+function normWords(s){return String(s||'').toLowerCase().replace(/[.,;:'"()]/g,' ').replace(/#\s*/g,'# ').replace(/\s+/g,' ').trim()
+  .split(' ').map(function(w){return ABBR[w]||w;}).join(' ').replace(/# /g,'#');}
+function normStreet(s){return normWords(String(s||'').replace(/\b(apt|ste|suite|unit|apartment)\b\.?\s*#?/gi,'$1 '));}
+function normState(s){var x=String(s||'').toLowerCase().replace(/\./g,'').trim();return STATES[x]||x;}
+function normZip(s){var x=String(s||'').trim();var m=x.match(/^(\d{5})(?:[-\s]?\d{4})?$/);return m?m[1]:x.toLowerCase().replace(/\s+/g,'');}
+function normPhone(s){var d=String(s||'').replace(/\D/g,'');if(d.length===11&&d[0]==='1')d=d.slice(1);return d;}
+function ssStreet(t){return [t.street1,t.street2,t.street3].map(function(x){return String(x||'').trim();}).filter(Boolean).join(', ');}
+function atAddr(rec){return {name:ft(rec,'contact'),street:ft(rec,'addr'),city:ft(rec,'city'),state:ft(rec,'state'),zip:ft(rec,'zip'),phone:lines(fv(rec,'phone'))[0]||''};}
+function hasAtAddr(rec){var a=atAddr(rec);return !!(a.street&&a.city&&a.state&&a.zip);}
+function cmpRows(rec,ss){
+  var a=atAddr(rec),t=(ss&&ss.shipTo)||{};
+  function d(x,y,fn){x=String(x||'').trim();y=String(y||'').trim();if(!x&&!y)return false;return fn(x)!==fn(y);}
+  return [
+    {k:'name',l:'Name',a:a.name,s:t.name,diff:d(a.name,t.name,normWords)},
+    {k:'company',l:'Company',a:null,s:t.company,diff:false},
+    {k:'street',l:'Street',a:a.street,s:ssStreet(t),diff:d(a.street,ssStreet(t),normStreet)},
+    {k:'city',l:'City',a:a.city,s:t.city,diff:d(a.city,t.city,normWords)},
+    {k:'state',l:'State',a:a.state,s:t.state,diff:d(a.state,t.state,normState)},
+    {k:'zip',l:'ZIP',a:a.zip,s:t.postalCode,diff:d(a.zip,t.postalCode,normZip)},
+    {k:'country',l:'Country',a:null,s:t.country,diff:false},
+    {k:'phone',l:'Phone',a:a.phone,s:t.phone,diff:!!(a.phone&&t.phone&&normPhone(a.phone)!==normPhone(t.phone))}
+  ];
+}
+function addrDiffers(rec,ss){return cmpRows(rec,ss).some(function(r){return r.diff;});}
+// Airtable keeps one street line: split "123 Main St, Suite 4" into street1/street2 for ShipStation.
+function splitStreet(s){
+  s=String(s||'').trim();
+  var m=s.match(/^(.*?)[,\s]+((?:apt|apartment|suite|ste|unit|#|fl|floor|bldg|building|rm|room|po box)\b.*|#\s*\S.*)$/i);
+  if(m&&m[1].trim())return {street1:m[1].trim().replace(/,$/,''),street2:m[2].trim()};
+  var c=s.split(/\s*,\s*/);if(c.length>1)return {street1:c[0],street2:c.slice(1).join(', ')};
+  return {street1:s,street2:''};
+}
+
+// ===== order facts =====
+function methods(rec){return (fv(rec,'method')||[]).map(txt);}
+function hasMethod(rec,name){return methods(rec).indexOf(name)>=0;}
+function isTBD(rec){return hasMethod(rec,'Address TBD On Ship Date');}
+function isDelivery(rec){var m=methods(rec);return m.length>0&&m.every(function(x){return x==='Delivery';});}
+// v7: no box-count logic for now -- every order starts at 1 box; "+ Add box" in Weigh adds more
+function boxInfo(rec){return {n:1,est:false};}
+function dueInfo(rec){var d=ft(rec,'due');return {d:d,late:!!d&&d<todayStr()};}
+function chip(rec){
+  if(ft(rec,'status')===ST_DONE)return {t:'✓ Shipped',c:'p-tag-done'};
+  if(isTBD(rec)&&!hasAtAddr(rec))return {t:'Address TBD',c:'p-tag-alert'};
+  var ss=S.ssMap[rec.id];
+  if(isDelivery(rec)&&(!ss||ss.state==='none'))return {t:'Delivery',c:'p-tag-soft'};
+  if(!ss)return {t:'Checking…',c:'p-tag-soft'};
+  if(ss.state==='error')return {t:'ShipStation?',c:'p-tag-soft'};
+  if(ss.state==='none')return {t:'No ShipStation order',c:'p-tag-wait'};
+  if(ss.state==='multi')return {t:'2+ ShipStation orders',c:'p-tag-wait'};
+  var o=ss.order;
+  if(o.orderStatus==='shipped')return {t:'Label bought',c:'p-tag-wait'};
+  if(addrDiffers(rec,o))return {t:'Address differs',c:'p-tag-wait'};
+  if(String(o.internalNotes||'').indexOf(NOTE_TAG)>=0)return {t:'Waiting for label',c:''};
+  return {t:'Ready',c:''};
+}
+
+// ===== loading =====
+async function loadAll(){
+  if(!token()){$('main').innerHTML='<div class="msg"><b>Add your Airtable token</b>Open ⚙ (top right) and paste it.</div>';showMenu(true);return;}
+  S.loadErr='';
+  try{
+    var q=await atList("{Order Status}='"+ST_AWAIT+"'");
+    q.sort(function(a,b){var x=ft(a,'due')||'9999',y=ft(b,'due')||'9999';return x<y?-1:x>y?1:(+ft(a,'num'))-(+ft(b,'num'));});
+    S.queue=q;
+  }catch(e){S.loadErr=e.message;}
+  loadDone();
+  render();
+  if(!S.loadErr)loadSSQueue();
+}
+async function loadDone(){
+  try{
+    S.done=await atList("AND({Order Status}='"+ST_DONE+"',DATETIME_FORMAT({Ship Date},'YYYY-MM-DD')='"+todayStr()+"')");
+    $('cDone').textContent=S.done.length||'';
+    if(S.view==='done')render();
+  }catch(e){}
+}
+// One call for every awaiting ShipStation order, then a lookup per queue order that wasn't in it (shipped, on hold…).
+async function loadSSQueue(){
+  $('ssState').textContent='Checking ShipStation…';S.ssErr='';
+  var all=[],page=1,pages=1;
+  try{
+    do{var j=await ssGet('orders?orderStatus=awaiting_shipment&pageSize=500&page='+page);all=all.concat(j.orders||[]);pages=j.pages||1;page++;}while(page<=pages&&page<=10);
+  }catch(e){S.ssErr=e.message;}
+  if(S.ssErr){S.queue.forEach(function(r){S.ssMap[r.id]={state:'error',err:S.ssErr};});$('ssState').textContent='';render();return;}
+  var miss=[];
+  S.queue.forEach(function(r){var res=ssResolve(all,r);if(res.state==='none')miss.push(r);else S.ssMap[r.id]=res;});
+  render();
+  for(var i=0;i<miss.length;i+=3){
+    await Promise.all(miss.slice(i,i+3).map(async function(r){
+      try{var j=await ssGet('orders?orderNumber='+encodeURIComponent(ft(r,'num'))+'&pageSize=100');S.ssMap[r.id]=ssResolve(j.orders,r);}
+      catch(e){S.ssMap[r.id]={state:'error',err:e.message};}
+    }));
+    render();
+  }
+  $('ssState').textContent='';
+}
+var searchT=null,searchSeq=0;
+function onSearch(){
+  clearTimeout(searchT);var q=$('q').value.trim();S.q=q;
+  if(q.length<2){S.search=null;render();return;}
+  searchT=setTimeout(async function(){
+    var my=++searchSeq,f;
+    var safe=q.replace(/\\/g,'').replace(/'/g,"\\'").toLowerCase();
+    if(/^\d+$/.test(q))f="OR({Invoice / Order Number}&''='"+q+"',FIND('"+safe+"',LOWER({Order Reference}&''))=1)";
+    else f="FIND('"+safe+"',LOWER({Order Reference}&''))";
+    S.search={loading:true,list:[]};render();
+    try{var l=await atList(f,30);if(my!==searchSeq)return;l.sort(function(a,b){return (+ft(b,'num'))-(+ft(a,'num'));});S.search={list:l};}
+    catch(e){if(my!==searchSeq)return;S.search={err:e.message,list:[]};}
+    render();
+  },350);
+}
+
+// ===== list =====
+function curList(){if(S.search)return S.search.list;return S.view==='done'?S.done:S.queue;}
+function findRec(id){return [S.queue,S.done,S.search?S.search.list:[]].reduce(function(f,l){return f||l.find(function(r){return r.id===id;});},null);}
+function cardHtml(r){
+  var du=dueInfo(r),c=chip(r),open=S.pick===r.id;
+  return '<div class="p-lc'+(open?' is-open':'')+'" id="o-'+esc(r.id)+'"><div class="p-lc-head is-tap" role="button" tabindex="0" data-open="'+esc(r.id)+'">'
+    +'<span class="p-lc-id"><span class="p-id p-id-lg">'+esc(ft(r,'num'))+'</span></span>'
+    +'<span class="p-lc-main"><span class="p-lc-title">'+esc(ft(r,'cust')||'(no customer)')+'</span><span class="p-lc-sub">'+esc(methods(r).join(' · ')||'No shipping method')+'</span></span>'
+    +'<span class="p-lc-nums">'
+    +'<span class="p-num'+(du.late&&ft(r,'status')!==ST_DONE?' is-alert':'')+'"><small>Due</small><b>'+esc(fmtDate(du.d)||'—')+'</b></span></span>'
+    +'<span class="p-lc-tags"><span class="p-tag '+c.c+'">'+esc(c.t)+'</span>'+(S.search&&ft(r,'status')!==ST_AWAIT&&ft(r,'status')!==ST_DONE?'<span class="p-tag p-tag-soft">'+esc(ft(r,'status')||'No status')+'</span>':'')+'</span>'
+    +'</div></div>';
+}
+function render(){
+  $('cQueue').textContent=S.queue.length||'';
+  document.querySelectorAll('.p-bar-views [data-view]').forEach(function(b){var on=!S.search&&b.dataset.view===S.view;b.classList.toggle('is-on',on);b.setAttribute('aria-selected',on);});
+  var list=curList(),head;
+  if(S.search)head='<div class="p-head"><span class="p-section">Search</span><span class="p-head-sum">'+(S.search.loading?'Looking…':S.search.err?'':'<b>'+list.length+'</b> found for “'+esc(S.q)+'”')+'</span><div class="p-head-end"><button class="p-btn p-btn-quiet" type="button" data-act="clearsearch">Clear</button></div></div>';
+  else if(S.view==='done')head='<div class="p-head"><span class="p-section">Shipped today</span><span class="p-head-sum"><b>'+list.length+'</b> marked shipped</span></div>';
+  else head='<div class="p-head"><span class="p-section">To ship</span><span class="p-head-sum"><b>'+list.length+'</b> caught, awaiting ship</span></div>';
+  var body='';
+  if(S.loadErr&&!S.search)body='<div class="p-note p-note-alert"><b>Couldn’t load orders.</b> '+esc(S.loadErr)+' <button class="p-btn" type="button" data-act="reload">Retry</button></div>';
+  else if(S.search&&S.search.err)body='<div class="p-note p-note-alert">'+esc(S.search.err)+'</div>';
+  else if(!list.length&&!(S.search&&S.search.loading))body='<div class="msg"><b>'+(S.search?'No orders match':S.view==='done'?'Nothing shipped yet today':'Nothing waiting to ship')+'</b></div>';
+  else body=list.map(cardHtml).join('');
+  if(S.ssErr&&!S.search&&S.view==='queue')body='<div class="p-note p-note-alert" style="margin-bottom:8px">ShipStation didn’t answer: '+esc(S.ssErr)+' <button class="p-btn" type="button" data-act="ssretry">Retry</button></div>'+body;
+  var listEl=$('splitList');
+  if(!listEl){
+    $('main').innerHTML='<div class="p-split"><div class="p-split-list" id="splitList"></div><div class="p-split-detail" id="splitDetail"></div></div>';
+    listEl=$('splitList');
+    document.documentElement.style.setProperty('--p-split-top',Math.round($('main').getBoundingClientRect().top+window.scrollY)+'px');
+    renderDetail();
+  }
+  var st=listEl.scrollTop;listEl.innerHTML=head+body;listEl.scrollTop=st;
+}
+
+// ===== the open order =====
+async function openOrder(id){
+  if(S.pick===id)return;
+  if(S.D&&dirty()&&!(await PineConfirm.ask({title:'Leave this order?',body:'Weights or edits you typed for '+S.D.num+' haven’t been saved.',ok:'Leave it'})))return;
+  var rec=findRec(id);if(!rec)return;
+  S.pick=id;stopAuto();
+  var b=boxInfo(rec);
+  S.D={id:id,rec:rec,num:ft(rec,'num'),ss:null,ssState:'loading',ssErr:'',cands:null,ships:null,shipErr:'',checking:false,
+    boxes:{n:b.n,est:b.est,w:[],dim:[newDim()],active:0,dirty:false},reading:false,opts:null,optsDirty:false,add:null,addDirty:false,err:{}};
+  render();renderDetail();
+  if(window.innerWidth<1400){var d=$('splitDetail');if(d)d.scrollIntoView({behavior:'smooth'});}
+  await lookupSS();
+}
+function dirty(){var D=S.D;return !!D&&((D.boxes.dirty&&D.boxes.w.some(function(x){return x>0;}))||D.optsDirty||D.addDirty||D.reading);}  // box count alone saves itself
+async function lookupSS(){
+  var D=S.D;if(!D)return;var id=D.id;
+  D.ssState='loading';renderDetail();
+  try{
+    var j=await ssGet('orders?orderNumber='+encodeURIComponent(D.num)+'&pageSize=100');
+    if(!S.D||S.D.id!==id)return;
+    var res=ssResolve(j.orders,D.rec);S.ssMap[id]=res;
+    if(res.state==='ok')setSS(res.order);
+    else if(res.state==='multi'){D.ssState='multi';D.cands=res.cands;}
+    else{D.ssState='none';D.ss=null;initAdd();}
+  }catch(e){if(!S.D||S.D.id!==id)return;D.ssState='error';D.ssErr=e.message;}
+  render();renderDetail();
+  if(D.ssState==='ok')checkLabel(true);
+  loadWarehouses();
+}
+function setSS(o){
+  var D=S.D;D.ss=o;D.ssState='ok';D.cands=null;
+  if(!D.boxes.dirty){var p=parseNote(o.internalNotes);if(p&&p.length){D.boxes.w=p.slice(0,Math.max(D.boxes.n,p.length));if(p.length>D.boxes.n)D.boxes.n=p.length;D.boxes.active=Math.min(p.length,D.boxes.n-1);}
+    var pd=parseDims(o.internalNotes);for(var i=0;i<D.boxes.n;i++)D.boxes.dim[i]=pd&&pd[i]?pd[i]:(D.boxes.dim[i]||newDim());}
+  if(!D.optsDirty){var a=o.advancedOptions||{};D.opts={warehouseId:a.warehouseId==null?'':String(a.warehouseId),billToParty:a.billToParty||'',billToAccount:a.billToAccount||'',billToPostalCode:a.billToPostalCode||'',billToCountryCode:a.billToCountryCode||''};}
+}
+// v8: " · sizes: M 24×16×6, Vendor 18×14×10" after the weights
+function parseDims(n){var m=String(n||'').match(/Pine Shipping · [^\n]*? · sizes: ([^\n]+)/);if(!m)return null;
+  return m[1].split(',').map(function(t){var x=t.trim().match(/^(S|M|L|Vendor) (\d+(?:\.\d+)?)×(\d+(?:\.\d+)?)×(\d+(?:\.\d+)?)$/);if(!x)return null;
+    return x[1]==='Vendor'?{k:'V',l:x[2],w:x[3],h:x[4]}:{k:x[1],l:'',w:'',h:''};});}
+function parseNote(n){var m=String(n||'').match(/Pine Shipping · \d+ box(?:es)?: ([\d., ]+) lb/);if(!m)return null;return m[1].split(',').map(function(x){return parseFloat(x);}).filter(function(x){return isFinite(x)&&x>0;});}
+async function loadWarehouses(){
+  if(S.warehouses)return;
+  try{var w=await ssGet('warehouses');S.warehouses=Array.isArray(w)?w:[];renderDetail();}catch(e){S.warehouses=null;}
+}
+function initAdd(){
+  var D=S.D,r=D.rec,sp=splitStreet(ft(r,'addr'));
+  if(D.add&&D.addDirty)return;
+  D.add={name:ft(r,'contact'),company:'',street1:sp.street1,street2:sp.street2,city:ft(r,'city'),state:ft(r,'state'),postalCode:ft(r,'zip'),
+    country:hasMethod(r,'International Shipping')?'':'US',phone:lines(fv(r,'phone'))[0]||'',email:lines(fv(r,'email'))[0]||''};
+}
+function nextStep(){
+  var D=S.D;if(!D)return '';
+  if(ft(D.rec,'status')===ST_DONE)return '';
+  if(D.ships&&D.ships.length)return 'mark';
+  if(D.ssState==='none')return isDelivery(D.rec)?'delivered':'add';
+  if(D.ssState!=='ok')return '';
+  if(D.ss.orderStatus==='shipped')return 'check';
+  if(D.boxes.dirty||String(D.ss.internalNotes||'').indexOf(NOTE_TAG)<0)return 'weights';
+  return 'open';
+}
+function btn(cls,act,label,attrs){return '<button type="button" class="p-btn '+cls+'" data-act="'+act+'"'+(SAVING?' disabled':'')+(attrs||'')+'>'+label+'</button>';}
+function mainOr(step,want,other){return step===want?'p-btn-main':(other||'');}
+function ssLink(D){return 'https://ship.shipstation.com/orders/all-orders-search-result?quickSearch='+encodeURIComponent(D.num);}
+
+function renderDetail(){
+  var el=$('splitDetail');if(!el)return;
+  var D=S.D;
+  if(!D){el.innerHTML='<div class="p-split-empty">Pick an order on the left</div>';return;}
+  var r=D.rec,step=nextStep(),done=ft(r,'status')===ST_DONE,du=dueInfo(r);
+  var h='<section class="p-lc">';
+  h+='<div class="d-head"><span class="p-id p-id-lg">'+esc(D.num)+'</span><div class="d-title"><b>'+esc(ft(r,'cust')||'(no customer)')+'</b><span>'
+    +esc(methods(r).join(' · ')||'No shipping method')+(du.d?' · due '+esc(fmtDate(du.d)):'')+(ft(r,'qty')?' · '+esc(ft(r,'qty'))+' pcs':'')
+    +(done?' · <b style="display:inline">Completed</b>':'')+'</span></div>'
+    +(D.ssState==='ok'?'<a class="p-btn '+mainOr(step,'open','p-btn-dark')+'" href="'+esc(ssLink(D))+'" target="_blank" rel="noopener" data-act="openss">Open in ShipStation ↗</a>':'')
+    +'</div>';
+  // steps strip
+  var sAddr=D.ssState==='ok'&&!addrDiffers(r,D.ss),sW=D.ssState==='ok'&&!D.boxes.dirty&&String(D.ss.internalNotes||'').indexOf(NOTE_TAG)>=0,
+      sL=!!(D.ships&&D.ships.length);
+  function stp(n,l,ok,cur){return '<span class="p-tag '+(ok?'p-tag-done':cur?'p-tag-wait':'p-tag-soft')+'">'+(ok?'✓ ':n+' · ')+l+'</span>';}
+  h+='<div class="steps">'+stp(1,'In ShipStation',D.ssState==='ok',step==='add')+stp(2,'Address',sAddr,false)+stp(3,'Weigh',sW,step==='weights')
+    +stp(4,'Label (in ShipStation)',sL,step==='open'||step==='check')+stp(5,'Mark shipped',done,step==='mark')+'</div>';
+  h+='<div class="d-grid'+(step==='mark'||step==='check'?' is-finish':'')+'">';
+  h+='<div class="d-col"><div class="a-notes">'+notesHtml(r)+'</div>';
+  h+='<section class="sec a-addr">'+addrHtml(D,step)+'</section>';
+  if(D.ssState==='ok')h+='<section class="sec a-opts">'+optsHtml(D)+'</section>';
+  h+='</div><div class="d-col">';
+  if(D.ssState==='ok'){
+    h+='<section class="sec a-weigh">'+weighHtml(D,step)+'</section>';
+    h+='<section class="sec a-label">'+labelHtml(D,step)+'</section>';
+  }
+  h+='</div></div></section>';
+  var keep=document.activeElement&&el.contains(document.activeElement)?document.activeElement:null,keepSel=null,keepPos=null;
+  if(keep&&keep.dataset&&(keep.dataset.f||keep.dataset.box!=null)){keepSel=keep.dataset.f?'[data-f="'+keep.dataset.f+'"]':'[data-box="'+keep.dataset.box+'"]';try{keepPos=keep.selectionStart;}catch(e){}}
+  var st=el.scrollTop;el.innerHTML=h;el.scrollTop=st;
+  if(keepSel){var k=el.querySelector(keepSel);if(k){k.focus();try{if(keepPos!=null)k.setSelectionRange(keepPos,keepPos);}catch(e){}}}
+}
+function notesHtml(r){
+  var sn=lines(fv(r,'shipNotes')),other=[];
+  [['Order notes','orderNotes'],['Notes','notes'],['Packing handoff','handoff']].forEach(function(p){var v=ft(r,p[1]);if(v)other.push('<div><span class="p-label">'+p[0]+'</span><div class="othernotes">'+esc(v)+'</div></div>');});
+  var h='';
+  if(sn.length)h+='<div class="p-note p-note-wait shipnotes"><b>Shipping notes</b>'+esc(sn.join('\n'))+'</div>';
+  else h+='<div class="p-note shipnotes" style="font-size:var(--p-fs-s)">No shipping notes on the line items.</div>';
+  if(ft(r,'acct'))h+='<div class="p-note" style="margin-top:8px">Airtable “Shipping Account #”: <b>'+esc(ft(r,'acct'))+'</b></div>';
+  if(other.length)h+='<details class="more" style="margin-top:8px"><summary>Other order notes ('+other.length+')</summary><div style="display:grid;gap:8px;padding:6px 0">'+other.join('')+'</div></details>';
+  return h;
+}
+function addrHtml(D,step){
+  var r=D.rec,h='';
+  var tbdBad=isTBD(r)&&!hasAtAddr(r);
+  if(D.ssState==='loading')return '<div class="sec-h"><span class="p-section">Address</span></div><div class="p-hint">Looking up '+esc(D.num)+' in ShipStation…</div>';
+  if(D.ssState==='error')return '<div class="sec-h"><span class="p-section">Address</span></div><div class="p-note p-note-alert">ShipStation lookup failed: '+esc(D.ssErr)+'</div><div class="p-btns">'+btn('','ssretry1','Retry')+'</div>';
+  if(D.ssState==='multi'){
+    h='<div class="sec-h"><span class="p-section">Pick the ShipStation order</span></div><div class="p-hint">ShipStation has '+D.cands.length+' open orders for '+esc(D.num)+'. Pick the one you’re shipping; cancel the extra in ShipStation.</div>';
+    D.cands.forEach(function(o,i){var t=o.shipTo||{};h+='<div class="cand"><div><b>'+esc(t.name||'—')+'</b> · '+esc([ssStreet(t),t.city,t.state,t.postalCode].filter(Boolean).join(', '))+'<div class="p-hint">'+esc(o.orderNumber)+' · created '+esc(fmtDate(o.createDate))+'</div></div>'+btn('p-btn-dark','pickcand','Use this one',' data-i="'+i+'"')+'</div>';});
+    return h;
+  }
+  if(D.ssState==='none'){
+    var a=D.add,dl=isDelivery(r);
+    h='<div class="sec-h"><span class="p-section">'+(dl?'Delivery':'Add to ShipStation')+'</span><span class="p-hint">'+(dl?'Delivery orders don’t need a ShipStation label.':'No ShipStation order for '+esc(D.num)+' yet. Check the address, then add it.')+'</span></div>';
+    if(tbdBad)h+='<div class="p-note p-note-alert"><b>Address TBD.</b> Airtable has no ship-to address yet. Type it here once the customer sends it.</div>';
+    if(dl){
+      h+='<div class="p-btns">'+btn(mainOr(step,'delivered','p-btn-dark'),'delivered','Delivered — mark Completed')+'</div>';
+      h+='<details class="more"><summary>Ship it instead: add to ShipStation</summary>';
+    }
+    function f(k,l,cls,ph){return '<label class="p-field '+cls+'"><span class="p-label">'+l+'</span><input class="p-input'+(D.err['add_'+k]?' is-bad':'')+'" data-f="add.'+k+'" value="'+esc(a[k])+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'></label>';}
+    h+='<div class="fgrid">'+f('name','Name','s3')+f('company','Company','s3')+f('street1','Street','s3')+f('street2','Street 2 (apt, suite)','s3')
+      +f('city','City','s2')+f('state','State','s1')+f('postalCode','ZIP','s1')+f('country','Country','s1','US')+f('phone','Phone','s1')+f('email','Email','s6')+'</div>';
+    h+='<div class="p-hint">Adds order '+esc(ft(r,'ref')||D.num)+' to ShipStation (awaiting shipment, '+esc(ft(r,'qty')||'?')+' pcs) and saves this address to the Airtable order.</div>';
+    if(D.err.add)h+='<div class="p-note p-note-alert">'+esc(D.err.add)+'</div>';
+    h+='<div class="p-btns">'+btn(mainOr(step,'add','p-btn-dark'),'add',D.err.add?'Retry: add to ShipStation':'Add to ShipStation')+'</div>';
+    if(dl)h+='</details>';
+    return h;
+  }
+  // ok: side by side
+  var rows=cmpRows(r,D.ss),nd=rows.filter(function(x){return x.diff;}).length,shipped=D.ss.orderStatus==='shipped';
+  h='<div class="sec-h"><span class="p-section">Address</span><span class="p-hint">'+(nd?'<b style="color:var(--p-black)">'+nd+' difference'+(nd>1?'s':'')+'</b> between Airtable and ShipStation':'Airtable and ShipStation match')+'</span></div>';
+  if(tbdBad)h+='<div class="p-note p-note-alert"><b>Address TBD.</b> Airtable has no ship-to address yet. Don’t ship until the customer sends it.</div>';
+  h+='<table class="cmp"><thead><tr><th></th><th>Airtable</th><th>ShipStation</th></tr></thead><tbody>';
+  rows.forEach(function(x){
+    var av=x.a==null?'<span class="ne">not in Airtable</span>':x.a?esc(x.a):'<span class="'+(x.k==='street'||x.k==='zip'||x.k==='city'?'ne-bad':'ne')+'">empty</span>';
+    var sv=x.s?esc(x.s):'<span class="ne">empty</span>';
+    h+='<tr class="'+(x.diff?'is-diff':'')+'"><td>'+x.l+(x.diff?' ≠':'')+'</td><td>'+av+'</td><td>'+sv+'</td></tr>';
+  });
+  var svc=[D.ss.requestedShippingService,codeName(D.ss.carrierCode,D.ss.serviceCode)].filter(Boolean).join(' · ');
+  h+='<tr><td>Method</td><td>'+esc(methods(r).join(', ')||'—')+'</td><td>'+esc(svc||'—')+'</td></tr></tbody></table>';
+  if(D.err.addr)h+='<div class="p-note p-note-alert">'+esc(D.err.addr)+'</div>';
+  if(shipped)h+='<div class="p-hint">The label is already bought in ShipStation, so the ShipStation address can’t change here.</div>';
+  if(nd&&!shipped)h+='<div class="p-btns">'+(hasAtAddr(r)?btn('p-btn-dark','toss','Use Airtable address in ShipStation'):'')+btn('','toat','Use ShipStation address in Airtable')+'</div>';
+  else if(nd&&shipped)h+='<div class="p-btns">'+btn('','toat','Use ShipStation address in Airtable')+'</div>';
+  return h;
+}
+function dimHtml(B,i){
+  var d=B.dim[i]||(B.dim[i]=newDim()),o=function(k,t){return '<option value="'+k+'"'+(d.k===k?' selected':'')+'>'+t+'</option>';};
+  var h='<select class="p-select" data-dim="'+i+'" aria-label="Box '+(i+1)+' size">'+o('S','Pine S · 12×12×6')+o('M','Pine M · 24×16×6')+o('L','Pine L · 24×16×14')+o('V','Vendor box…')+'</select>';
+  if(d.k==='V')h+='<span class="vd">'+['l','w','h'].map(function(k){return '<input class="p-input" data-vd="'+i+'" data-k="'+k+'" inputmode="decimal" autocomplete="off" placeholder="'+k.toUpperCase()+'" aria-label="Box '+(i+1)+' '+({l:'length',w:'width',h:'height'})[k]+'" value="'+esc(d[k])+'">';}).join('×')+'<span>in</span></span>';
+  return h;
+}
+function weighHtml(D,step){
+  var B=D.boxes,sc=scaleState(),tot=boxTotal(),h='';
+  var shipped=D.ss.orderStatus==='shipped';
+  h+='<div class="sec-h"><span class="p-section">Weigh</span><span class="p-hint">'+B.n+' box'+(B.n>1?'es':'')+'</span></div>';
+  h+='<div class="scaleline" id="scaleLine">'+scaleLineHtml(sc)+'</div>';
+  h+='<div class="boxes">';
+  for(var i=0;i<B.n;i++){
+    var on=i===B.active,w=B.w[i];
+    h+='<div class="boxrow'+(on?' is-active':'')+'"><label for="box'+i+'">Box '+(i+1)+'</label><input id="box'+i+'" class="p-input" data-box="'+i+'" inputmode="decimal" autocomplete="off" value="'+(w?fmtLb(w):'')+'" placeholder="0.0"><span>lb</span>'+dimHtml(B,i)
+      +(on&&D.reading?btn('p-btn-dark','lock','Lock',' title="Enter also locks"'):'')
+      +(B.n>1?btn('p-btn-quiet','rmbox','×',' data-i="'+i+'" aria-label="Remove box '+(i+1)+'" title="Remove this box"'):'')+'</div>';
+  }
+  h+='</div>';
+  h+='<div>'+btn('','addbox','+ Add box')+'</div>';
+  h+='<div class="wtotal"><span class="p-big" id="wTotal">'+(tot?fmtLb(tot):'0')+'</span><b>LB TOTAL</b><span class="p-hint" id="wCount">'+B.w.filter(function(x){return x>0;}).length+' of '+B.n+' weighed</span></div>';
+  if(D.err.weights)h+='<div class="p-note p-note-alert">'+esc(D.err.weights)+'</div>';
+  if(D.err.boxes)h+='<div class="p-note p-note-alert">'+esc(D.err.boxes)+' '+btn('','boxretry','Retry')+'</div>';
+  h+='<div class="p-btns">'+(sc.dev?btn('p-btn-dark','read',D.reading?'Stop reading':'Read scale'):'')
+    +(shipped?'':btn(mainOr(step,'weights','p-btn-dark'),'saveweights',D.err.weights?'Retry: save weights':'Save weights to ShipStation'))+'</div>';
+  h+='<div class="p-hint">Sends the total to the ShipStation order’s weight and adds “'+B.n+' boxes: … lb” to its internal notes, so you see each box when you split packages there.</div>';
+  return h;
+}
+function scaleLineHtml(sc){
+  if(!('hid' in navigator))return '<span class="p-hint">This browser can’t read the USB scale (use Chrome or Edge). Type weights instead.</span>';
+  if(!sc.dev)return '<span class="p-hint">No scale connected. Type weights, or connect it.</span><button type="button" class="p-btn" data-act="connect">Connect scale</button>';
+  var D=S.D;
+  return '<span>⚖</span><span class="rd">'+(sc.lb==null?'—':fmtLb(sc.lb)+' lb')+'</span><span class="p-hint">'+esc(sc.msg)+(D&&D.reading?' · Box '+(D.boxes.active+1)+': Enter or Lock when steady':'')+'</span>';
+}
+function boxTotal(){var D=S.D;if(!D)return 0;return r2(D.boxes.w.slice(0,D.boxes.n).reduce(function(s,x){return s+(+x||0);},0));}
+function optsHtml(D){
+  var o=D.opts||{},ws=S.warehouses,blind=hasMethod(D.rec,'Blind Shipping'),acct=hasMethod(D.rec,'Customer Account - UPS')||hasMethod(D.rec,'Customer Account - FedEx');
+  var shipped=D.ss.orderStatus==='shipped';
+  var h='<div class="sec-h"><span class="p-section">Ship from &amp; billing</span><span class="p-hint">'+(blind?'<b style="color:var(--p-black)">Blind ship</b> — pick the customer’s ship-from. ':'')+(acct?'<b style="color:var(--p-black)">Customer’s account</b> — bill their carrier account.':'')+'</span></div>';
+  h+='<div class="fgrid"><label class="p-field s6"><span class="p-label">Ship from (blind ship = the customer’s ship-from)</span><select class="p-input" data-f="opts.warehouseId"'+(shipped?' disabled':'')+'>';
+  if(!ws)h+='<option value="'+esc(o.warehouseId)+'">'+(o.warehouseId?'Warehouse '+esc(o.warehouseId):'Default')+' (loading list…)</option>';
+  else{
+    var has=false;
+    h+=ws.map(function(w){var sel=String(w.warehouseId)===String(o.warehouseId);if(sel)has=true;return '<option value="'+esc(w.warehouseId)+'"'+(sel?' selected':'')+'>'+esc(w.warehouseName)+(w.isDefault?' (Pine default)':'')+'</option>';}).join('');
+    if(!has)h=h.replace('<select class="p-input" data-f="opts.warehouseId"'+(shipped?' disabled':'')+'>','<select class="p-input" data-f="opts.warehouseId"'+(shipped?' disabled':'')+'><option value="'+esc(o.warehouseId)+'" selected>'+(o.warehouseId?'Warehouse '+esc(o.warehouseId):'Not set (ShipStation default)')+'</option>');
+  }
+  h+='</select></label>';
+  var p=o.billToParty;
+  h+='<label class="p-field s2"><span class="p-label">Bill shipping to</span><select class="p-input" data-f="opts.billToParty"'+(shipped?' disabled':'')+'>'
+    +[['','Pine (normal)'],['recipient','Recipient’s account'],['third_party','Third-party account']].concat(p==='my_other_account'?[['my_other_account','Pine’s other account (set in ShipStation)']]:[]).concat(p==='my_account'?[['my_account','Pine (my account)']]:[])
+      .map(function(x){return '<option value="'+x[0]+'"'+(x[0]===(p||'')?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></label>';
+  var off=!(p==='recipient'||p==='third_party')||shipped;
+  h+='<label class="p-field s2"><span class="p-label">Account #</span><input class="p-input" data-f="opts.billToAccount" value="'+esc(o.billToAccount)+'"'+(off?' disabled':'')+'></label>'
+    +'<label class="p-field s1"><span class="p-label">Acct ZIP</span><input class="p-input" data-f="opts.billToPostalCode" value="'+esc(o.billToPostalCode)+'"'+(off?' disabled':'')+'></label>'
+    +'<label class="p-field s1"><span class="p-label">Country</span><input class="p-input" data-f="opts.billToCountryCode" value="'+esc(o.billToCountryCode)+'" placeholder="US"'+(off?' disabled':'')+'></label></div>';
+  if(!off&&!o.billToAccount&&ft(D.rec,'acct'))h+='<div class="p-btns">'+btn('p-btn-quiet','useacct','Use Airtable account # '+esc(ft(D.rec,'acct')))+'</div>';
+  if(D.err.opts)h+='<div class="p-note p-note-alert">'+esc(D.err.opts)+'</div>';
+  if(!shipped)h+='<div class="p-btns">'+btn('p-btn-dark','saveopts',D.err.opts?'Retry: save options':'Save options to ShipStation',D.optsDirty?'':' disabled')+'</div>';
+  return h;
+}
+function labelHtml(D,step){
+  var h='<div class="sec-h"><span class="p-section">Label &amp; finish</span><span class="p-hint">Buy and print the label in ShipStation, then come back.</span></div>';
+  var done=ft(D.rec,'status')===ST_DONE;
+  if(done){
+    h+='<div class="p-note p-note-done">✓ Marked shipped in Airtable'+(ft(D.rec,'tracking')?' · tracking '+esc(ft(D.rec,'tracking')):'')+'</div>';
+    return h;
+  }
+  if(D.ships&&D.ships.length){
+    var t=shipTotals(D.ships);
+    D.ships.forEach(function(s){
+      h+='<div class="ship"><div><span class="p-label">Tracking</span><b>'+esc(s.trackingNumber||'—')+'</b></div><div><span class="p-label">Carrier</span><b title="'+esc(s.carrierCode||'')+'">'+esc(carrierName(s.carrierCode))+'</b></div>'
+        +'<div><span class="p-label">Service</span><b title="'+esc(s.serviceCode||'')+'">'+esc(serviceName(s.serviceCode))+'</b></div><div><span class="p-label">Cost</span><b>'+money((+s.shipmentCost||0)+(+s.insuranceCost||0))+'</b></div>'
+        +'<div><span class="p-label">Ship date</span><b>'+esc(fmtDate(s.shipDate))+'</b></div></div>';
+    });
+    if(D.ships.length>1)h+='<div class="p-hint">'+D.ships.length+' labels · '+money(t.cost)+' total</div>';
+    if(D.err.mark)h+='<div class="p-note p-note-alert">'+esc(D.err.mark)+'</div>';
+    h+='<div class="p-btns">'+btn(mainOr(step,'mark','p-btn-dark'),'mark',D.err.mark?'Retry: mark shipped':'Mark shipped')+btn('p-btn-quiet','check','Check again')+'</div>';
+    return h;
+  }
+  if(D.shipErr)h+='<div class="p-note p-note-alert">Couldn’t check for a label: '+esc(D.shipErr)+'</div>';
+  h+='<div class="p-hint">'+(D.checking?'Checking ShipStation…':'No label yet. This checks every minute while the order is open, and when you come back to this tab.')+'</div>';
+  h+='<div class="p-btns">'+btn(step==='check'?'p-btn-main':'','check','Check for label')+'</div>';
+  return h;
+}
+function shipTotals(ships){
+  var dates=ships.map(function(s){return String(s.shipDate||'').slice(0,10);}).filter(Boolean).sort();
+  var carriers=[];ships.forEach(function(s){var c=carrierBase(s.carrierCode);if(c&&carriers.indexOf(c)<0)carriers.push(c);});   // v9: "UPS", not ups_walleted
+  return {tracking:ships.map(function(s){return s.trackingNumber;}).filter(Boolean).join(', '),
+    carrier:carriers.join(', '),date:dates[0]||todayStr(),ids:ships.map(function(s){return String(s.shipmentId);}).join(', '),
+    cost:r2(ships.reduce(function(a,s){return a+(+s.shipmentCost||0)+(+s.insuranceCost||0);},0))};
+}
+
+// ===== actions =====
+async function guard(fn){
+  if(SAVING){toast('Still saving — one moment');return;}
+  SAVING++;renderDetail();
+  try{await fn();}finally{SAVING--;renderDetail();render();}
+}
+// Never update ShipStation from stale data: re-read the order right before every createorder update.
+async function freshSS(){
+  var D=S.D;
+  if(PRACTICE&&!(D.ss.orderId>0))return JSON.parse(JSON.stringify(D.ss));   // practice-only order that was never really created
+  var o=await ssGet('orders/'+encodeURIComponent(D.ss.orderId));
+  if(!o||!o.orderId)throw new Error('ShipStation didn’t return order '+D.num);
+  if(!o.orderKey)throw new Error('This ShipStation order has no order key, so it can’t be updated from here. Change it in ShipStation.');
+  if(o.orderStatus==='shipped'||o.orderStatus==='cancelled')throw new Error('ShipStation shows this order as '+o.orderStatus+' now — nothing was changed. Press Refresh.');
+  return o;
+}
+async function ssUpdate(change){
+  var fresh=await freshSS();
+  var body=JSON.parse(JSON.stringify(fresh));   // the whole order, same orderId + orderKey -> createorder updates it
+  change(body);
+  var res=await ssPost('orders/createorder',body);
+  if(res&&res.orderId&&!PRACTICE)S.D.ss=res;else S.D.ss=body;
+  S.ssMap[S.D.id]={state:'ok',order:S.D.ss};
+  return body;
+}
+async function actToSS(){
+  var D=S.D,a=atAddr(D.rec),sp=splitStreet(a.street);
+  if(!(await PineConfirm.ask({title:'Change the ShipStation address?',body:'Order '+D.num+' will ship to:\n'+[a.name,sp.street1,sp.street2,a.city+', '+a.state+' '+a.zip].filter(Boolean).join('\n'),ok:'Update ShipStation'})))return;
+  await guard(async function(){
+    D.err.addr='';
+    try{
+      await ssUpdate(function(b){
+        var t=b.shipTo||{};
+        b.shipTo=Object.assign({},t,{name:a.name||t.name,street1:sp.street1,street2:sp.street2||null,street3:null,city:a.city,state:a.state,postalCode:a.zip,country:t.country||'US',phone:a.phone||t.phone||null});
+        delete b.shipTo.addressVerified;
+      });
+      toast('✓ ShipStation now has the Airtable address');
+    }catch(e){D.err.addr=e.message;toast('ShipStation not updated',true);}
+  });
+}
+function atAddrChanges(next){
+  var D=S.D,a=atAddr(D.rec),out={},names=[];
+  function chg(k,fld,label,v,fn){v=String(v||'').trim();if(!v&&!a[k])return;if((fn||normWords)(v)!==(fn||normWords)(a[k])||(!a[k]&&v)){out[fld]=v;names.push(label);}}
+  chg('name',F.contact,'Name',next.name);chg('street',F.addr,'Street',next.street,normStreet);chg('city',F.city,'City',next.city);
+  chg('state',F.state,'State',next.state,normState);chg('zip',F.zip,'ZIP',next.zip,normZip);
+  return {fields:out,names:names};
+}
+async function actToAT(){
+  var D=S.D,t=D.ss.shipTo||{};
+  var c=atAddrChanges({name:t.name,street:ssStreet(t),city:t.city,state:t.state,zip:t.postalCode});
+  if(!c.names.length){toast('Airtable already matches');return;}
+  if(!(await PineConfirm.ask({title:'Copy ShipStation’s address into Airtable?',body:'Changes '+c.names.join(', ')+' on order '+D.num+'. The Slack address bot will post about it.',ok:'Update Airtable'})))return;
+  await guard(async function(){
+    D.err.addr='';
+    try{await atPatch(D.id,c.fields);mergeRec(D.rec,c.fields);toast('✓ Airtable updated ('+c.names.join(', ')+')');}
+    catch(e){D.err.addr=e.message;toast('Airtable not updated',true);}
+  });
+}
+async function actAdd(){
+  var D=S.D,a=D.add,r=D.rec,miss=[];
+  D.err={};
+  ['name','street1','city','state','postalCode','country'].forEach(function(k){if(!String(a[k]||'').trim()){D.err['add_'+k]=1;miss.push(k);}});
+  if(miss.length){D.err.add='Fill in name, street, city, state, ZIP and country.';renderDetail();return;}
+  await guard(async function(){
+    try{
+      // someone else (or a double click) may have added it meanwhile
+      var j=await ssGet('orders?orderNumber='+encodeURIComponent(D.num)+'&pageSize=100'),ex=ssResolve(j.orders,r);
+      if(ex.state!=='none'){S.ssMap[D.id]=ex;if(ex.state==='ok')setSS(ex.order);else{D.ssState='multi';D.cands=ex.cands;}D.addDirty=false;toast('It’s already in ShipStation — showing it');return;}
+      var ship={name:a.name.trim(),company:a.company.trim()||null,street1:a.street1.trim(),street2:a.street2.trim()||null,city:a.city.trim(),state:a.state.trim(),
+        postalCode:a.postalCode.trim(),country:a.country.trim().toUpperCase(),phone:a.phone.trim()||null,residential:null};
+      var qty=Math.max(1,Math.round(+ft(r,'qty')||1)),garm=lines(fv(r,'garments')).filter(function(x,i,l){return l.indexOf(x)===i;}).slice(0,4).join(', ');
+      var body={orderNumber:ft(r,'ref')||D.num,orderKey:String(D.num),orderDate:new Date().toISOString().slice(0,19),orderStatus:'awaiting_shipment',
+        customerUsername:ft(r,'cust')||null,customerEmail:a.email.trim()||null,billTo:Object.assign({},ship),shipTo:ship,
+        items:[{lineItemKey:'pine-'+D.num,name:'Order '+D.num+(garm?' — '+garm:''),quantity:qty,unitPrice:0}],
+        requestedShippingService:methods(r).join(', ')||null,internalNotes:'Added by the Pine Shipping app'};
+      var res=await ssPost('orders/createorder',body);
+      var c=atAddrChanges({name:ship.name,street:[ship.street1,ship.street2].filter(Boolean).join(', '),city:ship.city,state:ship.state,zip:ship.postalCode});
+      var o=(res&&res.orderId&&!PRACTICE)?res:Object.assign({orderId:-1},body);
+      D.addDirty=false;setSS(o);S.ssMap[D.id]={state:'ok',order:o};
+      if(c.names.length){
+        try{await atPatch(D.id,c.fields);mergeRec(r,c.fields);}
+        catch(e){D.err.addr='Added to ShipStation, but the Airtable address didn’t save: '+e.message;toast('Airtable address not saved',true);return;}
+      }
+      toast('✓ Added to ShipStation'+(c.names.length?' · Airtable address saved':''));
+    }catch(e){D.err.add=e.message;toast('Not added to ShipStation',true);}
+  });
+}
+async function actSaveWeights(){
+  var D=S.D,B=D.boxes,w=B.w.slice(0,B.n);
+  if(w.length<B.n||w.some(function(x){return !(x>0);})){D.err.weights='Weigh all '+B.n+' boxes first (or remove the extra box).';renderDetail();return;}
+  var dims=[];for(var j=0;j<B.n;j++){var dd=B.dim[j]||newDim();if(!dimOf(dd)){D.err.weights='Type the length, width and height of box '+(j+1)+' (vendor box).';renderDetail();return;}dims.push(dd);}
+  stopReading();
+  await guard(async function(){
+    D.err.weights='';
+    var tot=r2(w.reduce(function(s,x){return s+x;},0));
+    var line=NOTE_TAG+B.n+' box'+(B.n>1?'es':'')+': '+w.map(fmtLb).join(', ')+' lb ('+fmtLb(tot)+' lb total) · sizes: '+dims.map(dimTxt).join(', ');
+    var d1=dimOf(dims[0]);
+    try{
+      await ssUpdate(function(b){
+        b.weight=Object.assign({},b.weight||{},{value:Math.round(tot*16*10)/10,units:'ounces'});
+        delete b.weight.WeightUnits;
+        b.dimensions={units:'inches',length:d1.l,width:d1.w,height:d1.h};   // v8: box 1 (a ShipStation order holds one set; the notes list every box)
+        var keep=String(b.internalNotes||'').split('\n').filter(function(l){return l.indexOf(NOTE_TAG)!==0;}).join('\n').replace(/\s+$/,'');
+        b.internalNotes=(keep?keep+'\n':'')+line;
+      });
+      B.dirty=false;toast('✓ Weights saved · '+fmtLb(tot)+' lb');
+    }catch(e){D.err.weights=e.message;toast('Weights not saved',true);}
+  });
+}
+async function actSaveOpts(){
+  var D=S.D,o=D.opts;
+  if((o.billToParty==='recipient'||o.billToParty==='third_party')&&!o.billToAccount.trim()){D.err.opts='Type the customer’s account number.';renderDetail();return;}
+  await guard(async function(){
+    D.err.opts='';
+    try{
+      await ssUpdate(function(b){
+        var a=b.advancedOptions=Object.assign({},b.advancedOptions||{});
+        a.warehouseId=o.warehouseId?Number(o.warehouseId):a.warehouseId;
+        if(o.billToParty==='recipient'||o.billToParty==='third_party'){a.billToParty=o.billToParty;a.billToAccount=o.billToAccount.trim();a.billToPostalCode=o.billToPostalCode.trim()||null;a.billToCountryCode=(o.billToCountryCode.trim()||'US').toUpperCase();}
+        else if(o.billToParty==='my_other_account'){a.billToParty='my_other_account';}
+        else{a.billToParty=o.billToParty||null;a.billToAccount=null;a.billToPostalCode=null;a.billToCountryCode=null;}
+      });
+      D.optsDirty=false;toast('✓ Options saved in ShipStation');
+    }catch(e){D.err.opts=e.message;toast('Options not saved',true);}
+  });
+}
+async function checkLabel(quiet){
+  var D=S.D;if(!D||D.ssState!=='ok'||D.checking)return;
+  var id=D.id;D.checking=true;if(!quiet)renderDetail();
+  try{
+    var q=D.ss.orderId>0?'shipments?orderId='+D.ss.orderId:'shipments?orderNumber='+encodeURIComponent(D.ss.orderNumber||D.num);
+    var j=await ssGet(q+'&pageSize=100');
+    if(!S.D||S.D.id!==id)return;
+    D.ships=(j.shipments||[]).filter(function(s){return !s.voided&&(D.ss.orderId>0?String(s.orderId)===String(D.ss.orderId):true);});
+    D.shipErr='';
+  }catch(e){if(S.D&&S.D.id===id)D.shipErr=e.message;}
+  if(!S.D||S.D.id!==id)return;
+  D.checking=false;
+  if(D.ships&&D.ships.length){stopAuto();if(!quiet)toast('Label found');}
+  else startAuto();
+  renderDetail();
+}
+function startAuto(){stopAuto();var D=S.D;if(!D||ft(D.rec,'status')===ST_DONE)return;autoTimer=setInterval(function(){if(!document.hidden)checkLabel(true);},60000);}
+function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}}
+async function actMark(){
+  var D=S.D;if(!D.ships||!D.ships.length)return;
+  var t=shipTotals(D.ships);
+  if(!(await PineConfirm.ask({title:'Mark '+D.num+' shipped?',body:'Emails the customer/rep. Saves tracking '+t.tracking+' ('+t.carrier+', '+money(t.cost)+') to Airtable and sets the order to Completed.',ok:'Mark shipped'})))return;
+  await guard(async function(){
+    D.err.mark='';
+    try{
+      var cur=await atGet(D.id);
+      if(txt(cur.fields&&cur.fields[F.status])===ST_DONE){mergeRec(D.rec,cur.fields);toast('Already Completed in Airtable — nothing changed');afterDone();return;}
+      var fields={};fields[F.tracking]=t.tracking;fields[F.carrier]=t.carrier;fields[F.shipDate]=t.date;fields[F.shipmentId]=t.ids;fields[F.cost]=t.cost;fields[F.status]=ST_DONE;
+      await atPatch(D.id,fields);mergeRec(D.rec,fields);
+      toast('✓ '+D.num+' marked shipped');afterDone();
+    }catch(e){D.err.mark=e.message;toast('Not marked shipped',true);}
+  });
+}
+async function actDelivered(){
+  var D=S.D;
+  if(!(await PineConfirm.ask({title:'Mark '+D.num+' delivered?',body:'Sets the order to Completed in Airtable. That emails the sales rep.',ok:'Mark Completed'})))return;
+  await guard(async function(){
+    try{var f={};f[F.status]=ST_DONE;f[F.shipDate]=todayStr();await atPatch(D.id,f);mergeRec(D.rec,f);toast('✓ '+D.num+' Completed');afterDone();}
+    catch(e){toast(e.message,true);}
+  });
+}
+function afterDone(){
+  var D=S.D;stopAuto();
+  S.queue=S.queue.filter(function(r){return r.id!==D.id;});
+  if(!S.done.some(function(r){return r.id===D.id;}))S.done.unshift(D.rec);
+  $('cDone').textContent=S.done.length||'';
+}
+function queueBoxPatch(){
+  var D=S.D;clearTimeout(boxTimer);
+  boxTimer=setTimeout(async function(){
+    if(!S.D||S.D.id!==D.id)return;
+    var n=D.boxes.n,f={};f[F.boxesPacked]=n;D.err.boxes='';
+    try{await atPatch(D.id,f);mergeRec(D.rec,f);D.boxes.est=false;}catch(e){D.err.boxes='Box count didn’t save: '+e.message;}
+    renderDetail();render();
+  },900);
+}
+function setBoxes(n){
+  var D=S.D,B=D.boxes;n=Math.max(1,Math.min(99,n));if(n===B.n)return;
+  B.n=n;if(B.w.length>n)B.w.length=n;if(B.active>=n)B.active=n-1;B.dirty=true;
+  renderDetail();   // v7: box count is not saved to Airtable (Boxes Packed left to Catching)
+}
+// v7: quick add / remove a box row; adding makes the new box the one being weighed
+function addBox(){var D=S.D,B=D.boxes;if(B.n>=99)return;var pv=B.dim[B.n-1];B.dim[B.n]=pv?{k:pv.k,l:pv.l,w:pv.w,h:pv.h}:newDim();B.n++;B.active=B.n-1;B.dirty=true;renderDetail();if(D.reading)scaleUI();var inp=document.querySelector('[data-box="'+B.active+'"]');if(inp&&!D.reading)inp.focus();}
+function removeBox(i){var D=S.D,B=D.boxes;if(B.n<=1)return;B.w.splice(i,1);B.dim.splice(i,1);B.n--;if(B.active>=B.n)B.active=B.n-1;else if(B.active>i)B.active--;B.dirty=true;renderDetail();if(D.reading)scaleUI();}
+
+// ===== scale (WebHID, HID Point-of-Sale scale usage page 0x8D) =====
+// Data report: status · unit · signed exponent · weight LSB · weight MSB.
+// Units (HID POS usage table): 2=g 3=kg 11=oz 12=lb. Status: 1 fault 2 zero 3 moving 4 steady 5 under zero 6 overweight 7 calibrate 8 re-zero.
+var SCALE={dev:null,status:0,unit:0,raw:null};
+var UNIT_LB={2:1/453.59237,3:2.20462262,11:1/16,12:1};
+function scaleState(){
+  var s=SCALE,lb=null,msg='';
+  if(!s.dev)return {dev:false};
+  if(s.raw!=null&&UNIT_LB[s.unit])lb=r2(s.raw*UNIT_LB[s.unit]);
+  msg=({1:'scale fault',2:'zero',3:'settling…',4:'steady',5:'under zero — re-zero the scale',6:'over the limit',7:'needs calibrating',8:'needs re-zeroing'})[s.status]||'waiting for the scale';
+  if(s.raw!=null&&!UNIT_LB[s.unit])msg='unknown unit '+s.unit;
+  return {dev:true,lb:lb,msg:msg,steady:s.status===4&&lb>0};
+}
+function isScale(d){return d.vendorId===0x0EB8||(d.collections||[]).some(function(c){return c.usagePage===0x8D;});}
+async function connectScale(){
+  if(!('hid' in navigator)){toast('This browser can’t read the scale — use Chrome or Edge',true);return;}
+  try{var ds=await navigator.hid.requestDevice({filters:[{vendorId:0x0EB8},{usagePage:0x8D}]});if(ds&&ds[0])await openScale(ds[0]);}
+  catch(e){toast('Scale not connected: '+e.message,true);}
+}
+async function openScale(d){
+  try{if(!d.opened)await d.open();}catch(e){toast('Scale busy: '+e.message,true);return;}
+  if(SCALE.dev&&SCALE.dev!==d)try{SCALE.dev.removeEventListener('inputreport',onReport);}catch(e){}
+  d.addEventListener('inputreport',onReport);SCALE.dev=d;SCALE.raw=null;scaleUI();renderDetail();
+}
+function onReport(e){
+  var v=e.data;if(!v||v.byteLength<5)return;
+  var o=(e.reportId===0&&v.byteLength>=6)?1:0;
+  SCALE.status=v.getUint8(o);SCALE.unit=v.getUint8(o+1);
+  var exp=v.getInt8(o+2),raw=v.getUint8(o+3)|(v.getUint8(o+4)<<8);
+  SCALE.raw=raw*Math.pow(10,exp);
+  scaleUI();
+}
+function scaleUI(){
+  var sc=scaleState();
+  $('scaleWord').textContent=sc.dev?(sc.lb==null?'Scale':fmtLb(sc.lb)+' lb'):'Connect scale';
+  $('scaleBtn').classList.toggle('is-steady',!!sc.steady);
+  var l=$('scaleLine');if(l)l.innerHTML=scaleLineHtml(sc);
+  var D=S.D;
+  if(D&&D.reading){var inp=document.querySelector('[data-box="'+D.boxes.active+'"]');if(inp){inp.value=sc.lb==null?'':fmtLb(sc.lb);inp.classList.add('is-live');}}
+}
+function startReading(){var D=S.D,B=D.boxes;D.reading=true;var e=B.w.slice(0,B.n).findIndex(function(x){return !(x>0);});if(e<0)e=B.active;B.active=e;renderDetail();scaleUI();}
+function stopReading(){var D=S.D;if(D&&D.reading){D.reading=false;renderDetail();}}
+function lockReading(){
+  var D=S.D,B=D.boxes,sc=scaleState();
+  if(!sc.steady){toast('Wait for the scale to settle');return;}
+  B.w[B.active]=sc.lb;B.dirty=true;
+  var nx=-1;for(var i=B.active+1;i<B.n;i++)if(!(B.w[i]>0)){nx=i;break;}
+  if(nx<0)for(i=0;i<B.n;i++)if(!(B.w[i]>0)){nx=i;break;}
+  if(nx<0){D.reading=false;toast('✓ All '+B.n+' boxes weighed');}else B.active=nx;
+  renderDetail();scaleUI();
+}
+if('hid' in navigator){
+  navigator.hid.getDevices().then(function(ds){var d=(ds||[]).find(isScale);if(d)openScale(d);}).catch(function(){});
+  navigator.hid.addEventListener('disconnect',function(e){if(e.device===SCALE.dev){SCALE.dev=null;scaleUI();renderDetail();toast('Scale unplugged',true);}});
+  navigator.hid.addEventListener('connect',function(e){if(!SCALE.dev&&isScale(e.device))openScale(e.device);});
+}
+
+// ===== events =====
+document.addEventListener('click',function(e){
+  var o=e.target.closest('[data-open]');if(o){openOrder(o.dataset.open);return;}
+  var b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  var a=b.dataset.act,D=S.D;
+  if(a==='reload'){loadAll();return;}
+  if(a==='ssretry'){S.ssErr='';loadSSQueue();return;}
+  if(a==='clearsearch'){$('q').value='';onSearch();return;}
+  if(a==='connect'){connectScale();return;}
+  if(!D)return;
+  if(a==='ssretry1')lookupSS();
+  else if(a==='pickcand'){setSS(D.cands[+b.dataset.i]);S.ssMap[D.id]={state:'ok',order:D.ss};renderDetail();render();checkLabel(true);}
+  else if(a==='toss')actToSS();
+  else if(a==='toat')actToAT();
+  else if(a==='add')actAdd();
+  else if(a==='delivered')actDelivered();
+  else if(a==='addbox')addBox();
+  else if(a==='rmbox')removeBox(+b.dataset.i);
+  else if(a==='read'){if(D.reading)stopReading();else startReading();}
+  else if(a==='lock')lockReading();
+  else if(a==='saveweights')actSaveWeights();
+  else if(a==='saveopts')actSaveOpts();
+  else if(a==='useacct'){D.opts.billToAccount=ft(D.rec,'acct');D.optsDirty=true;renderDetail();}
+  else if(a==='check')checkLabel(false);
+  else if(a==='mark')actMark();
+  else if(a==='openss'){if(D.reading)stopReading();}
+});
+document.addEventListener('keydown',function(e){
+  var o=e.target.closest&&e.target.closest('[data-open]');
+  if(o&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openOrder(o.dataset.open);return;}
+  var D=S.D;if(!D)return;
+  if(e.key==='Enter'&&D.reading&&e.target.id!=='q'&&(!e.target.dataset||e.target.dataset.f==null)){e.preventDefault();lockReading();return;}
+  if(e.key==='Escape'&&D.reading){stopReading();return;}
+  if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.box!=null){e.preventDefault();var n=+e.target.dataset.box+1;var nx=document.querySelector('[data-box="'+n+'"]');if(nx)nx.focus();else{var sb=document.querySelector('[data-act="saveweights"]');if(sb)sb.focus();}}
+});
+document.addEventListener('focusin',function(e){
+  var D=S.D,t=e.target;if(!D||!t.dataset||t.dataset.box==null)return;
+  var i=+t.dataset.box;if(i!==D.boxes.active){D.boxes.active=i;document.querySelectorAll('.boxrow').forEach(function(r,k){r.classList.toggle('is-active',k===i);});if(D.reading){renderDetail();scaleUI();}}
+});
+document.addEventListener('input',function(e){
+  var D=S.D,t=e.target;if(!D||!t.dataset)return;
+  if(t.dataset.box!=null){
+    if(D.reading){D.reading=false;}
+    t.classList.remove('is-live');
+    var v=parseFloat(t.value);D.boxes.w[+t.dataset.box]=isFinite(v)&&v>0?r2(v):0;D.boxes.dirty=true;
+    var tot=boxTotal();$('wTotal').textContent=tot?fmtLb(tot):'0';
+    $('wCount').textContent=D.boxes.w.slice(0,D.boxes.n).filter(function(x){return x>0;}).length+' of '+D.boxes.n+' weighed';
+    return;
+  }
+  if(t.dataset.vd!=null){var B=D.boxes,i=+t.dataset.vd;B.dim[i]=B.dim[i]||newDim();B.dim[i][t.dataset.k]=t.value.replace(/[^\d.]/g,'');B.dirty=true;return;}
+  var f=t.dataset.f;if(!f)return;
+  var p=f.split('.');
+  if(p[0]==='add'){D.add[p[1]]=t.value;D.addDirty=true;delete D.err['add_'+p[1]];t.classList.remove('is-bad');}
+  else if(p[0]==='opts'){D.opts[p[1]]=t.value;D.optsDirty=true;var sb=document.querySelector('[data-act="saveopts"]');if(sb&&!SAVING)sb.disabled=false;}
+});
+document.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.f==='opts.billToParty')renderDetail();
+  if(t.dataset&&t.dataset.dim!=null&&S.D){var B=S.D.boxes,i=+t.dataset.dim;B.dim[i]=B.dim[i]||newDim();B.dim[i].k=t.value;B.dirty=true;try{localStorage.setItem('pine_ship_lastbox',t.value);}catch(x){}
+    renderDetail();if(t.value==='V'){var f=document.querySelector('[data-vd="'+i+'"][data-k="l"]');if(f)f.focus();}}});
+$('q').addEventListener('input',onSearch);
+document.querySelectorAll('.p-bar-views [data-view]').forEach(function(b){b.onclick=function(){S.view=b.dataset.view;if(S.search){$('q').value='';S.search=null;S.q='';}render();if(S.view==='done')loadDone();};});
+$('refreshBtn').onclick=function(){
+  if(SAVING){toast('Still saving — one moment');return;}
+  if(window.PineUpdate&&PineUpdate.check)PineUpdate.check();
+  S.ssMap={};loadAll();
+  if(S.D){var D=S.D;if(!dirty())atGet(D.id).then(function(r){mergeRec(D.rec,r.fields||{});renderDetail();}).catch(function(){});lookupSS();}
+};
+$('scaleBtn').onclick=function(){if(SCALE.dev){if(S.D&&S.D.ssState==='ok'){if(S.D.reading)stopReading();else startReading();}else toast('Scale connected: '+(SCALE.dev.productName||'USB scale'));}else connectScale();};
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&S.D&&S.D.ssState==='ok'&&!(S.D.ships&&S.D.ships.length))checkLabel(true);});
+window.addEventListener('resize',function(){var m=$('main');if(m&&$('splitList'))document.documentElement.style.setProperty('--p-split-top',Math.round(m.getBoundingClientRect().top+window.scrollY)+'px');});
+
+// ⚙ menu: token + practice (same as Receiving)
+function showMenu(on){$('menu').hidden=!on;$('gearBtn').setAttribute('aria-expanded',on);if(on){$('tokInput').value=token();$('tokState').textContent=token()?'Saved on this computer':'Not set';}}
+$('gearBtn').onclick=function(e){e.stopPropagation();showMenu($('menu').hidden);};
+document.addEventListener('pointerdown',function(e){if(!$('menu').hidden&&!e.target.closest('#menu,#gearBtn')&&token())showMenu(false);});
+$('tokInput').addEventListener('keydown',function(e){if(e.key==='Enter')$('tokSave').click();});
+$('tokSave').onclick=function(){try{localStorage.setItem('pine_at_key',$('tokInput').value.trim());}catch(e){}showMenu(false);loadAll();};
+function syncPractice(){
+  $('practicePill').hidden=!PRACTICE;
+  $('practiceHint').textContent=PRACTICE?'On — nothing is saved to Airtable or ShipStation':'Off — changes save';
+  $('practiceBtn').textContent=PRACTICE?'Leave practice':'Turn on';
+}
+$('practiceBtn').onclick=function(){
+  if(SAVING){toast('Still saving — one moment');return;}
+  PRACTICE=!PRACTICE;syncPractice();
+  try{var u=new URL(location.href);if(PRACTICE)u.searchParams.set('practice','1');else u.searchParams.delete('practice');history.replaceState(null,'',u);}catch(e){}
+  toast(PRACTICE?'Practice on — nothing will be saved':'Practice off — changes save');showMenu(false);
+};
+syncPractice();
+window.pineBusy=function(){try{return SAVING>0||dirty()||!$('menu').hidden||document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.id!=='q';}catch(e){return true;}};
+window.addEventListener('beforeunload',function(e){if(SAVING||dirty()){e.preventDefault();e.returnValue='';}});
+loadAll();
+</script>
+<script src="pine-update.js" data-link="pine-shipping.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('verTag').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>
