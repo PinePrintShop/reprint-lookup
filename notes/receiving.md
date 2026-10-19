@@ -213,3 +213,42 @@
 Stephen (screenshot of v77): "I like the recieve all button on the top of the page just feels more intuitive".
 - The Receive button is back at the top right of each line, across from Flag Mis-ship, with the one-line hint under it. Enter in a count box still receives.
 - Nothing else changed. v77's tests pass (except the one that checked the old button spot), and the saves are identical to v77.
+
+## 2026-10-19 · v79: Promo page
+Stephen: "in the receiving can we get a separate page that is just a quick look up for promo....right now we get boxes from overseas that say nothing and have no order number....so it would be great to open up the box and then we can quickly visualize where it goes". Then: "Airtable also has a promo receiving dashboard that we could grab info from the vendor etc...it is in the Line Items table".
+
+**What's new:**
+- The black bar has **Garments | Promo**. The computer remembers which one you used last. The Promo button shows how many promo items are coming in.
+- **Promo** is a wall of pictures. Each card is mostly the line's mockup (Proof Images). Under it: order #, pieces, the product, the customer, when it's expected (red if late), "Vendor shipped", the vendor and the due date. A line with no mockup shows its description in big letters instead.
+- The list is exactly the Airtable view **Line Items › Promo Receiving Dashboard**: Ordered ✓, Received not ticked, Product Type = Promo Product, and the order isn't Completed or cancelled. Soonest expected first, then due date.
+- **Search** takes any words, in any order. For example "blue tumbler", "hobor", "rugby", "10885" or a PO all work. If nothing is coming in that matches, but something received matches, one tap shows it.
+- **Type chips** (Drinkware, Bags, Bandanas, Matches, Other…) are worked out from the description words. They only show when there are at least two kinds.
+- **Show: Coming in / Received, last 14 days.** Use this when a second box turns up for an order that's already ticked.
+- **Click a card** to open the big view:
+  - the mockup large, plus every mockup on the line and a link to the PDF
+  - the description, pieces (and extras)
+  - order status, vendor, PO, expected date, due date and deadline, vendor tracking, delivery method
+  - the notes: shipping (yellow when it says "direct"), sales, finishing, the order notes
+  - everything on the order, garments too, with what's already in
+  - ← / → move to the next card and Esc closes.
+- **✓ Mark received** ticks the same **Received** box the garments use, and nothing else. Undo is in the bar, as for garments. Practice fakes it.
+- **Print box label** prints a promo 4×6 label in the same look as the garment box label. It has the big order #, customer, due date, vendor, PO, delivery, what's inside and how many, and a QR code to the order's mockups. "Box 1 of 1" and every line on the label can be edited before printing. It doesn't do the garment auto-boxing or the "packed right?" logging.
+
+**Why it's built this way:**
+- Promo has nothing to count by size. So receiving is one button, with no count check.
+- Promo data is only read when you open Promo. The garment screens read and save exactly as v78.
+
+**Not included:**
+- Patches, pins and stickers. The Airtable view only has Promo Product. The "Promo Item View for Label" view also has patches and pins, so they could be added if they come in unlabeled too.
+
+**Tested** (Playwright, mocked Airtable, 1440, 1920, 1024 and 390 wide):
+- The list comes from the view and is in the right order.
+- Search, chips, and the Received switch.
+- Pictures load lazily. A picture that's missing or broken falls back to the description.
+- The big view.
+- Mark received writes only `Received = ✓`. Undo writes it back with no order status change. A failed save leaves the line in place with no Undo.
+- Practice writes nothing.
+- The label.
+- The remembered view.
+- Nothing is under 12px, there's one yellow button, and nothing scrolls sideways.
+- v78's tests pass on v79. The one that checked the old Receive button spot was already expected to fail. The garment saves are identical to v78 in all 8 flows.
