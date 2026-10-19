@@ -259,3 +259,11 @@ Stephen: "can we make sure we can filter by promo items" (on the Receiving Promo
 - When nothing matches, a **Clear filters** button resets everything.
 - On a phone the menus wrap instead of pushing the page sideways.
 - Tests: v79's promo tests all pass on v80, plus new filter tests (vendor, late, shipped, no date, clear). Garment saves identical.
+
+## 2026-10-19 · v81: patches, pins and stickers on the Promo page
+Stephen: "Yes to patches and stickers etc".
+- The Promo page now also shows lines whose Product Type is any patch (Embroidered 50/75/100%, Woven, Sublimated, DecoPress, Leather, Silicon), Woven Clip Labels, Pins or Stickers. Same rule as promo: Ordered ticked, not received, order not Completed or cancelled (and Received in the last 14 days for the other list).
+- Airtable's "Promo Receiving Dashboard" view only holds Promo Product, so these come from a second query with that rule written out. Nothing in Airtable changed.
+- Each type gets its own chip (Patches, Pins, Woven labels, Stickers). A line with no description is titled by its type ("Woven Patches from Kiki Creations"). Searching a type name ("woven", "pins") finds them.
+- Mark received and the box label work the same (the same Received checkbox).
+- Tests: new patch/pin/sticker test; v79/v80 promo and filter tests still pass; garment saves identical.
