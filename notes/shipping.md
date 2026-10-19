@@ -83,3 +83,10 @@ v6 keeps **label buying in ShipStation**. Buying labels in the app is a 2027 pro
 - The Zap's order key: v5 notes say orderKey = the bare order number and orderNumber = "number-customer".
 - Airtable has no country, company or street-2 fields. The app assumes US, and splits "123 Main St, Suite 4" into two lines for ShipStation.
 - Dimensions are not sent. A ShipStation V1 order holds one set, not one per box.
+
+## 2026-10-19 · v7: quick add boxes, no box-count logic
+Stephen: "for shipping app let's not use the box logic right now and maybe just make a quick add boxes".
+- Every order starts at 1 box. **+ Add box** adds a row and makes it the one being weighed (the scale reading keeps going); **×** on a row removes it.
+- The app no longer reads Boxes Packed or the box estimate, and no longer writes Boxes Packed. Queue cards don't show a box count. (Catching v168 still saves Boxes Packed; the field is there when we want to use it again.)
+- Weights, the internal-notes line ("3 boxes: 5.2, 4.8, 6.1 lb") and everything else are unchanged. All mocked tests pass; practice makes 0 writes.
+- Stephen asked where the list comes from: **To ship** = every Airtable order with Order Status "Caught - Awaiting Ship". When everything's gone out it's empty; search finds any order.
