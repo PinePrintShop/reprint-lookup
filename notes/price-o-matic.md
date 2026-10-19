@@ -481,3 +481,21 @@ Stephen (PDF next to the quote line): "Looks like the quote pdf is missing some 
 - Now every print is listed: one line when they fit ("Front · … + Back · …"), otherwise one print per line, text shrunk to fit the row (never under 7pt; past that, one shortened line). Bandanas / flatstock / patches unchanged.
 - Brand fixes on the PDF: prices in Helvetica (were Courier); the quoted-row bar is Pine yellow #FBE122 (was #E8E832).
 - Tested: Front 2c + Back 3c at 100 pcs → PDF shows both prints on two lines. Pricing untouched.
+
+## 2026-10-19 — v115: regular case price, colour first
+Stephen: "Just because sale prices come and go with our Vendors....thoughts on pulling in our case pricing with an option to apply sale price? Just want to make sure that if purchasing has to go to another vendor that might not have the same sale price we are not loosing money. For instance SLC … sell the 1717 for 5.49 almost a dollar less....but if … they are out of stock of a size or color way it is 6.49 for us" → "regular case price. let's ask for color first."
+**Replaces the 9/29 + 10/5 rule** ("cheapest sale price across colors", line 17 above). CLAUDE.md updated.
+- **Colour first.** After Find, nothing is priced until a colour is picked ("Pick a colour to price it"; the price card says "Pick the garment colour to see pricing"). One-colour styles pick themselves. Typing a garment cost by hand still works and wins.
+- **Regular price per colour, per vendor:**
+  - S&S: Pine's `customerPrice`; when that equals a running `salePrice` (sale baked in), the `casePrice` instead. Fields added to the S&S request: casePrice, salePrice, saleExpiration.
+  - SanMar: `casePrice` (its `myPrice` includes sales). Pricing rows are matched to colours through the productinfo catalog-colour map.
+  - AS Colour: the contract price (no sales).
+  - Within a size group (XS–XL, 2XL, 3XL, 4XL+) the highest size price counts. The cheapest vendor that carries the colour wins.
+- **Apply sale price** switch, only when a vendor has a running sale on that colour (off by default): "Apply sale price: SanMar $5.99 thru Oct 31 (regular $6.99)".
+- **Backup line:** "If S&S is out: SanMar $6.99 (+$0.50)" — the next vendor's regular price for the same colour.
+- Vendor chips show each vendor's price for the picked colour (and its sale, if any); "from $X" before a colour is picked.
+- **Quote line** says what was used: "Garment: $6.20 SanMar regular" / "… SanMar sale thru Oct 31" (cart, Airtable quote line data) so Purchasing can see it.
+- After a line is added / the form resets, the garment banner clears too (it used to stay up while the cost went back to $5.00).
+- Price cache key v12 → v13. SLC: when its API is connected it becomes one more vendor here.
+- **Assumption to verify on a real style:** that S&S `customerPrice` already contains a running sale when it equals `salePrice` (then the case price is used as regular). If Pine's normal S&S price is below S&S's case price, quotes on S&S sale colours may come out a little high — check one S&S colour that's on sale.
+- Tested with mocks (Comfort Colors 1717 Pepper/Black at S&S + SanMar): Pepper → S&S $6.49 regular, sale switch SanMar $5.99, backup SanMar $6.99 (+$0.50); sale on → SanMar $5.99; Black → SanMar $6.20 regular (S&S $5.49 sale → $6.49 case), backup S&S $6.49 (+$0.29).

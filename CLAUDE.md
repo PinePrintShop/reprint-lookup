@@ -25,4 +25,4 @@ Single-file HTML apps on GitHub Pages (`https://pineprintshop.github.io/reprint-
 ## Shop context
 - One iPad per press. Catching has 2 iPads.
 - The production manager works in the Damage Log.
-- Quotes use the vendor **sale** price for garments (cheapest across colors). Vendor price grids are copied from vendor sheets; don't "fix" them without asking.
+- Quotes use the vendor's **regular case price** for the garment colour being quoted (the rep picks the colour first; cheapest vendor that carries it). A sale price only when the rep switches it on (Stephen, 2026-10-19 — was the cheapest sale price across colours). Vendor price grids are copied from vendor sheets; don't "fix" them without asking.
