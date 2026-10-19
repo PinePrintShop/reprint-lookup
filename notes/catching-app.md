@@ -343,3 +343,12 @@ Stephen: "Just work on the apps we are using".
 - Browser pop-ups (alert) — "Some writes failed", "Pick a team and reason for each one", the any-order lookup, "Allow pop-ups…" — are now a Pine message at the top with a finger-sized OK (56px). It stays until tapped, so a failed write isn't missed. "Token cleared" is a normal fading note.
 - Self-update waits while a problem message is up (added to pineBusy), so a reload can't wipe an error nobody has read.
 - Remember: Catching keeps its own version number (`APP_VER`) for self-update — bump it with every version, or the app keeps reloading into itself.
+
+## 2026-10-19 — v163: Embroidery + Heat Press jobs stay until caught
+Stephen: "since Embroidery and Heat Press sometimes ebbs and flows with when it gets on the machines....can those jobs always be there until they are marked complete".
+- Embroidery and Heat Press (Tajima 6-Head, D3, Hat Press, Tag Press): every imprint that isn't **Caught** yet shows, from any earlier day and up to 3 days before its scheduled day. Screen-print presses unchanged (today only).
+- Left out: orders whose Order Status (Imprints lookup `fldNROVFSsBwLUOYW`) is Completed, Cancelled / Voided, Shipped or Caught - Awaiting Ship. Checked live on 10/19: of the uncaught Embroidery/Heat Press imprints, 332 belong to Completed orders (never caught in the app) — those stay hidden. What's left are real stragglers (e.g. 10936-B from 10/14, 10835 partially completed, 10858 mis-print).
+- Imprints caught today on those machines still show in Completed.
+- Line items not scheduled today carry a tag: "from Wed 10/14" (carried over) or "sched. Thu 10/22" (early).
+- Safety: if Airtable rejects the wider query, Catching falls back to today's jobs (as before) instead of failing to load.
+- APP_VER bumped to 163 (Catching's own self-update).
