@@ -428,3 +428,9 @@ Stephen: "I am on mobile so I can't upload a new worker. So maybe we make this a
   - Practice: 0 sends, 0 writes.
   - Worker v24: ticked shows Sent "Send to client ✓ Oct 18"; not ticked with no email stays in the queue; the proof email shows Sent "proof email".
   - Worker v23 (no field): the v22 results. There were no page errors.
+
+## 2026-10-19 · v24: new jobs no longer vanish into Sent
+Stephen (screenshot: Review 0, Ready to send 17, Sent 64): jobs "had for one sec ... and then they all went to 0".
+- Cause: in Pipedrive's main pipeline the order is To be Qualified → In Progress → **Order Confirmed** → Awaiting Approval → Awaiting Payment → Ready for Production. "Order Confirmed" (stage 23) is the stage that creates the Airtable order, before any proof. Since v21 the app counted it as "sent", so every new order showed for a second, then the Pipedrive check moved it to Sent.
+- Fix: sent = Awaiting Approval (with the Send to client tick or the proof email), Awaiting Payment, Ready for Production, pipeline 2's "Order Confirmed: Proof & Invoice", or won. Saved Pipedrive checks are reset (`pine_lir_sent_v4`) so the next load re-checks every order.
+- Tested: with a deal at Order Confirmed, v23 put 3 orders in Sent; v24 shows them in Review. All v23 tests pass on v24.
