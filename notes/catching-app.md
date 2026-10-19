@@ -352,3 +352,6 @@ Stephen: "since Embroidery and Heat Press sometimes ebbs and flows with when it 
 - Line items not scheduled today carry a tag: "from Wed 10/14" (carried over) or "sched. Thu 10/22" (early).
 - Safety: if Airtable rejects the wider query, Catching falls back to today's jobs (as before) instead of failing to load.
 - APP_VER bumped to 163 (Catching's own self-update).
+
+## 2026-10-19 — v164: rollback of v163
+Stephen: "it is not pulling any jobs for any machine" (v163 live). v164 = v162 (today's jobs), APP_VER 164 so iPads on v163 move to it. Cause being investigated; the carry-over comes back in a later version, checked against live Airtable first.
