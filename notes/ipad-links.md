@@ -21,7 +21,7 @@
 | Ink Queue | `pine-ink-queue.html` | v103 |
 | Purchasing | `pine-purchasing.html` | v111 |
 | Receiving | `receiving.html` | receiving-dashboard v78 |
-| Shipping (desktop, shipping computer) | `pine-shipping.html` | v6 |
+| Shipping (desktop, shipping computer) | `pine-shipping.html` | v7 |
 | Production Board | `pine-production-board.html` | v47 |
 | Seps | `seps.html` | v42 |
 | Screens | `screens.html` | v29 |
