@@ -25,7 +25,7 @@
 | Seps | `seps.html` | v42 |
 | Screens | `screens.html` | v29 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v21 |
+| Schedule | `pine-schedule.html` | v22 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v115 |
 | Line Item Review | `pine-line-item-review.html` | v22 |

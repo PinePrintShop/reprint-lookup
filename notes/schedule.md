@@ -388,3 +388,22 @@ Stephen: "can we add the already existing function in airtable > imprints 'Impri
 - Imprints field `fldzVhAgy4FnzQX2a` (formula → 👍 / 🛑; the same one the Production Board reads) is loaded and shown FIRST in the emoji row after the job ID — calendar cards (Day / 3 Day / Week / 2 Week / Month), the Unscheduled side list and the job pop-up. Hover says "Imprint Ready? (Airtable)".
 - The rule stays in Airtable's formula (Stephen pasted it): presses / flatstock = goods received + inks ready + screens burned; embroidery = goods received; patches / woven labels, sewing, heat press = goods + transfers/trims received; finishing types always 👍.
 - Tested with mocks in Week / Day / Month: the mark shows on every card, no errors.
+
+## 2026-10-19 — v22: ink changes and embroidery times fixed, day end times
+From a code review of v21. Permanent link `pine-schedule.html` now opens v22.
+- **Ink changes were under-counted.** The app took Airtable's Ink Change time and divided it by 25 min (the old rate). Since 2026-10-14 that field is 15 min per change, so 2 changes counted as 1, 3 as 2 and 4 as 2. v22 reads the number straight from Imprints **Ink Changes** (`fld6Tv0llCxjjyyHJ`) and adds 15 min each, the same as Airtable's Ink Change time and Estimated Run Time formulas.
+- **Embroidery hooping was counted twice.** Airtable's Estimated Run Time already adds 18 min hooping on the Tajima (embroidery, patches, woven labels, Decopress). The app added another 18. It's counted once now. A job moved onto the Tajima from another machine also gets the 18 min once.
+- **Day end time.** Day view shows "Done by 12:45p" under each machine's bar. If the last job runs past "Last job ends by" (⚙, default 5:15p) it says "! Runs to 5:30p, past 5:15p". Week, 2 Week and Month mark that machine's day chip with "!", and the chip's hover says when the last job ends. Gaps between jobs count because it uses the actual start times.
+- **"Are you sure?" boxes** (Place all, Lock in day, switching practice with a suggestion up) use the Pine confirm box instead of the browser's grey pop-up. They still don't show in practice mode.
+- The version on screen comes from the file name. The old built-in "20" is gone.
+- **Tested with mocked Airtable at 1440×900:**
+
+| Job | v21 | v22 | Airtable estimate |
+|---|---|---|---|
+| Press 1, 200 tees, 3 screens, 2 ink changes | 88 min | 103 min | 102 min |
+| Press 1, 100 tees, 1 screen, 4 ink changes | 62 min | 92 min | 92 min |
+| Press 2, 144 tees, 4 screens, 3 ink changes | 104 min | 119 min | 118 min |
+| Embroidery, 48 pcs, 8,000 stitches | 228 min | 210 min | 210 min |
+| Patch application, 60 pcs | 106 min | 88 min | 88 min |
+
+  Jobs with 1 ink change didn't change. Cancel on each confirm box writes nothing, and confirming writes as before. Practice mode made 0 writes. No JS errors.
