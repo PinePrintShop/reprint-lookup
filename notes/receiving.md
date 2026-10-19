@@ -267,3 +267,8 @@ Stephen: "Yes to patches and stickers etc".
 - Each type gets its own chip (Patches, Pins, Woven labels, Stickers). A line with no description is titled by its type ("Woven Patches from Kiki Creations"). Searching a type name ("woven", "pins") finds them.
 - Mark received and the box label work the same (the same Received checkbox).
 - Tests: new patch/pin/sticker test; v79/v80 promo and filter tests still pass; garment saves identical.
+
+## 2026-10-19 · v82: long links in promo notes
+Stephen (screenshot of order 10926's Sales note): a Rivers Promo product link ran off the right edge of the note box.
+- Web links in the big view's notes now show as a short link with the site name ("riverspromo.com ↗", opens the page), and any other long word wraps inside the box. Everything else in the note is unchanged (still escaped).
+- Tested with that exact link: the note box no longer overflows; promo, patch and garment tests still pass.
