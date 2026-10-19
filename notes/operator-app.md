@@ -260,3 +260,22 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
   - Live mode sends the same 18 writes as v127, apart from timestamps. Practice sends none. No page errors.
   - ↑ Next reorders the list. The ⚙ menu opens, and closes on an outside tap.
   - Self-update: idle reloads into the new version; with head setup open or a log write in flight, it shows the "New version" bar.
+
+## v129 — Done without a timer, takedown timer, Pine confirm box (Oct 19)
+- **"✓ Done, no timer":** a job nobody timed (often embroidery) could never be finished, so it sat in Up next forever.
+  - It's a small underlined link under Start Setup. It only shows while the job has never been timed: no setup or run on this iPad, and Setup Started / Run Started not ticked in Airtable. Once a timer starts it's gone, so it can't be hit on a timed job.
+  - It asks first ("Finish without a timer?" → Mark done).
+  - It writes what a normal finish writes: **Run Finished** ✓ (split jobs: once both presses are done) and a `COMPLETED | No timer` line in the log. It writes **no time**: Run Started / Setup Started stay unticked and the log line has no duration, so the job adds nothing to setup or run averages.
+  - The Done screen says "Done · no timer" and shows pieces only, not 0:00:00. Undo puts the job back to Start Setup.
+- **Takedown timer** (to check the 14 min/screen we're testing for 2027 pricing):
+  - On the Done screen (run mode and the job screen): **⏱ Start takedown**, then a clock with **■ Stop**. If the crew moves to the next job, a slim "Takedown · job · clock · Stop" strip stays at the top. Starting the next job's setup stops and saves it by itself.
+  - It saves minutes (1 decimal) on the job's Imprint, plus a `TAKEDOWN | 12m 30s` log line. That's the same pattern as setup, which is logged as `SETUP COMPLETE | Xm YYs` and timed in Airtable by the Setup Started / Setup Finished ticks (Setup Duration Actual → Setup Time / Screen).
+  - Under 20 seconds isn't saved. Over 2 hours asks first. If it was left running past 2 hours when the next setup starts, it isn't saved.
+  - **Hidden for now:** there's no takedown field in Airtable. It needs a **Number** field on **Imprints**, named **"Takedown Minutes"** (1 decimal). Paste its field id into `F.takedownMin` (now `PENDING_TAKEDOWN_MIN`) in the next version and the timer appears. Then a "Takedown / Screen" formula ({Takedown Minutes} / {Screen Count}) would sit next to Setup Time / Screen.
+- **Pine confirm box:** the three browser `confirm()` pop-ups are now the shared Pine box (`pine-confirm.js`, big buttons): Reset practice, Remove screen card (red, it deletes) and "Use another run's head settings?". Self-update also waits while the box is open.
+- **Not changed:** the normal timed flow sends the same writes as v128 (checked side by side).
+- **Tested** with mocked Airtable at 1180×820:
+  - Done, no timer: Cancel writes nothing. Mark done sends exactly `{Run Finished: true}` plus the `COMPLETED | No timer` log line, with no Setup/Run Started. It's gone once setup starts, and Undo brings it back.
+  - Takedown: hidden with the field PENDING. With a test field id: 12.5 min saved to the field plus the log line, and it auto-saves when the next setup starts.
+  - Practice: no writes at all, and the Reset practice box shows.
+  - No JS errors.
