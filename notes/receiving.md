@@ -6,14 +6,73 @@
 - **Receive a line:** count the box and type a count only where a size is different. Then tap Receive. A difference opens a check that can flag a mis-ship.
   - Writes the Line Item's Actual sizes and Received ✓.
   - When every apparel line on an order is in, with no open mis-ship, the order moves from *Ordered - In Production* to *Received & Staged*.
-- **All here:** receives every waiting line on an order at its ordered + extras counts.
+- **All here:** receives every waiting line on an order. It uses typed counts, otherwise ordered + extras. A line with counts off goes through the mismatch check (v77).
 - **Undo:** reverses the last receive, including the status change.
 - **Mis-ships:**
   - **Flag** sets Mis-ship ✓, the details and In progress ✓.
   - **Mark resolved** sets Resolved ✓.
-- **Printing:** after a receive, a panel walks through box labels (4×6, with the Box Logic Feedback "correct?" bar) and then the job sheet.
+- **Printing:** when an order is all in, a panel walks through box labels (4×6, with the Box Logic Feedback "correct?" bar) and then the job sheet.
 - **Practice mode:** `?practice=1`, or ⚙ → Practice. Nothing is saved. That includes the status change and box feedback.
 - **Airtable token:** stored on the device. Set it under ⚙ → Airtable token.
+
+## 2026-10-19 · v77: staging fixes, All here keeps counts, Receive under the boxes
+**Why:** a scan of v76 found orders that never moved to *Received & Staged*, a practice-mode leak, and some screens that made more work than they should. Receiving is a desktop app, so this pass was checked at 1440 and 1920 wide.
+
+**Staging (orders moving to Received & Staged):**
+- Marking the last open mis-ship resolved now stages the order when every line is in. Before, it never did, so those orders sat in *Ordered - In Production*.
+- Refresh now stages any order on the board that is already complete: every apparel line received, no open mis-ship, and still *Ordered - In Production*. It's the same rule a receive uses, and a toast lists the orders it staged.
+- If the app can't read whole orders, a red note says so and nothing stages. Refresh tries again.
+- If a stage write fails, a message says so and Refresh tries again.
+- A receive waits for its stage write to finish, so Undo can't run halfway through.
+- A stage only becomes part of Undo when it came from the receive being undone.
+- Turning practice on or off reloads from Airtable. Lines "received" in practice only exist on screen, so they can't count toward a real stage any more.
+
+**Receiving:**
+- **All here** uses any counts you typed.
+  - A line whose typed counts match goes in with the rest.
+  - A line whose counts are off gets the normal "Counts don't match" check, so you can receive it as counted or flag a mis-ship.
+  - The confirm button says so, e.g. "Receive 1, check 1?". Before, All here quietly saved the ordered numbers over what you'd typed.
+- **Receive** sits right under the Counted boxes, with the hint beside it. Pressing Enter in a count box receives that line. The boxes are narrower.
+- **Go back** in the check now empties the boxes Receive had filled in, so they don't look like typed counts. Flag mis-ship from the check does the same.
+- The "Order is all in" pop-up only opens when the whole order is in, not after every line. "Print again" on a received line still opens it.
+
+**Mis-ships:**
+- Marking a mis-ship resolved on a line that hasn't arrived keeps the line on screen, because it still needs receiving. Before, it vanished until Refresh.
+- A received line with an open mis-ship now shows in the Mis-ships tab. It used to be hidden for 24h. A received line doesn't offer Receive again.
+
+**Screen:**
+- Line names show the garment colour again ("Gildan 5000 - Black"), and search finds colours. The box-label code had its own function with the same name, which replaced the screen one. It is now `getLabelGarmentName`.
+- Every tab count is a number of orders. Mis-ships and Late used to count lines. Empty tabs are dimmed, as in Damage Log and Screens.
+- Filter row: search · tabs · vendor and Sort at the right end, like the other apps.
+- The ⚙ icon is the kit size.
+- Pieces on an order counts the whole order, not just the lines the tab shows.
+- "Old box label editor" moved from every order to ⚙. It opens for the order that's open.
+- Pop-ups use the kit's `.p-modal`. The mismatch buttons sit on one row on a desktop. The toast is the kit's `.p-toast`, and problem messages stay up longer.
+- Removed unused code: `quickFill`, `togPrintMenu`, `misTag`, `snap`, `getLargeUrl`.
+- `pine-confirm.js` is loaded for later. There are no confirm() boxes today.
+
+**Safety:**
+- Box feedback messages are only accepted from label windows this app opened, on the same site.
+
+**Not changed:**
+- Airtable writes for the normal flows. These were checked against v76 and are identical:
+  - receive
+  - receive with counts off
+  - flag a mis-ship
+  - last line stages
+  - Undo with status
+  - resolve
+  - All here
+- The whole-order read also fetches the ordered size fields, to count pieces. Read only.
+- Labels and the job sheet.
+
+**Tested (Playwright, mocked Airtable):**
+- Every scan bug was reproduced and is now fixed.
+- Failure cases: the progress read fails, and a stage write fails. Both are retried on Refresh.
+- Practice made 0 writes. That covered receive, flag, resolve that would stage, All here with counts, staging on load, and box feedback.
+- Screenshots at 1440×900 and 1920×1080. Also checked at 1024 and 390: no sideways scroll, nothing under 12px, one yellow button.
+
+**Live check (read only, Oct 19):** none of the 14 orders in *Ordered - In Production* has every apparel line received, so none is stuck right now.
 
 ## 2026-10-15 · v76: desktop first, two panes
 **Why:** Receiving runs on a desktop, so it should use the width.
