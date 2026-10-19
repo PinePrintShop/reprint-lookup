@@ -252,3 +252,10 @@ Stephen: "in the receiving can we get a separate page that is just a quick look 
 - The remembered view.
 - Nothing is under 12px, there's one yellow button, and nothing scrolls sideways.
 - v78's tests pass on v79. The one that checked the old Receive button spot was already expected to fail. The garment saves are identical to v78 in all 8 flows.
+
+## 2026-10-19 · v80: Promo filters
+Stephen: "can we make sure we can filter by promo items" (on the Receiving Promo page).
+- Two menus next to Coming in / Received: **vendor** (every vendor in the list, with how many items) and **arrival** (Late · Expected this week · Vendor shipped · No expected date). They work together with the search box and the type chips (Drinkware, Bags, …).
+- When nothing matches, a **Clear filters** button resets everything.
+- On a phone the menus wrap instead of pushing the page sideways.
+- Tests: v79's promo tests all pass on v80, plus new filter tests (vendor, late, shipped, no date, clear). Garment saves identical.
