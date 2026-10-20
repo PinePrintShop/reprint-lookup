@@ -103,3 +103,6 @@ Stephen: "we need dimensions and a drop down for the classic 3 pine box sizes an
 Stephen, about "Carrier ups_walleted / Service ups_ground": "can we clean that up to not show that...but what you showed me".
 - Shows "UPS (ShipStation account) · Ground", "UPS · 2nd Day Air", "FedEx · Ground", "USPS · Priority Mail" instead of ShipStation's codes. "ShipStation account" = UPS paid from the ShipStation balance (code `ups_walleted`). Hovering shows the raw code.
 - Airtable's Carrier field now gets the short name (UPS, FedEx, USPS) instead of the code.
+
+## 2026-10-20 · correction: when the ShipStation order is made
+From Stephen's Zap list: the Zap "Shipment Creator - Payment Trigger" (QuickBooks payment → ShipStation) creates the ShipStation order when the customer PAYS, not when the deal is confirmed (that's "[TAXJAR] Order Confirmed > … > +Order to AT", which creates the Airtable order). So an unpaid order correctly shows "No ShipStation order" in the Shipping app until payment. Shipping-address changes sync Pipedrive → Airtable through the "Shipping Contact/Street/City/State/ZIP > Update in PD > AT" Zaps.
