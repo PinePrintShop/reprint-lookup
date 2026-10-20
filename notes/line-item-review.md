@@ -588,3 +588,56 @@ Drive is connected (worker v27, Printshop shared drive). On 11029 Stephen: "look
 - **Client Provided opens in the brief:** if a subfolder's name has "client" or "customer" in it and it holds files, they show under its name (e.g. "Client Provided (2)"). Each gets a thumbnail, newest first, up to 12, then "+ N more in Client Provided ↗". An empty one shows as a chip only.
 - **One read:** the Client Provided folder is read once per session, like the main folder.
 - **Tests:** new test 13/13 (`scratchpad/lir38/t38.js`); v34 103/103. The v37 suite passes 76/78; its two misses expect loose files listed, which v38 removes on purpose.
+
+## 2026-10-20 · v39: folders open in place, previews, Client Provided anywhere, "From last time"
+Stephen approved four changes to the Art brief's Drive section. On the reprint row and previews: "Oh that would be great". Previews need **worker v28** (`drive/file`). With worker v27 everything else works, and a preview shows "Open in Drive ↗" instead.
+- **Folders open in place:** clicking a folder chip opens it inside the brief, showing its files (with thumbnails) and its own subfolders as nested chips. Click again to close. The small ↗ on each chip opens the folder in Drive. Client Provided starts open.
+- **Previews:** clicking a file opens a big pop-up with the file name (and subfolder path), date, page count and "Open in Drive ↗". Esc, ✕ or a click outside closes it.
+  - Images show from a blob.
+  - PDFs show every page (up to 20), scrollable, using the pdf.js the app already loads.
+  - Other types (ai, eps, psd, rtf, Google Docs…) show the Drive thumbnail or the type badge, with "open it in Drive".
+  - Reopening a file doesn't download it again (the last 10 are kept).
+- **Client Provided found anywhere:** customer files sitting in subfolders up to 2 levels deeper are shown too, each labelled with its subfolder, e.g. "Logos / deppen.pdf". Newest first, up to 12, then "+ N more".
+- **"From last time" row:** when an imprint says "Repeat of 9044-B", the app searches Drive for order 9044's folder. The row reads "From last time · 9044 <folder name> ↗", with that folder's Client Provided and Seps files (found anywhere, up to 8, previewable).
+  - One row per earlier order, at most 3.
+  - Several matching folders → the newest one, plus "(+N more)".
+  - Nothing found → no row.
+  - Each order number is searched once per session.
+- **Lighter on Drive:**
+  - Folder reads are cached for the session (Refresh still re-reads them).
+  - At most 4 Drive reads run at once.
+  - Thumbnails load only when a file is on screen and are swapped in place. v38 fetched thumbnails for every loose file in the order folder, even though they're hidden.
+- **Stale replies:** a folder, search or preview that answers after you've moved to another job only fills the cache. It never redraws or draws into the job on screen.
+- **Review tab comments fixed.** Stephen: "the new Review section does weird things for comments etc".
+  - The problem, on screens 1200px and wider: the comments card had a fixed 200px base and a 240px minimum. With several long comments the list shrank to a 60px slice, and "📷 Add screenshot", "Shows in Airtable's comments too" and Post spilled out of the card.
+  - Now the card always takes its full content height. On a desktop the price + comments column scrolls as one when it's taller than the screen. The mockup, the Quality button and the Details row keep their places.
+  - The list shows up to about half the screen (at least 260px, or every comment), with the newest in view.
+  - Post sits on the Add screenshot row, with "Shows in Airtable's comments too" under it.
+  - Opening the composer scrolls the whole composer into view.
+  - Art to do and Ready to send are unchanged.
+  - Test `scratchpad/lir39/rvc/rvc.js`, 81/81:
+    - Review at 1024×768, 1100×800, 1180×820, 1280×800, 1366×768 and 1440×900, with 5 long comments and with 2
+    - nothing sticks out of the card, before or after opening the composer
+    - the list is at least 200px tall or shows every comment, and the newest is in view
+    - Post on the Add screenshot row
+    - the column stays inside the grid, with Details below it
+    - Art to do and Ready to send cards fit
+    - no console errors
+- **Tests:** new test 79/79 (`scratchpad/lir39/t39.js`):
+  - expand/collapse, nested and remembered
+  - each folder read once
+  - Client Provided 2 levels deep (3rd level not read), newest first
+  - image, PDF (2 pages), .ai and Google Doc previews; Esc, ✕ and outside click; focus returns
+  - reprint row found, (+2 more), none, 4 earlier orders → 3 rows
+  - worker v27 fallback
+  - stale folder reply (no redraw) and stale preview
+  - at most 4 reads at once across 32 folders
+  - visible-only thumbnails
+  - practice 0 writes
+  - 390 phone
+  - one yellow button, nothing under 12px, no console errors
+- **Earlier suites on v39:**
+  - v34: 103/103.
+  - v32 Review: 110/110.
+  - v38: 12/13. The miss expects Client Provided's subfolder files left out; v39 shows them on purpose.
+  - v37: 72/78. The 4 new misses count every Drive search, and the 11040 brief now also searches 10804 for its "From last time" row. With those searches left out it's 76/78, the same as v38.
