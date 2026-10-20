@@ -27,3 +27,9 @@ Stephen saved an order's Drive folder in Line Item Review v36 and got "Can't rea
 - list / thumb / upload answer exactly as in v25; every non-Drive route is byte-for-byte the same. The cached Google token is now tied to the key, so pasting a new key signs in again straight away.
 - Same auth for all Drive routes: the Pine Airtable key.
 - Tested (Node, mocked Google with a real RSA key, 43/43): no / non-Pine key → 401 on status, search and list; status OK (signed JWT verified), drive 404 → drive_not_found, 403 → no_access, ID missing; sign-in failure (invalid_grant, key not JSON, broken private key) → drive_signin_failed on status, list and search; folder 404 / 403 / 500 → folder_not_found / no_access / drive_error; My Drive → not_in_shared_drive; search query and shared-drive-only parameters, one match, several (exact-number filter, newest first), at most 10, none, bad order numbers → 400, no drive ID; list, thumb, upload, bad folder and My Drive answers identical to v25 side by side; v25 answers search with 403 "Drive path not allowed"; no key or token in any of the 43 responses.
+
+## 2026-10-20 · v27: forgiving GOOGLE_DRIVE_ID
+After Stephen added the service account to the shared drive, ⚙ › Google Drive still said "Check GOOGLE_DRIVE_ID is the shared drive's ID (starts 0A) and the service account is a member". v26 used the setting exactly as typed, so a space, line break, full Drive address or `?usp=…` tail would make Google answer 404.
+- **Forgiving ID:** the worker now takes just the ID out of whatever was pasted, used everywhere the drive ID is read (status, search, the shared-drive check).
+- **ID hint:** the "drive not found" message ends with a safe hint of the ID in use, e.g. "ID in use: 0Ab…OpQ (19 characters)", so a folder ID (starts 1, ~33 characters) or a bad paste shows at a glance.
+- **Unchanged:** everything else. The v26 suite passes 43/43 on v27.
