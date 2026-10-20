@@ -221,3 +221,10 @@ The art department's separation queue: imprints that need a sep (separation) fil
 ## 2026-10-20 · v44: Bandanas only next to the other pills
 Stephen: "can you put the bandana button in the same place as screens right next to the other pills".
 - "Bandanas only" now sits in the filter pill row right after Sep'd, like Screens, instead of at the far right. Same behaviour; all 50 v43 checks pass on v44.
+
+## 2026-10-20 · v45: Supacolor only pill
+Stephen: "in the Sep app can we also add a supacolor only pill as well"
+- **"Supacolor only" pill:** sits right after "Bandanas only", with its count. It shows jobs whose imprint type starts with Supacolor; Decopress isn't included.
+- **One at a time:** turning Supacolor only on turns Bandanas only off, and the other way round.
+- **Remembered:** the choice is kept on this computer, like Bandanas only.
+- **Tests:** v44 suite plus the new Supacolor checks, 56/56 pass (`scratchpad/seps43/test45.js`).
