@@ -132,3 +132,30 @@ A review of v9 found these. All fixed; the rest of the app is unchanged.
   - Enter and Lock
   - the practice reload
   - 0 writes in practice, nothing under 12px, no console errors
+
+## 2026-10-20 · v11: Waiting on items
+Stephen: "I like the Waiting on Items ideas."
+- **To ship** now has two parts: **Ready to ship** first, then **Waiting on items**. The tab count is the Ready count.
+- The list reads Order Status **Caught - Awaiting Ship** and **Partially Completed**. An order waits when something isn't done:
+  - a line with imprints is done when all its imprints are **Caught**;
+  - a line with no imprints (Promo, patches, stickers, pins…) is done when **Received** is ticked;
+  - fee lines with no imprints (Misc., Artwork, Pre-Order Setup Fees) are skipped, and so are imprints not linked to any line (stray ones like 10936-D).
+- Each waiting card says what's missing in plain words: "Promo (50 pcs) — not received", "10898-D Fold & Bag — not done", or "10880-B Bleed Blocker + W/B — printed, not caught" (Run Finished ticked, Caught not).
+- When the item is received or caught, the order moves up to Ready on the next **Refresh**. Nobody changes its status. A Partially Completed order with nothing missing shows under Ready, tagged **Partly shipped**.
+- Waiting orders get no weigh or label steps and no ShipStation lookups. A quiet **Ship what's here anyway** opens the normal flow for a partial shipment, with a yellow line listing what's still missing.
+- **Mark shipped** is unchanged: it sets Completed for a Partially Completed order too, with v10's confirm wording (Completed emails depend on the shipping method).
+- Lines and imprints are read in batches: `RECORD_ID()` OR-formulas, 40 IDs per request, one pass for lines and one for imprints. There's no request per order. Read only: Line Items `tblJx5UlwO7oMSk5H` (Product Type, qty, Received, nickname, imprints) and Imprints `tbln9oAGvz2PNBZLV` (Imprint ID, type, Caught, Run Finished).
+- **Live check (read only, 2026-10-20):** 7 orders are Partially Completed, all created between Sep 10 and Oct 5, and 1 is Caught - Awaiting Ship (10898). With so few, all Partially Completed orders are listed and there's no date limit. Today all 8 would show under Waiting:
+  - 10898: Fold & Bag 10898-D not done.
+  - 10936: Promo (50 pcs) not received.
+  - 10880, 10818 and 10829 each have an imprint marked Run Finished but not Caught. If those went out in the first shipment, ticking Caught (or setting the order Completed) clears them.
+- **Tests:** mocked Playwright. Every v10 test passes on v11. New tests cover:
+  - an imprint not caught → Waiting (listed once even when it's on 2 lines)
+  - Promo not received → Waiting (the Misc. fee and a stray imprint are ignored)
+  - all done → Ready
+  - Partially Completed and all done → Ready
+  - caught or received → Ready on Refresh, with 0 writes
+  - Ship what's here anyway
+  - a Partially Completed order marked shipped → Completed
+  - one batched request each for lines and imprints
+  - 0 writes in practice, nothing under 12px, no console errors
