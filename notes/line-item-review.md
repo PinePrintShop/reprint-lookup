@@ -460,3 +460,9 @@ All of this is the **Art to do tab only**. Review, Ready to send, All, Sent and 
 - **No ink-colour flag** at all. Red "Missing" stays only for no imprint linked, no location, and no garment.
 - **Comments are quieter**: the @Art Dept / @Chris … notify chips appear once you click into the comment box. Everything else in comments is the same.
 - Tested (Playwright, mocked Airtable, 1440×900 and 1920×1080): compact header on Art to do and full header on Review; step bar, Next and line strip hidden on Art to do and back on Review/All; Proof done disabled without a proof, enabled with one; it sends the identical PATCH as v25's "Awaiting review" step (`{"fields":{"fldycrq3VJYSFd8Gi":true}}`), the line moves to Review, the next line opens, Undo sends Awaiting Review = false and brings it back, a failed save keeps the line; duplicate notes merged; no ink flag; chips hidden until focus; one yellow button; nothing under 12px; practice = 0 writes; no errors. The v25 Art tests (updated for the changes) and the v24 suite pass on v26.
+
+## 2026-10-20 · v27: drag & drop the proof
+Stephen: "can we drag and drop the PDF as well".
+- Drop a PDF or image on the Art brief or the Proof box and it uploads as that line's proof (the same upload as Attach proof; practice fakes it). The box gets a dashed outline while the file is over it. Other file types are skipped with a message.
+- Dropping on the comment box still adds a comment screenshot. A file dropped anywhere else no longer makes the browser open it and leave the app.
+- Tests: new drop tests (brief upload, wrong type, comment box, elsewhere, practice) pass; v26 suite passes except the one check for the old hint wording; v24 suite 30/30.
