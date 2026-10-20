@@ -482,3 +482,13 @@ Stephen (screenshot of "No art folder yet — ask Patrick"): "it would be great 
 - A folder that's already set has a small **Change link**.
 - Only Google Drive folder links are accepted; anything else gets a plain "In Drive: right-click the folder → Share → Copy link" message and nothing is saved. Practice fakes the save.
 - Tests: new folder-link tests pass (bad link rejected, exact PATCH to Artwork Folder Link, button appears, Change/Cancel, practice 0 writes); the v28 Drive suite passes except its old wording check for the red line.
+
+## 2026-10-20 · v30: the garment in the Art brief opens the vendor's page
+Stephen: "what if the garment in Art To Do actually sent you to the vendor link....so S&S for most things...Sanmar for when it is only at Sanmar and ASColour as well".
+Art to do tab only; every other tab is the same as v29.
+- In the Art brief, "on **Gildan 2000 · Black**" is now a link that opens the vendor's page in a new tab, with a small tag after it saying where it goes: **S&S ↗**, **SanMar ↗** or **AS Colour ↗**.
+- Which vendor: AS Colour garments (the Garment's Brand is AS Colour) go to AS Colour. Everything else goes to S&S when S&S carries the style (S&S's style list, the same one Purchasing and Price-o-Matic already keep for a day). If S&S doesn't have it but SanMar does (e.g. Port & Company, or a Bella color only SanMar stocks), it goes to SanMar. If nobody answers or the style isn't found anywhere, it goes to an S&S search for the style.
+- Link forms: S&S product page `ssactivewear.com/p/<brand>/<style>` (the same link Purchasing uses), S&S search `ssactivewear.com/ps/?q=<style>` as the fallback, SanMar search `sanmar.com/search/?text=<SanMar style code>`, AS Colour search `ascolour.com/search.php?search_query=<style>` (as Purchasing). None of the vendors take a colour in the link, so the page opens on the style and the artist picks the colour there.
+- The checks only read (nothing is saved, practice or not), happen once per style per session, and never hold up the brief: the plain garment name shows first and becomes a link a moment later.
+- Airtable has no vendor field on Garments, so the vendor is worked out from the Brand field and live vendor lists.
+- Tests: Gildan 2000 → S&S product page; AS Colour 5001 → AS Colour with no lookup; Bella 3501 (not at S&S, at SanMar) → SanMar; S&S list down → S&S search; plain name while waiting; one S&S read and one SanMar read per style; no writes; practice 0 writes; v29 and v28 suites pass on v30.
