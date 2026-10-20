@@ -279,3 +279,31 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
   - Takedown: hidden with the field PENDING. With a test field id: 12.5 min saved to the field plus the log line, and it auto-saves when the next setup starts.
   - Practice: no writes at all, and the Reset practice box shows.
   - No JS errors.
+
+## v130 — the standard Pine top bar (2026-10-20)
+- **Why.** Stephen: "review ... the first ones that we did with the new brand colors to make sure to clean up the top bar that we did for the last few". Reference: Line Item Review v35, Shipping v11, Seps v45, and Catching v169 (built at the same time).
+- **⚙ size:** `#gearBtn{font-size:20px}` is gone, so ⚙ is the kit's 44px button with 14px/800 text, as in the other apps.
+- **Phone bar 70px → 64px.** The cause: the empty press/crew slot `<nav class="p-bar-views" hidden>` still showed, because the kit's `.p-bar-views{display:flex}` beats the `hidden` attribute. Under 900px the kit puts the views on their own row, so an empty 2px row plus the row gap was added under the bar. `#pBarViews[hidden]{display:none!important}` fixes it.
+- **This press + crew** (work screen) now sit in the kit's dark views pill, the same as Catching's press tabs.
+  - Before, they were two bordered boxes on a clear background, and the press had a full-height color block.
+  - Now: the dark pill (rgba white .1, 4px padding) with 44px pill buttons.
+  - The press is the selected one: yellow, with its press color as a 12px dot (black ring), then the name and ⇄. The crew button is plain white text with ✎.
+  - Taps and what they open haven't changed.
+  - Above 900px a long crew list shortens with "…" instead of wrapping the bar onto two rows. v129 wrapped to 114px at 1000 wide with four long names; v130 stays 64px.
+- **Dead CSS removed:**
+  - **The old work-screen header:** `#wkHead` and its `.wk-head*` rules, plus `.wk-press`, `.wk-btn`, `.wk-right`, `.wk-clock`, `.wk-ver`, `.wk-gear` and `.wk-prac`.
+  - **The old bar pieces:** the `.prac-pill` rules, `.pb-gear` and `.pb-clock`.
+  - **The hidden practice bar:** the `#practiceBar` div (`display:none!important`, kept only for its day picker; the ⚙ menu has its own) and its CSS.
+  - **Bar display rules that cancelled each other:** `body.on-work #pBar{display:none}` / `{display:flex}`.
+  - **Old views and phone rules:** the old `.op-views` overrides, the phone `.p-bar-app{font-size:16px}` at 640px (the kit does this at 420px, the same as the other apps), and the phone `.wk-crew` rules that made the crew button a full-width line.
+  - Checked first that no script uses any of them. The hidden old `.topbar` (Operator View pill, clock, Back) is still there because the script still updates its elements; removing it needs a JS change, so it's left for later.
+- Self-update, pineBusy, practice and the 56px floor buttons are unchanged.
+- **Tested** (Playwright, mocked Airtable):
+  - Bar at 1180×820, 820×1180 and 390, on the machine picker and the work screen, normal and practice.
+    - 64px everywhere on the machine picker, and on the work screen at 1180.
+    - At 820 and 390 the work screen's press/crew pill moves to its own row (120px), as in every kit app.
+    - At 390 in practice, Refresh and ⚙ wrap, the same as the reference apps (the kit's layout).
+  - Matches Catching v169 to the pixel.
+  - No console errors. Practice made 0 writes.
+  - A computed-style comparison outside the bar (v129 vs v130) showed no change apart from the bar height.
+  - The v126 catch-prompt test still passes: practice 0 writes, live 4, the same as v129.

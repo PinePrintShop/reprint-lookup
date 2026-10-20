@@ -391,3 +391,35 @@ Stephen: "The right panel for jobs is showing the sched pretty weird. Can you ch
 - Practice mode fakes these saves like every other write. APP_VER 168. Permanent link `pine-catching.html` → v168.
 - Tested with mocked Airtable at 1180×820: single ship order (estimate 2.3) starts at 3, + + − → 4, Next sends `{Order Status: Caught - Awaiting Ship, Boxes Packed: 4}`; pick-up order with Boxes Packed 5 (estimate 1.2) starts at 5, status saved as Completed + 5, then + sends Boxes Packed 6 by itself; mixed order (Embroidery handed off 2 boxes, estimate 2.0) starts at 3 "Includes 2 from Embroidery", + → status + Boxes Packed 4; handoff (Apparel first) shows no order box row and writes only the handoff text + Partially Completed; practice sent 0 writes. No JS errors.
 - Not covered: the older "✓ Complete Order" / "Mark Complete" buttons in the queue (no card, so no box count; they still set the status as before).
+
+## 2026-10-20 — v169: the standard Pine top bar
+- **Why.** Stephen: "review ... the first ones that we did with the new brand colors to make sure to clean up the top bar that we did for the last few". Catching was one of the first apps on the new colors, so its bar still had its own build. Line Item Review v35, Shipping v11 and Seps v45 are the reference.
+- **Before (v168):**
+  - The bar was `div.press-bar.p-bar` on a plain `<body>`.
+  - It had its own overrides: no padding on the left, 12px on the right, gap 10px, no wrapping.
+  - The logo square was 60×64 and filled the full bar height.
+  - ⚙ was 20px and ↻ was 18px.
+  - On the iPad (≤1180) "Refresh" dropped to the icon only.
+- **Now (v169):**
+  - The bar is `<header class="p-bar" id="topBar">` on `<body class="p-app">`, the same as the reference apps: 64px, black, sticky, padding 6px 16px.
+  - The 56×56 logo square, then CATCHING (Poppins 900, caps), the version and the PRACTICE tag (practice only).
+  - The press views pill, then ↻ Refresh and ⚙, both 44px with 14px/800 text.
+  - The press color dots stay in the views.
+  - "Refresh" now keeps its word at 1180 and at 820, as in the other apps. Under 600px it's the icon only, which is the kit's rule.
+  - When the bar is short of room (for example the full press list, the practice tag and "← Operator" at 1180), the presses scroll inside their pill instead of wrapping the bar onto two rows.
+- **body.p-app:** the kit's `.p-app` sets the text to 16px/1.45. `body.p-app{font-size:14px;line-height:normal}` keeps this app's screens at their 14px base. A computed-style comparison of every element outside the bar (v168 vs v169) found no difference at 1180, 820 and 390, on the work screen and on Completed. Only the content's vertical position moves, where the bar height changed (820: 124 → 120).
+- **Dead CSS removed:**
+  - The old bar's `.press-bar`, `.press-tabs`, `.view-tabs`, `.pt` / `.pt-ct` and their v146/v150 size patches.
+  - `.btn-refresh`, `.btn-token`, `.btn-backop` and `.tok-foot`.
+  - `#practiceBar` and the old `#E8E832` practice underline.
+  - The v159 `.press-bar` block and the v161 `.press-bar` media rules.
+  - Checked first: nothing in the page makes these classes or ids any more (the press tabs have been `.pv` buttons in `.p-bar-views` since v161). The only `.pt` left is the packing slip's own table, which lives in its own window.
+- **The one JS line changed:** `cwTopSync()` read `.press-bar`; it now reads `#topBar`. The always-zero practice-bar term is gone, so the value is the same.
+- APP_VER 169. Self-update (its own copy), pineBusy and practice are unchanged. The permanent link isn't changed in this step.
+- **Tested** (Playwright, mocked Airtable):
+  - Bar at 1180×820, 820×1180 and 390, normal and practice.
+    - The bar is 64px at 1180. At 820 and 390 its first row is 64px and the presses move to their own row underneath, as in every kit app.
+    - At 390 in practice, Refresh and ⚙ also wrap, the same as Shipping v11 and Line Item Review v35. That's the kit's layout (CATCHING, the version and PRACTICE don't fit on one 390px row with two 44px buttons).
+  - Catching and Operator v130 match to the pixel: logo, name at x=68, Refresh and ⚙ at the same x.
+  - No console errors. Practice made 0 writes.
+  - The v168 Boxes Packed test gives the same results on v169: live, the same 10 writes; practice, 0.
