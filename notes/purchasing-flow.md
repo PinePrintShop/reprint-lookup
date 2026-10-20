@@ -478,3 +478,11 @@ Stephen: "Just work on the apps we are using" (weekend round of small leftovers)
   - No new Airtable fields. Vendor price grids weren't touched.
 - **"Are you sure?"** All 9 browser confirm() questions are now the Pine box (pine-confirm.js), with the action on the yes button ("Mark ordered", "Add supplier", "Change color"…).
 - **Tested** (Playwright, mocked Airtable + S&S/SanMar, 1440×900): one of 3 line writes returns 500. 2 lines are saved and marked ordered, 1 stays in the cart, and the message lists both. Retry sent exactly one PATCH (that line only, Ordered + same PO). Order all with 2 carts and one failure gives the same kind of message. The quoted line shows −$19.52 on the mock (76 pcs) and "same as quoted" for the IND4000 line. SanMar Cincinnati, the quoted vendor with stock, is listed first. Practice mode: 0 writes. No page errors, nothing under 12px, no sideways scroll.
+
+## 2026-10-20 — v112: top bar matches the Pine standard bar
+**Why:** Stephen asked to review the first apps that got the new brand colors and clean up their top bars, to match the newer bars (Line Item Review v35, Shipping v11, Seps v45).
+- `<body class="p-app">`, like the other kit apps. The kit's base is 16px text, so this app pins its own 14px base (`body.p-app`); a screen-by-screen compare against v111 shows the same layout.
+- Removed leftovers: the `.top .p-mark` size rule (no `.top` bar since v106) and the old `--yellow:#E8E832` token. Its one fallback use (the "+ warehouse" button) is now `var(--p-yellow)` (#FBE122).
+- The narrow-width views row (under 900px) now comes from `pine-style-v2.css` instead of a copy here. The 8px row gap stays.
+- No behaviour changes. Self-update, `pineBusy` and practice mode are unchanged.
+- **Tested** (Playwright, mocked Airtable): the v111 test passes on v112 (20 PASS, same output as v111). At 1440 and 390 there are no console errors and practice mode makes 0 writes.

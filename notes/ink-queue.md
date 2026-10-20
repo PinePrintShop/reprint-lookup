@@ -319,3 +319,8 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
   - v103: the same tap opens the card with 0 writes, and Mark ready on the open card sends the 1 expected write.
   - The 1440 write-compare against v102 is identical (16 = 16), and practice mode sends 0 writes.
 - **Fix in Airtable:** jobs marked ready by accident can be reopened. Find them under ✓ Ready, open each one and tap ✓ Ready to undo.
+
+## 2026-10-20 · v104: "Print a label" without the emoji
+**Why:** Stephen's top-bar review of the first apps in the new brand colors. The brand uses no emoji on buttons.
+- The filter row's "🏷 Print a label" button is now plain "Print a label" ("Label" on narrow screens, as before). Nothing else changed.
+- **Tested:** the v103 write-compare passes against v104 (16 = 16, identical; practice 0 writes). At 1440 and 390 there are no console errors and practice mode makes 0 writes.
