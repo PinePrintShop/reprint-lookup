@@ -562,3 +562,22 @@ Stephen (on a patch job showing "Missing: garment"): "we can really exclude all 
   - The v34 suite passes 103/103 on v36, and the v35 test passes 10/10.
   - A new picker test passes. It covers the picker in ⚙ on a phone and in the bar on desktop, moving back when the window is resized, the ring, and needMe.
   - At 1440 and 390 there are no console errors and practice mode makes 0 writes.
+
+## 2026-10-20 · v37: find the order's Drive folder by order #, and say what's wrong with Drive
+Stephen saved an order's Drive folder link in Art to do and got "Can't read this folder (is it in the shared drive?)", which didn't say what was wrong. He also asked: "can we search the google drive and assign the matching folder sales creates to line item". Sales makes one folder per order in the shared drive, with the order number in its name. Needs **worker v26** (with v25 the app behaves exactly like v36).
+- **Art to do, order with no saved folder:** the app asks the worker for folders with the order number in their name (once per order per session; Refresh doesn't repeat it).
+  - **Exactly one** → saved to the order's Artwork Folder Link automatically (the same write as Save folder; practice fakes it). A quiet line says "Linked Drive folder "11029 Deppen Brewing" (found by order #)", next to the usual Change link, and the folder's files show as before.
+  - **Several** → a list (name opens in Drive, date, plain "Use this folder" button). The paste box stays underneath.
+  - **None** → the paste box as today, with "No Drive folder with 11029 in its name yet".
+  - Search failed, Drive not connected, or old worker → the paste box as today, nothing else.
+  - If the automatic save fails, the folder is offered with "Use this folder" and the error.
+- **Saved folder that can't be read:** shows the worker's own message (e.g. "Pine's Drive connection can't open this folder — share it (or the shared drive) with the service account", "Google sign-in failed: invalid_grant …"). For not in the shared drive / not found / no access there's also **Find the folder by order #**, which searches and lets you pick (it never saves on its own).
+- **⚙ › Google Drive:** "Connected · <drive name> · as <service account>" or what's wrong (in red), with Check again. Read once when the app opens, on Refresh, and when ⚙ is opened if the last check is over 20 seconds old.
+- **Tested** (Playwright, mocked Airtable and worker, 1440×900 and 390 phone), new test 78/78:
+  - one match → exactly 1 PATCH `{"fields":{"flddst7TDoJfSqb0s":"https://drive.google.com/drive/folders/…"}}`, the same body as Save folder; quiet line; files listed; no second search on reopen or Refresh; practice 0 writes and stays linked after a reload
+  - several → picker, buttons not yellow, Use this folder → 1 PATCH; none → hint; search error → plain paste box
+  - worker v25 → the brief's HTML is identical to v36 (no folder and unreadable folder), 0 writes
+  - each error code shows its message, Find shown only for folder problems, Find → pick → PATCH, Find with no match says so
+  - ⚙ connected / sign-in error (red) / old worker / phone width; Check again re-reads
+  - one yellow button, nothing under 12px, no console errors
+  - Existing suites on v37: v34 103/103, v35 10/10, v32 110/110, v24 sending 30/30, v29 folder 11/11, v36 picker 31/31, v28 Drive 60/61 (its old "No art folder yet — ask Sam" wording check, which also fails on v36; its folder-not-found check now expects the worker's message).
