@@ -106,3 +106,29 @@ Stephen, about "Carrier ups_walleted / Service ups_ground": "can we clean that u
 
 ## 2026-10-20 · correction: when the ShipStation order is made
 From Stephen's Zap list: the Zap "Shipment Creator - Payment Trigger" (QuickBooks payment → ShipStation) creates the ShipStation order when the customer PAYS, not when the deal is confirmed (that's "[TAXJAR] Order Confirmed > … > +Order to AT", which creates the Airtable order). So an unpaid order correctly shows "No ShipStation order" in the Shipping app until payment. Shipping-address changes sync Pipedrive → Airtable through the "Shipping Contact/Street/City/State/ZIP > Update in PD > AT" Zaps.
+
+## 2026-10-20 · v10: review fixes
+A review of v9 found these. All fixed; the rest of the app is unchanged.
+- **Delivery orders.** They always show **Ready for delivery — mark Completed** and the **Delivery** chip, even when the payment Zap already made a ShipStation order. Before, a paid Delivery order went down the label path. There is no address check for them (10816 and 10919 have no address in Airtable). Completed fires Airtable's "Delivery Email Notification", which emails the rep that the order is ready to deliver. So the button says "ready for delivery", not "delivered". **Ship it instead** opens the normal ShipStation flow if a Delivery order really ships.
+- **Pick-Up orders.** Catching sets Pick-Up orders straight to Completed, so they shouldn't reach the queue. If one does, its chip says **Pick-Up?** and the order shows a red note: Completed sends the customer the pick-up email. The Mark shipped confirm says so too.
+- **Saving and switching orders.** You can't open another order while a save is running; the app shows "Saving… one sec". Every save also stays on the order it started on. Before, a slow save could put one customer's ShipStation order and tracking onto another order.
+- **Add to ShipStation item name** is "Pine order 10936". The garment names came from Garment Type Lookup, which returns linked record IDs. That field is no longer read.
+- **Multi-line and international addresses.** On 10936 the whole address is in Street, one part per line, and City/State/ZIP are empty. The form now fills Street "59 22nd Street West", Street 2 "Unit #404", City "North Vancouver", Province "BC", Postcode "V7M 0B6" and Country "CA". A yellow line says what was read from Street, and plainly lists any City, State / Province, ZIP / Postcode or Country that's still empty. International orders no longer default to US. A country name (Canada, United Kingdom…) becomes its 2-letter code.
+- **Airtable writes never blank a field.** Empty values are skipped in "Use ShipStation address in Airtable" and in Add. When Airtable's Street holds a whole multi-line address, Add leaves it as it is and fills only the empty City/State/ZIP, because Airtable has no country field.
+- **Unpaid orders.** The Add form shows "Not paid yet — the payment Zap may also create a ShipStation order." "Paid" means Payment Received Date (`fld5RAeEEGMltdES0`, read only) is filled. The orderKey logic is unchanged.
+- **Practice toggle** in ⚙ now reloads the page with `?practice=1` added or removed, so fake results don't stay on screen.
+- **Smaller fixes:**
+  - `orderDate` is sent in Pacific time ("2026-10-20T09:15:00.0000000"), which is how ShipStation V1 reads it.
+  - Enter only locks a scale reading from a weight box or when no control has focus. A focused button keeps its Enter.
+  - Typing a weight hides Lock. After a lock, the cursor moves to the next box to weigh.
+  - Mark shipped writes today as Ship Date, so the order shows in "Shipped today". If the label is dated another day, the confirm says so.
+- **Tests:** mocked Playwright. All v9 tests pass on v10, plus new ones for each fix:
+  - a Delivery order with a ShipStation order
+  - the save race, with a forced switch: no cross-writes
+  - no record IDs in the item name
+  - the 10936 address split and its warnings
+  - the international no-US default
+  - an empty ShipStation value not written to Airtable
+  - Enter and Lock
+  - the practice reload
+  - 0 writes in practice, nothing under 12px, no console errors
