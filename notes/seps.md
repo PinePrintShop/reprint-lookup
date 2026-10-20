@@ -217,3 +217,7 @@ The art department's separation queue: imprints that need a sep (separation) fil
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.
+
+## 2026-10-20 · v44: Bandanas only next to the other pills
+Stephen: "can you put the bandana button in the same place as screens right next to the other pills".
+- "Bandanas only" now sits in the filter pill row right after Sep'd, like Screens, instead of at the far right. Same behaviour; all 50 v43 checks pass on v44.
