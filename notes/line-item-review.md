@@ -539,3 +539,12 @@ The v33 Invoice box sat between the step bar and the proof. On a laptop screen i
 - The Send for signature note ("… is still on the invoice. Remove it from the order too?") works as before. Its button asks first, then takes the line off without opening the pop-up.
 - Same saves as v33. Practice mode fakes all of them.
 - Tested (Playwright, mocked Airtable, 1440×900): with a 5-line order the proof panel is fully on screen and only 64px shorter than v32 (the summary line); the page doesn't scroll and the right column does; the summary numbers equal the invoice rows and the order's Outstanding; with a 12-line order the pop-up is 1100px wide, under 90% of the screen tall, and scrolls to Outstanding; a redraw keeps its scroll position; N / → don't move lines behind it; Esc / ✕ / clicking outside close it with no question when nothing changed; an unsaved row or discount asks "Discard changes?" (Keep editing keeps the typing); closing writes nothing; Garment Edit qty and Pricing Edit price open on that row in edit mode; a save from the pop-up sends the same PATCH and updates the summary line. The whole v33 invoice suite also passes inside the pop-up (same PATCHes, comments, margin questions, discount, Remove / Undo, packet note and rebuild, practice = 0 writes). One yellow button, nothing under 12px, no errors: 103/103. The v32 Review suite (110/110) and the v24 sending suite (30/30) pass on v34.
+
+## 2026-10-20 · v35: non-garments skip the garment lookup
+Stephen (on a patch job showing "Missing: garment"): "we can really exclude all non-garments from this vendor look up"
+- **What counts as apparel:** only lines with Product Type Printed Apparel, Embroidered Apparel, Live Printing or Contract Printing get the garment finder. That means the vendor link and "Missing: garment".
+- **Other lines:** patches, woven labels, stickers, pins, promo, flatstock, finishing and artwork show their Product Type ("Embroidered Patches (100%)") with no vendor link and no red tag.
+- **No Product Type:** the line counts as a non-garment when every imprint on it is Patch/Label ONLY or Flatstock.
+- **No location needed:** Patch/Label ONLY and Flatstock imprints no longer show "Missing: location", since they aren't placed on a garment.
+- **Garment box:** reads "Item" on non-garment lines.
+- **Tests:** new test 10/10 (`scratchpad/lir35/t35.js`); the v34 suite passes 103/103 on v35.
