@@ -581,3 +581,10 @@ Stephen saved an order's Drive folder link in Art to do and got "Can't read this
   - ⚙ connected / sign-in error (red) / old worker / phone width; Check again re-reads
   - one yellow button, nothing under 12px, no console errors
   - Existing suites on v37: v34 103/103, v35 10/10, v32 110/110, v24 sending 30/30, v29 folder 11/11, v36 picker 31/31, v28 Drive 60/61 (its old "No art folder yet — ask Sam" wording check, which also fails on v36; its folder-not-found check now expects the worker's message).
+
+## 2026-10-20 · v38: folders only, Client Provided opened in the brief
+Drive is connected (worker v27, Printshop shared drive). On 11029 Stephen: "looking nice! Can we just keep the folders and remove the other things in the folder....also is it possible to grab the content in the customer provided if it has stuff in the folder"
+- **Folders only:** the art brief lists the order folder's subfolders as "Folders (N)" chips, each opening in Drive. Loose files in the main folder are no longer listed.
+- **Client Provided opens in the brief:** if a subfolder's name has "client" or "customer" in it and it holds files, they show under its name (e.g. "Client Provided (2)"). Each gets a thumbnail, newest first, up to 12, then "+ N more in Client Provided ↗". An empty one shows as a chip only.
+- **One read:** the Client Provided folder is read once per session, like the main folder.
+- **Tests:** new test 13/13 (`scratchpad/lir38/t38.js`); v34 103/103. The v37 suite passes 76/78; its two misses expect loose files listed, which v38 removes on purpose.
