@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<!-- Screens v30 (2026-10-20): Bandanas only + forgiving search. Stephen: "can you look at adding a bandana only toggle
+     in the screen and seps app ... also can we make the search logic really find anything we are typing vs having to
+     type it very exactly."
+     - "Bandanas only" switch at the end of the filter chips, with a count. Works on top of every tab, the search and
+       the Calendar. Remembered in this browser (screens_bandana_only). A bandana = Imprints "Bandana Emoji Identifier"
+       (fldo7l8t4IhhWoeXl, non-empty for Carolina Creative garments; the same field Seps uses) or location Bandana.
+       Read only: it already came back in the full-record read.
+     - Search uses the shared pine-search.js: any word order, parts of words, initials, "11040a" for 11040-A, one typo.
+       It looks at imprint ID, order #, customer, design, print type, location, press, separator and ink names, best
+       match first. Airtable writes: same as v29.
+-->
+<!-- Screens v29 (2026-10-16): the open job is the same box for box as Seps v42 and Ink Queue v102 (pine-job-v2.css).
+     Stephen, comparing Ink and Screens at 2000px: "very subtle but you can see the ink and screen / sep box around the
+     mockup is ever so slightly different if you scan back and forth".
+     - Right pane: the same padding, header (its first line stays one line, so 3 tags no longer push the mockup down
+       at 1100px), body padding (12px; 8px on short laptops), mockup : controls = 58 : 42 (was 3 : 2; the controls at
+       least 400px, was 360px), 12px between them, 45 : 55 with two columns of inks (was 3 : 2, 480px+).
+     - The mockup footer is always there (it was only for a previous run): file name · ↩ Previous run · Full screen,
+       52px, so the mockup is the same size in every app. Narrow mockups drop the button words. Image top-left.
+     - The controls column: no 2px inset, 8px between rows (was 10px), Sep file is the shared one-line row, the inks
+       block 8px apart (was 6px).
+     - New read: the proof's file name (already in the proof read). Airtable writes: same as v28.
+     Screens v28 (2026-10-15): one job workspace with Seps v41 and Ink Queue v101 (Stephen OK'd the review, phase 1).
+     - Shared look from pine-job-v1.css (new): the same 72px bar and filter row (search · chips · Hide list on the right;
+       it was in the job header), day heads (▾ fold · date · one timing tag · count; days start open), an order line
+       (CUSTOMER · #order, new here; the cards no longer repeat them), ~96px list cards (80x64 mockup, ID + title,
+       location · type, screens · qty, one status tag + facts; no ink swatches, Stephen's call), the job header (ID + title
+       + tags, customer #order · location · type · press · print date, Screens · Qty, then ✓ Imaged), the mockup frame with
+       a footer only for a previous run (↩ Previous run · Full screen), 38px ink rows, notes with the label above.
+     - The Pantone color table moved to pine-pantone-v1.js (shared, byte-identical in all three apps).
+     - Words: "Repeat" -> "Reorder" (the Airtable field is the client-reorder checkbox "Repeat?"); chip "Reorders".
+     Same Airtable reads and writes as v27.
+     Screens v27 (2026-10-15): print notes size to their text (up to ~8 lines, then scroll); the fixed
+     2-line box cut longer notes off (Stephen's screenshot). Airtable writes: same as v26.
+     Screens v26 (2026-10-15): Stephen: "looks like it still scrolls on screens is there a way to not have it ever scroll on
+     a desktop?" Two panes from 1100px wide (was 1400), so 1280 / 1366 / 1440-with-zoom laptops get the static layout
+     instead of the page-scrolling cards (list 280–320px below 1400). The controls column is compact: sep file and print
+     notes are one line each (label on the left), ink rows are ~40px on one line (handle, number, swatch, name, type tag;
+     the type is no longer said twice), and when a job's inks don't fit they go into two columns (the column widens a
+     little for that job). Print notes are a one-line box when empty and grow while you type. Only beyond that does the
+     controls column scroll; never the page or the pane. Below 1100px unchanged. Airtable writes: same as v25.
+     Screens v25 (2026-10-15): two panes (>=1400px) — the open imprint never scrolls as a whole (Stephen: "can we work on not
+     having to scroll down if there is a lot of pantones etc would love for that mockup area be static and let's remove the
+     floating buttons"). The right pane is a fixed-height column: slim header, then the mockup (static, fills the height)
+     beside the controls column (sep file / inks / notes), which is the only part that scrolls. Ink drag auto-scroll moves
+     that column. Queue column narrower (320–360px) with compact cards (40px thumb, smaller ID badge). Nothing floats.
+     Below 1400px unchanged. Airtable writes: same as v24.
+     Screens v24 (2026-10-15): the open imprint on wide screens drops the small proof and the ink strip from its header
+     (Stephen: "do we need that white bar and smaller mockup above the bigger mockup"); the big mockup starts higher.
+     The inks are listed beside it. Dragging an ink near the top/bottom edge scrolls (as in Seps v37). Airtable writes: same as v23.
+     Screens v23 (2026-10-15): the mockup is the focus on desktop (two panes, >=1400px).
+     - The queue column is narrower (380–440px, was 560–640px); list cards keep thumb + ID, design, customer, Screens / Qty.
+     - The open imprint's proof takes ~60% of the right pane, stays put while the inks/notes scroll, fills the pane's
+       height, and has no white frame. It shows the full-size Airtable thumbnail (was the 512px one). Tap = full proof.
+     - "Hide list" / "Show list" (plain button on the open imprint) folds the queue away so the imprint gets the full
+       width; remembered on this computer. ↑/↓ still move between imprints with the list hidden.
+     iPad and phone layouts (below 1400px) are unchanged. Same Airtable reads and writes as v22.
+     v22 (2026-10-15): Pine style v2 + page kit, self-update, practice mode.
+     - Black Pine bar (logo, SCREENS, version, practice pill, Queue / Calendar views, Refresh, ⚙ with token + practice).
+     - One filter row: search · To image / No sep file / Repeats / Imaged chips · calendar weeks.
+     - Desktop first: full width; at >=1400px two panes (queue left, picked imprint right, ↑/↓ to move).
+       Below 1400px imprints open in place, one at a time.
+     - Imprints are kit list cards: proof thumb + ID · design / customer · #order · type · Screens / Qty;
+       tags (No sep file, Repeat, previous run) + ink swatches on row 2.
+     - "✓ Imaged" is the one yellow button (on the open imprint), with Undo in the toast. The next imprint opens.
+     - Practice (?practice=1, or ⚙): every write is faked (Imaged, sep link, print notes, burn order).
+     - Fixes: today's group said "Tomorrow" (noon-vs-midnight rounding); the imprint ID wrapped on the iPad;
+       a failed save now puts the imprint back and says so; the open panel no longer stays behind after Imaged;
+       notes being typed are saved before the list redraws; the ink list's grey "?" swatch is an empty swatch.
+     Same Airtable reads and writes as v21. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screens v30 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<link rel="stylesheet" href="pine-job-v2.css">
+<script src="pine-pantone-v1.js"></script>
+<script src="pine-search.js"></script>
+<style>
+/* v22: the Pine page kit (pine-style-v2.css) does the bar, ⚙ menu, filter row, page heads, list cards and two panes.
+   App-only bits below. */
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+body{font-size:15px}
+/* ⚙ menu */
+.menu-line{display:flex;gap:var(--p-s2);align-items:center}
+.menu-line .p-input{flex:1;min-width:0}
+/* filter row */
+.p-filters .p-select{width:auto;min-width:130px}
+@media (min-width:701px){ .p-filters{padding-left:24px;padding-right:24px} }
+.p-tab.zero{border-color:var(--p-line-strong);color:var(--p-ink-3)}
+.wrap{padding:0 24px 120px}
+.wrap.is-split{padding:0 24px}
+.wrap>.p-head:first-child{margin-top:var(--p-s4)}
+.msg{padding:40px 16px;text-align:center;color:var(--p-ink-2)}
+.msg b{display:block;color:var(--p-black);font-size:18px;margin-bottom:6px}
+.msg.err b{color:var(--p-alert)}
+/* imprint cards (.p-lc) */
+.p-lc-head.is-tap:hover{background:#FBF7EF}
+.p-lc-chev{font-size:18px;flex:0 0 auto!important}
+.p-lc-act:empty{display:none}
+/* two panes: the list cards have no action (it's on the right), so the numbers sit on the right of row 1 and the
+   cards stay two rows tall (kit default puts the numbers on their own row) */
+.p-lc.is-leaving{opacity:0;transition:opacity .35s}
+.ink-strip{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;min-height:24px}
+.ink-strip:empty{display:none}
+.ink-pill{display:inline-flex;align-items:center;gap:5px;font:700 13px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+.ink-pill svg{flex:0 0 14px;width:14px;height:14px}
+.ink-pill.pending{color:var(--p-ink-3)}
+.late{color:var(--p-alert)}
+/* open imprint */
+.sc-body{display:grid;grid-template-columns:minmax(200px,38%) minmax(0,1fr);gap:var(--p-s5);align-items:start}
+.sc-proof-img img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain}
+.sc-info{display:flex;flex-direction:column;gap:var(--p-s4);min-width:0}
+.sc-sec{display:flex;flex-direction:column;gap:var(--p-s2)}
+.sc-sec .p-label .p-hint{text-transform:none;letter-spacing:0;font-weight:400;margin-left:6px}
+.sc-linkrow{display:flex;gap:var(--p-s2);flex-wrap:wrap}
+.sc-linkrow .p-input{flex:1 1 240px;min-width:0}
+.ink-chip-empty{background:var(--p-white);border:2px dashed var(--p-line-strong)}
+.inks-msg{color:var(--p-ink-2);font-size:14px;padding:4px 0}
+.inks-msg.err{color:var(--p-alert)}
+.inotes{min-height:72px}
+.inotes.saving{border-color:var(--p-yellow)}
+.inotes.saved{border-color:var(--p-black)}
+.chip-popover{position:fixed;z-index:9999;background:var(--p-white);border:2px solid var(--p-black);border-radius:var(--p-r);padding:8px;box-shadow:var(--p-shadow);display:flex;gap:6px;align-items:center}
+.chip-hex-input{width:120px}
+/* calendar */
+.cal-week-lbl{margin:var(--p-s4) 0 var(--p-s2)}
+.cal-week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.cal-col{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:10px;min-height:170px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.cal-col.is-today{border:2px solid var(--p-black);box-shadow:inset 0 5px 0 var(--p-yellow)}
+.cal-col.is-past{background:transparent}
+.cal-dh{display:flex;justify-content:space-between;align-items:baseline}
+.cal-dow{font:800 12px/1 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2)}
+.cal-dnum{font:800 20px/1 var(--p-sans);font-variant-numeric:tabular-nums}
+.cal-load{height:6px;background:var(--p-cream);border-radius:3px;overflow:hidden}
+.cal-load i{display:block;height:100%;background:var(--p-black)}
+.cal-cnt{font-size:13px;color:var(--p-ink-2)}
+.cal-card{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;background:var(--p-cream-lt);border:1px solid var(--p-line);border-radius:var(--p-r);padding:8px;cursor:pointer;font:inherit;color:inherit;min-height:44px}
+.cal-card:hover{border-color:var(--p-black)}
+.cal-card.is-done{opacity:.6}
+.cal-cname{font:700 13px/1.25 var(--p-sans);text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-cmeta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cal-cmeta .p-id{font-size:12px;padding:3px 6px}
+.cal-cmeta .p-tag{height:22px;padding:0 6px}
+.cal-empty{color:var(--p-ink-3);text-align:center;padding:6px 0}
+.cal-more{margin-top:var(--p-s4)}
+/* full proof viewer */
+.pm{display:none;position:fixed;inset:0;z-index:200;background:rgba(20,20,18,.94);flex-direction:column}
+.pm.open{display:flex}
+.pm-bar{display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--p-black);color:var(--p-white);flex-shrink:0;min-height:56px}
+.pm-fn{flex:1;min-width:0;font:800 15px/1.2 var(--p-sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-nav{display:flex;gap:6px;align-items:center}
+.pm-ct{font:700 13px/1 var(--p-sans);min-width:36px;text-align:center;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums}
+.pm-body{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px;position:relative}
+.lb-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.lb-spin{width:32px;height:32px;border:3px solid #333;border-top-color:#999;border-radius:50%;animation:pm-sp .7s linear infinite}
+@keyframes pm-sp{to{transform:rotate(360deg)}}
+#pmCanvas{border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,.6);max-width:100%;max-height:100%;object-fit:contain}
+.p-toast{z-index:120}
+/* v23: two panes (>=1400px) — the mockup is the focus. Narrower queue (kit default is minmax(560px,640px)); the proof
+   gets ~60% of the open imprint, sticks while the right side scrolls, and fills the pane's height with no frame. */
+@media (min-width:1100px){
+  .p-split-detail>.p-lc{overflow:clip}   /* clip, not hidden: lets the proof stick */
+  .p-split-detail .p-lc-body{padding:var(--p-s3)}
+  .p-split-detail .p-lc-act{flex-wrap:wrap;justify-content:flex-end}
+}
+/* v25: two panes (>=1400px) — Stephen: "the left section is too big", "not having to scroll down if there is a lot of
+   pantones", "that mockup area be static", "remove the floating buttons".
+   Queue 320–360px with compact cards: 40px thumb on the left of design / customer, then ID badge · Screens · Qty,
+   then tags + inks (wrap). The open imprint is a fixed-height column that never scrolls as a whole: slim header, then
+   the mockup (fills the height, static) beside the controls column, which is the only part that scrolls. */
+@media (min-width:1100px){
+  .wrap.is-split.list-off .p-split{grid-template-columns:minmax(0,1fr)}
+  /* the open imprint: header on top, body fills the rest; only .sc-info scrolls */
+  .p-split-detail{display:flex;flex-direction:column;overflow:hidden;padding-bottom:var(--p-s4)}
+  .p-split-detail>.p-split-empty{flex:none}
+  .p-split-detail>.p-lc{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .p-split-detail>.p-lc>.p-lc-head{flex:none}
+  .p-split-detail .p-lc-body{flex:1 1 auto;min-height:0}
+  .p-split-detail .sc-body{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
+  .p-split-detail .sc-proof{min-height:0}
+}
+/* v26: Stephen: "is there a way to not have it ever scroll on a desktop?" Two panes from 1100px (was 1400); the list is
+   280–320px below 1400. The controls column is compact so a typical imprint fits without scrolling: sep file and print
+   notes are one line each (label on the left), ink rows ~40px on one line, and when the inks still don't fit (more
+   than 5) they go into two columns (.ink-2col, set by fitInks(), widens the column a little for that imprint). */
+@media (min-width:1100px) and (max-width:1399px){
+}
+@media (min-width:1100px){
+  .p-split-detail .sc-info>*{flex-shrink:0}   /* rows keep their height; the column scrolls instead */
+  .p-split-detail .sc-sec{gap:6px}
+  .p-split-detail .sc-line{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:10px;min-height:40px}
+  .p-split-detail .sc-line>.p-btns{flex:1 1 auto;gap:6px}
+  .p-split-detail .sc-line>.p-btns>.p-hint{display:none}   /* the button says it; the header tag says No sep file */
+  .p-split-detail .sc-line>.sc-linkrow{flex:1 1 100%}
+  .p-split-detail .sc-info .p-btn,.p-split-detail .sc-linkrow .p-input{min-height:36px;font-size:14px}
+  .p-split-detail .sc-info .p-btn{padding:0 12px}
+  .p-split-detail .sc-linkrow .p-input{padding:6px 10px}
+  .p-split-detail .sc-line>.inotes{flex:1 1 200px;min-width:0;width:auto;min-height:40px;padding:8px 10px;font-size:15px;line-height:1.3;resize:none;transition:height .12s}
+  /* v27: height follows the text (JS below), was a fixed 62px that cut notes off */
+  
+}
+.sc-bandana{margin-left:8px}   /* v30: a switch, set a little apart from the tabs */
+@media (max-width:900px){ .sc-body{grid-template-columns:1fr} .sc-proof{max-width:440px} .p-filters .p-search{flex-basis:100%;max-width:none} }
+@media (max-width:700px){
+  .p-bar{gap:8px}
+  .p-filters .p-search{flex-basis:100%;max-width:none}
+  .p-chips{margin:0 -16px;padding:0 16px 2px}
+  .wrap{padding:0 12px 120px}
+  .p-lc-chev{display:none}
+  .sc-proof-img img{max-height:240px}
+  .cal-week{grid-template-columns:1fr}
+  .cal-col{min-height:0}
+  .pm-bar{padding:6px 8px}
+}
+/* v28: the shared job workspace (pine-job-v1.css) does the day heads, order lines, list cards, job header, mockup frame,
+   ink rows and notes. Screens-only bits on top of it: */
+@media (min-width:1100px){
+  .wrap.is-split.list-off .p-split{grid-template-columns:minmax(0,1fr)}
+  .wrap.is-split.list-off .p-split-list{display:none}
+}
+.sc-proof{min-width:0}
+.sc-info>.sc-sec{min-width:0}
+.ink-rows>.inks-msg{padding:8px 12px}
+/* v29: the right pane's geometry (pane, body, mockup : controls 58 : 42, gap, footer, one-line rows, column gap) is all
+   pine-job-v2.css now, the same as Seps v42 and Ink v102. The Screens-only rules that made it differ are gone. */
+</style>
+</head>
+<body class="p-app p-job">
+<header class="p-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Screens</span><span class="p-bar-ver" id="ver">v30</span>
+  <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
+  <nav class="p-bar-views" role="tablist" aria-label="Views">
+    <button type="button" role="tab" id="vtQueue" class="is-on" aria-selected="true" data-view="queue">Queue <span class="p-count" id="queueCount"></span></button>
+    <button type="button" role="tab" id="vtCal" aria-selected="false" data-view="cal">Calendar</button>
+  </nav>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Reload from Airtable and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="menuBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="p-menu" id="menu" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row"><label class="p-menu-label" for="tokIn">Airtable token</label>
+      <span class="menu-line"><input id="tokIn" class="p-input" type="password" placeholder="pat…" autocomplete="off"><button class="p-btn p-btn-dark" id="tokSave" type="button">Save</button></span>
+      <span class="p-hint">Stays in this browser only.</span></div>
+    <div class="p-menu-row"><span class="p-menu-label">Practice</span>
+      <span class="p-menu-line"><span id="practiceHint"></span><button class="p-btn" id="practiceBtn" type="button"></button></span></div>
+  </div>
+</header>
+<div class="p-filters" id="filters">
+  <input type="search" id="search" class="p-input p-search" placeholder="Search order, customer, design, ink…" aria-label="Search imprints">
+  <div class="p-chips p-chips-inline" id="chips" role="tablist" aria-label="Filter"></div>
+  <div class="p-filters-end">
+    <span id="calSpanWrap" hidden><select id="calSpan" class="p-select" aria-label="Weeks shown">
+      <option value="7">1 week</option><option value="14">2 weeks</option><option value="21">3 weeks</option><option value="28">4 weeks</option>
+    </select></span>
+    <button type="button" class="p-btn p-job-listbtn" id="listToggle" data-listtoggle hidden></button>
+  </div>
+</div>
+<main class="wrap" id="root"><div class="msg"><b>Loading queue…</b></div></main>
+
+<!-- Proof fullscreen viewer -->
+<div class="pm" id="pmModal" role="dialog" aria-label="Proof">
+  <div class="pm-bar">
+    <button class="p-barbtn" type="button" onclick="pmClose()">&#10005; <span class="p-barbtn-word">Close</span></button>
+    <span class="pm-fn" id="pmFn"></span>
+    <div class="pm-nav">
+      <button class="p-barbtn p-barbtn-icon" type="button" onclick="pmPrev()" aria-label="Previous page">&#8249;</button>
+      <span class="pm-ct" id="pmCt"></span>
+      <button class="p-barbtn p-barbtn-icon" type="button" onclick="pmNext()" aria-label="Next page">&#8250;</button>
+    </div>
+    <a id="pmOpenLink" href="#" target="_blank" rel="noopener" class="p-barbtn" style="display:none">Open &#8599;</a>
+  </div>
+  <div class="pm-body" id="pmBody">
+    <div class="lb-spinner" id="pmSpinner"><div class="lb-spin"></div></div>
+    <canvas id="pmCanvas"></canvas>
+  </div>
+</div>
+
+<div class="p-toast" id="toast" role="status" hidden></div>
+
+<script>
+/* Screens — the screen room queue: imprints that are sep'd and waiting to be imaged (burned), by print date.
+   v22 (2026-10-15): Pine style v2 + page kit, pine-update.js, practice mode (?practice=1 fakes every write).
+     Desktop first (two panes at >=1400px). Today/Tomorrow label fix. Failed saves put the imprint back.
+     Same Airtable reads and writes as v21 (Burned, Sep URL, Print Notes, Inks order).
+   v21: Imaged tab (imaged today or the previous workday) from the Burned lastModifiedTime field.
+   v14: writes live (WRITES_ENABLED) — replaced by practice mode in v22. */
+var PRACTICE = /[?&]practice=1/.test(location.search);
+
+var BASE = 'appJkaLk8DykjsgHR';
+var TBL  = 'tbln9oAGvz2PNBZLV';
+
+var F = {
+  imprintId:  'fldDFfwFQ9B20n2kT',
+  impType:    'fldjNCuaGOkWgzH2K',
+  proof:      'fldUOIfCd22MxevRm',
+  sepUrl:     'fldiBqdFTRMahiMeI',
+  seped:      'fldlMcHtldbifKzDN',
+  burned:     'fldEL51Nwrxuyn9Zo',
+  burnedAt:   'fldGE6YUG5NWIqq1g', // v21: Screens Burned Timestamp — lastModifiedTime of Burned
+  separator:  'fldTPKgZroX532qER',
+  schedStart: 'fldfqtIgcEfIlIeQk',
+  screens:    'fld8rgkIj1RPO97QU',
+  impressions:'fldFipR4ddfqMPeAX',
+  customer:   'fldeLMIAC0ABQAjYJ',
+  printDesc:  'fld0jStSNsRNjjeZy',
+  inkNames:   'fldMM5hp8kEpo3KKT',
+  inks:       'fldpNCCXTgHyDhvak',
+  printNotes: 'fldNuEzGIYI8FWqXu',
+  repeat:     'flda9L7041ahNZT0b',
+  prevImprint: 'fldAEQvMAAZX9gnhl',
+  imprintIdGen:'fldHjjQ5lzm66ox5j', // v17: formula mirror of Imprint ID — used to label prev refs
+  location:   'fldKQIL0rSJBSeC8S', // v28: read for the card and job header (already in the full-record read)
+  press:      'fldv59OGU7EkBVofo', // v28: Equipment (press), job header only
+  bandana:    'fldo7l8t4IhhWoeXl', // v30: Bandana Emoji Identifier — non-empty when the garment is Carolina Creative (as Seps)
+};
+
+var SKIP_TYPES = new Set([
+  'Embroidery','Patch Application','Hem Label Application','Woven Label Application',
+  'Patch/Label ONLY','Finishing - Fold & Bag','Finishing - UPC sticker',
+  'Finishing - Bandana Hanger','Hem Label','Woven Label'
+]);
+
+function isSupaType(t) { return t && (t.indexOf('Supacolor') === 0 || t.indexOf('Decopress') === 0); }
+
+var ACTIVE_STATUSES = new Set([
+  'Pre-press','Ordered - In Production','Received & Staged',
+  'Scheduled, Screened, & Inbound','On-Press',
+  'Delayed - Mis-Print','Delayed - Mis-Shipment - Needs Order',
+  'Delayed - Mis-Print - Needs Order'
+]);
+
+var ALL = [], state = {}, activeFilter = 'all'; /* Screen Room only (the Art role was removed in v13) */
+var PROOF_URLS = {};
+var openId = '';        // v22: the imprint open in place (<1400px) or shown on the right (>=1400px)
+var shownIds = [];      // v22: imprints on screen, in order (for ↑/↓ and "open the next one")
+var SAVING = 0;         // v22: writes in flight
+var BUSY_IDS = {};      // v22: one Imaged write per imprint at a time (no double taps)
+var LOADED = false;
+var viewMode = 'queue';
+var calSpan = 7;
+
+function $(id) { return document.getElementById(id); }
+function token() { try { return localStorage.getItem('pine_at_key') || ''; } catch (e) { return ''; } }
+
+function boot() {
+  if (!token()) { showNoToken(); return; }
+  loadData();
+}
+function showNoToken() {
+  $('root').innerHTML = '<div class="msg"><b>Airtable token needed</b>Paste it in the ⚙ menu (top right). It stays in this browser only.</div>';
+  showMenu(true);
+}
+
+function loadData() {
+  var tok = token();
+  if (!tok) { showNoToken(); return; }
+  if (!LOADED) $('root').innerHTML = '<div class="msg"><b>Loading queue…</b></div>';
+  fetchAll(tok).then(function(recs) {
+    ALL = parseRecords(recs);
+    state = {};
+    ALL.forEach(function(r) {
+      state[r.id] = { sp:r.sp, b:r.b, sepsUrl:r.sepsUrl, sep:r.sep, pn:r.pn, burnedAt:r.burnedAt };
+      if (r.largeUrl) PROOF_URLS[r.id] = r.largeUrl;
+    });
+    INK_CACHE = {}; inkChipCache = {};
+    LOADED = true;
+    render();
+    // v17: resolve the human-readable IDs of linked previous imprints, then re-render so the references appear.
+    resolvePrevRefs(tok).then(function(n) { if (n) render(); });
+    // v19: batch-load every linked ink so the card swatch strips can paint (in place, no re-render).
+    preloadInks(tok).then(paintAllCardInks);
+  }).catch(function(err) {
+    $('root').innerHTML = '<div class="msg err"><b>Couldn’t load the queue</b>' + esc(err.message) + '<br>Check the token in the ⚙ menu, then Refresh.</div>';
+    console.error(err);
+  });
+}
+
+function fetchAll(token) {
+  // Tight date window: scheduled start in past 14 days OR next 60 days
+  // Status + type filtering done client-side in parseRecords
+  // Note: filterByFormula on lookup fields is unreliable per reference doc
+  var past = new Date(); past.setDate(past.getDate() - 14);
+  var fut  = new Date(); fut.setDate(fut.getDate() + 60);
+  var pastStr = past.toISOString().slice(0,10);
+  var futStr  = fut.toISOString().slice(0,10);
+  var fid = 'fldfqtIgcEfIlIeQk';
+  var formula = 'OR(' +
+    'AND(IS_AFTER({' + fid + '},"' + pastStr + '"),IS_BEFORE({' + fid + '},"' + futStr + '")),' +
+    'IS_AFTER(CREATED_TIME(),"' + pastStr + '")' +
+  ')';
+  var params = new URLSearchParams();
+  params.set('filterByFormula', formula);
+  params.set('pageSize', '100');
+  params.set('returnFieldsByFieldId', 'true');
+
+  var all = [];
+  function page(offset) {
+    var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL + '?' + params + (offset ? '&offset=' + encodeURIComponent(offset) : '');
+    return fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+      .then(function(res) {
+        if (!res.ok) return res.json().then(function(e) { throw new Error((e.error && e.error.message) || 'API error ' + res.status); });
+        return res.json();
+      })
+      .then(function(d) {
+        all = all.concat(d.records || []);
+        if (d.offset) return page(d.offset);
+        return all;
+      });
+  }
+  return page(null);
+}
+
+/* v17 — resolvePrevRefs: one batched lookup over every linked previous imprint, hung on each record as
+   r.prevRefs = [{id,label}]. Chunked at 40 per OR(). Always soft-fails (no references is fine). */
+function resolvePrevRefs(token) {
+  var seen = {};
+  ALL.forEach(function(r) { (r.prevIds || []).forEach(function(p) { seen[p] = 1; }); });
+  var list = Object.keys(seen);
+  if (!list.length || !token) return Promise.resolve(0);
+
+  var chunks = [];
+  for (var i = 0; i < list.length; i += 40) chunks.push(list.slice(i, i + 40));
+
+  return Promise.all(chunks.map(function(ch) {
+    var filter = 'OR(' + ch.map(function(x) { return "RECORD_ID()='" + x + "'"; }).join(',') + ')';
+    var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL +
+      '?returnFieldsByFieldId=true&pageSize=100' +
+      '&fields%5B%5D=' + F.imprintIdGen +
+      '&fields%5B%5D=' + F.imprintId +
+      '&filterByFormula=' + encodeURIComponent(filter);
+    return fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      });
+  })).then(function(pages) {
+    var byId = {};
+    pages.forEach(function(d) {
+      (d.records || []).forEach(function(r) {
+        var f = r.fields || {};
+        var lbl = f[F.imprintIdGen] || f[F.imprintId] || '';
+        byId[r.id] = String(lbl).trim();
+      });
+    });
+    ALL.forEach(function(r) {
+      r.prevRefs = (r.prevIds || []).map(function(p) {
+        return { id: p, label: byId[p] || '' };
+      }).filter(function(x) { return x.label; });
+    });
+    return Object.keys(byId).length;
+  }).catch(function(err) {
+    console.warn('[screens resolvePrevRefs] soft-fail, references omitted:', err);
+    return 0;
+  });
+}
+
+function flatLookup(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (val.valuesByLinkedRecordId) {
+    return Object.values(val.valuesByLinkedRecordId).reduce(function(a,b){ return a.concat(b); }, []);
+  }
+  return [val];
+}
+
+function selText(v) { v = Array.isArray(v) ? v[0] : v; if (!v) return ''; return typeof v === 'object' ? (v.name || '') : String(v); }
+function parseRecords(records) {
+  var out = [];
+  records.forEach(function(r) {
+    var f = r.fields || {};
+    var iid = f[F.imprintId] || '';
+    if (!iid || iid.indexOf('-') < 0) return;
+    var orderNum = parseInt(iid.split('-')[0], 10);
+    if (!isNaN(orderNum) && orderNum < 9400) return;
+    var typeRaw = f[F.impType]; var typeName = typeRaw ? (typeof typeRaw === 'object' ? (typeRaw.name || '') : String(typeRaw)) : '';
+    if (SKIP_TYPES.has(typeName)) return;
+
+    var statusOk = false;
+    Object.values(f).forEach(function(v) {
+      flatLookup(v).forEach(function(s) { if (ACTIVE_STATUSES.has(s)) statusOk = true; });
+    });
+    if (!statusOk) return;
+
+    var proofs = flatLookup(f[F.proof]);
+    if (!proofs.length) return;
+    var fp = proofs[0];
+    var thumbUrl = '', largeUrl = '', fullUrl = '';
+    if (fp && typeof fp === 'object' && fp.thumbnails) {
+      thumbUrl = (fp.thumbnails.large && fp.thumbnails.large.url) || (fp.thumbnails.small && fp.thumbnails.small.url) || '';
+      largeUrl = thumbUrl;
+      fullUrl = (fp.thumbnails.full && fp.thumbnails.full.url) || thumbUrl;   // v23: the big proof on desktop
+    } else if (typeof fp === 'string' && fp.indexOf('http') === 0) {
+      thumbUrl = fp; largeUrl = fp; fullUrl = fp;
+    }
+    if (!thumbUrl) return;
+
+    var cust = f[F.customer];
+    if (Array.isArray(cust)) cust = cust[0] || '';
+    cust = cust || '';
+
+    out.push({
+      id: r.id,
+      i: iid,
+      o: iid.split('-')[0],
+      n: f[F.printDesc] || '',
+      t: typeName,
+      s: f[F.screens] || null,
+      sp: f[F.seped] === true,
+      b:  f[F.burned] === true,
+      burnedAt: doneYmd(f[F.burnedAt]), // v21
+      rp: f[F.repeat] === true,
+      // v17: Previous Imprint ID can hold MULTIPLE links. Keep them all for the references; prevImprintId stays
+      // as the first for the ink-inheritance path. v0 REST returns bare strings, MCP returns {id,name}.
+      prevIds: (Array.isArray(f[F.prevImprint]) ? f[F.prevImprint] : [])
+        .map(function(x) { return (typeof x === 'string') ? x : (x && x.id) || ''; })
+        .filter(Boolean),
+      prevRefs: [],
+      prevImprintId: (f[F.prevImprint]||[])[0] ? ((f[F.prevImprint][0].id)||f[F.prevImprint][0]) : null,
+      c: cust,
+      loc: selText(f[F.location]),   // v28
+      press: selText(f[F.press]),    // v28
+      bandana: !!String(f[F.bandana] || '').trim() || /bandana/i.test(selText(f[F.location])),   // v30: Bandanas only
+      pn: f[F.printNotes] || '',
+      sepsUrl: f[F.sepUrl] || '',
+      sep: f[F.separator] || '',
+      due: (f[F.schedStart] || '').slice(0,10),
+      qty: f[F.impressions] || null,
+      thumbUrl: thumbUrl, largeUrl: largeUrl, fullUrl: fullUrl,
+      proofName: (fp && typeof fp === 'object' && fp.filename) || '',   // v29: the mockup footer shows it
+      supa: isSupaType(typeName),
+      inks: f[F.inkNames] || '',
+      inkIds: flatLookup(f[F.inks]).map(function(v){ return typeof v === 'string' ? v : (v && v.id) || ''; }).filter(Boolean),
+    });
+  });
+
+  var dated   = out.filter(function(x){return x.due;}).sort(function(a,b){return a.due.localeCompare(b.due)||a.i.localeCompare(b.i);});
+  var undated = out.filter(function(x){return !x.due;}).sort(function(a,b){return b.o.localeCompare(a.o)||a.i.localeCompare(b.i);});
+  return dated.concat(undated);
+}
+
+var DONE_TAB = 'imaged'; // v21
+// ---- RECENTLY-DONE TAB (shared rule) ----
+// A job stays on the done tab the day it's checked plus the next workday, then drops off:
+// done date >= previous workday (local time). Checked Mon -> Mon + Tue. Checked Fri -> Fri + Mon.
+// The date comes from Airtable's lastModifiedTime field on the checkbox, so the app writes nothing new;
+// on check/uncheck it's mirrored locally so the tab is right without a reload.
+function ymdLocal(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function todayYmd() { return ymdLocal(new Date()); }
+function prevWorkdayYmd() {
+  var d = new Date();
+  do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
+  return ymdLocal(d);
+}
+// Accepts a date-only 'YYYY-MM-DD' or a full ISO timestamp (converted to local date).
+function doneYmd(v) {
+  if (!v || typeof v !== 'string') return '';
+  if (v.length <= 10) return v;
+  var d = new Date(v);
+  return isNaN(d.getTime()) ? '' : ymdLocal(d);
+}
+function isRecentDone(ymd) { return !!ymd && ymd >= prevWorkdayYmd(); }
+
+/* ---------- filters ---------- */
+var FILTERS = [
+  ['all', 'To image'],
+  ['nofile', 'No sep file'],
+  ['repeat', 'Reorders'],
+  ['imaged', 'Imaged']
+];
+function inQueue(r) { var s = state[r.id] || r; return s.sp && !s.b; }   // sep'd and not yet imaged
+function isImagedRecent(r) { var s = state[r.id] || r; return s.b && isRecentDone(s.burnedAt); }
+function counts() {
+  var q = ALL.filter(inQueue);
+  return {
+    all: q.length,
+    nofile: q.filter(function(r) { return !(state[r.id] || r).sepsUrl; }).length,
+    repeat: q.filter(function(r) { return r.rp; }).length,
+    imaged: ALL.filter(isImagedRecent).length,
+    bandana: ALL.filter(function(r) { return r.bandana && inTab(r); }).length   // v30
+  };
+}
+function updateStats() {
+  var c = counts();
+  $('queueCount').textContent = LOADED ? c.all : '';
+  $('chips').innerHTML = FILTERS.map(function(x) {
+    var on = activeFilter === x[0], n = c[x[0]];
+    return '<button type="button" class="p-tab' + (on ? ' is-on' : '') + (n ? '' : ' zero') + '" data-filter="' + x[0] + '" role="tab" aria-selected="' + on + '">' +
+      x[1] + ' <span class="p-count">' + n + '</span></button>';
+  }).join('') +
+    // v30: Bandanas only — a switch, not a tab; the count is bandanas on the current tab
+    '<button type="button" class="p-tab sc-bandana' + (BANDANA_ONLY ? ' is-on' : '') + (c.bandana ? '' : ' zero') + '" data-bandana="1" aria-pressed="' + BANDANA_ONLY + '" title="Show only bandana jobs (Carolina Creative)">' +
+    'Bandanas only <span class="p-count">' + c.bandana + '</span></button>';
+}
+function setFilter(f) { activeFilter = f; render(); }
+// v30: "Bandanas only" — a switch on top of the tabs (and the Calendar), remembered in this browser.
+var BANDANA_ONLY = false;
+try { BANDANA_ONLY = localStorage.getItem('screens_bandana_only') === '1'; } catch (e) {}
+function setBandanaOnly(on) {
+  BANDANA_ONLY = !!on;
+  try { localStorage.setItem('screens_bandana_only', BANDANA_ONLY ? '1' : '0'); } catch (e) {}
+  render();
+}
+function inTab(r) {
+  if (activeFilter === DONE_TAB) return isImagedRecent(r);   // v21: imaged today or the previous workday
+  if (!inQueue(r)) return false;
+  if (activeFilter === 'nofile' && (state[r.id] || r).sepsUrl) return false;
+  if (activeFilter === 'repeat' && !r.rp) return false;
+  return true;
+}
+// v30: everything the search box looks at (pine-search.js: any order, parts of words, initials, one typo)
+function searchText(r) {
+  var s = state[r.id] || r;
+  return [r.i, r.o, r.c, r.n, r.t, r.loc, r.press, r.sep, s.inks || r.inks, r.bandana ? 'bandana' : ''].join(' ');
+}
+
+function applyFilters(records) {
+  var q = ($('search').value || '').trim();
+  var list = records.filter(function(r) { return inTab(r) && (!BANDANA_ONLY || r.bandana); });
+  return q ? PineSearch.filter(q, list, searchText) : list;   // v30: forgiving search, best match first
+}
+
+function groupByDate(records) {
+  var map = {}, order = [];
+  records.forEach(function(r) {
+    var key = r.due || 'undated';
+    if (!map[key]) { map[key] = []; order.push(key); }
+    map[key].push(r);
+  });
+  return order.map(function(d) { return { date: d, records: map[d] }; });
+}
+
+/* ---------- dates ---------- */
+function fmtDate(d) {
+  try { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }); } catch (e) { return d; }
+}
+// v22 FIX: compare midnight to midnight. v21 compared the print date at noon with today at midnight, so today
+// came out as +0.5 days, which rounds to 1 = "Tomorrow" (and tomorrow as 2 = a plain date).
+function daysDiff(d) {
+  if (!d) return null;
+  var t = new Date(); t.setHours(0,0,0,0);
+  var x = new Date(d + 'T00:00:00');
+  return Math.round((x - t) / 864e5);
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ---------- queue ---------- */
+var WIDE = window.matchMedia ? matchMedia('(min-width:1100px)') : null;   // v26: two panes from 1100px (was 1400)
+function isWide() { return !!(WIDE && WIDE.matches); }
+
+function render() {
+  flushNotes();
+  updateStats();
+  var root = $('root');
+  root.classList.remove('is-split', 'list-off');
+  $('calSpanWrap').hidden = viewMode !== 'cal';
+  syncListBtn();
+  if (!LOADED) return;
+  var filtered = applyFilters(ALL);
+  if (viewMode === 'cal') { shownIds = []; root.innerHTML = renderCalendar(filtered); return; }
+  shownIds = filtered.map(function(r) { return r.id; });
+  if (!filtered.length) {
+    var q = ($('search').value || '').trim();
+    if (BANDANA_ONLY && !q) { root.innerHTML = '<div class="msg"><b>No bandanas here</b>Turn off Bandanas only to see every job.</div>'; return; }   // v30
+    root.innerHTML = '<div class="msg"><b>' + (q ? 'Nothing matches “' + esc(q) + '”' : activeFilter === DONE_TAB ? 'Nothing imaged today or last workday' : activeFilter === 'all' ? 'All caught up' : 'Nothing here') + '</b>' +
+      (q ? (BANDANA_ONLY ? 'Bandanas only is on. ' : '') + 'Try To image or Imaged.' : activeFilter === DONE_TAB ? '' : activeFilter === 'all' ? 'No sep’d imprints waiting to be imaged.' : 'Try To image.') + '</div>';
+    return;
+  }
+  var groups = groupByDate(filtered);
+  if (isWide()) { renderSplit(groups, filtered); return; }
+  if (openId && shownIds.indexOf(openId) < 0) openId = '';
+  root.innerHTML = groups.map(function(g) { return dayGroup(g, ''); }).join('');
+  afterRender();
+}
+
+function renderSplit(groups, filtered) {
+  var ls = $('splitList'), ds = $('splitDetail'), keepL = ls ? ls.scrollTop : 0, keepId = ds ? ds.getAttribute('data-id') : '';
+  var di = detailScroller(), keepD = di ? di.scrollTop : 0;   // v25: only the controls column scrolls
+  if (!openId || shownIds.indexOf(openId) < 0) openId = shownIds[0] || '';
+  var pick = filtered.filter(function(r) { return r.id === openId; })[0];
+  var root = $('root');
+  root.classList.add('is-split');
+  root.classList.toggle('list-off', LIST_OFF);
+  root.innerHTML = '<div class="p-split"><div class="p-split-list" id="splitList">' +
+    groups.map(function(g) { return dayGroup(g, 'list'); }).join('') + '</div>' +
+    '<div class="p-split-detail" id="splitDetail" data-id="' + (pick ? pick.id : '') + '" aria-live="polite">' +
+    (pick ? card(pick, 'detail', true) : '<div class="p-split-empty">Pick an imprint on the left</div>') + '</div></div>';
+  setSplitTop();
+  $('splitList').scrollTop = keepL;
+  $('splitDetail').scrollTop = 0;
+  var di2 = detailScroller(); if (di2) di2.scrollTop = (pick && keepId === pick.id) ? keepD : 0;   // v25: a new imprint starts at the top
+  afterRender();
+}
+function setSplitTop() {
+  var m = $('root'); if (!m) return;
+  document.documentElement.style.setProperty('--p-split-top', Math.round(m.getBoundingClientRect().top + window.scrollY) + 'px');
+}
+function afterRender() {
+  if (openId && $('inks-rows-' + openId)) loadInkChips(openId);
+  fitProof();
+}
+// v25: the right pane no longer scrolls; the proof fills the body's height in CSS. Kept as a no-op for its callers.
+function fitProof() {}
+// v25: the one part of the open imprint (two panes) that scrolls: sep file, inks, print notes.
+function detailScroller() { var d = isWide() && $('splitDetail'); return (d && d.querySelector('.sc-info')) || null; }
+
+// v28: the shared day head (pine-job-v1.css): ▾ fold · date box · ONE timing tag · round count; then each order's line
+// (CUSTOMER · #order) and its cards. Days start open; a fold is remembered for the session. The open imprint's day is
+// always open, and a search opens every day.
+var DAY_FOLD = {};
+try { DAY_FOLD = JSON.parse(sessionStorage.getItem('screens_folds') || '{}') || {}; } catch (e) {}
+function workDaysUntil(d) {
+  var t = new Date(); t.setHours(0,0,0,0);
+  var x = new Date(d + 'T00:00:00'); if (isNaN(x.getTime()) || x <= t) return 0;
+  var n = 0; while (t < x) { t.setDate(t.getDate() + 1); if (t.getDay() !== 0 && t.getDay() !== 6) n++; }
+  return n;
+}
+function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+function whenTag(date, doneTab) {
+  if (!date || date === 'undated') return '';
+  var days = daysDiff(date);
+  if (days < 0) return '<span class="p-tag ' + (doneTab ? 'p-tag-soft' : 'p-tag-alert') + ' p-job-when">' + plural(-days, 'day') + (doneTab ? ' ago' : ' late') + '</span>';
+  var soft = doneTab ? 'p-tag-soft' : 'p-tag-wait';
+  if (days === 0) return '<span class="p-tag ' + soft + ' p-job-when">Today</span>';
+  if (days === 1) return '<span class="p-tag ' + soft + ' p-job-when">Tomorrow</span>';
+  var wd = workDaysUntil(date);
+  return '<span class="p-tag ' + (wd <= 3 && !doneTab ? 'p-tag-wait' : 'p-tag-soft') + ' p-job-when" title="Prints in ' + plural(wd, 'work day') + '">in ' + wd + '<span class="p-job-wd"> work</span> day' + (wd === 1 ? '' : 's') + '</span>';
+}
+function dayGroup(g, mode) {
+  var key = g.date, n = g.records.length, scr = g.records.reduce(function(a, r) { return a + (Number(r.s) || 0); }, 0);
+  var holds = !!openId && g.records.some(function(r) { return r.id === openId; });
+  var closed = !!DAY_FOLD[key] && !holds && !($('search').value || '').trim();
+  var lbl = key === 'undated' ? 'No print date' : fmtDate(key);
+  var h = '<section class="p-job-dayg' + (closed ? ' is-closed' : '') + '" id="dg-' + key + '">' +
+    '<div class="p-job-day" data-fold="' + key + '"><button type="button" class="p-job-fold" data-fold="' + key + '" aria-expanded="' + !closed + '" aria-label="Show or hide ' + esc(lbl) + '">&#9662;</button>' +
+    '<span class="p-job-date">' + esc(lbl) + '</span>' + whenTag(key, activeFilter === DONE_TAB) +
+    '<span class="p-job-n" title="' + plural(n, 'imprint') + (scr ? ' · ' + plural(scr, 'screen') : '') + '">' + n + '</span></div><div class="p-job-dayb">';
+  var order = [], by = {};
+  g.records.forEach(function(r) { if (!by[r.o]) { by[r.o] = []; order.push(r.o); } by[r.o].push(r); });
+  order.forEach(function(o) {
+    var cust = by[o][0].c || 'No customer';
+    h += '<div class="p-job-order"><b class="p-job-cust" title="' + esc(cust) + '">' + esc(cust) + '</b><span class="p-job-ordno">#' + esc(o) + '</span></div>' +
+      by[o].map(function(r) { return card(r, mode, r.id === openId); }).join('');
+  });
+  return h + '</div></section>';
+}
+function toggleDay(key) {
+  var el = $('dg-' + key); if (!el) return;
+  var closed = !el.classList.contains('is-closed');
+  el.classList.toggle('is-closed', closed);
+  var b = el.querySelector('.p-job-fold'); if (b) b.setAttribute('aria-expanded', String(!closed));
+  if (closed) DAY_FOLD[key] = 1; else delete DAY_FOLD[key];
+  try { sessionStorage.setItem('screens_folds', JSON.stringify(DAY_FOLD)); } catch (e) {}
+}
+
+function numCell(label, v) { return '<span class="p-num"><small>' + label + '</small><b>' + esc(v) + '</b></span>'; }
+
+// mode '' = open in place (<1100px), 'list' = left pane, 'detail' = right pane
+// v28: list / in-place cards are the shared ~96px card (80x64 mockup · ID + title · location · type · screens · qty ·
+// one status tag + facts; no ink swatches). The right pane's head is the shared job header with ✓ Imaged on the right.
+function statusTag(s) {
+  if (s.b) return '<span class="p-tag p-tag-done">&#10003; Imaged</span>';
+  if (!s.sepsUrl) return '<span class="p-tag p-tag-wait">No sep file</span>';
+  return '';
+}
+function factTags(r) {
+  var t = '';
+  if (r.rp) t += '<span class="p-tag p-tag-soft" title="The client is reordering something we printed before">Reorder</span>';
+  (r.prevRefs || []).forEach(function(p) { t += '<span class="p-tag p-tag-soft" title="Previous run">&#8617; ' + esc(p.label) + '</span>'; });
+  return t;
+}
+function imagedBtn(id, s) {
+  return s.b
+    ? '<button type="button" class="p-btn" data-imaged="' + id + '" data-v="0">Undo imaged</button>'
+    : '<button type="button" class="p-btn p-btn-main" data-imaged="' + id + '" data-v="1">&#10003; Imaged</button>';
+}
+function card(r, mode, isOpen) {
+  var s = state[r.id] || r, id = r.id;
+  var open = mode === 'detail' || (mode === '' && isOpen);
+  var cls = 'p-lc' + (isOpen ? ' is-open' : '') + (s.b ? ' is-done' : '');
+  var head;
+  if (mode === 'detail') {
+    var sub = [(r.c || 'No customer') + ' #' + r.o, r.loc, r.t, r.press, r.due ? 'Prints ' + fmtDate(r.due) : 'No print date'].filter(Boolean).join(' · ');
+    head = '<div class="p-lc-head p-job-head">' +
+      '<div class="p-job-hmain"><div class="p-job-htitle"><span class="p-id p-job-hid">' + esc(r.i) + '</span><span class="p-job-hname">' + esc(r.n || r.i) + '</span>' +
+        statusTag(s) + factTags(r) + '</div><span class="p-job-hsub" title="' + esc(sub) + '">' + esc(sub) + '</span></div>' +
+      '<div class="p-job-hnums">' + (r.s ? numCell('Screens', r.s) : '') + (r.qty ? numCell('Qty', r.qty) : '') + '</div>' +
+      '<div class="p-job-hact">' + imagedBtn(id, s) + '</div></div>';
+  } else {
+    var nums = [r.s ? '<b>' + esc(r.s) + '</b> screen' + (Number(r.s) === 1 ? '' : 's') : '', r.qty ? '<b>' + esc(r.qty) + '</b> qty' : ''].filter(Boolean).join(' · ');
+    head = '<div class="p-lc-head is-tap p-job-card" role="button" tabindex="0" data-open="' + id + '" aria-expanded="' + !!isOpen + '">' +
+      '<button type="button" class="p-job-thumb sc-thumb" data-proof="' + id + '" data-label="' + esc(r.i) + '" title="Open the proof" aria-label="Open the proof for ' + esc(r.i) + '">' +
+        '<img src="' + esc(r.thumbUrl) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"></button>' +
+      '<span class="p-job-cbody">' +
+        '<span class="p-job-ctitle p-lc-title" title="' + esc(r.n || r.i) + '"><span class="p-id">' + esc(r.i) + '</span>' + esc(r.n || r.i) + '</span>' +
+        '<span class="p-job-csub">' + esc([r.loc, r.t].filter(Boolean).join(' · ') || '—') + '</span>' +
+        (nums ? '<span class="p-job-cnums">' + nums + '</span>' : '') +
+        '<span class="p-job-cfoot">' + statusTag(s) + factTags(r) + '</span>' +
+        (mode === '' && open ? '<span class="p-job-cact">' + imagedBtn(id, s) + '</span>' : '') +   // in place, the open card's ✓ Imaged
+      '</span></div>';
+  }
+  return '<section class="' + cls + '" id="' + (mode === 'detail' ? 'dc-' : 'ic-') + id + '">' + head + (open ? cardBody(r, s, mode === 'detail') : '') + '</section>';
+}
+
+function cardBody(r, s, big) {
+  var id = r.id;
+  var proof = r.thumbUrl
+    ? '<button type="button" class="p-job-mockimg sc-proof-img" data-proof="' + id + '" data-label="' + esc(r.i) + '" title="Open the full proof"><img src="' + esc(big ? (r.fullUrl || r.thumbUrl) : r.thumbUrl) + '" alt="Proof ' + esc(r.i) + '"></button>'
+    : '<div class="p-job-mocknone">No proof</div>';
+  // v29: the mockup footer is always there (pine-job-v2.css): file name · ↩ Previous run · Full screen
+  var prev = (r.prevRefs || []).map(function(p) {
+    return '<button type="button" class="p-btn" data-proof="' + p.id + '" data-label="' + esc(p.label) + ' · previous run">&#8617;<span class="p-job-w"> Previous run</span> ' + esc(p.label) + '</button>';
+  }).join('');
+  var sep = s.sepsUrl
+    ? '<div class="p-btns"><a class="p-btn" href="' + esc(s.sepsUrl) + '" target="_blank" rel="noopener">View sep file &#8599;</a></div>'
+    : '<div class="p-btns" id="lbtn-' + id + '"><span class="p-hint">No sep file linked yet.</span><button type="button" class="p-btn" data-addlink="' + id + '">+ Link sep file</button></div>' +
+      '<div class="sc-linkrow" id="linkinput-' + id + '" hidden>' +
+        '<input type="url" class="p-input" id="linkurl-' + id + '" placeholder="Paste the Google Drive link" data-linkfor="' + id + '">' +
+        '<button type="button" class="p-btn p-btn-dark" data-savelink="' + id + '">Save</button>' +
+        '<button type="button" class="p-btn p-btn-quiet" data-cancellink="' + id + '">Cancel</button>' +
+      '</div>';
+  var n = (r.inkIds || []).length;
+  return '<div class="p-lc-body p-job-body"><div class="sc-body p-job-grid">' +   // v29: shared pane geometry
+      '<div class="p-job-mock sc-proof' + (prev ? ' has-prev' : '') + '">' + proof +
+        '<div class="p-job-mockf"><span class="p-job-mockfn" title="' + esc(r.proofName || '') + '">' + esc(r.proofName || '') + '</span>' + prev +
+          (r.thumbUrl ? '<button type="button" class="p-btn p-job-full" data-proof="' + id + '" data-label="' + esc(r.i) + '" title="Full screen">&#9974;<span class="p-job-w"> Full screen</span></button>' : '') + '</div></div>' +
+      '<div class="sc-info p-job-ctl">' +
+        '<div class="sc-sec sc-line p-job-line"><span class="p-label p-job-lbl">Sep file</span>' + sep + '</div>' +   // v26: one line on desktop (v29: shared row)
+        '<div class="sc-sec p-job-inksec"><div class="p-job-inksh"><h3 class="p-section" id="inks-n-' + id + '">Inks (' + n + ')</h3><span class="p-hint">burn order · drag to reorder</span></div>' +
+          '<div class="ink-rows p-job-inklist" id="inks-rows-' + id + '"><div class="inks-msg">Loading…</div></div></div>' +
+        '<div class="p-job-notes"><label class="p-field"><span class="p-label">Print notes</span>' +   // v28: label above, the box grows
+          '<textarea class="p-textarea inotes" id="notes-' + id + '" data-notes="' + id + '" placeholder="Notes for press">' + esc(s.pn || '') + '</textarea></label></div>' +
+      '</div>' +
+    '</div></div>';
+}
+
+// v22: one card open at a time. The tapped card's header stays where the finger is.
+function openCard(id) {
+  if (isWide()) { pickCard(id, false); return; }
+  var el = $('ic-' + id), top = el ? el.getBoundingClientRect().top : null;
+  openId = openId === id ? '' : id;
+  render();
+  var now = $('ic-' + id);
+  if (now && top != null) { var d = now.getBoundingClientRect().top - top; if (d) window.scrollBy(0, d); }
+  if (now && now.getBoundingClientRect().top < 0) now.scrollIntoView();
+}
+// v23: "Hide list" / "Show list" on the open imprint (two panes only). Remembered on this computer.
+var LIST_OFF = false;
+try { LIST_OFF = localStorage.getItem('screens_list_off') === '1'; } catch (e) {}
+// v28: Hide list / Show list sits in the filter row (as in Seps and Ink); was in the job header.
+function syncListBtn() {
+  var b = $('listToggle'); if (!b) return;
+  b.hidden = !(isWide() && viewMode === 'queue' && LOADED);
+  b.textContent = LIST_OFF ? 'Show list' : 'Hide list';
+  b.setAttribute('aria-pressed', String(LIST_OFF));
+  b.title = LIST_OFF ? 'Show the queue again' : 'Hide the queue so the proof gets the full width · ↑/↓ still move between imprints';
+}
+function setListOff(on) {
+  LIST_OFF = !!on;
+  try { localStorage.setItem('screens_list_off', LIST_OFF ? '1' : '0'); } catch (e) {}
+  $('root').classList.toggle('list-off', LIST_OFF);
+  fitProof(); syncListBtn(); fitInks();
+  if (!LIST_OFF && openId) { var c = $('ic-' + openId); if (c) c.scrollIntoView({ block: 'nearest' }); }
+}
+function pickCard(id, scroll) {
+  openId = id; render();
+  var c = $('ic-' + id); if (scroll && c) c.scrollIntoView({ block: 'nearest' });
+}
+
+/* ---------- calendar (v16: read-only look-ahead by print date; tap a card to open it in the queue) ---------- */
+function setView(mode) {
+  viewMode = mode;
+  ['queue', 'cal'].forEach(function(m) {
+    var b = $(m === 'queue' ? 'vtQueue' : 'vtCal');
+    b.classList.toggle('is-on', m === mode); b.setAttribute('aria-selected', m === mode);
+  });
+  render();
+  window.scrollTo(0, 0);
+}
+function calYMD(d) { return ymdLocal(d); }
+
+function renderCalendar(records) {
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var todayKey = calYMD(today);
+  var dow = today.getDay();
+  var monday = new Date(today);
+  monday.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+  var weeks = Math.max(1, Math.round(calSpan / 7));
+  var dowLbl = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  var cols = [];
+  var visible = {};
+  for (var w = 0; w < weeks; w++) {
+    for (var i = 0; i < 5; i++) {
+      var d = new Date(monday);
+      d.setDate(monday.getDate() + w * 7 + i);
+      var key = calYMD(d);
+      visible[key] = true;
+      cols.push({ wk: w, key: key, dow: dowLbl[i], dnum: d.getDate(), today: key === todayKey, past: key < todayKey, date: d });
+    }
+  }
+  var byDay = {}; var outside = [];
+  records.forEach(function(r) {
+    if (r.due && visible[r.due]) { (byDay[r.due] = byDay[r.due] || []).push(r); }
+    else { outside.push(r); }
+  });
+  var maxCt = 1;
+  cols.forEach(function(c) { var n = (byDay[c.key] || []).length; if (n > maxCt) maxCt = n; });
+
+  var html = '';
+  for (var ww = 0; ww < weeks; ww++) {
+    var wcols = cols.filter(function(c) { return c.wk === ww; });
+    html += '<div class="p-head cal-week-lbl"><span class="p-section">' + (ww === 0 ? 'This week' : ww === 1 ? 'Next week' : 'Week of ' + wcols[0].date.toLocaleDateString('en-US', { month:'short', day:'numeric' })) + '</span></div>';
+    html += '<div class="cal-week">';
+    wcols.forEach(function(c) {
+      var recs = byDay[c.key] || [];
+      var scr = recs.reduce(function(a, r) { return a + (Number(r.s) || 0); }, 0);
+      var pct = recs.length ? Math.max(10, Math.round(recs.length / maxCt * 100)) : 0;
+      html += '<div class="cal-col' + (c.today ? ' is-today' : '') + (c.past ? ' is-past' : '') + '">' +
+        '<div class="cal-dh"><span class="cal-dow">' + (c.today ? 'Today' : c.dow) + '</span><span class="cal-dnum">' + c.dnum + '</span></div>' +
+        '<div class="cal-load"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="cal-cnt">' + recs.length + ' imprint' + (recs.length !== 1 ? 's' : '') + (scr ? ' · ' + scr + ' screens' : '') + '</div>' +
+        (recs.length ? recs.map(buildCalCard).join('') : '<div class="cal-empty">&mdash;</div>') +
+        '</div>';
+    });
+    html += '</div>';
+  }
+  if (outside.length) {
+    html += '<button type="button" class="p-btn cal-more" data-view="queue">' + outside.length + ' more not on these days (late, weekend or no date) · Show the queue</button>';
+  }
+  return html;
+}
+
+function buildCalCard(r) {
+  var st = state[r.id] || r;
+  return '<button type="button" class="cal-card' + (st.b ? ' is-done' : '') + '" data-jump="' + r.id + '" title="Open in the queue">' +
+    '<span class="cal-cname">' + esc(r.n || r.i) + '</span>' +
+    '<span class="cal-cmeta"><span class="p-id">' + esc(r.i) + '</span>' + (r.s ? '<span class="p-tag p-tag-soft">' + esc(r.s) + ' scr</span>' : '') + '</span>' +
+    '</button>';
+}
+
+function jumpToJob(id) {
+  openId = id;
+  setView('queue');
+  var c = $('ic-' + id);
+  if (c) c.scrollIntoView({ block: isWide() ? 'nearest' : 'start' });
+}
+
+/* ---------- writes ---------- */
+// v22: Imaged is a button on the open imprint (was a checkbox). It leaves the list, the next imprint opens, and the
+// toast has Undo. If the save fails, the imprint comes back and the toast says so.
+function setImaged(id, val) {
+  var s = state[id];
+  if (!s || BUSY_IDS[id]) return;
+  var prev = { b: s.b, burnedAt: s.burnedAt };
+  s.b = val; s.burnedAt = val ? todayYmd() : ''; // v21
+  var rec = ALL.find(function(r) { return r.id === id; }) || {};
+  var leaving = activeFilter === DONE_TAB ? !val : val;
+  if (leaving && openId === id) {
+    var i = shownIds.indexOf(id), rest = shownIds.filter(function(x) { return x !== id; });
+    openId = rest[Math.min(Math.max(i, 0), rest.length - 1)] || '';
+  }
+  BUSY_IDS[id] = 1;
+  var p = savePatch(id, F.burned, val);
+  p.then(function(ok) {
+    delete BUSY_IDS[id];
+    if (!ok) { s.b = prev.b; s.burnedAt = prev.burnedAt; openId = id; render(); return; }
+    toast((val ? '✓ Imaged ' : 'Back in the queue: ') + (rec.i || '') + (PRACTICE ? ' · practice, not saved' : ''), false,
+      function() { setImaged(id, !val); });
+  });
+  if (leaving) {
+    document.querySelectorAll('#ic-' + id + ',#dc-' + id).forEach(function(c) { c.classList.add('is-leaving'); });
+    setTimeout(render, 380);
+  } else render();
+}
+
+function showLinkInput(id) {
+  var el = $('linkinput-' + id), b = $('lbtn-' + id);
+  if (el) { el.hidden = false; if (b) b.hidden = true; var inp = el.querySelector('input'); if (inp) inp.focus(); }
+}
+function hideLinkInput(id) {
+  var el = $('linkinput-' + id), b = $('lbtn-' + id);
+  if (el) { el.hidden = true; var inp = el.querySelector('input'); if (inp) inp.value = ''; }
+  if (b) b.hidden = false;
+}
+function saveSepLink(id) {
+  var input = $('linkurl-' + id);
+  if (!input || input.disabled) return;
+  var url = input.value.trim();
+  if (!url || url.indexOf('http') !== 0) { toast('Paste a Google Drive link first (starts with http)', true); input.focus(); return; }
+  var tok = token();
+  if (!tok) { toast('Add the Airtable token in the ⚙ menu', true); return; }
+
+  // v22: practice — show it linked here, send nothing
+  if (PRACTICE) {
+    if (state[id]) state[id].sepsUrl = url;
+    render();
+    toast('✓ Sep file linked · practice, not saved');
+    return;
+  }
+
+  input.disabled = true; SAVING++;
+  var __body = { records: [{ id: id, fields: { [F.sepUrl]: url } }] };
+  console.log('[screens saveSepLink] PATCH', JSON.stringify(__body));
+  fetch('https://api.airtable.com/v0/' + BASE + '/' + TBL, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+    body: JSON.stringify(__body)
+  }).then(function(res) {
+    return res.json().then(function(result) {
+      if (!res.ok) {
+        console.error('[screens saveSepLink] FAIL', res.status, result);
+        throw new Error((result.error && (result.error.type + ': ' + result.error.message)) || 'Airtable error ' + res.status);
+      }
+      if (state[id]) state[id].sepsUrl = url;
+      SAVING--; render();
+      toast('✓ Sep file linked');
+    });
+  }).catch(function(err) {
+    SAVING = Math.max(0, SAVING - 1);
+    input.disabled = false;
+    toast('Not saved: ' + err.message, true);
+  });
+}
+
+// v22: save any print notes still being typed before the list redraws (v21 only saved on blur, which a redraw skips).
+function flushNotes() {
+  document.querySelectorAll('textarea[data-notes]').forEach(function(ta) {
+    var id = ta.getAttribute('data-notes');
+    if (state[id] && ta.value !== (state[id].pn || '')) { state[id].pn = ta.value; saveNotes(id, ta.value); }
+  });
+}
+function saveNotes(id, val) {
+  var ta = $('notes-' + id);
+  if (ta) ta.classList.add('saving');
+  return savePatch(id, F.printNotes, val).then(function(ok) {
+    var t = $('notes-' + id);
+    if (t) { t.classList.remove('saving'); if (ok) { t.classList.add('saved'); setTimeout(function(){ t.classList.remove('saved'); }, 1500); } }
+    if (ok) toast('✓ Print notes saved' + (PRACTICE ? ' · practice, not saved' : ''));
+  });
+}
+
+// One field on one imprint. Resolves true when saved (or faked in practice), false when it failed (toast says so).
+function savePatch(id, fld, val) {
+  var tok = token();
+  if (!tok) { toast('Add the Airtable token in the ⚙ menu', true); return Promise.resolve(false); }
+
+  // v22: practice — nothing is sent
+  if (PRACTICE) return Promise.resolve(true);
+
+  var __body = { records: [{ id:id, fields:{ [fld]:val } }] };
+  console.log('[screens savePatch] PATCH field=' + fld, JSON.stringify(__body));
+  SAVING++;
+  return fetch('https://api.airtable.com/v0/' + BASE + '/' + TBL, {
+    method: 'PATCH',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+tok },
+    body: JSON.stringify(__body)
+  }).then(function(res) {
+    SAVING--;
+    if (res.ok) return true;
+    res.json().then(function(e) { console.error('[screens savePatch] FAIL', res.status, e); }).catch(function(){});
+    toast('Not saved (Airtable ' + res.status + ') — check the token in ⚙', true);
+    return false;
+  }).catch(function() { SAVING = Math.max(0, SAVING - 1); toast('Not saved — no connection?', true); return false; });
+}
+
+
+
+
+// PDF modal state
+var pmPdfDoc = null, pmPage = 1, pmTotal = 1;
+
+function pmInit() {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+function pmClose() {
+  document.getElementById('pmModal').classList.remove('open');
+  pmPdfDoc = null;
+  var canvas = document.getElementById('pmCanvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function pmPrev() {
+  if (!pmPdfDoc || pmPage <= 1) return;
+  pmPage--;
+  pmRenderPage();
+}
+
+function pmNext() {
+  if (!pmPdfDoc || pmPage >= pmTotal) return;
+  pmPage++;
+  pmRenderPage();
+}
+
+function pmRenderPage() {
+  var ctEl = document.getElementById('pmCt');
+  if (ctEl) ctEl.textContent = pmPage + '/' + pmTotal;
+  pmPdfDoc.getPage(pmPage).then(function(page) {
+    var body = document.getElementById('pmBody');
+    var width = (body.clientWidth || 800) - 32;
+    var scale = width / page.getViewport({ scale: 1 }).width;
+    var vp = page.getViewport({ scale: scale });
+    var canvas = document.getElementById('pmCanvas');
+    canvas.width = vp.width;
+    canvas.height = vp.height;
+    canvas.style.cssText = 'max-width:100%;display:block';
+    var spinner = document.getElementById('pmSpinner');
+    if (spinner) spinner.style.display = 'none';
+    page.render({ canvasContext: canvas.getContext('2d'), viewport: vp });
+  });
+}
+
+function openProofModal(recId, imprintId) {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) { showToast('No API token', true); return; }
+
+  var modal = document.getElementById('pmModal');
+  var spinner = document.getElementById('pmSpinner');
+  var canvas = document.getElementById('pmCanvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('pmFn').textContent = imprintId || '';
+  document.getElementById('pmCt').textContent = '';
+  document.getElementById('pmOpenLink').style.display = 'none';
+  spinner.style.display = 'flex';
+  modal.classList.add('open');
+  pmPdfDoc = null; pmPage = 1; pmTotal = 1;
+
+  // Fetch fresh signed URL — Airtable CDN URLs expire
+  var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL +
+    '?fields%5B%5D=' + F.proof +
+    '&filterByFormula=' + encodeURIComponent("RECORD_ID()='" + recId + "'") +
+    '&returnFieldsByFieldId=true&pageSize=1';
+
+  fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var rec = data.records && data.records[0];
+      var raw = rec && rec.fields && rec.fields[F.proof];
+      var freshUrl = null, isPDF = false;
+
+      // Handle both flat array and nested multipleLookupValues
+      if (raw && raw.valuesByLinkedRecordId) {
+        Object.values(raw.valuesByLinkedRecordId).forEach(function(arr) {
+          if (Array.isArray(arr)) arr.forEach(function(a) {
+            if (a && a.url && !freshUrl) { freshUrl = a.url; isPDF = a.type === 'application/pdf'; }
+          });
+        });
+      } else if (Array.isArray(raw)) {
+        raw.forEach(function(a) {
+          if (a && a.url && !freshUrl) { freshUrl = a.url; isPDF = a.type === 'application/pdf'; }
+        });
+      }
+
+      if (!freshUrl) {
+        spinner.style.display = 'none';
+        canvas.width = 400; canvas.height = 80;
+        var c = canvas.getContext('2d');
+        c.fillStyle = '#333'; c.fillRect(0, 0, 400, 80);
+        c.fillStyle = '#888'; c.font = 'bold 15px Helvetica, Arial, sans-serif'; c.textAlign = 'center';
+        c.fillText('No proof on file', 200, 45);
+        return;
+      }
+
+      var link = document.getElementById('pmOpenLink');
+      link.href = freshUrl;
+      link.style.display = 'inline-flex';
+
+      if (isPDF) {
+        pmInit();
+        pdfjsLib.getDocument(freshUrl).promise.then(function(doc) {
+          pmPdfDoc = doc; pmPage = 1; pmTotal = doc.numPages;
+          pmRenderPage();
+        }).catch(function(err) {
+          spinner.style.display = 'none';
+          canvas.width = 500; canvas.height = 100;
+          var c = canvas.getContext('2d');
+          c.fillStyle = '#1a1a1a'; c.fillRect(0, 0, 500, 100);
+          c.fillStyle = '#888'; c.font = 'bold 15px Helvetica, Arial, sans-serif'; c.textAlign = 'center';
+          c.fillText('PDF load error: ' + err.message, 250, 40);
+          c.fillStyle = '#555'; c.font = '14px Helvetica, Arial, sans-serif';
+          c.fillText('Use the Open button above to view in browser', 250, 65);
+        });
+      } else {
+        // Image proof
+        var img = new Image();
+        img.onload = function() {
+          spinner.style.display = 'none';
+          canvas.width = img.width; canvas.height = img.height;
+          canvas.getContext('2d').drawImage(img, 0, 0);
+          document.getElementById('pmCt').textContent = 'img';
+        };
+        img.onerror = function() { spinner.style.display = 'none'; };
+        img.crossOrigin = 'anonymous';
+        img.src = freshUrl;
+      }
+    })
+    .catch(function(err) {
+      spinner.style.display = 'none';
+      showToast('Proof load failed: ' + err.message, true);
+    });
+}
+
+// Pantone color approximations (hex) for common Pantone numbers
+var PANTONE_HEX = window.PANTONE_HEX || {};   // v-next: the table lives in pine-pantone-v1.js (shared, byte-identical in Seps, Screens and Ink)
+function getPantoneHex(inkName) {
+  if (!inkName) return null;
+  var hexMatch = inkName.match(/#([0-9A-Fa-f]{6})/);
+  if (hexMatch) return '#' + hexMatch[1];
+  var m = inkName.match(/Pantone\s+([^\-]+?)(?:\s*-|$)/i);
+  if (!m) return null;
+  var code = m[1].trim();
+  if (PANTONE_HEX[code]) return PANTONE_HEX[code];
+  var upper = code.toUpperCase();
+  if (PANTONE_HEX[upper]) return PANTONE_HEX[upper];
+  var numOnly = code.replace(/[\s\(].*$/, '').trim();
+  if (PANTONE_HEX[numOnly]) return PANTONE_HEX[numOnly];
+  return null;
+}
+
+// v22: one tag style (cream fact tag) for every ink type; the old green/orange/purple tags were off-palette.
+function inkTypeBadge(typeName) {
+  if (!typeName) return '';
+  return '<span class="p-tag p-tag-soft">' + escHtml(typeName) + '</span>';
+}
+
+// Chip color editor
+var activeChipPopover = null;
+function editChipColor(iid, chipEl) {
+  // Close any existing popover
+  if (activeChipPopover) { activeChipPopover.remove(); activeChipPopover = null; }
+
+  var popover = document.createElement('div');
+  popover.className = 'chip-popover';
+  var currentColor = chipEl.style.backgroundColor || '';
+  var currentHex = currentColor ? rgbToHex(currentColor) : '';
+
+  popover.innerHTML =
+    '<input class="p-input chip-hex-input" id="chex-' + iid + '" placeholder="#a3b4c5" maxlength="7" value="' + currentHex + '">' +
+    '<button type="button" class="p-btn p-btn-dark" onclick="applyChipColor(\'' + iid + '\');event.stopPropagation()">Set</button>';
+
+  // Position below chip
+  var rect = chipEl.getBoundingClientRect();
+  popover._chipEl = chipEl;
+  document.body.appendChild(popover);
+  // Position below chip, clamped to viewport
+  var pw = popover.offsetWidth || 160;
+  var leftPos = Math.min(rect.left, window.innerWidth - pw - 8);
+  popover.style.cssText = 'position:fixed;top:' + (rect.bottom + 4) + 'px;left:' + Math.max(8, leftPos) + 'px;z-index:9999';
+  activeChipPopover = popover;
+
+  var inp = document.getElementById('chex-' + iid);
+  if (inp) {
+    inp.focus();
+    inp.select();
+    inp.onkeydown = function(e) {
+      if (e.key === 'Enter') applyChipColor(iid);
+      if (e.key === 'Escape') { popover.remove(); activeChipPopover = null; }
+      e.stopPropagation();
+    };
+  }
+
+  // Close on outside click — use mousedown instead of click to avoid
+  // catching the same event that opened the popover
+  setTimeout(function() {
+    document.addEventListener('mousedown', function handler(e) {
+      if (!popover.contains(e.target) && e.target !== chipEl) {
+        popover.remove();
+        activeChipPopover = null;
+        document.removeEventListener('mousedown', handler);
+      }
+    });
+  }, 100);
+}
+
+function applyChipColor(iid) {
+  var inp = document.getElementById('chex-' + iid);
+  if (!inp) {
+    // Fallback: find input in active popover
+    if (activeChipPopover) inp = activeChipPopover.querySelector('.chip-hex-input');
+  }
+  if (!inp) return;
+  var hex = inp.value.trim();
+  if (!hex.startsWith('#')) hex = '#' + hex;
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
+    inp.classList.add('is-bad');
+    inp.focus();
+    return;
+  }
+  // Find chip — try by iid first, then by data stored on popover
+  var chip = document.getElementById('chip-' + iid);
+  if (!chip && activeChipPopover && activeChipPopover._chipEl) chip = activeChipPopover._chipEl;
+  if (chip) {
+    chip.style.background = hex;
+    chip.style.borderColor = 'rgba(0,0,0,.15)';
+    chip.classList.remove('ink-chip-empty');
+    chip.textContent = '';
+  }
+  if (activeChipPopover) { activeChipPopover.remove(); activeChipPopover = null; }
+}
+
+function rgbToHex(rgb) {
+  var m = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (!m) return '';
+  return '#' + [m[1],m[2],m[3]].map(function(n) { return ('0'+parseInt(n).toString(16)).slice(-2); }).join('');
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+var inkChipCache = {};
+
+/* ---- v19: card swatch strip (ported from Ink Queue v83) ----
+   INK_CACHE is keyed by Ink record ID -> v0 fields object.
+   Color cascade matches Ink Queue: Display Hex override on the Inks record
+   (set by Ink Dept) -> PANTONE_HEX lookup by name -> empty dot.
+   TBA placeholder slots (Pantone Number "TBA M/D", created by Seps) are
+   skipped on the card, same as Ink Queue; they still list in the detail. */
+var INK_CACHE = {};
+var FI_NAME = 'fldojKv3gqT312q2R';
+var FI_PANTONE = 'fld00EdkjL43ybgVV';
+var FI_TYPE = 'fldXMM4WvS3SGsliC';
+var FI_DISPLAY_HEX = 'fld5CH7FV94UnOVVl';
+
+function inkHex(fields) {
+  if (!fields) return null;
+  var ov = fields[FI_DISPLAY_HEX];
+  if (ov && typeof ov === 'string') {
+    ov = ov.trim();
+    if (ov.charAt(0) !== '#') ov = '#' + ov;
+    if (/^#[0-9a-fA-F]{6}$/.test(ov)) return ov;
+  }
+  return getPantoneHex(fields[FI_NAME] || '');
+}
+
+function isTbaInk(fields) {
+  var pn = fields && fields[FI_PANTONE];
+  return typeof pn === 'string' && /^\s*TBA\b/i.test(pn);
+}
+
+// "Pantone 186 - OW" -> "186 OW". Bases like "EZP WHT" pass through.
+function abbreviateInkName(fullName) {
+  if (!fullName) return '';
+  return String(fullName).trim().replace(/^Pantone\s+/i, '').replace(/\s+-\s+/g, ' ');
+}
+
+function inkDotSvg(hex) {
+  return hex
+    ? '<svg viewBox="0 0 12 12" width="12" height="12"><circle cx="6" cy="6" r="5.5" fill="' + hex + '" stroke="rgba(0,0,0,.18)" stroke-width="1"/></svg>'
+    : '<svg viewBox="0 0 12 12" width="12" height="12"><circle cx="6" cy="6" r="5" fill="none" stroke="#BBBBB5" stroke-width="1" stroke-dasharray="2 1.5"/></svg>';
+}
+
+function buildCardInkStrip(r) {
+  var ids = (r && r.inkIds) || [];
+  var html = '';
+  ids.forEach(function(iid) {
+    var d = INK_CACHE[iid];
+    if (!d) { html += '<span class="ink-pill pending">' + inkDotSvg(null) + '\u2026</span>'; return; }
+    if (isTbaInk(d)) return;
+    var name = d[FI_NAME] || '';
+    html += '<span class="ink-pill" title="' + escHtml(name) + '">' + inkDotSvg(inkHex(d)) + escHtml(abbreviateInkName(name)) + '</span>';
+  });
+  return html;
+}
+
+function paintCardInks(id) {
+  var rec = ALL.find(function(r) { return r.id === id; });
+  if (!rec) return;
+  document.querySelectorAll('[data-cinks="' + id + '"]').forEach(function(el) { el.innerHTML = buildCardInkStrip(rec); });  // v22: list + detail pane
+  fitProof();   // v23: the header may have grown a line
+}
+
+function paintAllCardInks() {
+  ALL.forEach(function(r) { if (r.inkIds && r.inkIds.length) paintCardInks(r.id); });
+}
+
+// One OR(RECORD_ID()...) list query per 40 inks, run in parallel. Soft-fails:
+// a chunk that errors just leaves its dots as pending placeholders.
+function preloadInks(token) {
+  var seen = {}, need = [];
+  ALL.forEach(function(r) {
+    (r.inkIds || []).forEach(function(iid) {
+      if (!seen[iid] && !INK_CACHE[iid]) { seen[iid] = 1; need.push(iid); }
+    });
+  });
+  var chunks = [];
+  for (var i = 0; i < need.length; i += 40) chunks.push(need.slice(i, i + 40));
+  return Promise.all(chunks.map(function(chunk) {
+    var formula = 'OR(' + chunk.map(function(iid) { return "RECORD_ID()='" + iid + "'"; }).join(',') + ')';
+    var url = 'https://api.airtable.com/v0/' + BASE + '/tblyPBucKoDwxDisT?returnFieldsByFieldId=true&pageSize=100' +
+      '&fields%5B%5D=' + FI_NAME + '&fields%5B%5D=' + FI_PANTONE +
+      '&fields%5B%5D=' + FI_TYPE + '&fields%5B%5D=' + FI_DISPLAY_HEX +
+      '&filterByFormula=' + encodeURIComponent(formula);
+    return fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+      .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(function(d) { (d.records || []).forEach(function(r) { INK_CACHE[r.id] = r.fields; }); })
+      .catch(function(err) { console.warn('[screens-v19 preloadInks] chunk soft-fail:', err); });
+  })).then(function() { console.log('[screens-v19 preloadInks] cached', need.length, 'inks'); });
+}
+
+function loadInkChips(id) {
+  var rowsEl = document.getElementById('inks-rows-' + id);
+  if (!rowsEl) return;
+  if (inkChipCache[id]) { renderInkChips(id, inkChipCache[id]); return; }
+
+  var rec = ALL.find(function(r) { return r.id === id; });
+  if (!rec || !rec.inkIds || !rec.inkIds.length) {
+    if (rec && rec.rp && rec.prevImprintId) {
+      if (rowsEl) rowsEl.innerHTML = '<div class="inks-msg">Loading from previous run…</div>';
+      loadInheritedInks(id, rec.prevImprintId, rowsEl);
+      return;
+    }
+    if (rowsEl) rowsEl.innerHTML = '<div class="inks-msg">No inks assigned</div>';
+    return;
+  }
+
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) return;
+
+  var filter = 'OR(' + rec.inkIds.map(function(iid) { return "RECORD_ID()='" + iid + "'"; }).join(',') + ')';
+  var url = 'https://api.airtable.com/v0/appJkaLk8DykjsgHR/tblyPBucKoDwxDisT' +
+    '?returnFieldsByFieldId=true' +
+    '&fields%5B%5D=fldojKv3gqT312q2R' +
+    '&fields%5B%5D=fld00EdkjL43ybgVV' +
+    '&fields%5B%5D=fldXMM4WvS3SGsliC' +
+    '&fields%5B%5D=' + FI_DISPLAY_HEX +
+    '&filterByFormula=' + encodeURIComponent(filter);
+
+  fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var byId = {};
+      (data.records || []).forEach(function(r) { byId[r.id] = r.fields; INK_CACHE[r.id] = r.fields; });
+      inkChipCache[id] = byId;
+      renderInkChips(id, byId);
+      paintCardInks(id);
+    })
+    .catch(function() {
+      var el = document.getElementById('inks-rows-' + id);
+      if (el) el.innerHTML = '<div class="inks-msg">Could not load</div>';
+    });
+}
+
+// v15: loadInheritedInks — was called by loadInkChips on repeat imprints but
+// never defined in v13/v14, leaving the chip area stuck on "Loading from
+// previous run…" forever. Simpler than Seps' multi-prev orchestrator: Screens
+// only needs the burn-order ink list, not Sep URL / Print Notes. Pulls the
+// FIRST linked prev imprint's whole record (no fields[]= filter — that 422s
+// when any listed field can't resolve, per reference doc), grabs its Inks
+// array, mutates rec.inkIds, clears the cache, re-enters loadInkChips so the
+// existing fetch + render path picks up.
+function loadInheritedInks(id, prevRecId, rowsEl) {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) {
+    if (rowsEl) rowsEl.innerHTML = '<div class="inks-msg">No token</div>';
+    return;
+  }
+  var url = 'https://api.airtable.com/v0/' + BASE + '/' + TBL + '/' + prevRecId +
+    '?returnFieldsByFieldId=true';
+  console.log('[screens-v15 loadInheritedInks] GET prev imprint', prevRecId, 'for current', id);
+
+  fetch(url, { headers: { Authorization: 'Bearer ' + token } })
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(data) {
+      var f = data.fields || {};
+      // Inks is a multipleRecordLinks field — v0 REST returns either bare
+      // string IDs or {id,name} objects depending on the request. Handle both.
+      var raw = f[F.inks] || [];
+      var inkIds = raw.map(function(v) {
+        return (typeof v === 'string') ? v : (v && v.id) || '';
+      }).filter(Boolean);
+      console.log('[screens-v15 loadInheritedInks] prev', prevRecId, 'has', inkIds.length, 'inks:', inkIds);
+
+      var rec = ALL.find(function(r) { return r.id === id; });
+      if (!rec) return;
+
+      if (!inkIds.length) {
+        if (rowsEl) rowsEl.innerHTML = '<div class="inks-msg">No inks on previous run</div>';
+        return;
+      }
+
+      // Seed the current imprint's ink list with the prev's inks, then
+      // re-enter loadInkChips so the standard fetch + render path takes over.
+      rec.inkIds = inkIds.slice();
+      inkChipCache[id] = null;
+      loadInkChips(id);
+    })
+    .catch(function(err) {
+      console.error('[screens-v15 loadInheritedInks] FAIL', err);
+      if (rowsEl) rowsEl.innerHTML = '<div class="inks-msg err">Could not load prev: ' + esc(err.message || String(err)) + '</div>';
+    });
+}
+
+function renderInkChips(id, byId) {
+  var rec = ALL.find(function(r) { return r.id === id; });
+  if (!rec) return;
+  var el = document.getElementById('inks-rows-' + id);
+  if (!el) return;
+
+  var html = '';
+  (rec.inkIds || []).forEach(function(iid, idx) {
+    var d = byId[iid] || {};
+    var name = d['fldojKv3gqT312q2R'] || iid;
+    var typeRaw = d['fldXMM4WvS3SGsliC'];
+    var typeName = typeRaw ? (typeof typeRaw === 'object' ? (typeRaw.name || '') : String(typeRaw)) : '';
+    var hexColor = inkHex(d);
+    var chipStyle = hexColor ? 'background:' + hexColor + ';border-color:rgba(0,0,0,.15)' : '';
+
+    html += '<div class="ink-row p-job-ink" draggable="true" data-iid="' + escHtml(iid) + '" data-recid="' + escHtml(id) + '" data-idx="' + idx + '"' +
+      ' ondragstart="inkDragStart(event)"' +
+      ' ondragover="inkDragOver(event)"' +
+      ' ondragleave="inkDragLeave(event)"' +
+      ' ondrop="inkDrop(event)"' +
+      ' ondragend="inkDragEnd(event)">';
+    // Drag handle
+    html += '<div class="drag-handle p-job-ink-drag" title="Drag to reorder"><i></i><i></i><i></i><i></i><i></i><i></i></div>';   // v28: the shared 38px ink row
+    html += '<span class="ink-n p-job-ink-n">' + (idx + 1) + '</span>';   // v22: burn order number
+    // v22: no grey "?" — an unknown color is an empty dashed swatch. Tapping a swatch previews another color on this
+    // screen only (nothing is saved, same as v21).
+    html += '<div class="ink-chip p-job-ink-sw' + (hexColor ? '' : ' ink-chip-empty') + '" id="chip-' + escHtml(iid) + '"' + (hexColor ? ' style="' + chipStyle + '"' : '') +
+      ' title="' + (hexColor ? 'Preview another color (this screen only)' : 'No color on file \u2014 tap to preview one (this screen only)') + '" onclick="editChipColor(\'' + escHtml(iid) + '\',this);event.stopPropagation()"></div>';
+    // v26 (desktop, as Seps v35): "Pantone 186 - OW" + an OW tag said the type twice; the tag says it once.
+    var shownName = typeName ? name.replace(new RegExp('\\s+-\\s+' + typeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i'), '') : name;
+    html += '<div class="ink-body p-job-ink-main">';
+    html += '<div class="ink-name p-job-ink-name" title="' + escHtml(name) + '">' + escHtml(shownName) + '</div>';
+    if (typeName) html += inkTypeBadge(typeName);
+    html += '</div></div>';
+  });
+
+  el.innerHTML = html || '<div class="inks-msg">No inks assigned</div>';
+  var nEl = document.getElementById('inks-n-' + id); if (nEl) nEl.textContent = 'Inks (' + (rec.inkIds || []).length + ')';   // v28
+  fitInks();
+}
+
+// v26: two panes only. If the controls column (sep file, inks, notes) doesn't fit and there are more than 5 inks, the inks
+// go into two columns (numbered down the left column, then the right) and the column widens a little for this imprint.
+// Only if it still doesn't fit does the column scroll.
+function fitInks() {
+  var D = isWide() && document.getElementById('splitDetail'); if (!D) return;
+  var body = D.querySelector('.sc-body'), C = D.querySelector('.sc-info'), rowsEl = D.querySelector('.ink-rows');
+  if (!body || !C || !rowsEl) return;
+  var n = rowsEl.querySelectorAll('.ink-row').length;
+  rowsEl.style.setProperty('--ink-rows', Math.ceil(n / 2));
+  var keep = C.scrollTop;
+  body.classList.remove('ink-2col');
+  if (n > 5 && C.scrollHeight > C.clientHeight) body.classList.add('ink-2col');
+  C.scrollTop = keep;
+}
+var fitTimer = 0;
+window.addEventListener('resize', function() { clearTimeout(fitTimer); fitTimer = setTimeout(fitInks, 120); });
+
+// DRAG TO REORDER INK CHIPS
+var dragSrcIid = null, dragSrcRecId = null;
+
+function inkDragStart(e) {
+  var row = e.currentTarget;
+  dragSrcIid   = row.dataset.iid;
+  dragSrcRecId = row.dataset.recid;
+  row.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', dragSrcIid);
+  e.stopPropagation();
+}
+
+function inkDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  var row = e.currentTarget;
+  if (row.dataset.iid !== dragSrcIid) row.classList.add('drag-over');
+  e.stopPropagation();
+}
+
+function inkDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+  e.stopPropagation();
+}
+
+// v24 (same as Seps v37): while an ink is dragged, holding it near the top or bottom edge scrolls the job (v25: the controls column on wide
+// screens, the page otherwise), so the lowest ink can go straight to the top.
+var dragAuto = { y: null, raf: 0 };
+// v25: the nearest scrolling box around the dragged ink (the controls column on wide screens); none = the page.
+function dragScroller() {
+  var el = dragSrcIid != null ? document.querySelector('.ink-row.dragging') : null;
+  for (el = el && el.parentElement; el && el !== document.body; el = el.parentElement) {
+    var oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el;
+  }
+  return null;
+}
+function dragAutoTick() {
+  dragAuto.raf = 0;
+  if (dragSrcIid == null || dragAuto.y == null) return;
+  var box = dragScroller(), top, bottom;
+  if (box) { var r = box.getBoundingClientRect(); top = r.top; bottom = r.bottom; }
+  else { var bar = document.querySelector('.p-bar'), f = document.getElementById('filters'); top = Math.max(bar ? bar.getBoundingClientRect().bottom : 0, f && !f.hidden ? f.getBoundingClientRect().bottom : 0); bottom = window.innerHeight; }
+  var done = document.querySelector('.sp-done'); if (done) { var dt = done.getBoundingClientRect().top; if (dt > top && dt < bottom) bottom = dt; }
+  var zone = 90, step = 0;
+  if (dragAuto.y < top + zone) step = -Math.ceil((top + zone - dragAuto.y) / 6);
+  else if (dragAuto.y > bottom - zone) step = Math.ceil((dragAuto.y - (bottom - zone)) / 6);
+  if (step) { if (box) box.scrollTop += step; else window.scrollBy(0, step); }
+  dragAuto.raf = requestAnimationFrame(dragAutoTick);
+}
+document.addEventListener('dragover', function(e) {
+  if (dragSrcIid == null) return;
+  dragAuto.y = e.clientY;
+  if (!dragAuto.raf) dragAuto.raf = requestAnimationFrame(dragAutoTick);
+}, true);
+function dragAutoStop() { dragAuto.y = null; if (dragAuto.raf) cancelAnimationFrame(dragAuto.raf); dragAuto.raf = 0; }
+document.addEventListener('dragend', dragAutoStop, true);
+document.addEventListener('drop', dragAutoStop, true);
+
+function inkDragEnd(e) {
+  dragSrcIid = null; dragSrcRecId = null;
+  document.querySelectorAll('.ink-row').forEach(function(r) {
+    r.classList.remove('dragging');
+    r.classList.remove('drag-over');
+  });
+  e.stopPropagation();
+}
+
+function inkDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  var targetRow = e.currentTarget;
+  targetRow.classList.remove('drag-over');
+
+  var targetIid = targetRow.dataset.iid;
+  var recId     = targetRow.dataset.recid;
+  if (!dragSrcIid || dragSrcIid === targetIid) return;
+
+  // Reorder inkIds on the record
+  var rec = ALL.find(function(r) { return r.id === recId; });
+  if (!rec) return;
+
+  var ids = rec.inkIds.slice();
+  var fromIdx = ids.indexOf(dragSrcIid);
+  var toIdx   = ids.indexOf(targetIid);
+  if (fromIdx < 0 || toIdx < 0) return;
+
+  ids.splice(fromIdx, 1);
+  ids.splice(toIdx, 0, dragSrcIid);
+  rec.inkIds = ids;
+
+  // Re-render with new order
+  var byId = inkChipCache[recId] || {};
+  renderInkChips(recId, byId);
+  paintCardInks(recId);
+
+  // PATCH to Airtable — save new order
+  patchInkOrder(recId, ids);
+}
+
+function patchInkOrder(recId, orderedIds) {
+  var token = localStorage.getItem('pine_at_key');
+  if (!token) return;
+
+  // v22: practice — the new order shows here, nothing is sent
+  if (PRACTICE) {
+    showToast('\u2713 Burn order changed \u00b7 practice, not saved');
+    return;
+  }
+
+  // v14 BUGFIX: Airtable v0 REST multipleRecordLinks expects plain string IDs
+  // on WRITE — NOT {id, name} objects. The {id, name} form is what comes back
+  // on READ. Sending objects causes 422 INVALID_RECORD_ID with "[object Object]"
+  // in the message. v13 had this bug masked because WRITES_ENABLED was false.
+  // Caught in Seps v22 diagnostic pass; same fix here. See reference doc
+  // "Airtable API — Critical Lessons".
+  var linked = orderedIds.slice();
+  var __body = { records: [{ id: recId, fields: { 'fldpNCCXTgHyDhvak': linked } }] };
+  console.log('[screens patchInkOrder] PATCH', JSON.stringify(__body, null, 2));
+  SAVING++;
+  fetch('https://api.airtable.com/v0/appJkaLk8DykjsgHR/tbln9oAGvz2PNBZLV', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify(__body)
+  }).then(function(res) {
+    SAVING--;
+    if (res.ok) {
+      showToast('\u2713 Burn order saved');
+    } else {
+      res.json().then(function(e) { console.error('[screens patchInkOrder] FAIL', res.status, e); }).catch(function(){});
+      showToast('Burn order not saved (Airtable ' + res.status + ')', true);
+    }
+  }).catch(function() { SAVING = Math.max(0, SAVING - 1); showToast('Burn order not saved \u2014 no connection?', true); });
+}
+
+
+/* ---------- toast (kit .p-toast; one at a time, optional Undo) ---------- */
+var toastT;
+function toast(msg, err, undo) {
+  var t = $('toast');
+  t.className = 'p-toast' + (err ? ' is-alert' : '');
+  t.innerHTML = '<span></span>';
+  t.firstChild.textContent = msg;
+  if (undo) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'p-btn'; b.textContent = 'Undo';
+    b.onclick = function() { t.hidden = true; undo(); };
+    t.appendChild(b);
+  }
+  t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(function() { t.hidden = true; }, err ? 5000 : (undo ? 5000 : 2600));
+}
+function showToast(msg, err) { toast(msg, err); }   // older call sites (proof viewer, inks)
+
+/* ---------- wiring ---------- */
+document.addEventListener('click', function(e) {
+  var t = e.target.closest('button,[data-open],a,[data-fold]');
+  if (!t) return;
+  var d = t.dataset || {};
+  if (d.fold) { toggleDay(d.fold); return; }
+  if (d.view) { setView(d.view); return; }
+  if (d.filter) { setFilter(d.filter); return; }
+  if (d.bandana) { setBandanaOnly(!BANDANA_ONLY); return; }
+  if (d.proof) { e.stopPropagation(); openProofModal(d.proof, d.label || ''); return; }
+  if (d.imaged) { setImaged(d.imaged, d.v === '1'); return; }
+  if (d.addlink) { showLinkInput(d.addlink); return; }
+  if (d.savelink) { saveSepLink(d.savelink); return; }
+  if (d.cancellink) { hideLinkInput(d.cancellink); return; }
+  if (d.jump) { jumpToJob(d.jump); return; }
+  if ('listtoggle' in d) { setListOff(!LIST_OFF); return; }
+  if (d.open) { openCard(d.open); return; }
+});
+document.addEventListener('keydown', function(e) {
+  var t = e.target;
+  if ((e.key === 'Enter' || e.key === ' ') && t.dataset && t.dataset.open && t === document.activeElement && t.matches('[role="button"]')) { e.preventDefault(); openCard(t.dataset.open); return; }
+  if (e.key === 'Enter' && t.dataset && t.dataset.linkfor) { e.preventDefault(); saveSepLink(t.dataset.linkfor); return; }
+  if (e.key === 'Escape') {
+    if ($('pmModal').classList.contains('open')) { pmClose(); return; }
+    if (!$('menu').hidden && token()) { showMenu(false); return; }
+    if (t.dataset && t.dataset.linkfor) { hideLinkInput(t.dataset.linkfor); return; }
+  }
+  // v22: ↑/↓ move between imprints in the two-pane view
+  if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && isWide() && viewMode === 'queue' && shownIds.length && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    var a = document.activeElement;
+    if (a && (/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) || a.closest('#menu,#pmModal') || (a.closest('#splitDetail') && !a.matches('[data-listtoggle]')))) return;
+    if ($('pmModal').classList.contains('open')) return;
+    var i = shownIds.indexOf(openId), n = i + (e.key === 'ArrowDown' ? 1 : -1);
+    if (n < 0 || n >= shownIds.length) return;
+    e.preventDefault(); pickCard(shownIds[n], true);
+    var h = document.querySelector('#ic-' + shownIds[n] + ' [data-open]'); if (h) h.focus({ preventScroll: true });
+  }
+});
+// print notes save when you leave the box (as in v21)
+document.addEventListener('focusout', function(e) {
+  var ta = e.target;
+  if (!ta.dataset || !ta.dataset.notes) return;
+  var id = ta.dataset.notes;
+  if (!state[id] || ta.value === (state[id].pn || '')) return;
+  state[id].pn = ta.value;
+  saveNotes(id, ta.value);
+});
+$('search').addEventListener('input', function() { render(); });
+$('calSpan').addEventListener('change', function() { calSpan = Number(this.value) || 7; render(); });
+if (WIDE) { var onWide = function() { if (LOADED) render(); }; if (WIDE.addEventListener) WIDE.addEventListener('change', onWide); else if (WIDE.addListener) WIDE.addListener(onWide); }
+window.addEventListener('resize', function() { if (isWide()) { setSplitTop(); fitProof(); } });
+
+$('refreshBtn').onclick = function() {   // reload from Airtable + look for a new app version
+  if (SAVING) { toast('Still saving — one moment'); return; }
+  flushNotes();
+  if (window.PineUpdate && PineUpdate.check) PineUpdate.check();
+  loadData();
+};
+
+// ⚙ menu: the token and the practice switch
+function showMenu(on) {
+  $('menu').hidden = !on; $('menuBtn').setAttribute('aria-expanded', on);
+  if (on) $('tokIn').value = token();
+}
+$('menuBtn').onclick = function() { showMenu($('menu').hidden); };
+document.addEventListener('pointerdown', function(e) { if (!$('menu').hidden && !e.target.closest('#menu,#menuBtn') && token()) showMenu(false); });
+$('tokIn').addEventListener('keydown', function(e) { if (e.key === 'Enter') $('tokSave').click(); });
+$('tokSave').onclick = function() {
+  var v = $('tokIn').value.trim();
+  if (!v) { toast('Paste the token first', true); return; }
+  try { localStorage.setItem('pine_at_key', v); } catch (e) {}
+  showMenu(false); loadData();
+};
+function syncPractice() {
+  $('practicePill').hidden = !PRACTICE;
+  $('practiceHint').innerHTML = PRACTICE ? '<b>On.</b> Nothing is saved.' : '<b>Off.</b> Changes save to Airtable.';
+  $('practiceBtn').textContent = PRACTICE ? 'Turn off' : 'Turn on';
+  $('practiceBtn').setAttribute('aria-pressed', PRACTICE);
+}
+$('practiceBtn').onclick = function() {
+  if (SAVING) { toast('Still saving — one moment'); return; }
+  flushNotes();
+  PRACTICE = !PRACTICE; syncPractice();
+  try { var u = new URL(location.href); if (PRACTICE) u.searchParams.set('practice', '1'); else u.searchParams.delete('practice'); history.replaceState(null, '', u); } catch (e) {}
+  toast(PRACTICE ? 'Practice on — nothing will be saved' : 'Practice off — changes save to Airtable');
+  showMenu(false);
+};
+syncPractice();
+
+// Self-update: busy (= show an "Update now" bar instead of reloading) while a save runs, the ⚙ menu or the proof is
+// open, someone is typing (notes, sep link, search), or an imprint is open in place on a narrower screen.
+window.pineBusy = function() {
+  try {
+    var a = document.activeElement;
+    var linkOpen = Array.prototype.some.call(document.querySelectorAll('.sc-linkrow'), function(x) { return !x.hidden; });
+    return SAVING > 0 || Object.keys(BUSY_IDS).length > 0 || !$('menu').hidden || $('pmModal').classList.contains('open') || linkOpen ||
+      !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) || !!($('search').value || '').trim() || (!isWide() && !!openId) || !!dragSrcIid;
+  } catch (e) { return true; }
+};
+if (isWide()) { calSpan = 14; $('calSpan').value = '14'; }   // v22: wide screens see two weeks ahead by default
+updateStats();
+boot();
+</script>
+<script src="pine-update.js" data-link="screens.html"></script>
+<script>if (window.PineUpdate && PineUpdate.ver) document.getElementById('ver').textContent = 'v' + PineUpdate.ver;</script>
+
+<script>
+// v27: print notes fit their text (Stephen: the 2-line box cut the note off). The box sizes to the note, up to about
+// 8 lines, then scrolls; empty it's one line. Runs on every redraw and while typing.
+(function(){
+  function fit(t){ if(!t||!t.classList||!t.classList.contains('inotes')) return; t.style.height='40px';   /* v29: was 'auto', which is 2 rows, so a one-line note was 59px (Ink: 40) */ var h=Math.min(t.scrollHeight+2, 190); t.style.height=h+'px'; t.style.overflowY = t.scrollHeight+2>190 ? 'auto' : 'hidden'; }
+  function all(){ document.querySelectorAll('textarea.inotes').forEach(fit); }
+  document.addEventListener('input', function(e){ fit(e.target); }, true);
+  document.addEventListener('focusin', function(e){ fit(e.target); }, true);
+  document.addEventListener('focusout', function(e){ setTimeout(function(){ fit(e.target); }, 0); }, true);
+  new MutationObserver(function(){ all(); }).observe(document.body, { childList:true, subtree:true });
+  window.addEventListener('resize', all);
+  all();
+})();
+</script>
+</body>
+</html>
