@@ -185,6 +185,35 @@ The art department's separation queue: imprints that need a sep (separation) fil
   - The open job measured against Screens v29 and Ink v102 at 1100, 1366, 1440, 1920 and 2000 (also with the list hidden and with two columns of inks): pane, card, header, body, mockup frame, image, footer, gap and controls column are the same to the pixel.
   - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
 
+## 2026-10-20 · v43: Bandanas only, forgiving search, a faster ink picker
+**Why:** Stephen: "can you look at adding a bandana only toggle in the screen and seps app.....as well as looking into the scroll feature for selecting inks....also can we make the search logic really find anything we are typing vs having to type it very exactly." His screenshot of the Add-ink list showed big two-line rows ("PANTONE BLACK BB - EZP / Black BB · EZP"), about 9 on screen, and a lot of scrolling.
+- **Bandanas only:** a toggle at the right of the filter row, with how many bandana jobs are in the tab you're on. It works with the tabs (To sep, No sep file, Reorders, Sep'd), the search and the Calendar. This computer remembers it. Bandana = the imprint's "Bandana Emoji Identifier" is filled in (the same thing that shows the ink coverage buttons).
+- **Search that forgives** (the shared `pine-search.js`): any word order, parts of words, first letters ("dcb" finds Deaf Co Brewing), "11040a" finds 11040-A, and one typo ("brewnig"). It looks in the imprint ID, order #, customer, design, type, location, press, separator and the ink names. The list keeps its date order. Garment and colour are not in what Seps loads, so they are not searched yet.
+- **Ink picker:**
+  - The whole Inks library (about 1,700 inks) loads once when you first click into the box, and this computer keeps a copy so it's instant next time. Refresh loads it again. Until it has loaded, typing searches Airtable as before.
+  - Same forgiving search, best match first: "blakc bb" finds Black BB, "dtf 185" finds 185 Direct-to-fabric, "pms 1807c", "wg3" and "warm grey 3" all work.
+  - One-line rows: swatch · name · type (e.g. ■ Black BB  EZP). 34px rows instead of about 60, and the list can be up to 60% of the screen tall. That's about twice as many inks in view.
+  - ↑/↓ moves the highlight, Enter adds it (the best match is already highlighted, so typing and pressing Enter is enough), and Esc closes the list. The mouse wheel scrolls only the list, not the page behind it.
+  - With the box empty you see **Recent** (the last 8 inks this computer added), then **Previous run** (on a reorder), then every ink.
+  - Type chips at the top (All, OW, EZP, SOW, Direct-to-fabric, Discharge, Graphics) narrow the list. They come from the library itself.
+  - **+ Create new ink** works as before.
+- **Fix:** clicking out of the ink box and straight back in could close the list a moment later.
+- **New read:** the Inks library (Name, Pantone Number, Ink Type, Display Hex). Airtable writes are the same as v42. Adding an ink is the same PATCH of the imprint's Inks link.
+- **Tested** (Playwright, mocked Airtable, made-up customers, 1440×900):
+  - Bandanas only: shows only the 2 bandana jobs, count 2, works with the search, is remembered after a reload, and shows all 5 when turned off.
+  - Queue search finds the right jobs for "11040a", "11040 a", "dcb", "brewnig", "tee deaf", "hilltop hoody", "kayk northwind" and "bandana", and finds nothing for "zzzz".
+  - Ink picker:
+    - The library loads in 3 pages.
+    - The top match is right for the six searches above.
+    - Arrow keys and Enter add Black BB with exactly v42's PATCH (one write). The list closes and the box clears.
+    - Esc closes the list but not the job.
+    - Recent shows first, and Previous run shows on a reorder.
+    - The type chip narrows the list.
+    - A mouse click adds an ink.
+    - Custom ink sends the same POST and then the PATCH.
+    - Nothing in the picker is under 12px, and swatches are 18px.
+  - Practice mode sends 0 writes. No page errors. No sideways scroll at 390.
+
 ## Ideas not built yet
 - Jobs with no print date drop off 14 days after they were created (the load window), even if they still need a sep.
 - On a phone the kit card puts Screens and *+ Claim* on separate rows, so cards are tall.
