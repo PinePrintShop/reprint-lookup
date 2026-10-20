@@ -461,3 +461,9 @@ Stephen: "on the scheduling app.....can we add a pop up in the percentage to inc
   - **Settings:** the goal saves and stays after a reload.
   - **Writes and errors:** no writes, and practice mode made 0 writes. No JS errors. Nothing under 12px.
   - **v22 test:** passes on v23.
+
+## 2026-10-20 — v24: "Suggest" without the emoji
+**Why:** Stephen's top-bar review of the first apps in the new brand colors.
+- The filter row's yellow button reads "Suggest" (was "✨ Suggest"). The ✨ on suggested jobs in the calendar stays. The bar keeps `position:relative`, since Schedule is a fixed 100vh layout.
+- No behaviour changes.
+- **Tested:** the v23 test passes on v24 (ALL PASS). At 1440 and 390 there are no console errors and practice mode makes 0 writes.

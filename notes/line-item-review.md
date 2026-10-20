@@ -548,3 +548,17 @@ Stephen (on a patch job showing "Missing: garment"): "we can really exclude all 
 - **No location needed:** Patch/Label ONLY and Flatstock imprints no longer show "Missing: location", since they aren't placed on a garment.
 - **Garment box:** reads "Item" on non-garment lines.
 - **Tests:** new test 10/10 (`scratchpad/lir35/t35.js`); the v34 suite passes 103/103 on v35.
+
+## 2026-10-20 · v36: phone bar is two rows ("Who are you?" moves into ⚙)
+**Why:** Stephen's top-bar review. On a phone (390 wide) the "Who are you?" picker pushed the bar to three rows (160px), and its text was cut off.
+- **At 700px and under:**
+  - The picker is the first row of the ⚙ menu. It is the same select, so picking, signing comments and invoice edits work as before.
+  - Until someone is picked, ⚙ gets the yellow ring the picker had.
+  - "Choose who you are" (an invoice edit with no name) opens ⚙ with the picker focused.
+  - The Practice pill moves to the steps row, which has room for it.
+  - The bar has two rows (116px): Pine · app · version · Refresh · ⚙, then Quote › Order › Review.
+- **Wider than 700px:** the bar is unchanged. At 1440, 1280, 1024, 768 and 701 its geometry is identical to v35.
+- **Tested:**
+  - The v34 suite passes 103/103 on v36, and the v35 test passes 10/10.
+  - A new picker test passes. It covers the picker in ⚙ on a phone and in the bar on desktop, moving back when the window is resized, the ring, and needMe.
+  - At 1440 and 390 there are no console errors and practice mode makes 0 writes.

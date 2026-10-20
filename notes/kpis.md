@@ -72,3 +72,9 @@ v23 uses "sum" (`SPOIL_RULE`). If the live Bandana Spoilage tile shows a differe
 - Pine style v2, self-update (`pine-update.js`, data-link `pine-kpi.html`), and the version in the bar.
 - Refresh re-pulls the data and checks for a new version. The data also reloads every 30 minutes.
 - Pine Central v175 opens `pine-kpi.html`.
+
+## 2026-10-20 · v24: the "Updated" stamp matches the bar
+**Why:** Stephen's top-bar review of the first apps in the new brand colors.
+- The "Updated 6:26 PM" stamp in the bar had an inline 70%-white colour. It now uses the `.stamp` class only: 13px, 55% white, the same as the version tag.
+- No behaviour changes. The app is read-only.
+- **Tested:** with the Oct 16 data mock, v24's tiles and charts match v23 exactly at 1440 and 390. There are no console errors, and practice mode makes 0 writes.

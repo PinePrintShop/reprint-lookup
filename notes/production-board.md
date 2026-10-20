@@ -64,3 +64,25 @@ Stephen: "in the production board it looks like those top pills get hidden if yo
 - Top bar never hides buttons now: up to 1439px wide the buttons are icon-only, and if it still doesn't fit the bar wraps to a second row instead of cutting the right-hand buttons off. Checked 800–1680px; TV (1920) unchanged.
 - Day rollover: the TV moves to the new day on its own after midnight (it used to stay on yesterday until someone reloaded), unless someone had picked a different day.
 - Auto-refresh skips while someone is mid-task (arranging / drawing / writing a note), and an older slow load can no longer overwrite a newer one.
+
+## 2026-10-20 — v48: the standard Pine bar
+Stephen: "review ... the first ones that we did with the new brand colors to make sure to clean up the top bar". The Board's bar was one of the first, so it no longer matched Line Item Review, Shipping and Seps.
+- **Bar:** now the standard 64px black bar.
+  - Order: Pine mark, "PRODUCTION BOARD" (Poppins 900; "PRODUCTION" on phones), then v48 right after the name. Before, the title was "PRODUCTION" at 27px and the version sat at the far right.
+  - In practice mode, a yellow PRACTICE tag (`.p-tag-wait`) replaces the old round pill.
+- **Buttons:** Arrange, Draw and Note stay in the bar because they are the TV tools. Then ↻ Refresh and ⚙.
+  - They are 44px with 6px corners. They were 31–34px pills with 13px text.
+  - The ✏️ 📝 ⛶ emoji are now plain glyphs (↕ ✎ +). Below 1000px wide, Arrange, Draw and Note show only their glyphs.
+- **⚙ menu:** Roster, Dark mode, Full screen ("Exit full screen" while on) and Practice (turn on / leave). The update waits while the menu is open.
+- **Date band:** the date and ‹ Today › moved to a white band under the bar.
+  - The date is Poppins and scales with the screen: 30px on the 1920 TV.
+  - When you're not on today, the band shows "Not today: assigning ahead / past day". The Arrange "Local layout" badge also sits there; its 🔧 is gone.
+  - In dark mode the band is dark.
+- **Nothing under 12px:** the weekday was 11.5px at 1280 wide.
+  - On laptops, the location and colour columns and the crossed-off rows also dropped to 9–11px. They are now at least 12px.
+  - Job numbers fit as before at 1000–1920. At 800 wide they were already cut short in v47, and that hasn't changed.
+- **Tested** with mocked Airtable (Oct 15's schedule) at 1920×1080, 1440×900, 1280, 1000, 800 and 390, light and dark:
+  - No errors.
+  - The menu items work: Roster opens, Dark mode toggles and is remembered, Full screen goes in and out, and the menu closes on an outside tap.
+  - Arrange, Draw and Note still work, and ‹ › / Today change the day.
+  - In practice mode the tag shows, and submitting a time-off request makes 0 Airtable writes. The same request outside practice makes 1 write.

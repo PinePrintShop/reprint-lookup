@@ -272,3 +272,12 @@ Stephen: "Yes to patches and stickers etc".
 Stephen (screenshot of order 10926's Sales note): a Rivers Promo product link ran off the right edge of the note box.
 - Web links in the big view's notes now show as a short link with the site name ("riverspromo.com ↗", opens the page), and any other long word wraps inside the box. Everything else in the note is unchanged (still escaped).
 - Tested with that exact link: the note box no longer overflows; promo, patch and garment tests still pass.
+
+## 2026-10-20 · v83: top bar and filter row to the Pine standard
+Stephen: "review ... the first ones that we did with the new brand colors to make sure to clean up the top bar that we did for the last few". The references are Line Item Review v35, Shipping v11, Seps v45 and Screens v30.
+- **Garments filter row on one line:** the chips share the search line (`.p-chips-inline`, as in Seps) and scroll sideways if they run out of room. The search is capped at 360px. v82 put the chips beside the search only at 1400px and wider, and with an auto width, so at 1440 and 1280 they dropped to a second line (124px). Now the band is 71px, and at 1440 all five chips show.
+- **Promo filter row:** this page has three menus on the right (vendor, arrival, show), so its type chips can't share the line without hiding most of them. The search and the menus are line 1, and the chips get their own full line under them (124px, all chips showing). v82 put the chips beside the search and pushed the three menus onto a lone second line on the right. At 1900px and wider, everything is on one line.
+- **Phone bar:** 8px gaps, as in Seps (116px with the views row, was 120).
+- **Receive buttons stay where Stephen asked:** "I like the recieve all button on the top of the page". The open line's Receive is still top right (checked).
+- Nothing else changed: the same reads, writes, Undo and practice.
+- **Tested** (Playwright, mocked Airtable). The v82 tests pass on v83: garments 73/74, promo 70/70, filters, link, patch, and payloads (8 the same as v78). The one failure is "10a Receive sits in the row under the count boxes". It also fails on v82, because it is a v77 check that v78 undid on purpose (Receive is back on top). At 1440, 1280 and 390 there are no console errors and practice makes 0 writes.

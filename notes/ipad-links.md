@@ -15,25 +15,25 @@
 
 | App | Permanent link | Opens now |
 |---|---|---|
-| Operator | `pine-operator.html` | v129 |
-| Catching | `pine-catching.html` | v168 |
-| Damage Log | `damage-log.html` | v22 |
-| Ink Queue | `pine-ink-queue.html` | v103 |
-| Purchasing | `pine-purchasing.html` | v111 |
-| Receiving | `receiving.html` | receiving-dashboard v82 |
+| Operator | `pine-operator.html` | v130 |
+| Catching | `pine-catching.html` | v169 |
+| Damage Log | `damage-log.html` | v23 |
+| Ink Queue | `pine-ink-queue.html` | v104 |
+| Purchasing | `pine-purchasing.html` | v112 |
+| Receiving | `receiving.html` | receiving-dashboard v83 |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
-| Production Board | `pine-production-board.html` | v47 |
+| Production Board | `pine-production-board.html` | v48 |
 | Seps | `seps.html` | v45 |
 | Screens | `screens.html` | v30 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v23 |
+| Schedule | `pine-schedule.html` | v24 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v116 |
-| Line Item Review | `pine-line-item-review.html` | v35 |
+| Line Item Review | `pine-line-item-review.html` | v36 |
 | Create order | `create-order.html` | v24 |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
-| KPIs (desktop office app) | `pine-kpi.html` | v23 |
-| Reprints (desktop office app) | `reprints.html` | v5 |
+| KPIs (desktop office app) | `pine-kpi.html` | v24 |
+| Reprints (desktop office app) | `reprints.html` | v6 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 
