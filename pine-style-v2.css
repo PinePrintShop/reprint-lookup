@@ -77,6 +77,7 @@
 .p-bar-app{font:900 18px/1 var(--p-display);text-transform:uppercase;letter-spacing:.02em;word-spacing:.1em}
 .p-bar-ver{font:700 var(--p-fs-xs)/1 var(--p-sans);color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}
 .p-bar-sp{margin-left:auto;display:flex;gap:var(--p-s2);align-items:center;flex-wrap:wrap}
+/* .p-practice is the old round pill — kept so old app versions still render. New versions use span.p-tag.p-tag-wait "Practice" (bar order below). */
 .p-practice{font:800 var(--p-fs-xs)/1 var(--p-sans);letter-spacing:.06em;text-transform:uppercase;background:var(--p-yellow);color:var(--p-black);border-radius:var(--p-pill);padding:6px 10px}
 
 /* ---------- section header (brand "secondary headline": black box, white Poppins) ---------- */
