@@ -23,7 +23,7 @@
 | Receiving | `receiving.html` | receiving-dashboard v82 |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v9 |
 | Production Board | `pine-production-board.html` | v47 |
-| Seps | `seps.html` | v42 |
+| Seps | `seps.html` | v43 |
 | Screens | `screens.html` | v30 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v22 |
