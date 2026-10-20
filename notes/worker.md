@@ -33,3 +33,16 @@ After Stephen added the service account to the shared drive, ⚙ › Google Driv
 - **Forgiving ID:** the worker now takes just the ID out of whatever was pasted, used everywhere the drive ID is read (status, search, the shared-drive check).
 - **ID hint:** the "drive not found" message ends with a safe hint of the ID in use, e.g. "ID in use: 0Ab…OpQ (19 characters)", so a folder ID (starts 1, ~33 characters) or a bad paste shows at a glance.
 - **Unchanged:** everything else. The v26 suite passes 43/43 on v27.
+
+## 2026-10-20 · v28: download a Drive file (for previews in Line Item Review)
+Stephen approved previewing the customer's PDFs and images right in Line Item Review v39 ("Oh that would be great"). The browser can't read Drive files itself, so the worker hands them over.
+- **New `GET /proxy/drive/file?id=<file id or Drive file link>`**: streams the file's bytes from `files/{id}?alt=media&supportsAllDrives=true` with the file's Content-Type and the usual CORS headers (`Cache-Control: private, max-age=600`). Read-only.
+- **Same guard as the other Drive routes:** the Pine Airtable key, then the same shared-drive check (`driveCheck`, now also reading `size`) before anything is downloaded.
+- **Refused:**
+  - a folder → 400 `not_a_file`
+  - outside Pine's shared drive → 403 `not_in_shared_drive`
+  - Google Docs/Sheets/Slides (`application/vnd.google-apps.*`, which can't be downloaded as bytes) → 415 `not_downloadable`
+  - over 25 MB (from the metadata size, before downloading) → 413 `too_big`
+  - missing / no access / Google errors / sign-in failures → the v26 codes
+- **Unchanged:** everything else, byte for byte. `driveCheck` takes an optional extra field list; the other routes call it exactly as before.
+- **Tested** (Node, mocked Google, real RSA key), 73/73: the 43 v27 checks, plus a PDF streams byte-for-byte with Content-Type and CORS, an image from a Drive file link, metadata check before download, folder 400, My Drive 403, Google Doc and Sheet 415, 26 MB 413 (nothing downloaded), missing 404, download 404, no access 403, bad id 400, POST 403, not connected 503, sign-in failure 502, no / non-Pine token 401, v27 answers 403 "Drive path not allowed", status/search/list/thumb/upload identical to v27 side by side, and no key or token in any response.
