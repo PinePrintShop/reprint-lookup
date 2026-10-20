@@ -407,3 +407,57 @@ From a code review of v21. Permanent link `pine-schedule.html` now opens v22.
 | Patch application, 60 pcs | 106 min | 88 min | 88 min |
 
   Jobs with 1 ink change didn't change. Cancel on each confirm box writes nothing, and confirming writes as before. Practice mode made 0 writes. No JS errors.
+
+## 2026-10-20 — v23: "why is it this full?" pop-up, impressions goals back
+Stephen: "on the scheduling app.....can we add a pop up in the percentage to include the reasoning why it might be over 100% and also bring back in our impressions goals per press". And: "the why can include palet changes / ink changes / sweatshirts...just a quick pop up to help us learn how to always better schedule".
+- **Click any %** (Day view bar, Week / 3 Day header chips, 2 Week / Month cells; hover says so) and a pop-up shows:
+  - Available press time (⚙ Settings) and Planned time, in hours and minutes, plus impressions.
+  - **Over 100%:** "Why it's over 100%", biggest first, one line each with the minutes it adds, only when it applies:
+    - hours over
+    - screen setup (names a 5+ screen job)
+    - pallet changes (product switches bandana ↔ tee ↔ fleece in the day's order, about 21 min on Press 1 and 30 on Press 2; these push the end time and aren't in the %)
+    - ink changes × 15 min
+    - sweatshirts/fleece pieces and the extra time against tee speed (P1 194 vs 253/hr, P2 171 vs 231/hr)
+    - bandanas against tee speed
+    - 3+ small runs (under 50 pcs)
+    - embroidery hooping
+    - Allocated longer than the estimate
+    - rounding up to 15 min
+    - one job taking half the day
+    - Hard Deadline jobs
+    - suggested (dashed) jobs
+    - runs past close
+  - **Under 100%:** how much is free and the top 3 "Where the time goes".
+  - **"Next time" tip** when there's an easy one: "Group the fleece jobs together to save 1 pallet change", or "Move 11042-A (2h) to Fri: Press 2 has 3h free".
+  - **Each job's line:** start–end, setup (screens × min + ink changes × 15) + printing (pcs, fleece share) = estimate (rounded up to 15) or Allocated, then the minutes. The minutes add up to the % (minutes ÷ available).
+- **Impressions goals are back** (Day Fill v15 had 1,100 / 950):
+  - New defaults: **Press 1 1,400 / day, Press 2 1,200 / day.** They're still pending Stephen's OK.
+  - **How they were measured:** the last 120 days of Run End Actual. Impressions = the summed line qty of each imprint. A full day = first run start to last run end of 6.5 h or more. The goal is a good day (top quarter, p75). The median is a normal day.
+
+    | | Full days | Median | Top quarter (p75) | p90 |
+    |---|---|---|---|---|
+    | Press 1 | 61 | 1,010 | 1,395 | 1,620 |
+    | Press 2 | 58 | 949 | 1,200 | 1,550 |
+  - **Editable in ⚙ Settings → Impressions goal per day.** Only a changed goal is saved on that computer, so new defaults still reach the others.
+  - **Where they show:**
+    - Day view under each press's %
+    - Week / 3 Day headers, on days with work
+    - 2 Week / Month cells: "Planned 1,150 impressions · goal 1,400" (shorter where space is tight) with a small bar
+    - in the pop-up
+  - Under 60% of the goal shows muted. Over the goal is fine and isn't flagged.
+  - **What counts as an impression:** each imprint's qty (one print location), summed per press per day. So pieces × print locations.
+  - Once a job is finished, the Imprints qty rollup reads 0, so it uses the line items' qty instead.
+  - Only Press 1 and 2 have goals. Embroidery and heat stay time-based.
+- No new Airtable writes.
+- **Tested with mocked Airtable at 1440×900:**
+  - **Over-100% Press 2 day** (fleece 6 screens, Hard Deadline bandana, tee Allocated 2h, fleece; runs to 5:30p):
+    - The jobs' minutes were 165 + 120 + 120 + 90 = 495. 495 ÷ 360 = 138%, the same as the chip.
+    - The reason lines were all correct and sorted.
+    - The tip said to group the fleece jobs.
+    - Impressions: 770 = 200 + 300 + 150 + 120.
+  - **Embroidery day:** hooping 36m.
+  - **Under-100% Press 1 day:** 52%, no "why" list, "3h 15m free".
+  - **Each view:** the pop-up opens from Day, Week, 2 Week and Month.
+  - **Settings:** the goal saves and stays after a reload.
+  - **Writes and errors:** no writes, and practice mode made 0 writes. No JS errors. Nothing under 12px.
+  - **v22 test:** passes on v23.
