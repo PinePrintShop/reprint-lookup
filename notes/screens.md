@@ -140,3 +140,17 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
   - The open job measured against Seps v42 and Ink v102 at 1100, 1366, 1440, 1920 and 2000 (also with the list hidden and with two columns of inks): the same to the pixel.
   - No page errors, no text under 12px, no sideways scroll and no overlapping card parts at 1100, 1366, 1440, 1920, 1024 and 390.
 
+
+## 2026-10-20 · v30: Bandanas only + forgiving search
+**Why:** Stephen: "can you look at adding a bandana only toggle in the screen and seps app ... also can we make the search logic really find anything we are typing vs having to type it very exactly."
+- **Bandanas only** switch at the end of the filter chips, with a count of bandana jobs on the current tab. It sits on top of every tab (To image, No sep file, Reorders, Imaged), the search and the Calendar. Tap again to turn it off. Each computer remembers it (`screens_bandana_only`), so the bandana station can leave it on.
+  - A bandana is an imprint whose Imprints **"Bandana Emoji Identifier"** (`fldo7l8t4IhhWoeXl`, filled in when the garment is Carolina Creative) is not empty. Seps uses the same field. An imprint with location "Bandana" counts too. Screens already got this field in its full-record read, so nothing new is read and nothing is written.
+  - If nothing on a tab is a bandana, the screen says "No bandanas here · Turn off Bandanas only to see every job."
+- **Search finds what you mean** (shared `pine-search.js`): any word order ("coffee deaf"), parts of words, first letters ("wg3" for Warm Grey 3), "pms 185", order numbers without the dash ("11040a"), one typo ("mountian"). The best match comes first. It looks at imprint ID, order #, customer, design, print type, location, press, separator and ink names. Garment and garment colour are not in Screens' data. Searching those needs a garment-name field on Imprints. The current one (`fldXLTrmEf8E9BpOn`) only returns record links.
+- **Airtable writes:** same as v29.
+- **Tested** (Playwright, mocked Airtable, made-up customers):
+  - The bandana count is right, the switch limits the queue and the Calendar, and it works with the tabs and the search.
+  - It stays on after a reload, and turning it off shows every job again.
+  - Search cases: 11040a, "coffee deaf", hkc, "hello kity", mountian, "pms 185 kitty", 11042b, 11041 (best first).
+  - Imaged sends the same one PATCH as v29. Practice mode sends 0 writes.
+  - No console errors. No sideways scroll at 390.
