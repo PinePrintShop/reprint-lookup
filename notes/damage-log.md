@@ -135,3 +135,15 @@ The production manager's desk view of Order Issues. Used mostly on a laptop, som
   - Approve with the new confirm: Cancel writes nothing. Approve writes *Approve Resolution* plus one refund request.
   - Practice made 0 writes and saved nothing on the computer.
   - The month start is 2026-10-01 06:00Z (Oct 1 at midnight in Denver). There were no page errors.
+
+## 2026-10-20 · v23: top bar and filter row to the Pine standard
+Stephen: "review ... the first ones that we did with the new brand colors to make sure to clean up the top bar that we did for the last few". The references are Line Item Review v35, Shipping v11, Seps v45 and Screens v30.
+- **Filter row:** the chips now sit between the search and the date range (`.p-chips-inline`, as in Seps). In v22 they came after the range and dropped below the whole row.
+  - When they don't all fit, the chips wrap to a second row inside the band. The search and the range stay on line 1, top right.
+  - No filter is ever hidden off to the side. This is the production manager's main screen, so hidden filters are worse than a taller band.
+  - At 1440 and 1280 the band is 123px, with the 8 Orders chips in 2 rows. On Trends it is one line (71px).
+  - The search is capped at 280px on desktop, because "Order # or customer" is short.
+  - On a phone the order is the same as before: search, then the range, then the chips on their own line, scrolling sideways.
+- **⚙ menu:** now the kit's `.p-menu` (Airtable token, Practice), the same as Seps, Receiving and Reprints. v22 used its own `.menu p-card` card. The same ids are kept, so the token, practice and pineBusy work as before.
+- Nothing else changed: the same filters, two panes, refund flow and Airtable writes.
+- **Tested** (Playwright, mocked Airtable). The v22 test (`test_dl.js`: refund retry A–C, approve D, practice E with 0 writes, month start F) passes on v23, 29/29, three runs. The first run timed out once on a click, then passed on reruns. At 1440, 1280 and 390, on Orders and Trends, the bar is 64px (116 on a phone, where the Orders/Trends views get their own row, as in Seps), and there are no console errors.

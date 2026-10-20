@@ -17,7 +17,7 @@
 |---|---|---|
 | Operator | `pine-operator.html` | v129 |
 | Catching | `pine-catching.html` | v168 |
-| Damage Log | `damage-log.html` | v22 |
+| Damage Log | `damage-log.html` | v23 |
 | Ink Queue | `pine-ink-queue.html` | v104 |
 | Purchasing | `pine-purchasing.html` | v112 |
 | Receiving | `receiving.html` | receiving-dashboard v83 |
@@ -33,7 +33,7 @@
 | Create order | `create-order.html` | v24 |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
-| Reprints (desktop office app) | `reprints.html` | v5 |
+| Reprints (desktop office app) | `reprints.html` | v6 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 
