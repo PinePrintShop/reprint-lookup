@@ -657,3 +657,36 @@ Stephen: "are we able to download straight from the app or does it open that lin
 - **Older worker without drive/file:** ⬇ opens the file in Drive instead.
 - **No writes:** downloads only read; nothing is written to Airtable.
 - **Tests:** new download test 13/13 (`scratchpad/lir41/t41.js`); the v39 suite with rows open 78/79 (only its "shows v39" check); v34 103/103.
+
+## 2026-10-21 · v42: upload into Drive from the Art brief, proofs into Proofs
+Right after v41's downloads, Stephen: "can we also have an upload feature in the app....just trying to really streamline stuff". This uses worker v28's existing `POST drive/upload` (no worker change).
+- **⬆ Upload in every open folder:** each opened folder panel in the brief (Client Provided, Seps, Proofs, Embroidery, nested ones like Embroidery › Hats) has a heading with its name and file count and a small white ⬆ Upload button. The button opens a file picker that takes several files.
+- **Main folder:** an ⬆ Upload next to "Folders (N)" puts files in the order folder's top level. Loose top-level files stay hidden (v38), except the ones uploaded here, which show as cards after the re-read.
+- **Drag and drop:** drop files on any open folder panel. The panel gets a solid black outline on cream, and a black tip by the pointer says "⬆ Drop to upload to Seps". The innermost folder under the pointer wins. The Folders chips area counts as the main folder.
+- **Progress:** each file gets a row (⬆ name uploading…). It turns into ✓ name (a link to the file in Drive), or the error in red with Retry.
+  - Uploads run 3 at a time.
+  - When the batch is done, that folder is re-read so the new files show with thumbnails, and a toast says "Uploaded 3 files to Seps", or how many failed.
+  - "Clear" removes the rows.
+- **Limits:**
+  - Files over 25 MB (the worker's limit) are refused before anything is sent: "huge.tif · over 25 MB, too big to upload here · Open in Drive ↗", plus a toast. The rest of the drop still uploads.
+  - Empty files are refused too.
+- **No upload on "From last time"** rows (old orders).
+- **Proof copies go into Proofs:** when the order folder has a subfolder named Proofs (preferred), Proof or For Proof (any case), the Drive copy of an attached proof goes there. With none, it goes to the top level as before. The hint says where: "saved to Drive › Proofs too" or "saved to the Drive folder too". The saves line reads "Saved to Airtable ✓ · Drive › Proofs ✓".
+- **Two drop targets, never both:** a drop on a Drive folder panel only uploads to Drive. The rest of the brief and the Proof box still attach the proof to Airtable, as in v27. The proof target keeps its dashed yellow highlight and now also shows a "Drop to attach as the proof" tip.
+- **Practice:** no POST. Rows say "practice, not uploaded" instead of ✓, and the toast says "Practice — 2 files not uploaded to Seps".
+- **Busy:** `window.pineBusy()` is true while uploads run, so self-update waits.
+- **Fixed on the way:** after a proof's Drive copy, the saves line redraws even when the target folder isn't on screen. Before, it could stay on "Copying…" until the next redraw.
+- **Tests:** new test 73/73 (`scratchpad/lir42/t42.js`):
+  - picker into Seps (3 files), Client Provided and the main folder, with the right folder IDs, names, Content-Type, raw body and token
+  - at most 3 at a time
+  - pineBusy on during uploads and off after
+  - re-read shows the new files, with toasts
+  - drag-drop onto Seps, nested Hats and the chips row; highlight and tip shown, then cleared
+  - 26 MB refused while the small file in the same drop still uploads
+  - 502 then Retry
+  - proof copy into Proofs, and to the top level when there's no Proofs folder, with the name preference order
+  - a PDF dropped on a folder panel attaches no proof; the proof drop zone still attaches
+  - practice: 0 POSTs and 0 writes
+  - no upload on "From last time"
+  - one yellow button, nothing under 12px, 390 phone with no sideways scroll, no console errors
+- **Earlier suites on v42:** v34 103/103; v41 13/13; v39 with rows open 78/79 (only its "shows v39" check).
