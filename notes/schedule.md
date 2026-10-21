@@ -467,3 +467,35 @@ Stephen: "on the scheduling app.....can we add a pop up in the percentage to inc
 - The filter row's yellow button reads "Suggest" (was "✨ Suggest"). The ✨ on suggested jobs in the calendar stays. The bar keeps `position:relative`, since Schedule is a fixed 100vh layout.
 - No behaviour changes.
 - **Tested:** the v23 test passes on v24 (ALL PASS). At 1440 and 390 there are no console errors and practice mode makes 0 writes.
+
+## 2026-10-21 — v25: same-ink jobs together
+Stephen: "in scheduler can we also make sure to keep jobs that share inks together...meaing discharge white bandana on a few banadanas get shcedulerd together".
+- **Inks:** v25 also reads Imprints ink names (`fldMM5hp8kEpo3KKT`, the same field Seps and Ink Queue read). It's a read only, with no Airtable changes. TBA slots are ignored.
+  - Names are normalised: "Pantone 186 C - Discharge" and "186 - Discharge" are the same ink, "EZP WHT" reads as white, and a name without " - type" takes the imprint's type.
+  - The job pop-up lists the inks.
+- **How alike two jobs are:** the number of shared ink names, +1 for the same Imprint Type (Discharge with Discharge), +2 for the same white or base (e.g. Discharge White). Two jobs "share ink" when at least one ink is shared.
+- **Suggest:**
+  - **Press:** same platen first (as before), then shared inks, then the emptier press.
+  - **Day:** from the first day with room, Suggest looks up to 2 more workdays ahead and picks the day already running the most shared inks. It never goes past the "print N workdays before due" day or past the fill target. With no shared inks anywhere, it takes the first day as before.
+  - **Order within a day:** a greedy chain after the jobs already there. The next job is always the same product (bandana / tee / fleece) that shares the most ink with the one before it. Two prints of one order keep back → sleeve → front → pocket. The new order is only used when it beats the old one.
+  - **Hard Deadline and locked jobs** keep exactly the day, press and time v24 would give them. Jobs already on the calendar never move.
+  - **Example (test):** three Discharge White bandanas and a plastisol bandana on Press 2 run DW, DW, DW, plastisol (v24: DW, plastisol, DW, DW). A 7579 plastisol bandana moves from Tue to Wed, next to the 7579 bandana already there.
+- **% pop-up (v23):**
+  - **"Ink runs"**, e.g. "3 jobs in a row on Discharge White · saves about 30 min of ink changes". This is an estimate: 15 min (the ink-change rate since 2026-10-14) for each ink that stays on the press between neighbours.
+  - **"Next time" tip** when same-ink jobs aren't back to back, e.g. "Run 11042-A right after 11040-A (both Discharge White)". It names a job that can move (not locked or Hard Deadline).
+- **Day view:** a small "Same ink · Discharge White" join line (12px, black rule) between neighbouring cards that share ink. Suggested jobs get it too.
+- **Group by ink** (Day view, under a press's "Done by"; also in the pop-up):
+  - Shows only when it would help and no suggestion is up.
+  - Re-orders that day's unlocked, non-Hard-Deadline jobs. Locked, Hard Deadline, running and finished jobs keep their slot, and gaps stay where they were.
+  - A confirm box lists the new order and how many jobs get new start times. It shows in practice too, so the order can be previewed.
+  - It writes only *Scheduled Start Time* for the jobs that moved (plus Allocated if a job had none, as for any move), with Undo. Practice writes nothing.
+  - Nothing else re-orders hand-placed jobs.
+- **Fix:** suggested jobs with no press set yet got no changeover gap between them, because v1–v24 used the job's empty Equipment. The gap now comes from the lane: 11/21 min on Press 1, 13/30 on Press 2.
+- **Fix:** the version fallback said 23.
+- **Tested** (mocked Airtable, Chromium, 1440×900 and 390):
+  - Suggest put the three DW bandanas back to back. The Hard Deadline suggestion was identical to v24's. No placed job moved.
+  - The marker shows (≥12px). The pop-up line and the tip are correct.
+  - Group by ink: Cancel wrote nothing. Re-order wrote 1 PATCH with 2 records, start time only (11041-A 9:30, 11040-A 10:30). The Hard Deadline and locked jobs were untouched. Afterwards the pop-up said "3 jobs in a row on Discharge White · saves about 30 min".
+  - Practice: Group by ink + Suggest + Place all made 0 writes. No console errors.
+  - The v23 suite and the v22 suite pass on v25.
+- Not shipped by this change: the permanent link `pine-schedule.html` still points at v24.
