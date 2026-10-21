@@ -641,3 +641,10 @@ Stephen approved four changes to the Art brief's Drive section. On the reprint r
   - v32 Review: 110/110.
   - v38: 12/13. The miss expects Client Provided's subfolder files left out; v39 shows them on purpose.
   - v37: 72/78. The 4 new misses count every Drive search, and the 11040 brief now also searches 10804 for its "From last time" row. With those searches left out it's 76/78, the same as v38.
+
+## 2026-10-21 · v40: "From last time" starts folded
+On 11029 (a repeat of 9044) the row showed 8 old Seps and Client Provided files straight away. Stephen: "can we not show the past stuff right away....maybe have it a drop down or an option to open....when you see it all right away it can be a bit much"
+- **Folded by default:** each "From last time" row is one line: ▸ From last time · 9044 · folder name ↗ (+N more) · Client Provided and Seps files.
+- **Opens on click:** clicking the row opens its files, and clicking again folds it. It stays open for that order # for the rest of the session.
+- **No early reads:** nothing is read from the old folder until the row is opened (the order # search still runs, so the row only appears when a folder exists).
+- **Tests:** new folding checks 7/7 plus the v39 suite run with rows open, 46/46 (`scratchpad/lir40/t40.js`); the full v39 suite with rows open 78/79 (only its "shows v39" check); v34 103/103.
