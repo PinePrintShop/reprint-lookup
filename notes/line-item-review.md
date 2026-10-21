@@ -648,3 +648,12 @@ On 11029 (a repeat of 9044) the row showed 8 old Seps and Client Provided files 
 - **Opens on click:** clicking the row opens its files, and clicking again folds it. It stays open for that order # for the rest of the session.
 - **No early reads:** nothing is read from the old folder until the row is opened (the order # search still runs, so the row only appears when a folder exists).
 - **Tests:** new folding checks 7/7 plus the v39 suite run with rows open, 46/46 (`scratchpad/lir40/t40.js`); the full v39 suite with rows open 78/79 (only its "shows v39" check); v34 103/103.
+
+## 2026-10-21 · v41: download straight from the app
+Stephen: "are we able to download straight from the app or does it open that link then download" → "yes please check if I did and let's get this updated". Worker v28 was confirmed live: the deployed code matches workers/pine-workers-v28.js.
+- **⬇ on every file card:** each Drive file in the brief (Client Provided, opened folders, From last time) has a ⬇ button. It saves the file with its real name through worker v28 drive/file. That includes .ai, .eps and .psd files that can't be previewed.
+- **⬇ Download in the preview pop-up**, next to Open in Drive. A file already previewed downloads from memory, with no second fetch.
+- **Google Docs, Sheets and Slides:** they have no file to download, so there's no ⬇ and Open in Drive stays.
+- **Older worker without drive/file:** ⬇ opens the file in Drive instead.
+- **No writes:** downloads only read; nothing is written to Airtable.
+- **Tests:** new download test 13/13 (`scratchpad/lir41/t41.js`); the v39 suite with rows open 78/79 (only its "shows v39" check); v34 103/103.
