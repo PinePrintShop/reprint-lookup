@@ -326,3 +326,9 @@ Stephen: "Andrew is no longer with us and Annabelle is the ink lead".
 - **Records kept:** the Operators records stay in Airtable for history. Andrew had no jobs linked.
 - **Annabelle stays on the list** so she can be added if she helps on a press. She has no jobs linked yet.
 - **Tests:** 22/22 (`scratchpad/op131/t132.js`).
+
+## 2026-10-22 · v133: Up next shows every job on a phone
+Stephen (phone screenshot): "Doesn't look like I can go through jobs on mobile".
+- **Cause:** a later iPad-portrait rule, `.wk-next{height:30vh}` in the `max-width:1000px and portrait` block, also matched phones and beat the phone rule's `height:auto`. `.wk-next` has `overflow:hidden`, so on an iPhone 13 the list was clipped to 197px of its 684px, about 1–2 jobs, with no way to scroll.
+- **Fix:** at 640px and narrower, `.wk-next{height:auto!important;overflow:visible}`. The whole list now scrolls with the page. CSS only; iPad sizes are unchanged.
+- **Check:** iPhone 13 emulation with 8 jobs: the page grows from 1072px to 1570px tall, every job card is reachable, and nothing is clipped.
