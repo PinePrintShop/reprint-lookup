@@ -319,3 +319,10 @@ Stephen: "Can we also have an add person button that writes to Airtable so we ca
 - **Same name twice:** a name already on the list (any case) just selects that person; no duplicate record.
 - **Practice mode:** fakes the save (0 real POSTs).
 - **Tests:** 20/20, live and practice (`scratchpad/op131/t.js`).
+
+## 2026-10-22 · v132: Andrew hidden from the check-in
+Stephen: "Andrew is no longer with us and Annabelle is the ink lead".
+- **Hidden list:** Andrew is now hidden from the crew check-in, like Ron and Gar. The list is in one place, `HIDDEN_CREW = ['Ron','Gar','Andrew']`, and names are compared trimmed.
+- **Records kept:** the Operators records stay in Airtable for history. Andrew had no jobs linked.
+- **Annabelle stays on the list** so she can be added if she helps on a press. She has no jobs linked yet.
+- **Tests:** 22/22 (`scratchpad/op131/t132.js`).
