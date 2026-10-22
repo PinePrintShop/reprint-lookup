@@ -307,3 +307,15 @@ Three reviews (run flow, Press Setup, work screen/practice). Each fix was verifi
   - No console errors. Practice made 0 writes.
   - A computed-style comparison outside the bar (v129 vs v130) showed no change apart from the bar height.
   - The v126 catch-prompt test still passes: practice 0 writes, live 4, the same as v129.
+
+## 2026-10-22 · v131: "+ Add person" on the crew check-in
+Stephen asked how many bandanas TeeJ has printed. My first count used the old Imprints single-select (fldOsVUlfs3U847oO), which nothing has filled since January. The real record has been there since v29:
+- **Where crew is recorded:** every job links its Press Ops to Imprints › Operator Link (fld5pdD7bdND4CR8h) and its QC to Imprints › Quality Control (fldRp5koS5QTfy5XD), both linking to the Operators table tblQm9hy2WZCx9jnd. Line Items › Operators (fldm3rHQysBU7TPQw) gets the same links.
+- **For reports, use those links, not the old select.** Via the link, TJ's finished bandana jobs come to about 195,000 bandanas: 2023 7.4k · 2024 49.9k · 2025 63.6k · 2026 74.1k.
+
+Stephen: "Can we also have an add person button that writes to Airtable so we can keep accurate track if we have a seasonal person on QC".
+- **The button:** every role on the check-in screen (Press Ops, Quality Control) has a dashed **+ Add person** chip. It opens a name box with Add and Cancel; buttons are 56px tall.
+- **What Add does:** creates one Operators record, `{Operator (fldv4VQ7tshYKREn0): name}` with typecast so a new name becomes a select option. The person shows on every role's list straight away and is selected in the role they were added to. Earlier picks are kept.
+- **Same name twice:** a name already on the list (any case) just selects that person; no duplicate record.
+- **Practice mode:** fakes the save (0 real POSTs).
+- **Tests:** 20/20, live and practice (`scratchpad/op131/t.js`).
