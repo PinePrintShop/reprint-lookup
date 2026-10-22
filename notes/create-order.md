@@ -514,3 +514,11 @@ Stephen: "I think the POM will mostly be for basic quotes...I think it is cool t
 - Same questions and results. The yes button says what happens ("Remove", "Leave", "Change color", "Replace"); Remove is red.
 - Nothing else changed.
 - **Tested** with mocked Airtable: Cancel on the color fix → no write; Change color → one Garments update. Leave order: Cancel stays, Leave moves on. Remove line: Esc keeps it, Remove removes it. Practice: 0 writes. No errors.
+
+## 2026-10-22 · v25: Back goes to the order list
+Stephen (phone): "in mobile when I am in order and from clicking back from review I can't go back to the list". Opening an order (from the list, or arriving from Line Item Review's Order step with ?order=) never added a browser history step. The phone's Back button skipped the list and left the app.
+- **History step:** opening an order adds one. Back now returns to the order list, Forward reopens the order, and the address drops ?order= when you're on the list.
+- **Arriving with ?order=:** the list sits underneath the order. From Line Item Review, Back goes order → list → Line Item Review.
+- **Unsaved work:** if you have unsaved lines, Back asks "Leave this order?" first, the same as the link; Cancel keeps you in the order.
+- **Link renamed:** "Change order" now reads **‹ All orders**.
+- **Tests:** 12/12 on an iPhone 13 screen with mocked Airtable in practice mode (`scratchpad/co25/t25.js`), 0 writes.
