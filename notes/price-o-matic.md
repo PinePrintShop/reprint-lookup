@@ -510,3 +510,7 @@ Stephen: "Just because sale prices come and go with our Vendors....thoughts on p
 Stephen sent a phone screenshot: "This is napping on quote on mobile". The yellow "Pick a colour to price it · each colour's regular price, from $6.62" box was wrapping one word per line.
 - **Cause:** on phones the garment box is a two-column grid (72px photo + details). `#ssPriceArea` wasn't in the list of rows that span both columns, so it landed in the 72px photo column.
 - **Fix:** it now spans the full width (CSS only). At 390px wide the box measures 356px wide (it was 56px).
+
+## 2026-10-22 · v118: colour swatches wrap on phones
+Stephen: "The color swatches still go off the side". On phones (≤767px) the swatch row was a single line that never wrapped and wasn't allowed to scroll, so it ran past the right edge and the page scrolled sideways. With 24 colours at 390px the last swatch ended at 860px.
+- **Fix:** the swatches now wrap onto more lines (CSS only). With 24 colours at 390px they all fit within 335px, and the page no longer scrolls sideways.
