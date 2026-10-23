@@ -2,6 +2,18 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-23 · v2: cleaner index seps
+**Why (Stephen):** "I know this is a work in progress but how do we clean up index seps!" He sent phone screenshots of an index job in which every film had stray dots of other inks across flat areas, plus noise from the art.
+
+**What changed** (index only; spot and sim are the same as v1):
+1. **Smooth the art first:** on by default, a 3×3 median on the dot grid, so JPEG blocks and paper texture don't become dots.
+2. **Solid areas** slider (default 12): a colour this close to an ink prints that ink solid and passes no error on. Flat areas stay flat, and only real blends get dots. Slide right for fewer dots.
+3. **Dither:**
+   - Diffusion: Floyd–Steinberg, now damped to 80% and capped, so error can't wander across the picture.
+   - Pattern (tidy): an 8×8 ordered pattern between the two nearest inks. It is regular and leaves no stray dots, which is good for gradients.
+4. **Hard edges stay hard:** where the art jumps sharply to a neighbour (more than 14 ΔE), the dot takes the nearest ink and no error carries on. The soft rim between two flat colours is now a clean edge, not a band of dots or a checkerboard.
+5. **Stray dots:** remove lone dots (default), lone dots and pairs, or keep all. Two passes; a removed dot takes its neighbours' ink.
+
 ## 2026-10-23 · v1, first version
 **Why (Stephen):** "Let's actually look at if we can really make the color counter more of a Sep software with simulated process and created bases etc". He also said: "Feel free to grab any .psd and the Sep file from drive folders you can scan to sample out… We use the Xitron rip. The Sep files should have all the choke and overlap traps in the files. We use Photoshop and Illustrator."
 
