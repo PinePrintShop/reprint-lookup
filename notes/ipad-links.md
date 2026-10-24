@@ -26,7 +26,7 @@
 | Seps | `seps.html` | v45 |
 | Screens | `screens.html` | v30 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v25 |
+| Schedule | `pine-schedule.html` | v26 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v118 |
 | Line Item Review | `pine-line-item-review.html` | v42 |
@@ -34,7 +34,7 @@
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
-| Sep Maker (desktop, art dept) | `sep-maker.html` | v5 |
+| Sep Maker (desktop, art dept) | `sep-maker.html` | v6 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 

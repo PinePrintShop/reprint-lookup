@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pine Schedule v26</title>
+<!-- Pine Schedule v26 (2026-10-24): Stephen: "Can you also have an agent look into this issue with the Scheduler app".
+     Fix: saving failed with 422 "Cannot parse date value 2026-10-28T24:30:00.000Z" for Scheduled Start Time. setStart built the
+     time by hand from minutes since midnight, so a job pushed past midnight (stacked after a full day) wrote hour 24+. It now
+     uses Date.UTC(y, m, d, 0, min).toISOString(), which rolls over to the next day (and month/year). Times stay shop clock time
+     stored as Z (08:30Z = 8:30 am, same as Operator and the Airtable calendar), so normal slots write exactly what v25 wrote. --><!-- Pine Schedule v25 (2026-10-21): Stephen: "in scheduler can we also make sure to keep jobs that share inks together...meaing
+     discharge white bandana on a few banadanas get shcedulerd together".
+     Inks come from Imprints ink names (fldMM5hp8kEpo3KKT, read only), normalised ("Pantone 186 C - Discharge" = "186 · DISCHARGE").
+     Similarity = shared ink names + 1 for the same Imprint Type + 2 for the same white/base (e.g. Discharge White).
+     Suggest: picks the press by platen first, then shared inks; between days with room (from the first day that fits, up to 2
+     workdays later and never past "print N workdays before due") it prefers a day that already runs the same inks. Within a day it
+     orders the suggested jobs as a greedy chain: same product first (bandana / tee / fleece), then the most shared inks. Hard
+     Deadline and locked jobs keep exactly the day, press and time v24 gives them; jobs already on the calendar never move.
+     % pop-up: "Ink runs" (N jobs in a row on X · saves about M min of ink changes, an estimate at 15 min per ink kept on the press)
+     and a "Next time" tip when same-ink jobs aren't back to back. Day view: a small "Same ink" join between adjacent cards.
+     "Group by ink" (Day view, per press, only when it helps): re-orders that day's unlocked, non-Hard-Deadline jobs after a confirm
+     box that lists the new order; locked / Hard Deadline / running / finished jobs keep their slot; gaps stay. Practice fakes it.
+     Fix: suggested jobs with no press yet got no changeover gap (it used the job's empty Equipment); it uses the lane now. --><!-- Pine Schedule v24 (2026-10-20): top-bar cleanup. The filter row's main button reads "Suggest" (no ✨ emoji), like the
+     other apps' plain-text buttons. The bar keeps position:relative (fixed 100vh layout). No behaviour changes. -->
+<!-- Pine Schedule v23 (2026-10-20): Stephen: "on the scheduling app.....can we add a pop up in the percentage to include the
+     reasoning why it might be over 100% and also bring back in our impressions goals per press".
+     Every machine-day % (Day view bar, Week / 3 Day header chips, 2 Week / Month cells) opens a pop-up: press time available
+     (Settings), each job's booked time (setup + printing = estimate, or Allocated), the total = the %, gaps, impressions, and
+     when over 100% the reasons (hours over, long setups, hooping, Allocated over the estimate, rounding, fleece, hard deadlines,
+     suggested jobs, past close). Under 100% it says how much is free.
+     Impressions goals are back (Day Fill v15 had 1,100 / 950): Press 1 1,400 / day, Press 2 1,200 / day = a good day (p75 of full
+     days, last 120 days), pending Stephen's OK; editable in Settings (saved on this computer). Impressions = Imprints qty ("Active Impressions": pieces at that one print location), summed per press per day.
+     Shown as "Planned 1,150 impressions · goal 1,400" with a small bar in Day view, the Week / 3 Day headers and 2 Week / Month cells. No new writes. -->
+<!-- Pine Schedule v22 (2026-10-19): time fixes from a code review.
+     Ink changes: the number of ink changes now comes straight from Imprints "Ink Changes" (fld6Tv0llCxjjyyHJ), 15 min each
+     (same as Airtable's Ink Change time since 2026-10-14). v12-v21 divided Ink Change time by 25 min, so 2 changes counted as 1, 4 as 2.
+     Embroidery: Airtable's Estimated Run Time already adds 18 min hooping; v9-v21 added another 18. Hooping now counts once.
+     Day end: every machine shows when its last job ends; a day that runs past "Last job ends by" (Settings) is flagged.
+     "Are you sure?" boxes use the Pine confirm box (pine-confirm.js). Version on screen comes from the file name only. -->
+<!-- Pine Schedule v21 (2026-10-19): Airtable's "Imprint Ready?" on every card (Stephen: "can we add the already existing
+     function in airtable > imprints 'Imprint Ready?' On the cards in the same place I see the due date emojis and bandanas
+     emoji. It would be very helpful to see that right away!"). 👍 / 🛑 first in the emoji row next to the job ID, on
+     calendar cards, the side list and the job pop-up (hover: "Imprint Ready?"). The rule stays in Airtable's formula
+     (goods received + inks + screens for presses; goods + transfers/trims for heat press, patches, sewing). -->
+<!-- Pine Schedule v20 (2026-10-15): Mike's notes after a few hours on real data, plus lock-in (Stephen).
+     Lock in: a job (pop-up) or a whole day (button under each day) ticks Imprints "Scheduled" (Slack bots read it); Unlock in the pop-up.
+     Moves keep the tick (Airtable's change bot posts the new days). Every proof on the imprint's line items shows (was only the first),
+     with "N colorways". Side cards show the print Location. Machine chips filter only the calendar. Calendar cards show the customer.
+     Drops start at the exact end of the job before (no gap, no rounding); an empty day starts 8:30. Job length without Allocated rounds
+     up to 15 min (what placing it writes). Unscheduled pop-up: press/day/time start blank, Save keeps it in the list.
+     Pop-up: start and end time, turnaround in business days from payment (same as Airtable's Turnaround Calculator).
+     Pine Schedule v19 (2026-10-15): search finds scheduled jobs too (Stephen). Under the search box: All (default) / Unscheduled only
+     (remembered). With search text and All, a "Scheduled" section lists matching scheduled, not-finished jobs from any date (one Airtable
+     query, 300 ms after typing stops, first 50 by start) merged with what's loaded. Tap one = the calendar jumps to its day (Month → Week),
+     scrolls to the card and flashes it. Those result cards don't drag (drag from the calendar). No change to writes or the default list.
+     Pine Schedule v18 (2026-10-15): Ready to Order jobs show again (Stephen: "It should show up when it is ready to order"),
+     tagged "Garments not ordered"; Suggest places them no sooner than 4 workdays out (order + ship) unless an arrival date is set.
+     Pine Schedule v17 (2026-10-15): Pine page kit. Bar = logo · SCHEDULE · version · practice · views (Day / 3 Day / Week / 2 Week /
+     Month) · ↻ Refresh · ⚙ (token, practice and a link to the shop settings live in ⚙; Settings and Refresh were big outline buttons).
+     One filter row under the bar: ‹ Today › + range · machine chips (one line) · ✨ Suggest (the one yellow; Place all takes the yellow
+     while a suggestion is up). Unscheduled cards use the kit list card (ID badge, name, qty + time, tags), still drag sources
+     (hold-to-drag on touch, no browser image drag). Job card + settings pop-ups use the kit inputs/tags; 44px touch targets.
+     Fix: the version fallback said v15. No change to scheduling, time model or Airtable writes.
+     Pine Schedule v16 (2026-10-15): 2 Week view (Stephen) — two Mon–Fri rows, every job listed, drag between any days.
+     Pine Schedule v15 (2026-10-14): unscheduled jobs start at 'Ordered - In Production' (Ready to Order = garments not ordered yet; Stephen).
+     Imprints with no Line Items linked are left out of the list; a note at the bottom names them so they can be linked or deleted.
+     Pine Schedule v14 (2026-10-14): Allocated filled from the estimate rounds up to 15 min; formula errors no longer show as "[object Object]"; jobs with no Line Items linked say so
+     (no qty, proof or garments to show) and Suggest skips them; Seps file is the picture when there is no proof.
+     Pine Schedule v13 (2026-10-14): Allocated Production Time is the scheduler's adjustable job length (Operator, the Board and the
+     Airtable calendar End Time use it). Jobs use it when set; it's editable on the card; placing a job with none fills it from the estimate.
+     Pine Schedule v12 (2026-10-14): ink changes count again, at the measured 15 min each (v9-v11 left them out).
+     Pine Schedule v11 (2026-10-14): Flatstock 7683 denim (#426DA9, white text) and Finishing dusty plum (#8E6C8A) join the B colors.
+     Pine Schedule v10 (2026-10-14): Suggest fills each day only to 90% of a normal full day (cushion, Stephen); editable.
+     Pine Schedule v9 (2026-10-14): job times, gaps between jobs and day capacity come from 12 months of real press
+     history (notes/schedule-calibration.md) instead of Airtable's Estimated Run Time formula.
+     Pine Schedule v8 (2026-10-14): the board works in LANES (one per person/department): Press 1, Press 2,
+     Embroidery & sewing (Tajima + Bartacker + Post-bed), Heat press (D3 + Tag + Hat). Jobs keep their exact machine.
+     Pine Schedule v7 (2026-10-14): day-header load chips are the same machines in the same spots on every day
+     (fixed grid; "–" when a machine has nothing, "off" when closed). Sewing machines are BT and PB.
+     Pine Schedule v6 (2026-10-14): colors are direction B "Consume design" (Stephen): Press 1 7473 teal, Press 2 7563 mustard,
+     Embroidery 7579 burnt orange, Heat Red 032, on Pine cream. Red now means heat press, so warnings are black "!" marks.
+     Pine Schedule v5 (2026-10-14): a job card loads its own Line Items + garment names on open; the background
+     Line Items load waits and retries when Airtable says "too many requests" and keeps what it got.
+     Pine Schedule v4 (2026-10-14): garments come from the job's Line Items (the Imprints "Garment Type" lookup returns record IDs
+     through the API, so v1-v3 showed IDs and never spotted fleece). Fleece share now weights run time like Day Fill did.
+     Pine Schedule v3 (2026-10-14): Week and 3 Day show each day as one column with every machine's jobs in time order,
+     like the Airtable calendar. Machine chips pick All or any mix of machines. Day view keeps a column per machine.
+     Pine Schedule v2 (2026-10-14): Press 1 and Press 2 get their own colors (Stephen picked direction A in pine-colors.html).
+     Pine Schedule v1 (2026-10-14): Scheduler v13 + Day Fill v15 in one app.
+     Drag job cards onto a press and a day. ✨ Suggest fills the next weeks the way Day Fill did
+     (due dates, hard deadlines, whole orders, press limits) and shows dashed cards you can place or skip.
+     Writes Equipment + Scheduled Start Time on Imprints (shop clock time stored as Z, 08:30Z = 8:30 am,
+     same as Operator and the Airtable calendar). ?practice=1 fakes every write. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+html,body{margin:0;height:100%}
+body{background:var(--p-cream-lt)}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.p-bar{position:relative}
+/* v17: page kit filter row — date nav + range · machine chips (one line) · ✨ Suggest */
+.tools{flex:none}
+.datenav{display:flex;align-items:center;gap:6px;flex:none}
+.tools .p-chips{flex:1 1 0;order:0;width:auto;gap:4px}   /* basis 0: chips take what's left and scroll, Suggest stays on the line */
+.tools .p-chips .p-tab{padding:0 12px}
+.tools .p-filters-end{margin-left:0}
+.range{font:900 20px/1 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em;min-width:0;white-space:nowrap}
+.navb{min-width:44px;padding:0 10px;font-size:22px}
+.range{margin-left:6px}
+.sidebtn .p-count{font:800 var(--p-fs-xs)/1 var(--p-sans);background:var(--p-black);color:var(--p-yellow);border-radius:var(--p-pill);padding:3px 7px}
+.body{flex:1;display:flex;min-height:0}
+
+/* unscheduled list */
+.side{width:330px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--p-line);background:var(--p-white);min-height:0}
+.side-h{padding:12px 14px 8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--p-line)}
+.side-h .t{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.side-h .p-search{max-width:none}
+.side-list{flex:1;overflow:auto;padding:8px 10px 40px}
+.side.drop-on{box-shadow:inset 0 0 0 3px var(--p-yellow)}
+.og{margin:12px 0 6px;padding:8px 2px 0;font:700 14px/1.3 var(--p-sans);color:var(--p-ink-2);display:flex;gap:6px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--p-line)}
+.og:first-child{border-top:0;margin-top:0;padding-top:0}
+.og b{color:var(--p-black)}
+/* v17: unscheduled cards = kit list card (.p-lc), narrow: picture · ID · qty + time / job / tags. Still drag sources. */
+.sc{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.sc + .sc{margin-top:6px}
+.side .p-lc-head{grid-template-columns:48px minmax(0,1fr) auto;grid-template-areas:"img id nums" "img main nums" "tags tags tags";gap:4px 10px;padding:8px 10px;min-height:0}
+.side .p-lc-nums{gap:12px}
+.side .p-num b{font-size:15px}
+.side .p-lc-sub{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side .p-lc-tags{gap:5px}
+.sc:hover{border-color:var(--p-black)}
+.sc-img{grid-area:img;width:48px;height:48px;border-radius:4px;object-fit:contain;background:var(--p-cream-lt);border:1px solid var(--p-line);align-self:start}
+.sc.hd{box-shadow:inset 5px 0 0 var(--p-black)}
+.sc.skip{opacity:.45}
+.sc .why{padding:0 10px 8px}
+/* v19: All / Unscheduled only, and scheduled search results (tap to jump; not draggable) */
+.scope{gap:6px}
+.fhead{border-top:2px solid var(--p-black);padding-top:10px;margin-top:16px}
+.fc{cursor:pointer}
+.fc + .fc{margin-top:6px}
+.fc:hover{border-color:var(--p-black)}
+.side .fc .p-lc-head{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"id nums" "main main" "tags tags"}
+.fwhen{display:block;font:800 var(--p-fs-m)/1.25 var(--p-sans);font-variant-numeric:tabular-nums}
+.day .jc .l1{flex-wrap:wrap;white-space:normal}   /* v19: the start–end range is longer; let the ID wrap on Day cards instead of cutting it */
+.mc{position:relative}
+.jc.flash::before,.mc.flash::before{content:"";position:absolute;inset:-6px;border:4px solid var(--p-yellow);border-radius:10px;pointer-events:none;z-index:3;animation:pflash .7s ease-in-out 4}
+.mc.flash::before{inset:0;border-radius:4px}
+@keyframes pflash{50%{border-color:var(--p-black)}}
+.p-tag.hdtag{background:var(--p-black);color:var(--p-yellow)}
+.p-tag.warn{border-color:var(--p-black);color:var(--p-black)} .p-tag.warn::before{content:"!";font-weight:900;margin-right:2px}
+.why{font-size:12px;color:var(--p-alert);font-weight:700}
+.id{font:800 15px/1 var(--p-sans);font-variant-numeric:tabular-nums}
+
+/* v20: customer name on calendar cards, lock mark, proofs grid, turnaround, day lock */
+.jc .cn,.mc .cn{display:flex;gap:6px;align-items:center;min-width:0;font-weight:700;font-size:13px}
+.cnt{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day .jc .cn{font-size:14px}
+.mc .cn{flex:1 1 auto;font-weight:400;color:var(--p-ink-2)}
+.mgrid.two .mc{flex-wrap:wrap;row-gap:1px}
+.mgrid.two .mc .cn{flex:1 0 100%;font-weight:700;color:var(--p-black)}
+.lkb{flex:none;font:800 12px/1 var(--p-sans);background:var(--p-black);color:var(--p-white);border-radius:3px;padding:2px 5px;white-space:nowrap}
+.lk{width:12px;height:12px;flex:none;align-self:center}
+.proofs{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:8px}
+.proofs.one{grid-template-columns:1fr}
+.proofs a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--p-ink-2);font-size:12px;min-width:0}
+.proofs a span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proofs .proof{max-height:170px}
+.proofs.one .proof{max-height:260px}
+.proofs-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.ta{font-variant-numeric:tabular-nums}
+.daylock{margin-top:auto;width:100%;justify-content:center}
+.daylocked{margin-top:auto;display:flex;gap:5px;align-items:center;justify-content:center;font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2);padding:8px 0}
+.mcell .daylock{font-size:13px;padding:0 8px}
+.dayhead{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:10px}
+.dayhead .daylock{width:auto;margin:0}.dayhead .daylocked{margin:0}
+#mLock{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* calendar */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+.sugbar{display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--p-yellow-lt);border-bottom:2px solid var(--p-yellow)}
+.sugbar.on{display:flex}
+.sugbar .msg{flex:1;min-width:200px;font-weight:700}
+.cal{flex:1;overflow:auto;padding:12px 16px 60px}
+.grid{display:grid;gap:0;border:1px solid var(--p-line-strong);border-radius:10px;background:var(--p-white);min-width:min-content}
+.gh{position:sticky;top:-12px;z-index:3;background:var(--p-black);color:var(--p-white);padding:9px 10px;font:700 14px/1.1 var(--p-sans);border-left:1px solid #333;display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.gh.today{background:var(--p-yellow);color:var(--p-black)}
+.gh .dn{font:900 15px/1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.gh .sub{font-size:12px;opacity:.75;font-weight:700}
+.gh:first-child{border-radius:9px 0 0 0;border-left:0}
+.rh{position:sticky;left:-16px;z-index:2;background:var(--p-cream);border-top:1px solid var(--p-line-strong);padding:10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.rh b{font:900 14px/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.rh span{font-size:12px;color:var(--p-ink-2)}
+.cell{border-top:1px solid var(--p-line-strong);border-left:1px solid var(--p-line);padding:6px;min-height:90px;display:flex;flex-direction:column;gap:5px;min-width:0;background:var(--p-white)}
+.cell.off{background:repeating-linear-gradient(135deg,var(--p-cream-lt) 0 8px,var(--p-white) 8px 16px)}
+.cell.past{background:var(--p-cream-lt)}
+.cell.drop-on,.mcell.drop-on{box-shadow:inset 0 0 0 3px var(--p-yellow);background:var(--p-yellow-lt)}
+.fill{display:flex;align-items:center;gap:6px;font:700 12px/1 var(--p-sans);color:var(--p-ink-2)}
+.fill .bar{flex:1;height:7px;border-radius:4px;background:var(--p-cream);overflow:hidden;min-width:30px}
+.fill .bar i{display:block;height:100%;background:var(--p-black)}
+.fill.over .bar i{background:var(--p-alert)}
+.fill.over{color:var(--p-alert)}
+.offl{font:700 12px/1 var(--p-sans);color:var(--p-ink-3);text-transform:uppercase;letter-spacing:.06em}
+.jc{position:relative;background:var(--p-cream-lt);border:1.5px solid var(--p-line-strong);border-radius:6px;padding:5px 7px;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:manipulation;font-size:13px;line-height:1.25}
+.jc:hover{border-color:var(--p-black)}
+.jc .l1{display:flex;gap:5px;align-items:baseline;white-space:nowrap;overflow:hidden}
+.jc .tm{font-weight:700;color:var(--p-ink-2);font-variant-numeric:tabular-nums}
+.jc .id{font-size:14px}
+.jc .em{overflow:hidden;text-overflow:ellipsis}
+.jc .l2{color:var(--p-ink-2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jc.hd{box-shadow:inset 4px 0 0 var(--p-black)}
+.jc.done{opacity:.55}
+.jc.late{border-color:var(--p-alert)}
+.jc.ghost{background:var(--p-yellow-lt);border:2px dashed var(--p-black)}
+.jc.ghost.late{border-color:var(--p-alert)}
+.jc.saving{opacity:.6}
+.jc .bigimg{display:none}
+.day .jc{display:flex;gap:10px;font-size:14px;padding:8px}
+.day .jc .bigimg{display:block;width:64px;height:64px;object-fit:contain;flex:none;background:var(--p-white);border:1px solid var(--p-line);border-radius:4px}
+.day .jc .l2{white-space:normal}
+.day .cell{min-height:200px}
+.dragging{position:fixed;z-index:200;pointer-events:none;opacity:.92;transform:rotate(-1.5deg);box-shadow:0 10px 30px rgba(0,0,0,.3);width:220px}
+.ph{height:4px;border-radius:2px;background:var(--p-black);margin:-2px 0}
+
+/* month */
+.mgrid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));border:1px solid var(--p-line-strong);border-radius:10px;background:var(--p-white);overflow:hidden}
+.mgrid .gh{position:sticky;top:-12px}
+.mcell{border-top:1px solid var(--p-line-strong);border-left:1px solid var(--p-line);min-height:150px;padding:6px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.mcell:nth-child(5n+1){border-left:0}
+.mcell.out{background:var(--p-cream-lt)}
+.sc img,.jc img,.mc img{-webkit-user-drag:none;user-select:none}
+.mgrid.two .mcell{min-height:240px}
+.mgrid.two .mcell.past{background:var(--p-cream-lt)}
+.mgrid.two .mcell:nth-child(n+11):nth-child(-n+15){border-top:3px solid var(--p-black)}
+.mcell.out .mn{color:var(--p-ink-3)}
+.mcell.today .mn{background:var(--p-yellow);border-radius:var(--p-pill);padding:2px 8px}
+.mn{align-self:flex-end;font:800 14px/1.2 var(--p-sans);font-variant-numeric:tabular-nums}
+.mc{display:flex;gap:4px;align-items:baseline;white-space:nowrap;overflow:hidden;font-size:13px;padding:3px 5px;border-radius:4px;background:var(--p-cream-lt);border:1px solid var(--p-line);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.mc .pk{font:800 12px/1 var(--p-sans);background:var(--p-black);color:var(--p-white);border-radius:3px;padding:2px 4px}
+.mc .pk.p2{background:var(--p-white);color:var(--p-black);box-shadow:inset 0 0 0 1.5px var(--p-black)}
+.mc .pk.em{background:var(--p-cream-dk);color:var(--p-black)}
+.mc .pk.ht{background:var(--p-yellow);color:var(--p-black)}
+.mc.ghost{border:1.5px dashed var(--p-black);background:var(--p-yellow-lt)}
+.mc.hd{box-shadow:inset 3px 0 0 var(--p-black)}
+.more{font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2);background:none;border:0;text-align:left;padding:4px 2px;cursor:pointer}
+.mfill{display:flex;gap:6px;flex-wrap:wrap;font:700 12px/1 var(--p-sans);color:var(--p-ink-2)}
+.mfill .ov{color:var(--p-alert)}
+
+/* modal + misc. v17: the pop-up's buttons stay in view; only the middle scrolls */
+.p-modal{display:flex;flex-direction:column;overflow:hidden}
+.p-modal-b{flex:1 1 auto;min-height:0;overflow:auto}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
+.kv dt{color:var(--p-ink-2);font-weight:700}
+.kv dd{margin:0}
+.prep{display:flex;gap:6px;flex-wrap:wrap}
+.proof{width:100%;max-height:260px;object-fit:contain;background:var(--p-cream-lt);border-radius:8px;border:1px solid var(--p-line)}
+.row3{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:8px}
+.srow{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:6px}
+.srow .p-input,.srow .p-select{width:120px;flex:none}
+/* ⚙ menu rows. .p-menu sets display:grid, which beats [hidden] (kit gap): hide it here */
+.p-menu[hidden]{display:none}
+.gear-line{display:flex;gap:8px;align-items:center}
+.gear-line .p-input{flex:1;min-width:0}
+.gear-txt{flex:1;font-size:var(--p-fs-s)}
+.empty{padding:30px;text-align:center;color:var(--p-ink-2)}
+.loading{padding:40px;text-align:center;font-weight:700;color:var(--p-ink-2)}
+.sidebtn{display:none}
+.scrim-side{display:none}
+.legend{font-size:13px;color:var(--p-ink-2)}
+/* v2: press colors (pine-colors.html, direction A). Embroidery and heat stay plain until Whitney picks. */
+/* v3: machine chips + one column per day */
+.dgrid{display:grid;gap:0;border:1px solid var(--p-line-strong);border-radius:10px;background:var(--p-white);min-width:min-content}
+.dgrid .gh{flex-direction:column;align-items:stretch;gap:6px}
+.dgrid .gh .top{display:flex;justify-content:space-between;align-items:baseline}
+.dfills{display:grid;gap:4px}
+.dfills span{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 2px!important}
+.dfills .idle{background:transparent!important;color:rgba(255,255,255,.45)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.gh.today .dfills .idle{color:rgba(20,20,18,.5)!important;box-shadow:inset 0 0 0 1px rgba(20,20,18,.3)}
+.dfills span{font:700 12px/1 var(--p-sans);padding:3px 5px;border-radius:3px;background:rgba(255,255,255,.14)}
+.gh.today .dfills span{background:rgba(20,20,18,.1)}
+.dcell{border-left:1px solid var(--p-line);padding:6px;min-height:420px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.dcell:first-of-type{border-left:0}
+.dcell.past{background:var(--p-cream-lt)}
+.dcell.off{background:repeating-linear-gradient(135deg,var(--p-cream-lt) 0 8px,var(--p-white) 8px 16px)}
+.jc .pkc{font:800 12px/1 var(--p-sans);border-radius:3px;padding:2px 4px;background:var(--p-cream-dk);color:var(--p-black);flex:none}
+/* v6: machine colors, direction B "Consume design" (pine-colors.html). Text on every color is black. */
+:root{--c-p1:#1E988A;--c-p2:#D69A2D;--c-em:#DC582A;--c-ht:#EF3340;--c-ink:#141412;--ground:#EFE2CD}
+body,.p-app{background:var(--ground)}
+.rh.k-p1,.gh.k-p1,.jc.k-p1,.p-tag.k-p1,.mchip.is-on.k-p1,.dfills .k-p1,.mc .pk.p1{background:var(--c-p1)!important;border-color:var(--c-p1)!important;color:var(--c-ink)!important}
+.rh.k-p2,.gh.k-p2,.jc.k-p2,.p-tag.k-p2,.mchip.is-on.k-p2,.dfills .k-p2,.mc .pk.p2{background:var(--c-p2)!important;border-color:var(--c-p2)!important;color:var(--c-ink)!important;box-shadow:none!important}
+.rh.k-em,.gh.k-em,.jc.k-em,.p-tag.k-em,.mchip.is-on.k-em,.dfills .k-em,.mc .pk.em{background:var(--c-em)!important;border-color:var(--c-em)!important;color:var(--c-ink)!important}
+.rh.k-ht,.gh.k-ht,.jc.k-ht,.p-tag.k-ht,.mchip.is-on.k-ht,.dfills .k-ht,.mc .pk.ht{background:var(--c-ht)!important;border-color:var(--c-ht)!important;color:var(--c-ink)!important}
+.rh[class*="k-"] span,.jc[class*="k-"] .tm,.jc[class*="k-"] .l2{color:var(--c-ink)!important;opacity:1}
+.jc[class*="k-"] .pkc{background:rgba(255,255,255,.55)}
+.jc[class*="k-"]:hover{border-color:var(--p-black)!important}
+.cell.k-p1 .fill .bar i{background:var(--c-p1)} .cell.k-p2 .fill .bar i{background:var(--c-p2)} .cell.k-em .fill .bar i{background:var(--c-em)} .cell.k-ht .fill .bar i{background:var(--c-ht)}
+/* v11: Flatstock (Pantone 7683 denim, white text) and Finishing (dusty plum) */
+:root{--c-fs:#426DA9;--c-fin:#8E6C8A}
+.rh.k-fs,.gh.k-fs,.jc.k-fs,.p-tag.k-fs,.mchip.is-on.k-fs,.dfills .k-fs,.mc .pk.fs{background:var(--c-fs)!important;border-color:var(--c-fs)!important;color:#fff!important}
+.jc.k-fs .tm,.jc.k-fs .l2,.rh.k-fs span{color:#fff!important}
+.rh.k-fin,.gh.k-fin,.jc.k-fin,.p-tag.k-fin,.mchip.is-on.k-fin,.dfills .k-fin,.mc .pk.fin{background:var(--c-fin)!important;border-color:var(--c-fin)!important;color:var(--c-ink)!important}
+.cell.k-fs .fill .bar i{background:var(--c-fs)} .cell.k-fin .fill .bar i{background:var(--c-fin)}
+/* warnings: black "!" marks, since red is heat press now */
+.endt{font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2);font-variant-numeric:tabular-nums}
+.endt b{color:var(--p-black)} .endt.late{color:var(--p-black);font-weight:900} .endt.late::before{content:"! "}
+.why{color:var(--p-black)!important} .why::before{content:"! ";font-weight:900}
+.fill.over,.mfill .ov{color:var(--p-black)!important;font-weight:900} .fill.over::after,.mfill .ov::after{content:" !"}
+.cell .fill.over .bar i{background:var(--p-black)!important}
+.dfills .ov{box-shadow:inset 0 0 0 2px var(--p-black)} .dfills .ov::after{content:" !";font-weight:900}
+.jc.late,.jc.ghost.late{border-color:var(--p-black)!important;outline:2px solid var(--p-black);outline-offset:1px}
+.jc.late::after{content:"!";position:absolute;top:-8px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--p-black);color:var(--p-yellow);font:900 12px/18px var(--p-sans);text-align:center}
+/* v23: the % opens "why"; impressions vs goal */
+[data-why]{cursor:pointer}
+[data-why]:focus-visible{outline:3px solid var(--p-yellow);outline-offset:2px}
+.fill[data-why]:hover .pct,.imps[data-why]:hover span:last-child{text-decoration:underline}
+.dfills span[data-why]:hover,.mfill span[data-why]:hover,.mimps span[data-why]:hover{text-decoration:underline}
+.imps{display:flex;flex-direction:column;align-items:stretch;gap:4px;font:700 12px/1 var(--p-sans);color:var(--p-ink-2);font-variant-numeric:tabular-nums}
+.imps b{color:var(--p-black);font-weight:800}
+.imps .bar{height:5px;border-radius:3px;background:var(--p-cream);overflow:hidden;min-width:30px}
+.imps .bar i{display:block;height:100%;background:var(--p-black)}
+.imps.low{color:var(--p-ink-3)} .imps.low b{color:var(--p-ink-3)} .imps.low .bar i{background:var(--p-ink-3)}
+.dimps{display:grid;gap:4px}
+.iln{display:grid;grid-template-columns:22px minmax(0,1fr);row-gap:3px;align-items:center;font:700 12px/1 var(--p-sans);font-variant-numeric:tabular-nums;white-space:nowrap;background:transparent!important;color:inherit!important}
+.iln .ik{width:22px} .iln .in{overflow:hidden;text-overflow:ellipsis}
+.iln .ibar{grid-column:2;min-width:20px;height:4px;border-radius:3px;background:rgba(255,255,255,.22);overflow:hidden}
+.iln .ibar i{display:block;height:100%}
+.iln.k-p1 .ibar i{background:var(--c-p1)} .iln.k-p2 .ibar i{background:var(--c-p2)}
+.gh.today .iln .ibar{background:rgba(20,20,18,.18)} .gh.today .iln .ibar i{background:var(--p-black)}
+.iln.low{opacity:.6}
+.mimps{display:flex;gap:6px;flex-wrap:wrap;font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2);font-variant-numeric:tabular-nums}
+.mimps .mil{color:var(--p-ink-3)} .mimps .low{color:var(--p-ink-3);font-weight:400}
+.whym{width:min(680px,100%)!important}
+.wsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.wsum>div{background:var(--p-cream-lt);border:1px solid var(--p-line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.wsum b{font:900 24px/1.1 var(--p-display);font-variant-numeric:tabular-nums}
+.wjobs{list-style:none;margin:0;padding:0;border-top:1px solid var(--p-line)}
+.wjobs li{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--p-line);font-size:14px;line-height:1.35}
+.wjobs .wt,.wjobs .wn{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.wjobs .wt{color:var(--p-ink-2)} .wjobs .wn{text-align:right}
+.wjobs .wd{display:block;font-size:13px;color:var(--p-ink-2)}
+.wjobs .wtot{border-bottom:2px solid var(--p-black)} .wjobs .wtot .wm,.wjobs .wtot .wn{font-weight:800}
+.wwhy{margin:0;padding-left:20px;display:grid;gap:5px;font-size:14px;line-height:1.35}
+.wwhy li:first-child{font-weight:800}
+.wgo li:first-child{font-weight:400}
+.wfree{margin:14px 0 0;font-size:15px}
+.wlate{margin:6px 0 0;font-weight:700} .wlate::before{content:"! ";font-weight:900}
+.wtip{margin:14px 0 0;padding:10px 12px;background:var(--p-yellow-lt);border-left:4px solid var(--p-yellow);border-radius:4px;font-size:14px}
+@media (max-width:700px){ .wjobs li{grid-template-columns:minmax(0,1fr) auto} .wjobs .wt{grid-column:1/-1} }
+/* v25: same-ink join between adjacent Day cards, ink runs in the pop-up, Group by ink */
+.inkj{display:flex;align-items:center;gap:6px;margin:-3px 0 -3px 18px;padding:1px 0 1px 10px;border-left:3px solid var(--p-black);font:700 12px/1.2 var(--p-sans);color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:16px}
+.inkj b{color:var(--p-black);font-weight:800;overflow:hidden;text-overflow:ellipsis}
+.inkbtn{width:100%;justify-content:center;font-size:13px}
+.wruns{margin:0;padding-left:20px;display:grid;gap:5px;font-size:14px;line-height:1.35}
+.wtip+.wtip{margin-top:6px}
+.inks-dd{display:flex;gap:5px;flex-wrap:wrap}
+@media (max-width:1100px){
+  .side{position:fixed;left:0;top:0;bottom:0;z-index:60;transform:translateX(-105%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.25)}
+  .side.open{transform:none}
+  .scrim-side.open{display:block;position:fixed;inset:0;z-index:55;background:rgba(20,20,18,.35)}
+  .sidebtn{display:inline-flex}
+}
+@media (max-width:1279px){
+  .tools .p-chips{flex:1 1 100%;order:3}
+  .tools .p-chips .p-tab{padding:0 14px}
+  .tools .p-filters-end{margin-left:auto}
+}
+@media (max-width:700px){
+  .p-bar-sp{flex-wrap:nowrap}
+  .datenav{flex:1 1 100%;order:-1}
+  .range{font-size:17px}
+  .tools{gap:8px;padding:8px 12px}
+  .tools .p-chips{margin:0 -12px;padding:0 12px 2px}
+  .cal{padding:8px 8px 60px}
+  .row3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body class="p-app">
+<div class="app">
+  <header class="p-bar">
+    <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+    <span class="p-bar-app">Schedule</span><span class="p-bar-ver" id="ver">v26</span>
+    <span class="p-tag p-tag-wait" id="practicePill" title="Practice mode: nothing is saved" hidden>Practice</span>
+    <nav class="p-bar-views" id="viewSeg" role="tablist" aria-label="Views"></nav>
+    <div class="p-bar-sp">
+      <button class="p-barbtn" type="button" onclick="refresh()" title="Reload from Airtable and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+      <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" onclick="toggleGear()" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+    </div>
+    <div class="p-menu" id="gear" role="dialog" aria-label="Settings" hidden></div>
+  </header>
+  <div class="p-filters tools">
+    <button class="p-btn sidebtn" type="button" onclick="toggleSide(true)">Unscheduled <span class="p-count" id="sideCount2"></span></button>
+    <div class="datenav">
+      <button class="p-btn navb" type="button" onclick="nav(-1)" aria-label="Back">&lsaquo;</button>
+      <button class="p-btn" type="button" onclick="goToday()">Today</button>
+      <button class="p-btn navb" type="button" onclick="nav(1)" aria-label="Forward">&rsaquo;</button>
+      <span class="range" id="range"></span>
+    </div>
+    <div class="p-chips mrow" id="mrow" role="group" aria-label="Machines"></div>
+    <div class="p-filters-end"><button class="p-btn p-btn-main" type="button" id="sugBtn" onclick="suggest()">Suggest</button></div>
+  </div>
+  <div class="body">
+    <aside class="side" id="side">
+      <div class="side-h">
+        <div class="t"><span class="p-section">Unscheduled <span class="p-count" id="sideCount"></span></span><button class="p-modal-x sidebtn" type="button" onclick="toggleSide(false)" aria-label="Close the list">✕</button></div>
+        <input class="p-input p-search" type="search" id="q" placeholder="Order, customer or job" aria-label="Search jobs" oninput="onSearch()">
+        <div class="p-tabs scope" id="scope" role="group" aria-label="Show"></div>
+        <div class="legend">Drag onto a day to schedule. Drag back here to unschedule.</div>
+      </div>
+      <div class="side-list" id="sideList"></div>
+    </aside>
+    <div class="scrim-side" id="scrimSide" onclick="toggleSide(false)"></div>
+    <main class="main">
+      <div class="sugbar" id="sugbar"><span class="msg" id="sugMsg"></span>
+        <button class="p-btn p-btn-main" id="placeAllBtn" type="button" onclick="placeAll()">Place all</button>
+        <button class="p-btn p-btn-quiet" type="button" onclick="clearSuggest()">Clear</button></div>
+      <div class="cal" id="cal"><div class="loading">Loading the schedule…</div></div>
+    </main>
+  </div>
+</div>
+<div id="modalHost"></div>
+
+<script src="pine-confirm.js"></script>
+<script>
+/* ---------------- config ---------------- */
+const BASE='appJkaLk8DykjsgHR', TBL='tbln9oAGvz2PNBZLV';
+const PRACTICE = new URLSearchParams(location.search).get('practice')==='1';
+const F={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',start:'fldfqtIgcEfIlIeQk',
+  equip:'fldv59OGU7EkBVofo',est:'fldDYBnwwV6Z4VLBc',manual:'fldLbUpPkD4ZnHurV',qty:'fldFipR4ddfqMPeAX',screens:'fld8rgkIj1RPO97QU',
+  inkChg:'fldTONDvKJ8o9KHFt',inks:'fld6Tv0llCxjjyyHJ',stitch:'fld8EibgRRJgJYM6Q',prio:'fldMCyF3zHshhQLM5',custDue:'fldf57VIkt82rO1iQ',deadline:'fldQ6mM0uxdqjw4kr',
+  ostat:'fldNROVFSsBwLUOYW',order:'fldZAIMnXPYF9LiXq',cust:'fldeLMIAC0ABQAjYJ',lis:'fldsvntAy1QHEoDAg',alloc:'fldvAqPl6Yq3bxASW',seps:'fld80YHri5mFmKpvt',recvd:'fldt30iqzfw7PrZVz',
+  arrival:'fldl0irab6r0kzzNd',proof:'fldUOIfCd22MxevRm',notes:'fldjlfaH3dOBCtuTM',warn:'fldRVeADvQJAduiWZ',band:'fldo7l8t4IhhWoeXl',
+  reprint:'fldXRqE3k67ZIOO8X',finished:'fldFuDZ68QdUMt3pM',caught:'fldIo2EmE7b25vtfS',running:'fldmnZof3Dce60JKv',sepd:'fldlMcHtldbifKzDN',
+  burned:'fldEL51Nwrxuyn9Zo',inksReady:'fld2a1CPcDMSD26PS',
+  locked:'fldYD2VrhaLfkXXkw',paid:'fldAl0uhEDCjqhHM4',ready:'fldzVhAgy4FnzQX2a',inkNm:'fldMM5hp8kEpo3KKT'};   // v25: ink names (read only, same field Seps / Ink Queue read)   // v21: Imprint Ready? (formula: 👍 / 🛑)   // v20: Scheduled checkbox (lock-in; drives the Slack bots) and Payment Received (lookup)
+// Presses. hours = a normal day's capacity (edit in Settings). group drives the department tabs.
+const PRESSES=[
+  {k:'p1',name:'Press 1 - ROQ NEXT',short:'Press 1',sub:'ROQ Next',g:'screen',hours:8.25,pk:'P1',ck:'p1',lane:'p1'},
+  {k:'p2',name:'Press 2 - ROQ YOU',short:'Press 2',sub:'ROQ You',g:'screen',hours:8,pk:'P2',ck:'p2',lane:'p2'},
+  {k:'split',name:'Press 1 & 2 - SPLIT',short:'P1 & P2',sub:'Split',g:'screen',hours:8,pk:'SP',opt:1,ck:'p1',lane:'split'},
+  {k:'em',name:'Embroidery - TAJIMA 6-Head',short:'Embroidery',sub:'Tajima 6-head',g:'emb',hours:8,pk:'EM',ck:'em',lane:'em'},
+  {k:'bt',name:'Sewing - Bartacker',short:'Bartacker',sub:'Sewing',g:'emb',hours:8,pk:'BT',opt:1,ck:'em',lane:'em'},
+  {k:'pb',name:'Sewing - Post-bed',short:'Post-bed',sub:'Sewing',g:'emb',hours:8,pk:'PB',opt:1,ck:'em',lane:'em'},
+  {k:'d3',name:'Heat press - D3',short:'Heat · D3',sub:'Heat press',g:'heat',hours:7,pk:'D3',ck:'ht',lane:'ht'},
+  {k:'tag',name:'Heat press - Tag Press',short:'Heat · Tag',sub:'Heat press',g:'heat',hours:7,pk:'TAG',ck:'ht',lane:'ht'},
+  {k:'hat',name:'Heat press - Hat Press',short:'Heat · Hat',sub:'Heat press',g:'heat',hours:6,pk:'HAT',ck:'ht',lane:'ht'},
+  {k:'fs',name:'Flatstock - M&R Saturn',short:'Flatstock',sub:'M&R Saturn',g:'other',hours:8,pk:'FS',opt:1,ck:'fs',lane:'fs'},
+  {k:'fin',name:'Finishing',short:'Finishing',sub:'Fold, bag, UPC',g:'other',hours:8,pk:'FN',opt:1,ck:'fin',lane:'fin'},
+  {k:'none',name:'',short:'No press',sub:'Pick one',g:'other',hours:0,pk:'?',opt:1,ck:'',lane:'none'}
+];
+function ckOf(k){ const p=PBY[k]; return p&&p.ck?'k-'+p.ck:''; }
+const PBY={}; PRESSES.forEach(p=>{PBY[p.k]=p; if(p.name) PBY[p.name]=p;});
+// v8: the board's rows/columns/load are LANES, one per person or department. A job keeps its exact machine (Equipment);
+// its lane is where it shows and whose hours it uses. def = the machine a job gets when dropped into the lane from elsewhere.
+const LANES=[
+  {k:'p1',short:'Press 1',sub:'ROQ Next',hours:6.75,pk:'P1',ck:'p1',def:'Press 1 - ROQ NEXT'},
+  {k:'p2',short:'Press 2',sub:'ROQ You',hours:6,pk:'P2',ck:'p2',def:'Press 2 - ROQ YOU'},
+  {k:'split',short:'P1 & P2',sub:'Split',hours:6,pk:'SP',ck:'p1',def:'Press 1 & 2 - SPLIT',opt:1},
+  {k:'em',short:'Embroidery & sewing',sub:'Tajima · Bartacker · Post-bed',hours:8,pk:'EM',ck:'em',def:'Embroidery - TAJIMA 6-Head'},
+  {k:'ht',short:'Heat press',sub:'D3 · Tag · Hat',hours:7,pk:'HT',ck:'ht',def:'Heat press - D3'},
+  {k:'fs',short:'Flatstock',sub:'M&R Saturn',hours:8,pk:'FS',ck:'fs',def:'Flatstock - M&R Saturn',opt:1},
+  {k:'fin',short:'Finishing',sub:'Fold, bag, UPC',hours:8,pk:'FN',ck:'fin',def:'Finishing',opt:1},
+  {k:'none',short:'No press',sub:'Pick one',hours:0,pk:'?',ck:'',def:'',opt:1}
+];
+const LBY={}; LANES.forEach(l=>LBY[l.k]=l);
+function laneOf(equip){ return (PBY[equip]||PBY.none).lane; }
+function ckLane(k){ const l=LBY[k]; return l&&l.ck?'k-'+l.ck:''; }
+// the machine a job uses in lane k: its own if it's already in that lane, else the lane's main machine
+function equipFor(j,k){ return laneOf(j.equip)===k?j.equip:LBY[k].def; }
+const VIEWS=[{k:'day',l:'Day'},{k:'3day',l:'3 Day'},{k:'week',l:'Week'},{k:'2week',l:'2 Week'},{k:'month',l:'Month'}];
+const ACTIVE_STATUS=['Ready to Order','Ordered - In Production',   // v18: Ready to Order is back (Stephen); v15 had left it out
+  'Pre-press','Scheduled, Screened','Received & Staged','On-Press','Delayed'];
+const NOT_ORDERED_LEAD=4;          // v18: Ready to Order (garments not ordered) -> Suggest waits 4 workdays (order + ship)
+function notOrdered(j){ return /Ready to Order/.test(j.ostat||''); }
+const DAY_START=8*60+30;           // v20: the first job on an empty day starts 8:30 (Mike)
+const STEP=15;                     // start times land on 15-minute marks
+// v9 calibration from 1,888 Press 1/2 jobs, Oct 2025 – Oct 2026 (notes/schedule-calibration.md)
+const CAL={
+  setup:{p1:8.2,p2:8.9,split:8.9},                       // minutes per screen
+  rate:{p1:{tee:253,bandana:239,fleece:194,tote:176},     // pieces per hour while printing
+        p2:{tee:231,bandana:189,fleece:171,tote:149}},
+  turn:{p1:[11,21],p2:[13,30],split:[13,30],em:[5,5],ht:[5,5],fs:[10,10],fin:[5,5],none:[0,0]},  // gap after a job: [same product, product change]
+  hoop:18,                                                // embroidery hooping before the run (Airtable's estimate includes it)
+  ink:15,                                                 // minutes per ink change (same as Airtable's Ink Change time since 2026-10-14)
+  heat:{'Heat press - D3':33,'Heat press - Tag Press':36,'Heat press - Hat Press':39}   // pieces per hour (small sample)
+};
+
+const CFG_KEY='pine_sched_cfg9';   // v9: new key so old 8.25 h / 8 h settings don't override the measured press time
+const OLD=readJSON('pine_sched_cfg')||{};
+const CFG=Object.assign({fri:OLD.fri||0, idealBuffer:OLD.idealBuffer||2, horizon:20, close:17*60+15, fill:0.9, hours:{}}, readJSON(CFG_KEY)||{});
+// v23: impressions goals per press per day (Day Fill v15 had 1,100 / 950). Only the two presses have one.
+// Only goals changed in Settings are saved, so new defaults reach every computer.
+const GOAL_DEF={p1:1400,p2:1200};   // a good day (top quarter of full days, last 120 days of Run End Actual); pending Stephen's OK
+CFG.goal=Object.assign({}, GOAL_DEF, CFG.goal||{});
+LANES.forEach(l=>{ if(CFG.hours[l.k]!=null) l.hours=+CFG.hours[l.k]; });
+
+/* ---------------- state ---------------- */
+const S={scope:readLS('pine_sched_side_scope')==='uns'?'uns':'all', found:{}, fq:'', fBusy:false, fMore:false, flash:null, view:readLS('pine_sched_view')||'week', sel:readJSON('pine_sched_machines'), anchor:null, jobs:{}, loaded:null,
+  ghosts:[], skipped:{}, why:{}, busy:0, drag:null, modal:null};
+
+/* ---------------- small helpers ---------------- */
+function readLS(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function writeLS(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function readJSON(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function token(){return readLS('pine_at_key')||'';}
+const SHOP_TZ='America/Denver';
+function shopToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:SHOP_TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+function addDays(ds,n){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function dow(ds){return new Date(ds+'T12:00:00Z').getUTCDay();}
+function isWeekend(ds){const w=dow(ds);return w===0||w===6;}
+function nextWorkday(ds,n){let d=ds,c=0;const step=n<0?-1:1;while(c<Math.abs(n)){d=addDays(d,step);if(!isWeekend(d))c++;}return d;}
+function monday(ds){const w=dow(ds);return addDays(ds,w===0?-6:1-w);}
+function wd(ds,long){return (long?['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'])[dow(ds)];}
+function md(ds){const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const d=new Date(ds+'T12:00:00Z');return m[d.getUTCMonth()]+' '+d.getUTCDate();}
+function workdaysBetween(a,b){ // whole workdays from a to b (b later = positive)
+  if(a===b) return 0; let n=0,d=a; const step=b>a?1:-1;
+  while(d!==b){d=addDays(d,step); if(!isWeekend(d)) n+=step;} return n; }
+function hm(min){const h=Math.floor(min/60),m=min%60;const hh=h>12?h-12:h;return hh+':'+String(m).padStart(2,'0')+(h>=12?'p':'');}
+function hmr(a,len){ return hm(a)+'–'+hm(a+Math.round(len)); }   // v19: start–end, shop clock (8:30–9:15, 11:00–12:15p)
+function dur(min){min=Math.round(min);if(min<60)return min+'m';const h=Math.floor(min/60),m=min%60;return h+'h'+(m?' '+m+'m':'');}
+function first(v){if(Array.isArray(v))return v.length?first(v[0]):null;if(v&&typeof v==='object'&&'name' in v)return v.name;return v==null?null:v;}
+function arr(v){return Array.isArray(v)?v.map(first).filter(x=>x!=null&&x!==''):(v==null||v===''?[]:[first(v)]);}
+function toISO(v){ // dates from formulas/lookups: '2026-10-16' or '10/16/2026'
+  v=first(v); if(!v) return null; v=String(v);
+  let m=v.match(/^(\d{4}-\d{2}-\d{2})/); if(m) return m[1];
+  m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m) return m[3]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  return null; }
+
+/* ---------------- jobs ---------------- */
+const SCREEN_TYPES=/Discharge|W\/B|Bleed Blocker|EZP|Plastisol/i;
+function deptOfType(t){ if(!t) return 'screen';
+  if(/Embroidery|Patch|Label/i.test(t)) return 'emb';
+  if(/Supacolor|Decopress/i.test(t)) return 'heat';
+  if(/Flatstock|Finishing/i.test(t)) return 'other';
+  return 'screen'; }
+function platen(j){ const l=(j.loc||'').toLowerCase(); if(l.includes('bandana')) return 'bandana'; if(l.includes('sleeve')) return 'sleeve'; if(/tea towel|tote/.test(l)) return 'flat'; return 'std'; }
+function mkJob(r){
+  const f=r.fields||{}; const start=f[F.start]||null; const eq=first(f[F.equip])||'';
+  const ID=f[F.id]||'(no ID)';
+  const j={rid:r.id, ID, order:String(first(f[F.order])||ID.split('-')[0]), nick:f[F.nick]||'', cust:first(f[F.cust])||'',
+    type:first(f[F.type])||'', loc:first(f[F.loc])||'', equip:eq, start, qty:+f[F.qty]||0, screens:+f[F.screens]||0,
+    inkChg:+f[F.inkChg]||0, inks:inkCount(f), stitch:+first(f[F.stitch])||0, est:f[F.est]!=null?+f[F.est]:null, manual:+f[F.manual]||0,
+    prio:first(f[F.prio])||'', due:toISO(f[F.custDue])||toISO(f[F.deadline]), lis:Array.isArray(f[F.lis])?f[F.lis]:[], types:[], garments:null, heavy:0,
+    recvd:arr(f[F.recvd]), arrival:toISO(f[F.arrival]), notes:f[F.notes]||'', alloc:(f[F.alloc]!=null&&+f[F.alloc]>0)?+f[F.alloc]:null, ostat:first(f[F.ostat])||'',
+    flags:[f[F.warn],f[F.band],f[F.reprint]].map(first).filter(v=>typeof v==='string'&&v).join(''),
+    ready:(v=>typeof v==='string'?v.trim():'')(first(f[F.ready])),   // v21   // formula errors arrive as {error:'#ERROR!'}
+    finished:!!f[F.finished], caught:!!f[F.caught], running:!!f[F.running], sepd:!!f[F.sepd], burned:!!f[F.burned], inksReady:!!f[F.inksReady],
+    proof:null, proofLg:null, proofs:[], locked:!!f[F.locked], paid:toISO(f[F.paid])};
+  inkSetup(j,inkNamesOf(f));   // v25
+  // v20: every proof on the imprint's line items (one per line item, usually one per garment color). v1-v19 showed only the first.
+  // Same file on two line items (e.g. two styles in one color) counts once.
+  const seen=new Set();
+  (Array.isArray(f[F.proof])?f[F.proof]:[]).forEach(a=>{ if(!a||!a.thumbnails) return; const k=String(a.filename||a.id||'').toLowerCase(); if(k&&seen.has(k)) return; seen.add(k);
+    const t=a.thumbnails; j.proofs.push({sm:(t.large||t.small).url, lg:t.large&&t.large.url, full:a.url, name:proofName(a.filename)}); });
+  const pr=j.proofs[0];
+  if(pr){ j.proof=pr.sm; j.proofLg=pr.lg; }
+  else { // no proof on the line items: use the Seps file's thumbnail if there is one
+    const sp=(Array.isArray(f[F.seps])?f[F.seps]:[]).find(a=>a&&a.thumbnails);
+    if(sp){ j.proof=(sp.thumbnails.large||sp.thumbnails.small).url; j.proofLg=sp.thumbnails.large&&sp.thumbnails.large.url; j.proofIsSeps=true; } }
+  j.noLines=!(Array.isArray(f[F.lis])&&f[F.lis].length);
+  j.estEquip=eq; // the equipment Airtable's Estimated Run Time was worked out for
+  j.hd=/hard/i.test(j.prio); j.asap=/asap/i.test(j.prio);
+  j.allIn=j.recvd.length>0 && j.recvd.every(x=>x===true||x==='true'||x===1||x==='checked');
+  return j; }
+/* ---------------- v25: inks, for keeping same-ink jobs together ---------------- */
+// Imprints ink names (lookup of the linked Inks' names): "Pantone 7579 - Discharge", "White - Discharge", "EZP WHT", "TBA 1".
+function inkNamesOf(f){ const v=f[F.inkNm]; const a=Array.isArray(v)?v.map(first):(v==null||typeof v==='object'?[]:String(v).split(/\s*[,\n]\s*/));
+  return a.map(x=>String(x==null?'':x).trim()).filter(x=>x&&!/^TBA\b/i.test(x)); }
+function typeTidy(t){ t=String(t||'').replace(/[\s\-\u2013\u2014\u00b7:]+$/,'').trim(); return t.toLowerCase().replace(/(^|[\s\/])([a-z])/g,(m,a,b)=>a+b.toUpperCase()); }
+// one ink -> {key, label, base}. Same Pantone + same ink type = same key. A name without " - type" takes the imprint's type.
+function inkParse(name,jobType){
+  let s=String(name).trim().replace(/\s+/g,' ').replace(/^(pantone|pms)\s+/i,''), col=s, typ='';
+  const m=s.match(/^(.*?)\s+[-\u2013]\s+(.*)$/); if(m){ col=m[1]; typ=m[2]; }
+  col=col.replace(/\s+(C|U|CP|UP)$/i,'').toUpperCase().replace(/\bWHT\b/g,'WHITE').trim();
+  typ=typeTidy(typ||(SCREEN_TYPES.test(jobType||'')?jobType:''));
+  const white=/\bWHITE\b/.test(col), base=/\b(BASE|BB|BLEED BLOCKER|UNDERBASE|UB)\b/.test(col);
+  const key=col+(typ?' · '+typ.toUpperCase():'');
+  const nice=col.replace(/\b[A-Z]{4,}\b/g,w=>w[0]+w.slice(1).toLowerCase());   // "BLACK" -> "Black"; codes (EZP, BB) and numbers stay
+  const label=col==='WHITE'?(typ?typ+' White':'White'):nice+(typ?' '+typ:'');
+  return {key, label, base:white?'WHITE · '+typ.toUpperCase():base?key:null, baseLabel:white?(typ?typ+' White':'White'):label}; }
+function inkSetup(j,names){ const seen={}; j.inkNames=names; j.inkList=[];
+  names.forEach(n=>{ const i=inkParse(n,j.type); if(!seen[i.key]){ seen[i.key]=1; j.inkList.push(i); } });
+  j.inkSet=new Set(j.inkList.map(i=>i.key));
+  const b=j.inkList.find(i=>i.base&&/^WHITE/.test(i.base))||j.inkList.find(i=>i.base);
+  j.base=b?{k:b.base,label:b.baseLabel,key:b.key}:null; }
+// how alike two jobs' inks are: shared ink names (+1 for the same white/base under a different name), score adds
+// +1 for the same Imprint Type (Discharge with Discharge) and +2 for the same white/base. shared>0 = they share ink.
+function inkSim(a,b){
+  if(!a||!b||!a.inkSet||!b.inkSet) return {shared:0,score:0,base:false,label:''};
+  let n=0, lab=''; a.inkList.forEach(i=>{ if(b.inkSet.has(i.key)){ n++; if(!lab) lab=i.label; } });
+  const base=!!(a.base&&b.base&&a.base.k===b.base.k); if(base&&!b.inkSet.has(a.base.key)) n++;
+  const sameType=!!a.type&&a.type===b.type;
+  return {shared:n, score:n+(sameType?1:0)+(base?2:0), base, label:base?a.base.label:lab}; }
+// a run's name: the shared white/base if every pair has it, else the ink the pairs share most
+function runLabel(js){ const sims=[]; for(let i=1;i<js.length;i++) sims.push(inkSim(js[i-1],js[i]));
+  if(sims.every(x=>x.base)) return sims[0].label;
+  const c={}; sims.forEach(x=>{ if(x.label) c[x.label]=(c[x.label]||0)+1; }); return Object.keys(c).sort((a,b)=>c[b]-c[a])[0]||'shared inks'; }
+// back, sleeve/left chest, front, pocket: the order an order's prints run in (v1). Grouping never swaps two prints of one order.
+const LOCO=l=>/back/i.test(l)?0:/sleeve|left chest|lc/i.test(l)?1:/front|full/i.test(l)?2:3;
+// a sequence's quality: product switches cost the most (pallet changes), then shared inks between neighbours
+function seqQ(prev,js){ let q=0, p=prev; js.forEach(j=>{ if(p){ if(prodOf(p)!==prodOf(j)) q-=1000; q+=inkSim(p,j).score; } p=j; }); return q; }
+// greedy chain: from `prev`, always take the job of the same product that shares the most ink; ties keep the old order.
+// Only re-orders when it beats the old order. rows: [{j,...}] in today's order.
+function chainOrder(prev,rows){
+  const left=rows.slice(), out=[]; let cur=prev;
+  while(left.length){
+    const ok=left.filter(x=>!left.some(y=>y!==x&&y.j.order===x.j.order&&LOCO(y.j.loc)<LOCO(x.j.loc)));
+    let best=ok[0], bs=-1e9;
+    if(cur) ok.forEach(x=>{ const sc=(prodOf(cur)===prodOf(x.j)?1000:0)+inkSim(cur,x.j).score; if(sc>bs){ bs=sc; best=x; } });
+    out.push(best); left.splice(left.indexOf(best),1); cur=best.j; }
+  return seqQ(prev,out.map(x=>x.j))>seqQ(prev,rows.map(x=>x.j))?out:rows; }
+// re-order a day's rows (in time order) without moving fixed ones: each stretch between fixed rows is chained on its own
+function inkOrder(rows,prev){ const out=[]; let seg=[], cur=prev;
+  const flush=()=>{ if(seg.length) out.push(...(seg.length>1?chainOrder(cur,seg):seg)); if(out.length) cur=out[out.length-1].j; seg=[]; };
+  rows.forEach(x=>{ if(x.fixed){ flush(); out.push(x); cur=x.j; } else seg.push(x); }); flush(); return out; }
+// "Ink runs" on one machine-day: neighbours that share ink. Each shared ink kept on the press saves one ink change (15 min, estimate).
+function inkRuns(js){ const runs=[]; let r=null;
+  for(let i=1;i<js.length;i++){ const s=inkSim(js[i-1],js[i]);
+    if(s.shared>0){ if(!r){ r={js:[js[i-1]],saved:0}; runs.push(r); } r.js.push(js[i]); r.saved+=s.shared*CAL.ink; } else r=null; }
+  runs.forEach(x=>x.label=runLabel(x.js)); return runs; }
+// "Next time" when two same-ink jobs aren't back to back: the best pair, and which one can move (not locked / Hard Deadline)
+function inkTip(rows){
+  const js=rows.map(x=>S.jobs[x.rid]); let best=null;
+  for(let a=0;a<js.length;a++) for(let b=a+2;b<js.length;b++){ const s=inkSim(js[a],js[b]); if(!s.shared) continue;
+    if(inkSim(js[a],js[a+1]).score>=s.score) continue;   // the job after `a` already shares as much
+    const mb=!js[b].locked&&!js[b].hd&&!js[b].finished&&!js[b].running, ma=!js[a].locked&&!js[a].hd&&!js[a].finished&&!js[a].running;
+    if(!mb&&!ma) continue;
+    if(!best||s.score>best.s.score||(s.score===best.s.score&&b-a<best.b-best.a)) best={a,b,s,mb}; }
+  if(!best) return '';
+  const A=js[best.a], B=js[best.b], why=best.s.base?'both '+best.s.label:'both use '+best.s.label;
+  return best.mb?'Run '+B.ID+' right after '+A.ID+' ('+why+').':'Run '+A.ID+' right before '+B.ID+' ('+why+').'; }
+// Group by ink for one press-day: the plan, or null when it wouldn't help. Locked, Hard Deadline, running and finished
+// jobs keep their slot; the others fill the slots in between in chain order. Gaps stay where they were.
+function inkFixed(j){ return !!(j.locked||j.hd||j.finished||j.running); }
+function groupPlan(k,ds){
+  if(!(k==='p1'||k==='p2'||k==='split')||ds<shopToday()) return null;
+  const items=cellItems(k,ds).filter(x=>!x.ghost); const rows=items.map(x=>({rid:x.rid,j:S.jobs[x.rid],min:x.min,len:x.len,fixed:inkFixed(S.jobs[x.rid])}));
+  if(rows.filter(x=>!x.fixed).length<2) return null;
+  const order=inkOrder(rows,null); if(order.every((x,i)=>x===rows[i])) return null;
+  const ch=[]; let end=null;
+  order.forEach((x,i)=>{ const o=rows[i];   // slot i keeps its gap before it
+    const gap=i?Math.max(0,o.min-(rows[i-1].min+rows[i-1].len)):0;
+    const t=x.fixed?x.min:(i?Math.max(end+gap,end):o.min);
+    if(!x.fixed&&t!==x.min) ch.push({rid:x.rid,equip:x.j.equip,day:ds,min:t});
+    x.nmin=t; end=Math.max(t+x.len,x.fixed?x.min+x.len:0); });
+  if(!ch.length) return null;
+  return {k,ds,order,changes:ch,before:rows}; }
+async function groupDay(k,ds){
+  const pl=groupPlan(k,ds); if(!pl) return;
+  const L=LBY[k], ln=x=>hm(x.nmin)+'  '+x.j.ID+(x.fixed?' (stays)':'')+(x.j.base?'  · '+x.j.base.label:'');
+  const body='New order:\n'+pl.order.map(ln).join('\n')+'\n\nLocked and Hard Deadline jobs stay where they are. '+pl.changes.length+' job'+(pl.changes.length===1?'':'s')+' get a new start time.'+(PRACTICE?'\nPractice: nothing is saved.':'');
+  if(!await PineConfirm.ask({title:'Group '+L.short+' '+wd(ds)+' '+md(ds)+' by ink?', body, ok:'Re-order'})) return;
+  const now=groupPlan(k,ds); if(!now||JSON.stringify(now.changes)!==JSON.stringify(pl.changes)) { toast('The day changed while the box was up. Nothing moved.'); render(); return; }
+  closeModal();
+  applyChanges(pl.changes,L.short+' '+wd(ds)+' '+md(ds)+' grouped by ink · '+pl.changes.length+' job'+(pl.changes.length===1?'':'s')+' moved'); }
+// v22: how many ink changes: Imprints "Ink Changes" (a number). Fallback: Ink Change time (seconds) ÷ 15 min.
+function inkCount(f){ const n=+first(f[F.inks]); if(n>0) return Math.round(n); const t=+first(f[F.inkChg])||0; return t>0?Math.round(t/(CAL.ink*60)):0; }
+// "V3 8373 | 1301-BK-WARGAME EXTERMINATOR.pdf" -> "1301-BK-WARGAME EXTERMINATOR"
+function proofName(fn){ fn=String(fn||'').replace(/\.[a-z0-9]{2,4}$/i,''); const i=fn.lastIndexOf('|'); return (i>=0?fn.slice(i+1):fn).trim(); }
+function pressOf(j){ return PBY[j.equip]||PBY.none; }
+function deptOf(j){ const p=PBY[j.equip]; return p&&p.k!=='none'?p.g:deptOfType(j.type); }
+function day(j){ return j.start?j.start.slice(0,10):null; }
+function startMin(j){ if(!j.start) return null; const t=j.start.slice(11,16).split(':'); return +t[0]*60+ +t[1]; }
+// v26: real Date math, so minutes past midnight roll over to the next day instead of writing hour 24+ (Airtable 422)
+function setStart(j,ds,min){ const p=ds.split('-'); j.start=new Date(Date.UTC(+p[0],+p[1]-1,+p[2],0,Math.round(min))).toISOString(); }
+
+// Tajima types Airtable adds hooping to (besides Embroidery)
+const HOOPED=/^(Woven Label Application|Patch Application|Decopress - (Leather|Woven \/ Twill|Metallic|Reflective))$/;
+function hoopsOn(j,equip){ return equip==='Embroidery - TAJIMA 6-Head' && (j.type==='Embroidery'||HOOPED.test(j.type)); }
+// Airtable's Estimated Run Time formula, so a job moved to another press gets that press's time.
+function runSecs(j,equip){
+  equip=equip==null?j.equip:equip;
+  if(j.est!=null && equip===j.estEquip) return j.est+j.manual;
+  const q=j.qty, scr=j.screens, band=/bandana/i.test(j.loc), t=j.type, ink=(j.inks||0)*CAL.ink*60;   // v22: ink changes × 15 min, like Airtable
+  let s=0;
+  if(equip==='Press 1 - ROQ NEXT') s=((scr*10)/60 + q/(band?150:250))*3600+ink;
+  else if(equip==='Press 2 - ROQ YOU') s=((scr*10)/60 + q/(band?135:225))*3600+ink;
+  else if(equip==='Press 1 & 2 - SPLIT') s=((scr*10)/60 + q/(band?285:475))*3600+ink;
+  else if(equip==='Embroidery - TAJIMA 6-Head') s = t==='Embroidery' ? Math.round(((j.stitch/1000)*3*q)/6*60)+CAL.hoop*60 : HOOPED.test(t) ? ((q*7)/6)/60*3600+CAL.hoop*60 : 0;   // v22: + hooping, like Airtable
+  else if(/Sewing/.test(equip)) s=(q*2)/60*3600;
+  else if(equip==='Heat press - Tag Press') s=(q*.75)/60*3600;
+  else if(equip==='Heat press - D3') s=q/60*3600;
+  else if(equip==='Heat press - Hat Press') s=(q*1.5)/60*3600;
+  else if(t==='Finishing - Fold & Bag'||t==='Finishing - Bandana Hanger') s=(q*1.5)/60*3600;
+  else if(t==='Finishing - UPC sticker') s=q/60*3600;
+  return s+j.manual; }
+// Minutes the job takes on the floor. Fleece runs slower on the screen presses (Day Fill's bumper).
+function guessEquip(j){ const d=deptOf(j); return d==='emb'?'Embroidery - TAJIMA 6-Head':d==='heat'?'Heat press - D3':d==='screen'?'Press 1 - ROQ NEXT':''; }
+// product for speeds and gaps: bandana, tote, else tee; fleece comes in as a share of the pieces (j.heavy)
+function prodOf(j){ if(/bandana/i.test(j.loc)||j.types.includes('Bandana')) return 'bandana'; if(j.heavy>=.5) return 'fleece'; if(j.types.length&&j.types.every(t=>t==='Tote Bag')) return 'tote'; return 'tee'; }
+// v9: {setup, run} minutes from the calibration; machines without history use Airtable's formula (runSecs)
+function jobParts(j,equip){
+  equip=equip==null?j.equip:equip; if(!equip) equip=guessEquip(j);
+  const lane=laneOf(equip), q=j.qty||0, man=(j.manual||0)/60;
+  if(lane==='p1'||lane==='p2'||lane==='split'){
+    const R=lane==='split'?{tee:CAL.rate.p1.tee+CAL.rate.p2.tee,bandana:CAL.rate.p1.bandana+CAL.rate.p2.bandana,fleece:CAL.rate.p1.fleece+CAL.rate.p2.fleece,tote:CAL.rate.p1.tote+CAL.rate.p2.tote}:CAL.rate[lane];
+    const setup=CAL.setup[lane]*Math.max(1,j.screens||0)+(j.inks||0)*CAL.ink;   // v22: Ink Changes count (was Ink Change time ÷ 25 min)
+    let perPc;
+    if(/bandana/i.test(j.loc)||j.types.includes('Bandana')) perPc=1/R.bandana;
+    else { const h=j.heavy||0, base=(j.types.length&&j.types.every(t=>t==='Tote Bag'))?R.tote:R.tee; perPc=(1-h)/base+h/R.fleece; }
+    return {setup, run:q*perPc*60+man}; }
+  // v22: Airtable's estimate (and runSecs) already include the 18 min hooping; show it as setup, count it once
+  if(equip==='Embroidery - TAJIMA 6-Head'){ const all=runSecs(j,equip)/60, hoop=hoopsOn(j,equip)?Math.min(CAL.hoop,all):0; return {setup:hoop, run:all-hoop}; }
+  // heat presses keep Airtable's formula until the measured speeds (CAL.heat, small sample) are checked with the heat press person
+  return {setup:0, run:runSecs(j,equip)/60}; }
+// estimate from the calibration (same numbers as Airtable's Estimated Run Time since 2026-10-14)
+function estMin(j,equip){ const t=jobParts(j,equip); return Math.max(STEP, Math.ceil(t.setup+t.run)); }
+// job length on the board: the scheduler's Allocated Production Time when set, else the estimate
+// v20: with no Allocated yet, the estimate rounded up to 15 min (Mike) = what placing the job writes as Allocated
+const ALLOC_STEP=15;   // Allocated rounds the estimate up to the next 15 min (Stephen), same grid as start times
+function estStep(j,equip){ return Math.ceil(estMin(j,equip)/ALLOC_STEP)*ALLOC_STEP; }   // minutes
+function jobMin(j,equip){ return j.alloc?Math.max(5,Math.ceil(j.alloc/60)):estStep(j,equip); }
+function allocFor(j,equip){ return estStep(j,equip)*60; }   // seconds
+
+/* ---------------- Airtable ---------------- */
+async function atList(formula,maxPages){
+  let out=[],offset=null,pages=0;
+  const fields=Object.values(F).map(f=>'&fields%5B%5D='+f).join('');
+  do{
+    const u='https://api.airtable.com/v0/'+BASE+'/'+TBL+'?returnFieldsByFieldId=true&pageSize=100&filterByFormula='+encodeURIComponent(formula)+fields+(offset?'&offset='+encodeURIComponent(offset):'');
+    const r=await fetch(u,{headers:{Authorization:'Bearer '+token()}});
+    if(!r.ok){ const t=await r.text(); throw new Error('Airtable '+r.status+': '+t.slice(0,160)); }
+    const d=await r.json(); out=out.concat(d.records||[]); offset=d.offset; pages++;
+  }while(offset && pages<(maxPages||20));
+  return out; }
+// updates: [{rid, fields:{fieldId:value}}]. Practice mode fakes it.
+async function patchMany(updates){
+  if(!updates.length) return;
+  if(PRACTICE){ await new Promise(r=>setTimeout(r,250)); return; }
+  for(let i=0;i<updates.length;i+=10){
+    const chunk=updates.slice(i,i+10).map(u=>({id:u.rid,fields:u.fields}));
+    const r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+TBL,{method:'PATCH',headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},body:JSON.stringify({records:chunk,typecast:true})});
+    if(!r.ok){ const t=await r.text(); throw new Error('Save failed ('+r.status+'): '+t.slice(0,160)); }
+  } }
+
+function loadRange(){ // what to load: a week back, the view, and the Suggest horizon
+  const t=shopToday(); const v=viewDays();
+  let a=addDays(monday(t),-7), b=nextWorkday(t,CFG.horizon+5);
+  if(v[0]<a) a=addDays(v[0],-1); if(v[v.length-1]>b) b=addDays(v[v.length-1],1);
+  return [a,b]; }
+// Garment type per job, from its Line Items (Garments' type lookup, a select, so names come through).
+// Fleece share = fleece pieces / all pieces, used for run time. Loaded after the board shows; cached.
+const LI_TBL='tblJx5UlwO7oMSk5H', LI_F={type:'fldQg3ejR10sADyFV',qty:'fldFfuKAcduwWQp8g',garment:'fldZbOdGIoCk3Gan2'};
+const GAR_TBL='tblukWGm0CIelookM', GAR_NAME='fldT4jfh2XV9lERef';
+const HEAVY={'Sweatshirt':1,'Pullover Hoodie':1,'Zip Up Hoodie':1,'Youth Fleece':1};
+S.li={}; S.gar={};
+// Airtable allows 5 requests a second per base (shared with every other app). On 429, wait and try again.
+async function atGet(u){
+  for(let tries=0;;tries++){
+    const r=await fetch(u,{headers:{Authorization:'Bearer '+token()}});
+    if(r.status===429 && tries<4){ await new Promise(res=>setTimeout(res,1200*(tries+1))); continue; }
+    if(!r.ok) throw new Error('Airtable '+r.status);
+    return r.json(); } }
+// Records by id, 40 per request. onChunk gets each batch as it lands, so a later failure keeps the earlier ones.
+async function atIds(table,ids,fields,onChunk){
+  const out=[];
+  for(let i=0;i<ids.length;i+=40){
+    const f='OR('+ids.slice(i,i+40).map(id=>"RECORD_ID()='"+id+"'").join(',')+')';
+    const u='https://api.airtable.com/v0/'+BASE+'/'+table+'?returnFieldsByFieldId=true&pageSize=100&filterByFormula='+encodeURIComponent(f)+fields.map(x=>'&fields%5B%5D='+x).join('');
+    const recs=(await atGet(u)).records||[]; out.push(...recs); if(onChunk) onChunk(recs);
+    if(i+40<ids.length) await new Promise(res=>setTimeout(res,250));   // stay well under the limit
+  }
+  return out; }
+function keepLi(recs){ recs.forEach(r=>{ const f=r.fields||{};
+  S.li[r.id]={type:first(f[LI_F.type])||'',qty:+first(f[LI_F.qty])||0,gar:Array.isArray(f[LI_F.garment])?f[LI_F.garment].map(g=>g&&g.id||g):[]}; }); }
+function applyLi(j){ let q=0,h=0; const t=new Set();
+  j.lis.forEach(id=>{ const li=S.li[id]; if(!li) return; if(li.type) t.add(li.type); q+=li.qty; if(HEAVY[li.type]) h+=li.qty; });
+  j.types=[...t]; j.heavy=q?h/q:0; j.liQty=q; j.fleece=j.heavy>=.5; }
+let liLoading=false;
+async function loadLineItems(){
+  if(liLoading) return; liLoading=true;
+  // unscheduled jobs and the ones in view first: they matter most for run times
+  const vd=new Set(viewDays());
+  const order=Object.values(S.jobs).sort((a,b)=>((a.start&&!vd.has(day(a)))?1:0)-((b.start&&!vd.has(day(b)))?1:0));
+  const need=[...new Set(order.flatMap(j=>j.lis))].filter(id=>!S.li[id]);
+  try{ if(need.length) await atIds(LI_TBL,need,Object.values(LI_F),keepLi); }
+  catch(e){ console.warn('line items (kept what loaded)',e); }
+  finally{ liLoading=false; Object.values(S.jobs).forEach(applyLi); render(); } }
+async function garmentNames(j){
+  const miss=j.lis.filter(id=>!S.li[id]);
+  if(miss.length){ try{ keepLi(await atIds(LI_TBL,miss,Object.values(LI_F))); applyLi(j); }catch(e){ console.warn('line items',e); } }
+  const ids=[...new Set(j.lis.flatMap(id=>(S.li[id]||{}).gar||[]))];
+  const need=ids.filter(id=>!(id in S.gar));
+  if(need.length){ try{ (await atIds(GAR_TBL,need,[GAR_NAME])).forEach(r=>{ S.gar[r.id]=first((r.fields||{})[GAR_NAME])||''; }); }catch(e){ console.warn('garments',e); } }
+  const names=ids.map(id=>S.gar[id]).filter(Boolean);
+  return names.length?names:j.types; }
+async function load(){
+  if(!token()){ renderTokenBox(); return; }
+  const [a,b]=loadRange();
+  document.getElementById('cal').innerHTML=Object.keys(S.jobs).length?document.getElementById('cal').innerHTML:'<div class="loading">Loading the schedule…</div>';
+  const statusOK='OR('+ACTIVE_STATUS.map(s=>'FIND("'+s+'",ARRAYJOIN({Order Status Lookup}))').join(',')+')';
+  try{
+    const [sched,uns]=await Promise.all([
+      atList('AND(IS_AFTER({Scheduled Start Time},"'+addDays(a,-1)+'"),IS_BEFORE({Scheduled Start Time},"'+addDays(b,1)+'"))'),
+      atList('AND({Scheduled Start Time}=BLANK(),NOT({Run Finished}),NOT({Caught}),{Imprint Type}!="Patch/Label ONLY",'+statusOK+')')
+    ]);
+    const jobs={}; sched.concat(uns).forEach(r=>{ jobs[r.id]=mkJob(r); });
+    S.jobs=jobs; S.loaded=[a,b];
+    S.ghosts=S.ghosts.filter(g=>jobs[g.rid]&&!jobs[g.rid].start);
+    render();
+    loadLineItems();
+  }catch(e){
+    console.error(e);
+    document.getElementById('cal').innerHTML='<div class="p-note p-note-alert" style="margin:20px">Couldn\'t load the schedule. '+esc(e.message)+' <button class="p-btn p-btn-quiet" onclick="load()">Try again</button></div>';
+  } }
+function refresh(){ load(); if(window.PineUpdate&&PineUpdate.check) PineUpdate.check(); }
+
+/* ---------------- view math ---------------- */
+function viewDays(){
+  const a=S.anchor;
+  if(S.view==='day') return [a];
+  if(S.view==='3day'){ const out=[]; let d=isWeekend(a)?nextWorkday(a,1):a; while(out.length<3){ out.push(d); d=nextWorkday(d,1);} return out; }
+  if(S.view==='week'){ const m=monday(a); return [0,1,2,3,4].map(i=>addDays(m,i)); }
+  if(S.view==='2week'){ const m=monday(a); return [0,1,2,3,4,7,8,9,10,11].map(i=>addDays(m,i)); }
+  // month: Mon-Fri weeks covering the month
+  const first1=a.slice(0,8)+'01'; let d=monday(first1); const out=[];
+  const mo=a.slice(5,7);
+  while(true){ for(let i=0;i<5;i++) out.push(addDays(d,i)); d=addDays(d,7); if(d.slice(5,7)!==mo && d>first1) break; }
+  return out; }
+function nav(n){
+  if(S.view==='day'){ S.anchor=nextWorkday(S.anchor,n); }
+  else if(S.view==='3day'){ S.anchor=nextWorkday(S.anchor,3*n); }
+  else if(S.view==='week'){ S.anchor=addDays(S.anchor,7*n); }
+  else if(S.view==='2week'){ S.anchor=addDays(S.anchor,14*n); }
+  else { const d=new Date(S.anchor.slice(0,8)+'15T12:00:00Z'); d.setUTCMonth(d.getUTCMonth()+n); S.anchor=d.toISOString().slice(0,10); }
+  afterNav(); }
+function goToday(){ S.anchor=shopToday(); if(isWeekend(S.anchor)) S.anchor=nextWorkday(S.anchor,1); afterNav(); }
+function afterNav(){ const v=viewDays(); if(S.loaded && (v[0]<S.loaded[0]||v[v.length-1]>S.loaded[1])) load(); render(); }
+function setView(k){ S.view=k; writeLS('pine_sched_view',k); afterNav(); }
+// Machines shown. null = all. Tap a machine while All is on = only that one; tap more to add; tap again to drop.
+function isSel(k){ return !S.sel || S.sel.includes(k); }
+function pickMachine(k){
+  if(k==='all') S.sel=null;
+  else if(!S.sel) S.sel=[k];
+  else if(S.sel.includes(k)){ S.sel=S.sel.filter(x=>x!==k); if(!S.sel.length) S.sel=null; }
+  else S.sel=S.sel.concat(k);
+  writeLS('pine_sched_machines',JSON.stringify(S.sel)); render(); }
+// the machine a job belongs to for filtering: its press, else the press it would most likely go on
+function jobKey(j){ const l=laneOf(j.equip); return l!=='none'?l:laneOf(guessEquip(j)); }
+function jobInSel(j){ if(!S.sel) return true; const k=jobKey(j); if(S.sel.includes(k)) return true;
+  return !j.equip && deptOf(j)==='screen' && S.sel.includes('p2'); }
+function machineChips(){
+  const used=new Set(); Object.values(S.jobs).forEach(j=>used.add(laneOf(j.equip)));
+  const list=LANES.filter(p=>p.k!=='none' && (!p.opt||used.has(p.k)));
+  const cnt={}; const vd=viewDays(); allPlaced().forEach(x=>{ if(vd.includes(x.day)){ const k=laneOf(x.equip); cnt[k]=(cnt[k]||0)+1; } });
+  // v17: kit chips (.p-tab + .p-count), one line; a picked machine wears its lane color
+  return '<button type="button" class="p-tab mchip'+(!S.sel?' is-on':'')+'" aria-pressed="'+!S.sel+'" onclick="pickMachine(\'all\')">All</button>'+
+    list.map(p=>{ const on=!!(S.sel&&S.sel.includes(p.k)); return '<button type="button" class="p-tab mchip '+ckLane(p.k)+(on?' is-on':'')+'" aria-pressed="'+on+'" onclick="pickMachine(\''+p.k+'\')">'+esc(p.short)+(cnt[p.k]?' <span class="p-count">'+cnt[p.k]+'</span>':'')+'</button>'; }).join(''); }
+function openDay(ds){ S.anchor=ds; setView('day'); }
+
+function rowsFor(days){
+  const inView=new Set(); allPlaced().forEach(x=>{ if(days.includes(x.day)) inView.add(laneOf(x.equip)); });
+  return LANES.filter(p=>isSel(p.k) && (!p.opt||inView.has(p.k)||(S.sel&&S.sel.includes(p.k)))); }
+function friOpen(p){ // Fridays: 0 = no shift, 1 = Press 1 only (plus the other departments), 2 = both presses
+  if(CFG.fri===0) return false; if(CFG.fri===1) return p.k!=='p2' && p.k!=='split'; return true; }
+function isOpen(p,ds){ if(isWeekend(ds)) return false; if(dow(ds)===5) return friOpen(p); return true; }
+function capMin(p,ds){ return isOpen(p,ds)?Math.round(p.hours*60):0; }
+
+// Everything on the calendar: real jobs plus suggestion ghosts, as {rid, equip, day, min, len, ghost}
+function allPlaced(){
+  const out=[];
+  Object.values(S.jobs).forEach(j=>{ if(j.start) out.push({rid:j.rid,equip:j.equip,day:day(j),min:startMin(j),len:jobMin(j),ghost:false}); });
+  S.ghosts.forEach(g=>out.push({rid:g.rid,equip:g.equip,day:g.day,min:g.min,len:jobMin(S.jobs[g.rid],g.equip),ghost:true,late:g.late}));
+  return out; }
+function cellItems(pk,ds,placed){
+  return (placed||allPlaced()).filter(x=>x.day===ds && laneOf(x.equip)===pk).sort((a,b)=>a.min-b.min||(a.ghost-b.ghost)); }
+function usedMin(items){ return items.reduce((a,x)=>a+x.len,0); }
+// v22: when the machine's last job ends (start times + lengths, so gaps between jobs count), and whether that's past close
+function endMin(items){ return items.reduce((a,x)=>Math.max(a,x.min+x.len),0); }
+function pastClose(items){ return items.length>0 && endMin(items)>CFG.close; }
+function endTip(items){ if(!items.length) return ''; const e=endMin(items); return ' · last job ends '+hm(e)+(e>CFG.close?', past close ('+hm(CFG.close)+')':''); }
+
+/* ---------------- v23: impressions goals + "why is it this full?" pop-up ---------------- */
+// Impressions = Imprints qty ("Active Impressions"): the pieces printed at that imprint's one location (the line items' qty once finished).
+// A tee with a front and a back is two imprints, so summing qty = pieces × print locations (same count Day Fill used).
+const IMPS_LOW=0.6;   // under 60% of the goal shows muted
+function goalOf(k){ return (k==='p1'||k==='p2')?Math.max(0,+(CFG.goal||{})[k]||0):0; }
+function jobImps(j){ return j?(j.qty||j.liQty||0):0; }   // the Imprints qty rollup reads 0 once a job is finished: then the line items' qty
+function impsOf(items){ return items.reduce((a,x)=>a+jobImps(S.jobs[x.rid]),0); }
+function whyAttr(k,ds){ return ' data-why="'+k+'|'+ds+'" role="button" tabindex="0"'; }
+// Day view: "820 / 1,100 imps" with a small bar, under the time %
+function impsRow(k,ds,items){ const g=goalOf(k); if(!g) return ''; const n=impsOf(items);
+  return '<div class="imps'+(n<g*IMPS_LOW?' low':'')+'"'+whyAttr(k,ds)+' title="Impressions (pieces × print locations): '+n.toLocaleString()+' of the '+g.toLocaleString()+' goal · click for the breakdown"><span class="bar"><i style="width:'+Math.min(100,n/g*100)+'%"></i></span><span class="it">Planned <b>'+n.toLocaleString()+'</b> impressions · goal '+g.toLocaleString()+'</span></div>'; }
+// Week / 3 Day header: one compact line per press
+function impsLine(k,ds,items){ const g=goalOf(k), n=impsOf(items);
+  return '<span class="iln '+ckLane(k)+(n<g*IMPS_LOW?' low':'')+'"'+whyAttr(k,ds)+' title="'+esc(LBY[k].short)+' impressions: '+n.toLocaleString()+' of the '+g.toLocaleString()+' goal · click for the breakdown"><span class="ik">'+LBY[k].pk+'</span><span class="in">'+n.toLocaleString()+' · goal '+g.toLocaleString()+'</span><span class="ibar"><i style="width:'+Math.min(100,n/g*100)+'%"></i></span></span>'; }
+// Everything behind one machine-day's %: each job's booked minutes (they add up to the %), gaps, impressions and reasons.
+function whyData(k,ds){
+  const lane=LBY[k], items=cellItems(k,ds), cap=capMin(lane,ds), used=usedMin(items);
+  const rows=items.map(x=>{ const j=S.jobs[x.rid], eq=x.equip, p=jobParts(j,eq), est=estMin(j,eq), step=estStep(j,eq);
+    const fleeceX=(laneOf(eq)==='p1'||laneOf(eq)==='p2'||laneOf(eq)==='split')&&j.heavy>0?p.run-jobParts(Object.assign({},j,{heavy:0}),eq).run:0;
+    return {rid:x.rid, ID:j.ID, cust:j.cust, equip:eq, start:x.min, len:x.len, ghost:x.ghost, alloc:!!j.alloc, setup:p.setup, run:p.run, est, step,
+      hoop:hoopsOn(j,eq)?p.setup:0, screens:j.screens||0, inks:j.inks||0, qty:j.qty||0, heavy:j.heavy||0, fleeceX, hd:j.hd, type:j.type, loc:j.loc||'', types:j.types||[], prod:prodOf(j)}; });
+  let gaps=0; for(let i=1;i<items.length;i++) gaps+=Math.max(0,items[i].min-(items[i-1].min+items[i-1].len));
+  const end=endMin(items), pct=cap?Math.round(used/cap*100):null, goal=goalOf(k), imps=impsOf(items);
+  const d={k, ds, lane, cap, used, pct, rows, gaps, end, start:items.length?items[0].min:null, past:pastClose(items), goal, imps, open:isOpen(lane,ds)};
+  d.reasons=used>cap&&cap>0?whyReasons(d):[];
+  d.drivers=whyDrivers(d); d.tip=whyTip(d,d.drivers);
+  // v25: ink runs and the same-ink tip (presses only)
+  const P=k==='p1'||k==='p2'||k==='split';
+  d.runs=P?inkRuns(items.map(x=>S.jobs[x.rid])):[]; d.inkTip=P?inkTip(items):''; d.plan=P&&!items.some(x=>x.ghost)?groupPlan(k,ds):null;
+  return d; }
+// What takes the time on this machine-day, from what the app already works out. Each driver = {min, text}; biggest first.
+// Over 100% the pop-up lists them all under "Why it's over 100%"; under 100% only the top 3, under "Where the time goes".
+function whyDrivers(d){
+  const out=[], P=d.k==='p1'||d.k==='p2'||d.k==='split', pr=d.rows.filter(x=>{ const l=laneOf(x.equip); return l==='p1'||l==='p2'||l==='split'; });
+  const ids=a=>a.length<=3?' ('+a.map(x=>x.ID).join(', ')+')':'';
+  // screens (setup) and ink changes
+  const scr=pr.map(x=>({x,m:x.setup-x.inks*CAL.ink})).filter(o=>o.m>0), sm=scr.reduce((a,o)=>a+o.m,0), sn=pr.reduce((a,x)=>a+Math.max(1,x.screens),0);
+  if(sm>=15){ const top=pr.slice().sort((a,b)=>b.screens-a.screens)[0];
+    out.push({min:sm,text:'Screen setup: '+sn+' screen'+(sn===1?'':'s')+' = '+dur(sm)+(top&&top.screens>=5?' (most: '+top.ID+', '+top.screens+' screens)':'')+'.'}); }
+  const ink=pr.filter(x=>x.inks>0), im=ink.reduce((a,x)=>a+x.inks*CAL.ink,0);
+  if(im) out.push({min:im,text:'Ink changes: '+ink.reduce((a,x)=>a+x.inks,0)+' × '+CAL.ink+'m = '+dur(im)+ids(ink)+'.'});
+  // sweatshirts / fleece against tee speed
+  const fl=d.rows.filter(x=>x.fleeceX>0), fm=fl.reduce((a,x)=>a+x.fleeceX,0);
+  if(fm>=5){ const pcs=Math.round(fl.reduce((a,x)=>a+x.qty*x.heavy,0)), R=CAL.rate[d.k==='p2'?'p2':'p1'];
+    out.push({min:fm,text:'Sweatshirts/fleece: '+pcs.toLocaleString()+' pcs print at '+R.fleece+'/hr vs '+R.tee+'/hr on tees: +'+dur(fm)+'.'}); }
+  // bandanas against tee speed
+  const bd=pr.filter(x=>/bandana/i.test(x.loc)||x.types.includes('Bandana'));
+  if(bd.length){ const R=CAL.rate[d.k==='p2'?'p2':'p1'], pcs=bd.reduce((a,x)=>a+x.qty,0), bm=pcs*(1/R.bandana-1/R.tee)*60, all=pr.reduce((a,x)=>a+x.qty,0);
+    if(bm>=5||pcs>=all*.5) out.push({min:Math.max(0,bm),text:'Bandanas: '+pcs.toLocaleString()+' pcs'+(pcs>=all*.5?' (most of the day)':'')+' at '+R.bandana+'/hr vs '+R.tee+'/hr on tees: +'+dur(Math.max(0,bm))+'.'}); }
+  // pallet (platen) changes between jobs in the day's order: product switches bandana ↔ tee ↔ fleece
+  let sw=0; const kinds=new Set(); pr.forEach((x,i)=>{ kinds.add(x.prod); if(i&&x.prod!==pr[i-1].prod) sw++; });
+  const turn=CAL.turn[d.k]||[10,10];
+  if(P&&sw) out.push({min:sw*turn[1],text:'Pallet changes: '+sw+' ('+[...new Set(pr.map(x=>x.prod))].join(' ↔ ')+') at about '+turn[1]+'m each = '+dur(sw*turn[1])+'. Between jobs, so it pushes the end time (not in the %).',pallet:sw-(kinds.size-1)});
+  // many small runs: each pays a full setup for few pieces
+  const small=pr.filter(x=>x.qty>0&&x.qty<50);
+  if(small.length>=3){ const m=small.reduce((a,x)=>a+x.setup,0); out.push({min:m,text:small.length+' small runs (under 50 pcs): '+dur(m)+' of setup for '+small.reduce((a,x)=>a+x.qty,0).toLocaleString()+' pcs.'}); }
+  const hp=d.rows.filter(x=>x.hoop>0); if(hp.length) out.push({min:hp.reduce((a,x)=>a+x.hoop,0),text:'Embroidery hooping: '+dur(hp.reduce((a,x)=>a+x.hoop,0))+(hp.length>1?' ('+hp.length+' jobs × '+CAL.hoop+'m)':'')+'.'});
+  d.rows.filter(x=>x.alloc&&x.len-x.est>=15).forEach(x=>out.push({min:x.len-x.est,text:x.ID+' is booked '+dur(x.len)+' (Allocated in Airtable); the estimate is '+dur(x.est)+': +'+dur(x.len-x.est)+'.'}));
+  const rnd=d.rows.filter(x=>!x.alloc).reduce((a,x)=>a+(x.step-x.est),0); if(rnd>=15) out.push({min:rnd,text:'Rounding each job up to 15 min: +'+dur(rnd)+'.'});
+  return out.sort((a,b)=>b.min-a.min); }
+function whyReasons(d){
+  const dr=whyDrivers(d), r=['Planned '+dur(d.used)+' on a '+dur(d.cap)+' day: '+dur(d.used-d.cap)+' more than fits.'].concat(dr.map(x=>x.text));
+  const big=d.rows.slice().sort((a,b)=>b.len-a.len)[0]; if(big&&d.rows.length>1&&big.len>=d.cap*.5) r.push(big.ID+' alone is '+dur(big.len)+' ('+Math.round(big.len/d.cap*100)+'% of the day).');
+  const hd=d.rows.filter(x=>x.hd&&!x.ghost); if(hd.length) r.push((hd.length===1?'A Hard Deadline job is':hd.length+' Hard Deadline jobs are')+' on this day ('+hd.map(x=>x.ID).join(', ')+').');
+  const gh=d.rows.filter(x=>x.ghost); if(gh.length) r.push('Includes '+gh.length+' suggested job'+(gh.length===1?'':'s')+' (dashed) not placed yet.');
+  if(d.past) r.push('Runs past close: the last job ends '+hm(d.end)+', '+hm(CFG.close)+' is the latest.');
+  return r; }
+// one "Next time" line, only where it's cheap to work out
+function whyTip(d,dr){
+  const pal=dr.find(x=>x.pallet>0);
+  if(pal){ const blocks={}; d.rows.forEach((x,i)=>{ if(x.prod&&(!i||d.rows[i-1].prod!==x.prod)) blocks[x.prod]=(blocks[x.prod]||0)+1; });
+    const p=Object.keys(blocks).sort((a,b)=>blocks[b]-blocks[a])[0];
+    return 'Group the '+p+' jobs together to save '+pal.pallet+' pallet change'+(pal.pallet===1?'':'s')+' (about '+dur(pal.pallet*(CAL.turn[d.k]||[10,10])[1])+').'; }
+  if(d.used>d.cap){ // the smallest movable job that fits on one of the next 5 workdays on this machine
+    const need=d.used-d.cap, mv=d.rows.filter(x=>!x.hd&&!x.ghost&&!(S.jobs[x.rid]||{}).locked).sort((a,b)=>(a.len>=need?0:1)-(b.len>=need?0:1)||a.len-b.len);
+    for(const x of mv){ let ds=d.ds; for(let i=0;i<5;i++){ ds=nextWorkday(ds,1); const cap=capMin(d.lane,ds), u=usedMin(cellItems(d.k,ds)); if(cap&&u+x.len<=cap) return 'Move '+x.ID+' ('+dur(x.len)+') to '+wd(ds)+' '+md(ds)+': '+d.lane.short+' has '+dur(cap-u)+' free.'; } } }
+  return ''; }
+function whyJobLine(x){
+  let parts;
+  if(x.hoop) parts='hooping '+dur(x.hoop)+' + stitching '+dur(x.run);
+  else if(x.setup) parts='setup '+dur(x.setup)+' ('+[(x.screens>0?x.screens:1)+' screen'+(x.screens>1?'s':'')+' × '+CAL.setup[laneOf(x.equip)]+'m',x.inks?x.inks+' ink change'+(x.inks===1?'':'s')+' × '+CAL.ink+'m':''].filter(Boolean).join(' + ')+') + printing '+dur(x.run)+(x.qty?' ('+x.qty.toLocaleString()+' pcs'+(x.heavy>0?', '+(x.heavy>=.99?'fleece':Math.round(x.heavy*100)+'% fleece'):'')+')':'');
+  else parts=(x.qty?x.qty.toLocaleString()+' pcs: ':'')+dur(x.run);
+  const how=x.alloc?(x.len===x.est?'Allocated':'Allocated in Airtable (estimate '+dur(x.est)+')'):(x.step>x.est?'estimate '+dur(x.est)+', rounded up to 15m':'estimate');
+  return parts+' · <b>'+how+'</b>'; }
+function openWhy(k,ds){
+  const d=whyData(k,ds), L=d.lane;
+  const head=esc(L.short)+' · '+wd(ds)+' '+md(ds)+(d.pct!=null?' · '+d.pct+'% full':'');
+  let b='';
+  if(!d.cap) b+='<div class="p-note" style="margin-bottom:12px">'+esc(L.short)+' is off that day'+(dow(ds)===5?' (Fridays in ⚙ Settings)':'')+', so there is no % to work out.</div>';
+  b+='<div class="wsum"><div><span class="p-label">Available</span><b>'+dur(d.cap)+'</b><span class="p-hint">'+d.cap+' min of setup + printing a day (⚙ Settings)</span></div>'+
+    '<div><span class="p-label">Planned</span><b>'+dur(d.used)+'</b><span class="p-hint">'+d.used+' min, '+d.rows.length+' job'+(d.rows.length===1?'':'s')+'</span></div>'+
+    (d.goal?'<div><span class="p-label">Impressions</span><b>'+d.imps.toLocaleString()+'</b><span class="p-hint">Planned '+d.imps.toLocaleString()+' impressions · goal '+d.goal.toLocaleString()+' ('+Math.round(d.imps/d.goal*100)+'%)</span></div>':'')+'</div>';
+  if(d.reasons.length) b+='<div class="p-label" style="margin:14px 0 6px">Why it\'s over 100%</div><ul class="wwhy">'+d.reasons.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>';
+  else if(d.cap){ b+='<p class="wfree"><b>'+dur(d.cap-d.used)+'</b> free ('+(d.cap-d.used)+' min).</p>';
+    if(d.past) b+='<p class="wlate">Runs to '+hm(d.end)+', past '+hm(CFG.close)+': it fits in press time, but starts late or has gaps.</p>';
+    if(d.drivers.length) b+='<div class="p-label" style="margin:14px 0 6px">Where the time goes</div><ul class="wwhy wgo">'+d.drivers.slice(0,3).map(x=>'<li>'+esc(x.text)+'</li>').join('')+'</ul>'; }
+  if(d.runs.length) b+='<div class="p-label" style="margin:14px 0 6px">Ink runs</div><ul class="wruns">'+d.runs.map(r=>'<li><b>'+r.js.length+' jobs in a row on '+esc(r.label)+'</b> · saves about '+Math.round(r.saved)+' min of ink changes</li>').join('')+'</ul>'+
+    '<p class="p-hint" style="margin:4px 0 0">Estimate: '+CAL.ink+' min for each ink that stays on the press between jobs.</p>';
+  if(d.tip) b+='<p class="wtip"><b>Next time:</b> '+esc(d.tip)+'</p>';
+  if(d.inkTip) b+='<p class="wtip"><b>Next time:</b> '+esc(d.inkTip)+'</p>';
+  if(d.rows.length){
+    b+='<div class="p-label" style="margin:14px 0 6px">Jobs</div><ol class="wjobs">'+d.rows.map(x=>'<li><span class="wt">'+hmr(x.start,x.len)+'</span><span class="wm"><b>'+esc(x.ID)+'</b>'+(x.ghost?' ✨ suggested':'')+(x.hd?' <span class="p-tag hdtag">Hard deadline</span>':'')+' '+esc(x.cust)+(d.goal?' · '+jobImps(S.jobs[x.rid]).toLocaleString()+' impressions':'')+'<span class="wd">'+whyJobLine(x)+'</span></span><span class="wn">'+x.len+' min</span></li>').join('')+
+      '<li class="wtot"><span class="wt"></span><span class="wm">'+(d.cap?d.used+' min ÷ '+d.cap+' min = <b>'+d.pct+'%</b>':'Total')+'</span><span class="wn">'+d.used+' min</span></li></ol>';
+    b+='<p class="p-hint" style="margin:6px 0 0">Runs '+hm(d.start)+'–'+hm(d.end)+(d.gaps?' · gaps between jobs '+dur(d.gaps)+' (not in the %, but they push the end time)':'')+'.</p>';
+  } else b+='<p class="p-hint">Nothing scheduled.</p>';
+  S.whyAt=k+'|'+ds;
+  showModal(head,b,(d.plan?'<button class="p-btn" type="button" onclick="groupDay(\''+k+'\',\''+ds+'\')">Group by ink</button>':'')+(S.view!=='day'?'<button class="p-btn" type="button" onclick="closeModal();openDay(\''+ds+'\')">Open the day</button>':'')+'<button class="p-btn p-btn-main" type="button" onclick="closeModal()">Close</button>');
+  document.querySelector('#modalHost .p-modal').classList.add('whym'); }
+document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-why]'); if(!t) return; e.stopPropagation(); const a=t.dataset.why.split('|'); openWhy(a[0],a[1]); });
+document.addEventListener('keydown',e=>{ if(e.key!=='Enter'&&e.key!==' ') return; const t=e.target.closest&&e.target.closest('[data-why]'); if(!t) return; e.preventDefault(); const a=t.dataset.why.split('|'); openWhy(a[0],a[1]); });
+
+/* ---------------- render ---------------- */
+function render(){
+  const vs=document.getElementById('viewSeg'), mr=document.getElementById('mrow'), sx=[vs.scrollLeft,mr.scrollLeft];   // v17: keep sideways scroll on phones
+  document.getElementById('range').textContent=rangeLabel();
+  document.getElementById('viewSeg').innerHTML=VIEWS.map(v=>'<button type="button" role="tab" aria-selected="'+(S.view===v.k)+'" class="'+(S.view===v.k?'is-on':'')+'" onclick="setView(\''+v.k+'\')">'+v.l+'</button>').join('');
+  document.getElementById('mrow').innerHTML=machineChips(); vs.scrollLeft=sx[0]; mr.scrollLeft=sx[1];
+  renderSide(); renderCal(); renderSugbar(); flashCard(); }
+function rangeLabel(){ const v=viewDays();
+  if(S.view==='day') return wd(v[0],true)+' '+md(v[0]);
+  if(S.view==='month'){ const d=new Date(S.anchor+'T12:00:00Z'); return d.toLocaleString('en-US',{month:'long',timeZone:'UTC'})+' '+d.getUTCFullYear(); }
+  return md(v[0])+' – '+md(v[v.length-1]); }
+
+function flagsHtml(j){ return (j.ready?'<span class="em rdy" title="Imprint Ready? (Airtable)">'+esc(j.ready)+'</span>':'')+(j.flags?'<span class="em">'+esc(j.flags)+'</span>':''); }   // v21: ready first
+function cardHtml(x,ds){
+  const j=S.jobs[x.rid]; if(!j) return '';
+  const late=x.ghost?x.late:(j.due && ds>j.due);
+  const pk=(PBY[x.equip]||PBY.none).k; const cls='jc'+(x.ghost?' ghost':' '+ckOf(pk))+(j.hd?' hd':'')+(j.finished?' done':'')+(late?' late':'')+(S.busy&&j._saving?' saving':'');
+  const sub=[j.qty?j.qty.toLocaleString()+(j.screens?' · '+j.screens+' scr':''):'', S.view==='day'?dur(x.len):'', j.due?'due '+md(j.due):''].filter(Boolean).join(' · ');   // v19: length only on Day; the range says it elsewhere
+  return '<div class="'+cls+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'" title="'+esc(j.ID+' '+j.nick)+'">'+
+    (j.proof?'<img class="bigimg" src="'+esc(j.proof)+'" alt="" loading="lazy">':'<span class="bigimg"></span>')+
+    '<div style="min-width:0;flex:1"><div class="l1">'+(S.view!=='month'?'<span class="pkc">'+(PBY[x.equip]||PBY.none).pk+'</span>':'')+'<span class="tm">'+(x.ghost?'✨ ':'')+hmr(x.min,x.len)+'</span><span class="id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</div>'+
+    ((j.cust||j.locked&&!x.ghost)?'<div class="cn"><span class="cnt">'+esc(j.cust)+'</span>'+(j.locked&&!x.ghost?LOCK_BADGE:'')+'</div>':'')+   // v20: the job (customer) name under the ID (Mike); locked badge
+    '<div class="l2">'+esc(sub)+'</div>'+(S.view==='day'?'<div class="l2">'+esc([j.loc,j.nick].filter(Boolean).join(' · '))+'</div>':'')+'</div></div>'; }
+
+function renderCal(){
+  const cal=document.getElementById('cal');
+  if(!token()) return;
+  if(S.view==='month'||S.view==='2week') return renderMonth(cal);
+  const days=viewDays(), rows=rowsFor(days), placed=allPlaced(), today=shopToday();
+  const colW=S.view==='day'?'minmax(230px,1fr)':'minmax(170px,1fr)';
+  let h='';
+  if(S.view==='day'){ // presses across, one day
+    const dl=dayLockHtml(days[0]); h=dl?'<div class="dayhead">'+dl+'</div>':'';
+    h+='<div class="grid day" style="grid-template-columns:repeat('+rows.length+','+colW+')">';
+    rows.forEach(p=>{ h+='<div class="gh '+ckLane(p.k)+'"><span class="dn">'+esc(p.short)+'</span><span class="sub">'+esc(p.sub)+'</span></div>'; });
+    rows.forEach(p=>{ h+=cellHtml(p,days[0],placed,today); });
+    h+='</div>';
+  } else { // one column per day, every shown machine's jobs in time order (like the Airtable calendar)
+    const keys=new Set(rows.map(p=>p.k));
+    h='<div class="dgrid" style="grid-template-columns:repeat('+days.length+','+colW+')">';
+    const loadKeys=rows.filter(p=>p.k!=='none' && (p.k==='p1'||p.k==='p2'||days.some(d=>cellItems(p.k,d,placed).length)));
+    days.forEach(d=>{
+      // the same machines in the same spots every day: Press 1 + 2 always, others when they have work this week
+      const fills=loadKeys.map(p=>{ const it=cellItems(p.k,d,placed), cap=capMin(p,d), u=usedMin(it);
+        if(!it.length) return '<span class="idle" title="'+esc(p.short)+': '+(cap?'nothing scheduled':'off')+'">'+p.pk+' '+(cap?'–':'off')+'</span>';
+        return '<span class="'+ckLane(p.k)+(u>cap||pastClose(it)?' ov':'')+'"'+whyAttr(p.k,d)+' title="'+esc(p.short)+': '+dur(u)+' of '+dur(cap)+esc(endTip(it))+' · click for the breakdown">'+p.pk+' '+(cap?Math.round(u/cap*100)+'%':dur(u))+'</span>'; }).join('');
+      // v23: impressions vs goal, one line per press
+      const imps=loadKeys.filter(p=>goalOf(p.k)).map(p=>{ const it=cellItems(p.k,d,placed); return it.length?impsLine(p.k,d,it):''; }).join('');   // only presses with work that day
+      h+='<div class="gh'+(d===today?' today':'')+'"><div class="top" style="cursor:pointer" onclick="openDay(\''+d+'\')"><span class="dn">'+wd(d)+'</span><span class="sub">'+md(d)+'</span></div><div class="dfills" style="grid-template-columns:repeat('+Math.min(3,Math.max(1,loadKeys.length))+',minmax(0,1fr))">'+fills+'</div>'+(imps?'<div class="dimps">'+imps+'</div>':'')+'</div>'; });
+    days.forEach(d=>{
+      const items=placed.filter(x=>x.day===d && keys.has(laneOf(x.equip))).sort((a,b)=>a.min-b.min||PRESSES.indexOf(PBY[a.equip]||PBY.none)-PRESSES.indexOf(PBY[b.equip]||PBY.none)||(a.ghost-b.ghost));
+      const anyOpen=rows.some(p=>isOpen(p,d));
+      h+='<div class="dcell'+(anyOpen?'':' off')+(d<today?' past':'')+'" data-d="'+d+'">'+(anyOpen?'':'<div class="offl">'+(dow(d)===5?'No Friday shift':'Closed')+'</div>')+
+        items.map(x=>cardHtml(x,d).replace('class="jc','data-pk="'+laneOf(x.equip)+'" class="jc')).join('')+dayLockHtml(d)+'</div>'; });
+    h+='</div>';
+  }
+  if(!rows.length) h='<div class="empty">Pick a machine above.</div>';
+  cal.innerHTML=h; }
+function cellHtml(p,ds,placed,today){
+  const items=cellItems(p.k,ds,placed), cap=capMin(p,ds), used=usedMin(items);
+  const open=isOpen(p,ds);
+  let h='<div class="cell '+ckLane(p.k)+(open?'':' off')+(ds<today?' past':'')+'" data-p="'+p.k+'" data-d="'+ds+'">';
+  if(p.k!=='none'){
+    if(open||items.length){ const pct=cap?Math.min(100,used/cap*100):100;
+      h+='<div class="fill'+(used>cap?' over':'')+'"'+whyAttr(p.k,ds)+' title="'+dur(used)+' of '+dur(cap)+esc(endTip(items))+' · click for the breakdown"><span class="bar"><i style="width:'+pct+'%"></i></span><span class="pct">'+(cap?Math.round(used/cap*100)+'%':dur(used))+'</span></div>';
+      h+=impsRow(p.k,ds,items);   // v23: impressions vs the press's goal
+      if(items.length){ const late=pastClose(items); h+='<div class="endt'+(late?' late':'')+'">'+(late?'Runs to <b>'+hm(endMin(items))+'</b>, past '+hm(CFG.close):'Done by <b>'+hm(endMin(items))+'</b>')+'</div>';
+        if(!S.ghosts.length&&groupPlan(p.k,ds)) h+='<button type="button" class="p-btn inkbtn" onclick="groupDay(\''+p.k+'\',\''+ds+'\')" title="Put same-ink jobs back to back. Locked and Hard Deadline jobs stay. Shows the new order first.">Group by ink</button>'; } }   // v25
+    if(!open) h+='<div class="offl">'+(dow(ds)===5?'No Friday shift':'Closed')+'</div>';
+  }
+  items.forEach((x,i)=>{ if(i){ const a=S.jobs[items[i-1].rid], b=S.jobs[x.rid], s=inkSim(a,b);   // v25: same-ink join
+      if(s.shared>0) h+='<div class="inkj" title="'+esc(a.ID+' and '+b.ID+' share '+s.shared+' ink'+(s.shared===1?'':'s')+': no ink change between them')+'">Same ink · <b>'+esc(s.label)+'</b></div>'; }
+    h+=cardHtml(x,ds); });
+  return h+'</div>'; }
+
+function renderMonth(cal){
+  const days=viewDays(), placed=allPlaced(), today=shopToday(), mo=S.anchor.slice(5,7);
+  const rows=new Set(rowsFor(days).map(p=>p.k));
+  const two=S.view==='2week';
+  let h='<div class="mgrid'+(two?' two':'')+'">'+['Mon','Tue','Wed','Thu','Fri'].map(d=>'<div class="gh"><span class="dn">'+d+'</span></div>').join('');
+  days.forEach(ds=>{
+    const items=placed.filter(x=>x.day===ds && rows.has(laneOf(x.equip))).sort((a,b)=>a.min-b.min);
+    const p1=cellItems('p1',ds,placed), p2=cellItems('p2',ds,placed);
+    h+='<div class="mcell'+(!two&&ds.slice(5,7)!==mo?' out':'')+(ds<today?' past':'')+(ds===today?' today':'')+'" data-d="'+ds+'"><span class="mn" style="cursor:pointer" onclick="openDay(\''+ds+'\')">'+(two?md(ds):+ds.slice(8))+'</span>';
+    {
+      const f=(two?LANES.filter(l=>l.k!=='none').map(l=>[l.pk,cellItems(l.k,ds,placed),l]):[['P1',p1,LBY.p1],['P2',p2,LBY.p2]]).filter(r=>r[1].length&&isSel(r[2].k)).map(r=>{ const cap=capMin(r[2],ds),u=usedMin(r[1]); return '<span class="'+(u>cap||pastClose(r[1])?'ov':'')+'"'+whyAttr(r[2].k,ds)+' title="'+esc(r[2].short+': '+dur(u)+' of '+dur(cap)+endTip(r[1]))+' · click for the breakdown">'+r[0]+' '+(cap?Math.round(u/cap*100)+'%':dur(u))+'</span>'; });
+      if(f.length) h+='<div class="mfill">'+f.join('')+'</div>';
+      // v23: impressions vs goal for the presses that have work that day
+      const mi=[['P1',p1,'p1'],['P2',p2,'p2']].filter(r=>r[1].length&&isSel(r[2])&&goalOf(r[2])).map(r=>{ const n=impsOf(r[1]), g=goalOf(r[2]);
+        return '<span class="'+(n<g*IMPS_LOW?'low':'')+'"'+whyAttr(r[2],ds)+' title="'+esc(LBY[r[2]].short+': '+n.toLocaleString()+' of '+g.toLocaleString()+' impressions goal · click for the breakdown')+'">'+r[0]+' '+n.toLocaleString()+' · goal '+g.toLocaleString()+'</span>'; });
+      if(mi.length) h+='<div class="mimps"><span class="mil">Impressions</span>'+mi.join('')+'</div>';
+    }
+    const MAX=two?99:7;
+    items.slice(0,MAX).forEach(x=>{ const j=S.jobs[x.rid]; if(!j) return; const p=PBY[x.equip]||PBY.none;
+      const pkc=p.ck||'';
+      h+='<div class="mc'+(x.ghost?' ghost':'')+(j.hd?' hd':'')+'" data-rid="'+j.rid+'" data-ghost="'+(x.ghost?1:0)+'"><span class="pk '+pkc+'">'+p.pk+'</span><b>'+(two?hmr(x.min,x.len):hm(x.min))+'</b><span class="id" style="font-size:13px">'+esc(j.ID)+'</span>'+flagsHtml(j)+(!two&&j.locked&&!x.ghost?LOCK_BADGE:'')+(j.cust||two&&j.locked?'<span class="cn"><span class="cnt">'+esc(j.cust)+'</span>'+(two&&j.locked&&!x.ghost?LOCK_BADGE:'')+'</span>':'')+'</div>'; });
+    if(items.length>MAX) h+='<button class="more" onclick="openDay(\''+ds+'\')">+'+(items.length-MAX)+' more</button>';
+    if(two) h+=dayLockHtml(ds);   // v20: lock a day from 2 Week too (Month: open the day)
+    h+='</div>'; });
+  cal.innerHTML=h+'</div>'; }
+
+function sideJobs(){
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  const ghosted=new Set(S.ghosts.map(g=>g.rid));
+  // v20: the machine chips filter the calendar only; the list stays the same whatever is picked (Mike)
+  return Object.values(S.jobs).filter(j=>!j.start && !j.noLines && !ghosted.has(j.rid) &&
+    (!q || (j.ID+' '+j.nick+' '+j.cust+' '+j.order).toLowerCase().includes(q))); }
+function renderSide(){
+  const list=sideJobs(); const all=Object.values(S.jobs).filter(j=>!j.start).length;
+  document.getElementById('sideCount').textContent=list.length; document.getElementById('sideCount2').textContent=all;
+  // group by order, hard deadlines and earliest due first
+  const by={}; list.forEach(j=>{ (by[j.order]=by[j.order]||[]).push(j); });
+  const groups=Object.values(by).sort((a,b)=>{ const hd=(g)=>g.some(j=>j.hd)?0:1; const due=(g)=>g.map(j=>j.due||'9999').sort()[0];
+    return hd(a)-hd(b)||due(a).localeCompare(due(b)); });
+  const today=shopToday();
+  let h='';
+  groups.forEach(g=>{ const j0=g[0]; const due=g.map(j=>j.due).filter(Boolean).sort()[0];
+    h+='<div class="og"><b>'+esc(j0.order)+'</b> '+esc(j0.cust)+(due?' · <span'+(due<today?' class="why"':'')+'>due '+md(due)+'</span>':'')+(g.some(j=>j.hd)?' <span class="p-tag hdtag">Hard deadline</span>':'')+'</div>';
+    // v17: kit list card, narrow: picture · ID · qty + time / job name / tags. Still the drag source (.sc).
+    g.sort((a,b)=>a.ID.localeCompare(b.ID)).forEach(j=>{ const p=PBY[j.equip];
+      h+='<div class="p-lc sc'+(j.hd?' hd':'')+(S.skipped[j.rid]?' skip':'')+'" data-rid="'+j.rid+'"><div class="p-lc-head">'+
+        (j.proof?'<img class="sc-img" src="'+esc(j.proof)+'" alt="" loading="lazy" draggable="false">':'<span class="sc-img"></span>')+
+        '<span class="p-lc-id"><span class="p-id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</span>'+
+        '<span class="p-lc-nums">'+(j.qty?'<span class="p-num"><small>Qty</small><b>'+j.qty.toLocaleString()+'</b></span>':'')+'<span class="p-num"><small>Time</small><b>'+dur(jobMin(j))+'</b></span></span>'+
+        '<span class="p-lc-main"><span class="p-lc-sub" title="'+esc(j.nick)+'">'+esc(j.loc||j.nick||j.type)+'</span></span>'+   // v20: the print location (Front, Back…), not the nickname (Mike)
+        '<span class="p-lc-tags"><span class="p-tag'+(p&&p.ck?' '+ckOf(p.k):' p-tag-soft')+'">'+esc(p&&p.k!=='none'?p.short:'No press yet')+'</span>'+
+        (j.noLines?'<span class="p-tag warn" title="This imprint has no Line Items linked in Airtable, so there is no qty, proof or garment to show">No line items</span>':j.allIn?'':notOrdered(j)?'<span class="p-tag p-tag-wait" title="The order is Ready to Order: garments haven\'t been ordered yet">Garments not ordered</span>':'<span class="p-tag warn" title="Not all garments are checked in">Not received</span>')+cwTag(j)+(j.locked?lockTag():'')+'</span>'+
+        '</div>'+(S.why[j.rid]?'<div class="why">'+esc(S.why[j.rid])+'</div>':'')+'</div>'; });
+  });
+  const orphans=Object.values(S.jobs).filter(j=>!j.start && j.noLines).map(j=>j.ID).sort();
+  if(orphans.length) h+='<div class="p-note" style="margin-top:14px"><b>'+orphans.length+' imprint'+(orphans.length===1?'':'s')+' not shown:</b> no line items linked in Airtable, so there is nothing to print yet. Link them or delete them: '+esc(orphans.join(', '))+'</div>';
+  // v19: with search text and "All", scheduled jobs that match (from any date) follow the unscheduled ones
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  if(q && S.scope==='all'){ const fl=schedFound(q);
+    h+='<div class="og fhead"><span class="p-section">Scheduled <span class="p-count">'+fl.length+(S.fMore&&S.fq===q?'+':'')+'</span></span>'+(S.fBusy?'<span class="p-hint">Searching all dates…</span>':S.fErr?'<span class="p-hint">Only the loaded weeks: '+esc(S.fErr)+'</span>':'')+'</div>';
+    fl.forEach(j=>{ const p=PBY[j.equip]||PBY.none, ds=day(j); const late=j.due&&ds>j.due;
+      h+='<div class="p-lc fc" role="button" tabindex="0" data-frid="'+j.rid+'" onclick="jumpTo(\''+j.rid+'\')" onkeydown="if(event.key===\'Enter\')jumpTo(\''+j.rid+'\')" title="Show it on the calendar"><div class="p-lc-head">'+
+        '<span class="p-lc-id"><span class="p-id">'+esc(j.ID)+'</span>'+flagsHtml(j)+'</span>'+
+        '<span class="p-lc-nums"><span class="p-tag '+(p.ck?ckOf(p.k):'p-tag-soft')+'">'+esc(p.pk)+'</span></span>'+
+        '<span class="p-lc-main"><b class="fwhen">'+wd(ds)+' '+md(ds)+' · '+hmr(startMin(j),jobMin(j))+'</b><span class="p-lc-sub">'+esc([j.cust,j.nick||j.type].filter(Boolean).join(' · '))+'</span></span>'+
+        '<span class="p-lc-tags">'+(j.running?'<span class="p-tag p-tag-wait">On press</span>':'')+(j.ostat?'<span class="p-tag p-tag-soft">'+esc(j.ostat)+'</span>':'')+(late?'<span class="p-tag warn">After due '+md(j.due)+'</span>':'')+(j.locked?lockTag():'')+'</span>'+
+        '</div></div>'; });
+    if(!fl.length && !S.fBusy) h+='<div class="p-hint" style="padding:4px 2px">No scheduled job matches.</div>';
+    if(S.fMore&&S.fq===q) h+='<div class="p-hint" style="padding:8px 2px">First 50 shown. Type more to narrow it down.</div>'; }
+  document.getElementById('scope').innerHTML=[['all','All'],['uns','Unscheduled only']].map(o=>'<button type="button" class="p-tab'+(S.scope===o[0]?' is-on':'')+'" aria-pressed="'+(S.scope===o[0])+'" onclick="setScope(\''+o[0]+'\')">'+o[1]+'</button>').join('');
+  document.getElementById('sideList').innerHTML=h||'<div class="empty">'+(q?'Nothing matches “'+esc(q)+'”':'Nothing waiting')+'.</div>'; }
+// v20: "3 colorways" = 3 different proofs on the print's line items (Mike counts color changes from them). Only shown for 2+.
+function cwTag(j){ return j.proofs.length>1?'<span class="p-tag p-tag-soft" title="'+j.proofs.length+' different proofs on this print\'s line items">'+j.proofs.length+' colorways</span>':''; }
+const LOCK_SVG='<svg class="lk" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 5V3.6a2.5 2.5 0 0 1 5 0V5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="5" width="8" height="6.2" rx="1.2" fill="currentColor"/></svg>';
+// on calendar cards: a small labeled badge (Airtable's Due Date Warning already uses a 🔒 emoji for "deadline today")
+const LOCK_BADGE='<span class="lkb" title="Locked in: Scheduled is ticked in Airtable">✓ Locked</span>';
+function lockTag(){ return '<span class="p-tag p-tag-done locktag" title="Locked in: Scheduled is ticked in Airtable">'+LOCK_SVG+'Locked</span>'; }
+/* ---------------- v19: search scheduled jobs too ---------------- */
+function qMatch(j,q){ return (j.ID+' '+j.nick+' '+j.cust+' '+j.order).toLowerCase().includes(q); }
+// scheduled, not finished, matching q: what's loaded (fresh, includes moves made here) + the all-dates search results
+function schedFound(q){ const out={};
+  Object.values(S.jobs).forEach(j=>{ if(j.start && !j.finished && qMatch(j,q)) out[j.rid]=j; });
+  if(S.fq===q) Object.values(S.found).forEach(f=>{ if(out[f.rid]) return; const j=S.jobs[f.rid]||f; if(j.start && !j.finished && qMatch(j,q)) out[j.rid]=j; });
+  return Object.values(out).sort((a,b)=>a.start.localeCompare(b.start)||a.ID.localeCompare(b.ID)).slice(0,50); }
+let searchT=null, searchSeq=0;
+function onSearch(){ renderSide(); clearTimeout(searchT); searchT=setTimeout(runSearch,300); }   // one query after typing stops
+async function runSearch(){
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  if(!q || q.length<2 || S.scope!=='all' || !token()){ S.fBusy=false; renderSide(); return; }
+  if(q===S.fq && !S.fErr){ return; }
+  const my=++searchSeq; S.fBusy=true; S.fErr=''; renderSide();
+  const t=q.replace(/["\\]/g,'');
+  const has=f=>'FIND("'+t+'",LOWER('+f+'))';
+  const formula='AND(NOT({Scheduled Start Time}=BLANK()),NOT({Run Finished}),OR('+[has('{Imprint ID}'),has('{Imprint Nickname}'),has('{Customer Name Search}'),has('ARRAYJOIN({Invoice / Order Lookup})')].join(',')+'))';
+  const u='https://api.airtable.com/v0/'+BASE+'/'+TBL+'?returnFieldsByFieldId=true&maxRecords=51&pageSize=51&sort%5B0%5D%5Bfield%5D='+encodeURIComponent('Scheduled Start Time')+'&sort%5B0%5D%5Bdirection%5D=asc&filterByFormula='+encodeURIComponent(formula)+Object.values(F).map(f=>'&fields%5B%5D='+f).join('');
+  try{ const recs=(await atGet(u)).records||[]; if(my!==searchSeq) return;
+    S.found={}; recs.slice(0,50).forEach(r=>{ const j=mkJob(r); S.found[j.rid]=j; }); S.fMore=recs.length>50; S.fq=q; }
+  catch(e){ if(my!==searchSeq) return; console.warn('search',e); S.found={}; S.fq=q; S.fMore=false; S.fErr='search failed'; }
+  S.fBusy=false; renderSide(); }
+function setScope(k){ S.scope=k; writeLS('pine_sched_side_scope',k); renderSide(); if(k==='all') runSearch(); }
+// tap a scheduled result: go to its day, scroll to the card and flash it
+function jumpTo(rid){ const j=S.jobs[rid]||S.found[rid]; if(!j||!j.start) return;
+  if(!isSel(laneOf(j.equip))){ S.sel=null; writeLS('pine_sched_machines',JSON.stringify(S.sel)); }   // its machine was filtered out
+  if(innerWidth<=1100) toggleSide(false);
+  S.anchor=day(j); S.flash=rid; S.flashAt=Date.now(); S.flashDone=false;
+  if(S.view==='month'){ S.view='week'; writeLS('pine_sched_view','week'); }   // Month cuts days off at 7 jobs; Week shows every one
+  afterNav(); }
+function flashCard(){ if(!S.flash) return;
+  const el=document.querySelector('#cal [data-rid="'+S.flash+'"]');
+  if(!el){ if(Date.now()-S.flashAt>15000) S.flash=null; return; }   // still loading that week
+  el.classList.add('flash');
+  if(!S.flashDone){ S.flashDone=true; el.scrollIntoView({block:'center',inline:'center',behavior:'smooth'});
+    const rid=S.flash; setTimeout(()=>{ if(S.flash===rid){ S.flash=null; document.querySelectorAll('#cal .flash').forEach(n=>n.classList.remove('flash')); } },2600); } }
+
+function renderSugbar(){
+  const bar=document.getElementById('sugbar');
+  const unplaced=Object.keys(S.why).length;
+  // v17: one yellow per screen — Suggest, or Place all while a suggestion is up
+  document.getElementById('sugBtn').classList.toggle('p-btn-main',!S.ghosts.length);
+  document.getElementById('placeAllBtn').hidden=!S.ghosts.length;
+  if(!S.ghosts.length && !unplaced){ bar.classList.remove('on'); return; }
+  bar.classList.add('on');
+  const late=S.ghosts.filter(g=>g.late).length, tight=S.ghosts.filter(g=>g.tight).length;
+  document.getElementById('sugMsg').textContent='✨ '+S.ghosts.length+' job'+(S.ghosts.length===1?'':'s')+' suggested'+(late?' · '+late+' after the due date (no room before)':'')+(tight?' · '+tight+' only 1 day before due':'')+
+    (unplaced?' · '+unplaced+' didn\'t fit (see the list)':'')+'. Drag a dashed card to move it, or tap it to place or skip.'; }
+
+/* ---------------- moving jobs ---------------- */
+// Put job rid on press pk, day ds, at position idx among that cell's jobs. Only the moved job and any job it
+// would overlap get new times, so gaps the scheduler left on purpose (lunch, a late truck) stay.
+function planMove(rid,pk,ds,idx,forceEquip){
+  const j=S.jobs[rid]; const equip=forceEquip||(pk==='none'?j.equip:equipFor(j,pk));
+  const items=cellItems(pk,ds).filter(x=>x.rid!==rid && !x.ghost).map(x=>({rid:x.rid,min:x.min,len:x.len}));
+  if(idx==null||idx>items.length) idx=items.length;
+  const len=jobMin(j,equip);
+  const prev=items[idx-1];
+  // v20 (Mike): start at the exact end of the job before it, no changeover gap and no rounding to 15 min.
+  // The scheduler adds lunch or a gap by hand (pick a time in the pop-up); Allocated is already in 15-min steps.
+  const t=prev?prev.min+prev.len:(items[0]&&idx===0?Math.min(DAY_START,items[0].min):DAY_START);
+  return [{rid,equip,day:ds,min:t}].concat(pushLater(items,idx,t+len,ds)); }
+// later jobs that would overlap move to the exact end of the one before; the first one that already fits stops it,
+// so gaps the scheduler left on purpose (lunch, a late truck) stay
+function pushLater(items,idx,end,ds){ const out=[];
+  for(let i=idx;i<items.length;i++){ const x=items[i]; if(x.min>=end) break;
+    out.push({rid:x.rid,equip:S.jobs[x.rid].equip,day:ds,min:end}); end=end+x.len; }
+  return out; }
+// gap after job a before job b on the same lane: loading, takedown, cleanup (measured), longer on a product change
+function co(a,b){ if(!a||!b) return 0; const t=CAL.turn[laneOf(a.equip)]||[10,10]; return prodOf(a)===prodOf(b)?t[0]:t[1]; }
+function coL(lane,a,b){ if(!a||!b) return 0; const t=CAL.turn[lane]||[10,10]; return prodOf(a)===prodOf(b)?t[0]:t[1]; }   // v25: by the lane the job goes on
+
+async function applyChanges(changes,label){
+  const before=changes.map(c=>{ const j=S.jobs[c.rid]; return {rid:c.rid,equip:j.equip,start:j.start,alloc:j.alloc}; });
+  const ups=changes.map(c=>{ const j=S.jobs[c.rid]; const f={};
+    if(c.unschedule){ j.start=null; f[F.start]=null; }
+    else { if(c.equip!==j.equip){ j.equip=c.equip; f[F.equip]=c.equip; } setStart(j,c.day,c.min); f[F.start]=j.start;
+      // no Allocated time yet: fill it from the estimate so Operator, the Board and the calendar show the same length
+      if(!j.alloc){ j.alloc=allocFor(j,c.equip); f[F.alloc]=j.alloc; } }
+    j._saving=true; return {rid:c.rid,fields:f}; });
+  S.busy++; render();
+  try{ await patchMany(ups); changes.forEach(c=>{ S.jobs[c.rid]._saving=false; });
+    S.busy--; render();
+    toast(label+(PRACTICE?' (practice, not saved)':''),'Undo',()=>undo(before));
+  }catch(e){ before.forEach(b=>{ const j=S.jobs[b.rid]; j.equip=b.equip; j.start=b.start; j.alloc=b.alloc; j._saving=false; });
+    S.busy--; render(); toast(e.message,null,null,true); } }
+async function undo(before){
+  const ups=before.map(b=>{ const j=S.jobs[b.rid]; const f={}; f[F.start]=b.start; if(j.equip!==b.equip&&b.equip) f[F.equip]=b.equip; if(j.alloc!==b.alloc) f[F.alloc]=b.alloc||null; j.equip=b.equip; j.start=b.start; j.alloc=b.alloc; return {rid:b.rid,fields:f}; });
+  S.busy++; render();
+  try{ await patchMany(ups); S.busy--; render(); toast('Put back'+(PRACTICE?' (practice)':'')); }
+  catch(e){ S.busy--; toast(e.message,null,null,true); load(); } }
+function moveLabel(rid,equip,ds,min){ const j=S.jobs[rid]; return j.ID+' → '+(PBY[equip]||PBY.none).short+', '+wd(ds)+' '+md(ds)+' '+hm(min)+(j.locked?' · still locked in':''); }
+function moveJob(rid,pk,ds,idx,forceEquip){
+  const j=S.jobs[rid]; const p=LBY[pk];
+  if(p.k==='none'){ toast('Pick a press for '+j.ID+' first (tap the card)'); render(); return; }
+  if(isWeekend(ds)){ render(); return; }
+  S.ghosts=S.ghosts.filter(g=>g.rid!==rid); delete S.why[rid];
+  const ch=planMove(rid,pk,ds,idx,forceEquip); const m=ch[0];
+  let label=moveLabel(rid,m.equip,ds,m.min); if(ch.length>1) label+=' · '+(ch.length-1)+' after it moved later';
+  if(!isOpen(p,ds)) label+=' · that lane is off that day';
+  applyChanges(ch,label); }
+function unschedule(rid){ const j=S.jobs[rid]; if(!j.start) return; applyChanges([{rid,unschedule:true}],j.ID+' unscheduled'); }
+
+/* ---------------- drag and drop (mouse, pen and touch) ---------------- */
+// Mouse: press and move. Touch: hold a moment, then drag (a quick swipe still scrolls).
+// v16: a mouse grab on a mockup picture started the browser's own image drag and cancelled ours
+document.addEventListener('dragstart',e=>{ if(e.target.closest&&e.target.closest('.jc,.sc,.mc')) e.preventDefault(); });
+document.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.jc,.sc,.mc'); if(!el||e.button>0) return;
+  if(!document.getElementById('gear').hidden) return;   // v17: a tap that closes the ⚙ menu doesn't also open or drag a card
+  const d={el,rid:el.dataset.rid,ghost:el.dataset.ghost==='1',x:e.clientX,y:e.clientY,id:e.pointerId,touch:e.pointerType==='touch',on:false,ready:e.pointerType!=='touch'};
+  if(d.touch) d.timer=setTimeout(()=>{ d.ready=true; startDrag(d,d.x,d.y); if(navigator.vibrate) navigator.vibrate(15); },280);
+  S.drag=d; });
+document.addEventListener('pointermove',e=>{
+  const d=S.drag; if(!d||e.pointerId!==d.id) return;
+  if(!d.on){ const far=Math.abs(e.clientX-d.x)+Math.abs(e.clientY-d.y)>6;
+    if(d.touch&&!d.ready){ if(far){ clearTimeout(d.timer); S.drag=null; } return; }
+    if(!far) return; startDrag(d,e.clientX,e.clientY); }
+  moveGhost(d,e.clientX,e.clientY); });
+document.addEventListener('touchmove',e=>{ if(S.drag&&S.drag.on) e.preventDefault(); },{passive:false});
+document.addEventListener('pointerup',e=>{ const d=S.drag; if(!d||e.pointerId!==d.id) return; clearTimeout(d.timer); S.drag=null;
+  if(!d.on){ openCard(d.rid,d.ghost); return; } endDrag(d,e.clientX,e.clientY); });
+document.addEventListener('pointercancel',e=>{ const d=S.drag; if(!d) return; clearTimeout(d.timer); if(d.on) cleanupDrag(d); S.drag=null; });
+function startDrag(d,x,y){
+  d.on=true; const c=d.el.cloneNode(true); c.classList.add('dragging'); c.style.width=Math.min(260,Math.max(180,d.el.offsetWidth))+'px';
+  document.body.appendChild(c); d.clone=c; d.el.style.opacity='.35'; document.body.style.cursor='grabbing';
+  if(innerWidth<=1100 && d.el.classList.contains('sc')) toggleSide(false);
+  moveGhost(d,x,y); }
+function targetAt(x,y){
+  const el=document.elementFromPoint(x,y); if(!el) return null;
+  const side=el.closest('#side'); if(side) return {side:true,el:side};
+  const cell=el.closest('.cell,.mcell,.dcell'); if(cell) return {el:cell,p:cell.dataset.p,d:cell.dataset.d,dcol:cell.classList.contains('dcell')};
+  return null; }
+function moveGhost(d,x,y){
+  d.clone.style.left=(x-30)+'px'; d.clone.style.top=(y-16)+'px';
+  const t=targetAt(x,y);
+  document.querySelectorAll('.drop-on').forEach(n=>n.classList.remove('drop-on'));
+  document.querySelectorAll('.ph').forEach(n=>n.remove());
+  if(!t) return; t.el.classList.add('drop-on');
+  if(t.dcol){ const cards=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid); const at=cards.find(c=>{ const r=c.getBoundingClientRect(); return y<r.top+r.height/2; });
+    const ph=document.createElement('div'); ph.className='ph'; const end=at||t.el.querySelector('.daylock,.daylocked'); if(end) t.el.insertBefore(ph,end); else t.el.appendChild(ph); }
+  if(t.p){ const idx=dropIndex(t.el,y,d.rid); const cards=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid);
+    const ph=document.createElement('div'); ph.className='ph'; if(cards[idx]) t.el.insertBefore(ph,cards[idx]); else t.el.appendChild(ph); }
+  // keep the calendar scrolling while dragging near its edges
+  const cal=document.getElementById('cal'), r=cal.getBoundingClientRect();
+  if(y>r.bottom-40) cal.scrollTop+=14; else if(y<r.top+40) cal.scrollTop-=14;
+  if(x>r.right-40) cal.scrollLeft+=14; else if(x<r.left+40&&x>r.left) cal.scrollLeft-=14; }
+function dropIndex(cell,y,rid){
+  const cards=[...cell.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==rid && c.dataset.ghost!=='1');
+  for(let i=0;i<cards.length;i++){ const r=cards[i].getBoundingClientRect(); if(y<r.top+r.height/2) return i; }
+  return cards.length; }
+function cleanupDrag(d){ if(d.clone) d.clone.remove(); d.el.style.opacity=''; document.body.style.cursor='';
+  document.querySelectorAll('.drop-on').forEach(n=>n.classList.remove('drop-on')); document.querySelectorAll('.ph').forEach(n=>n.remove()); }
+function endDrag(d,x,y){
+  const t=targetAt(x,y); const idx=t&&t.p?dropIndex(t.el,y,d.rid):null; cleanupDrag(d);
+  if(!t){ return; }
+  const j=S.jobs[d.rid]; if(!j) return;
+  if(t.side){ if(d.ghost){ S.ghosts=S.ghosts.filter(g=>g.rid!==d.rid); S.skipped[d.rid]=1; render(); toast(j.ID+' left out of the suggestion'); } else unschedule(d.rid); return; }
+  if(t.p){ const g=S.ghosts.find(g=>g.rid===d.rid); return moveJob(d.rid,t.p,t.d,idx,g&&laneOf(g.equip)===t.p?g.equip:null); }
+  if(t.dcol){ // day column: the job keeps its machine (or the one Suggest picked); with one machine shown, it goes there
+    const g=S.ghosts.find(g=>g.rid===d.rid); let pk=laneOf(g?g.equip:j.equip);
+    if(pk==='none'){ if(S.sel&&S.sel.length===1) pk=S.sel[0]; else { const gl=laneOf(guessEquip(j)); pk=gl!=='none'&&isSel(gl)?gl:'none'; } }
+    if(pk==='none'){ toast('Pick a press for '+j.ID+' first (tap the card)'); render(); return; }
+    // position among that machine's jobs: how many of them sit above where it was dropped
+    const idx2=[...t.el.querySelectorAll('.jc')].filter(c=>c.dataset.rid!==d.rid && c.dataset.ghost!=='1' && c.dataset.pk===pk && c.getBoundingClientRect().top+c.getBoundingClientRect().height/2<y).length;
+    return moveJob(d.rid,pk,t.d,idx2,g&&g.equip); }
+  // month cell: keep the press (or the one Suggest picked), go to the end of that day
+  // v16: no press yet → same guess as the day columns (the one machine shown, or the likely press)
+  const g=S.ghosts.find(g=>g.rid===d.rid); let equip=g?g.equip:j.equip; let lk=laneOf(equip);
+  if(lk==='none'){ if(S.sel&&S.sel.length===1) lk=S.sel[0]; else { const ge=guessEquip(j), gl=laneOf(ge); if(gl!=='none'&&isSel(gl)){ lk=gl; equip=ge; } } }
+  if(lk==='none'){ toast('Pick a press for '+j.ID+' first (tap the card)'); render(); return; }
+  moveJob(d.rid,lk,t.d,null,laneOf(equip)===lk?equip:null); }
+
+/* ---------------- suggest (Day Fill's packing, in minutes) ---------------- */
+// Fills the next CFG.horizon workdays with unscheduled jobs:
+//  - whole orders stay together on one day and one press when they fit
+//  - hard deadlines first, then the earliest due date, then bigger orders
+//  - aims to print idealBuffer workdays before the due date (at least 1), never before garments are expected
+//  - Press 2 takes 4 screens or fewer (2 for bandanas); 5+ screens or 3+ prints in an order go to Press 1
+//  - prefers a day that already runs the same platen (bandanas with bandanas)
+function suggest(){
+  if(!Object.keys(S.jobs).length) return;
+  S.ghosts=[]; S.why={};
+  const today=shopToday(); const startDay=nextWorkday(today,1);
+  const horizon=[]; { let d=startDay; while(horizon.length<CFG.horizon){ if(!isWeekend(d)) horizon.push(d); d=nextWorkday(d,1);} }
+  const placed=allPlaced();
+  const use={}; placed.forEach(x=>{ const k=laneOf(x.equip)+'|'+x.day; use[k]=use[k]||{min:0,end:DAY_START,plat:{},jobs:[]}; const u=use[k]; u.min+=x.len; u.end=Math.max(u.end,x.min+x.len); u.plat[platen(S.jobs[x.rid])]=1; u.jobs.push(S.jobs[x.rid]); });
+  const U=(pk,ds)=>use[pk+'|'+ds]||(use[pk+'|'+ds]={min:0,end:DAY_START,plat:{},jobs:[]});
+  // v25: how well `jobs` fit with the inks already on a press-day (0 = no shared ink); the same product counts extra
+  const inkFit=(jobs,others)=>{ let b=0; jobs.forEach(a=>others.forEach(o=>{ const s=inkSim(a,o); if(s.shared>0) b=Math.max(b,s.score+(prodOf(a)===prodOf(o)?3:0)); })); return b; };
+    const cands=Object.values(S.jobs).filter(j=>!j.start && !j.noLines && !S.skipped[j.rid] && jobInSel(j));
+  // group: order + department
+  const groups={}; cands.forEach(j=>{ const k=j.order+'|'+deptOf(j); (groups[k]=groups[k]||[]).push(j); });
+  const list=Object.values(groups).map(g=>{ const due=g.map(j=>j.due).filter(Boolean).sort()[0]||null;
+    const arr=g.map(j=>j.allIn?null:j.arrival).filter(Boolean).sort().pop()||null;
+    return {jobs:g, due, hd:g.some(j=>j.hd), dept:deptOf(g[0]), arrival:arr, size:g.reduce((a,j)=>a+jobMin(j),0)}; })
+    .sort((a,b)=>(b.hd-a.hd)||((a.due||'9999').localeCompare(b.due||'9999'))||(b.size-a.size));
+  list.forEach(G=>{
+    const ideal=G.due?nextWorkday(G.due,-CFG.idealBuffer):null, hard=G.due?nextWorkday(G.due,-1):null;
+    // garments: print the workday after they're expected; not checked in and no date yet -> 2 workdays out at the soonest
+    let earliest=startDay; const notIn=G.jobs.some(j=>!j.allIn);
+    if(G.arrival){ const a=nextWorkday(G.arrival,1); if(a>earliest) earliest=a; }
+    else if(G.jobs.some(notOrdered)){ const a=nextWorkday(today,NOT_ORDERED_LEAD); if(a>earliest) earliest=a; }   // v18: garments still to be ordered
+    else if(notIn){ const a=nextWorkday(today,2); if(a>earliest) earliest=a; }
+    // which presses can take this group
+    let presses;
+    if(G.dept==='screen'){
+      const complex=G.jobs.some(j=>j.screens>4)||G.jobs.length>=3;
+      const p2ok=G.jobs.every(j=>j.screens<=(/bandana/i.test(j.loc)?2:4));
+      presses=complex||!p2ok?['p1']:['p1','p2'];
+      const fixed=G.jobs.map(j=>laneOf(j.equip)).find(k=>k==='p1'||k==='p2'); if(fixed && !complex) presses=[fixed].concat(presses.filter(k=>k!==fixed));
+    } else {
+      const fixed=G.jobs.map(j=>laneOf(j.equip)).find(k=>k!=='none');
+      presses=fixed?[fixed]:(G.dept==='emb'?['em']:G.dept==='heat'?['ht']:[]);
+    }
+    if(!presses.length){ G.jobs.forEach(j=>S.why[j.rid]='No press picked: drag it where it goes'); return; }
+    // it fits when the press has the minutes AND the run ends by close (jobs go after the day's last job)
+    const fits=(pk,ds,min)=>{ const p=LBY[pk]; const cap=capMin(p,ds); const u=U(pk,ds);
+      return cap>0 && u.min+min<=cap*CFG.fill && Math.ceil((u.end+(u.last?12:0))/STEP)*STEP+min<=CFG.close+15; };   // press time fits AND the run ends by close
+    const need=(jobs,pk)=>jobs.reduce((a,j)=>a+jobMin(j,equipFor(j,pk)),0);
+    // first day (up to `last`) where some allowed press takes all of `jobs`; same platen already running wins, then the emptier press
+    // v25: Hard Deadline and locked jobs keep v24's pick exactly; the others prefer a press, then a day, that runs the same inks
+    const inkPref=!G.hd && !G.jobs.some(j=>j.locked);
+    const find=(jobs,last)=>{ const plat=platen(jobs[0]); let firstPick=null, winEnd=null, best=null;
+      for(const ds of horizon){
+        if(ds<earliest) continue; if(last && ds>last) break; if(firstPick && ds>winEnd) break;
+        const opts=presses.filter(pk=>fits(pk,ds,need(jobs,pk)));
+        if(!opts.length) continue;
+        const ink={}; if(inkPref) opts.forEach(pk=>{ ink[pk]=inkFit(jobs,U(pk,ds).jobs); });
+        opts.sort((a,b)=>((U(b,ds).plat[plat]?1:0)-(U(a,ds).plat[plat]?1:0))||(inkPref?ink[b]-ink[a]:0)||(U(a,ds).min/capMin(LBY[a],ds)-U(b,ds).min/capMin(LBY[b],ds)));
+        const pick={ds,pk:opts[0],ink:inkPref?ink[opts[0]]:0};
+        if(!inkPref) return pick;
+        if(!firstPick){ firstPick=pick;   // look up to INK_DAYS workdays further, never past the ideal day (print N workdays before due)
+          winEnd=nextWorkday(ds,INK_DAYS); if(ideal) winEnd=ideal<=ds?ds:(ideal<winEnd?ideal:winEnd); }
+        if(pick.ink>0 && (!best||pick.ink>best.ink)) best=pick; }
+      return best||firstPick; };
+    const put=(jobs,pick,late)=>{ const u=U(pick.pk,pick.ds);
+      const tight=!late && ideal && pick.ds>ideal;
+      jobs.slice().sort((a,b)=>LOCO(a.loc)-LOCO(b.loc)).forEach(j=>{   // back, sleeve, front, pocket — same order Scheduler used
+        const eq=equipFor(j,pick.pk), len=jobMin(j,eq); const t=Math.ceil((u.end+(u.last?coL(pick.pk,u.last,j):0))/STEP)*STEP;
+        S.ghosts.push({rid:j.rid,equip:eq,day:pick.ds,min:t,late:!!late,tight:!!tight,fixed:!inkPref});
+        u.min+=len; u.end=t+len; u.last=j; u.plat[platen(j)]=1; u.jobs.push(j); }); };
+    // 1) the whole order on one press, one day, by the due date
+    let pick=find(G.jobs,hard);
+    if(pick){ put(G.jobs,pick,false); return; }
+    // 2) split the order: each print on its own press/day, still by the due date; 3) otherwise the first day it fits, flagged late
+    G.jobs.slice().sort((a,b)=>LOCO(a.loc)-LOCO(b.loc)).forEach(j=>{
+      let pk=find([j],hard), late=false;
+      if(!pk && G.due){ pk=find([j],null); late=true; }
+      if(pk) put([j],pk,late);
+      else S.why[j.rid]=G.arrival&&G.arrival>horizon[horizon.length-1]?'Garments arrive after the next '+CFG.horizon+' workdays':'No room in the next '+CFG.horizon+' workdays';
+    });
+  });
+  inkPass();   // v25: same-ink jobs back to back within each day
+  if(!S.ghosts.length && !Object.keys(S.why).length) toast('Nothing to suggest: every job'+(S.sel?' for these machines':'')+' is scheduled.');
+  render(); }
+const INK_DAYS=2;   // v25: Suggest may pick a day up to 2 workdays after the first one with room, to join the same inks
+// v25: within each press-day, order the suggested jobs as a chain (same product, then most shared inks), after the jobs already
+// there (they never move). Hard Deadline / locked suggestions keep their time; if the new order would push one, or end later
+// than before and past close, that day keeps Suggest's first order.
+function inkPass(){
+  const cells={}; S.ghosts.forEach(g=>{ const k=laneOf(g.equip)+'|'+g.day; (cells[k]=cells[k]||[]).push(g); });
+  Object.keys(cells).forEach(key=>{ const [pk,ds]=key.split('|'); if(!(pk==='p1'||pk==='p2'||pk==='split')) return;
+    const gs=cells[key].sort((a,b)=>a.min-b.min); if(gs.length<2) return;
+    const real=cellItems(pk,ds).filter(x=>!x.ghost).sort((a,b)=>(a.min+a.len)-(b.min+b.len));
+    const baseEnd=real.reduce((a,x)=>Math.max(a,x.min+x.len),DAY_START), prev=real.length?S.jobs[real[real.length-1].rid]:null;
+    const rows=gs.map(g=>({g,j:S.jobs[g.rid],fixed:!!g.fixed}));
+    const order=inkOrder(rows,prev); if(order.every((x,i)=>x===rows[i])) return;
+    const oldEnd=gs.reduce((a,g)=>Math.max(a,g.min+jobMin(S.jobs[g.rid],g.equip)),0);
+    let end=baseEnd, last=null; const t=[];
+    for(const x of order){ let m=Math.ceil((end+(last?coL(pk,last,x.j):0))/STEP)*STEP;
+      if(x.fixed){ if(m>x.g.min) return; m=x.g.min; }
+      t.push(m); end=m+jobMin(x.j,x.g.equip); last=x.j; }
+    if(end>Math.max(oldEnd,CFG.close+15)) return;
+    order.forEach((x,i)=>{ x.g.min=t[i]; }); }); }
+function clearSuggest(){ S.ghosts=[]; S.why={}; render(); }
+async function placeAll(){
+  const gs=S.ghosts.slice(); if(!gs.length) return;
+  if(!PRACTICE && !await PineConfirm.ask({title:'Schedule '+gs.length+' job'+(gs.length===1?'':'s')+'?', body:'They go on the calendar in Airtable at the suggested times.', ok:'Schedule '+gs.length})) return;
+  if(!S.ghosts.length) return;   // cleared while the box was up
+  S.ghosts=[];
+  const changes=gs.map(g=>({rid:g.rid,equip:g.equip,day:g.day,min:g.min}));
+  await applyChanges(changes,gs.length+' job'+(gs.length===1?'':'s')+' scheduled'); }
+async function placeGhost(rid){ const g=S.ghosts.find(x=>x.rid===rid); if(!g) return; closeModal();
+  S.ghosts=S.ghosts.filter(x=>x.rid!==rid);
+  await applyChanges([{rid,equip:g.equip,day:g.day,min:g.min}],moveLabel(rid,g.equip,g.day,g.min)); }
+function skipGhost(rid){ S.ghosts=S.ghosts.filter(x=>x.rid!==rid); S.skipped[rid]=1; closeModal(); render(); }
+
+/* ---------------- card details ---------------- */
+function openCard(rid,ghost){
+  const j=S.jobs[rid]; if(!j) return;
+  const g=ghost?S.ghosts.find(x=>x.rid===rid):null;
+  const ds=g?g.day:day(j), min=g?g.min:startMin(j), equip=g?g.equip:j.equip;
+  const p=PBY[equip]||PBY.none;
+  const buf=j.due&&ds?workdaysBetween(ds,j.due):null;
+  const bufTxt=buf==null?'':buf<0?'<span class="p-tag warn">'+(-buf)+' workday'+(buf===-1?'':'s')+' after due</span>':buf===0?'<span class="p-tag warn">Prints on the due date</span>':buf===1?'<span class="p-tag p-tag-wait">1 workday before due</span>':'<span class="p-tag p-tag-soft">'+buf+' workdays before due</span>';
+  const prep=[['Sep\'d',j.sepd],['Screens',j.burned],['Inks',j.inksReady],['Garments in',j.allIn]].map(x=>'<span class="p-tag'+(x[1]?' p-tag-done':'')+'">'+(x[1]?'✓ ':'')+x[0]+'</span>').join('');
+  // v20 (Mike): an unscheduled job's press/day/time start blank, so Save doesn't put it on the next day. Its own press (if set) shows.
+  const blank=!g && !j.start;
+  const pressOpts=(p.k==='none'?'<option value="" selected>Press…</option>':'')+PRESSES.filter(x=>x.k!=='none').map(x=>'<option value="'+x.k+'"'+(x.k===p.k?' selected':'')+'>'+esc(x.short+' · '+x.sub)+'</option>').join('');
+  S.modalRid=rid;
+  const times=[]; for(let m=7*60;m<=17*60;m+=STEP) times.push('<option value="'+m+'"'+(m===min?' selected':'')+'>'+hm(m)+'</option>');
+  if(min!=null && min%STEP) times.unshift('<option value="'+min+'" selected>'+hm(min)+'</option>');
+  const body=
+    (g?'<div class="p-note p-note-wait" style="margin-bottom:12px">✨ Suggested for '+esc(PBY[g.equip].short)+', '+wd(g.day)+' '+md(g.day)+' at '+hm(g.min)+'.'+(g.late?' This is after the due date: no earlier day had room.':g.tight?' Later than '+CFG.idealBuffer+' workdays before due.':'')+'</div>':'')+
+    proofsHtml(j)+
+    '<dl class="kv" style="margin:12px 0">'+
+      '<dt>Customer</dt><dd>'+esc(j.cust)+' · order '+esc(j.order)+'</dd>'+
+      (j.nick?'<dt>Job</dt><dd>'+esc(j.nick)+'</dd>':'')+
+      '<dt>Print</dt><dd>'+esc([j.type,j.loc].filter(Boolean).join(' · '))+'</dd>'+
+      (j.inkList&&j.inkList.length?'<dt>Inks</dt><dd class="inks-dd">'+j.inkList.map(i=>'<span class="p-tag p-tag-soft">'+esc(i.label)+'</span>').join('')+'</dd>':'')+   // v25
+      '<dt>Qty</dt><dd>'+(j.qty||0).toLocaleString()+(j.screens?' · '+j.screens+' screens':'')+(j.heavy?' · '+(j.heavy>=.99?'fleece':Math.round(j.heavy*100)+'% fleece'):'')+'</dd>'+
+      (min!=null&&ds?'<dt>'+(g?'Suggested':'Time')+'</dt><dd id="mWhen" data-min="'+min+'" data-equip="'+esc(equip)+'">'+whenHtml(j,ds,min,jobMin(j,equip))+'</dd>':'')+
+      '<dt>Turnaround</dt><dd>'+taHtml(j,ds)+'</dd>'+
+      (!g&&(j.start||j.locked)?'<dt>Lock</dt><dd id="mLock">'+lockRow(j)+'</dd>':'')+
+      '<dt>Estimate</dt><dd>'+(()=>{ const t=jobParts(j,equip); return dur(estMin(j,equip))+(t.setup?' · setup '+dur(t.setup)+' + printing '+dur(t.run):''); })()+'</dd>'+
+      '<dt>Allocated</dt><dd style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input class="p-input" style="width:110px" type="number" inputmode="numeric" min="0" step="15" id="mAlloc" value="'+(j.alloc?Math.round(j.alloc/60):'')+'" placeholder="'+estStep(j,equip)+'" aria-label="Allocated minutes" oninput="liveWhen()"> min'+
+        '<button type="button" class="p-btn" onclick="document.getElementById(\'mAlloc\').value=\''+estStep(j,equip)+'\';liveWhen()">Use estimate ('+dur(estStep(j,equip))+')</button>'+
+        '<span class="p-hint" style="width:100%">What Operator, the Board and the Airtable calendar show. Blank = filled from the estimate when the job is placed.</span></dd>'+
+      '<dt>Due</dt><dd>'+(j.due?wd(j.due)+' '+md(j.due):'No due date')+(j.prio?' · '+esc(j.prio):'')+' '+bufTxt+'</dd>'+
+      (j.lis.length?'<dt>Garments</dt><dd><span id="mGarm">'+esc(j.types.join(', ')||'…')+'</span>'+(j.allIn?'':(j.arrival?' · expected '+md(j.arrival):' · not checked in'))+'</dd>':'')+
+      '<dt>Ready</dt><dd class="prep">'+prep+'</dd>'+
+    '</dl>'+
+    '<div class="p-label" style="margin-bottom:6px">'+(j.start||g?'Move to':'Schedule on')+'</div>'+
+    '<div class="row3"><select class="p-select" id="mPress" aria-label="Press">'+pressOpts+'</select><input class="p-input" type="date" id="mDay" aria-label="Day" value="'+(blank?'':ds)+'"><select class="p-select" id="mTime" aria-label="Start time"><option value="">Next open</option>'+times.join('')+'</select></div>'+
+    (blank?'<p class="p-hint" style="margin:6px 0 0">Leave the day blank to keep it in the list. Or drag it onto the calendar.</p>':'')+
+    '<div class="p-label" style="margin:12px 0 6px">Scheduling notes</div><textarea class="p-textarea" id="mNotes" placeholder="For the press crew" aria-label="Scheduling notes">'+esc(j.notes)+'</textarea>';
+  const foot=g?
+    '<button class="p-btn p-btn-quiet" onclick="skipGhost(\''+rid+'\')">Skip this one</button><button class="p-btn p-btn-quiet" onclick="saveCard(\''+rid+'\')">Put it where I picked</button><button class="p-btn p-btn-main" onclick="placeGhost(\''+rid+'\')">Place here</button>':
+    (j.start?'<button class="p-btn p-btn-quiet" onclick="closeModal();unschedule(\''+rid+'\')">Unschedule</button>':'')+'<button class="p-btn p-btn-main" onclick="saveCard(\''+rid+'\')">Save</button>';
+  showModal('<span class="p-id p-id-lg">'+esc(j.ID)+'</span> '+(j.ready?'<span title="Imprint Ready? (Airtable)">'+esc(j.ready)+'</span> ':'')+(j.flags?esc(j.flags):''),body,foot);
+  if(j.lis.length) garmentNames(j).then(names=>{ const el=document.getElementById('mGarm'); if(!el) return;
+    if(!names.length){ el.textContent='Not listed on the line items'; return; }
+    el.textContent=names.slice(0,3).join(', ')+(names.length>3?' +'+(names.length-3)+' more':''); }); }
+// v20: pop-up pieces
+function proofsHtml(j){ const ps=j.proofs; if(!ps.length) return j.proofLg?'<img class="proof" src="'+esc(j.proofLg)+'" alt="Seps file">':'';
+  const inks=j.inks||0;
+  return '<div class="proofs-h"><span class="p-label">Proof'+(ps.length>1?'s':'')+'</span>'+cwTag(j)+(inks?'<span class="p-tag p-tag-soft" title="Ink Changes in Airtable, 15 min each">'+inks+' ink change'+(inks===1?'':'s')+' planned</span>':'')+'</div>'+
+    '<div class="proofs'+(ps.length===1?' one':'')+'">'+ps.map(x=>'<a href="'+esc(x.full||x.lg||x.sm)+'" target="_blank" rel="noopener" title="Open full size"><img class="proof" src="'+esc(ps.length===1?(x.lg||x.sm):x.sm)+'" alt="Proof '+esc(x.name)+'" loading="lazy">'+(ps.length>1&&x.name?'<span>'+esc(x.name)+'</span>':'')+'</a>').join('')+'</div>'; }
+function whenHtml(j,ds,min,len){ return '<b>'+hm(min)+'</b> to <b>'+hm(min+Math.round(len))+'</b> · '+wd(ds)+' '+md(ds)+' · '+dur(len); }
+function liveWhen(){ const el=document.getElementById('mWhen'), j=S.jobs[S.modalRid]; if(!el||!j) return;
+  const v=+document.getElementById('mAlloc').value; const len=v>0?Math.max(5,Math.round(v)):(j.alloc?jobMin(j):estStep(j,el.dataset.equip));
+  const g=S.ghosts.find(x=>x.rid===j.rid); el.innerHTML=whenHtml(j,g?g.day:day(j),+el.dataset.min,len); }
+// business days counted like Airtable's WORKDAY_DIFF (both ends count, Mon–Fri) = the Imprints "Turnaround Calculator" field
+function wdIncl(a,b){ if(!a||!b) return null; const sg=b<a?-1:1; const x=sg>0?a:b, y=sg>0?b:a; let n=0; for(let d=x;d<=y;d=addDays(d,1)) if(!isWeekend(d)) n++; return sg*n; }
+function taHtml(j,ds){
+  if(!j.paid) return '<span class="ta">Not paid yet</span>';
+  const t=shopToday(), parts=[];
+  if(ds) parts.push('prints on <b>day '+wdIncl(j.paid,ds)+'</b>');
+  if(j.due) parts.push('due on day '+wdIncl(j.paid,j.due));
+  if(!ds||t<=ds) parts.push('today is day '+wdIncl(j.paid,t));
+  return '<span class="ta">'+parts.join(' · ').replace(/^p/,'P').replace(/^d/,'D').replace(/^t/,'T')+'</span><span class="p-hint" style="display:block" title="Counted like Airtable\'s Turnaround Calculator: Mon–Fri, the day paid is day 1">Business days since paid '+wd(j.paid)+' '+md(j.paid)+'</span>'; }
+function lockRow(j){ const busy=j._saving?' disabled':'';
+  return (j.locked?LOCK_SVG+'<b>Locked in</b><button type="button" class="p-btn p-btn-quiet"'+busy+' onclick="setLock([\''+j.rid+'\'],false)">Unlock</button>':
+    '<span>Not locked in</span><button type="button" class="p-btn p-btn-dark"'+busy+' onclick="setLock([\''+j.rid+'\'],true)">'+LOCK_SVG+' Lock in</button>')+
+    '<span class="p-hint" style="width:100%">Ticks Scheduled in Airtable for the Slack bots. Moving it later keeps the lock.</span>'; }
+function paintLock(){ const el=document.getElementById('mLock'), j=S.jobs[S.modalRid]; if(el&&j) el.innerHTML=lockRow(j); }
+// tick or untick Imprints "Scheduled" (lock-in). No status change. Practice fakes it.
+async function setLock(rids,on,label){
+  rids=rids.filter(r=>S.jobs[r]&&S.jobs[r].locked!==on); if(!rids.length) return;
+  label=label||(rids.length===1?S.jobs[rids[0]].ID+(on?' locked in':' unlocked'):rids.length+' jobs '+(on?'locked in':'unlocked'));
+  rids.forEach(r=>{ S.jobs[r].locked=on; S.jobs[r]._saving=true; }); S.busy++; render(); paintLock();
+  try{ await patchMany(rids.map(r=>({rid:r,fields:{[F.locked]:on}})));
+    rids.forEach(r=>S.jobs[r]._saving=false); S.busy--; render(); paintLock();
+    toast(label+(PRACTICE?' (practice, not saved)':''),'Undo',()=>setLock(rids,!on,'Put back'+(PRACTICE?' (practice)':''))); }
+  catch(e){ rids.forEach(r=>{ S.jobs[r].locked=!on; S.jobs[r]._saving=false; }); S.busy--; render(); paintLock(); toast(e.message,null,null,true); } }
+// jobs a day's lock button covers: scheduled, not finished, on the machines shown
+function dayJobs(ds){ return Object.values(S.jobs).filter(j=>j.start && day(j)===ds && !j.finished && isSel(laneOf(j.equip))); }
+function dayLockHtml(ds){ if(ds<shopToday()) return ''; const js=dayJobs(ds); if(!js.length) return '';
+  const n=js.filter(j=>!j.locked).length;
+  if(!n) return '<div class="daylocked">'+LOCK_SVG+'All '+js.length+' locked in</div>';
+  return '<button type="button" class="p-btn daylock" onclick="lockDay(\''+ds+'\')" title="Tick Scheduled in Airtable for the '+n+' unlocked job'+(n===1?'':'s')+(S.sel?' on the machines shown':'')+'">'+LOCK_SVG+' Lock in day · '+n+'</button>'; }
+async function lockDay(ds){ const js=dayJobs(ds).filter(j=>!j.locked); if(!js.length) return;
+  const what=js.length+' job'+(js.length===1?'':'s')+' on '+wd(ds)+' '+md(ds)+(S.sel?' ('+S.sel.map(k=>LBY[k].short).join(', ')+')':'');
+  if(!PRACTICE && !await PineConfirm.ask({title:'Lock in '+what+'?', body:'This ticks Scheduled in Airtable. Slack posts an order once all of its prints are locked in.', ok:'Lock in'})) return;
+  setLock(js.map(j=>j.rid),true,'Locked in '+what); }
+async function saveCard(rid){
+  const j=S.jobs[rid];
+  let pk=document.getElementById('mPress').value; const ds=document.getElementById('mDay').value, tm=document.getElementById('mTime').value;
+  const notes=document.getElementById('mNotes').value;
+  const av=document.getElementById('mAlloc').value.trim(); const newAlloc=av===''?null:Math.max(0,Math.round(+av))*60||null;
+  if(newAlloc!==j.alloc){ const old=j.alloc; j.alloc=newAlloc; const f={}; f[F.alloc]=newAlloc;
+    patchMany([{rid,fields:f}]).then(()=>{ render(); toast(j.ID+': allocated '+(newAlloc?dur(newAlloc/60):'cleared')+(PRACTICE?' (practice)':'')); }).catch(e=>{ j.alloc=old; render(); toast(e.message,null,null,true); }); }
+  const saveNotes=()=>{ if(notes!==j.notes){ const old=j.notes; j.notes=notes; const f={}; f[F.notes]=notes;
+    patchMany([{rid,fields:f}]).catch(e=>{ j.notes=old; toast(e.message,null,null,true); }); } };
+  // v20 (Mike): an unscheduled job with no day picked stays in the list; only the other edits save (a press picked here saves too)
+  if(!ds && !j.start && !S.ghosts.some(x=>x.rid===rid)){
+    closeModal(); saveNotes();
+    const np=PBY[pk]; if(np && np.k!=='none' && np.name!==j.equip){ const old=j.equip; j.equip=np.name; const f={}; f[F.equip]=np.name;
+      patchMany([{rid,fields:f}]).then(()=>toast(j.ID+': '+np.short+', still unscheduled'+(PRACTICE?' (practice)':''))).catch(e=>{ j.equip=old; render(); toast(e.message,null,null,true); }); }
+    render(); return; }
+  if(!ds||isWeekend(ds)){ toast('Pick a weekday'); return; }
+  if(!pk){ const ge=j.equip&&PBY[j.equip]?j.equip:guessEquip(j); if(!ge){ toast('Pick a press'); return; } pk=PBY[ge].k; }
+  closeModal(); saveNotes();
+  S.ghosts=S.ghosts.filter(g=>g.rid!==rid); delete S.why[rid];
+  const p=PBY[pk], lk=p.lane; const curDay=day(j), curMin=startMin(j);
+  if(tm===''){ if(pk===pressOf(j).k && ds===curDay) { render(); if(notes!==j.notes) toast('Notes saved'); return; }
+    return moveJob(rid,lk,ds,null,p.name); }
+  const min=+tm; if(pk===pressOf(j).k && ds===curDay && min===curMin){ render(); return; }
+  const equip=p.name; const items=cellItems(lk,ds).filter(x=>x.rid!==rid&&!x.ghost);
+  const idx=items.filter(x=>x.min<=min).length;
+  // exact time picked: keep it, and only push later jobs that would overlap
+  const ch=[{rid,equip,day:ds,min}].concat(pushLater(items,idx,min+jobMin(j,equip),ds));
+  applyChanges(ch,moveLabel(rid,equip,ds,min)+(ch.length>1?' · '+(ch.length-1)+' after it moved later':'')); }
+
+/* ---------------- modal, toast, settings ---------------- */
+function showModal(title,body,foot){
+  S.modal=true;
+  document.getElementById('modalHost').innerHTML='<div class="p-scrim" onclick="if(event.target===this)closeModal()"><div class="p-modal" role="dialog" aria-modal="true" style="width:min(600px,100%)">'+
+    '<div class="p-modal-h"><span class="p-h2">'+title+'</span><button class="p-modal-x" onclick="closeModal()" aria-label="Close">✕</button></div>'+
+    '<div class="p-modal-b">'+body+'</div><div class="p-modal-f">'+foot+'</div></div></div>'; }
+function closeModal(){ S.modal=false; S.modalRid=null; document.getElementById('modalHost').innerHTML=''; }
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return; if(!document.getElementById('gear').hidden&&token()) closeGear(); else closeModal(); });
+let toastT=null;
+function toast(msg,btn,fn,alert){
+  let t=document.getElementById('toast'); if(t) t.remove();
+  t=document.createElement('div'); t.id='toast'; t.className='p-toast'+(alert?' is-alert':''); t.innerHTML='<span>'+esc(msg)+'</span>';
+  if(btn){ const b=document.createElement('button'); b.className='p-btn'; b.textContent=btn; b.onclick=()=>{ t.remove(); fn(); }; t.appendChild(b); }
+  document.body.appendChild(t); clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),alert?9000:6000); }
+function openSettings(){
+  const fri=[['0','No Friday shift'],['1','Press 1 only'],['2','Both presses']].map(o=>'<button class="p-tab'+(String(CFG.fri)===o[0]?' is-on':'')+'" onclick="setFri('+o[0]+')">'+o[1]+'</button>').join('');
+  const hrs=LANES.filter(p=>p.k!=='none'&&!p.opt).map(p=>'<label class="srow"><span>'+esc(p.short)+'</span><input class="p-input" type="number" inputmode="decimal" step="0.25" min="0" max="14" value="'+p.hours+'" data-k="'+p.k+'"></label>').join('');
+  showModal('Shop settings',
+    '<div class="p-label" style="margin-bottom:6px">Fridays</div><div class="p-tabs">'+fri+'</div>'+
+    '<p class="p-hint">Off after this week. Turn it back on for busy season (2027: both presses).</p>'+
+    '<div class="p-label" style="margin:14px 0 6px">Press time per day (setup + printing)</div><div style="display:grid;gap:6px" id="hrsBox">'+hrs+'</div>'+
+    '<p class="p-hint">A full day on the floor is about 8.7 h. Of that, Press 1 averages 6.75 h of setup and printing and Press 2 6 h; the rest is loading, cleanup and breaks. 100% = a normal full day.</p>'+
+    '<div class="p-label" style="margin:14px 0 6px">Impressions goal per day</div><div style="display:grid;gap:6px" id="goalBox">'+['p1','p2'].map(k=>'<label class="srow"><span>'+esc(LBY[k].short)+'</span><input class="p-input" type="number" inputmode="numeric" step="50" min="0" max="5000" value="'+goalOf(k)+'" data-k="'+k+'" aria-label="'+esc(LBY[k].short)+' impressions goal"></label>').join('')+'</div>'+
+    '<p class="p-hint">Impressions = pieces × print locations. Defaults '+GOAL_DEF.p1.toLocaleString()+' / '+GOAL_DEF.p2.toLocaleString()+' = a good day (top quarter of full press days, last 120 days).</p>'+
+    '<label class="srow">Suggest fills each day to<select class="p-select" id="sFill">'+[0.8,0.85,0.9,0.95,1].map(v=>'<option value="'+v+'"'+(Math.abs(v-CFG.fill)<.001?' selected':'')+'>'+Math.round(v*100)+'%</option>').join('')+'</select></label>'+
+    '<label class="srow">Last job ends by<select class="p-select" id="sClose">'+[16*60,16*60+30,17*60,17*60+15,17*60+30,18*60].map(m=>'<option value="'+m+'"'+(m===CFG.close?' selected':'')+'>'+hm(m)+'</option>').join('')+'</select></label>'+
+    '<div class="p-label" style="margin:14px 0 6px">Suggest</div>'+
+    '<label class="srow">Print this many workdays before due<input class="p-input" type="number" inputmode="numeric" min="1" max="5" id="sBuf" value="'+CFG.idealBuffer+'"></label>'+
+    '<p class="p-hint">Saved on this computer.</p>',
+    '<button class="p-btn p-btn-main" onclick="saveSettings()">Save</button>'); }
+function setFri(n){ CFG.fri=n; document.querySelectorAll('.p-modal .p-tabs .p-tab').forEach((b,i)=>b.classList.toggle('is-on',i===n)); }
+function saveSettings(){
+  document.querySelectorAll('#hrsBox input').forEach(i=>{ CFG.hours[i.dataset.k]=+i.value; LBY[i.dataset.k].hours=+i.value; });
+  document.querySelectorAll('#goalBox input').forEach(i=>{ const v=Math.round(+i.value); if(v>=0&&i.value!=='') CFG.goal[i.dataset.k]=v; });   // v23
+  CFG.idealBuffer=Math.max(1,+document.getElementById('sBuf').value||2); CFG.close=+document.getElementById('sClose').value||CFG.close; CFG.fill=+document.getElementById('sFill').value||0.9;
+  const goalSave={}; Object.keys(CFG.goal).forEach(k=>{ if(CFG.goal[k]!==GOAL_DEF[k]) goalSave[k]=CFG.goal[k]; });
+  writeLS(CFG_KEY,JSON.stringify(Object.assign({},CFG,{goal:goalSave}))); closeModal(); if(S.ghosts.length) suggest(); else render(); toast('Settings saved'); }
+function toggleSide(open){ document.getElementById('side').classList.toggle('open',open); document.getElementById('scrimSide').classList.toggle('open',open); }
+// v17: no token yet = the ⚙ menu opens with the token box (same as the other kit apps)
+function renderTokenBox(){
+  document.getElementById('cal').innerHTML='<div class="p-note" style="margin:20px;max-width:520px"><b>Airtable token needed.</b> Paste it in the &#9881; menu at the top right. It stays on this computer, like the other Pine apps.</div>';
+  openGear(); const t=document.getElementById('tok'); if(t) t.focus(); }
+function saveToken(){ const v=document.getElementById('tok').value.trim(); if(!v) return; writeLS('pine_at_key',v); closeGear(); load(); }
+/* v17: ⚙ menu — Airtable token, practice on/off, and the shop settings pop-up */
+function paintGear(){
+  document.getElementById('gear').innerHTML=
+    '<label class="p-menu-row"><span class="p-menu-label">Airtable token</span><span class="gear-line"><input class="p-input" id="tok" type="password" placeholder="pat…" autocomplete="off" value="'+esc(token())+'" onkeydown="if(event.key===\'Enter\')saveToken()"><button class="p-btn p-btn-dark" type="button" onclick="saveToken()">Save</button></span></label>'+
+    '<div class="p-menu-row"><span class="p-menu-label">Practice</span><span class="gear-line"><span class="gear-txt">'+(PRACTICE?'<b>On.</b> Nothing is saved.':'<b>Off.</b> Changes save to Airtable.')+'</span><button class="p-btn" type="button" onclick="setPractice('+!PRACTICE+')">'+(PRACTICE?'Turn off':'Turn on')+'</button></span></div>'+
+    '<div class="p-menu-row"><span class="p-menu-label">Shop</span><span class="gear-line"><span class="gear-txt">Fridays, press time, impressions goals, Suggest</span><button class="p-btn" type="button" onclick="closeGear();openSettings()">Settings</button></span></div>'; }
+function openGear(){ paintGear(); document.getElementById('gear').hidden=false; document.getElementById('gearBtn').setAttribute('aria-expanded','true'); }
+function closeGear(){ document.getElementById('gear').hidden=true; document.getElementById('gearBtn').setAttribute('aria-expanded','false'); }
+function toggleGear(){ if(document.getElementById('gear').hidden) openGear(); else closeGear(); }
+document.addEventListener('pointerdown',e=>{ if(!document.getElementById('gear').hidden && token() && !e.target.closest('#gear,#gearBtn')) closeGear(); });
+async function setPractice(on){
+  if(S.busy>0){ toast('Still saving the last change. One moment.'); return; }
+  if(S.ghosts.length && !await PineConfirm.ask({title:(on?'Turn on':'Turn off')+' practice?', body:'The suggestion on screen will be cleared.', ok:on?'Turn on':'Turn off'})) return;
+  const u=new URL(location.href); if(on) u.searchParams.set('practice','1'); else u.searchParams.delete('practice'); location.href=u.toString(); }
+
+/* ---------------- start ---------------- */
+window.pineBusy=()=>!!document.querySelector('[role=alertdialog]')||!!(S.drag&&S.drag.on)||S.modal||S.busy>0||S.ghosts.length>0||!document.getElementById('gear').hidden||!!document.getElementById('q').value.trim();   // v19: a search in progress counts
+document.getElementById('practicePill').hidden=!PRACTICE;
+goToday();
+load();
+setInterval(()=>{ if(!document.hidden && !window.pineBusy()) load(); },5*60*1000);
+</script>
+<script src="pine-update.js" data-link="pine-schedule.html"></script>
+<script>document.getElementById('ver').textContent='v'+((window.PineUpdate&&PineUpdate.ver)||26);</script>
+</body>
+</html>
