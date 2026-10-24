@@ -2,6 +2,25 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-24 · v9: sim stacks only where the art blends
+**Why (Stephen):** "looks like all the colors stack......vs only some like the gold is all under the red vs just where the bird is and not hte solid text".
+
+**Cause:** in v8 the solver stacked a second ink wherever that got even slightly closer to the art. Gold sat under 99% of the solid red, and 74% of all printed pixels had two or more inks.
+
+**Fix**
+- **One ink on its own wins.** If a single ink, printed over what's beneath it, matches a colour within 10 ΔE, that colour prints with that ink alone at 100%.
+- **Stacking costs more.** Each extra ink costs λ 6 instead of 3, so it's only used where it clearly helps (the birds' blends).
+- **Ink picking is unchanged in spirit.** Auto still picks inks by how well they *can* rebuild the art (λ 2 while picking), so the stricter rule doesn't starve the palette.
+
+**Tested** (10695 art, black and royal shirts):
+
+| | v8 | v9 |
+|---|---|---|
+| Gold under solid red | 99% | 0% |
+| Printed pixels stacked | 74% | 4–6% |
+
+The orange chest still mixes. The real PNG (for tuning against Pine's sep) is still pending; only `10695N-SLOW-TOTE.eps` (361 MB) is on the drive.
+
 ## 2026-10-24 · v8: base on coloured shirts, drop background everywhere, solid inks
 **Why (Stephen):** "doesn't look like the base is turning on? can you look into that". Then: "Still add information in the middle that is not there. also how to control what gets halftones...meaning the squares in the back should be solid since we are only reducing the ink".
 
