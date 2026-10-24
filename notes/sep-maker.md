@@ -2,6 +2,48 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-24 · v5: sim process the Pine way
+**Why:** Stephen sent a real sim-process sep, `10695-45LPI-SLOWSeps` (.ai, 25 MB). It stays in the private scratchpad, not the repo.
+
+**What that job is:** 8 screens at 10.5″, 45 LPI, F-A:
+- `230M-TNTCLRBSE` → `158M-PINEBRWNEZP` → `230M-101OW` → `230M-1655OW` → `230M-WRMRDOW` → `230M-404OW` → `230M-292OW` → `230M-Black`
+- The raster tiles are 600 ppi. The films are mirrored, which none of the spot jobs were; I'm asking Stephen.
+
+**Measured** (rendered at 150 dpi, share of inked pixels at full strength):
+
+| Screen | Solid | What it is |
+|---|---|---|
+| TNTCLR base | 98% | the flat tint grid |
+| Brown EZP light layer | 94% | a solid silhouette under all the colour |
+| Warm red | 79% | graphics, mostly solid |
+| 101, 1655, 404, 292 | 2–6% | tonal: the photo part, halftoned by the RIP |
+| Black | 13% | tonal, plus the solid TOPO type |
+
+- There's no separate highlight white; the cream EZ layer is the highlights.
+- The order is the same as the spot jobs: base → EZ → colours light to dark → black.
+
+**What changed in Sim process**
+- **Base: Solid (Pine)** is the new default:
+  - The EZ layer is a solid silhouette under every colour on the base, choked 1 layer.
+  - A white or cream colour in the art is that layer itself.
+  - BB sits under it on dark shirts.
+  - **Tonal** keeps v4's soft base.
+- **Highlight white:** off by default, now labelled "Extra highlight white screen".
+- **Flat colours print solid:** a colour within 8 ΔE of one ink prints that ink solid, so graphics stay solid and only blends are tonal.
+- **The shirt colour itself gets no ink.**
+- **Names:** colours on the base are named …OW, as on Pine's films.
+
+**Checked** by re-separating the 10695 print (from its own films) on black:
+
+| Screen | v5 solid | 10695 solid |
+|---|---|---|
+| BB / EZ | 100% / 100% | 98% / 94% |
+| Grid | 81% | 98% |
+| Red graphics | 92% | 79% |
+| Photo colours | 4–28% (rest tonal) | 2–12% (rest tonal) |
+
+Spot and index are unchanged.
+
 ## 2026-10-24 · v4: Check view (chokes and overlaps)
 **Why (Stephen):** "is there a way to preview the overlap and or the choke on a base".
 
