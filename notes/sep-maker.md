@@ -2,6 +2,62 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-24 · v3: proof builder
+**Why (Stephen):** "Tech pack would be like a proof builder that would be uploaded to the Review or Art to Do". Then: "You can find proof on Airtable. Grabbing photos form S&S, Sanmar, ASColour would be great. Showing placement would be great".
+
+**The layout copies the art department's own proofs**, taken from four on Line Items › Proof Images (Oct 23): 11068, 11072, 11074 and 11075.
+- Page 1 has:
+  - the Pine box, "Proof" and the order number
+  - the Fine Print, with separate garment and bandana versions
+  - on the left: the garment (brand, style, colorway, fabric content) and the blue "sizing is not to scale" note
+  - the front and back garment photos with the prints on them
+  - per print: LOCATION - ID, Width/Height, Placement, and colour chips (BASE, EZP WHT, 7681 OW, 282 …)
+  - the APPROVED box
+- Then one page per print, with the big ID, Location, Dimensions, Placement and the art large.
+- The format is letter landscape, the same as theirs, at about 0.3–0.5 MB.
+
+**What it does**
+- **0 · Job:** lists the orders awaiting proof (`{Order Status}="Awaiting Proof"`, the same rule as Line Item Review), then the line and its imprints, shown as chips.
+  - It uses the same Airtable key as the other apps.
+  - Each imprint keeps its own art and sep settings.
+  - The imprint's Pantone list (Imprints › Pantone) names the inks it matches.
+  - The location sets the starting print width (LC 3.5″, F/B 11″, bandana 20″). A file's own size is used only when it fits the location.
+- **Garment photos:**
+  - AS Colour garments: AS Colour first.
+  - Everything else: S&S (front and back, large), then SanMar (front and back flats).
+  - Colour comes from the vendor (S&S hex) or the photo's body. Without a photo it falls back to the colour name, so "Hot Pink" works.
+  - No photo means a plain tee or hoodie shape. A missing back photo shows "**BACK IMAGE UNAVAILABLE", as the art department does now.
+  - Carolina Creative bandanas get the bandana page.
+- **Placement:**
+  - Each print starts where the shop puts it: left chest 3″ below the neck and 3.6″ off centre, front 3″, back 3″ (5″ on hoodies), bandana centred.
+  - Drag a print on page 1 to move it (¼″ steps). "3″ below neck" follows the drag.
+  - A typed **Placement text** ("AS SEEN") overrides it, and **Mockup size** scales the picture.
+- **Attach proof to line:**
+  - Uploads `11074 | 1717-HYD.pdf` (V2, V3 … once a proof is already on the line) to Line Items › Proof Images.
+  - Uses the same upload as Line Item Review, with a 5 MB limit.
+- **Proof done → send to Review:**
+  - Ticks Awaiting Review (`fldycrq3VJYSFd8Gi`), the same single change as Line Item Review's button.
+  - The existing automation Slacks sales and the production manager.
+- `?practice=1` fakes both writes.
+
+**Needs worker v29** (`/proxy/img`) to save vendor photos into the PDF. Browsers can't export pictures from sites that don't send CORS headers. Without v29 the proof still shows the photos, but **Download / Attach** explains that the worker needs updating.
+
+**Tested** with Playwright, mocked Airtable and vendors, using 10997 and 10991 art as 11074-A (left chest) and 11074-B (back):
+- the order, line and imprint chips load, and the Pantone list names the inks 533 and 7527
+- the left chest width stays 3.5″
+- dragging the back print down 2″ changes "3″" to "5″ below neck"
+- the PDF is 3 pages, 792×612 pt, titled "11074 | 1717-HYD"
+- the upload goes to the right line and field with that filename
+- the PATCH is exactly `{"fields":{"fldycrq3VJYSFd8Gi":true}}`
+- practice sends nothing
+- with no vendor photo, the plain shape and message show
+- the bandana layout works
+- spot seps are unchanged from v2 (10997 chokes and trap)
+
+**Not yet**
+- It doesn't also copy the proof into the order's Drive folder. Line Item Review does that when a proof is attached there.
+- The sep settings aren't saved with the proof yet, so reopening for films means opening the art again.
+
 ## 2026-10-23 · v2: cleaner index seps
 **Why (Stephen):** "I know this is a work in progress but how do we clean up index seps!" He sent phone screenshots of an index job in which every film had stray dots of other inks across flat areas, plus noise from the art.
 
