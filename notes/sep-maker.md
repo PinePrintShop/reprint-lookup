@@ -2,6 +2,51 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-24 · v6: screens (not film), print order and stack, stacked file for the Xitron, new sim logic
+**Why (Stephen):**
+- "we don't use film.....we are about to move to the Saati Laser 8012. So we stack all of our colors and have them assigned pantones and send an .ai file to our Xitron....can we have a preview where it is the actual sep files and you can toggle on and off colors and watch it stack etc and maybe we can also change the print order depending on how it stacks"
+- On v5's sim of the 10695 art: "I think we have some work to do on the simulated process logic". The orange chest came out pink, the white grid lines came out blue, and the art looked washed out.
+- "we might need to make it a little more editable......like if he you look at the original sep we have a tonal color going straight on the garment and not on a base"
+
+**Print order panel (On shirt view)**
+- The preview is built from the actual screens, listed in print order.
+- **Tick a screen off** to see the print without it. It still exports.
+- **Drag a screen (or use ↑ ↓)** to change the order. The order carries into everything:
+  - the overlaps (the screen printed earlier runs under the later one)
+  - the sim mix
+  - the n/N names
+  - the export
+- **▶ Watch it stack** plays the screens down one at a time. **Reset** goes back to the default order.
+
+**Export seps (the main button)**
+- **Stacked .ai / .pdf:**
+  - one page, where every screen is an 8-bit image in its own spot colour named like the screen (`230M-630OW`)
+  - overprinting, in print order
+  - registration marks and the label on /All
+  - Illustrator opens it, and the Xitron reads each spot as its own screen
+  - checked with Ghostscript: one separation per screen, with the right names
+- TIFF per screen is still available.
+- "Films" is now "Screens" everywhere.
+
+**Sim process, rebuilt**
+- Every colour in the art is matched by **stacking the inks in print order** over the EZ layer, or over the shirt. A small solver picks each ink's amount (0–100%) so the printed colour matches, with a small cost per ink. Yellow under red makes orange, and a flat colour lands on one ink at 100%.
+- **Picking the inks:** with Auto colours, Sep Maker takes about 12 candidates from the art, then adds inks one at a time, keeping whichever rebuilds the art best when stacked. It stops at Pine's usual 8 screens, counting BB and EZ, or when another ink barely helps. A blue that's 3% of the art now beats a third grey.
+- **Roles count:**
+  - "On base" colours stack over the EZ layer.
+  - "On shirt" colours print straight on the garment, solid or tonal, with no base under them, like 10695's TNTCLR grid.
+  - Each art colour takes whichever rebuilds it better, and only the on-base ones get base.
+- **Drop background warning:** if "drop background" removed a colour that also appears inside the art (white grid lines touching the edge), a note says so.
+
+**Tested** (Playwright):
+- The 10695 art re-separated on black: blue feathers, orange chest (7407 gold under 1788 red) and flat red graphics, in 6 screens.
+- Setting 5483 to On shirt prints it straight on the garment, named `230M-5483` with no OW.
+- Toggle, ↑ and play all work.
+- The stacked .ai holds one separation per screen.
+- The TIFF zip still works.
+- Spot output is unchanged: 10997 gives BB / EZ7527 / 7546.
+
+**Next:** Stephen will send the original PNG for 10695, so the sim can be tuned against Pine's actual sep pixel for pixel.
+
 ## 2026-10-24 · v5: sim process the Pine way
 **Why:** Stephen sent a real sim-process sep, `10695-45LPI-SLOWSeps` (.ai, 25 MB). It stays in the private scratchpad, not the repo.
 
