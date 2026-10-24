@@ -499,3 +499,24 @@ Stephen: "in scheduler can we also make sure to keep jobs that share inks togeth
   - Practice: Group by ink + Suggest + Place all made 0 writes. No console errors.
   - The v23 suite and the v22 suite pass on v25.
 - Not shipped by this change: the permanent link `pine-schedule.html` still points at v24.
+
+## 2026-10-24 — v26: late jobs no longer fail to save
+Stephen: "Can you also have an agent look into this issue with the Scheduler app". Saving a job failed with:
+`Save failed (422): … Cannot parse date value "2026-10-28T24:30:00.000Z" for field Scheduled Start Time`.
+- **Cause:**
+  - `setStart` (v25 line 661) built the time as text from "minutes since midnight": `day + 'T' + hours + ':' + minutes`. It never rolled over to the next day.
+  - "Next open" (`planMove`), the push-later chain (`pushLater`), Suggest and Group by ink all stack each job at the end of the one before it. A job placed after a day that already runs past midnight got minute 1470. That was written as hour 24 ("24:30"), and Airtable rejects it.
+  - Example from the test: a job at 4:30 pm with 8 h allocated ends at 24:30.
+  - It isn't a time zone offset. Times are stored as shop clock time marked Z (08:30Z = 8:30 am, the same as Operator, the Board and the Airtable calendar). The app does no offset math.
+  - `setStart` is the only place that writes a date. Undo writes back the old value, Allocated is a number and Lock is a checkbox.
+- **Fix:** `setStart` now uses `new Date(Date.UTC(y, m-1, d, 0, minutes)).toISOString()`.
+  - Minutes past midnight roll over to the next day, month or year: Oct 28 + 24:30 → `2026-10-29T00:30:00.000Z`.
+  - Times stay shop clock time marked Z, so normal slots write exactly what v25 wrote. DST doesn't affect them, because they are clock times and not real instants.
+  - Nothing else changed.
+- **Tested** (mocked Airtable that rejects hour 24+ with the same 422, Chromium, 1440×900):
+  - **v25 reproduces the error:** Next open after a job ending 24:30 wrote `2026-10-28T24:30` → 422. Fri after a job ending 25:00 wrote `2026-10-30T25:00` → 422.
+  - **v26 fixes both:** they wrote `2026-10-29T00:30:00.000Z` and `2026-10-31T01:00:00.000Z`. The job reads back on the right day.
+  - **Same as v25 for normal slots:** 6:30 pm, empty morning 8:30, picked 10:00 and picked 5:00 pm match v25 exactly.
+  - **Rollover edge cases:** month (Oct 31 → Nov 1), year (Dec 31 → Jan 1) and Feb 28 + 24:00 → Mar 1.
+  - All 6 writes were valid and there were no console errors. The v25 suite passes on v26.
+- **Still open (a flow question for Stephen):** a job pushed past midnight now saves, but it lands at 12:30 am the next day (or on a Saturday from a Friday). A better flow would warn when "Next open" goes past the end of the day, or move the job to the next workday's morning.
