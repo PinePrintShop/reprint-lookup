@@ -2,6 +2,18 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-24 · v7: halftone preview
+**Why (Stephen):** "would be cool to have it also be able to simulate 45lpi / 55lpi at 22.5 angle as well on all the layers just to preview them and then we will still let the rip handle the actual halftones".
+
+**What it does:** a **Halftone** switch next to the zoom.
+- Settings: Off / 45 / 55 / 65 LPI. Every screen gets round dots at 22.5°.
+- **Where it shows:** On shirt (the stack, including toggles, order and ▶ play) and the single-screen view.
+- **Resolution:** drawn at 300 dpi. Turning it on jumps to 4× zoom so the dots are visible.
+- **Dot method:** a pixel prints where the screen's tone beats a round-dot threshold. That is area-true up to about 78%, where the dots touch.
+- **Preview only:** exports stay continuous tone, and the Xitron makes the real dots.
+
+**Tested:** the 10695 art at 10.5″ renders in about 1 s. At 8×, the red dots sit over gold in the orange chest. Turning it off goes back to the fast preview.
+
 ## 2026-10-24 · v6: screens (not film), print order and stack, stacked file for the Xitron, new sim logic
 **Why (Stephen):**
 - "we don't use film.....we are about to move to the Saati Laser 8012. So we stack all of our colors and have them assigned pantones and send an .ai file to our Xitron....can we have a preview where it is the actual sep files and you can toggle on and off colors and watch it stack etc and maybe we can also change the print order depending on how it stacks"
