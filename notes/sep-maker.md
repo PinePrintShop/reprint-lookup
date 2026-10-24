@@ -2,6 +2,22 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-24 · v4: Check view (chokes and overlaps)
+**Why (Stephen):** "is there a way to preview the overlap and or the choke on a base".
+
+**New Check tab:** the print on the shirt at 300 dpi, dimmed, with marks on top:
+- **yellow** where a colour on the base has no base under it (the choke)
+- **magenta** where two colours both print (the overlap / trap)
+- **a yellow-and-magenta checker** where both happen at once. That's the usual case where a light colour runs under a dark one right at the edge of the base, as on 10997.
+
+**Legend:** shows the choke and trap in px and inches (2 px = .007″), or "none".
+
+**Zoom:** the button steps Fit → 1:1 → 4× → 8× and centres the view, so single pixels are visible.
+
+**Also changed:** retyping the same print width no longer re-runs the separation.
+
+**Tested** (Playwright): 10997 on black shows the 2 px rim as choke and overlap together. 10991 on navy shows a yellow band 4 px wide (base 4 px inside the colour) and no overlap.
+
 ## 2026-10-24 · v3: proof builder
 **Why (Stephen):** "Tech pack would be like a proof builder that would be uploaded to the Review or Art to Do". Then: "You can find proof on Airtable. Grabbing photos form S&S, Sanmar, ASColour would be great. Showing placement would be great".
 
