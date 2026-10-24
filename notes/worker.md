@@ -46,3 +46,15 @@ Stephen approved previewing the customer's PDFs and images right in Line Item Re
   - missing / no access / Google errors / sign-in failures → the v26 codes
 - **Unchanged:** everything else, byte for byte. `driveCheck` takes an optional extra field list; the other routes call it exactly as before.
 - **Tested** (Node, mocked Google, real RSA key), 73/73: the 43 v27 checks, plus a PDF streams byte-for-byte with Content-Type and CORS, an image from a Drive file link, metadata check before download, folder 400, My Drive 403, Google Doc and Sheet 415, 26 MB 413 (nothing downloaded), missing 404, download 404, no access 403, bad id 400, POST 403, not connected 503, sign-in failure 502, no / non-Pine token 401, v27 answers 403 "Drive path not allowed", status/search/list/thumb/upload identical to v27 side by side, and no key or token in any response.
+
+## 2026-10-24 · v29: vendor garment photos for proofs
+Sep Maker v3 draws the vendor's garment photo into the proof and saves the proof as a PDF. A browser canvas can't export pictures from sites that don't send CORS headers, so the worker hands the photo over.
+- **New `GET /proxy/img?u=<image url>`:** returns the image with CORS headers and a 1-day cache.
+- **Allowed:** only S&S (`ssactivewear.com`), SanMar (`sanmar.com`) and AS Colour (`ascolour.*`), https only, image types only, up to 15 MB.
+- **Refused:**
+  - any other host → 403 `host_not_allowed`
+  - not an image → 415 `not_image`
+  - POST → 403
+- **No key needed:** the same photos are public on the vendors' sites. Everything else is byte-for-byte v28.
+- **Tested** in Node with a mocked fetch: S&S, SanMar and AS Colour images return 200 with CORS; other hosts, http, non-images and POST are refused.
+- **Stephen deploys it:** paste `workers/pine-workers-v29.js` into the Cloudflare worker and Deploy. No new settings.
