@@ -2,6 +2,30 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-24 · v8: base on coloured shirts, drop background everywhere, solid inks
+**Why (Stephen):** "doesn't look like the base is turning on? can you look into that". Then: "Still add information in the middle that is not there. also how to control what gets halftones...meaning the squares in the back should be solid since we are only reducing the ink".
+
+**Changes**
+- **Base on coloured shirts.** v7 only put a base under colours on dark shirts (L\* < 50), so on a royal or bright blue shirt everything printed straight on the garment.
+  - Now every shirt except white, natural and light heather gets the EZ layer under its colours.
+  - BB (blocker) stays for dark shirts only.
+  - Black and very dark inks still print straight on the shirt.
+  - The shirt line says which of the three cases applies.
+- **Drop background → Everywhere, not just at the edges.**
+  - The edge-only drop left the grid lines boxed in by the birds as white ink ("information in the middle that is not there").
+  - The new option removes that colour all through the art, with a tighter match (8 ΔE) so cream bellies stay.
+  - The note now points to this option when the background colour also shows up inside the art.
+- **Solid inks (sim).**
+  - A **Solid** tick on each ink means it prints 100% or nothing and is never halftoned: a tint mixed down in the bucket, like 10695's grid.
+  - The stacking solver only gives that ink 0 or 100%.
+  - Any colour that's 15%+ of the art always gets its own screen and starts Solid.
+
+**Tested** (Playwright): 10695 art, sim, royal shirt.
+- The 5517 grid gets its own ink and is ticked Solid.
+- BB and EZ7527 are under the colours, with black and 447 straight on the shirt.
+- With "Everywhere" ticked, all the grid lines show the shirt.
+- 45 LPI shows dots only in the tonal screens.
+
 ## 2026-10-24 · v7: halftone preview
 **Why (Stephen):** "would be cool to have it also be able to simulate 45lpi / 55lpi at 22.5 angle as well on all the layers just to preview them and then we will still let the rip handle the actual halftones".
 
