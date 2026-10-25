@@ -28,3 +28,23 @@ Stephen: "Can it also search vendors as well" · "Can u also get a copy and past
 - **Vendor search:** the garment picker now searches Pine's Garments table and the full S&S and AS Colour style lists together (the lists are cached for a day, as in Price-O-Matic). Results say "N at Pine", "S&S" or "AS Colour". When a style is picked, the colour list adds every colour the vendor makes under "More from the vendor". Colours Pine has ordered come first. A vendor-only style's garment type comes from its title (hoodie, crew, tank, long sleeve, youth…) so the true-size body width and neck line suit it. Typing a colour picks it (`gildan 18500 sand`). SanMar has no style list on the worker, so SanMar-only styles aren't searchable yet; their photos still load for garments Pine has.
 - The old typed style/colour row in step 1 is gone; the picker covers it, with or without an Airtable key.
 - **Worker on a phone:** new `worker-copy.html` (`?v=30` by default, newest). Copy button → steps to paste into Cloudflare → "Check it's live". It also shows a one-line edit that does the same job. Worker v30 gains `GET /proxy/version` → `{"version":30}` for that check.
+
+## 2026-10-25 — v4
+Stephen: "Can I zoom in on mobile to see if the placement is looking good, can we also do a scan of the file to see possible colors in the design etc".
+
+- **Zoom:**
+  - Pinch on a phone or iPad, double-tap, ctrl/⌘ + scroll, or the − / + / Fit buttons.
+  - **Zoom to print** frames the imprint you're on, with its neck line and some shirt around it.
+  - The picture is redrawn sharper as you zoom (up to 3× resolution).
+  - One finger on a print or the neck line drags it; anywhere else it pans. When not zoomed, it scrolls the page as usual.
+  - Tapping a print selects that imprint.
+- **Placement guides:** the imprint you're on gets a dashed box, a measured line from the neck ("3″"), its size and how far off centre it is. The labels stay the same size on screen at any zoom. The guides only show in the app, not on the proof.
+- **Colour scan** (under the art, for each imprint):
+  - The art's main colours, each with its share of the print and the nearest shop ink/Pantone (≈).
+  - Blended edge pixels between two inks are ignored.
+  - Tap a colour to see where it is in the art.
+  - Lists the spot colours named in an .ai/PDF file (e.g. 1655OW, PINEBRWNEZP, with the mesh prefix dropped) and in PSD spot channels.
+  - Compares with the imprint's Pantones: a ✓ on matches, "in the art but not on the imprint", and "on the imprint but not found". EZ, base and BB tokens are skipped.
+  - Flags blended tones (likely sim process / halftones), white ink, and "mostly white" art that probably still has its paper background.
+  - When the imprint has no Pantones, the proof's colour chips come from the scan.
+- Tested with mocked Airtable/vendors/Drive on desktop (1600 px) and phone (390 px, touch): zoom to print, dragging while zoomed (1″ drag = 1″), the scan on a two-colour PNG (≈107 + ≈1795) and on the 10695 .ai (8 spot colours read).
