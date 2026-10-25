@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!-- Worker copy page (2026-10-25): copy the newest Pine worker on a phone and paste it into Cloudflare
+     (Stephen: "Can u also get a copy and paste for mobile for the worker · Might be a little hard on mobile to
+     update cloudflare worker"). ?v=30 picks a version; default is the newest below. The worker code is already in
+     this public repo (workers/), and it holds no keys — those live in Cloudflare's settings. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Worker Copy — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+body{margin:0;background:var(--p-cream-lt)}
+.wc{max-width:640px;margin:0 auto;padding:16px 16px 48px;display:flex;flex-direction:column;gap:16px}
+.wc-card{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:16px;display:flex;flex-direction:column;gap:12px}
+.wc-big{width:100%;min-height:64px;font-size:20px}
+.wc ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;line-height:1.4}
+.wc code{font:600 14px/1.4 Menlo,Consolas,monospace;background:var(--p-cream);padding:2px 5px;border-radius:3px;word-break:break-all}
+.wc a{color:var(--p-black);font-weight:700}
+.wc-status{font-weight:700;min-height:1.4em}
+.wc textarea{width:100%;height:120px;font:12px/1.3 Menlo,Consolas,monospace;border:1px solid var(--p-line);border-radius:var(--p-r);padding:8px;box-sizing:border-box}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Worker Copy</span><span class="p-bar-ver" id="ver"></span>
+</header>
+<main class="wc">
+  <section class="wc-card">
+    <h1 class="p-h1" id="title">Worker</h1>
+    <p class="mk-hint" id="what" style="margin:0"></p>
+    <button class="p-btn p-btn-main wc-big" id="copy" type="button" disabled>Loading…</button>
+    <div class="wc-status" id="status"></div>
+    <textarea id="code" readonly hidden aria-label="Worker code"></textarea>
+  </section>
+  <section class="wc-card">
+    <span class="p-section">Paste it into Cloudflare</span>
+    <ol>
+      <li>Tap <b>Copy worker</b> above.</li>
+      <li>Open <a href="https://dash.cloudflare.com/?to=/:account/workers/services/view/pine-workers/production" target="_blank" rel="noopener">pine-workers in Cloudflare</a> and tap <b>Edit code</b>.</li>
+      <li>Tap in the code, then <b>Select All</b> (long-press › Select All) and <b>Paste</b>.</li>
+      <li>Tap <b>Deploy</b>. Then come back here and tap <b>Check it's live</b>.</li>
+    </ol>
+    <button class="p-btn wc-big" id="check" type="button">Check it's live</button>
+    <div class="wc-status" id="live"></div>
+  </section>
+  <section class="wc-card" id="tinyBox" hidden>
+    <span class="p-section">Or the one-line change</span>
+    <p style="margin:0;line-height:1.4" id="tiny"></p>
+  </section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+// newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
+const VERSIONS={
+  30:{what:'Opens Drive files up to 200 MB (was 25 MB) so Mockup Maker can open big Photoshop and Illustrator files straight from Drive.',
+      tiny:'In Cloudflare, search the code for <code>&gt; DRIVE_MAX_BYTES) return driveErr(\'File is over 25 MB</code> and change <code>DRIVE_MAX_BYTES</code> on that line to <code>200 * 1024 * 1024</code>. Deploy. (Check it\'s live won\'t show v30 this way; that\'s fine.)'},
+  29:{what:'Vendor garment photos for proofs (/proxy/img).'}
+};
+const newest=Math.max(...Object.keys(VERSIONS).map(Number));
+const v=+(new URLSearchParams(location.search).get('v'))||newest, info=VERSIONS[v]||{what:''};
+$('title').textContent='Worker v'+v; $('ver').textContent='v'+v; $('what').textContent=info.what;
+if(info.tiny){ $('tinyBox').hidden=false; $('tiny').innerHTML=info.tiny; }
+let CODE='';
+fetch(`workers/pine-workers-v${v}.js`,{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error('Worker v'+v+' not found'); return r.text(); })
+  .then(t=>{ CODE=t; $('code').value=t; $('copy').disabled=false; $('copy').textContent='Copy worker v'+v; $('status').textContent=`${t.split('\n').length.toLocaleString()} lines ready.`; })
+  .catch(e=>{ $('copy').textContent='Could not load'; $('status').textContent=e.message; });
+$('copy').onclick=async()=>{
+  try{ await navigator.clipboard.writeText(CODE); $('status').textContent='Copied ✓ Now paste it into Cloudflare.'; $('copy').textContent='Copied ✓'; }
+  catch(e){ // older phones: select the text so the system Copy button works
+    const ta=$('code'); ta.hidden=false; ta.focus(); ta.select(); ta.setSelectionRange(0,CODE.length);
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(_){}
+    $('status').textContent=ok?'Copied ✓ Now paste it into Cloudflare.':'The text is selected below. Tap Copy.'; }
+};
+$('check').onclick=async()=>{
+  $('live').textContent='Checking…';
+  try{ const r=await fetch('https://pine-workers.stephen-dab.workers.dev/proxy/version',{cache:'no-store'}); const t=await r.text();
+    let n=0; try{ n=+JSON.parse(t).version||0; }catch(_){}
+    $('live').textContent=!n?'Not updated yet — still an older worker (before v30).':n>=v?`Live: v${n} ✓`:`Live: v${n} — not updated yet`; }
+  catch(e){ $('live').textContent='Could not reach the worker: '+e.message; }
+};
+</script>
+</body>
+</html>
