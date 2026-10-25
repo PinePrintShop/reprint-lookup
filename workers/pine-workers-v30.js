@@ -4,6 +4,7 @@
  * v30 CHANGES (2026-10-25): GET /proxy/drive/file now streams files up to 200 MB (was 25 MB) so Mockup Maker can
  *   open big Photoshop and Illustrator files straight from the order's Drive folder. The file is streamed, not held
  *   in memory. Uploads stay at 25 MB (they are held in memory to build the request).
+ *   NEW GET /proxy/version -> {"version":30}, so worker-copy.html can tell when a pasted worker is live.
  *
  * v29 CHANGES (2026-10-24): NEW GET /proxy/img?u=<image url> - hands a vendor's garment photo back with CORS headers
  *   so Sep Maker can draw it into a proof and save the proof as a PDF (a browser canvas can't export pictures from
@@ -604,6 +605,11 @@ export default {
     if (firstSegment === 'drive') {
       // /proxy/drive/list|thumb|file|upload|status|search -> Google Drive (shared drive only), Airtable-token gated (v25, v26, v28)
       return handleDrive(request, env, segments.slice(1), url.searchParams);
+    }
+
+    if (firstSegment === 'version') {
+      // /proxy/version -> which worker is live, so the worker-copy page can confirm a deploy (v30). No data.
+      return new Response(JSON.stringify({ version: 30 }), { status: 200, headers: Object.assign({}, CORS_HEADERS, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) });
     }
 
     if (firstSegment === 'img') {
