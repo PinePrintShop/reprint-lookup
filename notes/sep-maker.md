@@ -2,6 +2,17 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-25 · v11: no outline round everything (sim)
+**Why (Stephen):** "why does everything still have an outline".
+
+**Cause:** in sim, when a white or cream in the art was the EZ layer, that layer wasn't choked at all. It ran to the edge of every colour sitting on it, which showed as a cream line round the grid squares, branches and type. Spot didn't have this problem.
+
+**Fix**
+- The EZ layer is full size only where the cream itself shows (no on-base colour on top). Everywhere else it's choked under the colours, the same rule as spot.
+- Dark colours printed straight on the shirt (black, dark grey) spread 1 px over the small gap kept between them and the base, so no shirt-coloured ring shows round them either.
+
+**Tested** on 10695 art, sim, royal shirt, at 4×: grid squares, branches and type have clean edges.
+
 ## 2026-10-25 · v10: base and stroke controls, no base peeking out
 **Why (Stephen):** "I still can't really control the bases like I should be able to select add a base or something and then adjust the choke and then be able to adjust the stroke on all top colors as well". Then, about TOPO with a cream ring around it: "the base is peaking out vs being under the top colors".
 
