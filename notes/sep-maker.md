@@ -2,6 +2,37 @@
 
 Permanent link: `sep-maker.html`. A desktop app for the art department. It makes no Airtable writes, so it has no practice mode.
 
+## 2026-10-25 · v10: base and stroke controls, no base peeking out
+**Why (Stephen):** "I still can't really control the bases like I should be able to select add a base or something and then adjust the choke and then be able to adjust the stroke on all top colors as well". Then, about TOPO with a cream ring around it: "the base is peaking out vs being under the top colors".
+
+**Section 5 is now Bases and strokes**
+- **Underbase (BB):**
+  - tick it on or off
+  - Full / 1/2 / 1/4
+  - its own **choke** in px, measured inside the EZ layer
+- **Light layer (EZ):**
+  - tick it on or off
+  - EZWHT / EZPWHT / EZCRM / EZOFFWHT
+  - its own **choke** in px, measured inside the colours
+- **Auto until you tick them yourself:** BB is on for dark shirts, EZ for coloured or dark shirts. The note under each says "Auto: …" or "Set by you · back to auto".
+- **Ticking a base on when no colour sits on it** puts all the colours on it.
+- **Colours on the base: All / None** buttons. Each colour's own setting still works.
+- **Top colour stroke:** a −4 … +4 px slider that grows or shrinks every top colour, applied after the traps. In sim, tonal screens get a grey max/min filter.
+- Works in spot, index (BB on/off) and sim. House defaults are unchanged: 2 px + 2 px.
+
+**Base peeking out (sim):** the soft rim round black type on the shirt was solved as "grey/cream ink on base". Three changes fix it:
+1. **Edge snap.** A pixel that's just the blend of two very different colours (2 px either side) takes the nearer one. Dropped or transparent pixels count as the shirt colour.
+2. **The base has to earn it.** It only goes where it beats printing straight on the shirt by a margin.
+3. **Cleaner base.** Hairline slivers of base are opened away, and the base stays 1 px clear of anything printed straight on the shirt.
+
+**Tested** (Playwright):
+- 10991 on navy: BB is under EZ, which is under 310.
+- BB choke 4 shrinks BB only.
+- BB off removes it.
+- Stroke ±2 grows or shrinks the colour by the expected amount.
+- A white shirt is auto-off; ticking EZ puts the colours on base.
+- 10695 art in sim on royal: TOPO and the grid edges are clean, with no grey or cream ring.
+
 ## 2026-10-24 · v9: sim stacks only where the art blends
 **Why (Stephen):** "looks like all the colors stack......vs only some like the gold is all under the red vs just where the bird is and not hte solid text".
 
