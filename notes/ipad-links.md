@@ -35,6 +35,7 @@
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v11 |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v1 |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
 
