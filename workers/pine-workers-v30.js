@@ -4,6 +4,8 @@
  * v30 CHANGES (2026-10-25): GET /proxy/drive/file now streams files up to 200 MB (was 25 MB) so Mockup Maker can
  *   open big Photoshop and Illustrator files straight from the order's Drive folder. The file is streamed, not held
  *   in memory. Uploads stay at 25 MB (they are held in memory to build the request).
+ *   /proxy/img also takes AS Colour's product photos (their BigCommerce store CDN: cdnNN.bigcommerce.com/s-hsi95a83fz/...),
+ *   so AS Colour garments get real photos in Mockup Maker. Only that store's path is allowed.
  *   NEW GET /proxy/version -> {"version":30}, so worker-copy.html can tell when a pasted worker is live.
  *
  * v29 CHANGES (2026-10-24): NEW GET /proxy/img?u=<image url> - hands a vendor's garment photo back with CORS headers
@@ -1510,7 +1512,9 @@ async function handleImg(request, params) {
   let target;
   try { target = new URL(params.get('u') || ''); } catch (e) { return jsonError('Give the image address as ?u=https://...', 400); }
   if (target.protocol !== 'https:') return jsonError('https image addresses only', 400);
-  if (!IMG_HOSTS.some(re => re.test(target.hostname))) {
+  // v30: AS Colour's product photos live on its BigCommerce store's CDN (store s-hsi95a83fz) — that store only
+  const ascStore = /^cdn\d*\.bigcommerce\.com$/i.test(target.hostname) && target.pathname.startsWith('/s-hsi95a83fz/');
+  if (!ascStore && !IMG_HOSTS.some(re => re.test(target.hostname))) {
     return new Response(JSON.stringify({ error: 'Only S&S, SanMar and AS Colour images', code: 'host_not_allowed' }),
       { status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
   }
