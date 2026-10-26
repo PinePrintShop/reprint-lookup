@@ -464,3 +464,23 @@ Stephen, after comparing the tama tee original (RGB, not CMYK) with Sep Maker's 
   - **All Pantones:** the whole shared table (1,369 inks, without the shop shorthand like BB, CRM, CG1, WG1), sorted by colour — greys light to dark, then round the hue wheel in 15° steps, each light to dark — in a scrollable grid.
 - **Search** covers the whole table (up to 60 matches), so any Pantone is reachable.
 - Tested: Closest shows 12, All shows 1,369, a search for "2728" finds it, and choosing Bright Red from All renames the screen to 230M-BRIGHTRED.
+
+## 2026-10-26 — v20
+Stephen: "I feel like we can usually get it pretty dialed in with the actual printed inks. I have always had a hard time with pre selecting pantones when the customer didn't provide them" — then "let's just [do] 1 and 2 right now".
+
+- **1 · Pine's own inks first:**
+  - Sep Maker reads the Inks table (read only): ink name, plus a rollup per ink. That rollup is read as how many imprints used the ink (1,709 inks, 4,536 uses, 1,007 distinct; the top 100 cover ~73%).
+  - Names are normalised to Pantone names: CG2 → Cool Gray 2, R032 → Red 032, W RED → Warm Red, "Pantone 186 C" → 186, BLK → Black. The result is cached for a day (`pine_sm_inkuse_v1`).
+  - When picking a Pantone for an art colour, an ink Pine has run gets an allowance against the very nearest: 1.5·1.4·log10(1+uses), capped at 3.5 ΔE (1 use ≈ 0.6, 10 ≈ 2.1, 40+ ≈ 3.4). So a much-used ink wins when it's nearly as close.
+  - Auto picks made before the history loaded are re-picked once it arrives; names the art dept changed are left alone.
+  - The picker's Closest view sorts the same way and shows "run 45×" on inks Pine has used.
+- **2 · How close each pick is:** every ink shows ✓ close (ΔE under 5), ~ near (5–10) or ! far (over 10), with the exact ΔE on hover. A far ink's picker says "brighter than any ink can go — dial it in on press" and offers two starting points:
+  - **Closest:** the nearest ink overall.
+  - **Same brightness:** the nearest ink at the same lightness and hue, judged in OKLab, because Lab bends blues toward purple. For the tama blue, Lab called 266 (a purple) the same hue; OKLab picks 2728.
+- **Not done (3):** learning from the art dept's corrections needs a small new Airtable table. Not approved yet.
+- **Tested, with a mocked Inks table** (541 ×46, 286 ×40, 186 ×45, CG2 ×24, 185 ×3) on art with an electric blue (#2931DC), a 654 navy and a 186 red:
+  - Without history: Blue 072 (! far, 18.9), 654 (✓), 186 (✓).
+  - With history: the navy becomes 541 (✓ 1.3, run 46×).
+  - The blue's picker shows the far note with Closest: Blue 072 and Same brightness: 2728.
+  - The eyedropper and the "rename doesn't reshuffle sim screens" check still pass.
+  - **Not tested against the live Inks table:** no Airtable key in the test sandbox.
