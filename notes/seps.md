@@ -286,3 +286,10 @@ Stephen: "in the Seps app we do need to be able to download the mockup and or ar
   - a tile ⬇ saves "11076-A seps.pdf"; a tap opens the PDF in the viewer, links nothing; the viewer's Download saves it;
   - the link picker has ⬇ and still has Paste a link instead;
   - Download under the mockup saves "11075-A.png".
+
+## 2026-10-26 — v49: show where the sep really came from
+Stephen: "in the Seps can we make sure to grab the original sep file or link to it as well. Like order 11077 is using the sep from 5504 but it takes a few steps to figure that out"
+- The Sep file section now walks the Previous run links back (up to 8 runs) and names the run the sep file started on: "Sep from **5504-A** (#5504) · via 10109-A", with the file name and a **📁 #5504 files** button that opens that original order's Drive folder.
+- A reorder with no sep yet, whose earlier run has one further back, gets **Use 5504-A's sep** (one tap writes the Sep URL; faked in practice).
+- Checked on real data: 11077-A → 10109-A → 5504-A all point at 5504-200LPI-Seps.ai.
+- Tested (Playwright, mocked Airtable and worker): 89/89 — the v48 checks plus the origin line, file name, original folder, and the "Use … sep" offer and write.
