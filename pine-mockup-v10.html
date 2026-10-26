@@ -767,10 +767,21 @@ function placementText(im){ if(PTEXT[im.id]) return PTEXT[im.id]; if(isBandana()
 // where the neck seam sits below the top of the garment in the photo (inches, size M); drag the neck line to correct
 // placement is measured from the BOTTOM of the collar. Where that sits below the top of the garment in the vendor's
 // flat photo, measured on S&S/SanMar flats; once someone drags it for a style, that's remembered for the style.
-const neckKey=(line,side)=>line?ckey(line.g.brand)+'|'+ckey(line.g.pn)+'|'+side:'|'+side;
+// a dragged line is remembered per style AND colour: vendors lay each colour's photo out a little differently
+const neckKey=(line,side)=>line?ckey(line.g.brand)+'|'+ckey(line.g.pn)+'|'+ckey(line.g.color)+'|'+side:'|'+side;
+// the bottom of the collar measured on the vendors' own photos for Pine's most-ordered styles (collar scan, 2026-10-26):
+// inches below the top of the garment in the photo, per side; per colour where that colour's photo was measured.
+// key: STYLE → {b: brand key, f: {_: style value, COLOUR: value}, k: {...back}}
+const COLLAR=/*COLLAR_TABLE*/{};
+function collarFromScan(line,side){
+  if(!line) return null; const pn=ckey(line.g.pn), bk=ckey(line.g.brand), rows=COLLAR[pn]; if(!rows) return null;
+  const r=rows.find(x=>!bk||!x.b||bk.startsWith(x.b.slice(0,5))||x.b.startsWith(bk.slice(0,5))); if(!r) return null;
+  const t=side==='front'?r.f:r.k; if(!t) return null; const c=ckey(line.g.color);
+  return t[c]!=null?t[c]:t._!=null?t._:null; }
 (()=>{ try{ Object.assign(NECK,JSON.parse(localStorage.getItem('pine_mk_neck_v1')||'{}')); }catch(e){} })();
 function saveNeck(){ try{ localStorage.setItem('pine_mk_neck_v1',JSON.stringify(NECK)); }catch(e){} }
-function neckDrop(line,side){ const k=neckKey(line,side); if(NECK[k]!=null) return NECK[k]; const hood=isHood(line), crew=line&&/sweatshirt|fleece/i.test(line.g.type);
+function neckDrop(line,side){ const k=neckKey(line,side); if(NECK[k]!=null) return NECK[k]; const sc=collarFromScan(line,side); if(sc!=null) return sc;
+  const hood=isHood(line), crew=line&&/sweatshirt|fleece/i.test(line.g.type);
   // bottom seam of the collar at the centre, below the top of the garment in the photo (measured on real flats)
   const ph=line&&PH[line.id], san=ph&&ph.from==='SanMar';
   if(side==='front') return hood?7:crew?(san?6.75:4.4):(san?6.25:2.5);
