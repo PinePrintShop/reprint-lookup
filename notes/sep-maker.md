@@ -454,3 +454,13 @@ Stephen: "I changed a color in the sep and then it looked like it added that to 
   - v17: that screen went to 0 (−100%), two others grew by 19–24%, and the base halved.
   - v18: every screen's coverage is unchanged; only the name became 230M-REFLEXBLUEOW.
   - The eyedropper still adds a missed colour.
+
+## 2026-10-26 — v19
+Stephen, after comparing the tama tee original (RGB, not CMYK) with Sep Maker's PNG: "it is all for screen printing. maybe we can also have access to any color in the options as well not just the closest".
+
+- **Why the colours looked muted:** the art's electric blue #2931DC sits outside the Pantone range. The nearest inks (Blue 072, 2736) are ΔE ≈ 19 away, so the PNG honestly shows 2736 (#1E22AA). The file was RGB, not CMYK.
+- **Ink picker (tap a swatch) now has two views:**
+  - **Closest:** the 12 nearest to the art colour, as before.
+  - **All Pantones:** the whole shared table (1,369 inks, without the shop shorthand like BB, CRM, CG1, WG1), sorted by colour — greys light to dark, then round the hue wheel in 15° steps, each light to dark — in a scrollable grid.
+- **Search** covers the whole table (up to 60 matches), so any Pantone is reachable.
+- Tested: Closest shows 12, All shows 1,369, a search for "2728" finds it, and choosing Bright Red from All renames the screen to 230M-BRIGHTRED.
