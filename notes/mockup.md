@@ -517,3 +517,17 @@ Stephen's V3 8107A-BROAD-FRONT.psd on v35: "PSD: CMYK 8-bit · 7 channels · ext
 - Ink is the smaller part of a plain channel, so white-on-black and black-on-white channels both work.
 - The info line now says "(channel)" or "(selection)" for each extra channel.
 - Tested on CMYK files built like the 8107A one (Transparency + blk + blue, both polarities): blue square and black square both show. Spot exports, Multichannel and CMYK files still open.
+
+## 2026-10-26 — v37: comments on the line, discharge on bandanas
+Stephen: "yes let's start [comments]...also we do discharge bandanas so need that as well to make sure we are calling that out on the mockup".
+- **Comments** (step 2 of moving Art to do in), under the Art brief:
+  - The line's Airtable comments, oldest first, newest last (the last 3, or Show all). Each shows the name and how long ago; @mentions show as names; screenshots posted from Line Item Review are links.
+  - Post as you, with Notify chips (@Art Dept, @Chris …). ⌘/Ctrl+Enter posts. Signed "[Name] text" with @[usr…] mentions, the same as Line Item Review, so Airtable notifies the same way. It shows in Airtable's comments too.
+  - "Who you are" and the people list are the same ones Line Item Review keeps (shared on this site). Defaults to Art Department.
+  - Practice fakes the post.
+- **Discharge on bandanas:** Underbase shows on bandanas again with **Auto / Off / Discharge** (still never a white or cream base). Auto picks Discharge when the Pantones say DC. Inks print as DC.
+- **Called out on the proof:** the print heading reads "FRONT - 11075-A · DISCHARGE" (any garment). A bandana's page 1 adds "Print: Discharge" under its size; the details move up to fit.
+- Tested with mocked Airtable (Playwright):
+  - comments load, names, @mentions; posting sends `{"text":"[Art Department] Proof is up, hops bigger\n@[usrIie9QUerxvDqmi]"}` to the line's comments; box clears;
+  - bandana base row shows Auto/Off/Discharge; proof page 1 shows Discharge;
+  - v28–v36 regression tests pass.
