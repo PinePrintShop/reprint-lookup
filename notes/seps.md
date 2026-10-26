@@ -254,3 +254,18 @@ Stephen: "now that we have google drive setup....can we scan Seps and Screens ap
 ### Open questions
 - Should the picker also let the separator upload a finished sep into the Seps folder (the worker can, up to 25 MB)?
 - Seps folders named something else (e.g. "Films", "Final seps")? Easy to add once we know the names in use.
+
+## 2026-10-26 · v47: drag and drop to the order's Drive
+Stephen: "can we do a drag and drop for the Seps app to upload the artwork to the folder" (this also answers v46's open question about uploading from the picker).
+- **Drop files on the open job** and they upload to the order's Drive Seps folder (Seps / Separations / Sep), or to the order folder when it has none.
+  - While files are over the job it gets a dashed outline and "⬆ Drop to upload to #11075 › Seps".
+- **With the sep-file picker open,** a drop goes into the folder the picker is showing. The picker also has **⬆ Upload here**.
+- Up to 25 MB a file (the worker's limit), 3 at a time. The toast says how many went where, and which failed.
+- **One file dropped on a job with no sep file** is offered as "Link 11075-A FINAL seps.ai?". One click links it; nothing is linked by itself.
+- A file dropped anywhere else no longer opens in the browser; a message says to drop it on the open job.
+- Practice uploads nothing. The update bar waits while uploads run.
+- Tested (Playwright, mocked Airtable and worker): 70/70 — the 61 v46 checks plus:
+  - a drop on 11075-A → POST drive/upload?folder=SEPS11075, offered as the sep, no PATCH;
+  - picker open on "Old seps" → 2 files into that folder, shown in the picker;
+  - a job with no Drive folder → message, no upload;
+  - practice → no upload.
