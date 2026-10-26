@@ -451,3 +451,15 @@ Stephen: "mockup creator needs to be able to reference Discharge as well....also
   - discharge / OW / plain names on swatches and proof; in-stock marks; Pantones "286 OW" → white base, "286DC" → discharge;
   - CMYK PSDs (raw and RLE) open red at 300 ppi;
   - v25–v30 regression tests pass.
+
+## 2026-10-26 — v32
+Stephen: "can we also have it make all the individual mockups for different garments when sharing a design and not just that colorway view".
+
+- **A full mockup page for every garment** that shares the design. The proof (preview, PDF and Attach) is now: a page 1 for each garment, then Colorways, then the close-ups.
+  - Each page 1 shows that garment's photo, colour name and fabric.
+  - It uses that garment's own print spot and recolours.
+  - Its ink chips follow that garment's base (OW on dark, plain number on light, DC for discharge).
+- Page tabs are named by garment colour (Black / Natural / Colorways / 11080-A).
+- **A page for each garment** (ticked by default, remembered) goes back to a single page 1 for the garment being worked on.
+- The proof preview now draws only the page on screen (it drew every page on each change); the PDF draws them all.
+- Tested with mocked Airtable (Playwright): a 2-garment order gives 4 pages (Black, Natural, Colorways, 11080-A); the Natural page has plain 107/1795 chips while Black has 107OW; turning it off gives 3 pages; the working garment stays put. v25–v31 regression tests pass.
