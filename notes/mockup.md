@@ -545,3 +545,9 @@ Stephen: "can we upload to the drive from the app as well?"
   - 2 files uploaded to Client Provided (POST drive/upload?folder=CP) and shown after the re-read;
   - a tap still opens art;
   - attach → Airtable upload, then drive/upload?folder=PR with the proof PDF.
+
+## 2026-10-26 — v39: discharge ink names
+Stephen: "can we add a space after the number and DC also we can add DC to all colors when we select discharge".
+- With Discharge, every ink on the art swatches and the proof chips gets " DC": 107 DC, BLK DC, WHT DC, Cool Gray 7 DC. An imprint Pantone written "286 OW" shows as 286 DC.
+- On a white/cream base, numbers stay 107OW (no space); with no base, just 107. Base chips (BASE, EZ…, BB) are left as written.
+- Tested: swatches read "≈ 107 DC / ≈ 1795 DC" with Discharge, 107OW with a white base, 107 with Off; v37/v38 tests pass.
