@@ -463,3 +463,29 @@ Stephen: "can we also have it make all the individual mockups for different garm
 - **A page for each garment** (ticked by default, remembered) goes back to a single page 1 for the garment being worked on.
 - The proof preview now draws only the page on screen (it drew every page on each change); the PDF draws them all.
 - Tested with mocked Airtable (Playwright): a 2-garment order gives 4 pages (Black, Natural, Colorways, 11080-A); the Natural page has plain 107/1795 chips while Black has 107OW; turning it off gives 3 pages; the working garment stays put. v25–v31 regression tests pass.
+
+## 2026-10-26 — v33: Art to do moves in (step 1), ink opacity
+Stephen: "is this mockup creator kindof like the Art To Do on the Line Item Review section? how can we explore combining those" → "since we are not using these yet...I say let's explore 2" (Mockup Maker becomes the art department's home; Line Item Review keeps Review / Ready to send / Sent). Then: "we do need to be able to move the opacity on the mockup creator.....for when we know something doesn't discharge well but the client still wants it".
+
+- **Art to do tab** (first in the views; the app opens on it):
+  - It lists every line on an order in Awaiting Proof that still needs its proof. The rule is the same as Line Item Review's Art to do: no proof yet, or a proof that hasn't gone to Review. Invoice fees and archived orders are left out.
+  - Grouped by order, oldest order first. The order bar shows #, customer, rep, ASAP / Hard date, and due.
+  - Each line shows its imprint IDs, garment, pieces, and **Needs proof** or **Proof up · not sent to Review**.
+  - Search covers order, customer, imprint and garment. There's a rep filter (remembered).
+  - Tap a line and its order and line open on the Mockup tab. Picking a job any other way (dropdown, garment) also switches to the Mockup tab.
+  - Attaching a proof turns the line to "Proof up"; Proof done → Review takes it off the list. The count is on the tab.
+- **Art brief** under the job, as in Line Item Review. It replaces the one-line garment hint.
+  - The order line: rep, ASAP/Hard, due.
+  - The garment with pieces and sizes, plus Women's / Youth.
+  - Each imprint: location, method, nickname, inks (Imprints › Inks, else the Pantone text), and its Print and Ink notes.
+  - "Repeat of 9447-F — last proof ↗ · seps ↗" or "New art".
+  - Proofing and Sales notes, shown once when they say the same thing.
+- **Ink opacity** per print, 20–100 %, under the method buttons. Use it when the ink won't fully cover (a design that won't discharge well, but the client still wants it). Mockup, Colourways and proof all show it. Session only, nothing saved.
+- Reads only (Orders: rep, ASAP/Hard, created, archived; Line Items: notes, sizes, imprint IDs; Imprints: notes, inks, nickname, repeat, seps, proof images). No new writes.
+- **Next steps for option 2:** comments on the line (read and post, with @mentions); the fuller Drive panel (folders, download, upload, proof copy into Proofs); then retire Art to do in Line Item Review.
+- Tested with mocked Airtable (Playwright):
+  - 3 lines across 2 orders; the fee, the Review line and the archived order are left out; search and rep filter work;
+  - tapping a line opens order 11080 / that line;
+  - brief content (repeat with last proof + seps, notes once, sizes);
+  - opacity 100 → 50 % halves the print's brightness; no writes;
+  - v25–v32 regression tests pass.
