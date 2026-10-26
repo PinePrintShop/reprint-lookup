@@ -328,3 +328,16 @@ Stephen, on garments no vendor has a photo of: "let's just do 1 for now" (= uplo
   - embroidery on flat art, and photo detection across 8 files
   - a polo with type "Other" reads as a shirt (Front, Left chest, Back); a cap print drags 1.5″ above centre
   - the earlier regression scripts
+
+## 2026-10-26 — v23
+Stephen (screenshot: a white "P" on a black Comfort Colors 1717, the print looking mottled): "the shirt filter seems a little intense....let's try a few more options to get that effect dialed in".
+
+- **Why it was blotchy:** the print took the garment photo's brightness pixel for pixel, as a ratio to the fabric colour. On black that ratio swings hard, so the grain of a garment-dyed tee turned a white print blotchy.
+- **Now:**
+  - The photo's grain is blurred away first, so only folds and light come through.
+  - The print is lightened or darkened by how far each spot is from the fabric's own colour, rather than by a ratio.
+  - A floor keeps a black garment's small changes small.
+- **Step 3 › Fabric look on the print:** Off / Light / Medium / Strong, replacing the Realistic checkbox.
+  - Settings (smoothing, strength): Light = 0.2″, 40%; Medium = 0.12″, 70%; Strong = 0.05″, 100%.
+  - Medium is the default. The choice is remembered on that computer.
+- Compared on live S&S photos (1717 Black with a white P, 1717 Pepper with a two-colour print), all four settings, plus the earlier regression scripts.
