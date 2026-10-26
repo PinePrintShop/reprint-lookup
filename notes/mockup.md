@@ -380,3 +380,15 @@ Stephen: "in the mockup creator I need to be able to sometimes just move one spe
   - Natural's own spot moved by typing (5″) and by dragging (+1″), while Black stayed.
   - Back to Same spot, Natural returned to the shared spot.
   - Regression scripts pass.
+
+## 2026-10-26 — v28
+Stephen: "also need to be able to add a base color on the mockup creator as well" → picked "Underbase under the print".
+
+- **Underbase** under the method buttons (screen prints only): Auto / Off / White / Cream.
+  - Auto lays a white base on dark garments (body colour darker than mid grey) or when the imprint's Pantones already list BASE, BB or EZ WHT. Light garments get none.
+  - The base is the art's shape, choked about 1/64″, under the inks. The fabric shading runs over both.
+  - Off on a dark garment: the inks sink into the shirt colour (white on black comes out grey), like printing with no base.
+- **Show the base** shows only the base on the mockup (the art faint on top), so you can see where it prints. Tap again to show the print.
+- The proof's colour chips start with **BASE WHT** / **BASE CRM** when there's a base (unless the Pantones already name one). Colourways pick Auto per garment.
+- Per imprint, for this session (nothing new saved to Airtable).
+- Tested with mocked Airtable (Playwright): black tee Auto → white base, Show the base, Off (inks sink), Cream; natural tee → no base; embroidery hides the row; proof chip; v25/v27 regression tests pass.
