@@ -498,3 +498,26 @@ Stephen: "oh we should also have it do .psd files as well".
 - Tested with Playwright:
   - A 6000 × 7500 two-layer PSD opened in 7.5 s at its real size (16.75″ after trimming) and separated into 1795 / 2728 / 0131.
   - Sep Maker's own spot-channel .psd opened at 9″ and showed "Spot colours in the file: BB, EZWHT, 186OW, 654".
+
+## 2026-10-26 — v22
+Stephen: "also the sep maker can't combine colors and it probably should". It could, but only from the bottom of each ink's How-it-prints menu ("Merge into").
+
+- **4 · Inks › Combine similar** (with **Undo**):
+  - Smallest colour first, each one joins the nearest bigger colour within ΔE 15, or one with the same Pantone.
+  - A colour that has taken another in stays put, and merges don't chain. (A first draft at ΔE 24 with chaining collapsed a 6-step gradient into one ink. Now it goes 6 → 4.)
+  - Colours under 1% of the art that sit between two bigger colours, or between a colour and the shirt, are blended edges and join the nearer colour.
+  - A small real accent (a 0.2% green dot) stays.
+- **Each ink's picker** has "Combine with" chips: tap the ink this one should print as.
+- **A merged ink** says "merged into 725 · Unmerge". Unmerge puts back its old role.
+- Tested on a gradient, on flat art with forced extra colours, and on art with a tiny accent.
+
+## 2026-10-26 — v23
+Stephen: "doesn't look like I can add a highlight white in the sep maker". It was only under Sim process settings, and only did anything on dark shirts.
+
+- **One "Highlight white (HLWHT)" box**, now with the base layers (Underbase / Light layer), for every method:
+  - **Spot and Index:** an HLWHT screen over the white areas of the art (the white/cream inks, and the EZ layer's own colour), printed after the colours and before black, with no choke.
+  - **Sim process:** the art's brightest near-neutral areas, tonal: full strength at pure white, fading out by about 78% lightness. Works on any shirt. Asking the sim mix for a white gave an empty screen, because the EZ base already supplies white.
+  - **No white in the art:** a note says so.
+- Tested on navy art with white text (15% white), black shirt:
+  - Spot: HLWHT 15.1%. Index: 15.0%, after the colours. Sim: 14.9%. Sim on a white shirt: 14.9%.
+  - Off: no HLWHT. Art with no white: the note shows.
