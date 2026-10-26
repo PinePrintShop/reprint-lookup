@@ -341,3 +341,13 @@ Stephen (screenshot: a white "P" on a black Comfort Colors 1717, the print looki
   - Settings (smoothing, strength): Light = 0.2″, 40%; Medium = 0.12″, 70%; Strong = 0.05″, 100%.
   - Medium is the default. The choice is remembered on that computer.
 - Compared on live S&S photos (1717 Black with a white P, 1717 Pepper with a two-colour print), all four settings, plus the earlier regression scripts.
+
+## 2026-10-26 — v24
+Stephen sent a cream tee on a white background ("here is what I wanted for the garment upload and the screenshot is what I got"): the photo came back as just a few fold lines.
+
+- **Why:** the background clean-up was tuned for uneven phone-photo backgrounds. It allowed colours up to 95 away from the background and steps of 14 between neighbours. A cream shirt is only about 50 away from white, so the clean-up ran straight into the shirt.
+- **Fix:** how far it may reach now depends on how even the photo's background is (the spread of the edge pixels).
+  - A clean studio white allows only colours within about 10 of it.
+  - An uneven phone background allows up to 90.
+  - Each step may only move to a nearly identical neighbour (4–14).
+- Tested with Stephen's cream tee: the whole shirt is kept, colour #ebe6d3. The navy phone-style photo still cleans up the same, and the regression scripts pass.
