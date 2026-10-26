@@ -355,7 +355,7 @@ Measured from 30+ finished jobs on the Printshop shared drive. The files sampled
 
 ### Not done yet / next
 - No real sim-process samples yet. Stephen is finding a couple of jobs. The ones on the drive are 100–340 MB, and the Drive connector can only download about 5 MB.
-- It can't open PSD yet (AI and PDF open since v12). Export a PNG from Photoshop first.
+- Opens PNG, JPG, AI, PDF (v12) and PSD (v21).
 - Pantone matching works from the screen colour, so always check the names.
 - It doesn't place films onto the 16×21.25 template artboards.
 
@@ -484,3 +484,17 @@ Stephen: "I feel like we can usually get it pretty dialed in with the actual pri
   - The blue's picker shows the far note with Closest: Blue 072 and Same brightness: 2728.
   - The eyedropper and the "rename doesn't reshuffle sim screens" check still pass.
   - **Not tested against the live Inks table:** no Airtable key in the test sandbox.
+
+## 2026-10-26 — v21
+Stephen: "oh we should also have it do .psd files as well".
+
+- **Opens .psd art** via ag-psd 31.0.2, the same reader as Mockup Maker.
+  - It reads just the flattened image and skips layer pixels, so big files don't run out of memory.
+  - A PSD saved without a flattened copy (Maximize Compatibility off) is built from its visible layers, respecting hidden groups and layer opacity.
+  - It's capped at 6000 px a side.
+  - Print size comes from the PSD's resolution.
+- **Spot channels:** their names pop up when the file opens, like an .ai's spot colours.
+- **An already-separated PSD** (spot channels, white composite) only gives its names. The composite is blank, so there's nothing to separate.
+- Tested with Playwright:
+  - A 6000 × 7500 two-layer PSD opened in 7.5 s at its real size (16.75″ after trimming) and separated into 1795 / 2728 / 0131.
+  - Sep Maker's own spot-channel .psd opened at 9″ and showed "Spot colours in the file: BB, EZWHT, 186OW, 654".
