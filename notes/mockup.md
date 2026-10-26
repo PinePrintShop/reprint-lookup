@@ -351,3 +351,10 @@ Stephen sent a cream tee on a white background ("here is what I wanted for the g
   - An uneven phone background allows up to 90.
   - Each step may only move to a nearly identical neighbour (4–14).
 - Tested with Stephen's cream tee: the whole shirt is kept, colour #ebe6d3. The navy phone-style photo still cleans up the same, and the regression scripts pass.
+
+## 2026-10-26 — v25
+Stephen (proof for 11080, Cotton Collective "OVERSIZED B…" running under the shirt photo): "Looks like the full garment name is getting cut off".
+
+- **The fix:** the brand, style and colour in the proof's left column shrink to fit its 2.7″ width. Below half size they wrap onto a second line instead (up to 3 lines).
+- **Short names are unchanged:** "1717" stays big.
+- Tested with Cotton Collective "OVERSIZED BOXY HEAVYWEIGHT TEE" / White Cap Off White, which wraps cleanly in the column, plus the regression scripts.
