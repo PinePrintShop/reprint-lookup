@@ -533,3 +533,6 @@ Separation .psd files (spot channels) open with every ink, the same reader as Mo
 
 ## 2026-10-26 — v26
 Same PSD reader as Mockup Maker v35: Multichannel and Duotone seps open, and channels with no colour record get their colour from their name.
+
+## 2026-10-26 — v27
+Same as Mockup Maker v36: inks kept as plain saved channels (e.g. "blk", "blue" in a CMYK PSD) are laid in. Each takes the artwork's colour where it's inked, or its name.
