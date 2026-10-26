@@ -193,3 +193,15 @@ Stephen (screenshot: AS Colour 5001 with Sputnik art, the mockup running off the
 - **The long instruction line** became a short hint in the zoom bar. The message line now only shows when there's something to say (missing art).
 - **Proof page** fits the screen height.
 - **Phones** keep the stacked layout (390 px, no sideways scroll).
+
+## 2026-10-26 — v15
+Stephen: "what is colour ways mean" · "can we also be able to select multiple garments if the design is sharing across a few colorways".
+- **More garments on one mockup.** Step 3 has an "Also show on" list.
+  - Tick other colours of the style ("Show the 1717 colours" loads them from S&S/AS Colour), or search another style and tick its colours too.
+  - Each ticked garment joins the Colorways view and the proof's Colorways page, with the same prints.
+  - Each can have its own inks: tap it on Colorways, then recolour "Only <colour>".
+- **Works with or without an order.**
+  - Added garments are for the mockup only, marked "· added". Airtable isn't changed.
+  - Attach / Proof done stay on the order's own line. Working on an added garment says so above the picture.
+  - Changing the main garment in a no-order mockup keeps the added ones.
+- **Tab renamed "Colorways"** (US spelling, matching the proof page). The cards are smaller so 3 fit across at 1440 px.
