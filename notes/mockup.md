@@ -489,3 +489,16 @@ Stephen: "is this mockup creator kindof like the Art To Do on the Line Item Revi
   - brief content (repeat with last proof + seps, notes once, sizes);
   - opacity 100 → 50 % halves the print's brightness; no writes;
   - v25–v32 regression tests pass.
+
+## 2026-10-26 — v34: separation PSDs show every ink
+Stephen (screenshot: V3 8107A-BROAD-FRONT.psd on a Hot Pink bandana, only light blue showing): "this is suppose to have more colors but I am only seeing blue".
+
+- **Why:** a PSD's flattened copy (what the app read) holds only the normal colour channels. Spot channels, which is how the shop's sep files hold their inks (BB, EZWHT, 186OW …), aren't in it, so only what was on the layers showed.
+- **Now:** a PSD with spot channels is read straight from the file.
+  - Each spot channel's ink is laid on top in its own colour, taken from the file (RGB / CMYK / Lab / HSB / grey colour records).
+  - It uses the channel's solidity. Black in the channel = ink.
+  - Where there's no ink it's transparent, so white inks show on the garment; the background isn't dropped.
+  - Spot names still show in "Spot colours named in the file".
+  - No layer switches for these files.
+- I couldn't open the real 8107A file (90 MB is too big for the Drive connector here).
+- Tested on Sep Maker's own spot export (BB, EZWHT, 186OW, 654): before, it showed only White and a dark grey; now red 186, navy 654 and white text show and scan as 186 / 654 / White. CMYK PSDs and the v28–v33 tests still pass.
