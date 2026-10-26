@@ -530,3 +530,6 @@ Stephen: "trying to open up a .psd file and saying CMYK not supported".
 
 ## 2026-10-26 — v25
 Separation .psd files (spot channels) open with every ink, the same reader as Mockup Maker v34 (Stephen, in Mockup Maker: "this is suppose to have more colors but I am only seeing blue"). The PSD's flattened copy leaves spot channels out; now each spot channel is laid in with its own colour and solidity. Tested: Sep Maker's own spot export now separates to 186 / 654 / White (was White only); CMYK PSD still opens.
+
+## 2026-10-26 — v26
+Same PSD reader as Mockup Maker v35: Multichannel and Duotone seps open, and channels with no colour record get their colour from their name.
