@@ -184,3 +184,12 @@ Stephen: "also looks like when I upload a file it is pretty pixaleted in the pre
   - A front-only tee now fills most of the page height. Front and back sit side by side.
   - The Colorways page does the same. The on-screen Mockup view is unchanged (it has zoom).
 - **Worker:** v30 is live (Stephen pasted it 2026-10-26). AS Colour photos come through `/proxy/img` (200, 111 KB). The new `/proxy/version` route is turned away by the worker's own route guard (`vendorGuard` doesn't list `version`); my miss. `worker-copy.html`'s "Check it's live" now recognises v30 by its AS Colour photo route instead. Fix the guard in v31 when there's a next worker change (`if (first === 'version') return null;`).
+
+## 2026-10-26 — v14
+Stephen (screenshot: AS Colour 5001 with Sputnik art, the mockup running off the bottom): "can we make the desktop version not have to scroll as much".
+- **The mockup fits the screen height.** It was drawn at full stage width (about 1030×640 at 1440 px wide) with the message and placement rows around it, so the stage scrolled. Now it's sized to fit the space: 1440×900 and 1920×1080 have no scroll in the Mockup or Proof views (measured: stage scroll 0; it was 85 px in Mockup and 217 px in Proof on v13).
+- **The picture is only as wide as the sides shown.** A front-only job uses a 900-wide picture instead of 1600, so the one garment is bigger.
+- **Placement boxes** (below collar, off centre, proof text) moved into the sidebar under the art, for the imprint you're on.
+- **The long instruction line** became a short hint in the zoom bar. The message line now only shows when there's something to say (missing art).
+- **Proof page** fits the screen height.
+- **Phones** keep the stacked layout (390 px, no sideways scroll).
