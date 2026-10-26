@@ -228,3 +228,29 @@ Stephen: "in the Sep app can we also add a supacolor only pill as well"
 - **One at a time:** turning Supacolor only on turns Bandanas only off, and the other way round.
 - **Remembered:** the choice is kept on this computer, like Bandanas only.
 - **Tests:** v44 suite plus the new Supacolor checks, 56/56 pass (`scratchpad/seps43/test45.js`).
+
+## 2026-10-26 · v46: the sep file comes from Google Drive
+Stephen: "now that we have google drive setup....can we scan Seps and Screens app and see how we can improve those", then "you can have an agent start working on Seps and Screens".
+- **Pick the sep file from Drive:** "+ Link sep file" (and "Replace") opens a picker at the order's Seps folder (a folder named Seps, Separations or Sep, any case; if there isn't one, the top of the order folder). Files show as tiles with thumbnails. Folders open in place, and the path at the top goes back. Clicking a file links it. It's the same Sep URL save as pasting (the file's Drive link).
+- **Paste still works:** "Paste a link instead" is at the bottom of the picker. It only takes Google Drive links (drive.google.com / docs.google.com) and says so plainly otherwise. The old paste box in the job is gone, so there's one place to do it.
+- **Reorders:** the master folder banner now lists the files in the master folder's Seps folder. Each one has "Use this sep". The separator picks; nothing is linked on its own (same rule as before). "Open master folder" is still there.
+- **View the sep in the app:** "View sep file" opens it full screen in Seps. PDFs, .ai files saved PDF-compatible, and images show. For anything else (.psd, .eps) or a file that's too big, it shows Drive's thumbnail and "Open in Drive". The viewer always has "Open in Drive" at the top.
+- **The file's name** shows in the Sep file row once Drive has found it.
+- **No sep file yet?** If the order's Seps folder has a file with the imprint ID in its name, the job offers "Link 11075-A-SEPS.ai?" as one click.
+- **Gentle on the worker:** Drive is only looked up for the job that's open (and the picker / master banner). Each order is looked up once per visit, 3 calls at a time, and nothing is looked up for the whole queue.
+- **Drive off:** if the worker says Drive isn't connected (503), the picker says "Google Drive isn't connected right now. Paste the link instead." and the paste box is open. The suggestion and master list just don't show.
+- **Practice mode:** linking from the picker, the suggestion, "Use this sep" and paste are all faked (0 writes). Drive reads are real.
+- **Airtable:** writes are the same as v45 (Sep URL is the same PATCH). No new Airtable reads. Drive goes through the Pine worker (drive/search, list, thumb, file); no worker change.
+- **Tested** (Playwright, mocked Airtable and worker, made-up customers, 1440×900 plus 820 and 390), 61/61 pass (`scratchpad/seps46/test46.js`):
+  - The picker opens at Seps, with folders first and then the matching file. Thumbnails load, a subfolder opens, and the path goes back twice.
+  - Picking a file writes exactly `{records:[{id, fields:{fldiBqdFTRMahiMeI: <webViewLink>}}]}`, and the file name then shows.
+  - Paste turns down a Dropbox link and a link without https with no write, and saves a docs.google.com link.
+  - The suggestion "Link 11075-A-SEPS.ai?" shows and links. Only the open job's order is searched.
+  - The viewer draws the .ai (PDF-compatible) and the PDF with pdf.js from drive/file, and shows a sniffed image. For a .psd it shows the thumbnail and Open in Drive without downloading it. Too big gives a plain message.
+  - On a reorder the master banner lists the 2 master seps, links nothing on its own, and "Use this sep" writes that file's link.
+  - Practice mode: 0 writes. Drive 503: a calm message, and paste still saves.
+  - Mark sep'd, the No sep file filter and search still work. Nothing in the picker is under 12px, there's no sideways scroll at 820/390, and there are no page errors.
+
+### Open questions
+- Should the picker also let the separator upload a finished sep into the Seps folder (the worker can, up to 25 MB)?
+- Seps folders named something else (e.g. "Films", "Final seps")? Easy to add once we know the names in use.
