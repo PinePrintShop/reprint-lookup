@@ -392,3 +392,24 @@ Stephen: "also need to be able to add a base color on the mockup creator as well
 - The proof's colour chips start with **BASE WHT** / **BASE CRM** when there's a base (unless the Pantones already name one). Colourways pick Auto per garment.
 - Per imprint, for this session (nothing new saved to Airtable).
 - Tested with mocked Airtable (Playwright): black tee Auto → white base, Show the base, Off (inks sink), Cream; natural tee → no base; embroidery hides the row; proof chip; v25/v27 regression tests pass.
+
+## 2026-10-26 — v29
+Stephen: "on the mockup creator can we be able to add a few images to a location.....I am looking at a tote bag and they gave us text in a few files and then a reference to how to combine them" · "oh the reference I was talking about was just in the client folder.."
+
+- **Several files in one print.** "+ Add a file to this print" (shown once a print has art): the next file opened goes into the current print. You can click to pick it, drop it, paste it or tap a Drive tile. It's stacked 1/4″ under what's there. A file with a real size keeps it; one without starts as wide as the first file.
+- **Files in this print** list (top = on top). Each file has:
+  - its own width;
+  - ▲▼ to change which file is on top;
+  - **BG** to drop its own solid background;
+  - ✕ to take it out (with one file left it's a plain print again).
+- **Stack** / **Side by side** / **Centre** (the picked file) line the files up.
+- **Drag moves one file** (default after adding) or **the whole print**. The picked file has a yellow outline on the mockup. Moving one file leaves the others where they are on the garment.
+- Typing a print width scales all the files together. Inks, underbase, sizes and the proof treat the files as one print. Moving files keeps ink changes when the inks are unchanged.
+- **Add a reference**: pick the customer's layout picture (a Drive tile in Client Provided works). It shows under the list; tap it to see it big. It isn't printed or put on the proof.
+- **Bandana proof close-ups** used the garment-photo colour, which bandanas don't have, so the page came out grey or the wrong colour. They now use the bandana's colour.
+- **Underbase follow-ups**, Stephen: "we don't need to dull the print for when we remove a base" → Off just shows the print as before (the v28 "inks sink" look is gone). "bandanas never have a base" → no base and no Underbase row on bandanas.
+- Tested with mocked Airtable (Playwright):
+  - three text PNGs added, dragged, stacked, side by side and scaled to 10″;
+  - reference shown; back to one file;
+  - red bandana close-up is red; Underbase row hidden on bandanas;
+  - v25/v27/v28 regression tests pass.
