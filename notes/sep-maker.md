@@ -441,3 +441,16 @@ Stephen: "can I also just export as a 300dpi transparent .png as well".
 - **Tested:**
   - A 9″ × 4.2″ logo exported as 2700 × 1260 RGBA at 300 dpi, with transparent corners and the navy exactly 0/58/112.
   - A 7-screen sim job exported as 2700 × 2700 with a transparent background.
+
+## 2026-10-26 — v18
+Stephen: "I changed a color in the sep and then it looked like it added that to another color as well".
+
+- **Why:** Sim process rebuilds every colour in the art by mixing the inks, and it did that maths with each ink's Pantone colour. A new Pantone on one ink changed the whole mix, so that ink moved into other colours' areas (or out of its own).
+- **Fix:** each ink keeps the colour it was separated with. That's set when the colours are found, or when the ink is added or re-picked with the eyedropper.
+  - A new Pantone (chip, search or typed name) now only renames and recolours that screen; the films stay the same.
+  - The picker says so: "A new Pantone renames and recolours this screen only. To change what it separates, use Re-pick."
+  - Spot and Index weren't affected; they match pixels by the art colour.
+- **Tested:** 7-screen sim glow, third ink changed to Reflex Blue.
+  - v17: that screen went to 0 (−100%), two others grew by 19–24%, and the base halved.
+  - v18: every screen's coverage is unchanged; only the name became 230M-REFLEXBLUEOW.
+  - The eyedropper still adds a missed colour.
