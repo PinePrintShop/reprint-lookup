@@ -250,3 +250,36 @@ The print is shaded by the same folds, the same way prints sit in the shirt phot
 - **Undo edits** returns the list to the scan.
 - The count, the ✓ against the imprint's Pantones, the "where it is" preview and the proof's colour chips all follow the edits (test: rename → 186; blue erased and yellow removed → chips "186").
 - **Speed fix:** the "where it is" preview recalculated the colour groups for every pixel (and the ink table was rebuilt on every lookup), which froze the page. Both are now worked out once.
+
+## 2026-10-26 — v19
+Stephen: "also you should be able to pull in all garments right even hats etc.." · "bandana is almost there. here is a good reference for us to try and mimic" (a flat Carolina Creative product photo) · "when it pulls in the drive folder....can we just focus on the customer provided folder and have it be able to open it and view the files inside that folder".
+
+- **Hats, beanies, totes, anything else:** these were drawn like a 29″ shirt with a collar line. Now each kind has its own size, measured across the item in the vendor photo:
+  - caps 8.25″
+  - beanies 9″
+  - totes 15″
+  - anything else 20″
+
+  Each also has its own print spot (cap front panel, beanie cuff, middle of the bag, centre) and a default print width (4″, 3″, 10″, 8″). Art can't start wider than the item.
+- **Picking the kind:** it comes from the garment type, or from words like cap/hat/trucker/snapback/beanie/tote. Step 3 › **Kind** changes it for any style (e.g. a cap with no type in Airtable). **Width across (in)** sets the real size of a particular style.
+- **Shirt-only parts dropped for these:** no collar line and no shirt size. Placement reads "Centered on the front panel" / "… on the cuff" / "… on the bag". Quick mode gives them Front + Back.
+- **Proof wording for these:** the proof's fine print and blue note talk about "a typical cap" instead of "a size M garment". Switching between a shirt and a hat resets the placement (3″ below the collar means nothing on a hat).
+- **Bandana:** redrawn to match the reference photo:
+  - lying flat, with one soft fold down the middle (and a fainter one across)
+  - slubby cotton weave: short thread streaks, not a grid
+  - soft light from the right, falling off toward the lower-left corner
+  - a few long, gentle ripples
+  - straight edges with a thin hem and barely any shadow
+
+  The old version had dark cross creases, wrinkles bunched at the edges and wavy hems.
+- **Drive:** opens straight in the order folder's **Client Provided** folder (older orders: Customer Supplied / Content / Art). It shows what's in it as tiles with thumbnails and sizes.
+  - Folders (e.g. "For Proof") open in place.
+  - The path at the top goes back up, including to the order folder.
+  - Art (PNG/JPG/PDF/AI/PSD) opens in the mockup with one tap. Other files open in Drive.
+  - It no longer walks the whole order folder (Proofs, Seps, Sales…), so old proofs and seps stop showing up as art.
+  - No worker change needed.
+- Tested with Playwright and mocked Airtable, vendor photos and Drive:
+  - cap / beanie / tote / untyped cap set to Cap: sizes, placement text and proof
+  - bandana in 4 colours, compared against the reference photo
+  - Drive: open Client Provided › For Proof › back › order folder › open art
+  - the earlier regression scripts (recolour, ink edits, colourways, big PSD, bandana)
