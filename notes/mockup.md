@@ -367,3 +367,16 @@ Stephen: "in the mockup creator it should have something when it is a reprint to
 - **No folder yet:** if the new order has no Drive folder, the original's opens straight away with a note: "No Drive folder for #11080 yet — showing the original order #9447."
 - **Speed:** folder look-ups are kept per order number for the session, so switching back is instant.
 - Tested with mocked Airtable and Drive, with and without a folder for the new order; regression scripts pass.
+
+## 2026-10-26 — v27
+Stephen: "in the mockup creator I need to be able to sometimes just move one specific garment print location without moving it on all the garments".
+
+- **Placement switch:** with 2+ garments on the order, the placement fields have a switch: **Same spot on all garments / Own spot for {colour}**.
+  - Own spot copies the shared spot to this garment. From then on, dragging and typing move the print on this garment only: its mockup, its Colourways tile and its proof.
+  - Same spot drops the garment's own spot again.
+  - Changing the garment kind (shirt ↔ hat/bandana) clears own spots, along with the shared spot.
+- Tested with a mocked 2-garment order (Black, Natural) sharing one front print:
+  - A shared drag moves both.
+  - Natural's own spot moved by typing (5″) and by dragging (+1″), while Black stayed.
+  - Back to Same spot, Natural returned to the shared spot.
+  - Regression scripts pass.
