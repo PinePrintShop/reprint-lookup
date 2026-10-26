@@ -557,3 +557,20 @@ From the Seps / Screens review. Stephen: "now that we have google drive setup...
 - Not offered for the transparent .png (a picture of the print, not seps), or when the Drive save is off. Exports over 25 MB download only, so they aren't linked.
 - Practice fakes the save.
 - Tested with a mocked worker: a .psd export uploads to drive/upload?folder=SP, then PATCHes the imprint with `{"fields":{"fldiBqdFTRMahiMeI":"<webViewLink>"}}`; the toast says it's now 11080-A's sep file.
+
+## 2026-10-26 — v30: Separations preview
+Stephen: "can we mimic the separation preview from .ai more in this one or the channels in photo shop where you can see how the traps and chokes are...the check area is ok but kind of lacking".
+- The **Check** tab is now **Separations**, built like Illustrator's Separations Preview and Photoshop's Channels:
+  - **The screen list sits beside the picture** (the same list as On shirt). Tick a screen to show or hide it. **Click a screen's name to see only that screen**; click it again for all of them.
+  - **Show:**
+    - **Inks:** the visible screens in their ink colours on the shirt.
+    - **Film:** black = ink, like a channel in Photoshop. With one screen showing it's that screen's film; with several, the films together.
+    - **Edges:** the print dimmed, with each visible screen's outline drawn in its own colour. You can see the gap between a base's edge and a colour's edge (the choke), and where two colours run into each other (the trap).
+  - **Mark chokes and overlaps** (on by default): yellow = a based colour with no base under it, magenta = two colours print. Now for the visible screens only, so hiding screens lets you check one pair at a time.
+  - **Point at the picture** to read each visible screen's ink there, e.g. "x 786 y 807 px · 158M-BB 100% · 158M-EZWHT 100% · 230M-107OW 100%". It's like Illustrator's separation percentages.
+  - Zoom 4× or 8× to see the 2 px chokes. The screen list now stays in view while a zoomed picture scrolls (in On shirt too).
+- Tested (Playwright, art.png on black):
+  - the three views; the readout over the circle, the rectangle and the shirt;
+  - solo (4 of 5 hidden) and back;
+  - 8× at the circle/rectangle corner shows the yellow choke band and the magenta trap;
+  - the v29 export → Sep URL test and the highlight-white tests pass.
