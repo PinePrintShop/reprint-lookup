@@ -269,3 +269,20 @@ Stephen: "can we do a drag and drop for the Seps app to upload the artwork to th
   - picker open on "Old seps" → 2 files into that folder, shown in the picker;
   - a job with no Drive folder → message, no upload;
   - practice → no upload.
+
+## 2026-10-26 · v48: download the mockup and the art, in the app
+Stephen: "in the Seps app we do need to be able to download the mockup and or artwork from the folder. that would really keep it all in the app".
+- **📁 Order files** on every job (next to the sep file buttons) opens the order's whole Drive folder (Client Provided, Seps, Proofs …) in the same window as the sep-file picker.
+  - Folders open in place.
+  - Tap a PDF, .ai or image to see it in the full-screen viewer; any other file (.psd, .eps, .zip …) downloads.
+  - Nothing gets linked from here, and there's no paste box.
+- **⬇ on every file**, in Order files and in the sep-file picker. In the picker, a tap on the file still links it.
+- **⬇ Download in the full-screen viewer** for the mockup, a previous run's proof, the sep file or a file from Order files.
+- **⬇ Download under the mockup**, next to Full screen. It fetches a fresh link from Airtable (the list's links expire) and saves every mockup file on the job.
+- Files up to 200 MB download (the worker's limit). Bigger ones say "use Open in Drive".
+- Fixed on the way: the viewer now opens above the Drive window. From Order files it would have opened behind it.
+- Tested (Playwright, mocked Airtable and worker): 83/83 — the v47 checks plus:
+  - Order files opens with the right title and no paste box;
+  - a tile ⬇ saves "11076-A seps.pdf"; a tap opens the PDF in the viewer, links nothing; the viewer's Download saves it;
+  - the link picker has ⬇ and still has Paste a link instead;
+  - Download under the mockup saves "11075-A.png".
