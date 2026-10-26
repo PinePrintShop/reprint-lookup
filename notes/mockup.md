@@ -205,3 +205,16 @@ Stephen: "what is colour ways mean" · "can we also be able to select multiple g
   - Attach / Proof done stay on the order's own line. Working on an added garment says so above the picture.
   - Changing the main garment in a no-order mockup keeps the added ones.
 - **Tab renamed "Colorways"** (US spelling, matching the proof page). The cards are smaller so 3 fit across at 1440 px.
+
+## 2026-10-26 — v16
+Stephen: "oh yeah we need bandanas as well on here".
+- **Bandanas** (Carolina Creative 4800, 4900, 4927, 795, B22NOV "Hippie"; Airtable type Bandana) are drawn as a true-size square.
+  - 22″ unless set in step 3 › Bandana size.
+  - Drawn in the bandana colour with a stitched hem, two soft folds and a cotton weave over the print when Realistic is on.
+  - The colour comes from a table of Pine's ~27 bandana colour names (Burnt Orange, Charcoal Grey, Kelly Green, Hot Pink…), otherwise the CSS name. Step 3 › Bandana colour fixes any that look off.
+- **Placement:** the print starts centred and can be dragged. Placement reads "Centered", or e.g. "1″ below centre, 2″ right of centre". The step 3 boxes read "Down from centre / Off centre".
+- **Without an order:** search "bandana" (it's turned into "carolina"). The mockup gets one Bandana imprint.
+- **Also show on:** offers the style's colours from Airtable's Garments table (bandanas aren't at the vendors). Each added bandana shows on Colorways and the proof's Colorways page.
+- **Proof:** the bandana layout draws the same bandana, larger (5.75″ square), and "Bandana Dimensions" follows the size.
+- **Fixed an endless redraw** for garments with no vendor photo (every bandana, and any tee whose photo wasn't found). The Colorways view kept re-asking for the photo and redrawing. Each garment is now looked up once.
+- **"Mostly white — is it the paper?"** now only shows for art that came on a solid background, not white-ink art on a transparent one.
