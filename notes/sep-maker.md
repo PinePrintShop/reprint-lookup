@@ -371,3 +371,18 @@ Stephen: "can you also update sep maker to be able to get .ai or .pdf files as w
   - It came in at 9″ × 4.2″ after trimming, matching the art's 8.96″ × 4.17″.
   - It separated into 158M-BB, 158M-EZWHT, 186 and 654 on black.
   - A non-PDF-compatible .ai showed the re-save message.
+
+## 2026-10-26 — v13
+Stephen: "in the .ai file it looks like an image vs being assigned the pantones...I would like to be able to click separation preview to check in .AI".
+
+- **Why it looked like an image:** v12's stacked file put each screen in as a greyscale image in its own spot colour. A RIP reads that, but Illustrator (as far as I can tell) turns spot-coloured images into plain images when it opens a PDF, so Separations Preview has nothing to list. I couldn't confirm this in Illustrator itself. What Illustrator keeps as spot swatches is vector shapes filled with a spot colour.
+- **"Stacked .ai (vector, Pantones)", now the default:** every screen is vector shapes in its own spot colour named like the screen (230M-630OW), overprinting, stacked in print order, each in its own layer.
+  - Solid screens are traced exactly from the 300 dpi screen.
+  - Tonal screens (sim blends) become vector halftone dots: round, at the Halftone setting (55 LPI if Off), at 22.5°, sized to the ink in each cell. The RIP prints those dots as they are.
+- **"Stacked .pdf (RIP screens it)"** is the v12 file: continuous tone for the RIP. Illustrator shows it as an image.
+- **Sim process bug fixed:** v12's 1 px trap on dark sim colours counted everything beyond the art's edge as full ink, so those screens got a frame round the art. Beyond the edge is now "no ink".
+- **Tested:**
+  - A 2-colour logo .ai exported to 4 vector screens; Ghostscript separations list exactly 158M-BB, 158M-EZWHT, 230M-186OW, 230M-654, plus one layer per screen.
+  - A 7-screen sim glow exported in 4 s at 6.9 MB, with 2 tonal screens as dots (checked at 300 dpi) and 5 solid screens.
+  - No frame on any screen.
+- **Not checked in Illustrator itself:** whether Separations Preview lists the screens. Stephen to confirm on a real job.
