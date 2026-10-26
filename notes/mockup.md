@@ -171,3 +171,16 @@ Stephen: "How hard would it be to re color files. Do those need to be .ai or .ps
 - **Reset:** "Back to the original" resets one ink; "Reset all inks" resets everything. New art, layer changes or dropping the background reset the recolour, since the inks change.
 - **Limits:** flat spot-colour art recolours cleanly. On photo / sim-process art the panel warns that a recolour will only be approximate.
 - **Pantone list:** "White" and "Black" were added to the ink picker (the shared list only had WHITE/WHT).
+
+## 2026-10-26 — v13
+Stephen: "also looks like when I upload a file it is pretty pixaleted in the preview".
+- **Cause:** in Realistic mode, the print's fabric shading was worked out at the mockup's base size (1600 px wide) and then stretched 1.5–3× to the screen (more when zoomed), so it went blocky. Big art (a 4000 px PNG or a rendered .ai) was also shrunk in one jump, which makes fine lines and small type jagged, worst in Safari.
+- **Now:**
+  - Shading is worked out at the canvas's real pixel size (capped at 8 MP for speed).
+  - Big art is shrunk in halving steps, and every draw uses high-quality smoothing.
+  - Side by side on fine-line art (small type, 6 px rules) at "Zoom to print", v13 is crisp where v12 was blurry.
+- **Proof garment bigger** (Stephen: "can we also make the garment larger on the main proof to fill up the page better"):
+  - The proof photo is cropped to the garment (the vendor's white margins are dropped) and gets a taller space: 5″ tall from 1.55″ instead of 4.4″ from 1.75″. The info blocks sit just under it.
+  - A front-only tee now fills most of the page height. Front and back sit side by side.
+  - The Colorways page does the same. The on-screen Mockup view is unchanged (it has zoom).
+- **Worker:** v30 is live (Stephen pasted it 2026-10-26). AS Colour photos come through `/proxy/img` (200, 111 KB). The new `/proxy/version` route is turned away by the worker's own route guard (`vendorGuard` doesn't list `version`); my miss. `worker-copy.html`'s "Check it's live" now recognises v30 by its AS Colour photo route instead. Fix the guard in v31 when there's a next worker change (`if (first === 'version') return null;`).

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- Worker copy page (2026-10-25): copy the newest Pine worker on a phone and paste it into Cloudflare
+<!-- 2026-10-26: "Check it's live" also recognises v30 by its AS Colour photo route (v30's /version is blocked by its route guard).
+     Worker copy page (2026-10-25): copy the newest Pine worker on a phone and paste it into Cloudflare
      (Stephen: "Can u also get a copy and paste for mobile for the worker · Might be a little hard on mobile to
      update cloudflare worker"). ?v=30 picks a version; default is the newest below. The worker code is already in
      this public repo (workers/), and it holds no keys — those live in Cloudflare's settings. -->
@@ -80,6 +81,10 @@ $('check').onclick=async()=>{
   $('live').textContent='Checking…';
   try{ const r=await fetch('https://pine-workers.stephen-dab.workers.dev/proxy/version',{cache:'no-store'}); const t=await r.text();
     let n=0; try{ n=+JSON.parse(t).version||0; }catch(_){}
+    // v30 shipped with /version blocked by the worker's own route guard; it can be told apart by the AS Colour photo
+    // route it added (v29 turns that host away)
+    if(!n&&/path not allowed: version/.test(t)){ const u='https://cdn11.bigcommerce.com/s-hsi95a83fz/products/182/images/11671/5001_STAPLE_TEE_ARCTIC_BLUE__36388.1751257573.1280.1280.jpg?c=1';
+      const r2=await fetch('https://pine-workers.stephen-dab.workers.dev/proxy/img?u='+encodeURIComponent(u),{cache:'no-store'}).catch(()=>null); if(r2&&r2.ok) n=30; }
     $('live').textContent=!n?'Not updated yet — still an older worker (before v30).':n>=v?`Live: v${n} ✓`:`Live: v${n} — not updated yet`; }
   catch(e){ $('live').textContent='Could not reach the worker: '+e.message; }
 };
