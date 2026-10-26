@@ -179,4 +179,8 @@ Stephen: "also looks like when I upload a file it is pretty pixaleted in the pre
   - Shading is worked out at the canvas's real pixel size (capped at 8 MP for speed).
   - Big art is shrunk in halving steps, and every draw uses high-quality smoothing.
   - Side by side on fine-line art (small type, 6 px rules) at "Zoom to print", v13 is crisp where v12 was blurry.
+- **Proof garment bigger** (Stephen: "can we also make the garment larger on the main proof to fill up the page better"):
+  - The proof photo is cropped to the garment (the vendor's white margins are dropped) and gets a taller space: 5″ tall from 1.55″ instead of 4.4″ from 1.75″. The info blocks sit just under it.
+  - A front-only tee now fills most of the page height. Front and back sit side by side.
+  - The Colorways page does the same. The on-screen Mockup view is unchanged (it has zoom).
 - **Worker:** v30 is live (Stephen pasted it 2026-10-26). AS Colour photos come through `/proxy/img` (200, 111 KB). The new `/proxy/version` route is turned away by the worker's own route guard (`vendorGuard` doesn't list `version`); my miss. `worker-copy.html`'s "Check it's live" now recognises v30 by its AS Colour photo route instead. Fix the guard in v31 when there's a next worker change (`if (first === 'version') return null;`).

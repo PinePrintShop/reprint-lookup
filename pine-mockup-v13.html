@@ -3,6 +3,8 @@
      the preview"). The realistic (fabric-shaded) print was worked out at the mockup's base size and then stretched 1.5–3×
      to the screen (more when zoomed), so it went blocky. It's now worked out at the real screen resolution, and big art is
      shrunk in halving steps (a one-step shrink of a 4000 px file to a few hundred pixels goes jagged, worst in Safari).
+     Proof: the garment is bigger (Stephen: "can we also make the garment larger on the main proof to fill up the page
+     better") — the photo is cropped to the garment and gets a taller space; same on the Colorways page.
      v12 (2026-10-26): recolour the art (Stephen: "How hard would it be to re color files. Do those need to
      be .ai or .psd files" · "Sure let's try the full version").
        - Works on any art the app opens (PNG/JPG/PDF/.AI/.PSD) — it recolours the picture, never the customer's file.
@@ -908,7 +910,9 @@ function drawGarment(x,line,side,X,Y,w,h,opts){
   opts=opts||{};
   const ph=PH[line.id]&&PH[line.id][side], hood=isHood(line), shirt=(PH[line.id]&&PH[line.id].hex)||'#9aa0a6';
   let geo;
-  if(ph){ const im=ph.im, s=Math.min(w/im.naturalWidth,h/im.naturalHeight), dw=im.naturalWidth*s, dh=im.naturalHeight*s, ox=X+(w-dw)/2, oy=Y+(h-dh)/2;
+  if(ph&&opts.fill){ x.save(); x.beginPath(); x.rect(X,Y,w,h); x.clip(); }   // proof: the garment fills its space (the photo's white margins cropped off)
+  if(ph){ const im=ph.im, bx=ph.box, s=opts.fill?Math.min(w/(bx.w*1.04),h/(bx.h*1.03)):Math.min(w/im.naturalWidth,h/im.naturalHeight), dw=im.naturalWidth*s, dh=im.naturalHeight*s,
+      ox=opts.fill?X+w/2-(bx.x+bx.w/2)*s:X+(w-dw)/2, oy=opts.fill?Y+h/2-(bx.y+bx.h/2)*s:Y+(h-dh)/2;
     x.drawImage(im,ox,oy,dw,dh);
     const b=ph.box, ppi=b.h*s/(SPECL(line)+ABOVE_HPS(line));
     geo={ppi, cx:ox+(b.x+b.w/2)*s, top:oy+b.y*s, ph, ox, oy, s, bpx:ph.bodyPx*s};
@@ -935,6 +939,7 @@ function drawGarment(x,line,side,X,Y,w,h,opts){
   if(opts.neckLine){ const gs=opts.guides||1; x.save(); x.strokeStyle='rgba(251,225,34,.95)'; x.setLineDash([8*gs,6*gs]); x.lineWidth=2*gs; x.beginPath(); x.moveTo(geo.cx-3*geo.ppi,geo.neck); x.lineTo(geo.cx+3*geo.ppi,geo.neck); x.stroke();
     const fs=11*gs; x.font=`700 ${fs}px Helvetica,Arial,sans-serif`; x.setLineDash([]); const t='collar bottom', tw=x.measureText(t).width, tx=geo.cx+3*geo.ppi+4*gs; x.fillStyle='rgba(251,225,34,.95)'; x.fillRect(tx-2*gs,geo.neck-fs*0.75,tw+4*gs,fs*1.3); x.fillStyle='#141412'; x.fillText(t,tx,geo.neck+fs*0.35); x.restore();
     const hh=Math.max(16,30*gs); hits.unshift({neck:true,side,line,x:geo.cx-3*geo.ppi,y:geo.neck-hh/2,w:6*geo.ppi+tw+8*gs,h:hh,ppi:geo.ppi,bpx:geo.bpx}); }
+  if(ph&&opts.fill) x.restore();
   return {geo,hits};
 }
 /* the print laid into the fabric: the photo's light and shadow (relative to the fabric's own colour) shade the ink */
@@ -1079,9 +1084,10 @@ function page1(){
   if(band){ const im=printed()[0]||J.imps[0], X=4.1*u, Yb=1.85*u, s=5.5*u, shirt=(PH[J.line.id]&&PH[J.line.id].hex)||'#ff69b4'; x.fillStyle=shirt; x.fillRect(X,Yb,s,s);
     if(im){ const a=ART[im.id], sz=sizeOf(im); if(a&&sz){ const k=s/22, aw=sz.w*k, ah=sz.h*k; x.drawImage(artFor(im,J.line)||a.canvas,X+(s-aw)/2,Yb+(s-ah)/2,aw,ah); } drawInfo(x,im,0.5*u,5.35*u,2.6*u); } }
   else { const sides=sidesOf(printed());
-    const top=1.75*u, ph=4.4*u, left=3.35*u, right=10.6*u, pw=(right-left)/sides.length;
-    sides.forEach((sd,k)=>{ const X=left+k*pw; drawGarment(x,J.line,sd,X+0.1*u,top,pw-0.2*u,ph,{});
-      const ims=printed().filter(i=>sideOf(i)===sd), iw=(pw-0.3*u)/Math.max(1,ims.length); ims.forEach((im,j)=>drawInfo(x,im,X+0.55*u+j*iw,top+ph+0.25*u,iw-0.15*u)); }); }
+    // v13: the garment is bigger — photo cropped to the garment, and taller space (info blocks moved down)
+    const top=1.55*u, ph=5.0*u, left=3.3*u, right=10.65*u, pw=(right-left)/sides.length;
+    sides.forEach((sd,k)=>{ const X=left+k*pw; drawGarment(x,J.line,sd,X+0.05*u,top,pw-0.1*u,ph,{fill:true});
+      const ims=printed().filter(i=>sideOf(i)===sd), iw=(pw-0.3*u)/Math.max(1,ims.length); ims.forEach((im,j)=>drawInfo(x,im,X+0.55*u+j*iw,top+ph+0.15*u,iw-0.15*u)); }); }
   return c;
 }
 function colourwaysPage(){
@@ -1089,7 +1095,7 @@ function colourwaysPage(){
   const c=document.createElement('canvas'); c.width=PW; c.height=PH_; const x=c.getContext('2d'), u=DPP; x.fillStyle='#fff'; x.fillRect(0,0,PW,PH_);
   drawLogoBox(x,0.45*u,0.4*u,0.62*u); x.fillStyle='#231f20'; x.font=`700 ${Math.round(0.5*u)}px ${FONT}`; x.fillText('Colorways',1.25*u,0.95*u);
   const n=lines.length, cols=Math.min(4,n), rows=Math.ceil(n/cols), cw=10*u/cols, ch=(6.6*u)/rows;
-  lines.forEach((l,i)=>{ const X=0.5*u+(i%cols)*cw, Y=1.3*u+Math.floor(i/cols)*ch; drawGarment(x,l,sidesOf(printed())[0],X+0.1*u,Y,cw-0.2*u,ch-0.45*u,{labels:false});
+  lines.forEach((l,i)=>{ const X=0.5*u+(i%cols)*cw, Y=1.3*u+Math.floor(i/cols)*ch; drawGarment(x,l,sidesOf(printed())[0],X+0.1*u,Y,cw-0.2*u,ch-0.45*u,{labels:false,fill:true});
     x.fillStyle='#231f20'; x.font=`700 ${Math.round(0.12*u)}px ${FONT}`; x.textAlign='center'; x.fillText(l.g.color||l.g.name,X+cw/2,Y+ch-0.15*u); x.textAlign='left'; });
   return c;
 }
