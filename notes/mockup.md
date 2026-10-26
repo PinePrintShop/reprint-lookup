@@ -358,3 +358,12 @@ Stephen (proof for 11080, Cotton Collective "OVERSIZED B…" running under the s
 - **The fix:** the brand, style and colour in the proof's left column shrink to fit its 2.7″ width. Below half size they wrap onto a second line instead (up to 3 lines).
 - **Short names are unchanged:** "1717" stays big.
 - Tested with Cotton Collective "OVERSIZED BOXY HEAVYWEIGHT TEE" / White Cap Off White, which wraps cleanly in the column, plus the regression scripts.
+
+## 2026-10-26 — v26
+Stephen: "in the mockup creator it should have something when it is a reprint to gain access to that folder in the drive as well".
+
+- **How a reprint is found:** an imprint linked to a previous imprint (Imprints › previous imprint, field fldAEQvMAAZX9gnhl, the same link the Seps app uses for the previous run) is a reprint. That imprint's ID (e.g. 9447-F) gives the original order number (9447).
+- **Drive panel:** shows **This order #11080 · Reprint of #9447** (several originals each get their own button). Tap to switch; each opens at its Client Provided folder, and the path goes up to the whole order folder.
+- **No folder yet:** if the new order has no Drive folder, the original's opens straight away with a note: "No Drive folder for #11080 yet — showing the original order #9447."
+- **Speed:** folder look-ups are kept per order number for the session, so switching back is instant.
+- Tested with mocked Airtable and Drive, with and without a folder for the new order; regression scripts pass.
