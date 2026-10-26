@@ -386,3 +386,17 @@ Stephen: "in the .ai file it looks like an image vs being assigned the pantones.
   - A 7-screen sim glow exported in 4 s at 6.9 MB, with 2 tonal screens as dots (checked at 300 dpi) and 5 solid screens.
   - No frame on any screen.
 - **Not checked in Illustrator itself:** whether Separations Preview lists the screens. Stephen to confirm on a real job.
+
+## 2026-10-26 — v14
+Stephen: "let's not vectorize it and maybe let's include a .psd on channels as well".
+
+- **Stacked .ai / .pdf are v12's again:** each screen is a continuous-tone image in its spot colour, and the Xitron makes the halftones. The vector .ai from v13 is gone.
+- **New export, "Photoshop .psd (spot channels)":** a grayscale document at 300 ppi.
+  - The composite is left white. Every screen is a **spot channel** named like the screen (230M-630OW), in its ink colour, in print order; ink is black in each channel, as Photoshop draws spot channels.
+  - It opens in Photoshop with Window › Channels showing every screen. From there it can be checked, edited, or saved as DCS for the .ai template.
+  - Under the hood: names in resources 1006/1045; ink colour, solidity and kind = spot in 1077; 300 ppi in 1005; RLE-compressed channels, no layers.
+- **Kept from v13:** sim traps no longer put a frame round the art.
+- **Tested:**
+  - A 2-colour logo .ai → .psd at 2700 × 1260: psd-tools reads 5 channels (white composite + 158M-BB, 158M-EZWHT, 230M-186OW, 230M-654), all marked spot with the right colours. Each channel's pixels are correct.
+  - A 7-screen sim job → .psd (1.1 MB) reads back with all 7 spot channels.
+  - **Not opened in Photoshop itself yet.**
