@@ -418,3 +418,15 @@ Stephen: "can we also include an eye dropper so we can grab colors from the orig
 - **Tested:**
   - A blue panel with a tiny green dot (about 0.2% of the art): the auto scan missed the green, and the eyedropper added 355 with its own screen 230M-355OW. After + there was no duplicate.
   - Picker chips, search ("cool gray" → Cool Gray 11…7), choosing a chip, and re-picking from the art all worked.
+
+## 2026-10-26 — v16
+Stephen: "does a weird thing with the .psd it was adding one of the colors in channels to the grey". His screenshot of 11080-A-F-SEPS.psd showed:
+- Channels listed Gray + 3 spot channels, but the job had 4 screens.
+- The canvas showed a checkerboard in the shape of the missing screen.
+
+- **Why:** the v14/v15 .psd had no layer section. Photoshop then treats the first extra channel as the background layer's transparency, so the first screen disappeared from Channels and showed as see-through on the canvas.
+- **Fix:** the .psd now has one plain, opaque layer ("Base", white) with no transparency channel (a positive layer count), so every extra channel can only be a spot channel.
+- Tested with psd-tools:
+  - 1 layer (Base, gray channel only), no transparency.
+  - Merged image: a white Gray channel plus every screen as a named spot channel with correct pixels (logo: 4 of 4; sim glow: 7 of 7).
+- **To confirm:** Stephen to re-check in Photoshop that all screens show in Channels and nothing is see-through.
