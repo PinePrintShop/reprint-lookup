@@ -510,3 +510,14 @@ Stephen: "also the sep maker can't combine colors and it probably should". It co
 - **Each ink's picker** has "Combine with" chips: tap the ink this one should print as.
 - **A merged ink** says "merged into 725 · Unmerge". Unmerge puts back its old role.
 - Tested on a gradient, on flat art with forced extra colours, and on art with a tiny accent.
+
+## 2026-10-26 — v23
+Stephen: "doesn't look like I can add a highlight white in the sep maker". It was only under Sim process settings, and only did anything on dark shirts.
+
+- **One "Highlight white (HLWHT)" box**, now with the base layers (Underbase / Light layer), for every method:
+  - **Spot and Index:** an HLWHT screen over the white areas of the art (the white/cream inks, and the EZ layer's own colour), printed after the colours and before black, with no choke.
+  - **Sim process:** the art's brightest near-neutral areas, tonal: full strength at pure white, fading out by about 78% lightness. Works on any shirt. Asking the sim mix for a white gave an empty screen, because the EZ base already supplies white.
+  - **No white in the art:** a note says so.
+- Tested on navy art with white text (15% white), black shirt:
+  - Spot: HLWHT 15.1%. Index: 15.0%, after the colours. Sim: 14.9%. Sim on a white shirt: 14.9%.
+  - Off: no HLWHT. Art with no white: the note shows.
