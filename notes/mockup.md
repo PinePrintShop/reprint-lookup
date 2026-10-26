@@ -531,3 +531,17 @@ Stephen: "yes let's start [comments]...also we do discharge bandanas so need tha
   - comments load, names, @mentions; posting sends `{"text":"[Art Department] Proof is up, hops bigger\n@[usrIie9QUerxvDqmi]"}` to the line's comments; box clears;
   - bandana base row shows Auto/Off/Discharge; proof page 1 shows Discharge;
   - v28–v36 regression tests pass.
+
+## 2026-10-26 — v38: Drive both ways
+Stephen: "can we upload to the drive from the app as well?"
+- **⬆ Upload here** in the customer's-files panel puts files in the folder that's open (Client Provided, a subfolder, the order folder …). Or drop files on the panel; it gets a black outline. Dropping anywhere else still opens art.
+  - Up to 25 MB each (the worker's limit), 3 at a time. The folder re-reads so they show.
+  - Failures are listed under the panel.
+- **⬇** on every file downloads it.
+- **Attach proof to line** also saves the PDF in the order's Drive folder, as Line Item Review does: its Proofs subfolder (Proofs / Proof / For Proof), else the top of the order folder.
+- The same worker routes as Line Item Review (drive/search, list, file, upload). Practice uploads nothing.
+- Tested with a mocked worker:
+  - download → logo.png;
+  - 2 files uploaded to Client Provided (POST drive/upload?folder=CP) and shown after the re-read;
+  - a tap still opens art;
+  - attach → Airtable upload, then drive/upload?folder=PR with the proof PDF.
