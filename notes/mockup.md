@@ -427,3 +427,27 @@ Stephen: "I think I need to be able to crop as well that way the sizing is corre
   - crop / no crop / cancel on a one-file print;
   - crop on one file of a two-file print;
   - v25–v29 regression tests pass.
+
+## 2026-10-26 — v31
+Stephen: "mockup creator needs to be able to reference Discharge as well....also I like the idea of matching inks with what we have in stock. also if it goes on a base we do use OW after the number that mean On White. and DC for discharge. Direct to Fabric just is the pantone number" · "trying to open up a .psd file and saying CMYK not supported"
+
+- **Discharge** is a fifth Underbase choice.
+  - It's drawn as the garment colour lifted toward natural cotton under the print, with the inks a touch soft.
+  - Auto picks Discharge when the imprint's Pantones say DC or discharge, and a white base when they say OW.
+- **Ink names follow the base** on the art swatches and the proof chips:
+  - white/cream base → `286OW`;
+  - discharge → `286DC`;
+  - direct to fabric → `286`.
+  - The proof's BASE WHT/CRM chip stays for white/cream bases, not discharge.
+- **Matching inks prefers Pine's inks.**
+  - It reads Airtable › Inks (every mix, with its type: Direct-to-fabric / OW / SOW / Discharge) once a day, read-only. SOW counts as OW.
+  - Like Sep Maker v20, an ink mixed often wins when it's nearly as close as the nearest Pantone (up to ΔE 3.5).
+  - A swatch says **in stock** when that ink has been mixed before in the type this garment needs (OW, DC or direct). This counts past mixes; the Inks table has no on-hand quantity.
+- **CMYK .psd files open.**
+  - The Photoshop reader refuses CMYK, so the flattened image is read straight from the file (RGB/CMYK/grayscale, 8/16 bit, raw or RLE), with its ppi and spot channel names.
+  - CMYK becomes RGB without a colour profile. There are no layer switches for these files; the white background drops like a JPG's.
+- Fixed a v29 slip: a PSD with no flattened copy hit an undefined message box while building from layers.
+- Tested with mocked Airtable (Playwright):
+  - discharge / OW / plain names on swatches and proof; in-stock marks; Pantones "286 OW" → white base, "286DC" → discharge;
+  - CMYK PSDs (raw and RLE) open red at 300 ppi;
+  - v25–v30 regression tests pass.

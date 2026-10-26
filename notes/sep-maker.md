@@ -521,3 +521,9 @@ Stephen: "doesn't look like I can add a highlight white in the sep maker". It wa
 - Tested on navy art with white text (15% white), black shirt:
   - Spot: HLWHT 15.1%. Index: 15.0%, after the colours. Sim: 14.9%. Sim on a white shirt: 14.9%.
   - Off: no HLWHT. Art with no white: the note shows.
+
+## 2026-10-26 — v24
+Stephen: "trying to open up a .psd file and saying CMYK not supported".
+
+- CMYK .psd files open. The Photoshop reader (ag-psd) refuses CMYK, so the flattened image is read straight from the file (RGB/CMYK/grayscale, 8/16 bit, raw or RLE), with its ppi and spot channel names. CMYK → RGB without a colour profile (same reader as Mockup Maker v31).
+- Tested: a CMYK RLE PSD opens at 300 ppi; a 16-bit RGB PSD with spot channels still opens through ag-psd.
