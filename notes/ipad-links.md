@@ -24,7 +24,7 @@
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
 | Production Board | `pine-production-board.html` | v48 |
 | Seps | `seps.html` | v45 |
-| Screens | `screens.html` | v30 |
+| Screens | `screens.html` | v31 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v26 |
 | Pine Central | `pine-central.html` | v176 |
