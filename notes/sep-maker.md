@@ -549,3 +549,11 @@ Stephen: "the sep one should do the google drive access to the folder so we can 
   - the panel, download, 2 uploads to Client Provided;
   - opening logo.png from a tile;
   - a transparent PNG export saved to Seps (drive/upload?folder=SP).
+
+## 2026-10-26 — v29: the export becomes the imprint's sep file
+From the Seps / Screens review. Stephen: "now that we have google drive setup....can we scan Seps and Screens app and see how we can improve those" → "you can have an agent start working on Seps and Screens".
+- In Export, under "Also save to the order's Drive", a new tick: **"Make it 11075-A's sep file"**. When the export is saved to the order's Seps folder, its Drive link goes into Imprints › Sep URL. That's the field the Seps and Screens apps open, so nobody copies links by hand.
+- It's ticked when the imprint has no sep link. If it has one, it reads "Replace 11075-A's sep file link" and starts unticked.
+- Not offered for the transparent .png (a picture of the print, not seps), or when the Drive save is off. Exports over 25 MB download only, so they aren't linked.
+- Practice fakes the save.
+- Tested with a mocked worker: a .psd export uploads to drive/upload?folder=SP, then PATCHes the imprint with `{"fields":{"fldiBqdFTRMahiMeI":"<webViewLink>"}}`; the toast says it's now 11080-A's sep file.
