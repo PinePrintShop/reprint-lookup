@@ -67,3 +67,12 @@ Checked against the live worker (v29) rather than mocks:
   - Still draggable.
 - Fixed a race where switching garments quickly could leave the previous garment's photo or body width on screen.
 - The same bare-style S&S lookup is in Sep Maker v11's proof photos; it isn't fixed there (Sep Maker is paused).
+
+## 2026-10-26 — v6
+Stephen: "Also the proof only needs to show the back if there is a back print same with the imprint if info. That is only if that is actually on the print".
+
+- A print counts as "on the print" once it has art.
+- **The proof only uses those prints.** That covers the front/back garment views, the info blocks (size, placement, colours), the detail pages, the page tabs and the Colorways page. The back view only appears when a back print has art.
+- A front-only quick mockup (no order) now gives a one-garment proof.
+- The Mockup view shows the sides that have art, plus the side of the imprint you're on so you can place it. Colourways shows the sides with art. The placement rows list only prints with art, plus the one you're on.
+- The proof can be made once any print has art. Imprints without art are named above the picture ("No art yet for … — left off the proof") so an order's missing print isn't missed.
