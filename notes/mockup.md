@@ -413,3 +413,17 @@ Stephen: "on the mockup creator can we be able to add a few images to a location
   - reference shown; back to one file;
   - red bandana close-up is red; Underbase row hidden on bandanas;
   - v25/v27/v28 regression tests pass.
+
+## 2026-10-26 — v30
+Stephen: "I think I need to be able to crop as well that way the sizing is correct".
+
+- **Crop**: the button next to Add a reference (one-file prints), or ✂ on a file in the Files in this print list. It opens the file big.
+  - Drag a box round the part that prints. Drag inside the box to move it, or a corner to resize it.
+  - While you drag, it shows the box's size at the file's scale.
+- The art keeps its scale. After cropping, the print width is the real width of what's left, not the whole file stretched to the old width (e.g. 8.75″ file → left half → 4.37″).
+- **No crop** puts the whole file back at its full width. The button reads "Crop ✓" while a crop is on.
+- Crop runs after the background drop, so dropping a solid background still reads the file's own edges.
+- Tested with mocked Airtable (Playwright):
+  - crop / no crop / cancel on a one-file print;
+  - crop on one file of a two-file print;
+  - v25–v29 regression tests pass.
