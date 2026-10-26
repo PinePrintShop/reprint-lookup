@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<!-- Mockup Maker v22 (2026-10-26): your own garment photo (Stephen, on garments no vendor has a photo of — customer
+     blanks, other suppliers, promo items: "let's just do 1 for now" = upload a photo in step 3). Step 3 › Your photo ›
+     Front / Back: drop on the button or tap to pick any photo — a supplier's site image, a phone photo laid flat.
+     The plain background around the garment is taken out (filled in from the edges), it's cropped to the garment on
+     white like a vendor shot, and then it's used exactly like a vendor photo: true size from the length (shirts) or
+     Width across (everything else), the collar line, fabric shading. It's kept for this style + colour until the page
+     is closed; "Use the vendor photo" goes back.
+     v21 (2026-10-26): methods (Stephen: "we do need methods as well...like printed or embroidery etc...since
+     those say threads"). Each imprint has a method — Screen print, Embroidery, Patch, Heat transfer — read from Airtable
+     (Imprints › method: Embroidery; Patch Application / Decopress / labels → Patch; Supacolor → Heat transfer; everything
+     else → Screen print; an Embroidered Apparel line with no method → Embroidery) and changeable in step 2 › Method.
+     Embroidery: drawn as stitches (satin sheen, raised with a soft shadow), "Thread colours" instead of inks (rename
+     them to the thread you'll use, e.g. 1756 MD — any text), and the proof reads EMBROIDERY / THREAD COLORS with the
+     sew-out note and thread wording in the fine print, like the art department's embroidery proofs. Patch: drawn
+     raised with a stitched border. Heat transfer: flat, like a print.
+     v20 (2026-10-26): OAD 108 tote (Stephen: "we should have access to this OAD product"). S&S lists it as
+     "OAD108" and the order says "108", so the photo lookup missed it: a style not found on its own number is now also
+     looked up with the brand in front (OAD + 108). Totes and other non-shirt items take their real width from S&S's
+     Measurements line (OAD108: 20"W x 15"H) instead of the typical 15".
+     v19 (2026-10-26): hats, beanies, totes and other non-shirt items (Stephen: "also you should be able to pull in
+     all garments right even hats etc.."). They were sized like a 29" shirt with a collar line. Now each kind has its own
+     true size — measured across the item in the vendor photo: caps 8.25", beanies 9", totes 15", anything else 20" — and
+     its own print spot (cap front panel, beanie cuff, bag body, centre), with a default print width (4", 3", 10", 8").
+     Step 3 › "Width across (in)" corrects the size for any style. No collar line or shirt size on these.
+     v18 (2026-10-26): a more real bandana (Stephen: "can we rework the bandana image....feels a little fakey right
+     now"). The bandana is now a generated photo of cotton: the crisp creases from being folded in quarters, soft wrinkles,
+     light and shade across them, a cotton weave, slightly uneven edges (bandanas aren't perfectly square) with a rolled,
+     stitched hem, and a soft shadow. The print is shaded by the same folds — the same way prints sit in the shirt photos.
+     Colours in the art can be edited (Stephen: "can we also combine colors when they are similar or have a way to edit them
+     and or remove them"): Combine similar, and per colour: recolour, rename (call it 1655 without changing the picture),
+     merge into another colour, remove from the list (not an ink), or erase it from the art. Chips and counts follow.
+     v17 (2026-10-26): big Photoshop files no longer run the browser out of memory (Stephen: "just got a exceeded
+     memory for a large .psd"). A PSD was read with every layer as a full-size image, then copied several times. Now
+     only the flattened image is read (layers listed by name; their pixels load only when you switch one off), and any
+     art over 4000 px is shrunk to 4000 px to work with — the print size is unchanged (it's still the file's real size).
+     v16 (2026-10-26): bandanas (Stephen: "oh yeah we need bandanas as well on here"). Carolina Creative bandanas
+     (4800, 4900, 4927, 795…) are drawn as a true-size square (22" unless set) in the bandana colour with a cotton weave,
+     hem and soft folds; the print sits centred (drag to move; "Centered" / "X" off centre" on the proof). Search
+     "bandana" in step 3 to start one without an order; "Also show on" offers the bandana colours from Airtable. The
+     proof uses the bandana layout with the same drawing. Colour comes from the name (table of Pine's bandana colours);
+     a colour box fixes any that look off.
+     v15 (2026-10-26): more garments on one mockup (Stephen: "can we also be able to select multiple garments if the
+     design is sharing across a few colorways"). Step 3 › "Also show on": tick more colours of the style (or search
+     another style and tick its colours too) and they join the Colorways view and the proof's Colorways page, each with
+     the same prints and its own inks if recoloured. Works with or without an order (added garments are for the mockup
+     only — Airtable isn't changed, and a proof is attached to the order's own line). Tab renamed "Colorways".
+     v14 (2026-10-26): less scrolling on desktop (Stephen: "can we make the desktop version not have to scroll as
+     much"). The mockup fits the screen height (it was drawn full-width and ran off the bottom), is only as wide as the
+     sides shown (a front-only job no longer sits in a two-garment-wide picture), the placement boxes moved into the
+     sidebar under the art, the long instruction line became a short hint in the zoom bar, and the proof page fits the
+     screen too. Phones keep the stacked layout.
+     v13 (2026-10-26): sharp prints (Stephen: "also looks like when I upload a file it is pretty pixaleted in
+     the preview"). The realistic (fabric-shaded) print was worked out at the mockup's base size and then stretched 1.5–3×
+     to the screen (more when zoomed), so it went blocky. It's now worked out at the real screen resolution, and big art is
+     shrunk in halving steps (a one-step shrink of a 4000 px file to a few hundred pixels goes jagged, worst in Safari).
+     Proof: the garment is bigger (Stephen: "can we also make the garment larger on the main proof to fill up the page
+     better") — the photo is cropped to the garment and gets a taller space; same on the Colorways page.
+     v12 (2026-10-26): recolour the art (Stephen: "How hard would it be to re color files. Do those need to
+     be .ai or .psd files" · "Sure let's try the full version").
+       - Works on any art the app opens (PNG/JPG/PDF/.AI/.PSD) — it recolours the picture, never the customer's file.
+       - Tap an ink under "Colours in the art" → pick the new one (Pantone/shop ink search, or a #hex) → every pixel of
+         that ink moves to the new colour, and pixels blended between two inks (soft edges, halftone, distress) move with
+         them, so there's no halo of the old colour. Reset per ink or all.
+       - All garments, or just this garment: e.g. white ink on the black shirts and navy on the natural ones. Colourways
+         shows each garment with its own inks (tap one to work on it) and the proof's Colorways page does too.
+       - The proof's colour chips follow: recoloured inks show their new Pantone.
+       - Flat spot-colour art recolours cleanly; photo / sim-process art only roughly (the panel says so).
+     v11 (2026-10-26): true size from the garment's LENGTH (Stephen: "Since some of these are not flat. Maybe
+     we should try and use the heights for sizing. Right now I still feel the width of the design feels smaller than
+     what is actual is when printed"). Measured on 80 S&S photos and 6 SanMar ones: vendors shoot shirts shaped (on an
+     invisible mannequin), so the body looks only about 2/3 as wide as its laid-flat width — the width-based scale made
+     prints about 2/3 of their real size. Length isn't changed by the shaping, so the scale is now the garment's height in
+     the photo ÷ its body length for the picked size (S&S spec sheet; a typical length otherwise), plus 0.5" for the
+     collar above the shoulder point, or 4.5" for a hood. "Body length" replaces "Body width" in step 3.
+     v10 (2026-10-26): collar scan built in (Stephen: "yes run the agent"): the bottom of the collar was
+     measured on the vendors' own photos for Pine's 50 most-ordered S&S/SanMar styles, front and back, two colours each,
+     and the collar line starts there (per colour when that colour was measured). The line is now kept as a share of the
+     garment in the photo, so it stays on the collar at any size (it used to slide when the size changed). Dragged lines
+     are remembered per style AND colour. Fallbacks for other styles moved to what the scan found (tees about 4.1").
+     Also: says where the print width came from (Stephen: "This says it is 11 wide print does
+     that feel right?"). Under the width: "From the file: 300 ppi" / ".ai artboard" / "Photoshop size", or, when the
+     file doesn't say its size, a bold "The file doesn't say its size — this is the usual front width. Type the real width."
+     v9 (2026-10-26): SanMar collar line lower (Stephen, PC54 screenshot: line above the collar bottom,
+     "But the others look good"). Re-measured with a finer ruler: the bottom of the PC54's front collar is 6.2" below
+     the top of SanMar's flat photo (not 5.3"). SanMar tees start at 6.25", SanMar crews 6.75" (estimate).
+     v8 (2026-10-26): the collar line lands on the bottom of the collar on the Gildan crewneck too
+     (Stephen: "Meaning 3" down is from the bottom · Not on the Gildan crewneck sweatshirt"). Re-measured the bottom
+     seam of the front collar at the centre on real flats: S&S tees 2.1–2.6", the Gildan 18000 crew's wide rib 4.4",
+     SanMar's PC54 5.3" (SanMar frames its flats differently). The starting line is now set by who took the photo and
+     the garment type; backs 1.1" (tee) / 1.5" (crew). Still draggable and remembered per style.
+     v7 (2026-10-26): placement is measured from the bottom of the collar (Stephen: "We size based on the
+     bottom of the collar"). The yellow line now starts on the bottom of the collar, measured on real S&S/SanMar flats
+     (v8 re-measured: see v8 note), is labelled "collar bottom", is
+     easier to grab on a phone, and once dragged for a style it's remembered on that computer/phone for that style.
+     Also from real photos: white garments on a white photo background now measure (the edge test was too strict),
+     and crewneck/hoodie body width ignores sleeves hanging against the body (narrowest lower-body row). The page no
+     longer zooms itself when a button is tapped twice on an iPhone.
+     v6 (2026-10-26): the proof only shows what's printed (Stephen: "the proof only needs to show the back
+     if there is a back print same with the imprint if info. That is only if that is actually on the print").
+     A print is "on the print" once it has art. The proof's front/back views, info blocks, detail pages and the
+     colourways page only use those; the back view only appears when a back print has art. The Mockup view shows the
+     sides with art plus the side of the imprint you're on; Colourways shows the sides with art.
+     v5 (2026-10-25): real garment photos from S&S (Stephen: "And it will pull in the actual garment
+     right"). Checked live: S&S won't find a bare style number ("1717" → not found); it needs its own style ID. The app
+     now looks the ID up first (styles search, matched on style + brand), then gets that style's colours, photos and
+     size specs by ID. Body width reads S&S "Chest Width (Laid Flat)" (or half a chest circumference).
+     v4 (2026-10-25): zoom + colour scan (Stephen: "Can I zoom in on mobile to see if the placement is
+     looking good, can we also do a scan of the file to see possible colors in the design etc").
+       - Zoom: pinch (phone/iPad), ctrl/⌘ + scroll or the − / + buttons (computer), double-tap to zoom in there, and
+         "Zoom to print" for the imprint you're on. One finger drags a print or the neck line; anywhere else it pans.
+         The picture is redrawn sharper as you zoom. The print you're on shows its box, size and "X″ below neck" line.
+       - Colour scan: each art file is scanned for its main colours (blended edge pixels ignored), each with its
+         share of the print and the nearest shop ink/Pantone. Spot colours named in an .ai/PDF (and PSD spot channels)
+         are listed too. Compared with the imprint's Pantones: which match, which aren't on the imprint, which weren't
+         found. Flags lots of blended tones (likely sim process / halftones) and white ink. Tap a colour to see where
+         it is in the art. With no Pantones on the imprint, the proof's colour chips come from the scan.
+     v3 (2026-10-25): the garment picker searches the vendors too (Stephen: "Can it also search vendors as
+     well"). Results mix Pine's Garments table with the S&S and AS Colour style lists (cached a day, like Price-O-Matic);
+     the colour list adds every colour the vendor makes under "More from the vendor". A vendor style's garment type
+     comes from its title (hoodie, crew, tank…) so the true-size body width fits. The typed style/colour row is gone.
+     v2 (2026-10-25): garment picker + front first (Stephen: "Can we have a garment selector in here. As
+     well as front should be the stock starting point not back").
+       - Garment: search the Garments table (style, brand or colour), pick a style, then a colour. It swaps the garment
+         on the mockup and proof for this line (Airtable isn't changed); "Use the line's garment" swaps back. With no
+         order it starts a quick mockup on that garment.
+       - Front first: imprints run Front, Left/Right Chest, Pocket, Sleeves, then Back, and the app opens on the first.
+     v1 (2026-10-25): the art department's mockup + proof tool (Stephen: "let's pivot away from the
+     separator and really maybe focus on a mockup creator" · "can we also take in .AI and .PSD files in the mockup
+     creator to help streamline stuff" · "Art Dept will use it most" · "Pretty realistic would be great. and true to
+     size visuals").
+       - Job: an order awaiting proof › line › imprints (Airtable, same key as the other apps), or "No order" with a
+         style + colour typed in.
+       - Art per imprint: PNG, JPG, PDF, .AI (its built-in PDF copy, via pdf.js) and .PSD (flattened image + layers you
+         can switch off, via ag-psd); or straight from the order's Drive folder (worker drive routes). Empty canvas is
+         trimmed; a solid background can be dropped (edges or everywhere).
+       - Realistic: the vendor's garment photo (AS Colour for AS Colour, else S&S, else SanMar) with the print laid
+         into the fabric — the photo's folds and heather shade the ink.
+       - True to size: the garment's real body width for the chosen size (S&S specs; a table by garment type
+         otherwise) is matched to the garment in the photo, so 3.5" on a left chest is 3.5" against a size M (or the
+         size you pick). Drag a print to place it; "X" below neck" follows. The neck line can be dragged too.
+       - Colourways: every line on the order with the same imprints, side by side.
+       - Proof: the art department's proof layout (from Line Items › Proof Images) as a PDF — Download, Attach to the
+         line ("11074 | 1717-HYD.pdf", V2…), Proof done → send to Review (ticks Awaiting Review; the automation Slacks
+         sales and the production manager). ?practice=1 fakes both writes.
+     Needs worker v29 (/proxy/img) for vendor photos in the PDF. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup Maker v22 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<script src="pine-pantone-v1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ag-psd@31.0.2/dist/bundle.js"></script>
+<style>
+html{touch-action:manipulation}
+body{margin:0;background:var(--p-cream-lt)}
+.mk{display:grid;grid-template-columns:380px minmax(0,1fr);height:calc(100vh - 64px);height:calc(100dvh - 64px)}
+.mk-side{overflow-y:auto;overscroll-behavior:contain;background:var(--p-white);border-right:1px solid var(--p-line);padding:16px 16px 40px;display:flex;flex-direction:column;gap:18px}
+.mk-main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.mk-blk{display:flex;flex-direction:column;gap:10px}
+.mk-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.mk-row>.p-field{flex:1 1 0;min-width:0}
+.mk-lbl{font:700 var(--p-fs-xs)/1.2 var(--p-sans);color:var(--p-ink-2);text-transform:uppercase;letter-spacing:.04em}
+.mk-hint{font-size:var(--p-fs-xs);color:var(--p-ink-3);line-height:1.35}
+.mk-drop{border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);padding:14px;display:flex;gap:12px;align-items:center;cursor:pointer;background:var(--p-cream-lt)}
+.mk-drop:hover,.mk-drop.is-over{border-color:var(--p-black);background:var(--p-yellow-lt)}
+.mk-drop canvas{width:56px;height:56px;object-fit:contain;background:#bbb;border-radius:4px;flex:0 0 auto}
+.mk-drop b{display:block;font-size:var(--p-fs-m);word-break:break-all}
+.mk-check{display:flex;gap:10px;align-items:flex-start;font-size:var(--p-fs-s);cursor:pointer;line-height:1.3}
+.mk-check input{width:20px;height:20px;margin:0;flex:0 0 auto;accent-color:var(--p-black)}
+.mk-files{display:flex;flex-direction:column;border:1px solid var(--p-line);border-radius:var(--p-r);max-height:220px;overflow:auto}
+.mk-file{display:flex;gap:8px;align-items:center;padding:8px 10px;border-top:1px solid var(--p-line);background:var(--p-white);cursor:pointer;font-size:var(--p-fs-s);text-align:left;border-left:0;border-right:0;border-bottom:0;width:100%}
+.mk-file:first-child{border-top:0}
+.mk-own{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px dashed var(--p-line);border-radius:var(--p-r);background:var(--p-cream-lt,#f8f1e6)}
+.mk-own .p-btn{min-height:40px;padding:0 12px}
+.mk-own .p-btn.is-drag{background:var(--p-yellow)}
+/* v19: Drive browser — the order's Client Provided folder, as tiles you can open */
+.mk-dhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.mk-dhead .mk-lbl{flex:1}
+.mk-crumb{order:3;flex-basis:100%;min-width:0;font-size:var(--p-fs-s);display:flex;flex-wrap:wrap;gap:2px 6px}
+.mk-crumb button{border:0;background:none;padding:0;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;color:var(--p-black)}
+.mk-dopen{font-size:var(--p-fs-s);font-weight:700;color:var(--p-black)}
+.mk-dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;max-height:300px;overflow:auto;padding:2px}
+.mk-dt{display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid var(--p-line);border-radius:var(--p-r);background:var(--p-white);cursor:pointer;text-align:left;font:inherit;color:var(--p-black);min-width:0}
+.mk-dt:hover{border-color:var(--p-black);background:var(--p-yellow-lt)}
+.mk-dt .im{aspect-ratio:1;border-radius:3px;background:var(--p-cream) center/contain no-repeat;display:flex;align-items:center;justify-content:center;font:800 var(--p-fs-s)/1 var(--p-sans)}
+.mk-dt.fold .im{background:var(--p-black);color:var(--p-yellow)}
+.mk-dt .nm{font-size:var(--p-fs-xs);line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+.mk-dt .sz{font-size:var(--p-fs-xs);color:var(--p-ink-2,#6b6457)}
+.mk-dt.off{cursor:pointer;opacity:.6;text-decoration:none}
+.mk-dt.off:hover{border-color:var(--p-line);background:var(--p-white)}
+.mk-file:hover{background:var(--p-yellow-lt)}
+.mk-file .ext{font:800 var(--p-fs-xs)/1 var(--p-sans);background:var(--p-black);color:var(--p-yellow);padding:4px 6px;border-radius:3px;min-width:34px;text-align:center}
+.mk-file .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mk-layers{display:flex;flex-direction:column;gap:2px;max-height:200px;overflow:auto;border:1px solid var(--p-line);border-radius:var(--p-r);padding:6px}
+.mk-layers label{display:flex;gap:8px;align-items:center;font-size:var(--p-fs-s);min-height:30px;cursor:pointer}
+.mk-layers input{width:18px;height:18px;accent-color:var(--p-black)}
+.mk-views{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:var(--p-white);border-bottom:1px solid var(--p-line)}
+.mk-views .sp{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mk-stage{flex:1;min-height:0;overflow:auto;padding:12px 16px;position:relative;display:flex;flex-direction:column}
+#mockBox{flex:1;min-height:0;display:flex;flex-direction:column}
+.mk-msg:empty{display:none}
+#proofCv{width:auto;max-width:100%;max-height:calc(100vh - 250px);max-height:calc(100dvh - 250px);margin:0 auto}
+.mk-cv{width:100%;height:auto;background:#fff;box-shadow:var(--p-shadow);touch-action:none;display:block}
+.mk-msg{margin:0 0 10px;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.mk-empty{display:grid;place-items:center;min-height:360px;text-align:center;color:var(--p-ink-2)}
+.mk-cw{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:14px}
+.mk-cw figure{margin:0;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
+.mk-cw canvas{width:100%;height:auto;display:block}
+.mk-cw figcaption{padding:8px 10px;font-weight:700;font-size:var(--p-fs-s)}
+.mk-place{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+#imps .p-tab{min-height:40px;padding:0 12px}
+.mk-sizes .p-select{width:auto;min-height:40px;padding:6px 8px;font-size:var(--p-fs-s)}
+[hidden]{display:none!important}
+.mk-zbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 8px}
+.mk-zbar .p-btn{min-height:44px;min-width:44px;padding:0 12px}
+.mk-zbar .zl{font-weight:800;min-width:44px;text-align:center}
+.mk-zoom{flex:1;min-height:0;overflow:auto;background:#fff;box-shadow:var(--p-shadow);border-radius:4px;overscroll-behavior:contain}
+.mk-zoom .mk-cv{box-shadow:none;max-width:none;margin:0 auto}
+.mk-scan{display:flex;flex-direction:column;gap:8px;border:1px solid var(--p-line);border-radius:var(--p-r);padding:10px;background:var(--p-cream-lt)}
+.mk-sw{display:flex;flex-wrap:wrap;gap:6px}
+.mk-sw button{display:flex;align-items:center;gap:6px;min-height:36px;padding:3px 8px 3px 3px;border:1px solid var(--p-line-strong);border-radius:6px;background:var(--p-white);font:700 var(--p-fs-xs)/1.1 var(--p-sans);cursor:pointer;text-align:left}
+.mk-sw button.is-on{outline:3px solid var(--p-black)}
+.mk-sw i{width:28px;height:28px;border-radius:4px;border:1px solid rgba(0,0,0,.25);flex:0 0 auto}
+.mk-sw small{display:block;font-weight:400;color:var(--p-ink-3)}
+.mk-scan canvas{width:100%;height:auto;max-height:180px;object-fit:contain;background:#bbb;border-radius:4px}
+.mk-flag{font-size:var(--p-fs-s);line-height:1.35}
+.mk-rc{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--p-line);padding-top:8px}
+.mk-rc .opts{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow:auto}
+.mk-rc .opts button{display:flex;align-items:center;gap:6px;min-height:34px;padding:2px 8px 2px 2px;border:1px solid var(--p-line-strong);border-radius:6px;background:var(--p-white);font:700 var(--p-fs-xs)/1 var(--p-sans);cursor:pointer}
+.mk-rc .opts i{width:26px;height:26px;border-radius:4px;border:1px solid rgba(0,0,0,.25)}
+.mk-seg{display:flex;border:1px solid var(--p-line-strong);border-radius:var(--p-r);overflow:hidden}
+.mk-seg button{flex:1;min-height:36px;border:0;background:var(--p-white);font:700 var(--p-fs-xs)/1.1 var(--p-sans);cursor:pointer;padding:4px 6px}
+.mk-seg button.is-on{background:var(--p-black);color:var(--p-white)}
+.mk-cw figure{cursor:pointer}
+.mk-cw figure.is-on{outline:3px solid var(--p-black)}
+@media (max-width:900px){ .mk-stage{display:block} #mockBox{display:block} .mk-zoom{flex:none;max-height:70vh} #proofCv{max-height:none;width:100%} }
+@media (max-width:600px){ .mk-place .mk-row>.p-field{flex:1 1 40%} .mk-zbar .mk-hint{flex-basis:100%} }
+@media (max-width:900px){ .mk{display:block;height:auto} .mk-side{border-right:0;border-bottom:1px solid var(--p-line);overflow:visible} }
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Mockup Maker</span><span class="p-bar-ver" id="ver">v22</span>
+  <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Reload orders and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+  </div>
+</header>
+
+<div class="mk">
+  <aside class="mk-side">
+    <section class="mk-blk">
+      <span class="p-section">1 · Job</span>
+      <div class="mk-row" id="tokRow" hidden>
+        <label class="p-field"><span class="mk-lbl">Airtable key</span><input class="p-input" id="tok" type="password" placeholder="pat…" autocomplete="off"></label>
+        <button class="p-btn" id="tokSave" type="button">Save</button>
+      </div>
+      <label class="p-field"><span class="mk-lbl">Order awaiting proof</span><select class="p-select" id="ordSel"><option value="">No order — pick a garment in step 3</option></select></label>
+      <label class="p-field" id="lineRow" hidden><span class="mk-lbl">Line</span><select class="p-select" id="lineSel"></select></label>
+      <div class="mk-row" id="quickRow" hidden>
+        <label class="p-field"><span class="mk-lbl">Style</span><input class="p-input" id="qStyle" placeholder="e.g. 1717 or 3001" autocomplete="off"></label>
+        <label class="p-field"><span class="mk-lbl">Colour</span><input class="p-input" id="qColor" placeholder="e.g. Hydrangea" autocomplete="off"></label>
+        <button class="p-btn" id="qGo" type="button">Load</button>
+      </div>
+      <div class="p-tabs" id="imps"></div>
+      <span class="mk-hint" id="jobHint"></span>
+    </section>
+
+    <section class="mk-blk" id="artBlk">
+      <span class="p-section">2 · Art <span class="p-count" id="artFor"></span></span>
+      <div class="mk-seg" id="methSeg" role="group" aria-label="Method"><button type="button" data-m="print">Screen print</button><button type="button" data-m="emb">Embroidery</button><button type="button" data-m="patch">Patch</button><button type="button" data-m="transfer">Heat transfer</button></div>
+      <span class="mk-hint" id="methHint" hidden></span>
+      <label class="mk-drop" id="drop">
+        <canvas id="thumb" width="56" height="56" hidden></canvas>
+        <span><b id="dropTitle">Open art</b><span class="mk-hint" id="dropSub">PNG, JPG, PDF, .AI or .PSD. Drop, paste or click.</span></span>
+        <input type="file" id="file" accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.ai,.psd,image/*,application/pdf" hidden>
+      </label>
+      <div id="driveBox" hidden>
+        <div class="mk-dhead"><span class="mk-lbl">Customer's files</span><span class="mk-crumb" id="driveCrumb"></span><a class="mk-dopen" id="driveOpen" target="_blank" rel="noopener">Open in Drive</a></div>
+        <div class="mk-dgrid" id="driveFiles"></div>
+      </div>
+      <div class="mk-scan" id="scanBox" hidden>
+        <div class="mk-row" style="align-items:center"><span class="mk-lbl" style="flex:1"><span id="scanWhat">Colours in the art</span> <span id="scanCount"></span></span><button class="p-btn" id="scanCombine" type="button" style="min-height:34px;padding:0 10px">Combine similar</button><button class="p-btn" id="scanUndo" type="button" style="min-height:34px;padding:0 10px" hidden>Undo edits</button></div>
+        <div class="mk-sw" id="scanSw"></div>
+        <canvas id="scanCv" hidden></canvas>
+        <div class="mk-rc" id="rcBox" hidden>
+          <span class="mk-lbl" id="rcTitle">Change this ink to</span>
+          <div class="mk-seg" id="rcMode"><button type="button" data-m="recolour" class="is-on">Recolour the art</button><button type="button" data-m="rename">Just rename it</button></div>
+          <div class="mk-row"><label class="p-field"><span class="mk-lbl">Merge into</span><select class="p-select" id="rcMerge"></select></label></div>
+          <div class="mk-row"><button class="p-btn" id="rcRemove" type="button" title="Leave the art as it is; don't count it as an ink">Remove from the list</button><button class="p-btn" id="rcErase" type="button" title="Take this colour out of the art">Erase from the art</button></div>
+          <div class="mk-seg" id="rcScope"><button type="button" data-s="*" class="is-on">All garments</button><button type="button" data-s="line" id="rcLineBtn">This garment only</button></div>
+          <input class="p-input" id="rcSearch" placeholder="Pantone or ink, e.g. 286, Black, Cool Gray 7, #1a2b3c" autocomplete="off">
+          <div class="opts" id="rcOpts"></div>
+          <div class="mk-hint" id="rcGone"></div>
+          <div class="mk-row"><button class="p-btn" id="rcReset" type="button">Back to the original</button><button class="p-btn" id="rcResetAll" type="button">Reset all inks</button></div>
+        </div>
+        <div id="scanFlags"></div>
+      </div>
+      <div id="layerBox" hidden>
+        <span class="mk-lbl">Photoshop layers</span>
+        <div class="mk-layers" id="layers"></div>
+      </div>
+      <div class="mk-row">
+        <label class="p-field"><span class="mk-lbl">Print width (in)</span><input class="p-input" id="widthIn" type="number" min="0.5" max="24" step="0.25" value="11"></label>
+        <div class="p-field"><span class="mk-lbl">Height</span><span id="heightOut" class="p-input" style="background:var(--p-cream-lt);border-color:transparent">–</span></div>
+      </div>
+      <span class="mk-hint" id="widthFrom" hidden></span>
+      <label class="mk-check"><input type="checkbox" id="dropBg"><span>Art has a solid background — drop it</span></label>
+      <div class="mk-place" id="placeRows" hidden></div>
+      <label class="mk-check" id="dropAllRow" hidden style="margin-left:30px"><input type="checkbox" id="dropAll"><span>Everywhere, not just at the edges</span></label>
+    </section>
+
+    <section class="mk-blk">
+      <span class="p-section">3 · Garment</span>
+      <label class="p-field"><span class="mk-lbl">Garment</span><input class="p-input" id="gSearch" type="search" placeholder="Search Pine + S&S + AS Colour — e.g. 1717, bella 3001 black" autocomplete="off"></label>
+      <div class="mk-files" id="gResults" hidden></div>
+      <label class="p-field" id="gColorRow" hidden><span class="mk-lbl">Colour</span><select class="p-select" id="gColor"></select></label>
+      <div class="mk-rc" id="cwPick" hidden>
+        <span class="mk-lbl">Also show on <span class="p-count" id="cwN"></span></span>
+        <span class="mk-hint" id="cwHint">Tick the other colours that share this design — they show side by side on Colorways and the proof.</span>
+        <input class="p-input" id="cwFilter" placeholder="Filter colours" autocomplete="off">
+        <div class="opts" id="cwOpts"></div>
+        <button class="p-btn" id="cwLoad" type="button" hidden>Show this style's colours</button>
+      </div>
+      <div class="mk-blk" id="gNow" hidden style="gap:6px"><span class="mk-hint" id="gNowTxt"></span><button class="p-btn" id="gReset" type="button">Use the line's garment</button></div>
+      <div class="mk-row mk-sizes">
+        <label class="p-field"><span class="mk-lbl">Show at size</span><select class="p-select" id="size"><option>XS</option><option>S</option><option selected>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></label>
+        <label class="p-field"><span class="mk-lbl">Body length (in)</span><input class="p-input" id="bodyW" type="number" min="8" max="45" step="0.25"></label>
+      </div>
+      <div class="mk-row" id="accRow" hidden>
+        <label class="p-field"><span class="mk-lbl">Width across (in)</span><input class="p-input" id="accW" type="number" min="2" max="60" step="0.25"></label>
+      </div>
+      <div class="mk-row" id="kindRow" hidden>
+        <label class="p-field"><span class="mk-lbl">Kind</span><select class="p-input" id="gKind"><option value="">Shirt / top</option><option value="Cap">Hat / cap</option><option value="Beanie">Beanie</option><option value="Tote Bag">Tote / bag</option><option value="Other">Other flat item</option></select></label>
+      </div>
+      <div class="mk-row" id="bandRow" hidden>
+        <label class="p-field"><span class="mk-lbl">Bandana size (in)</span><input class="p-input" id="bandSize" type="number" min="10" max="40" step="0.5" value="22"></label>
+        <label class="p-field"><span class="mk-lbl">Bandana colour</span><input class="p-input" id="bandColor" type="color" value="#cc2233" style="padding:4px;height:44px"></label>
+      </div>
+      <span class="mk-hint" id="garmentHint">Pick a job to load the garment photo.</span>
+      <div class="mk-own" id="ownRow" hidden>
+        <span class="mk-lbl">Your photo</span>
+        <div class="mk-row"><button class="p-btn" type="button" id="ownF" data-side="front">Front photo</button><button class="p-btn" type="button" id="ownB" data-side="back">Back photo</button><button class="p-btn" type="button" id="ownX" hidden>Use the vendor photo</button></div>
+        <span class="mk-hint" id="ownHint">No vendor photo? Use any photo of the garment — laid flat, straight on, plain background. Drop it on a button or tap to pick.</span>
+        <input type="file" id="ownFile" accept="image/*" hidden>
+      </div>
+      <label class="mk-check"><input type="checkbox" id="realistic" checked><span>Realistic (fabric shading on the print)</span></label>
+    </section>
+  </aside>
+
+  <main class="mk-main">
+    <div class="mk-views">
+      <div class="p-tabs" id="views" role="tablist">
+        <button class="p-tab is-on" data-v="mock" type="button">Mockup</button>
+        <button class="p-tab" data-v="cw" type="button">Colorways <span class="p-count" id="cwCount"></span></button>
+        <button class="p-tab" data-v="proof" type="button">Proof</button>
+      </div>
+      <div class="sp">
+        <button class="p-btn" id="pngBtn" type="button" disabled>Download PNG</button>
+        <button class="p-btn" id="pdfBtn" type="button" disabled>Download PDF</button>
+        <button class="p-btn p-btn-main" id="attachBtn" type="button" disabled>Attach proof to line</button>
+        <button class="p-btn p-btn-dark" id="doneBtn" type="button" disabled title="Ticks Awaiting Review: Slacks sales and the production manager">Proof done → Review</button>
+      </div>
+    </div>
+    <div class="mk-stage" id="stage">
+      <p class="mk-msg" id="msg"></p>
+      <div class="mk-empty" id="empty"><div><h1 class="p-h1">Pick a job to start</h1><p>Choose an order awaiting proof, or type a style and colour, then open the art.</p></div></div>
+      <div id="mockBox" hidden>
+        <div class="mk-zbar"><button class="p-btn" id="zOut" type="button" aria-label="Zoom out">−</button><span class="zl" id="zLvl">1×</span><button class="p-btn" id="zIn" type="button" aria-label="Zoom in">+</button><button class="p-btn" id="zFit" type="button">Fit</button><button class="p-btn" id="zPrint" type="button">Zoom to print</button><span class="mk-hint" id="zHint">Drag a print, or the yellow line onto the bottom of the collar · pinch or double-tap to zoom · sizes are true to the size picked</span></div>
+        <div class="mk-zoom" id="zoomBox"><canvas class="mk-cv" id="mockCv"></canvas></div>
+      </div>
+      <div class="mk-cw" id="cwGrid" hidden></div>
+      <div id="proofBox" hidden><div class="p-tabs" id="proofPages" style="margin-bottom:10px"></div><canvas class="mk-cv" id="proofCv"></canvas></div>
+    </div>
+  </main>
+</div>
+
+<script>
+'use strict';
+/* ================= basics ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PRACTICE=/[?&]practice=1/.test(location.search);
+const lsx={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+let TOKEN=lsx.get('pine_at_key','');
+const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_LI='tblJx5UlwO7oMSk5H', T_IMP='tbln9oAGvz2PNBZLV', T_GAR='tblukWGm0CIelookM';
+const PROXY='https://pine-workers.stephen-dab.workers.dev/proxy';
+const OF={num:'fld4S3B5yJANKlE7l',cust:'fldoRraeYHsgfeWhj',due:'fldphJYdlBNS0dmAK',lines:'fldU6fgrz6sU3wyIZ'};
+const LF={garment:'fldZbOdGIoCk3Gan2',imps:'fldTFz4ZzfOthqkg6',proof:'flddhvdkKI31tFTdX',ready:'fldycrq3VJYSFd8Gi',ptype:'fld8LIkrBXv8WoRRb',qty:'fldFfuKAcduwWQp8g'};
+const IF={id:'fldDFfwFQ9B20n2kT',loc:'fldKQIL0rSJBSeC8S',pantone:'fldzEbYXESOVnYrtw',inkNotes:'fldk0Zbjyuh5NEIE8',method:'fldjNCuaGOkWgzH2K',stitches:'fld3nysvEoi0hb7iC'};
+// how an imprint is decorated: Airtable's method (ink system / process) → what the mockup and proof show
+const METHODS={print:'Screen print',emb:'Embroidery',patch:'Patch',transfer:'Heat transfer'};
+const methodFrom=m=>/embroid/i.test(m||'')?'emb':/patch|decopress|label/i.test(m||'')?'patch':/supacolor|transfer|dtf/i.test(m||'')?'transfer':m?'print':'';
+const methOf=im=>(im&&(im.meth||im.method0||(J.line&&/embroid/i.test(selName(J.line.f&&J.line.f[LF.ptype])||'')?'emb':'')))||'print';
+const isEmb=im=>methOf(im)==='emb';
+const GF={name:'fldT4jfh2XV9lERef',brand:'fldtL6paVNlfMRDj4',pn:'fldJlvS5vcBkzx3hG',color:'flduMprMvRlAHAiCh',abbr:'fldaJz8gYtcft7azP',fabric:'fldZeVkyGk2vFDIo5',type:'fldkqIcOOLfBBVv8N'};
+const LOC_CODE={'Front':'F','Left Chest':'LC','Right Chest':'RC','Back':'B','Left Sleeve':'LS','Right Sleeve':'RS','Bandana':'Bandana','Outsourced Bandana':'Bandana','Pocket':'LC','Back Hem':'B','Front Hem':'F','Hood':'Other','Tea Towel':'Other','Flatstock':'Other'};
+const LOC_WIDTH={F:11,B:11,LC:3.5,RC:3.5,LS:3,RS:3,Bandana:20,Other:10};
+const LOC_MAX={LC:5,RC:5,LS:4.5,RS:4.5,F:16,B:16,Bandana:22,Other:22};
+const LIN=new Float32Array(256); for(let i=0;i<256;i++){ const c=i/255; LIN[i]=c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4); }
+function labOf(r,g,b){ const R=LIN[r],G=LIN[g],B=LIN[b]; let x=(R*0.4124+G*0.3576+B*0.1805)/0.95047, y=R*0.2126+G*0.7152+B*0.0722, z=(R*0.0193+G*0.1192+B*0.9505)/1.08883; const f=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116; x=f(x); y=f(y); z=f(z); return [116*y-16,500*(x-y),200*(y-z)]; }
+const dist2=(a,b)=>{const d0=a[0]-b[0],d1=a[1]-b[1],d2=a[2]-b[2];return d0*d0+d1*d1+d2*d2;};
+const hexRgb=h=>{h=String(h||'#888888').replace('#','');return [parseInt(h.slice(0,2),16)||0,parseInt(h.slice(2,4),16)||0,parseInt(h.slice(4,6),16)||0];};
+const rgbHex=c=>'#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+const fmtIn=v=>(Math.round(v*10)/10).toString().replace(/\.0$/,'');
+function toast(msg){ document.querySelectorAll('.p-toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='p-toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3600); }
+function download(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000); }
+
+/* ================= state ================= */
+// J: the job. ART[impId]: that imprint's art. PH[lineId]: that line's garment photos. PLACE[impId]: where it sits.
+const J={orders:[],order:null,lines:[],line:null,imps:[],cur:null,quick:false,attached:null,sent:false,busy:false};
+const ART={}, PH={}, PLACE={}, PTEXT={}, NECK={};
+const S={view:'mock',size:'M',bodyW:{},realistic:true,proofPage:0};
+window.MockupMaker={J,ART,PH,PLACE,S};
+window.pineBusy=()=>J.busy||Object.keys(ART).length>0;
+
+/* ================= Airtable ================= */
+async function at(path,opt){
+  if(!TOKEN) throw new Error('no token');
+  const r=await fetch(path.startsWith('http')?path:`https://api.airtable.com/v0/${BASE}/${path}`,Object.assign({},opt||{},{headers:Object.assign({Authorization:'Bearer '+TOKEN},(opt&&opt.body)?{'Content-Type':'application/json'}:{})}));
+  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status)); }
+  return r.json();
+}
+const flds=a=>a.map(f=>'fields%5B%5D='+f).join('&');
+async function atAll(table,params,max){ let out=[],off=''; do{ const d=await at(`${table}?returnFieldsByFieldId=true&${params}${off?'&offset='+off:''}`); out=out.concat(d.records||[]); off=d.offset||''; }while(off&&out.length<(max||1000)); return out; }
+async function byIds(table,ids,fields){ const out=[]; ids=[...new Set(ids)].filter(Boolean);
+  for(let i=0;i<ids.length;i+=40){ const f=`OR(${ids.slice(i,i+40).map(id=>`RECORD_ID()='${id}'`).join(',')})`;
+    out.push(...await atAll(table,`pageSize=100&${flds(fields)}&filterByFormula=${encodeURIComponent(f)}`)); }
+  return out; }
+const first=v=>Array.isArray(v)?v[0]:v;
+const selName=v=>v==null?'':(typeof v==='string'?v:(v.name||''));
+function fmtDay(d){ const x=new Date(d+(String(d).length===10?'T12:00:00':'')); return isNaN(x)?'':x.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+
+async function loadOrders(){
+  if(!TOKEN){ $('tokRow').hidden=false; $('jobHint').textContent='Add your Airtable key to pick an order — or pick a garment in step 3 for a quick mockup.'; return; }
+  $('tokRow').hidden=true; $('jobHint').textContent='Loading orders awaiting proof…';
+  try{
+    const rs=await atAll(T_ORD,`pageSize=100&${flds(Object.values(OF))}&filterByFormula=${encodeURIComponent('{Order Status}="Awaiting Proof"')}`,500);
+    J.orders=rs.map(r=>({id:r.id,num:r.fields[OF.num],cust:String(r.fields[OF.cust]||'').trim(),due:r.fields[OF.due]||'',lines:r.fields[OF.lines]||[]})).filter(o=>o.num).sort((a,b)=>b.num-a.num);
+    const keep=J.order&&J.order.id;
+    $('ordSel').innerHTML='<option value="">No order — pick a garment in step 3</option>'+J.orders.map(o=>`<option value="${o.id}" ${o.id===keep?'selected':''}>#${o.num} · ${esc(o.cust)}${o.due?' · due '+fmtDay(o.due):''}</option>`).join('');
+    $('jobHint').textContent=(J.orders.length?`${J.orders.length} orders awaiting proof.`:'No orders are awaiting proof right now.')+' No order? Pick a garment in step 3.';
+    const want=new URLSearchParams(location.search).get('order');
+    if(want&&!J.order){ const o=J.orders.find(x=>String(x.num)===want); if(o){ $('ordSel').value=o.id; pickOrder(o.id); } }
+  }catch(e){ $('jobHint').textContent='Could not load orders: '+e.message; if(/auth|permission|token|401|403/i.test(e.message)) $('tokRow').hidden=false; }
+}
+async function pickOrder(id){
+  J.order=J.orders.find(o=>o.id===id)||null; J.line=null; J.lines=[]; J.quick=false;
+  $('lineRow').hidden=!J.order;
+  if(!J.order){ $('lineSel').innerHTML=''; J.imps=[]; renderImps(); render(); return; }
+  $('lineSel').innerHTML='<option>Loading lines…</option>';
+  try{
+    const recs=await byIds(T_LI,J.order.lines,Object.values(LF));
+    J.lines=recs.map(r=>({id:r.id,f:r.fields})).filter(l=>(l.f[LF.imps]||[]).length);
+    const gids=J.lines.flatMap(l=>l.f[LF.garment]||[]);
+    const gs=gids.length?await byIds(T_GAR,gids,Object.values(GF)):[]; const gm={}; gs.forEach(g=>gm[g.id]=g.fields);
+    J.lines.forEach(l=>{ const g=gm[first(l.f[LF.garment])]||{}; l.g={brand:[].concat(g[GF.brand]||[]).map(selName).join(' '),pn:String(g[GF.pn]||'').trim(),color:String(g[GF.color]||'').trim(),abbr:String(g[GF.abbr]||'').trim(),fabric:String(g[GF.fabric]||'').trim(),type:selName(g[GF.type]),name:g[GF.name]||'Line'}; });
+    const impIds=[...new Set(J.lines.flatMap(l=>l.f[LF.imps]||[]))];
+    const rs=impIds.length?await byIds(T_IMP,impIds,Object.values(IF)):[];
+    J.allImps=rs.map(r=>{ const loc=selName(r.fields[IF.loc]); return {id:r.id,code:String(r.fields[IF.id]||'').trim(),locName:loc,loc:LOC_CODE[loc]||'Other',pantone:String(r.fields[IF.pantone]||''),notes:String(r.fields[IF.inkNotes]||''),method0:methodFrom(selName(r.fields[IF.method])),stitches:+r.fields[IF.stitches]||0}; });
+    $('lineSel').innerHTML=J.lines.length?J.lines.map(l=>`<option value="${l.id}">${esc(l.g.name)}${(l.f[LF.proof]||[]).length?' · proof attached':''}</option>`).join(''):'<option value="">No lines with imprints</option>';
+    J.lines.forEach(l=>loadPhotos(l));   // every colour on the order, for Colourways
+    if(J.lines.length) pickLine(J.lines[0].id);
+  }catch(e){ $('lineSel').innerHTML=`<option>Could not load: ${esc(e.message)}</option>`; }
+}
+// Front is where the art department starts: front prints, then sleeves, then back
+const LOC_RANK=['Front','Left Chest','Right Chest','Pocket','Front Hem','Left Sleeve','Right Sleeve','Back','Back Hem','Hood'];
+const locRank=im=>{ const i=LOC_RANK.indexOf(im.locName); return i<0?LOC_RANK.length:i; };
+function pickLine(id){
+  J.line=J.lines.find(l=>l.id===id)||null; J.attached=null; J.sent=false;
+  if(!J.line) return;
+  const ids=J.line.f[LF.imps]||[];
+  J.imps=J.allImps.filter(im=>ids.includes(im.id)).sort((a,b)=>locRank(a)-locRank(b)||a.code.localeCompare(b.code));
+  // switching between a shirt and a hat/bandana: the old spot (3" below collar vs centred) means nothing on the new one
+  const ak=isBandLine(J.line)?'b':accOf(J.line)?'a':'s'; if(J.kindWas&&J.kindWas!==ak) J.imps.forEach(im=>{ if(PLACE[im.id]){ defaultPlace(im); delete PTEXT[im.id]; } }); J.kindWas=ak;
+  if(!J.cur||!J.imps.some(i=>i.id===J.cur)) J.cur=J.imps[0]&&J.imps[0].id;   // front first
+  if(J.pickedLine!==id){ J.pickedLine=id; if(id!=='quick'){ GP.style=null; $('gColorRow').hidden=true; $('gSearch').value=''; } $('gResults').hidden=true; }
+  renderImps(); loadPhotos(J.line); loadDrive(); syncGarmentPicker(); render();
+}
+async function quickLoad(g){
+  if(!g){ const st=$('qStyle').value.trim(), co=$('qColor').value.trim(); if(!st){ toast('Type a style first'); return; }
+    g={brand:'',pn:st,color:co,abbr:'',fabric:'',type:/hood/i.test(st)?'Pullover Hoodie':'SS Tee',name:st+(co?' - '+co:'')}; }
+  J.order=null; J.quick=true; $('ordSel').value=''; $('lineRow').hidden=true;
+  Object.keys(PH).filter(k=>k==='quick').forEach(k=>delete PH[k]); Object.keys(S.bodyW).filter(k=>k.startsWith('quick|')).forEach(k=>delete S.bodyW[k]);
+  const line={id:'quick',f:{},g};
+  const keep=J.quick?J.lines.filter(x=>x.extra):[];
+  if(isBandLine(line)){ J.lines=[line].concat(keep); J.allImps=[{id:'qBd',code:'Bandana',locName:'Bandana',loc:'Bandana',pantone:'',notes:''}]; J.line=null; line.f[LF.imps]=['qBd']; keep.forEach(k=>k.f[LF.imps]=['qBd']); J.cur='qBd'; pickLine('quick'); return; }
+  if(accOf(line)){ J.lines=[line].concat(keep); J.allImps=[{id:'qF',code:'Front',locName:'Front',loc:'F',pantone:'',notes:''},{id:'qB',code:'Back',locName:'Back',loc:'B',pantone:'',notes:''}]; J.line=null; line.f[LF.imps]=['qF','qB']; keep.forEach(k=>k.f[LF.imps]=['qF','qB']); J.cur='qF'; pickLine('quick'); return; }
+  J.lines=[line].concat(keep); J.allImps=[{id:'qF',code:'Front',locName:'Front',loc:'F',pantone:'',notes:''},{id:'qB',code:'Back',locName:'Back',loc:'B',pantone:'',notes:''},{id:'qLC',code:'Left chest',locName:'Left Chest',loc:'LC',pantone:'',notes:''}];
+  J.line=null; J.lines[0].f[LF.imps]=['qF','qLC','qB']; J.cur='qF'; pickLine('quick');
+}
+/* ================= garment picker (Airtable › Garments) ================= */
+const fq=v=>String(v).replace(/["\\]/g,'');
+const mapG=r=>{ const g=r.fields; return {brand:[].concat(g[GF.brand]||[]).map(selName).join(' '),pn:String(g[GF.pn]||'').trim(),color:String(g[GF.color]||'').trim(),abbr:String(g[GF.abbr]||'').trim(),fabric:String(g[GF.fabric]||'').trim(),type:selName(g[GF.type]),name:g[GF.name]||''}; };
+const GP={q:'',styles:[],style:null,t:0};
+/* vendor catalogs (S&S + AS Colour style lists, cached a day, same as Price-O-Matic) */
+const CAT={ss:null,asc:null,p:null};
+function catLoad(k){ try{ const o=JSON.parse(localStorage.getItem(k)||'null'); if(o&&Date.now()-o.ts<864e5&&Array.isArray(o.list)) return o.list; }catch(e){} return null; }
+function catSave(k,list){ try{ localStorage.setItem(k,JSON.stringify({ts:Date.now(),list})); }catch(e){} }
+function ensureCatalogs(){
+  if(CAT.p) return CAT.p;
+  CAT.p=Promise.all([
+    (async()=>{ CAT.ss=catLoad('pine_mk_ss_styles_v1'); if(CAT.ss) return;
+      const j=await (await fetch(`${PROXY}/styles/?fields=brandName,styleName,title,baseCategory`)).json();
+      CAT.ss=(Array.isArray(j)?j:[]).map(r=>({brand:String(r.brandName||'').trim(),pn:String(r.styleName||'').trim(),title:String(r.title||'').trim(),cat:String(r.baseCategory||'').trim(),v:'ss'})).filter(r=>r.pn);
+      catSave('pine_mk_ss_styles_v1',CAT.ss); })().catch(()=>{ CAT.ss=CAT.ss||[]; }),
+    (async()=>{ CAT.asc=catLoad('pine_mk_asc_styles_v1'); if(CAT.asc) return; const out=[];
+      for(let pg=1;pg<=8;pg++){ const r=await fetch(`${PROXY}/ascolour/catalog/products?pageSize=250&pageNumber=${pg}`); if(!r.ok) break; const rows=((await r.json())||{}).data||[]; out.push(...rows); if(rows.length<250) break; }
+      const seen={}; CAT.asc=out.map(r=>{ const pn=String(r.styleCode||r.code||r.style||'').trim(); if(!pn||seen[pn]) return null; seen[pn]=1; return {brand:'AS Colour',pn,title:String(r.styleName||r.name||r.shortDescription||'').trim(),cat:'',v:'asc'}; }).filter(Boolean);
+      catSave('pine_mk_asc_styles_v1',CAT.asc); })().catch(()=>{ CAT.asc=CAT.asc||[]; })
+  ]).finally(()=>{ CAT.p=Promise.resolve(); });
+  return CAT.p;
+}
+// garment type from the vendor's title, so the true-size body width and hood/neck defaults are right
+function typeFromTitle(t){ t=String(t||'').toLowerCase();
+  return /zip/.test(t)&&/hood/.test(t)?'Zip Up Hoodie':/hood/.test(t)?'Pullover Hoodie':/crew|sweatshirt|fleece/.test(t)?(/youth|kid/.test(t)?'Youth Fleece':'Sweatshirt'):/tank/.test(t)?'Tank Top':/long sleeve|l\/s/.test(t)?'LS Tee':/youth|kid|toddler/.test(t)?'Youth Tee':/onesie|bodysuit|infant/.test(t)?'Onesie':/\bcap\b|\bhat\b|trucker|snapback|visor|bucket/.test(t)?'Cap':/beanie/.test(t)?'Beanie':/tote|bag/.test(t)?'Tote Bag':'SS Tee'; }
+function vendorHits(words){
+  const list=(CAT.ss||[]).concat(CAT.asc||[]), out=[];
+  for(const r of list){ const hay=`${r.brand} ${r.pn} ${r.title} ${r.v==='asc'?'ascolour':''}`.toLowerCase(); if(!words.every(w=>hay.includes(w))) continue;
+    const p=r.pn.toLowerCase(), q=words.join(' '); let sc=0; if(p===q||words.includes(p)) sc+=1000; else if(words.some(w=>p.startsWith(w))) sc+=300; if(words.some(w=>r.brand.toLowerCase().includes(w))) sc+=50; out.push({r,sc}); }
+  return out.sort((a,b)=>b.sc-a.sc).slice(0,10).map(x=>x.r);
+}
+async function searchGarments(q){
+  GP.q=q; const box=$('gResults');
+  if(q.length<2){ box.hidden=true; return; }
+  const words=q.toLowerCase().replace(/\bbandann?as?\b/g,'carolina').split(/\s+/).filter(Boolean).map(fq).filter(Boolean);
+  box.hidden=false; if(!box.children.length) box.innerHTML='<div class="mk-file mk-hint">Searching Pine and the vendors…</div>';
+  const f='AND('+words.map(w=>`FIND("${w}",LOWER({Manufacturer}&" "&{Product Number}&" "&{Colorway}))`).join(',')+')';
+  const [rs]=await Promise.all([
+    TOKEN?atAll(T_GAR,`pageSize=100&${flds(Object.values(GF))}&filterByFormula=${encodeURIComponent(f)}`,300).then(r=>r.map(mapG).filter(g=>g.pn)).catch(()=>[]):Promise.resolve([]),
+    ensureCatalogs()]);
+  if(GP.q!==q) return;
+  const by={}; rs.forEach(g=>{ const k=ckey(g.brand)+'|'+ckey(g.pn); (by[k]=by[k]||{brand:g.brand,pn:g.pn,type:g.type,colors:[],pine:true}).colors.push(g); });
+  // vendor styles: words can include a colour ("3001 black"), so match on the words that hit the style list
+  let vw=words, vh=vendorHits(vw); while(!vh.length&&vw.length>1){ vw=vw.slice(0,-1); vh=vendorHits(vw); }
+  for(const r of vh){ const k=ckey(r.brand)+'|'+ckey(r.pn), st=by[k]||Object.values(by).find(x=>ckey(x.pn)===ckey(r.pn)&&(ckey(x.brand).includes(ckey(r.brand))||ckey(r.brand).includes(ckey(x.brand))));
+    if(st){ st.v=r.v; st.title=r.title; continue; }
+    by[k]={brand:r.brand,pn:r.pn,type:typeFromTitle(r.title+' '+r.cat),title:r.title,colors:[],v:r.v}; }
+  GP.styles=Object.values(by).sort((a,b)=>(b.pine?1:0)-(a.pine?1:0)||b.colors.length-a.colors.length).slice(0,14);
+  box.innerHTML=GP.styles.length?'':'<div class="mk-file mk-hint">No garments match. Try the style number.</div>';
+  GP.styles.forEach(st=>{ const b=document.createElement('button'); b.type='button'; b.className='mk-file';
+    const src=st.pine?(st.colors.length+' at Pine'):(st.v==='asc'?'AS Colour':'S&S');
+    b.innerHTML=`<span class="ext">${esc(st.pn)}</span><span class="nm">${esc(st.brand)}${st.title?' · '+esc(st.title):st.type?' · '+esc(st.type):''}</span><span class="mk-hint">${esc(src)}</span>`;
+    b.onclick=()=>pickStyle(st,words); box.appendChild(b); });
+}
+// every colour the vendor makes in this style (S&S, or AS Colour for AS Colour)
+async function vendorColours(st){
+  try{
+    if(/as colou?r/i.test(st.brand)){ const j=await (await fetch(`${PROXY}/ascolour/catalog/products/${encodeURIComponent(st.pn)}/variants?pageSize=250&pageNumber=1`)).json();
+      return [...new Set(((j&&j.data)||[]).map(v=>String(v.colour||'').trim()).filter(Boolean))]; }
+    const id=await ssStyleId(st.pn,st.brand); if(!id) return [];
+    const j=await (await fetch(`${PROXY}/products/?style=${id}&fields=brandName,colorName`)).json();
+    const bk=ckey(st.brand), rows=(Array.isArray(j)?j:[]).filter(p=>!bk||!p.brandName||bk.includes(ckey(p.brandName))||ckey(p.brandName).includes(bk));
+    return [...new Set(rows.map(p=>String(p.colorName||'').trim()).filter(Boolean))];
+  }catch(e){ return []; }
+}
+function fillColours(st,pick){
+  setTimeout(syncCwPick,0);
+  const pine=st.colors.filter(c=>c.pine!==false), more=st.colors.filter(c=>c.pine===false), opt=c=>`<option value="${st.colors.indexOf(c)}" ${c===pick?'selected':''}>${esc(c.color)}</option>`;
+  $('gColor').innerHTML=(pine.length&&more.length?`<optgroup label="Pine has ordered">${pine.map(opt).join('')}</optgroup><optgroup label="More from the vendor">${more.map(opt).join('')}</optgroup>`:st.colors.map(opt).join(''));
+}
+async function pickStyle(st,words){
+  GP.style=st; $('gResults').hidden=true; $('gSearch').value=`${st.brand} ${st.pn}`.trim();
+  st.colors.sort((a,b)=>a.color.localeCompare(b.color));
+  const wantColour=list=>{ const now=J.line&&J.line.g, w=(words||[]).filter(x=>!ckey(st.pn).toLowerCase().includes(x)&&!st.brand.toLowerCase().includes(x));
+    return list.find(c=>now&&ckey(c.color)===ckey(now.color))||list.find(c=>w.length&&w.every(x=>c.color.toLowerCase().includes(x)))||null; };
+  $('gColorRow').hidden=false;
+  if(st.colors.length){ const pick=wantColour(st.colors)||st.colors[0]; fillColours(st,pick); setGarment(pick); }
+  else $('gColor').innerHTML='<option>Loading colours…</option>';
+  if(!st.vendorDone){ st.vendorDone=true; const names=await vendorColours(st); if(GP.style!==st) return;
+    const have=new Set(st.colors.map(c=>ckey(c.color)));
+    names.sort((a,b)=>a.localeCompare(b)).filter(n=>!have.has(ckey(n))).forEach(n=>st.colors.push({brand:st.brand,pn:st.pn,color:n,abbr:'',fabric:'',type:st.type||typeFromTitle(st.title),name:`${st.brand} ${st.pn} - ${n}`,pine:false}));
+    if(!st.colors.length){ $('gColor').innerHTML='<option>No colours found</option>'; return; }
+    const cur=J.line&&J.line.g, sel=st.colors.find(c=>cur&&ckey(c.pn)===ckey(cur.pn)&&ckey(c.color)===ckey(cur.color));
+    if(sel) fillColours(st,sel); else { const pick=wantColour(st.colors)||st.colors[0]; fillColours(st,pick); setGarment(pick); } }
+}
+function setGarment(g){
+  if(!J.line||J.line.id==='quick'){ quickLoad(Object.assign({},g)); syncGarmentPicker(); return; }
+  const l=J.line; if(!l.g0) l.g0=l.g; l.g=Object.assign({},g);
+  if(ckey(l.g.pn)===ckey(l.g0.pn)&&ckey(l.g.color)===ckey(l.g0.color)&&ckey(l.g.brand)===ckey(l.g0.brand)){ l.g=l.g0; delete l.g0; }
+  delete PH[l.id]; Object.keys(S.bodyW).filter(k=>k.startsWith(l.id+'|')).forEach(k=>delete S.bodyW[k]);
+  loadPhotos(l); syncGarmentPicker(); render();
+}
+/* ================= more garments (colorways) on one mockup ================= */
+// extra lines: {id:'x<n>', extra:true, g, f:{imps: the base line's imprints}} — mockup and proof only, never Airtable
+let XN=0;
+const sameG=(a,b)=>ckey(a.pn)===ckey(b.pn)&&ckey(a.color)===ckey(b.color)&&(!a.brand||!b.brand||ckey(a.brand).slice(0,5)===ckey(b.brand).slice(0,5));
+const baseLine=()=>J.lines.find(l=>!l.extra&&l===J.line)||J.lines.find(l=>!l.extra);
+function toggleExtra(g){
+  const base=baseLine(); if(!base) return;
+  const have=J.lines.find(l=>l.extra&&sameG(l.g,g));
+  if(have){ J.lines=J.lines.filter(l=>l!==have); if(J.line===have) pickLine(base.id); }
+  else { const l={id:'x'+(++XN),extra:true,g:Object.assign({},g,{name:g.name||`${g.brand} ${g.pn} - ${g.color}`.trim()}),f:{[LF.imps]:(base.f[LF.imps]||[]).slice()}}; J.lines.push(l); loadPhotos(l); }
+  syncCwPick(); render();
+}
+// the style whose colours the "Also show on" list offers: the picked style, else the garment on screen
+let CWST=null;
+async function cwStyle(){
+  const l=J.line; if(!l) return null;
+  if(GP.style&&ckey(GP.style.pn)===ckey(l.g.pn)) return GP.style;
+  if(CWST&&ckey(CWST.pn)===ckey(l.g.pn)&&CWST.colors.length) return CWST;
+  const st={brand:l.g.brand,pn:l.g.pn,type:l.g.type,title:'',colors:[]}; CWST=st;
+  let names=[];
+  if(TOKEN&&(isBandLine(l)||!/as colou?r/i.test(l.g.brand||''))){ try{ const f=`TRIM({Product Number})="${fq(l.g.pn)}"`; names=(await atAll(T_GAR,`pageSize=100&${flds(Object.values(GF))}&filterByFormula=${encodeURIComponent(f)}`,300)).map(mapG).filter(g=>!l.g.brand||ckey(g.brand).slice(0,5)===ckey(l.g.brand).slice(0,5)).map(g=>g.color.trim()); }catch(e){} }
+  if(!isBandLine(l)){ const v=await vendorColours(st); names=[...new Set(names.concat(v))]; } st.colors=names.map(n=>({brand:st.brand,pn:st.pn,color:n,abbr:'',fabric:'',type:l.g.type,name:`${st.brand} ${st.pn} - ${n}`.trim()}));
+  return st;
+}
+function syncCwPick(){
+  const box=$('cwPick'), l=J.line; box.hidden=!l; if(!l) return;
+  const st=(GP.style&&ckey(GP.style.pn)===ckey(l.g.pn))?GP.style:(CWST&&ckey(CWST.pn)===ckey(l.g.pn)?CWST:null);
+  const extras=J.lines.filter(x=>x.extra), q=$('cwFilter').value.trim().toLowerCase();
+  $('cwN').textContent=extras.length?`+${extras.length}`:'';
+  $('cwLoad').hidden=!!(st&&st.colors.length); $('cwLoad').textContent=`Show the ${l.g.pn||'style'} colours`;
+  $('cwFilter').hidden=!(st&&st.colors.length>8);
+  const base=baseLine(), opts=[];
+  if(st) for(const c of st.colors){ if(q&&!c.color.toLowerCase().includes(q)) continue; if(base&&sameG(c,base.g)) continue; if(J.lines.some(x=>!x.extra&&sameG(x.g,c))) continue; opts.push({g:c,on:extras.some(x=>sameG(x.g,c))}); }
+  // added garments of other styles stay listed so they can be removed
+  for(const x of extras) if(!opts.some(o=>sameG(o.g,x.g))) opts.unshift({g:x.g,on:true,other:true});
+  $('cwOpts').innerHTML=opts.slice(0,80).map((o,i)=>{ const hx=BAND_HEX[ckey(o.g.color)]||cssColor(o.g.color)||'#ccc'; return `<button type="button" data-i="${i}" ${o.on?'style="outline:3px solid var(--p-black)"':''}><i style="background:${hx}"></i>${o.on?'✓ ':''}${esc(o.other?o.g.pn+' '+o.g.color:o.g.color)}</button>`; }).join('')||(st?'<span class="mk-hint">No other colours.</span>':'');
+  $('cwOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>toggleExtra(opts.slice(0,80)[+b.dataset.i].g));
+}
+function syncGarmentPicker(){
+  syncCwPick();
+  const l=J.line, sw=l&&l.g0;
+  $('gNow').hidden=!sw; if(sw) $('gNowTxt').innerHTML=`Showing <b>${esc(l.g.name||l.g.pn+' - '+l.g.color)}</b> instead of the line's ${esc(l.g0.name)}. Airtable isn't changed.`;
+  if(!GP.style&&l&&!$('gSearch').value) $('gSearch').placeholder=`${l.g.brand} ${l.g.pn} — search to change`.trim();
+}
+function renderImps(){
+  const box=$('imps'); box.innerHTML='';
+  J.imps.forEach(im=>{ const b=document.createElement('button'); b.type='button'; b.className='p-tab'+(im.id===J.cur?' is-on':'');
+    b.innerHTML=`${esc(im.code)} <span class="mk-hint" style="color:inherit">${esc(im.code===im.locName?'':im.locName)}</span>${ART[im.id]?' ✓':''}`;
+    b.onclick=()=>{ J.cur=im.id; renderImps(); syncArt(); render(); }; box.appendChild(b); });
+  const im=curImp();
+  $('artFor').textContent=im?im.code:'';
+  const me=methOf(im); $('methSeg').hidden=!im; $('methSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('is-on',b.dataset.m===me));
+  $('methHint').hidden=!im||!(im.method0||im.stitches); if(im) $('methHint').textContent=(im.method0&&!im.meth?'From the order. ':'')+(im.stitches?`${im.stitches.toLocaleString()} stitches.`:'');
+  $('jobHint').innerHTML=J.line?`${esc(J.line.g.name)}${im&&im.pantone?` · Pantones: <b>${esc(im.pantone)}</b>`:''}${im&&im.notes?` · ${esc(im.notes)}`:''}`:$('jobHint').innerHTML;
+  syncArt();
+}
+const curImp=()=>J.imps.find(i=>i.id===J.cur)||null;
+
+/* ================= art: PNG/JPG/PDF/AI/PSD ================= */
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const extOf=n=>String(n||'').toLowerCase().split('.').pop();
+async function openArtFile(blob,name){
+  const im=curImp(); if(!im){ toast('Pick a job (or type a style) first'); return; }
+  const ext=extOf(name), msg=$('dropSub'); msg.textContent='Opening '+name+'…';
+  try{
+    let canvas=null, layers=null, psd=null, solid=false, ppi=0;
+    if(ext==='psd'){
+      if(!window.agPsd) throw new Error('The Photoshop reader did not load. Check the connection and Refresh.');
+      // just the flattened image and the layer list — every layer's pixels at full size is what ran browsers out of memory
+      const buf=await blob.arrayBuffer();
+      psd=agPsd.readPsd(buf,{skipThumbnail:true,skipLayerImageData:true});
+      layers=flatLayers(psd.children||[]); canvas=psd.canvas||null; psd.layersLoaded=false;
+      if(!canvas){   // saved without "Maximize compatibility": no flattened copy, so the layers are needed
+        msg.textContent='This PSD has no flattened copy — building it from the layers…';
+        psd=agPsd.readPsd(buf,{skipThumbnail:true,skipCompositeImageData:true}); layers=flatLayers(psd.children||[]); canvas=composeLayers(psd,layers); psd.layersLoaded=true; }
+      const ri=psd.imageResources&&psd.imageResources.resolutionInfo; if(ri&&ri.horizontalResolution) ppi=ri.horizontalResolution*(/cm/i.test(ri.horizontalResolutionUnit||'')?2.54:1);
+      if(!canvas) throw new Error('This PSD has no flattened image and no layers I can read.');
+    } else if(ext==='pdf'||ext==='ai'){
+      if(!window.pdfjsLib) throw new Error('The PDF reader did not load. Check the connection and Refresh.');
+      let doc;
+      try{ doc=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; }
+      catch(e){ throw new Error(ext==='ai'?'This .ai was saved without "Create PDF Compatible File". Re-save it with that ticked (File › Save As › Illustrator options).':'Could not read this PDF.'); }
+      const page=await doc.getPage(1), v1=page.getViewport({scale:1}), sc=Math.min(8,4200/Math.max(v1.width,v1.height)), vp=page.getViewport({scale:sc});
+      canvas=document.createElement('canvas'); canvas.width=Math.round(vp.width); canvas.height=Math.round(vp.height);
+      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp,background:'rgba(0,0,0,0)'}).promise;
+      ppi=sc*72;   // the artboard is in points, so the art comes in at its real size
+    } else {
+      const url=URL.createObjectURL(blob), img=new Image(); img.src=url; await img.decode();
+      canvas=document.createElement('canvas'); canvas.width=img.naturalWidth; canvas.height=img.naturalHeight; canvas.getContext('2d').drawImage(img,0,0);
+      solid=!hasTransparency(canvas);
+    }
+    if(!ppi) ppi=await fileDpi(blob,ext);
+    // work at no more than 4000 px a side (still sharp at any zoom); the real print size comes from the file's own size
+    if(canvas&&Math.max(canvas.width,canvas.height)>ART_CAP){ const k=ART_CAP/Math.max(canvas.width,canvas.height); canvas=fitArt(canvas,Math.round(canvas.width*k),Math.round(canvas.height*k)); if(ppi) ppi*=k; }
+    const spots=await spotNames(blob,ext,psd);
+    const a={name,blob:ext==='psd'?blob:null,src:canvas,psd,layers,dropBg:solid,dropAll:false,widthIn:null,spots,opaque:!hasTransparency(canvas)};
+    buildArt(a);
+    const acc0=accOf(J.line), max=acc0?accW(J.line)*0.85:(LOC_MAX[im.loc]||22);   // a hat print can't be wider than the hat
+    if(ppi>=72&&a.canvas.width/ppi<=max&&a.canvas.width/ppi>=0.5){ a.widthIn=Math.round(a.canvas.width/ppi*4)/4;
+      a.widthFrom=ext==='ai'||ext==='pdf'?`From the file: the ${ext==='ai'?'.ai':'PDF'} artboard size.`:ext==='psd'?`From the file: Photoshop size at ${Math.round(ppi)} ppi.`:`From the file: ${Math.round(ppi)} ppi.`; }
+    if(!a.widthIn){ a.widthIn=(accOf(J.line)||{}).pw||LOC_WIDTH[im.loc]||11; a.widthFrom=`<b>The file doesn’t say its size</b> — this is the usual ${esc(acc0?acc0.name:(im.locName||'print').toLowerCase())} width. Type the real width.`;
+      if(ppi>=72) a.widthFrom=`<b>The file’s size (${fmtIn(a.canvas.width/ppi)}″ at ${Math.round(ppi)} ppi) doesn’t fit a ${esc(acc0?acc0.name:(im.locName||'print').toLowerCase())}</b>, so this is the usual width. Type the real width.`; }
+    ART[im.id]=a; resetRecol(im); if(!PLACE[im.id]) defaultPlace(im);
+    renderImps(); render();
+  }catch(e){ console.error(e); msg.textContent=e.message; toast(e.message); }
+}
+function hasTransparency(c){ const t=document.createElement('canvas'); t.width=t.height=16; const x=t.getContext('2d'); x.drawImage(c,0,0,16,16); const d=x.getImageData(0,0,16,16).data; for(let i=3;i<d.length;i+=4) if(d[i]<128) return true; return false; }
+async function fileDpi(blob,ext){
+  try{ const b=new Uint8Array(await blob.slice(0,Math.min(blob.size,65536)).arrayBuffer());
+    if(b[0]===0x89&&b[1]===0x50){ for(let i=8;i<b.length-12;){ const len=(b[i]<<24|b[i+1]<<16|b[i+2]<<8|b[i+3])>>>0, type=String.fromCharCode(b[i+4],b[i+5],b[i+6],b[i+7]);
+        if(type==='pHYs'){ const x=(b[i+8]<<24|b[i+9]<<16|b[i+10]<<8|b[i+11])>>>0; return b[i+16]===1?x*0.0254:0; } if(type==='IDAT') break; i+=12+len; } }
+    if(b[0]===0xFF&&b[1]===0xD8){ for(let i=2;i<b.length-16;i++){ if(b[i]===0xFF&&b[i+1]===0xE0&&b[i+4]===0x4A&&b[i+5]===0x46){ const u=b[i+11], x=b[i+12]<<8|b[i+13]; return u===1?x:u===2?x*2.54:0; } } }
+  }catch(e){}
+  return 0;
+}
+const ART_CAP=4000;
+function flatLayers(children,depth){ const out=[]; for(const l of children){ out.push({l,depth:depth||0,on:!l.hidden}); if(l.children) out.push(...flatLayers(l.children,(depth||0)+1)); } return out; }
+function composeLayers(psd,layers){
+  const c=document.createElement('canvas'); c.width=psd.width; c.height=psd.height; const x=c.getContext('2d');
+  // bottom to top; a hidden group hides what's in it
+  const visible=(item)=>{ let p=item; const idx=layers.indexOf(item); if(!item.on) return false; for(let i=idx-1;i>=0;i--){ if(layers[i].depth<p.depth){ if(!layers[i].on) return false; p=layers[i]; } } return true; };
+  for(const it of layers){ const l=it.l; if(!l.canvas||l.children) continue; if(!visible(it)) continue; x.globalAlpha=l.opacity==null?1:l.opacity; x.drawImage(l.canvas,l.left||0,l.top||0); }
+  x.globalAlpha=1; return c;
+}
+function buildArt(a){
+  // background drop (edges / everywhere) + trim to the printed area
+  let src=a.layersChanged&&a.psd?composeLayers(a.psd,a.layers):a.src;
+  if(src!==a.src&&Math.max(src.width,src.height)>ART_CAP){ const k=ART_CAP/Math.max(src.width,src.height); src=fitArt(src,Math.round(src.width*k),Math.round(src.height*k)); }
+  const W=src.width,H=src.height, c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0);
+  const img=x.getImageData(0,0,W,H), d=img.data;
+  if(a.dropBg){
+    const cs=[0,W-1,(H-1)*W,(H-1)*W+W-1].map(i=>[d[i*4],d[i*4+1],d[i*4+2]]), bl=labOf(...cs[0]);
+    const near=(i,t)=>d[i*4+3]>0&&dist2(labOf(d[i*4],d[i*4+1],d[i*4+2]),bl)<t;
+    if(a.dropAll){ for(let i=0;i<W*H;i++) if(near(i,64)) d[i*4+3]=0; }
+    else { const seen=new Uint8Array(W*H), st=[]; for(let i=0;i<W;i++){ st.push(i,(H-1)*W+i); } for(let i=0;i<H;i++){ st.push(i*W,i*W+W-1); }
+      while(st.length){ const i=st.pop(); if(seen[i]) continue; seen[i]=1; if(!near(i,196)) continue; d[i*4+3]=0; const xx=i%W; if(xx>0) st.push(i-1); if(xx<W-1) st.push(i+1); if(i>=W) st.push(i-W); if(i<W*(H-1)) st.push(i+W); } }
+    x.putImageData(img,0,0);
+  }
+  let x0=W,y0=H,x1=-1,y1=-1; for(let y=0;y<H;y+=1) for(let xx=0;xx<W;xx++) if(d[(y*W+xx)*4+3]>16){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(y<y0)y0=y; if(y>y1)y1=y; }
+  if(x1<0){ a.canvas=c; a.trimW=W; a.scan=null; scanSoon(a); return; }
+  const t=document.createElement('canvas'); t.width=x1-x0+1; t.height=y1-y0+1; t.getContext('2d').drawImage(c,x0,y0,t.width,t.height,0,0,t.width,t.height);
+  a.canvas=t; a.trimW=t.width; a.scan=null; a._rp=null; a._rc=null; a.ed=null; for(const k in ART) if(ART[k]===a) delete RECOL[k]; scanSoon(a);
+}
+/* ================= colour scan ================= */
+// spot colours the file names: .ai/.pdf Separation colour spaces, PSD spot channels
+async function spotNames(blob,ext,psd){
+  const out=new Set();
+  try{
+    if(ext==='ai'||ext==='pdf'){ const txt=new TextDecoder('latin1').decode(new Uint8Array(await blob.arrayBuffer()));
+      const re=/\/Separation\s*\/([^\s\/\[\]<>()]+)/g; let m; while((m=re.exec(txt))) out.add(m[1].replace(/#([0-9a-f]{2})/gi,(_,h)=>String.fromCharCode(parseInt(h,16))));
+      const cc=/%%(?:DocumentCustomColors|\+)\s*:?\s*\(([^)]{1,60})\)/g; while((m=cc.exec(txt))) out.add(m[1]); }
+    if(psd&&psd.imageResources&&Array.isArray(psd.imageResources.alphaChannelNames)) psd.imageResources.alphaChannelNames.forEach(n=>n&&out.add(String(n)));
+  }catch(e){}
+  return [...out].filter(n=>!/^(All|None|Transparency|Alpha \d*)$/i.test(n.trim())).slice(0,24);
+}
+// the shop's inks to name colours by (Pantone numbers, greys, black, white — not bases)
+let INKS=null;
+function inkList(){ if(INKS) return INKS; const T=window.PANTONE_HEX||{}; INKS=[];
+  for(const k in T){ if(!/^(\d{3,4}|Black|White|Cool Gray \d+|Warm Gray \d+|Process Blue|Reflex Blue|Warm Red|Rhodamine Red|Rubine Red|Purple|Violet|Green|Orange 021|Yellow|Red 032)$/.test(k)) continue; INKS.push({k,lab:labOf(...hexRgb(T[k])),hex:T[k]}); }
+  if(!INKS.some(i=>i.k==='White')) INKS.push({k:'White',lab:labOf(255,255,255),hex:'#ffffff'});
+  if(!INKS.some(i=>i.k==='Black')) INKS.push({k:'Black',lab:labOf(35,31,32),hex:'#231f20'});
+  return INKS; }
+function nearestInk(lab){ let best=null,bd=1e9; for(const i of inkList()){ const d=dist2(lab,i.lab); if(d<bd){ bd=d; best=i; } } return best?{k:best.k,hex:best.hex,dE:Math.sqrt(bd)}:null; }
+function scanSoon(a){ clearTimeout(a._st); a._st=setTimeout(()=>{ a.scan=scanColours(a); const im=curImp(); if(im&&ART[im.id]===a) syncScan(a); if(S.view==='proof') render(); },30); }
+function scanColours(a){
+  const c=a.canvas, s=Math.min(1,Math.sqrt(250000/(c.width*c.height))), W=Math.max(1,Math.round(c.width*s)), H=Math.max(1,Math.round(c.height*s));
+  const t=document.createElement('canvas'); t.width=W; t.height=H; const x=t.getContext('2d',{willReadFrequently:true}); x.imageSmoothingEnabled=false; x.drawImage(c,0,0,W,H);
+  const d=x.getImageData(0,0,W,H).data, bins=new Map(); let solid=0;
+  for(let i=0;i<d.length;i+=4){ if(d[i+3]<200) continue; solid++; const k=(d[i]>>3)<<10|(d[i+1]>>3)<<5|(d[i+2]>>3); bins.set(k,(bins.get(k)||0)+1); }
+  if(!solid) return {inks:[],solid:0};
+  // greedy clusters in Lab from the biggest bins, then two k-means passes over the bins
+  const arr=[...bins].sort((p,q)=>q[1]-p[1]).map(([k,n])=>{ const r=((k>>10)&31)*8+4,g=((k>>5)&31)*8+4,b=(k&31)*8+4; return {lab:labOf(r,g,b),rgb:[r,g,b],n}; });
+  let cl=[]; for(const b of arr){ if(cl.length>=24) break; if(b.n<solid*0.002) break; if(!cl.some(c0=>dist2(c0.lab,b.lab)<14*14)) cl.push({lab:b.lab.slice(),rgb:b.rgb.slice(),n:0}); }
+  let far=0;
+  for(let pass=0;pass<3;pass++){ const acc=cl.map(()=>({l:[0,0,0],r:[0,0,0],n:0})); far=0;
+    for(const b of arr){ let bi=0,bd=1e9; for(let j=0;j<cl.length;j++){ const dd=dist2(cl[j].lab,b.lab); if(dd<bd){ bd=dd; bi=j; } } if(bd>18*18) far+=b.n;
+      const A=acc[bi]; A.n+=b.n; for(let q=0;q<3;q++){ A.l[q]+=b.lab[q]*b.n; A.r[q]+=b.rgb[q]*b.n; } }
+    cl=cl.map((c0,j)=>acc[j].n?{lab:acc[j].l.map(v=>v/acc[j].n),rgb:acc[j].r.map(v=>v/acc[j].n),n:acc[j].n}:null).filter(Boolean); }
+  // edge pixels between two inks make little in-between clusters: drop the small ones that sit between two big ones
+  cl.sort((p,q)=>q.n-p.n);
+  const between=c0=>cl.some(A=>A!==c0&&A.n>c0.n*4&&cl.some(B=>B!==c0&&B!==A&&B.n>c0.n*4&&Math.sqrt(dist2(A.lab,c0.lab))+Math.sqrt(dist2(c0.lab,B.lab))<Math.sqrt(dist2(A.lab,B.lab))*1.15));
+  const inks=cl.filter(c0=>c0.n>=solid*0.01&&!(c0.n<solid*0.06&&between(c0))).slice(0,12).map(c0=>({rgb:c0.rgb,lab:c0.lab,hex:rgbHex(c0.rgb),pct:c0.n/solid*100,ink:nearestInk(c0.lab)}));
+  const total=inks.reduce((t0,i)=>t0+i.pct,0); inks.forEach(i=>i.pct=i.pct*100/total);
+  // a photo: most pixels differ a little from their neighbour (grain, light). Flat art, even a JPEG, is mostly the same
+  // colour next door with hard edges. (vendor bandana photo 18%, flat logos 0%)
+  let pr=0,soft=0; for(let y=0;y<H;y+=2) for(let xx=0;xx<W-1;xx+=2){ const i=(y*W+xx)*4; if(d[i+3]<200||d[i+7]<200) continue; pr++; const df=Math.abs(d[i]-d[i+4])+Math.abs(d[i+1]-d[i+5])+Math.abs(d[i+2]-d[i+6]); if(df>=4&&df<=60) soft++; }
+  return {inks,solid,photo:pr>1500&&soft/pr>0.12,blended:far/solid>0.12||cl.length>=16,white:inks.some(i=>i.lab[0]>92&&Math.abs(i.lab[1])<6&&Math.abs(i.lab[2])<8)};
+}
+// imprint Pantone tokens as ink keys, for comparing with the scan
+function impInkKeys(im){ return chipsFromText(im&&im.pantone).map(c=>{ const n=(c.t.match(/^\d{3,4}/)||[])[0]; return n?n:/EZ|BASE|BB|OFF/.test(c.t)?c.t:/BLK/.test(c.t)?'Black':/WHT/.test(c.t)?'White':/^CG ?(\d+)/.test(c.t)?'Cool Gray '+c.t.match(/\d+/)[0]:c.t; }); }
+let SCAN_SEL=-1;
+/* ================= recolour ================= */
+// RECOL[impId] = {'*': {inkIndex: inkKey}, <lineId>: {...}} — '*' is all garments; a line's own entries win.
+// inkKey: a PANTONE_HEX key ('286', 'Black', 'Cool Gray 7') or '#rrggbb'.
+const RECOL={};
+const INK_EXTRA={White:'#ffffff',Black:'#231f20'};
+let INK_T=null; const inkTable=()=>INK_T||(INK_T=Object.assign({},window.PANTONE_HEX||{},INK_EXTRA));
+const inkHex=k=>!k?null:k[0]==='#'?k:(inkTable()[k]||null);
+function recolMap(im,line){ const r=RECOL[im.id]; if(!r) return null; const m=Object.assign({},r['*']||{},(line&&r[line.id])||{}); return Object.keys(m).length?m:null; }
+// once per art: for every pixel, the two scanned inks it sits between and how far along — so a recolour is just a
+// sum of colour shifts, which keeps soft edges, halftone dots and distressing
+function recolPrep(a){
+  if(a._rp) return a._rp; const src=a.canvas, k=Math.min(1,2400/Math.max(src.width,src.height)), W=Math.max(1,Math.round(src.width*k)), H=Math.max(1,Math.round(src.height*k));
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0,W,H);
+  const img=x.getImageData(0,0,W,H), d=img.data, inks=a.scan.inks.map(i=>i.rgb), n=inks.length, A=new Uint8Array(W*H), B=new Uint8Array(W*H), T=new Uint8Array(W*H);
+  for(let p=0,i=0;i<d.length;i+=4,p++){ if(!d[i+3]) continue; const r=d[i],g=d[i+1],b=d[i+2]; let a1=0,d1=1e9,a2=0,d2=1e9;
+    for(let j=0;j<n;j++){ const q=inks[j], dr=r-q[0],dg=g-q[1],db=b-q[2], dd=dr*dr+dg*dg+db*db; if(dd<d1){ d2=d1; a2=a1; d1=dd; a1=j; } else if(dd<d2){ d2=dd; a2=j; } }
+    A[p]=a1; B[p]=a2; const u=inks[a1], v=inks[a2], ex=v[0]-u[0],ey=v[1]-u[1],ez=v[2]-u[2], L=ex*ex+ey*ey+ez*ez;
+    let t=L?((r-u[0])*ex+(g-u[1])*ey+(b-u[2])*ez)/L:0; t=t<0?0:t>0.5?0.5:t; T[p]=Math.round(t*255); }
+  return (a._rp={W,H,img,A,B,T});
+}
+function artFor(im,line){
+  const a=ART[im.id]; if(!a) return null; const m=recolMap(im,line); if(!m||!a.scan) return a.canvas;
+  const key=JSON.stringify(m); a._rc=a._rc||{}; if(a._rc[key]) return a._rc[key];
+  const rp=recolPrep(a), inks=a.scan.inks, er=inks.map((ink,j)=>m[j]==='none'), dl=inks.map((ink,j)=>{ const h=m[j]&&m[j]!=='none'&&inkHex(m[j]); if(!h) return [0,0,0]; const t=hexRgb(h); return [t[0]-ink.rgb[0],t[1]-ink.rgb[1],t[2]-ink.rgb[2]]; });
+  const c=document.createElement('canvas'); c.width=rp.W; c.height=rp.H; const x=c.getContext('2d'); const out=new ImageData(new Uint8ClampedArray(rp.img.data),rp.W,rp.H), d=out.data;
+  for(let p=0,i=0;i<d.length;i+=4,p++){ if(!d[i+3]) continue; const t=rp.T[p]/255, u=dl[rp.A[p]], v=dl[rp.B[p]], w=1-t;
+    const ea=er[rp.A[p]]?w:0, eb=er[rp.B[p]]?t:0; if(ea||eb) d[i+3]=d[i+3]*Math.max(0,1-ea-eb);
+    if(!(u[0]||u[1]||u[2]||v[0]||v[1]||v[2])) continue; d[i]+=u[0]*w+v[0]*t; d[i+1]+=u[1]*w+v[1]*t; d[i+2]+=u[2]*w+v[2]*t; }
+  x.putImageData(out,0,0); return (a._rc[key]=c);
+}
+function resetRecol(im){ delete RECOL[im.id]; const a=ART[im.id]; if(a){ a._rc=null; } }
+let RC={j:-1,scope:'*'};
+function inkSearch(q){ const T=inkTable(); q=q.trim(); if(/^#?[0-9a-f]{6}$/i.test(q)) return [{k:'#'+q.replace('#','').toLowerCase(),hex:'#'+q.replace('#','')}];
+  const keys=Object.keys(T).filter(k=>!/BB|EZ|^CRM$|^CREAM$|^WHT$|^BLK$|^BLACK$|^WHITE$|FULL/.test(k)), ql=q.toLowerCase();
+  const hit=q?keys.filter(k=>k.toLowerCase().startsWith(ql)).concat(keys.filter(k=>!k.toLowerCase().startsWith(ql)&&k.toLowerCase().includes(ql))):['White','Black','Cool Gray 7','186','286','109','1655','347','Reflex Blue','7547'];
+  return hit.filter(k=>T[k]).slice(0,30).map(k=>({k,hex:T[k]})); }
+// ---- colour edits: groups of scanned inks (merged), names, removed ones. a.ed={merge:{j:k}, name:{j:inkKey}, gone:{j:1}}
+function edOf(a){ return a.ed||(a.ed={merge:{},name:{},gone:{}}); }
+function inkRoot(a,j){ const ed=edOf(a); let n=0; while(ed.merge[j]!=null&&n++<50) j=ed.merge[j]; return j; }
+function inkGroups(a){
+  const sc=a.scan, ed=edOf(a), g={}; sc.inks.forEach((ink,j)=>{ const r=inkRoot(a,j); (g[r]=g[r]||{j:r,members:[],pct:0}).members.push(j); g[r].pct+=ink.pct; });
+  return Object.values(g).map(G=>{ const ink=sc.inks[G.j], nm=ed.name[G.j]; return Object.assign(G,{hex:ink.hex,lab:ink.lab,key:nm||(ink.ink&&ink.ink.k)||ink.hex,keyHex:nm?(inkHex(nm)||ink.hex):(ink.ink?ink.ink.hex:ink.hex),named:!!nm,gone:!!ed.gone[G.j]}); }).sort((p,q)=>q.pct-p.pct);
+}
+const groupOf=(a,j)=>inkGroups(a).find(G=>G.members.includes(j));
+function mergeInk(a,from,to){ const r1=inkRoot(a,from), r2=inkRoot(a,to); if(r1===r2) return; const ed=edOf(a); ed.merge[r1]=r2; delete ed.gone[r1];
+  // the merged colour takes the recolour of the one it joined
+  for(const im of J.imps){ if(ART[im.id]!==a) continue; const R=RECOL[im.id]; if(!R) continue; for(const sk in R){ const m=R[sk]; if(m[r2]!=null) groupOf(a,r2).members.forEach(j=>m[j]=m[r2]); else groupOf(a,r2).members.forEach(j=>delete m[j]); } a._rc=null; } }
+function combineSimilar(a){ let n=0; const gs=inkGroups(a).filter(G=>!G.gone);
+  for(let i=gs.length-1;i>0;i--) for(let k=0;k<i;k++){ const A=gs[i], B=gs[k]; if(dist2(A.lab,B.lab)<24*24||(A.key===B.key)){ mergeInk(a,A.j,B.j); n++; break; } }
+  return n; }
+function syncRecol(a){
+  const box=$('rcBox'), im=curImp(); box.hidden=RC.j<0||!a||!a.scan||!a.scan.inks[RC.j]; if(box.hidden) return;
+  const G=groupOf(a,RC.j)||{j:RC.j,members:[RC.j],key:'',named:false}, cur=recolMap(im,RC.scope==='line'?J.line:null)||{}, ren=RC.mode==='rename';
+  $('rcTitle').innerHTML=ren?`Call <b>${esc(G.named?G.key:'≈ '+G.key)}</b>`:`Change <b>${esc(G.named?G.key:'≈ '+G.key)}</b> to`;
+  $('rcMode').querySelectorAll('button').forEach(b=>b.classList.toggle('is-on',b.dataset.m===(RC.mode||'recolour')));
+  $('rcScope').hidden=ren;
+  const others=inkGroups(a).filter(o=>o.j!==G.j&&!o.gone);
+  $('rcMerge').innerHTML='<option value="">—</option>'+others.map(o=>`<option value="${o.j}">${esc((o.named?'':'≈ ')+o.key)} (${Math.round(o.pct)}%)</option>`).join('');
+  const gone=inkGroups(a).filter(o=>o.gone); $('rcGone').innerHTML=gone.length?'Removed from the list: '+gone.map(o=>`<a href="#" data-r="${o.j}">${esc(o.key)} (put back)</a>`).join(', '):'';
+  $('rcGone').querySelectorAll('[data-r]').forEach(el=>el.onclick=e=>{ e.preventDefault(); delete edOf(a).gone[+el.dataset.r]; syncScan(a); render(); });
+  $('rcLineBtn').textContent=J.line?`Only ${J.line.g.color||J.line.g.name}`:'This garment only';
+  $('rcScope').querySelectorAll('button').forEach(b=>b.classList.toggle('is-on',b.dataset.s===RC.scope));
+  const q=$('rcSearch').value.trim(), free=ren&&q&&!/^#?[0-9a-f]{6}$/i.test(q)?[{k:q.toUpperCase(),hex:G.hex,free:1}]:[];   // a thread ("1756 MD") or any name: use the text as typed
+  $('rcOpts').innerHTML=free.concat(inkSearch(q)).map(o=>`<button type="button" data-k="${esc(o.k)}" ${cur[RC.j]===o.k?'style="outline:3px solid var(--p-black)"':''}><i style="background:${o.hex}"></i>${o.free?'Use “'+esc(o.k)+'”':esc(o.k)}</button>`).join('');
+  $('rcOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    if(ren){ edOf(a).name[G.j]=b.dataset.k; syncScan(a); render(); return; }
+    const sk=RC.scope==='line'&&J.line?J.line.id:'*'; RECOL[im.id]=RECOL[im.id]||{}; const m=(RECOL[im.id][sk]=RECOL[im.id][sk]||{}); G.members.forEach(j=>m[j]=b.dataset.k); syncScan(a); render(); });
+}
+function syncScan(a){
+  const box=$('scanBox'), sc=a&&a.scan; box.hidden=!sc||!sc.inks.length; if(box.hidden) return;
+  $('scanWhat').textContent=isEmb(curImp())?'Thread colours in the art':'Colours in the art';
+  const im=curImp(), want=impInkKeys(im), GS=inkGroups(a), live=GS.filter(G=>!G.gone), found=live.map(G=>G.key);
+  if(SCAN_SEL>=0){ const sg=groupOf(a,SCAN_SEL); if(sg&&sg.j!==SCAN_SEL) SCAN_SEL=sg.j; }
+  const ed=edOf(a); $('scanUndo').hidden=!(Object.keys(ed.merge).length||Object.keys(ed.name).length||Object.keys(ed.gone).length);
+  $('scanCount').textContent=`· ${GS.length!==sc.inks.length||$('scanUndo').hidden===false?'':'about '}${live.length} colour${live.length===1?'':'s'}`;
+  const mp=recolMap(im,J.line)||{};
+  $('scanSw').innerHTML=live.map(G=>{ const j=G.j, to=mp[j], th=to==='none'?'transparent':to&&inkHex(to);
+    return `<button type="button" data-j="${j}" class="${j===SCAN_SEL?'is-on':''}" title="Tap to see where it is and edit it"><i style="background:${th?`linear-gradient(135deg,${G.hex} 50%,${th} 50%)`:G.hex}"></i><span>${esc((G.named?'':'≈ ')+G.key)}${to?' → '+esc(to==='none'?'erased':to):''}${!to&&want.length&&want.includes(G.key)?' ✓':''}<small>${G.pct<1?'<1':Math.round(G.pct)}% of the print${G.members.length>1?` · ${G.members.length} merged`:''}</small></span></button>`; }).join('');
+  $('scanSw').querySelectorAll('button').forEach(b=>b.onclick=()=>{ SCAN_SEL=SCAN_SEL===+b.dataset.j?-1:+b.dataset.j; RC.j=SCAN_SEL; $('rcSearch').value=''; syncScan(a); });
+  if(RC.j!==SCAN_SEL) RC.j=SCAN_SEL; syncRecol(a);
+  const f=[];
+  if(a.spots&&a.spots.length) f.push(`<b>Spot colours named in the file:</b> ${[...new Set(a.spots.map(n=>n.replace(/^\d{2,3}M-/i,'')))].map(esc).join(', ')}`);
+  if(want.length){ const extra=live.filter(G=>!want.includes(G.key)&&G.pct>=2).map(G=>G.key), miss=want.filter(k=>!found.includes(k)&&!/EZ|BASE|BB|OFF/.test(k));
+    if(!extra.length&&!miss.length) f.push('✓ Matches the imprint\'s Pantones.');
+    if(extra.length) f.push(`In the art but not on the imprint: <b>${[...new Set(extra)].map(esc).join(', ')}</b>`);
+    if(miss.length) f.push(`On the imprint but not found in the art: <b>${miss.map(esc).join(', ')}</b> (could be a close shade).`); }
+  else if(im) f.push('No Pantones on the imprint yet — the proof uses these.');
+  if(sc.blended) f.push('<span style="color:var(--p-alert)">Lots of blended tones — likely a sim process / halftone print, so the colour count is rough and a recolour will only be approximate.</span>');
+  else f.push('Tap a colour to see where it is and to change it.');
+  const wh=sc.inks.find(i=>i.lab[0]>92&&Math.abs(i.lab[1])<6&&Math.abs(i.lab[2])<8);
+  if(wh&&wh.pct>55&&!a.dropBg&&a.opaque!==false) f.push('<b>Mostly white</b> — if that\'s the paper, not ink, tick "Art has a solid background — drop it".');
+  else if(sc.white) f.push('Has white ink.');
+  $('scanFlags').innerHTML=f.map(t=>`<div class="mk-flag">${t}</div>`).join('');
+  const cv=$('scanCv'); cv.hidden=SCAN_SEL<0||!sc.inks[SCAN_SEL];
+  if(!cv.hidden){ const src=a.canvas, s=Math.min(1,600/Math.max(src.width,src.height)), W=Math.max(1,Math.round(src.width*s)), H=Math.max(1,Math.round(src.height*s));
+    cv.width=W; cv.height=H; const x=cv.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0,W,H); const img=x.getImageData(0,0,W,H), d=img.data, tl=sc.inks[SCAN_SEL].lab, mem=new Set((groupOf(a,SCAN_SEL)||{members:[SCAN_SEL]}).members);
+    for(let i=0;i<d.length;i+=4){ if(d[i+3]<40) continue; const l=labOf(d[i],d[i+1],d[i+2]); let bd=1e9,bj=-1; sc.inks.forEach((k,j)=>{ const dd=dist2(k.lab,l); if(dd<bd){ bd=dd; bj=j; } });
+      if(!mem.has(bj)){ const g=(d[i]+d[i+1]+d[i+2])/3; d[i]=d[i+1]=d[i+2]=200+g*0.2; d[i+3]=90; } }
+    x.putImageData(img,0,0); }
+}
+function syncArt(){
+  const im=curImp(), a=im&&ART[im.id];
+  $('artBlk').style.opacity=im?1:.5;
+  if(!a){ $('scanBox').hidden=true; SCAN_SEL=-1; }
+  else if(a!==syncArt._a){ SCAN_SEL=-1; } syncArt._a=a;
+  if(a&&a.scan) syncScan(a);
+  if(!a){ $('widthFrom').hidden=true; $('thumb').hidden=true; $('dropTitle').textContent=im?'Open art for '+im.code:'Open art'; $('dropSub').textContent='PNG, JPG, PDF, .AI or .PSD. Drop, paste or click.'; $('layerBox').hidden=true; $('heightOut').textContent='–'; $('widthIn').value=im?(LOC_WIDTH[im.loc]||11):11; $('dropBg').checked=false; $('dropAllRow').hidden=true; return; }
+  const th=$('thumb'); th.hidden=false; const tx=th.getContext('2d'); tx.clearRect(0,0,56,56); const s=Math.min(56/a.canvas.width,56/a.canvas.height); tx.drawImage(a.canvas,(56-a.canvas.width*s)/2,(56-a.canvas.height*s)/2,a.canvas.width*s,a.canvas.height*s);
+  $('dropTitle').textContent=a.name; $('dropSub').textContent=`${a.canvas.width} × ${a.canvas.height} px · click to change`;
+  $('widthIn').value=a.widthIn; $('heightOut').textContent=fmtIn(a.widthIn*a.canvas.height/a.canvas.width)+'″';
+  $('widthFrom').hidden=!a.widthFrom; $('widthFrom').innerHTML=a.widthFrom||'';
+  $('dropBg').checked=!!a.dropBg; $('dropAll').checked=!!a.dropAll; $('dropAllRow').hidden=!a.dropBg;
+  const lb=$('layerBox'); lb.hidden=!a.layers||!a.layers.length;
+  if(a.layers&&a.layers.length){ const box=$('layers'); box.innerHTML='';
+    [...a.layers].reverse().forEach(it=>{ const r=document.createElement('label'); r.style.paddingLeft=(it.depth*14)+'px';
+      r.innerHTML=`<input type="checkbox" ${it.on?'checked':''}> ${it.l.children?'📁 ':''}${esc(it.l.name||'Layer')}`;
+      r.querySelector('input').onchange=async e=>{ it.on=e.target.checked;
+        if(!a.psd.layersLoaded){ $('dropSub').textContent='Loading the layers…';
+          try{ const p2=agPsd.readPsd(await a.blob.arrayBuffer(),{skipThumbnail:true,skipCompositeImageData:true}); const l2=flatLayers(p2.children||[]); l2.forEach((x,i)=>{ if(a.layers[i]) x.on=a.layers[i].on; }); a.psd=p2; a.layers=l2; p2.layersLoaded=true; }
+          catch(err){ it.on=!it.on; e.target.checked=it.on; toast('This file is too big to switch layers here — hide them in Photoshop and save a copy.'); syncArt(); return; } }
+        a.layersChanged=true; buildArt(a); syncArt(); render(); };
+      box.appendChild(r); }); }
+}
+
+/* ================= Drive: the customer's files ================= */
+// v19 (Stephen: "can we just focus on the customer provided folder and have it be able to open it and view the files
+// inside that folder"): opens straight in the order folder's Client Provided folder (older orders: Customer Supplied /
+// Content) and shows what's in it as tiles with thumbnails. Folders open in place, the path at the top goes back up,
+// art opens in the mockup with one tap, anything else opens in Drive. Nothing walks the whole order folder any more.
+const CUST_DIR=/^(client|customer)\s*(provided|supplied|content|art|files)\b/i;
+let DRV={};
+const dget=async path=>{ const r=await fetch(PROXY+path,{headers:{Authorization:'Bearer '+TOKEN}}); return r.json().catch(()=>null); };
+async function loadDrive(){
+  const box=$('driveBox'); box.hidden=true;
+  if(!TOKEN||!J.order) return;
+  const n=J.order.num; if(DRV.n===n&&DRV.stack){ showDrive(); return; }
+  DRV={n,stack:null};
+  try{
+    const sr=await dget(`/drive/search?order=${n}`);
+    if(!sr||!sr.ok||!sr.folders||!sr.folders.length||DRV.n!==n) return;
+    const top=await dget(`/drive/list?folder=${encodeURIComponent(sr.folders[0].id)}`); if(!top||!top.ok||DRV.n!==n) return;
+    const root={id:top.folder.id,name:top.folder.name||sr.folders[0].name,url:top.folder.url||sr.folders[0].webViewLink,files:top.files||[]};
+    const cust=root.files.find(f=>/folder$/.test(f.mimeType||'')&&CUST_DIR.test(f.name||''));
+    DRV.stack=[root];
+    if(cust){ const c=await dget(`/drive/list?folder=${encodeURIComponent(cust.id)}`); if(DRV.n!==n) return; if(c&&c.ok) DRV.stack.push({id:cust.id,name:cust.name,url:cust.webViewLink,files:c.files||[]}); }
+    showDrive();
+  }catch(e){}
+}
+async function driveInto(f){
+  const n=DRV.n, list=$('driveFiles'); list.style.opacity=.5;
+  const c=await dget(`/drive/list?folder=${encodeURIComponent(f.id)}`).catch(()=>null); list.style.opacity='';
+  if(DRV.n!==n) return; if(!c||!c.ok){ toast('Could not open '+f.name); return; }
+  DRV.stack.push({id:f.id,name:f.name,url:f.webViewLink,files:c.files||[]}); showDrive();
+}
+const THUMB={};
+function driveThumb(f,el){
+  if(!f.thumb) return; const set=u=>{ if(u) el.style.backgroundImage=`url("${u}")`, el.textContent=''; };
+  if(THUMB[f.id]) return void THUMB[f.id].then(set);
+  THUMB[f.id]=fetch(PROXY.replace(/\/proxy$/,'')+f.thumb,{headers:{Authorization:'Bearer '+TOKEN}}).then(r=>r.ok?r.blob():null).then(b=>b&&URL.createObjectURL(b)).catch(()=>null);
+  THUMB[f.id].then(set);
+}
+function showDrive(){
+  const box=$('driveBox'), list=$('driveFiles'), st=DRV.stack||[]; const cur=st[st.length-1];
+  box.hidden=!cur; if(!cur) return;
+  const cr=$('driveCrumb'); cr.innerHTML='';
+  st.forEach((d,i)=>{ if(i) cr.appendChild(document.createTextNode('›'));
+    if(i===st.length-1){ const b=document.createElement('b'); b.textContent=d.name; cr.appendChild(b); }
+    else{ const b=document.createElement('button'); b.type='button'; b.textContent=d.name; b.onclick=()=>{ DRV.stack=st.slice(0,i+1); showDrive(); }; cr.appendChild(b); } });
+  $('driveOpen').href=cur.url||'#';
+  const dirs=cur.files.filter(f=>/folder$/.test(f.mimeType||'')), files=cur.files.filter(f=>!/folder$/.test(f.mimeType||''));
+  const art=f=>/\.(png|jpe?g|webp|gif|pdf|ai|psd)$/i.test(f.name||'');
+  // art first, newest first (the worker sends them newest first already)
+  const ordered=dirs.concat(files.filter(art),files.filter(f=>!art(f)));
+  list.innerHTML='';
+  if(!ordered.length){ list.innerHTML='<span class="mk-hint" style="grid-column:1/-1">This folder is empty.</span>'; return; }
+  ordered.forEach(f=>{ const isDir=/folder$/.test(f.mimeType||''), ok=isDir||art(f);
+    const b=document.createElement(ok?'button':'a'); if(ok) b.type='button'; else { b.href=f.webViewLink||'#'; b.target='_blank'; b.rel='noopener'; }
+    b.className='mk-dt'+(isDir?' fold':'')+(ok?'':' off'); b.title=f.name+(ok?'':' — opens in Drive');
+    const mb=f.size?`${(f.size/1e6).toFixed(f.size<1e7?1:0)} MB`:'';
+    b.innerHTML=`<span class="im">${isDir?'Folder':esc(extOf(f.name).toUpperCase()||'FILE')}</span><span class="nm">${esc(f.name)}</span>${isDir?'':`<span class="sz">${ok?mb:'Opens in Drive'}</span>`}`;
+    if(!isDir) driveThumb(f,b.querySelector('.im'));
+    if(isDir) b.onclick=()=>driveInto(f);
+    else if(ok) b.onclick=async()=>{ $('dropSub').textContent='Downloading '+f.name+'…'; b.style.opacity=.5;
+      try{ const r=await fetch(`${PROXY}/drive/file?id=${encodeURIComponent(f.id)}`,{headers:{Authorization:'Bearer '+TOKEN}});
+        if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error(j.code==='too_big'?'That file is over the worker\'s download limit. Download it from Drive and drop it here.':(j.error||'Drive '+r.status)); }
+        await openArtFile(await r.blob(),f.name); }catch(e){ toast(e.message); $('dropSub').textContent=e.message; } b.style.opacity=''; };
+    list.appendChild(b); });
+}
+
+/* ================= garment photos + true size ================= */
+const ckey=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function colorMatch(list,want){ const w=ckey(want); if(!w) return list[0]||null; return list.find(c=>ckey(c.name)===w)||list.find(c=>ckey(c.name).includes(w)||w.includes(ckey(c.name)))||null; }
+// S&S finds styles by its own style ID (a bare "1717" isn't found), so look the ID up first: style number + brand
+const SSID={};
+function ssStyleId(pn,brand){
+  const k=ckey(pn)+'|'+ckey(brand); if(SSID[k]) return SSID[k];
+  return (SSID[k]=(async()=>{ try{
+    const j=await (await fetch(`${PROXY}/styles/?search=${encodeURIComponent(pn)}&fields=styleID,brandName,styleName`)).json();
+    let rows=(Array.isArray(j)?j:[]).filter(r=>ckey(r.styleName)===ckey(pn));
+    // some brands put their name in front of the style on S&S (order: "OAD 108", S&S: "OAD108")
+    const bp=ckey(brand); if(!rows.length&&bp&&!ckey(pn).startsWith(bp)){ const j2=await (await fetch(`${PROXY}/styles/?search=${encodeURIComponent(bp+ckey(pn))}&fields=styleID,brandName,styleName`)).json().catch(()=>null);
+      rows=(Array.isArray(j2)?j2:[]).filter(r=>ckey(r.styleName)===bp+ckey(pn)); }
+    if(!rows.length) return null;
+    const bk=ckey(brand), b=bk&&rows.find(r=>{ const rb=ckey(r.brandName); return rb===bk||rb.includes(bk)||bk.includes(rb); });
+    return (b||rows[0]).styleID||null; }catch(e){ return null; } })());
+}
+async function ssPhotos(pn,color,brand){
+  const id=await ssStyleId(pn,brand); if(!id) return null;
+  const r=await fetch(`${PROXY}/products/?style=${id}&fields=brandName,styleID,colorName,color1,colorFrontImage,colorBackImage`); const j=await r.json();
+  if(!Array.isArray(j)||!j.length) return null;
+  const bk=ckey(brand), rows=j.filter(p=>!bk||!p.brandName||bk.includes(ckey(p.brandName))||ckey(p.brandName).includes(bk));
+  const list=(rows.length?rows:j).map(p=>({name:p.colorName,front:p.colorFrontImage,back:p.colorBackImage,hex:p.color1,styleID:p.styleID}));
+  const c=colorMatch(list,color); if(!c) return null;
+  const big=u=>!u?'':(u.startsWith('http')?u:'https://cdn.ssactivewear.com/'+u).replace(/_fm\.(jpg|png)$/i,'_fl.$1');
+  return {front:big(c.front),back:big(c.back),hex:c.hex||'',from:'S&S',styleID:c.styleID};
+}
+async function sanmarPhotos(pn,color){
+  const t=await (await fetch(`${PROXY}/sanmar/productinfo?style=${encodeURIComponent(pn)}`)).text();
+  const doc=new DOMParser().parseFromString(t,'text/xml'), tx=(el,tag)=>{ const n=el.getElementsByTagName(tag)[0]; return n?n.textContent.replace(/\s+/g,''):''; };
+  const list=[...doc.getElementsByTagName('listResponse')].map(el=>({name:(el.getElementsByTagName('color')[0]||{}).textContent||tx(el,'catalogColor'),front:tx(el,'frontFlat')||tx(el,'frontModel')||tx(el,'colorProductImage'),back:tx(el,'backFlat')||tx(el,'backModel')}));
+  const c=colorMatch(list,color); return c&&c.front?{front:c.front,back:c.back,hex:'',from:'SanMar'}:null;
+}
+async function ascPhotos(pn,color){
+  const r=await fetch(`${PROXY}/ascolour/catalog/products/${encodeURIComponent(pn)}/variants?pageSize=250&pageNumber=1`); if(!r.ok) return null;
+  const j=await r.json(), list=((j&&j.data)||[]).map(v=>({name:v.colour,front:v.imageUrl||'',back:v.backImageUrl||''}));
+  const c=colorMatch(list,color); return c&&c.front?{front:c.front,back:c.back,hex:'',from:'AS Colour'}:null;
+}
+function loadImg(url){
+  const tryOne=(u,cors)=>new Promise(res=>{ const im=new Image(); if(cors) im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=()=>res(null); im.src=u; });
+  return (async()=>{ if(!url) return null;
+    let im=await tryOne(`${PROXY}/img?u=${encodeURIComponent(url)}`,true); if(im) return {im,safe:true};
+    im=await tryOne(url,true); if(im) return {im,safe:true};
+    im=await tryOne(url,false); return im?{im,safe:false}:null; })();
+}
+const SPEC_CACHE={};
+async function ssSpecs(pn,brand){
+  const k=ckey(pn)+'|'+ckey(brand); if(SPEC_CACHE[k]!==undefined) return SPEC_CACHE[k];
+  try{ const id=await ssStyleId(pn,brand); if(!id) throw 0; const j=await (await fetch(`${PROXY}/specs/?style=${id}`)).json(); SPEC_CACHE[k]=Array.isArray(j)&&j.length<2000?j:null; }catch(e){ SPEC_CACHE[k]=null; }
+  return SPEC_CACHE[k];
+}
+const parseIn=v=>{ const s=String(v||'').trim(); let m=s.match(/^(\d+(?:\.\d+)?)(?:\s+(\d+)\/(\d+))?/); if(!m) return null; let n=parseFloat(m[1]); if(m[2]) n+=(+m[2])/(+m[3]); return n; };
+// size M body widths when the vendor has no spec sheet (inches, laid flat, 1" below the armhole)
+const BODY_W={'SS Tee':20,'LS Tee':20,'Tank Top':19,'Youth Tee':16,'Sweatshirt':22,'Pullover Hoodie':22,'Zip Up Hoodie':22,'Youth Fleece':18,'Onesie':9,'Other':20};
+const SIZE_STEP={XS:-4,S:-2,M:0,L:2,XL:4,'2XL':6,'3XL':8};
+// size M body lengths (high point of the shoulder to the hem) when there's no spec sheet; vendor photos are shaped, not
+// flat, so the photo's height (not its width) sets the scale
+const BODY_L={'SS Tee':29,'LS Tee':29,'Tank Top':28,'Youth Tee':22,'Sweatshirt':28,'Pullover Hoodie':28,'Zip Up Hoodie':28,'Youth Fleece':22,'Onesie':12,'Other':29};
+const LEN_STEP={XS:-2,S:-1,M:0,L:1,XL:2,'2XL':3,'3XL':4};
+async function bodyWidthFor(line){
+  const key=line.id+'|'+S.size, g0=line.g; if(S.bodyW[key]) return S.bodyW[key];
+  let w=null, src='';
+  const sp=/as colou?r/i.test(line.g.brand)?null:await ssSpecs(line.g.pn,line.g.brand);
+  if(sp&&sp.length){ const sz=r=>String(r.sizeName||'').toUpperCase().replace(/^XXL$/,'2XL').replace(/^XXXL$/,'3XL')===S.size;
+    const rows=sp.filter(r=>/body width|chest width|1\/2 chest|chest \(1\/2\)/i.test(r.specName||'')&&sz(r)), circ=sp.filter(r=>/chest circumference/i.test(r.specName||'')&&sz(r));
+    if(rows.length){ w=parseIn(rows[0].value); src=`S&S spec sheet (${rows[0].specName})`; }
+    else if(circ.length){ const c=parseIn(circ[0].value); if(c) { w=Math.round(c/2*4)/4; src='S&S spec sheet (half the chest circumference)'; } } }
+  if(w&&(w<8||w>40)) w=null;
+  if(!w){ w=(BODY_W[line.g.type]||20)+(SIZE_STEP[S.size]||0); src=`typical ${line.g.type||'tee'} (no spec sheet)`; }
+  let l=null, lsrc='';
+  if(sp&&sp.length){ const sz=r=>String(r.sizeName||'').toUpperCase().replace(/^XXL$/,'2XL').replace(/^XXXL$/,'3XL')===S.size;
+    const lr=sp.filter(r=>/body length|^length$|full length/i.test(r.specName||'')&&!/tolerance|sleeve/i.test(r.specName||'')&&sz(r));
+    if(lr.length){ l=parseIn(lr[0].value); lsrc='S&S spec sheet'; } }
+  if(l&&(l<8||l>45)) l=null;
+  if(!l){ l=(BODY_L[line.g.type]||29)+(LEN_STEP[S.size]||0); lsrc=`typical ${line.g.type||'tee'}`; }
+  // a tote or other flat item: S&S's Measurements line gives its width across ("20\"W x 15\"H x 5\"D")
+  const ac=accOf(line); if(ac&&ac!==ACC.Cap&&ac!==ACC.Beanie&&sp&&sp.length&&!line.specW){ const m=sp.map(r=>String(r.value||'')).join(' ').match(/(\d+(?:\.\d+)?)\s*(?:"|″|in\.?)?\s*W\b/i);
+    const v=m&&parseFloat(m[1]); if(v>=4&&v<=40){ line.specW=v; line.specSrc=sp.find(r=>/W\b/.test(r.value||'')).value; } }
+  const out={w,src,l,lsrc}; if(!stillShown(line,g0)) return out;   // the garment changed while S&S answered
+  return (S.bodyW[key]=out);
+}
+// a slow vendor answer for a garment that's since been swapped must not land on the new one
+const stillShown=(line,g)=>{ const l=J.lines.find(x=>x.id===line.id); return !!l&&l.g===g; };
+async function loadPhotos(line){
+  // once per garment: a garment with no vendor photo (every bandana) stays 'none' — looking again on every redraw looped
+  if(!line||PH[line.id]&&(PH[line.id].state!=='none'||PH[line.id].tried)) return;
+  const g=line.g;
+  if(OWN[ownKey(g)]){ useOwn(line); return; }
+  PH[line.id]={state:'loading'}; render();
+  const named=cssColor(g.color);
+  if(/carolina creative/i.test(g.brand)||/bandana/i.test(g.type)){ PH[line.id]={state:'none',hex:named,tried:true}; render(); return; }
+  let r=null;
+  const tries=/as colou?r/i.test(g.brand)?[()=>ascPhotos(g.pn,g.color),()=>ssPhotos(g.pn,g.color,g.brand)]:[()=>ssPhotos(g.pn,g.color,g.brand),()=>sanmarPhotos(g.pn,g.color)];
+  for(const t of tries){ try{ r=await t(); }catch(e){ r=null; } if(r) break; }
+  if(!stillShown(line,g)) return;
+  if(!r){ PH[line.id]={state:'none',hex:named,tried:true}; render(); return; }
+  const [f,b]=await Promise.all([loadImg(r.front),loadImg(r.back)]);
+  if(!stillShown(line,g)) return;
+  PH[line.id]={tried:true,state:(f||b)?'ok':'none',front:f&&photoInfo(f),back:b&&photoInfo(b),from:r.from,hex:(r.hex?(r.hex[0]==='#'?r.hex:'#'+r.hex):'')||named};
+  if(line===J.line) bodyWidthFor(line).then(()=>render());
+  render();
+}
+/* ---- your own garment photo (v22) ---- */
+const OWN={};   // style+colour → {front, back} (photoInfo of the cleaned photo); kept until the page closes
+const ownKey=g=>ckey(g.brand)+'|'+ckey(g.pn)+'|'+ckey(g.color);
+function useOwn(line){ const o=OWN[ownKey(line.g)], prev=PH[line.id]||{};
+  PH[line.id]={tried:true,state:(o.front||o.back)?'ok':'none',front:o.front||null,back:o.back||null,from:'your own photo',own:true,hex:(o.front||o.back).body||cssColor(line.g.color),vendor:prev.own?prev.vendor:prev};
+  if(line===J.line) bodyWidthFor(line).then(()=>render()); render(); }
+// take out the plain background around a garment: grow from the photo's edges through pixels close to the edge colour
+// (and to their neighbour, so a soft shadow or gradient goes too), crop to what's left, put it on white
+async function cleanPhoto(file){
+  const url=URL.createObjectURL(file); const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('That file isn\'t a photo the browser can open')); i.src=url; });
+  const s=Math.min(1,1600/Math.max(im.naturalWidth,im.naturalHeight)), W=Math.round(im.naturalWidth*s), H=Math.round(im.naturalHeight*s);
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0,W,H); URL.revokeObjectURL(url);
+  const id=x.getImageData(0,0,W,H), d=id.data, bg=new Uint8Array(W*H);
+  const edge=[]; for(let i=0;i<W;i+=4){ edge.push(i,(H-1)*W+i); } for(let j=0;j<H;j+=4){ edge.push(j*W,j*W+W-1); }
+  const med=k=>edge.map(p=>d[p*4+k]).sort((a,b)=>a-b)[edge.length>>1], B=[med(0),med(1),med(2)];
+  const far=(p,r,g,b,t)=>{ const o=p*4, dr=d[o]-r, dg=d[o+1]-g, db=d[o+2]-b; return dr*dr+dg*dg+db*db>t; };
+  const transparent=p=>d[p*4+3]<30;
+  const q=new Int32Array(W*H); let qh=0, qt=0;
+  for(const p of edge) if(!bg[p]&&(transparent(p)||!far(p,B[0],B[1],B[2],60*60))){ bg[p]=1; q[qt++]=p; }
+  while(qh<qt){ const p=q[qh++], px=p%W, py=(p/W)|0, o=p*4;
+    for(const n of [px>0?p-1:-1,px<W-1?p+1:-1,py>0?p-W:-1,py<H-1?p+W:-1]){ if(n<0||bg[n]) continue;
+      if(transparent(n)||(!far(n,d[o],d[o+1],d[o+2],14*14)&&!far(n,B[0],B[1],B[2],95*95))){ bg[n]=1; q[qt++]=n; } } }
+  let x0=W,y0=H,x1=-1,y1=-1; for(let y=0;y<H;y++) for(let xx=0;xx<W;xx++) if(!bg[y*W+xx]){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(y<y0)y0=y; if(y>y1)y1=y; }
+  if(x1-x0<W*0.1||y1-y0<H*0.1) throw new Error('Couldn\'t find the garment in that photo — try one on a plain background.');
+  const kept=(x1-x0)*(y1-y0)/(W*H);
+  for(let p=0;p<W*H;p++) if(bg[p]){ const o=p*4; d[o]=d[o+1]=d[o+2]=255; d[o+3]=255; }
+  x.putImageData(id,0,0);
+  const m=Math.round(Math.max(x1-x0,y1-y0)*0.04), cx0=Math.max(0,x0-m), cy0=Math.max(0,y0-m), cw=Math.min(W,x1+m+1)-cx0, ch=Math.min(H,y1+m+1)-cy0;
+  const out=document.createElement('canvas'); out.width=cw; out.height=ch; const ox=out.getContext('2d'); ox.fillStyle='#fff'; ox.fillRect(0,0,cw,ch); ox.drawImage(c,cx0,cy0,cw,ch,0,0,cw,ch);
+  const img=await new Promise(res=>{ const i=new Image(); i.onload=()=>res(i); i.src=out.toDataURL('image/jpeg',0.92); });
+  return {info:photoInfo({im:img,safe:true}),kept};
+}
+async function ownPhoto(file,side){
+  const line=J.line; if(!line||!file) return; $('ownHint').textContent='Cleaning up the photo…';
+  try{ const r=await cleanPhoto(file), k=ownKey(line.g), o=(OWN[k]=OWN[k]||{}); o[side]=r.info;
+    // a new photo means a new collar spot: forget a line dragged on the vendor photo for this style + colour
+    delete NECK[neckKey(line,side)];
+    J.lines.filter(l=>ownKey(l.g)===k).forEach(useOwn);
+    $('ownHint').textContent=`${side==='front'?'Front':'Back'} photo in. ${r.kept>0.9?'The background was hard to find — if the garment looks boxy, try a photo on a plainer background. ':''}Check the size below, and drag the yellow line to the bottom of the collar if it's off.`;
+  }catch(e){ $('ownHint').textContent=e.message; toast(e.message); }
+}
+let OWN_SIDE='front';
+function cssColor(name){ const n=String(name||'').toLowerCase().replace(/heather|vintage|garment dyed|pigment|\s+/g,''); if(!n) return ''; const x=document.createElement('canvas').getContext('2d'); x.fillStyle='#010203'; x.fillStyle=n; return x.fillStyle==='#010203'?'':x.fillStyle; }
+function photoInfo(o){
+  // where the garment is in the photo (box, body width in px across the chest/body) and its fabric brightness map
+  const im=o.im, w=im.naturalWidth, h=im.naturalHeight, s=Math.min(1,500/Math.max(w,h)), W=Math.max(1,Math.round(w*s)), H=Math.max(1,Math.round(h*s));
+  const info={im,safe:o.safe,box:{x:0.1*w,y:0.06*h,w:0.8*w,h:0.88*h},bodyPx:0.8*w*0.6,body:'',lum:null};
+  if(!o.safe) return info;
+  try{
+    const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0,W,H);
+    const d=x.getImageData(0,0,W,H).data, bl=labOf(d[0],d[1],d[2]);
+    // garment = anything not the photo's plain background (a gentle test, so white shirts on white still count)
+    const br=d[0],bgc=d[1],bb=d[2], isG=(xx,y)=>{ const i=(y*W+xx)*4; if(d[i+3]<=20) return false; const r=d[i]-br,g=d[i+1]-bgc,b=d[i+2]-bb; return r*r+g*g+b*b>49; };
+    let x0=W,y0=H,x1=-1,y1=-1; for(let y=0;y<H;y++) for(let xx=0;xx<W;xx++) if(isG(xx,y)){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(y<y0)y0=y; if(y>y1)y1=y; }
+    if(x1>x0&&y1>y0){
+      info.box={x:x0/s,y:y0/s,w:(x1-x0+1)/s,h:(y1-y0+1)/s};
+      // body width: the run of garment through the centre on rows in the lower body (sleeves have ended or hang apart)
+      const cx=Math.round((x0+x1)/2), ws=[];
+      for(let f=0.55;f<=0.851;f+=0.05){ const y=Math.round(y0+(y1-y0)*f); if(!isG(cx,y)) continue; let a=cx,b=cx; while(a>0&&isG(a-1,y)) a--; while(b<W-1&&isG(b+1,y)) b++; ws.push(b-a+1); }
+      // the narrowest lower-body row is the body itself (sleeves can hang against it on crews and hoodies)
+      const okW=ws.filter(v=>v>(x1-x0)*0.25).sort((p,q)=>p-q); if(okW.length) info.bodyPx=okW[Math.min(1,okW.length-1)]/s;
+    }
+    const px=[]; for(let y=Math.round(H*0.5);y<H*0.62;y++) for(let xx=Math.round(W*0.45);xx<W*0.55;xx++){ const i=(y*W+xx)*4; px.push([d[i],d[i+1],d[i+2]]); }
+    if(px.length){ const m=k=>px.map(p=>p[k]).sort((a,b)=>a-b)[px.length>>1]; info.body=rgbHex([m(0),m(1),m(2)]); }
+  }catch(e){ info.safe=false; }
+  return info;
+}
+
+/* ================= placement ================= */
+const sideOf=im=>(im.loc==='B'||im.loc==='Nape')?'back':'front';
+const isHood=line=>line&&/hood/i.test(line.g.type);
+// not a shirt: sized by how wide the item is across in the photo, print centred on its print spot (ay = share of the height)
+const ACC={'Cap':{w:8.25,ay:0.36,pw:4,spot:'the front panel',name:'cap'},'Beanie':{w:9,ay:0.74,pw:3,spot:'the cuff',name:'beanie'},'Tote Bag':{w:15,ay:0.62,pw:10,spot:'the bag',name:'tote'},'Other':{w:20,ay:0.5,pw:8,spot:'',name:'item'},'Paper':{w:12,ay:0.5,pw:8,spot:'',name:'item'}};
+function accOf(line){ if(!line||isBandLine(line)) return null; if(line.kind!==undefined) return line.kind?ACC[line.kind]:null; const t=line.g.type||''; if(ACC[t]&&t!=='Other'&&t!=='Paper') return ACC[t];   // Airtable's "Other" covers polos and more: only the Kind picker makes those flat items (Stephen's polo couldn't move up)
+  const n=`${line.g.name||''} ${line.g.title||''}`.toLowerCase();
+  if(/\b(cap|hat|trucker|snapback|visor|dad hat|bucket)\b/.test(n)) return ACC.Cap; if(/beanie|knit/.test(n)) return ACC.Beanie; if(/\btote\b|\bbag\b/.test(n)) return ACC['Tote Bag']; return null; }
+const accW=line=>(line&&(line.refW||line.specW))||(accOf(line)||{w:20}).w;
+const isBandLine=line=>!!line&&(/bandana/i.test(line.g.type||'')||/carolina creative/i.test(line.g.brand||'')||(line===J.line&&J.imps.length>0&&J.imps.every(i=>i.loc==='Bandana')));
+const isBandana=()=>isBandLine(J.line)||!!(J.line&&J.imps.some(i=>i.loc==='Bandana'));
+// Carolina Creative bandana colours as Pine names them (Airtable › Garments); anything else falls back to the CSS name
+const BAND_HEX={'BLACK':'#1b1b1d','WHITE':'#f6f5f1','NATURAL':'#ece3cf','SAND':'#d8c7a4','KHAKI':'#bfa97f','SILVER':'#b9bcbf','CHARCOALGREY':'#4a4c50','RED':'#c3162d','MAROON':'#6b1a28','BURNTORANGE':'#c9581f','ORANGE':'#ee7d1f','GOLD':'#f2b31d','BRIGHTYELLOW':'#f5e01c','LIMEGREEN':'#8cc63e','KELLYGREEN':'#1f9a46','FOREST':'#1f4a32','OLIVEGREEN':'#6b6d39','TEAL':'#0f7f86','TURQUOISE':'#2bb6c4','LIGHTBLUE':'#8fc3e6','ROYAL':'#2443a4','NAVY':'#1d2647','PURPLE':'#5b2d86','LIGHTPINK':'#f4b6c8','HOTPINK':'#e5338c','BROWN':'#5c3a24','HIPPIE':'#7a4fa0'};
+const bandHex=line=>(line&&line.bandHex)||BAND_HEX[ckey(line&&line.g.color)]||cssColor(line&&line.g.color)||'#c3162d';
+const bandSize=line=>(line&&line.bandSize)||22;
+// ---- a generated bandana "photo": height field (fold creases, wrinkles, slow waves) lit from the top left, cotton weave,
+// uneven rolled hem, soft shadow. Cached per colour; the square is N-2m px of an N px canvas.
+const BAND_R={};
+function rng(seed){ let t=seed>>>0; return ()=>{ t+=0x6D2B79F5; let r=Math.imul(t^t>>>15,1|t); r^=r+Math.imul(r^r>>>7,61|r); return ((r^r>>>14)>>>0)/4294967296; }; }
+function vnoise(n,rand){ const g=new Float32Array((n+1)*(n+1)); for(let i=0;i<g.length;i++) g[i]=rand(); return (u,v)=>{ const x=u*n,y=v*n,i=Math.min(n-1,Math.floor(x)),j=Math.min(n-1,Math.floor(y)),fx=x-i,fy=y-j,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),a=g[j*(n+1)+i],b=g[j*(n+1)+i+1],c=g[(j+1)*(n+1)+i],d=g[(j+1)*(n+1)+i+1]; return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy; }; }
+function bandanaRender(hex){
+  // v19: modelled on a Carolina Creative product photo (Stephen's reference): lying flat, one soft fold down the middle,
+  // a visible slubby cotton weave, soft light from the right, straight edges with a thin hem, barely any shadow
+  if(BAND_R[hex]) return BAND_R[hex];
+  const N=1000, m=40, S=N-2*m, rand=rng(20261026), n1=vnoise(3,rand), n2=vnoise(6,rand), n3=vnoise(40,rand), n4=vnoise(60,rand), n5=vnoise(60,rand), edgeN=vnoise(9,rand);
+  // slub threads: each row and column of yarn is a touch lighter or darker than its neighbours
+  const row=new Float32Array(N), col=new Float32Array(N); for(let i=0;i<N;i++){ row[i]=(rand()-0.5)*(rand()<0.12?2.4:1); col[i]=(rand()-0.5)*(rand()<0.12?2.4:1); }
+  // a few long, very soft ripples, mostly toward the lower left and along the top (as in the photo)
+  const wr=[[0.05,0.62,0.42,0.98],[0.12,0.78,0.5,0.95],[0.55,0.7,0.95,0.98],[0.2,0.03,0.7,0.12],[0.02,0.25,0.12,0.6]].map(([x1,y1,x2,y2])=>({x1,y1,x2,y2,a:0.08+rand()*0.05,w:0.03+rand()*0.02}));
+  const segD=(u,v,q)=>{ const dx=q.x2-q.x1,dy=q.y2-q.y1,t=Math.max(0,Math.min(1,((u-q.x1)*dx+(v-q.y1)*dy)/(dx*dx+dy*dy))),px=q.x1+t*dx-u,py=q.y1+t*dy-v; return {d:Math.sqrt(px*px+py*py),t}; };
+  const H=new Float32Array(N*N), cl=t=>t<0?0:t>1?1:t;
+  for(let y=0;y<N;y++){ const v=cl((y-m)/S); for(let x=0;x<N;x++){ const u=cl((x-m)/S);
+    let h=0.18*n1(u,v)+0.06*n2(u,v);
+    const c1=(u-0.5)/0.012, c2=(v-0.5)/0.012; h+=0.035*Math.exp(-c1*c1)+0.01*Math.exp(-c2*c2);   // the fold down the middle, and a fainter one across
+    for(const q of wr){ const r=segD(u,v,q), dd=r.d/q.w; if(dd<4) h+=q.a*Math.sin(Math.PI*r.t)*Math.exp(-dd*dd); }
+    H[y*N+x]=h; } }
+  const inside=(x,y)=>{ const u=(x-m)/S, v=(y-m)/S, a=0.0012;
+    return {d:Math.min(u-a*(edgeN(0,cl(v))*2-1), 1-u-a*(edgeN(0.6,cl(v))*2-1), v-a*(edgeN(cl(u),0)*2-1), 1-v-a*(edgeN(cl(u),0.6)*2-1)),u,v}; };
+  const c=document.createElement('canvas'); c.width=c.height=N; const x=c.getContext('2d'), img=x.createImageData(N,N), d=img.data, base=hexRgb(hex), hem=0.006;
+  const lum=(base[0]*0.3+base[1]*0.59+base[2]*0.11)/255, tex=lum<0.2?1.8:lum>0.85?0.7:1;   // the weave shows more on dark cloth, less on white
+  for(let y=1;y<N-1;y++) for(let xx=1;xx<N-1;xx++){ const p=inside(xx,y), ed=p.d; if(ed<0) continue; const i=y*N+xx;
+    const gx=(H[i+1]-H[i-1])*N/2, gy=(H[i+N]-H[i-N])*N/2;
+    const lu=p.u-0.62, lv=p.v-0.42; let sh=1.04-0.22*(lu*lu+lv*lv)-0.03*Math.max(0,0.35-p.u)*Math.max(0,p.v-0.5)*8-0.012*(gx*-0.8+gy*-0.5);   // soft light from the right, falling off to the corners
+    if(ed<hem) sh-=0.05*(1-ed/hem)+0.02;                         // thin hem, a little darker
+    const sr=n4(cl(p.u),(y%101)/101), sc=n5((xx%101)/101,cl(p.v));   // slubs come and go along each thread: short streaks, not lines
+    sh+=tex*(0.05*row[y]*Math.max(0,sr*2-1)+0.05*col[xx]*Math.max(0,sc*2-1)+0.02*(n3((xx%250)/250,(y%250)/250)-0.5)+0.016*(rand()-0.5));   // cotton weave
+    sh=sh<0.6?0.6:sh>1.25?1.25:sh; const o=i*4, hi=sh>1?(sh-1)*50:0;
+    d[o]=Math.min(255,base[0]*sh+hi); d[o+1]=Math.min(255,base[1]*sh+hi); d[o+2]=Math.min(255,base[2]*sh+hi); d[o+3]=ed<0.0008?Math.round(255*ed/0.0008):255; }
+  x.putImageData(img,0,0);
+  const out=document.createElement('canvas'); out.width=out.height=N; const ox=out.getContext('2d'); ox.filter='blur(6px)'; ox.globalAlpha=0.14; ox.drawImage(c,2,4); ox.globalCompositeOperation='source-in'; ox.fillStyle='#000'; ox.fillRect(0,0,N,N);
+  ox.globalCompositeOperation='source-over'; ox.filter='none'; ox.globalAlpha=1; ox.drawImage(c,0,0);
+  return (BAND_R[hex]={cv:out,N,m,S,body:hex});
+}
+let WEAVE=null;
+function weave(){ if(WEAVE) return WEAVE; const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'), d=x.createImageData(128,128);
+  for(let y=0;y<128;y++) for(let i=0;i<128;i++){ const n=(Math.random()*40-20)+((y%3===0)?-14:0)+((i%3===0)?-10:0), v=200+n, o=(y*128+i)*4; d.data[o]=d.data[o+1]=d.data[o+2]=v; d.data[o+3]=255; }
+  x.putImageData(d,0,0); return (WEAVE=c); }
+// a bandana: the square in its colour, a stitched hem and two soft folds (prints go on top; the weave goes over both)
+function drawBandanaBase(x,ox,oy,S,hex,ppi){
+  x.save(); x.shadowColor='rgba(0,0,0,.22)'; x.shadowBlur=S*0.02; x.shadowOffsetY=S*0.008; x.fillStyle=hex; x.fillRect(ox,oy,S,S); x.restore();
+  const g1=x.createLinearGradient(ox,oy,ox+S,oy+S); g1.addColorStop(0,'rgba(255,255,255,.07)'); g1.addColorStop(.48,'rgba(0,0,0,0)'); g1.addColorStop(.5,'rgba(0,0,0,.07)'); g1.addColorStop(.52,'rgba(0,0,0,0)'); g1.addColorStop(1,'rgba(0,0,0,.06)');
+  x.fillStyle=g1; x.fillRect(ox,oy,S,S);
+  const g2=x.createLinearGradient(ox+S,oy,ox,oy+S); g2.addColorStop(0,'rgba(0,0,0,0)'); g2.addColorStop(.49,'rgba(255,255,255,.05)'); g2.addColorStop(.51,'rgba(0,0,0,.05)'); g2.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g2; x.fillRect(ox,oy,S,S);
+  const inset=0.32*ppi; x.save(); x.strokeStyle='rgba(0,0,0,.28)'; x.lineWidth=Math.max(1,0.03*ppi); x.setLineDash([0.12*ppi,0.08*ppi]); x.strokeRect(ox+inset,oy+inset,S-2*inset,S-2*inset); x.restore();
+}
+function drawBandanaWeave(x,ox,oy,S){ x.save(); x.globalCompositeOperation='multiply'; x.globalAlpha=0.35; const p=x.createPattern(weave(),'repeat'); x.fillStyle=p; x.fillRect(ox,oy,S,S); x.restore(); }
+function defaultPlace(im){ const hood=isHood(J.line); PLACE[im.id]=im.loc==='Bandana'||isBandLine(J.line)||accOf(J.line)?{dx:0,down:0}:{dx:im.loc==='LC'?3.75:im.loc==='RC'?-3.75:0,down:im.loc==='B'?(hood?5:3):3}; }
+function placeOf(im){ if(!PLACE[im.id]) defaultPlace(im); return PLACE[im.id]; }
+function placementText(im){ if(PTEXT[im.id]) return PTEXT[im.id]; const ac=accOf(J.line); if(isBandana()||ac){ const pl=placeOf(im); return (!pl.dx&&!pl.down)?('Centered'+(ac&&ac.spot?' on '+ac.spot:'')):`${pl.down?fmtIn(Math.abs(pl.down))+'" '+(pl.down>0?'below':'above')+' centre':''}${pl.dx&&pl.down?', ':''}${pl.dx?fmtIn(Math.abs(pl.dx))+'" '+(pl.dx>0?'right':'left')+' of centre':''}`; } return fmtIn(placeOf(im).down)+'" below neck'; }
+// where the neck seam sits below the top of the garment in the photo (inches, size M); drag the neck line to correct
+// placement is measured from the BOTTOM of the collar. Where that sits below the top of the garment in the vendor's
+// flat photo, measured on S&S/SanMar flats; once someone drags it for a style, that's remembered for the style.
+// a dragged line is remembered per style AND colour: vendors lay each colour's photo out a little differently
+const neckKey=(line,side)=>line?ckey(line.g.brand)+'|'+ckey(line.g.pn)+'|'+ckey(line.g.color)+'|'+side:'|'+side;
+// The collar line is kept as a share of the garment's body width IN THE PHOTO (not inches), so it stays on the
+// collar whatever size is picked. The bottom of the collar measured on the vendors' own photos for Pine's 50
+// most-ordered S&S/SanMar styles (collar scan, 2026-10-26; notes/mockup.md), per side, and per colour where that
+// colour's photo was measured. STYLE → [{b: brand key, f: {_: style, COLOUR: value}, k: {...back}}]
+const COLLAR=/*COLLAR_TABLE*/{"3001":[{"b":"BELLACANVAS","f":{"_":0.22,"BLACK":0.22},"k":{"_":0.0575,"BLACK":0.0575}}],"SS4500":[{"b":"INDEPENDENT","f":{"_":0.2136,"BLACK":0.1818,"ASHHEATHER":0.2455}}],"3600":[{"b":"NEXTLEVEL","f":{"_":0.2024,"BLACK":0.2146,"BONE":0.1902},"k":{"_":0.0537,"BLACK":0.0512,"BONE":0.0537}}],"1301":[{"b":"AMERICANAPPAREL","f":{"_":0.1875,"BLACK":0.19,"ASHGREY":0.185},"k":{"_":0.0675,"BLACK":0.0675}}],"2400":[{"b":"GILDAN","f":{"_":0.1575,"BLACK":0.145,"ASH":0.17},"k":{"_":0.065,"BLACK":0.0675,"ASH":0.0625}}],"3001CVC":[{"b":"BELLACANVAS","f":{"_":0.21,"ATHLETICHEATHER":0.21},"k":{"_":0.045,"DARKGREYHEATHER":0.045,"ATHLETICHEATHER":0.0475}}],"64000":[{"b":"GILDAN","f":{"_":0.185,"BLACK":0.1725,"NATURAL":0.195},"k":{"_":0.0575,"BLACK":0.0525,"NATURAL":0.0625}}],"3501":[{"b":"BELLACANVAS","f":{"_":0.2325,"BLACK":0.2325},"k":{"_":0.0575,"BLACK":0.06,"ASH":0.0575}}],"2000":[{"b":"GILDAN","f":{"_":0.185,"BLACK":0.1825,"ASH":0.185},"k":{"_":0.055,"BLACK":0.0525,"ASH":0.055}}],"6014":[{"b":"COMFORTCOLORS","f":{"_":0.1827,"WHITE":0.1827},"k":{"_":0.0543,"WHITE":0.0543}}],"1717":[{"b":"COMFORTCOLORS","f":{"_":0.1605,"IVORY":0.158,"BAY":0.163},"k":{"_":0.0568,"IVORY":0.0543,"BAY":0.0593}}],"3413":[{"b":"BELLACANVAS","f":{"_":0.2225,"SOLIDBLACKTRIBLEND":0.2225,"SANDDUNETRIBLEND":0.22},"k":{"_":0.0825,"SANDDUNETRIBLEND":0.0825}}],"6010":[{"b":"NEXTLEVEL","f":{"_":0.243,"VINTAGEBLACK":0.2582,"WHITE":0.2278},"k":{"_":0.0557,"VINTAGEBLACK":0.0557,"WHITE":0.0557}}],"SS3000":[{"b":"INDEPENDENT","f":{"_":0.1864,"BLACK":0.2023,"ASHHEATHER":0.1682},"k":{"_":0.0727,"BLACK":0.0705,"ASHHEATHER":0.0727}}],"3001Y":[{"b":"BELLACANVAS","k":{"_":0.0875,"BLACK":0.0969,"ASH":0.075}}],"6210":[{"b":"NEXTLEVEL","f":{"_":0.2268,"BLACK":0.2488,"CREAM":0.2049},"k":{"_":0.0659,"BLACK":0.0659,"CREAM":0.0659}}],"IND4000":[{"b":"INDEPENDENT","f":{"_":0.3652,"BLACK":0.3391,"ASHHEATHER":0.3913}}],"AL2004":[{"b":"ALLMADE","f":{"_":0.245,"AZUREBLUE":0.245,"ENVIROGREEN":0.245},"k":{"_":0.08,"AZUREBLUE":0.08,"ENVIROGREEN":0.08}}],"6030":[{"b":"COMFORTCOLORS","f":{"_":0.1802,"IVORY":0.1728,"BANANA":0.1877},"k":{"_":0.0494,"BANANA":0.0494}}],"5000":[{"b":"GILDAN","f":{"_":0.165,"BLACK":0.165},"k":{"_":0.05,"BLACK":0.05}}],"SS4500Z":[{"b":"INDEPENDENT","f":{"_":0.2886,"BLACK":0.2886}}],"3480":[{"b":"BELLACANVAS","f":{"_":0.4494,"ATHLETICHEATHERNAVY":0.4494,"BLACK":0.4494},"k":{"_":0.1358,"ATHLETICHEATHERNAVY":0.1358}}],"3739":[{"b":"BELLACANVAS","f":{"_":0.2907,"ASH":0.2907}}],"6405":[{"b":"BELLACANVAS","f":{"_":0.55,"BLACK":0.565,"NATURAL":0.535},"k":{"_":0.055,"BLACK":0.0575,"NATURAL":0.0525}}],"3901":[{"b":"BELLACANVAS","f":{"_":0.2024,"HEATHERMUSTARD":0.2122,"ASH":0.1927},"k":{"_":0.0927,"HEATHERMUSTARD":0.0927}}],"6610":[{"b":"NEXTLEVEL","f":{"_":0.342,"INDIGO":0.3536,"WHITE":0.3275},"k":{"_":0.0493,"INDIGO":0.0493}}],"5033":[{"b":"NEXTLEVEL","f":{"_":0.6819,"SHIRAZ":0.647,"ASH":0.7168},"k":{"_":0.3329,"SHIRAZ":0.3114,"ASH":0.357}}],"3010":[{"b":"BELLACANVAS","f":{"_":0.193,"NATURAL":0.1884,"ATHLETICHEATHER":0.1977},"k":{"_":0.0465,"NATURAL":0.0442,"ATHLETICHEATHER":0.0465}}],"6733":[{"b":"NEXTLEVEL","f":{"_":0.5588,"BLACK":0.5588}}],"AFX90UNZ":[{"b":"INDEPENDENT","f":{"_":0.3814,"ALPINEGREEN":0.3814}}],"6400":[{"b":"BELLACANVAS","f":{"_":0.2925,"NATURAL":0.2925},"k":{"_":0.045,"BLACK":0.05,"NATURAL":0.04}}],"3719":[{"b":"BELLACANVAS","f":{"_":0.2376,"ASH":0.2376}}],"8000":[{"b":"GILDAN","f":{"_":0.1775,"ASH":0.1775},"k":{"_":0.06,"JADEDOME":0.0675,"ASH":0.05}}],"202":[{"b":"TULTEX","f":{"_":0.205,"BLACK":0.2175,"HEATHERGREY":0.1925},"k":{"_":0.035,"BLACK":0.0375,"HEATHERGREY":0.035}}],"220":[{"b":"PARAGON","f":{"_":0.22,"BLACK":0.22,"HEATHERGREY":0.2175}}],"6008":[{"b":"BELLACANVAS","f":{"_":0.0746,"ATHLETICHEATHER":0.0746},"k":{"_":0.0657,"BLACK":0.0836,"ATHLETICHEATHER":0.0507}}],"3605":[{"b":"NEXTLEVEL","f":{"_":0.2341,"BLACK":0.2317,"HEATHERGREY":0.239},"k":{"_":0.039,"BLACK":0.0366,"HEATHERGREY":0.039}}],"3604":[{"b":"NEXTLEVEL","f":{"_":0.2244,"NATURALMIDNIGHTNAVY":0.2244,"HEATHERGREYBLACK":0.2244},"k":{"_":0.0488,"NATURALMIDNIGHTNAVY":0.0488,"HEATHERGREYBLACK":0.0463}}],"3200":[{"b":"BELLACANVAS","f":{"_":0.242,"WHITEBLACK":0.2268,"WHITEFLECKCHARCOALTRIBLEND":0.2573},"k":{"_":0.0561,"WHITEBLACK":0.0459,"WHITEFLECKCHARCOALTRIBLEND":0.0662}}],"3001YCVC":[{"b":"BELLACANVAS","f":{"_":0.2431,"DARKGREYHEATHER":0.24,"ATHLETICHEATHER":0.2462},"k":{"_":0.0862,"ATHLETICHEATHER":0.0862}}],"1566":[{"b":"COMFORTCOLORS","f":{"_":0.1739,"PEPPER":0.187,"IVORY":0.163},"k":{"_":0.0435,"PEPPER":0.0435}}],"AL2100":[{"b":"ALLMADE","f":{"_":0.325,"DEEPBLACK":0.3275,"WHITESAND":0.3225},"k":{"_":0.055,"DEEPBLACK":0.055,"WHITESAND":0.055}}],"PRM3500":[{"b":"INDEPENDENT","f":{"_":0.1636,"PIGMENTIVORY":0.1591,"PIGMENTALPINEGREEN":0.1705},"k":{"_":0.05,"PIGMENTIVORY":0.05,"PIGMENTALPINEGREEN":0.0523}}],"6004":[{"b":"BELLACANVAS","f":{"_":0.3463,"BLACK":0.3612,"ATHLETICHEATHER":0.3313},"k":{"_":0.0687,"BLACK":0.0716,"ATHLETICHEATHER":0.0687}}],"3023CL":[{"b":"COMFORTCOLORS","f":{"_":0.2617,"BLACK":0.2617},"k":{"_":0.0543,"BLACK":0.0543}}]};
+function collarFromScan(line,side){
+  if(!line) return null; const pn=ckey(line.g.pn), bk=ckey(line.g.brand), rows=COLLAR[pn]; if(!rows) return null;
+  const r=rows.find(x=>!bk||!x.b||bk.startsWith(x.b.slice(0,5))||x.b.startsWith(bk.slice(0,5))); if(!r) return null;
+  const t=side==='front'?r.f:r.k; if(!t) return null; const c=ckey(line.g.color);
+  return t[c]!=null?t[c]:t._!=null?t._:null; }   // a share of the body width
+(()=>{ try{ Object.assign(NECK,JSON.parse(localStorage.getItem('pine_mk_neck_v2')||'{}')); }catch(e){} })();
+function saveNeck(){ try{ localStorage.setItem('pine_mk_neck_v2',JSON.stringify(NECK)); }catch(e){} }
+function neckDrop(line,side){ const k=neckKey(line,side); if(NECK[k]!=null) return NECK[k]; const sc=collarFromScan(line,side); if(sc!=null) return sc;
+  // styles not in the scan: typical bottom-of-collar drops from the scan (inches at size M), as a share of the body
+  const hood=isHood(line), crew=line&&/sweatshirt|fleece/i.test(line.g.type), tank=line&&/tank/i.test(line.g.type);
+  const ph=line&&PH[line.id], san=ph&&ph.from==='SanMar', w=(line&&BODY_W[line.g.type])||20;
+  const inch=side==='front'?(hood?7:tank?10:crew?(san?6:4):(san?6:4.1)):(hood?9:tank?4:crew?1.4:1.1);
+  return inch/w; }
+// the prints that are actually on this job: an imprint counts once it has art
+const printed=()=>J.imps.filter(i=>ART[i.id]);
+const sidesOf=list=>{ const sd=['front','back'].filter(s0=>list.some(i=>sideOf(i)===s0)); return sd.length?sd:['front']; };
+function sizeOf(im){ const a=ART[im.id]; return a?{w:a.widthIn,h:a.widthIn*a.canvas.height/a.canvas.width}:null; }
+
+/* ================= drawing a garment with prints (realistic, true to size) ================= */
+const SPECW=line=>(S.bodyW[line.id+'|'+S.size]||{w:(BODY_W[line.g.type]||20)+(SIZE_STEP[S.size]||0)}).w;
+const SPECL=line=>(S.bodyW[line.id+'|'+S.size]||{l:(BODY_L[line.g.type]||29)+(LEN_STEP[S.size]||0)}).l;
+// the photo's garment height covers the body length plus the collar standing above the shoulder point (or the hood)
+const ABOVE_HPS=line=>isHood(line)?4.5:0.5;
+function silhouette(x,X,Y,w,h,color,hood){
+  x.save(); x.translate(X,Y); x.scale(w/100,h/110); x.beginPath();
+  x.moveTo(35,8); x.quadraticCurveTo(50,16,65,8); x.lineTo(88,16); x.lineTo(100,42); x.lineTo(84,48); x.lineTo(80,36); x.lineTo(80,108); x.lineTo(20,108); x.lineTo(20,36); x.lineTo(16,48); x.lineTo(0,42); x.lineTo(12,16); x.closePath();
+  x.fillStyle=color; x.fill(); x.strokeStyle='rgba(0,0,0,.25)'; x.lineWidth=0.6; x.stroke();
+  if(hood){ x.beginPath(); x.moveTo(35,8); x.quadraticCurveTo(50,-8,65,8); x.quadraticCurveTo(50,22,35,8); x.fillStyle=color; x.fill(); x.stroke(); }
+  x.restore();
+}
+function drawGarment(x,line,side,X,Y,w,h,opts){
+  opts=opts||{};
+  const ph=PH[line.id]&&PH[line.id][side], hood=isHood(line), shirt=(PH[line.id]&&PH[line.id].hex)||'#9aa0a6';
+  let geo; const band=isBandLine(line)||(line===J.line&&J.imps.some(i=>i.loc==='Bandana'));
+  if(band){ const S0=bandSize(line), sq=Math.min(w,h)*(opts.fill?1:0.94), ox=X+(w-sq)/2, oy=Y+(h-sq)/2, ppi=sq/S0;
+    const R=bandanaRender(bandHex(line)), k=sq/R.S, cvx=ox-R.m*k, cvy=oy-R.m*k;
+    x.drawImage(R.cv,cvx,cvy,R.N*k,R.N*k);
+    // the generated bandana is the "photo": prints are shaded by its folds like prints on the shirt photos
+    geo={ppi,cx:ox+sq/2,top:oy,bpx:sq,band:true,cy:oy+sq/2,sq:{x:ox,y:oy,s:sq},ph:{im:R.cv,safe:true,body:R.body},ox:cvx,oy:cvy,s:k}; }
+  if(!band&&ph&&opts.fill){ x.save(); x.beginPath(); x.rect(X,Y,w,h); x.clip(); }   // proof: the garment fills its space (the photo's white margins cropped off)
+  const acc=accOf(line);
+  if(band){} else if(ph){ const im=ph.im, bx=ph.box, s=opts.fill?Math.min(w/(bx.w*1.04),h/(bx.h*1.03)):Math.min(w/im.naturalWidth,h/im.naturalHeight), dw=im.naturalWidth*s, dh=im.naturalHeight*s,
+      ox=opts.fill?X+w/2-(bx.x+bx.w/2)*s:X+(w-dw)/2, oy=opts.fill?Y+h/2-(bx.y+bx.h/2)*s:Y+(h-dh)/2;
+    x.drawImage(im,ox,oy,dw,dh);
+    const b=ph.box, ppi=acc?b.w*s/accW(line):b.h*s/(SPECL(line)+ABOVE_HPS(line));
+    geo={ppi, cx:ox+(b.x+b.w/2)*s, top:oy+b.y*s, ph, ox, oy, s, bpx:ph.bodyPx*s};
+    if(acc){ geo.acc=acc; geo.cy=oy+(b.y+b.h*acc.ay)*s; }
+  } else if(acc){   // no photo: a plain stand-in at the item's size
+    const rw=Math.min(w,h)*0.8, ox=X+(w-rw)/2, oy=Y+(h-rw*0.8)/2; x.save(); x.fillStyle=shirt; x.strokeStyle='rgba(0,0,0,.25)'; x.beginPath(); x.roundRect?x.roundRect(ox,oy,rw,rw*0.8,rw*0.08):x.rect(ox,oy,rw,rw*0.8); x.fill(); x.stroke(); x.restore();
+    geo={ppi:rw/accW(line),cx:ox+rw/2,top:oy,bpx:rw,acc,cy:oy+rw*0.8*acc.ay};
+    if(opts.labels!==false){ x.fillStyle='#7a7363'; x.font=`700 ${Math.max(12,Math.round(w*0.03))}px Helvetica,Arial,sans-serif`; x.textAlign='center'; x.fillText((PH[line.id]&&PH[line.id].state==='loading')?'Finding the photo…':'Photo not found — plain stand-in',X+w/2,Y+h-6); x.textAlign='left'; }
+  } else {
+    const sw=Math.min(w,h*100/110), sh=sw*1.1, ox=X+(w-sw)/2, oy=Y+(h-sh)/2;
+    silhouette(x,ox,oy,sw,sh,shirt,hood);
+    geo={ppi:sw*0.6/SPECW(line), cx:ox+sw/2, top:oy+sh*0.07, bpx:sw*0.6};
+    if(opts.labels!==false){ x.fillStyle='#7a7363'; x.font=`700 ${Math.max(12,Math.round(w*0.035))}px Helvetica,Arial,sans-serif`; x.textAlign='center';
+      const st=PH[line.id]&&PH[line.id].state; x.fillText(side==='back'?'**BACK IMAGE UNAVAILABLE':(st==='loading'?'Finding the garment photo…':'Garment photo not found'),X+w/2,Y+h-6); x.textAlign='left'; }
+  }
+  geo.neck=(band||acc)?geo.cy:geo.top+neckDrop(line,side)*geo.bpx;
+  const hits=[];
+  for(const im of J.imps.filter(i=>sideOf(i)===side&&!/^(LS|RS)$/.test(i.loc))){
+    const a=ART[im.id], sz=sizeOf(im), pl=placeOf(im); if(!a||!sz) continue;
+    const aw=sz.w*geo.ppi, ah=sz.h*geo.ppi, ax=geo.cx+pl.dx*geo.ppi-aw/2, ay=(band||acc)?geo.cy+pl.down*geo.ppi-ah/2:geo.neck+pl.down*geo.ppi;
+    // a photo or halftone (lots of blended tones) isn't flat thread: no stitch texture on it (Stephen: "embroidery adds a weird filter on the image")
+    const me=methOf(im), m2=me==='emb'&&a.scan&&(a.scan.blended||a.scan.photo)?'print':me;
+    drawPrint(x,artFor(im,line)||a.canvas,ax,ay,aw,ah,(band||ph)&&S.realistic?geo:null,m2,geo.ppi);
+    hits.push({id:im.id,x:ax,y:ay,w:aw,h:ah,ppi:geo.ppi});
+    if(opts.guides&&im.id===J.cur){ const fs=13*opts.guides; x.save(); x.strokeStyle='rgba(20,20,18,.85)'; x.lineWidth=Math.max(1,opts.guides); x.setLineDash([6*opts.guides,4*opts.guides]); x.strokeRect(ax,ay,aw,ah); x.setLineDash([]);
+      if(band||acc){ x.font=`700 ${fs}px Helvetica,Arial,sans-serif`; const t=`${fmtIn(sz.w)}″ × ${fmtIn(sz.h)}″ · ${placementText(im)}`, tw=x.measureText(t).width; x.fillStyle='rgba(251,225,34,.95)'; x.fillRect(ax-2,ay+ah+6,tw+6,fs+5); x.fillStyle='#141412'; x.textAlign='left'; x.fillText(t,ax+1,ay+ah+fs+6); x.restore(); continue; }
+      // neck → top of print, with the inches
+      const lx=ax-10*opts.guides; x.beginPath(); x.moveTo(lx,geo.neck); x.lineTo(lx,ay); x.moveTo(lx-5*opts.guides,geo.neck); x.lineTo(lx+5*opts.guides,geo.neck); x.moveTo(lx-5*opts.guides,ay); x.lineTo(lx+5*opts.guides,ay); x.stroke();
+      x.font=`700 ${fs}px Helvetica,Arial,sans-serif`; const lab=(t,X,Y,al)=>{ x.textAlign=al||'left'; const w=x.measureText(t).width; x.fillStyle='rgba(251,225,34,.95)'; x.fillRect(al==='right'?X-w-4:X-2,Y-fs,w+6,fs+5); x.fillStyle='#141412'; x.fillText(t,al==='right'?X-1:X+1,Y); };
+      lab(fmtIn(pl.down)+'″',lx-6*opts.guides,(geo.neck+ay)/2+fs/2,'right'); lab(`${fmtIn(sz.w)}″ × ${fmtIn(sz.h)}″`,ax,ay+ah+fs+6); if(pl.dx) lab(`${fmtIn(Math.abs(pl.dx))}″ ${pl.dx>0?'to wearer\'s left':'to wearer\'s right'}`,ax,ay+ah+2*fs+12); x.restore(); }
+  }
+  if(opts.neckLine&&!band&&!acc){ const gs=opts.guides||1; x.save(); x.strokeStyle='rgba(251,225,34,.95)'; x.setLineDash([8*gs,6*gs]); x.lineWidth=2*gs; x.beginPath(); x.moveTo(geo.cx-3*geo.ppi,geo.neck); x.lineTo(geo.cx+3*geo.ppi,geo.neck); x.stroke();
+    const fs=11*gs; x.font=`700 ${fs}px Helvetica,Arial,sans-serif`; x.setLineDash([]); const t='collar bottom', tw=x.measureText(t).width, tx=geo.cx+3*geo.ppi+4*gs; x.fillStyle='rgba(251,225,34,.95)'; x.fillRect(tx-2*gs,geo.neck-fs*0.75,tw+4*gs,fs*1.3); x.fillStyle='#141412'; x.fillText(t,tx,geo.neck+fs*0.35); x.restore();
+    const hh=Math.max(16,30*gs); hits.unshift({neck:true,side,line,x:geo.cx-3*geo.ppi,y:geo.neck-hh/2,w:6*geo.ppi+tw+8*gs,h:hh,ppi:geo.ppi,bpx:geo.bpx}); }
+  if(ph&&opts.fill) x.restore();
+  return {geo,hits};
+}
+/* the print laid into the fabric: the photo's light and shadow (relative to the fabric's own colour) shade the ink */
+// big art shrunk in halving steps, so fine lines and edges stay clean (one big jump goes jagged, worst in Safari)
+function fitArt(art,W,H){
+  let src=art, w=art.width, h=art.height;
+  while(w>W*2&&h>H*2){ w=Math.max(W,Math.round(w/2)); h=Math.max(H,Math.round(h/2)); const t=document.createElement('canvas'); t.width=w; t.height=h; const tx=t.getContext('2d'); tx.imageSmoothingQuality='high'; tx.drawImage(src,0,0,w,h); src=t; }
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const cx=c.getContext('2d',{willReadFrequently:true}); cx.imageSmoothingQuality='high'; cx.drawImage(src,0,0,W,H); return c;
+}
+function drawPrint(x,art,ax,ay,aw,ah,geo,meth,ppi){
+  // work at the canvas's real pixel size (the mockup is drawn scaled up for the screen and zoom), capped for speed
+  const tr=x.getTransform?x.getTransform():{a:1}; let k=Math.abs(tr.a)||1; if(aw*ah*k*k>8e6) k=Math.sqrt(8e6/(aw*ah));
+  const W=Math.max(1,Math.round(aw*k)), H=Math.max(1,Math.round(ah*k));
+  x.imageSmoothingQuality='high';
+  const raised=meth==='emb'||meth==='patch';
+  if(!raised&&(!geo||!geo.ph||!geo.ph.safe)){ x.drawImage(art.width>W*2?fitArt(art,W,H):art,ax,ay,aw,ah); return; }
+  let c=fitArt(art,W,H); if(c===art){ const t=document.createElement('canvas'); t.width=W; t.height=H; t.getContext('2d').drawImage(art,0,0,W,H); c=t; }
+  if(meth==='patch') c=patchEdge(c,(ppi||40)*k);
+  const cx=c.getContext('2d',{willReadFrequently:true}), ad=cx.getImageData(0,0,W,H), a=ad.data;
+  if(meth==='emb'){
+    // satin stitches: thread runs on a slant, each stitch lighter on its crown and darker where it dips into the fabric;
+    // a fine grain along the thread and stitch rows a little offset so it doesn't read as a printed stripe
+    // v22: much subtler — it read as a striped filter. Fine stitches, a gentle sheen, no hard row lines
+    const pin=(ppi||40)*k, per=Math.max(1.8,pin*0.03), row=Math.max(4,pin*0.16);
+    for(let y=0,i=0;y<H;y++) for(let xx=0;xx<W;xx++,i+=4){ if(!a[i+3]) continue;
+      const r=Math.floor((xx-y*0.35)/row), ph=((xx*0.6+y*0.8+r*per*0.5)/per)%1, sheen=Math.sin(ph*Math.PI);
+      const f=0.93+0.09*sheen, hi=sheen>0.95?6:0;
+      a[i]=Math.min(255,a[i]*f+hi); a[i+1]=Math.min(255,a[i+1]*f+hi); a[i+2]=Math.min(255,a[i+2]*f+hi); }
+  }
+  if(geo&&geo.ph&&geo.ph.safe){
+    const p=document.createElement('canvas'); p.width=W; p.height=H; const px=p.getContext('2d',{willReadFrequently:true});
+    px.imageSmoothingQuality='high'; px.drawImage(geo.ph.im,(ax-geo.ox)/geo.s,(ay-geo.oy)/geo.s,aw/geo.s,ah/geo.s,0,0,W,H);
+    const pd=px.getImageData(0,0,W,H).data, b=hexRgb(geo.ph.body||'#808080'), bl=Math.max(12,0.299*b[0]+0.587*b[1]+0.114*b[2]);
+    // thread and patches sit on top of the fabric: they follow its folds, but less than ink does
+    const amt=raised?0.45:1;
+    for(let i=0;i<a.length;i+=4){ if(!a[i+3]) continue; const l=0.299*pd[i]+0.587*pd[i+1]+0.114*pd[i+2]; let kk=l/bl; kk=kk<0.55?0.55:kk>1.25?1.25:kk; kk=1+(Math.pow(kk,0.75)-1)*amt;
+      a[i]=a[i]*kk; a[i+1]=a[i+1]*kk; a[i+2]=a[i+2]*kk; if(!raised) a[i+3]=a[i+3]*0.97; }
+  }
+  cx.putImageData(ad,0,0);
+  if(raised){ x.save(); const sc=Math.abs(tr.a)||1; x.shadowColor='rgba(0,0,0,.25)'; x.shadowBlur=Math.max(1,(ppi||40)*0.02*sc); x.shadowOffsetY=(ppi||40)*0.01; x.drawImage(c,ax,ay,aw,ah); x.restore(); }
+  else x.drawImage(c,ax,ay,aw,ah);
+}
+// a patch: the art on its backing, with a stitched (merrowed) border around the outside
+function patchEdge(c,pin){
+  const W=c.width, H=c.height, bw=Math.max(2,pin*0.09), o=document.createElement('canvas'); o.width=W; o.height=H; const ox=o.getContext('2d');
+  // the backing: the art's outline, filled (the art plus anything enclosed) — its bounding shape with rounded corners
+  const d=c.getContext('2d',{willReadFrequently:true}).getImageData(0,0,W,H).data; let x0=W,y0=H,x1=0,y1=0;
+  for(let y=0;y<H;y+=2) for(let x=0;x<W;x+=2) if(d[(y*W+x)*4+3]>40){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
+  if(x1<=x0) return c;
+  const r=Math.min(x1-x0,y1-y0)*0.12; ox.beginPath(); ox.roundRect?ox.roundRect(x0,y0,x1-x0,y1-y0,r):ox.rect(x0,y0,x1-x0,y1-y0);
+  ox.fillStyle='#f4f2ec'; ox.fill();   // white twill backing
+  const ins=bw*1.8, sx=(x1-x0-2*ins)/(x1-x0||1), sy=(y1-y0-2*ins)/(y1-y0||1), sc=Math.max(0.5,Math.min(sx,sy));   // the art sits inside the border
+  ox.save(); ox.translate((x0+x1)/2,(y0+y1)/2); ox.scale(sc,sc); ox.drawImage(c,-(x0+x1)/2,-(y0+y1)/2); ox.restore();
+  ox.lineWidth=bw; ox.strokeStyle='#231f20'; ox.setLineDash([bw*0.35,bw*0.25]); ox.stroke(); ox.setLineDash([]);
+  return o;
+}
+
+/* ================= views ================= */
+let mockHits=[];
+function render(){
+  const has=!!(J.line), anyArt=J.imps.some(i=>ART[i.id]);
+  $('empty').hidden=has; $('mockBox').hidden=!has||S.view!=='mock'; $('cwGrid').hidden=!has||S.view!=='cw'; $('proofBox').hidden=!has||S.view!=='proof'; $('placeRows').hidden=!has||!curImp();
+  document.querySelectorAll('#views .p-tab').forEach(b=>b.classList.toggle('is-on',b.dataset.v===S.view));
+  $('cwCount').textContent=J.lines.length>1?J.lines.length:'';
+  $('pngBtn').disabled=!anyArt; $('pdfBtn').disabled=!proofReady(); syncProofButtons();
+  if(!has){ $('msg').textContent=''; return; }
+  const ph=PH[J.line.id]||{}, bw=S.bodyW[J.line.id+'|'+S.size];
+  if(!bw) bodyWidthFor(J.line).then(()=>render());
+  const bl=isBandLine(J.line), ac=accOf(J.line); $('bandRow').hidden=!bl; $('accRow').hidden=!ac; $('kindRow').hidden=bl; $('gKind').value=ac?(Object.keys(ACC).find(k=>ACC[k]===ac)==='Paper'?'Other':Object.keys(ACC).find(k=>ACC[k]===ac)):''; document.querySelector('.mk-sizes').hidden=bl||!!ac; if(ac) $('accW').value=accW(J.line); if(bl){ $('bandSize').value=bandSize(J.line); $('bandColor').value=bandHex(J.line); }
+  $('bodyW').value=bw?bw.l:''; $('garmentHint').innerHTML=`${esc(J.line.g.name)}${ph.state==='ok'?` · photo from ${esc(ph.from)}`:ph.state==='loading'?' · finding the photo…':' · no vendor photo (plain shape)'}${bw?` · size ${esc(S.size)}: body length ${fmtIn(bw.l)}″ (${esc(bw.lsrc)}), width ${fmtIn(bw.w)}″. Sized by length — vendor photos are shaped, not flat.`:''}`;
+  if(ac) $('garmentHint').innerHTML=`${esc(J.line.g.name)}${ph.state==='ok'?` · photo from ${esc(ph.from)}`:''} · ${ac.name}, sized as ${fmtIn(accW(J.line))}″ across${J.line.refW?' (set by you)':J.line.specW?` (S&S: ${esc(J.line.specSrc||'')})`:' (typical — set the real width if it differs)'}.`;
+  { const o=J.line&&OWN[ownKey(J.line.g)]; $('ownRow').hidden=!J.line||bl; $('ownX').hidden=!o; { const v=PH[J.line.id]&&PH[J.line.id].vendor; $('ownX').textContent=v&&v.state==='ok'?'Use the vendor photo':'Remove my photo'; } $('ownF').textContent=o&&o.front?'Front photo ✓':'Front photo'; $('ownB').textContent=o&&o.back?'Back photo ✓':'Back photo'; }
+  if(bl) $('garmentHint').innerHTML=`${esc(J.line.g.name)} · bandana ${fmtIn(bandSize(J.line))}″ × ${fmtIn(bandSize(J.line))}″, drawn true to size. Fix the colour with the colour box if it looks off.`;
+  const missing=J.imps.filter(i=>!ART[i.id]).map(i=>i.code), real=!!J.order;
+  const unsafe=['front','back'].some(sd=>ph[sd]&&!ph[sd].safe);
+  $('msg').innerHTML=[J.line.extra?`<b>${esc(J.line.g.name)}</b> was added for the mockup — it isn't a line on ${J.order?'the order':'an order'}.`:'',missing.length?(printed().length?`No art yet for <b>${missing.map(esc).join(', ')}</b> — left off the proof${real?' (open its art if it\'s on this order)':''}.`:`Open art for <b>${missing.map(esc).join(', ')}</b>.`):'', 
+    unsafe?'<span style="color:var(--p-alert)">The vendor photo can be shown but not shaded or saved into the PDF until the worker is on v29.</span>':''].filter(Boolean).join(' ');
+  $('zHint').textContent=isBandana()||accOf(J.line)?'Drag the print to move it · pinch or double-tap to zoom · drawn true to size':'Drag a print, or the yellow line onto the bottom of the collar · pinch or double-tap to zoom · sizes are true to the size picked';
+  if(S.view==='mock') renderMock(); else if(S.view==='cw') renderColourways(); else renderProof();
+  renderPlaceRows();
+}
+let MW=1600; const MH=1000, Z={z:1,live:false};
+// the picture's on-screen width at 1×: as wide as fits, and on desktop no taller than the space (so no page scroll)
+function fitW(){ const box=$('zoomBox'); if(!box) return MW; const w=box.clientWidth||MW; if(window.innerWidth<=900||!box.clientHeight) return w; return Math.max(240,Math.min(w,(box.clientHeight-4)*MW/MH)); }
+function renderMock(){
+  const sides=sidesOf(printed().concat(curImp()?[curImp()]:[]));
+  MW=sides.length===1?900:1600;   // one garment shown → a narrower picture, so it can be bigger on screen
+  const cv=$('mockCv'), W=MW, H=MH, box=$('zoomBox'), dpr=Math.min(2,window.devicePixelRatio||1);
+  // draw sharper as you zoom in (up to 3× the base size; a cheaper draw while fingers are moving)
+  const k=Math.max(1,Math.min(Z.live?1.5:3,Z.z*fitW()*dpr/MW));
+  cv.width=Math.round(W*k); cv.height=Math.round(H*k); cv.style.width=Math.round(fitW()*Z.z)+'px'; $('zLvl').textContent=(Math.round(Z.z*10)/10)+'×';
+  const x=cv.getContext('2d'); x.setTransform(k,0,0,k,0,0); x.imageSmoothingQuality='high'; x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  mockHits=[]; const pw=W/sides.length;
+  sides.forEach((sd,k)=>{ const r=drawGarment(x,J.line,sd,k*pw+20,20,pw-40,H-70,{neckLine:true,guides:MW/(Z.z*Math.max(240,fitW()))}); mockHits.push(...r.hits);
+    x.fillStyle='#4a453c'; x.font='700 22px Helvetica,Arial,sans-serif'; x.textAlign='center'; x.fillText(sd==='front'?'FRONT':'BACK',k*pw+pw/2,H-18); x.textAlign='left';
+    // a 1-inch ruler at this garment's true scale
+    const ppi=r.geo.ppi, rx=k*pw+30, ry=H-40; x.strokeStyle='#141412'; x.lineWidth=2; x.beginPath(); x.moveTo(rx,ry); x.lineTo(rx+ppi,ry); x.moveTo(rx,ry-6); x.lineTo(rx,ry+6); x.moveTo(rx+ppi,ry-6); x.lineTo(rx+ppi,ry+6); x.stroke(); x.fillStyle='#141412'; x.font='700 14px Helvetica,Arial,sans-serif'; x.fillText('1″',rx+ppi+6,ry+5); });
+}
+function renderColourways(){
+  const box=$('cwGrid'); box.innerHTML='';
+  const sides=sidesOf(printed());
+  const lines=J.lines.filter(l=>J.imps.every(im=>(l.f[LF.imps]||[]).includes(im.id))||l===J.line);
+  for(const l of lines){ loadPhotos(l);
+    const fig=document.createElement('figure'), cv=document.createElement('canvas'); cv.width=520*sides.length; cv.height=560; const x=cv.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,cv.width,cv.height);
+    sides.forEach((sd,k)=>drawGarment(x,l,sd,k*520+10,10,500,540,{labels:false}));
+    fig.appendChild(cv); const cap=document.createElement('figcaption');
+    const own=printed().some(im=>RECOL[im.id]&&RECOL[im.id][l.id]&&Object.keys(RECOL[im.id][l.id]).length);
+    cap.innerHTML=`${esc(l.g.name)}${l.extra?' · added':''}${l===J.line?' · <b>working on this one</b>':''}${own?' · its own inks':''}`; fig.appendChild(cap);
+    if(l===J.line) fig.classList.add('is-on');
+    fig.title='Tap to work on this garment (its own ink colours, placement view)';
+    fig.onclick=()=>{ if(l===J.line) return; if(J.order&&!l.extra) $('lineSel').value=l.id; pickLine(l.id); };
+    box.appendChild(fig); }
+}
+function renderPlaceRows(){
+  const box=$('placeRows'); box.innerHTML='';
+  // the imprint you're on (it lives in the sidebar under the art now)
+  for(const im of J.imps.filter(i=>i.id===J.cur)){ const pl=placeOf(im), d=document.createElement('div'); d.className='mk-row';
+    d.innerHTML=`<label class="p-field"><span class="mk-lbl">${isBandana()||accOf(J.line)?'Down from centre (in)':'Below collar (in)'}</span><input class="p-input" type="number" step="0.25" value="${pl.down}" data-k="down"></label>
+      <label class="p-field"><span class="mk-lbl">Off centre (in)</span><input class="p-input" type="number" step="0.25" value="${pl.dx}" data-k="dx" title="+ = wearer's left"></label>
+      <label class="p-field" style="flex-basis:100%"><span class="mk-lbl">Placement text on the proof</span><input class="p-input" value="${esc(PTEXT[im.id]||'')}" placeholder="${esc(placementText(Object.assign({},im)))}" data-k="t"></label>`;
+    d.querySelector('[data-k="down"]').onchange=e=>{ pl.down=parseFloat(e.target.value)||0; render(); };
+    d.querySelector('[data-k="dx"]').onchange=e=>{ pl.dx=parseFloat(e.target.value)||0; render(); };
+    d.querySelector('[data-k="t"]').onchange=e=>{ const v=e.target.value.trim(); if(v) PTEXT[im.id]=v; else delete PTEXT[im.id]; render(); };
+    box.appendChild(d); }
+}
+
+/* ================= proof (the art department's layout) ================= */
+const DPP=150, PW=11*DPP, PH_=8.5*DPP, FONT='"Helvetica Neue",Helvetica,Arial,sans-serif';
+const FINE_TEE='This is a mock-up. Garment color may not appear exactly as it does here. Print size and placement are based on the average dimensions of a size Medium garment. Therefore, your print may look slightly different between sizes and garments. Colors are matched by Pantone but slight variation may occur between the color you see on your screen and your finished product. Artwork will appear on garment as it does here; any misspellings or mistakes shown on this proof are final unless revised. By approving this mock-up, you are acknowledging and accepting that these slight variations may be present on your finished product.';
+const FINE_ACC='This is a mock-up. Color may not appear exactly as it does here. Print size and placement are based on the typical dimensions of this item, so your print may look slightly different from one piece to the next. Colors are matched by Pantone but slight variation may occur between the color you see on your screen and your finished product. Artwork will appear as it does here; any misspellings or mistakes shown on this proof are final unless revised. By approving this mock-up, you are acknowledging and accepting that these slight variations may be present on your finished product.';
+const FINE_BANDANA='This is a mock-up. Fabric and ink color may vary slightly from what you see here. Although we do our best to match proofs exactly, some variation can occur from a computer screen to a printed bandana. Our bandanas are not 100% perfectly square 100% of the time. Therefore, the distance between the print and the edge of the fabric can vary from one bandana to the next. By approving this proof, you are acknowledging and accepting that these slight variations may be present on your finished product.';
+let LOGO=null; (()=>{ const im=new Image(); im.onload=()=>{ LOGO=im; if(S.view==='proof') render(); }; im.src='assets/pine-script.svg'; })();
+function drawLogoBox(x,X,Y,S0){ x.fillStyle='#231f20'; x.fillRect(X,Y,S0,S0); if(LOGO){ const w=S0*0.72,h=w*134.5/165.6; const c=document.createElement('canvas'); c.width=Math.round(w); c.height=Math.round(h); const cx=c.getContext('2d'); cx.drawImage(LOGO,0,0,c.width,c.height); cx.globalCompositeOperation='source-in'; cx.fillStyle='#fff'; cx.fillRect(0,0,c.width,c.height); x.drawImage(c,X+(S0-w)/2,Y+(S0-h)/2); } }
+function drawApproved(x,X,Y,w,h){ x.fillStyle='#231f20'; x.fillRect(X,Y,w,h); x.fillStyle='#fff'; x.fillRect(X+w*0.67,Y+3,w*0.33-3,h-6); x.font=`700 ${Math.round(h*0.48)}px ${FONT}`; x.textBaseline='middle'; x.fillText('APPROVED',X+h*0.45,Y+h/2+1); x.textBaseline='alphabetic'; }
+function chipsOf(im,line){
+  // the imprint's Pantones (Airtable › Imprints › Pantone), as the art department writes them on proofs; none yet, or
+  // the art has been recoloured → the art's scanned colours, with the new inks
+  const a=ART[im.id], m=recolMap(im,line||J.line);
+  const edited=a&&a.ed&&(Object.keys(a.ed.merge).length||Object.keys(a.ed.name).length||Object.keys(a.ed.gone).length);
+  if((m||edited)&&a&&a.scan){ const seen=new Set(), lab=k=>/^\d/.test(k)?k:k[0]==='#'?k.toUpperCase():k.toUpperCase().replace(/^BLACK$/,'BLK').replace(/^WHITE$/,'WHT');
+    return inkGroups(a).filter(G=>!G.gone&&!(m&&m[G.j]==='none')).map(G=>m&&m[G.j]?{k:m[G.j],hex:inkHex(m[G.j])}:{k:G.key,hex:G.keyHex}).filter(o=>o&&!seen.has(o.k)&&seen.add(o.k)).map(o=>({t:lab(o.k),hex:o.hex})); }
+  const c=chipsFromText(im.pantone); if(c.length) return c;
+  if(!a||!a.scan) return [];
+  const seen=new Set(); return inkGroups(a).filter(G=>!G.gone&&!seen.has(G.key)&&seen.add(G.key)).map(G=>({t:/^\d/.test(G.key)?G.key:String(G.key).toUpperCase().replace('BLACK','BLK').replace('WHITE','WHT'),hex:G.keyHex}));
+}
+function chipsFromText(txt0){
+  const T=window.PANTONE_HEX||{}, txt=String(txt0||'').replace(/,/g,' ');
+  const toks=txt.match(/(EZP?\s*WHT|OFF\s*WHT|CG\s*\d+|WG\s*\d+|\d{3,4}\s*(?:OW|DC)?|BLK|WHT|BASE)/gi)||[];
+  return toks.map(t0=>{ const t=t0.toUpperCase().replace(/\s+/g,' ').trim(), num=(t.match(/^\d{3,4}/)||[])[0];
+    let hex=num&&T[num]?T[num]:/BLK/.test(t)?'#231f20':/WHT/.test(t)?'#f4f2ec':/^CG\s*(\d+)/.test(t)?(T['Cool Gray '+t.match(/\d+/)[0]]||'#9b9b9b'):/BASE/.test(t)?'#dcdcd8':'#cccccc';
+    return {t,hex}; });
+}
+function drawInfo(x,im,X,Y,Wd){
+  const sz=sizeOf(im), u=DPP;
+  x.fillStyle='#231f20'; x.fillRect(X,Y,Wd*0.6,2);
+  const me=methOf(im); x.font=`700 ${Math.round(0.12*u)}px ${FONT}`; x.fillText(`${me==='print'?'':METHODS[me].toUpperCase()+' · '}${(im.locName||'Print').toUpperCase()} - ${im.code}`,X,Y+0.22*u);
+  x.font=`400 ${Math.round(0.1*u)}px ${FONT}`; x.fillText(sz?`Width: ${fmtIn(sz.w)}"  Height: ${fmtIn(sz.h)}"`:'Width: –  Height: –',X,Y+0.4*u);
+  x.fillText('Placement: '+placementText(im),X,Y+0.57*u); x.fillRect(X,Y+0.66*u,Wd*0.6,2); x.fillText(me==='emb'?'Thread Colors':'Colors',X,Y+0.86*u);
+  let cx=X, cy=Y+0.94*u; const ch=0.22*u; x.font=`700 ${Math.round(0.085*u)}px ${FONT}`;
+  for(const c of chipsOf(im)){ const tw=Math.max(0.3*u,x.measureText(c.t).width+0.1*u); if(cx+tw>X+Wd){ cx=X; cy+=ch+6; }
+    x.fillStyle=c.hex; x.fillRect(cx,cy,tw,ch); x.strokeStyle='#231f20'; x.lineWidth=1; x.strokeRect(cx+.5,cy+.5,tw-1,ch-1);
+    const l=labOf(...hexRgb(c.hex))[0]; x.fillStyle=l>60?'#231f20':'#ffffff'; x.fillText(c.t,cx+0.05*u,cy+ch*0.68); cx+=tw+6; }
+  x.fillStyle='#231f20';
+}
+function page1(){
+  const c=document.createElement('canvas'); c.width=PW; c.height=PH_; const x=c.getContext('2d'), u=DPP, g=J.line.g, band=isBandana();
+  x.fillStyle='#fff'; x.fillRect(0,0,PW,PH_); x.fillStyle='#231f20';
+  drawLogoBox(x,0.45*u,0.45*u,0.98*u);
+  x.font=`700 ${Math.round(0.66*u)}px ${FONT}`; x.fillText('Proof',1.6*u,1.0*u);
+  x.font=`400 ${Math.round(0.24*u)}px ${FONT}`; x.fillText('Order #:  '+(J.order?J.order.num:''),1.62*u,1.4*u);
+  const emb=printed().some(isEmb); let fine=band?FINE_BANDANA:accOf(J.line)?FINE_ACC:FINE_TEE;
+  // embroidery: thread, not Pantone ink (wording from the art department's embroidery proofs)
+  if(emb) fine=fine.replace(/(Ink c|C)olors? (are matched by Pantone|may vary slightly)[^.]*\./,'Thread colors are matched as closely as possible, but slight variation may occur between the color you see on your screen and your finished product.').replace('Print size','Embroidery size'); x.font=`700 ${Math.round(0.1*u)}px ${FONT}`; const lead='The Fine Print: ', lw=x.measureText(lead).width;
+  x.fillText(lead,4.1*u,0.82*u); x.font=`400 ${Math.round(0.1*u)}px ${FONT}`;
+  let line='',y=0.82*u,X0=4.1*u+lw,maxW=10.55*u-X0; for(const w of fine.split(' ')){ const t=line?line+' '+w:w; if(x.measureText(t).width>maxW&&line){ x.fillText(line,X0,y); y+=0.15*u; line=w; X0=4.1*u; maxW=6.45*u; } else line=t; } x.fillText(line,X0,y);
+  const L=0.5*u; let Y=1.95*u;
+  const small=t=>{ x.font=`400 ${Math.round(0.1*u)}px ${FONT}`; x.fillText(t,L,Y); Y+=0.28*u; };
+  const big=(t,s)=>{ x.font=`700 ${Math.round(s*u)}px ${FONT}`; Y+=s*u*0.78; x.fillText(t,L,Y); Y+=s*u*0.3+0.18*u; };
+  if(band){ Y=3.15*u; small('Bandana Color'); big(g.color||'',0.24); small('Fabric Content'); big(g.fabric&&g.fabric.length<24?g.fabric:'100% Cotton',0.24); small('Bandana Dimensions'); big(`${fmtIn(bandSize(J.line))} x ${fmtIn(bandSize(J.line))} inches`,0.24); }
+  else { small('Garment'); Y-=0.12*u; big(g.brand||'',0.22); Y-=0.12*u; big(g.pn||'',0.55); small('Colorway'); big(g.color||'',0.19); small('Fabric Content');
+    const fab=(g.fabric||'').replace(/\s+/g,' ').trim();
+    if(fab){ x.font=`700 ${Math.round(0.085*u)}px ${FONT}`; const lines=[]; let ln=''; for(const w of fab.toUpperCase().split(' ')){ const t=ln?ln+' '+w:w; if(x.measureText(t).width>2.3*u&&ln){ lines.push(ln); ln=w; } else ln=t; } if(ln) lines.push(ln);
+      const sh=lines.slice(0,3); x.fillStyle='#efe2cd'; x.fillRect(L,Y-0.02*u,2.45*u,(0.16*sh.length+0.1)*u); x.fillStyle='#231f20'; sh.forEach((t,i)=>x.fillText(t,L+0.07*u,Y+0.13*u+i*0.16*u)); }
+    x.fillStyle='#1a9ad6'; x.font=`700 ${Math.round(0.095*u)}px ${FONT}`; (accOf(J.line)?['PLEASE NOTE: PRINT SIZE IS SHOWN TO SCALE','ON A TYPICAL '+accOf(J.line).name.toUpperCase(),'(REFER TO PRINT LOCATION FOR ACTUAL SIZE)']:['PLEASE NOTE: PRINT SIZE IS SHOWN TO SCALE','ON A SIZE '+S.size+' GARMENT','(REFER TO PRINT LOCATION FOR ACTUAL SIZE)']).forEach((t,i)=>x.fillText(t,L,6.62*u+i*0.14*u)); x.fillStyle='#231f20'; }
+  if(emb&&!band){ x.fillStyle='#1a9ad6'; x.font=`700 ${Math.round(0.085*u)}px ${FONT}`; ['PLEASE NOTE: THREAD COLOR ON PHYSICAL SEWOUT','DOES NOT MATCH THREAD COLOR OF FINAL PRODUCT'].forEach((t,i)=>x.fillText(t,L,7.1*u+i*0.13*u)); x.fillStyle='#231f20'; }
+  drawApproved(x,0.45*u,7.45*u,2.6*u,0.55*u);
+  if(band){ const im=printed()[0]||J.imps[0], X=4.1*u, Yb=1.6*u, s=5.75*u;
+    drawGarment(x,J.line,'front',X,Yb,s,s,{fill:true});
+    if(im) drawInfo(x,im,0.5*u,5.35*u,2.6*u); }
+  else { const sides=sidesOf(printed());
+    // v13: the garment is bigger — photo cropped to the garment, and taller space (info blocks moved down)
+    const top=1.55*u, ph=5.0*u, left=3.3*u, right=10.65*u, pw=(right-left)/sides.length;
+    sides.forEach((sd,k)=>{ const X=left+k*pw; drawGarment(x,J.line,sd,X+0.05*u,top,pw-0.1*u,ph,{fill:true});
+      const ims=printed().filter(i=>sideOf(i)===sd), iw=(pw-0.3*u)/Math.max(1,ims.length); ims.forEach((im,j)=>drawInfo(x,im,X+0.55*u+j*iw,top+ph+0.15*u,iw-0.15*u)); }); }
+  return c;
+}
+function colourwaysPage(){
+  const lines=J.lines.filter(l=>J.imps.every(im=>(l.f[LF.imps]||[]).includes(im.id))); if(lines.length<2) return null;
+  const c=document.createElement('canvas'); c.width=PW; c.height=PH_; const x=c.getContext('2d'), u=DPP; x.fillStyle='#fff'; x.fillRect(0,0,PW,PH_);
+  drawLogoBox(x,0.45*u,0.4*u,0.62*u); x.fillStyle='#231f20'; x.font=`700 ${Math.round(0.5*u)}px ${FONT}`; x.fillText('Colorways',1.25*u,0.95*u);
+  const n=lines.length, cols=Math.min(4,n), rows=Math.ceil(n/cols), cw=10*u/cols, ch=(6.6*u)/rows;
+  lines.forEach((l,i)=>{ const X=0.5*u+(i%cols)*cw, Y=1.3*u+Math.floor(i/cols)*ch; drawGarment(x,l,sidesOf(printed())[0],X+0.1*u,Y,cw-0.2*u,ch-0.45*u,{labels:false,fill:true});
+    x.fillStyle='#231f20'; x.font=`700 ${Math.round(0.12*u)}px ${FONT}`; x.textAlign='center'; x.fillText(l.g.color||l.g.name,X+cw/2,Y+ch-0.15*u); x.textAlign='left'; });
+  return c;
+}
+function detailPage(im){
+  const c=document.createElement('canvas'); c.width=PW; c.height=PH_; const x=c.getContext('2d'), u=DPP, a=ART[im.id], sz=sizeOf(im);
+  x.fillStyle='#fff'; x.fillRect(0,0,PW,PH_); drawLogoBox(x,0.45*u,0.4*u,0.62*u); x.fillStyle='#231f20';
+  x.font=`700 ${Math.round(0.6*u)}px ${FONT}`; x.fillText(im.code,1.25*u,0.98*u); const tx=1.25*u+x.measureText(im.code).width+0.45*u;
+  const row=(k,v,X,Y)=>{ x.font=`700 ${Math.round(0.14*u)}px ${FONT}`; x.fillText(k,X,Y); const kw=x.measureText(k+' ').width; x.font=`400 ${Math.round(0.14*u)}px ${FONT}`; x.fillText(v,X+kw,Y); };
+  row('Location:',(im.locName||'').toUpperCase(),tx,0.62*u); row('Dimensions:',sz?`${fmtIn(sz.w)}" X ${fmtIn(sz.h)}"`:'–',tx,0.86*u); row('Placement:',placementText(im),tx+3.0*u,0.74*u);
+  const X=0.5*u,Y=1.4*u,W=10*u,H=5.7*u; x.fillStyle=(PH[J.line.id]&&(PH[J.line.id].front&&PH[J.line.id].front.body||PH[J.line.id].hex))||'#dfdfdd'; x.fillRect(X,Y,W,H);
+  if(a){ const s=Math.min((W-1.2*u)/a.canvas.width,(H-1.0*u)/a.canvas.height); x.drawImage(artFor(im,J.line)||a.canvas,X+(W-a.canvas.width*s)/2,Y+(H-a.canvas.height*s)/2,a.canvas.width*s,a.canvas.height*s); }
+  drawApproved(x,4.2*u,7.45*u,2.6*u,0.5*u); return c;
+}
+const proofReady=()=>!!(J.line&&printed().length);
+function proofPages(){ const p=[page1()]; const cw=colourwaysPage(); if(cw) p.push(cw); return p.concat(printed().map(detailPage)); }
+function renderProof(){
+  const pages=proofPages(); if(S.proofPage>=pages.length) S.proofPage=0;
+  const cv=$('proofCv'); cv.width=PW; cv.height=PH_; cv.getContext('2d').drawImage(pages[S.proofPage],0,0);
+  const pr=printed(), names=['Page 1'].concat(pages.length>pr.length+1?['Colorways']:[]).concat(pr.map(i=>i.code));
+  $('proofPages').innerHTML=names.map((n,i)=>`<button type="button" class="p-tab${i===S.proofPage?' is-on':''}" data-pg="${i}">${esc(n)}</button>`).join('');
+  $('proofPages').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{ S.proofPage=+b.dataset.pg; render(); });
+}
+function proofName(){ const g=J.line.g, n=(J.line.f[LF.proof]||[]).length; return (n?`V${n+1} `:'')+`${J.order?J.order.num:'MOCKUP'} | ${g.pn||'PRINT'}${g.abbr?'-'+g.abbr:''}`.replace(/[\\/:*?"<>]/g,'-')+'.pdf'; }
+async function proofPdf(){
+  if(!window.jspdf) throw new Error('The PDF maker did not load. Check the connection and Refresh.');
+  const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'in',format:'letter',compress:true});
+  proofPages().forEach((p,i)=>{ if(i) doc.addPage('letter','landscape'); let data; try{ data=p.toDataURL('image/jpeg',0.88); }catch(e){ throw new Error('The vendor photo can\'t be saved into the PDF until the worker is on v29.'); } doc.addImage(data,'JPEG',0,0,11,8.5); });
+  doc.setProperties({title:proofName().replace(/\.pdf$/,''),creator:'Pine Mockup Maker'}); return doc.output('blob');
+}
+function syncProofButtons(){
+  const ready=proofReady(), real=J.line&&J.line.id!=='quick'&&!J.line.extra&&J.order;
+  $('attachBtn').disabled=!ready||!real||J.busy||(!TOKEN&&!PRACTICE); $('attachBtn').textContent=J.busy?'Attaching…':J.attached?'Attach again':'Attach proof to line';
+  const has=J.attached||(J.line&&(J.line.f[LF.proof]||[]).length);
+  $('doneBtn').disabled=!real||!has||J.sent||J.busy; $('doneBtn').textContent=J.sent?'Sent to Review ✓':'Proof done → Review';
+}
+async function attachProof(){
+  if(!proofReady()) return; J.busy=true; syncProofButtons();
+  try{ const blob=await proofPdf(), name=proofName();
+    if(blob.size>5e6) throw new Error(`The proof is ${(blob.size/1e6).toFixed(1)} MB; Airtable takes up to 5 MB.`);
+    if(PRACTICE){ J.attached={name}; toast('Practice — proof not uploaded'); }
+    else { const b64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); });
+      const r=await at(`https://content.airtable.com/v0/${BASE}/${J.line.id}/${LF.proof}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:'application/pdf',file:b64,filename:name})});
+      const v=r&&r.fields&&(r.fields[LF.proof]||Object.values(r.fields).find(Array.isArray)); if(v) J.line.f[LF.proof]=v; J.attached={name}; toast('Proof attached: '+name); } }
+  catch(e){ toast('Attach failed: '+e.message); }
+  J.busy=false; syncProofButtons();
+}
+async function proofDone(){
+  J.busy=true; syncProofButtons();
+  try{ if(!PRACTICE) await at(`${T_LI}/${J.line.id}`,{method:'PATCH',body:JSON.stringify({fields:{[LF.ready]:true}})}); J.sent=true; toast(PRACTICE?'Practice — not sent to Review':'Sent to Review. Sales and the production manager get the Slack.'); }
+  catch(e){ toast('Could not send to Review: '+e.message); }
+  J.busy=false; syncProofButtons();
+}
+
+/* ================= zoom, pan, and dragging prints and the neck line ================= */
+(function(){
+  const cv=$('mockCv'), box=$('zoomBox'); let drag=null; const P=new Map(); let pinch=null, lastTap=0;
+  const pt=e=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*MW/r.width,y:(e.clientY-r.top)*MH/r.height}; };
+  const hit=p=>mockHits.slice().reverse().find(h=>p.x>=h.x&&p.x<=h.x+h.w&&p.y>=h.y&&p.y<=h.y+h.h);
+  const draw=()=>{ if(!cv._raf) cv._raf=requestAnimationFrame(()=>{ cv._raf=0; renderMock(); }); };
+  // zoom to z, keeping the picture point under (clientX, clientY) where it is
+  function zoomTo(z,cx,cy){ z=Math.max(1,Math.min(8,z)); const br=box.getBoundingClientRect(); if(cx==null){ cx=br.left+br.width/2; cy=br.top+br.height/2; }
+    const r=cv.getBoundingClientRect(), fx=(cx-r.left)/r.width, fy=(cy-r.top)/r.height; Z.z=z; cv.style.width=Math.round(fitW()*z)+'px';
+    const r2=cv.getBoundingClientRect(); box.scrollLeft+=(r2.left+fx*r2.width)-cx; box.scrollTop+=(r2.top+fy*r2.height)-cy; draw(); }
+  window.mockZoomTo=zoomTo;
+  cv.addEventListener('pointerdown',e=>{ P.set(e.pointerId,{x:e.clientX,y:e.clientY}); cv.setPointerCapture(e.pointerId);
+    if(P.size===2){ drag=null; const [a,b]=[...P.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:Z.z,mx:(a.x+b.x)/2,my:(a.y+b.y)/2}; Z.live=true; return; }
+    if(P.size>2) return;
+    const now=Date.now(); if(e.pointerType!=='mouse'&&now-lastTap<300){ lastTap=0; zoomTo(Z.z<1.9?2.5:1,e.clientX,e.clientY); return; } lastTap=now;
+    const p=pt(e), h=hit(p);
+    if(h&&h.neck) drag={neck:h,start:p,v:neckDrop(h.line,h.side)};
+    else if(h){ drag={h,start:p,pl:Object.assign({},PLACE[h.id])}; if(J.cur!==h.id){ J.cur=h.id; renderImps(); } }
+    else drag={pan:true,sx:e.clientX,sy:e.clientY,l:box.scrollLeft,t:box.scrollTop};
+    Z.live=!drag.pan; });
+  cv.addEventListener('pointermove',e=>{ if(P.has(e.pointerId)) P.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pinch&&P.size>=2){ const [a,b]=[...P.values()], d=Math.hypot(a.x-b.x,a.y-b.y), mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      box.scrollLeft-=mx-pinch.mx; box.scrollTop-=my-pinch.my; pinch.mx=mx; pinch.my=my; zoomTo(pinch.z*d/pinch.d,mx,my); return; }
+    const p=pt(e);
+    if(!drag){ const h=hit(p); cv.style.cursor=h?(h.neck?'ns-resize':'grab'):(Z.z>1?'move':'default'); return; }
+    if(drag.pan){ if(Z.z>1.01){ box.scrollLeft=drag.l-(e.clientX-drag.sx); box.scrollTop=drag.t-(e.clientY-drag.sy); }
+      else { const dy=e.clientY-(drag.ly==null?drag.sy:drag.ly); drag.ly=e.clientY; const st=$('stage'); if(st.scrollHeight>st.clientHeight) st.scrollTop-=dy; else window.scrollBy(0,-dy); }   // not zoomed: a finger scrolls the page as usual
+      return; }
+    if(drag.neck){ const k=neckKey(drag.neck.line,drag.neck.side); NECK[k]=Math.max(0,Math.round((drag.v+(p.y-drag.start.y)/drag.neck.bpx)*2000)/2000); }
+    else { const pl=PLACE[drag.h.id]; pl.dx=Math.round((drag.pl.dx+(p.x-drag.start.x)/drag.h.ppi)*4)/4; { const dn=Math.round((drag.pl.down+(p.y-drag.start.y)/drag.h.ppi)*4)/4; pl.down=isBandana()||accOf(J.line)?dn:Math.max(0,dn); } }   // hats/bags/bandanas measure from the centre, so up is fine
+    draw(); });
+  const end=e=>{ P.delete(e.pointerId); if(P.size<2) pinch=null; if(P.size) return; const was=drag; drag=null; Z.live=false; if(was&&was.neck) saveNeck(); if(was&&!was.pan) render(); else draw(); };
+  cv.addEventListener('pointerup',end); cv.addEventListener('pointercancel',end);
+  box.addEventListener('wheel',e=>{ if(!(e.ctrlKey||e.metaKey)) return; e.preventDefault(); zoomTo(Z.z*Math.exp(-e.deltaY*0.0025),e.clientX,e.clientY); },{passive:false});
+  cv.addEventListener('dblclick',e=>{ zoomTo(Z.z<1.9?2.5:1,e.clientX,e.clientY); });
+  $('zIn').onclick=()=>zoomTo(Z.z*1.5); $('zOut').onclick=()=>zoomTo(Z.z/1.5); $('zFit').onclick=()=>{ zoomTo(1); box.scrollLeft=box.scrollTop=0; };
+  $('zPrint').onclick=()=>{ const h=mockHits.find(q=>q.id===J.cur)||mockHits.find(q=>q.id); if(!h){ toast('Open the art first'); return; }
+    // fit the print plus the neck line and a couple of inches round it
+    const top=Math.min(h.y,h.y-(placeOf(curImp()||{id:h.id}).down||0)*h.ppi)-1.5*h.ppi, bw=Math.max(h.w+6*h.ppi,10*h.ppi), bh=(h.y+h.h-top)+3*h.ppi;
+    const br=box.getBoundingClientRect(), base=fitW()/MW, z=Math.max(1,Math.min(4,Math.min(br.width/(bw*base),(br.height||br.width*0.6)/(bh*base))));
+    Z.z=z; renderMock(); const r=cv.getBoundingClientRect(), s0=r.width/MW; box.scrollLeft=(h.x+h.w/2)*s0-br.width/2; box.scrollTop=(top+bh/2)*s0-br.height/2; };
+  window.addEventListener('resize',()=>{ if(S.view==='mock'&&J.line) draw(); });
+})();
+
+/* ================= wiring ================= */
+$('practicePill').hidden=!PRACTICE;
+$('file').onchange=e=>{ const f=e.target.files[0]; if(f) openArtFile(f,f.name); e.target.value=''; };
+const drop=$('drop');
+['dragover','dragenter'].forEach(ev=>document.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.add('is-over'); }));
+['dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.remove('is-over'); }));
+document.addEventListener('drop',e=>{ const f=e.dataTransfer&&e.dataTransfer.files[0]; if(f) openArtFile(f,f.name); });
+document.addEventListener('paste',e=>{ const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/')); if(it){ const f=it.getAsFile(); if(f) openArtFile(f,'pasted.png'); } });
+$('ordSel').onchange=e=>pickOrder(e.target.value);
+$('lineSel').onchange=e=>pickLine(e.target.value);
+$('qGo').onclick=()=>quickLoad();
+$('gSearch').oninput=e=>{ clearTimeout(GP.t); const q=e.target.value.trim(); GP.t=setTimeout(()=>searchGarments(q),300); };
+$('gSearch').onkeydown=e=>{ if(e.key==='Enter'&&GP.styles[0]&&!$('gResults').hidden){ e.preventDefault(); pickStyle(GP.styles[0],GP.q.toLowerCase().split(/\s+/)); } };
+$('gColor').onchange=e=>{ if(GP.style) setGarment(GP.style.colors[+e.target.value]); };
+$('gReset').onclick=()=>{ const l=J.line; if(l&&l.g0){ setGarment(l.g0); GP.style=null; $('gColorRow').hidden=true; $('gSearch').value=''; } }; $('qColor').onkeydown=e=>{ if(e.key==='Enter') quickLoad(); };
+$('tokSave').onclick=()=>{ TOKEN=$('tok').value.trim(); lsx.set('pine_at_key',TOKEN); $('tok').value=''; loadOrders(); };
+$('widthIn').onchange=e=>{ const im=curImp(), a=im&&ART[im.id], v=parseFloat(e.target.value); if(a&&v>0&&v<=24){ a.widthIn=v; a.widthFrom='Set by you.'; syncArt(); render(); } };
+$('dropBg').onchange=e=>{ const im=curImp(), a=im&&ART[im.id]; if(!a) return; a.dropBg=e.target.checked; if(!a.dropBg) a.dropAll=false; buildArt(a); syncArt(); render(); };
+$('dropAll').onchange=e=>{ const im=curImp(), a=im&&ART[im.id]; if(!a) return; a.dropAll=e.target.checked; buildArt(a); syncArt(); render(); };
+$('size').onchange=e=>{ S.size=e.target.value; render(); };
+$('bodyW').onchange=e=>{ const v=parseFloat(e.target.value); if(J.line&&v>5){ const o=S.bodyW[J.line.id+'|'+S.size]||{}; S.bodyW[J.line.id+'|'+S.size]=Object.assign({},o,{l:v,lsrc:'set by you'}); render(); } };
+$('realistic').onchange=e=>{ S.realistic=e.target.checked; render(); };
+document.querySelectorAll('#views .p-tab').forEach(b=>b.onclick=()=>{ S.view=b.dataset.v; render(); });
+$('pngBtn').onclick=()=>{ if(S.view==='mock'){ const z=Z.z; Z.z=Math.max(z,2); renderMock(); Z.z=z; setTimeout(()=>renderMock(),0); } const cv=S.view==='proof'?$('proofCv'):$('mockCv'); if(S.view==='cw'){ toast('Open Mockup or Proof to save a PNG'); return; }
+  try{ cv.toBlob(b=>download(b,`${J.order?J.order.num:'mockup'}-${(J.line&&J.line.g.pn)||''}-${S.view}.png`),'image/png'); }catch(e){ toast('The vendor photo can\'t be saved until the worker is on v29.'); } };
+$('pdfBtn').onclick=async()=>{ try{ download(await proofPdf(),proofName()); }catch(e){ toast(e.message); } };
+$('cwFilter').oninput=()=>syncCwPick();
+$('gKind').onchange=e=>{ if(!J.line) return; J.line.kind=e.target.value; J.line.refW=0; J.line.specW=0; Object.keys(S.bodyW).forEach(k=>{ if(k.startsWith(J.line.id+'|')) delete S.bodyW[k]; }); bodyWidthFor(J.line).then(()=>render()); J.kindWas=e.target.value?'a':'s'; J.imps.forEach(im=>{ if(PLACE[im.id]){ defaultPlace(im); delete PTEXT[im.id]; } }); render(); };
+$('accW').onchange=e=>{ const v=parseFloat(e.target.value); if(J.line&&v>=2&&v<=60){ J.line.refW=v; render(); } };
+$('bandSize').onchange=e=>{ const v=parseFloat(e.target.value); if(J.line&&v>=10&&v<=40){ J.line.bandSize=v; render(); } };
+$('bandColor').oninput=e=>{ if(J.line){ J.line.bandHex=e.target.value; render(); } };
+$('cwLoad').onclick=async()=>{ $('cwLoad').textContent='Loading colours…'; await cwStyle(); syncCwPick(); };
+$('rcMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{ RC.mode=b.dataset.m; const im=curImp(); syncRecol(im&&ART[im.id]); });
+$('rcMerge').onchange=e=>{ const im=curImp(), a=im&&ART[im.id]; if(!a||RC.j<0||e.target.value==='') return; const to=+e.target.value; mergeInk(a,RC.j,to); SCAN_SEL=RC.j=inkRoot(a,to); syncScan(a); render(); toast('Merged'); };
+$('rcRemove').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a||RC.j<0) return; edOf(a).gone[inkRoot(a,RC.j)]=1; SCAN_SEL=RC.j=-1; syncScan(a); render(); toast('Removed from the list — the art is unchanged'); };
+$('rcErase').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a||RC.j<0) return; const G=groupOf(a,RC.j), sk=RC.scope==='line'&&J.line?J.line.id:'*'; RECOL[im.id]=RECOL[im.id]||{}; const m=(RECOL[im.id][sk]=RECOL[im.id][sk]||{}); G.members.forEach(j=>m[j]='none'); syncScan(a); render(); toast('Erased from the art (Back to the original undoes it)'); };
+$('scanCombine').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a||!a.scan) return; const n=combineSimilar(a); syncScan(a); render(); toast(n?`Combined ${n} similar colour${n===1?'':'s'}`:'No colours close enough to combine'); };
+$('scanUndo').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a) return; a.ed=null; SCAN_SEL=RC.j=-1; syncScan(a); render(); toast('Colour list back to the scan'); };
+['ownF','ownB'].forEach(id=>{ const b=$(id);
+  b.onclick=()=>{ OWN_SIDE=b.dataset.side; $('ownFile').value=''; $('ownFile').click(); };
+  b.ondragover=e=>{ e.preventDefault(); e.stopPropagation(); b.classList.add('is-drag'); }; b.ondragleave=()=>b.classList.remove('is-drag');
+  b.ondrop=e=>{ e.preventDefault(); e.stopPropagation(); b.classList.remove('is-drag'); const f=e.dataTransfer.files[0]; if(f) ownPhoto(f,b.dataset.side); }; });
+$('ownFile').onchange=e=>{ const f=e.target.files[0]; if(f) ownPhoto(f,OWN_SIDE); };
+$('ownX').onclick=()=>{ const k=J.line&&ownKey(J.line.g); if(!k) return; delete OWN[k]; J.lines.filter(l=>ownKey(l.g)===k).forEach(l=>{ const v=PH[l.id]&&PH[l.id].vendor; if(v&&v.state) PH[l.id]=v; else { delete PH[l.id]; loadPhotos(l); } }); $('ownHint').textContent='Photo removed.'; render(); };
+$('methSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{ const im=curImp(); if(!im) return; im.meth=b.dataset.m; renderImps(); const a=ART[im.id]; if(a) syncScan(a); render(); });
+$('rcSearch').oninput=()=>{ const im=curImp(); syncRecol(im&&ART[im.id]); };
+$('rcScope').querySelectorAll('button').forEach(b=>b.onclick=()=>{ RC.scope=b.dataset.s; const im=curImp(); syncRecol(im&&ART[im.id]); });
+$('rcReset').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a||RC.j<0) return; const r=RECOL[im.id]||{}; const sk=RC.scope==='line'&&J.line?J.line.id:'*'; if(r[sk]) delete r[sk][RC.j]; syncScan(a); render(); };
+$('rcResetAll').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a) return; resetRecol(im); syncScan(a); render(); toast('Back to the original colours'); };
+$('attachBtn').onclick=attachProof; $('doneBtn').onclick=proofDone;
+$('refreshBtn').onclick=()=>{ loadOrders(); if(window.PineUpdate) PineUpdate.check().then(f=>{ if(!f) toast('You have the newest version'); }); };
+loadOrders(); render();
+</script>
+<script src="pine-update.js" data-link="mockup.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver) document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>
