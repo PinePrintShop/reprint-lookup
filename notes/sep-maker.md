@@ -355,6 +355,19 @@ Measured from 30+ finished jobs on the Printshop shared drive. The files sampled
 
 ### Not done yet / next
 - No real sim-process samples yet. Stephen is finding a couple of jobs. The ones on the drive are 100–340 MB, and the Drive connector can only download about 5 MB.
-- It can't open PSD, AI or PDF yet. Export a PNG from Photoshop or Illustrator first.
+- It can't open PSD yet (AI and PDF open since v12). Export a PNG from Photoshop first.
 - Pantone matching works from the screen colour, so always check the names.
 - It doesn't place films onto the 16×21.25 template artboards.
+
+## 2026-10-26 — v12
+Stephen: "can you also update sep maker to be able to get .ai or .pdf files as well".
+
+- **Opens .ai and PDF art.** The artboard is drawn with pdf.js 3.11.174, the same reader Mockup Maker uses. It renders at up to 300 ppi (max 6000 px a side) on a clear background, so there's no white box to drop.
+- **Print size from the file:** an artboard is measured in points, so the art comes in at its real size and the print width is right straight away.
+- **Spot colours:** spot colours named in the file (Illustrator swatches, PDF separations) pop up when it opens, to check the ink names against.
+- **Old .ai files:** an .ai needs its built-in PDF copy ("Create PDF Compatible File", on by default in Illustrator). Without it there's a clear message to re-save it with that ticked or export a PNG.
+- **Still PNG/JPG only:** PSD.
+- Tested with Playwright: a 10″ × 6″ two-colour logo as .pdf and as .ai.
+  - It came in at 9″ × 4.2″ after trimming, matching the art's 8.96″ × 4.17″.
+  - It separated into 158M-BB, 158M-EZWHT, 186 and 654 on black.
+  - A non-PDF-compatible .ai showed the re-save message.
