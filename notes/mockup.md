@@ -76,3 +76,17 @@ Stephen: "Also the proof only needs to show the back if there is a back print sa
 - A front-only quick mockup (no order) now gives a one-garment proof.
 - The Mockup view shows the sides that have art, plus the side of the imprint you're on so you can place it. Colourways shows the sides with art. The placement rows list only prints with art, plus the one you're on.
 - The proof can be made once any print has art. Imprints without art are named above the picture ("No art yet for … — left off the proof") so an order's missing print isn't missed.
+
+## 2026-10-26 — v7
+Stephen (phone screenshot, line sitting at the top of the collar): "We size based on the bottom of the collar".
+
+- **Neck line = bottom of the collar.** It's now labelled "collar bottom". The starting positions were measured on 7 real S&S/SanMar flats (1717 Pepper/White, 3001 Navy/White, PC54, 18000, 18500): the bottom of the front collar sits 2.5–3.6″ below the top of the garment in the photo.
+  - Front: tee 3.25″, crew 3.25″, hoodie 6.5″ (hood V)
+  - Back: 1″ / 1.25″ / 9″
+  - Vendors' photos differ by about ±0.5″, so the line stays draggable. Once dragged for a style (brand + style number), that spot is remembered on that computer/phone. "X″ below neck" placement is measured from this line.
+  - The line is easier to grab on a phone, and a print still wins where the two overlap.
+- **Measuring real photos:**
+  - White garments on the white photo background weren't found (3001 White measured 18 px wide). The background test is gentler now, so they measure like any other colour.
+  - Body width now uses the narrowest lower-body row, so crewneck/hoodie sleeves hanging against the body aren't counted.
+- **iPhone:** tapping a button twice no longer zooms the whole page (that's what pushed the screen sideways in the screenshot). The page fits 390 px with no sideways scroll.
+- I tried an automatic collar finder (edge detection) and it wasn't reliable across vendors, so it isn't used.
