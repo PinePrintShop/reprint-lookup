@@ -283,3 +283,11 @@ Stephen: "also you should be able to pull in all garments right even hats etc.."
   - bandana in 4 colours, compared against the reference photo
   - Drive: open Client Provided › For Proof › back › order folder › open art
   - the earlier regression scripts (recolour, ink edits, colourways, big PSD, bandana)
+
+## 2026-10-26 — v20
+Stephen (screenshot of order 11001, OAD 108 - Natural, showing "Photo not found — plain stand-in"): "we should have access to this OAD product".
+
+- **The miss:** S&S does carry it, as **OAD108** "Jumbo Tote" (Black, Natural). Airtable has the style as "108", and the lookup only took an exact style-name match.
+- **The fix:** a style not found on its own number is now looked up again with the brand in front (OAD + 108 → OAD108). Other brands that prefix their styles this way are fixed too.
+- **Real width from S&S:** totes and other flat items now take their width across from S&S's Measurements line (OAD108: 20"W x 15"H x 5"D → 20″) instead of the typical 15″. The hint says where the size came from. Width across (in) still overrides it.
+- Tested against live S&S through the worker: real photo found, width 20″ from S&S, print centred on the bag.
