@@ -400,3 +400,21 @@ Stephen: "let's not vectorize it and maybe let's include a .psd on channels as w
   - A 2-colour logo .ai → .psd at 2700 × 1260: psd-tools reads 5 channels (white composite + 158M-BB, 158M-EZWHT, 230M-186OW, 230M-654), all marked spot with the right colours. Each channel's pixels are correct.
   - A 7-screen sim job → .psd (1.1 MB) reads back with all 7 spot channels.
   - **Not opened in Photoshop itself yet.**
+
+## 2026-10-26 — v15
+Stephen: "can we also include an eye dropper so we can grab colors from the original and make the colors it does pick have an easier selector to change them".
+
+- **Eyedropper (4 · Inks › Eyedropper):**
+  - Tap it, then tap the art. The view switches to the original art while picking, and Esc stops.
+  - The colour there (a small average of the original) is added as an ink named for its nearest Pantone, with the usual role (on base / on shirt) for the shirt colour, and its own screen appears.
+  - If it's practically identical to an existing ink (within ΔE 2.5), that ink's picker opens instead.
+  - Picked colours are kept when the colour count changes, unless the scan already found the same Pantone or a very close colour.
+- **Easier ink picker:** tap an ink's swatch to open a panel under it:
+  - the 12 closest Pantones to the art colour as tappable chips (the current one highlighted)
+  - a search box (186, Cool Gray, Reflex…)
+  - "Re-pick from the art", to sample that ink's colour again with the eyedropper
+
+  Typing in the name box still works.
+- **Tested:**
+  - A blue panel with a tiny green dot (about 0.2% of the art): the auto scan missed the green, and the eyedropper added 355 with its own screen 230M-355OW. After + there was no duplicate.
+  - Picker chips, search ("cool gray" → Cool Gray 11…7), choosing a chip, and re-picking from the art all worked.
