@@ -291,3 +291,23 @@ Stephen (screenshot of order 11001, OAD 108 - Natural, showing "Photo not found 
 - **The fix:** a style not found on its own number is now looked up again with the brand in front (OAD + 108 → OAD108). Other brands that prefix their styles this way are fixed too.
 - **Real width from S&S:** totes and other flat items now take their width across from S&S's Measurements line (OAD108: 20"W x 15"H x 5"D → 20″) instead of the typical 15″. The hint says where the size came from. Width across (in) still overrides it.
 - Tested against live S&S through the worker: real photo found, width 20″ from S&S, print centred on the bag.
+
+## 2026-10-26 — v21
+Stephen: "oh I guess we do need methods as well...like printed or embroidery etc...since those say threads ....but this is a good start".
+
+- **Method per imprint:** step 2 › Screen print / Embroidery / Patch / Heat transfer. It's read from Airtable's Imprints method field:
+  - Embroidery → Embroidery
+  - Patch Application, Decopress, labels → Patch
+  - Supacolor → Heat transfer
+  - Discharge, W/B, Flatstock and the rest → Screen print
+  - An "Embroidered Apparel" line whose imprint has no method → Embroidery
+
+  The stitch count from Airtable shows under the picker.
+- **Embroidery:**
+  - Drawn as satin stitches (slanted rows with a sheen), raised with a soft shadow, and following the fabric's folds less than ink does.
+  - The colour list reads "Thread colours in the art". "Just rename it" now accepts any text, e.g. `1756 MD`, as Pine writes Madeira threads on its proofs.
+  - Proof: the imprint block reads "EMBROIDERY · FRONT - 10797-A" with **Thread Colors**. The fine print says thread colors (not Pantone) and "Embroidery size". The art department's sew-out note is added: "PLEASE NOTE: THREAD COLOR ON PHYSICAL SEWOUT DOES NOT MATCH THREAD COLOR OF FINAL PRODUCT". Wording taken from real embroidery proofs (10656, 10797).
+- **Patch:** the art on a white twill backing with a stitched border, inset inside the border, raised with a shadow.
+- **Heat transfer:** flat, like a print.
+- **Not done:** there's no thread chart, so threads aren't matched automatically. With Pine's Madeira thread list (numbers + colours), the scan could suggest the nearest thread the way it suggests Pantones.
+- Tested with Playwright: tee left chest and cap in embroidery and patch, a thread renamed to 1756 MD, the proof page, the method mapping on real Airtable values, and the earlier regression scripts.
