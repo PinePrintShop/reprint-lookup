@@ -227,3 +227,26 @@ Stephen: "just got a exceeded memory for a large .psd".
   - PSDs saved without "Maximize compatibility" (no flattened copy) are built from the layers, as before.
 - **Any art over 4000 px a side is shrunk to 4000 px to work with,** for every format and after switching layers. The print size still comes from the file's real size (ppi scaled to match), and 4000 px is still sharp at the deepest zoom.
 - **Tested:** a generated 6000×7500, 300 ppi, 3-layer PSD (12 MB) opened in 1.3 s at 3200×4000 working size with its real size intact. Switching a layer off loaded the layers and recomposed correctly. The other tests pass.
+
+## 2026-10-26 — v18
+Stephen: "can we rework the bandana image....feels a little fakey right now" · "can we also combine colors when they are similar or have a way to edit them and or remove them".
+
+**More real bandana.** The flat square with drawn folds is now a generated photo of cotton (1000 px, cached per colour):
+- a height field with the crisp creases from being folded in quarters, faint second folds, tapered soft wrinkles near the edges and corners, and slow waves
+- light from the top left, slightly darker in the deep folds
+- a cotton weave
+- slightly uneven edges (±0.3%, since "our bandanas are not 100% perfectly square"), a rolled hem with stitching, and a soft shadow underneath
+
+The print is shaded by the same folds, the same way prints sit in the shirt photos (the bandana is passed in as the "photo"). A first version was too heavy (carved creases, stick-like wrinkles, jagged edge), so I toned it down before shipping.
+
+**Editing the colours in the art.**
+- **Combine similar** (in the panel header) merges colours within about ΔE 24 or with the same nearest ink. Test: 4 reds/oranges became 3.
+- Tap a colour, then:
+  - **Recolour the art** (as before; now applies to every colour merged into it).
+  - **Just rename it:** call it e.g. 186 without changing the picture.
+  - **Merge into** another colour.
+  - **Remove from the list:** not an ink. The art is unchanged. "Put back" restores it.
+  - **Erase from the art:** the colour's pixels go transparent, soft edges included. "Back to the original" undoes it.
+- **Undo edits** returns the list to the scan.
+- The count, the ✓ against the imprint's Pantones, the "where it is" preview and the proof's colour chips all follow the edits (test: rename → 186; blue erased and yellow removed → chips "186").
+- **Speed fix:** the "where it is" preview recalculated the colour groups for every pixel (and the ink table was rebuilt on every lookup), which froze the page. Both are now worked out once.
