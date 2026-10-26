@@ -561,3 +561,16 @@ Stephen (with "Blank Bandana Pantone Colors.pdf"): "Here are the closest pantone
 - Black, white, natural and hippie are unchanged.
 - Note: Sand is now Pantone 875 (a brown), as on the sheet; it was a light tan before.
 - Tested: Red bandana proof says "Closest Pantone 200"; the close-up is #c20430; v37–v39 tests pass.
+
+## 2026-10-26 — v41: Find the art
+Stephen: "can we also look into why 11087 reprint is only 6305 but it doesn't have any artwork in the client provided...so we need ideas for how to find folders with artwork" → "1-4 sounds great!".
+- **Why 11087 came up empty:** its imprints reprint 6305-A…E, and 6305's Client Provided holds only an empty For Proof folder. The art is in 6305 › Seps (`6305-45LPI-Seps.ai`) and 6305 › Proofs (the proof PDFs). None of the imprints have a master folder.
+- **🔎 Find the art** (a button next to This order / Reprint of in the customer's-files panel) looks everywhere at once:
+  1. **The original order's whole folder.** Every subfolder two levels down (Client Provided, Seps, Proofs, For Proof …), not just Client Provided. Sep templates ("…template…") and Sales / Invoices / Embroidery / Old seps are skipped.
+  2. **The original imprints' last proofs** from Airtable. Tap one to open it as the art, then Crop to the design.
+  3. **This order's own folder**, then **the same customer's other orders**: Airtable › Customers › Orders, the newest 6, each searched in Drive.
+  4. Inside each, files named with the order #, an imprint ID or the design's nickname come first, then anything in Seps, then newest.
+- Groups show as "Reprint of #6305 · 6305 - Ascent Studio · Open in Drive ↗", with the folder path under each file. Tap to open in the mockup; ⬇ to download.
+- A reprint's folder with no art shows "No art in this folder. 🔎 Find the art …" right there. The panel now shows for every order, with Find the art even when there's no reprint.
+- Reads only (Drive search/list, Airtable Customers › Orders). Results are kept per order until Refresh.
+- Tested with a mocked worker built like 11087/6305: proof 6305-A first; then 6305-45LPI-Seps.ai and the proof PDF (template and invoice skipped); then 11087's staffapparel1.jpg and the old logo in "unused previous art files"; then Ascent Studio #10797. Opening the proof puts it in as the art. The v38–v40 tests pass.
