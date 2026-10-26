@@ -90,3 +90,25 @@ Stephen (phone screenshot, line sitting at the top of the collar): "We size base
   - Body width now uses the narrowest lower-body row, so crewneck/hoodie sleeves hanging against the body aren't counted.
 - **iPhone:** tapping a button twice no longer zooms the whole page (that's what pushed the screen sideways in the screenshot). The page fits 390 px with no sideways scroll.
 - I tried an automatic collar finder (edge detection) and it wasn't reliable across vendors, so it isn't used.
+
+## 2026-10-26 — v8
+Stephen: "Meaning 3″ down is from the bottom · Not on the Gildan crewneck sweatshirt".
+
+- **"3″ below neck" = 3″ below the bottom of the collar.** That's how the app measures it.
+- **The v7 starting line was wrong on the Gildan crewneck.** At 3.25″ it sat in the middle of the 18000's wide rib; the bottom seam is at 4.4″.
+- **Re-measured the bottom seam of the front collar at the centre** on the real flats, with the contrast turned up:
+  - S&S tees: 2.1–2.6″
+  - Gildan 18000 crew: 4.4″
+  - SanMar PC54: 5.3″ (SanMar frames its flats with more shoulder above the neck)
+  - Gildan 18500 hoodie V: about 7″
+- **Starting line** is now set by photo source and garment type:
+
+  | Garment | S&S / AS Colour | SanMar |
+  |---|---|---|
+  | Tee | 2.5″ | 5.25″ |
+  | Crew | 4.4″ | 5.75″ (estimate) |
+  | Hoodie | 7″ | 7″ |
+  | Back | 1.1″ tee · 1.5″ crew · 9″ hoodie | same |
+
+  Checked on 1717 Pepper/White, 3001 Navy/White, PC54, 18000 and 18500: the line lands on the bottom of the collar.
+- **Still draggable and remembered per style.** An automatic collar finder was tried again and wasn't reliable (tags, rib stitching and different photo framing).
