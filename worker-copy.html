@@ -57,8 +57,8 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
-  30:{what:'Opens Drive files up to 200 MB (was 25 MB) so Mockup Maker can open big Photoshop and Illustrator files straight from Drive.',
-      tiny:'In Cloudflare, search the code for <code>&gt; DRIVE_MAX_BYTES) return driveErr(\'File is over 25 MB</code> and change <code>DRIVE_MAX_BYTES</code> on that line to <code>200 * 1024 * 1024</code>. Deploy. (Check it\'s live won\'t show v30 this way; that\'s fine.)'},
+  30:{what:'Real AS Colour garment photos in Mockup Maker, and Drive files up to 200 MB (was 25 MB) so big Photoshop and Illustrator files open straight from Drive.',
+      tiny:'In Cloudflare, search the code for <code>&gt; DRIVE_MAX_BYTES) return driveErr(\'File is over 25 MB</code> and change <code>DRIVE_MAX_BYTES</code> on that line to <code>200 * 1024 * 1024</code>. Deploy. (This only does the Drive part — AS Colour photos need the whole worker — and Check it\'s live won\'t show v30.)'},
   29:{what:'Vendor garment photos for proofs (/proxy/img).'}
 };
 const newest=Math.max(...Object.keys(VERSIONS).map(Number));

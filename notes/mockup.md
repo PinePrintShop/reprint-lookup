@@ -48,3 +48,22 @@ Stephen: "Can I zoom in on mobile to see if the placement is looking good, can w
   - Flags blended tones (likely sim process / halftones), white ink, and "mostly white" art that probably still has its paper background.
   - When the imprint has no Pantones, the proof's colour chips come from the scan.
 - Tested with mocked Airtable/vendors/Drive on desktop (1600 px) and phone (390 px, touch): zoom to print, dragging while zoomed (1″ drag = 1″), the scan on a two-colour PNG (≈107 + ≈1795) and on the 10695 .ai (8 spot colours read).
+
+## 2026-10-26 — v5
+Stephen: "And it will pull in the actual garment right. Or does the new worker need to be updated for that".
+
+Checked against the live worker (v29) rather than mocks:
+- **S&S photos weren't loading.** S&S doesn't find a bare style number (`products/?style=1717` → "not found"); it needs its style ID. The app now looks the ID up first (`styles/?search=1717`, matched on style + brand, so "Bella Canvas" matches "BELLA + CANVAS"), then gets that style's colours, photos and size specs by ID. Live results:
+  - Comfort Colors 1717 Pepper: S&S photo, 20.25″ body (Chest Width (Laid Flat))
+  - Bella 3001 Heather Navy: 20″
+  - Gildan 18500 Sand: 22″
+  - SanMar PC54 Ash: SanMar flat photo, typical 20″ body
+  - All of these are shaded and saveable through the worker's /img route (already in v29).
+- **AS Colour photos** are hosted on AS Colour's BigCommerce store CDN, which the /img route didn't allow. Worker v30 now allows that store's path only, so AS Colour garments need v30 for photos. Until then they show the plain shape.
+- **Neck line defaults** were re-measured on real flat photos (top of garment → collar seam):
+  - tees: 1.25″ front / 0.5″ back
+  - crews: 1.5″ / 0.75″
+  - hoodies: 6.5″ front (hood V) / 9″ back (hood seam)
+  - Still draggable.
+- Fixed a race where switching garments quickly could leave the previous garment's photo or body width on screen.
+- The same bare-style S&S lookup is in Sep Maker v11's proof photos; it isn't fixed there (Sep Maker is paused).
