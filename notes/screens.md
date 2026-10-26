@@ -154,3 +154,22 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
   - Search cases: 11040a, "coffee deaf", hkc, "hello kity", mountian, "pms 185 kitty", 11042b, 11041 (best first).
   - Imaged sends the same one PATCH as v29. Practice mode sends 0 writes.
   - No console errors. No sideways scroll at 390.
+
+## 2026-10-26 · v31: the sep file from Google Drive, inside the app
+**Stephen:** "now that we have google drive setup....can we scan Seps and Screens app and see how we can improve those", then "you can have an agent start working on Seps and Screens".
+- **View sep file** opens the full-screen viewer (it opened a new Drive tab). The file comes through the Pine worker (`drive/file`). PDFs, .ai files saved PDF-compatible, PNG and JPG show in the app. Other files (.psd, .eps, .tif) show Drive's thumbnail and say they can't show here. The viewer always has **Open in Drive ↗**. The page arrows only show for PDFs with more than one page.
+- **No sep file linked:** under Sep file, the order's Drive **Seps** folder (named Seps, Separations or Sep, any case; else the order folder) shows as small tiles with thumbnails. Folders open in place and the path at the top goes back. Tap a file to look at it. **Link as sep file** on a tile saves its Drive link to Sep URL, the same one-field write as the paste box.
+- **Paste a link instead** is still there. It now takes Google Drive links only (drive.google.com / docs.google.com) and says so plainly for anything else.
+- **Replace link** next to View sep file fixes a wrong link (as in Seps). It shows the same tiles and paste box, with Cancel.
+- **A folder link** in Sep URL shows that folder's files as tiles, with Open in Drive and Replace link.
+- **Drive is read only for the open job**, once per order. Refresh reads it again. The queue makes no Drive calls. If Drive isn't connected, one calm line says so. The paste box and the plain Drive link still work.
+- **Flow:** ✓ Imaged is still the one yellow button. The new controls are plain buttons.
+- **Airtable writes:** the same as v30. Practice mode fakes the new link writes too.
+- **Tested** (Playwright, mocked Airtable and mocked worker, made-up customers, 1440×900, plus 1024×768 and 390×844), 53 checks passed:
+  - A PDF sep renders from `drive/file`. A .psd sep linked as `open?id=` shows the thumbnail and Open in Drive. The proof viewer still works.
+  - A no-sep job lists the SEPS folder: one search plus two folder reads, cached when the job is opened again. Thumbnails load, a PDF and a PNG tile open, and the subfolder and back work.
+  - Link as sep file sends exactly `{records:[{id,fields:{fldiBqdFTRMahiMeI:<webViewLink>}}]}`. Replace link (paste) writes the new link, and Cancel writes nothing.
+  - The paste box rejects a Dropbox link with no write. Practice mode sends 0 Airtable writes.
+  - With Drive returning 503, the job and the viewer say so, and pasting and the plain link still work.
+  - Imaged, Undo, the No sep file tab, search and the Calendar still work.
+  - No page errors, no text under 12px, and no sideways scroll at 1024 or 390.
