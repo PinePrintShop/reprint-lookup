@@ -527,3 +527,6 @@ Stephen: "trying to open up a .psd file and saying CMYK not supported".
 
 - CMYK .psd files open. The Photoshop reader (ag-psd) refuses CMYK, so the flattened image is read straight from the file (RGB/CMYK/grayscale, 8/16 bit, raw or RLE), with its ppi and spot channel names. CMYK → RGB without a colour profile (same reader as Mockup Maker v31).
 - Tested: a CMYK RLE PSD opens at 300 ppi; a 16-bit RGB PSD with spot channels still opens through ag-psd.
+
+## 2026-10-26 — v25
+Separation .psd files (spot channels) open with every ink, the same reader as Mockup Maker v34 (Stephen, in Mockup Maker: "this is suppose to have more colors but I am only seeing blue"). The PSD's flattened copy leaves spot channels out; now each spot channel is laid in with its own colour and solidity. Tested: Sep Maker's own spot export now separates to 186 / 654 / White (was White only); CMYK PSD still opens.
