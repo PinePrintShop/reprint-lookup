@@ -112,3 +112,8 @@ Stephen: "Meaning 3″ down is from the bottom · Not on the Gildan crewneck swe
 
   Checked on 1717 Pepper/White, 3001 Navy/White, PC54, 18000 and 18500: the line lands on the bottom of the collar.
 - **Still draggable and remembered per style.** An automatic collar finder was tried again and wasn't reliable (tags, rib stitching and different photo framing).
+
+## 2026-10-26 — v9
+Stephen (PC54 screenshot, line above the collar bottom): "But the others look good".
+- Re-measured the PC54 flat at full resolution with a ¼″ ruler: the bottom edge of the front collar rib is 6.2″ below the top of SanMar's photo. My v8 reading of 5.3″ was wrong.
+- SanMar tees now start at 6.25″, SanMar crews at 6.75″ (estimate). S&S, Gildan crew and hoodie are unchanged; Stephen said those look good.
