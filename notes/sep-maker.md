@@ -536,3 +536,16 @@ Same PSD reader as Mockup Maker v35: Multichannel and Duotone seps open, and cha
 
 ## 2026-10-26 — v27
 Same as Mockup Maker v36: inks kept as plain saved channels (e.g. "blk", "blue" in a CMYK PSD) are laid in. Each takes the artwork's colour where it's inked, or its name.
+
+## 2026-10-26 — v28: the order's Google Drive folder
+Stephen: "the sep one should do the google drive access to the folder so we can download the art work...also can we upload to the drive from teh app as well?"
+- **Customer's files** under 1 · Art once an order is picked: the order folder opened at Client Provided, as tiles with thumbnails. Folders open in place, and the path goes back up.
+  - Tap art (PNG, JPG, PDF, .AI, .PSD) to open it in Sep Maker.
+  - ⬇ downloads any file. Other files open in Drive.
+- **⬆ Upload here**, or drop on the panel: files go into the folder that's open, up to 25 MB each.
+- **Export › "Also save to the order's Drive"** (ticked, shown when the order has a folder) puts the export in the order's Seps folder as well as downloading it. Seps / Separations / Sep, else the top of the order folder. Exports over 25 MB download only, with a note.
+- The same worker routes as Mockup Maker v38. Practice uploads nothing.
+- Tested with a mocked worker:
+  - the panel, download, 2 uploads to Client Provided;
+  - opening logo.png from a tile;
+  - a transparent PNG export saved to Seps (drive/upload?folder=SP).
