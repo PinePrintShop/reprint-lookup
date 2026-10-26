@@ -430,3 +430,14 @@ Stephen: "does a weird thing with the .psd it was adding one of the colors in ch
   - 1 layer (Base, gray channel only), no transparency.
   - Merged image: a white Gray channel plus every screen as a named spot channel with correct pixels (logo: 4 of 4; sim glow: 7 of 7).
 - **To confirm:** Stephen to re-check in Photoshop that all screens show in Channels and nothing is see-through.
+
+## 2026-10-26 — v17
+Stephen: "can I also just export as a 300dpi transparent .png as well".
+
+- **New export, "Transparent .png (300 dpi)":** the print as it will look, at full print size.
+  - The screens are drawn in their ink colours, stacked in print order, solid. The on-screen see-through used for previewing on a dark shirt isn't applied.
+  - It's see-through wherever no ink prints, with soft edges kept as partial transparency.
+  - 300 dpi is written into the file (pHYs chunk), so Photoshop and Illustrator open it at the real size.
+- **Tested:**
+  - A 9″ × 4.2″ logo exported as 2700 × 1260 RGBA at 300 dpi, with transparent corners and the navy exactly 0/58/112.
+  - A 7-screen sim job exported as 2700 × 2700 with a transparent background.
