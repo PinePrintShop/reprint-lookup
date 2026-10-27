@@ -680,3 +680,38 @@ Stephen: "yes natural is direct to fabric" and "that works for the default for b
   - The proof is now drawn twice, with and without the photos. The pixels that change mark where the garment really shows, and only art inside that is kept.
   - On the real 11085 proof the result is the clean back art at 11″ and the left chest at 3.5″.
   - This also fixed the 10125 left chest, which had picked up extra again (back to 645×857).
+
+## 2026-10-27 — v35: exports in Pine's sep template
+Stephen: "can you review our sep template that is what we need the exports to be in".
+
+**Standard-sep-template.ai.** The same file is copied into every order folder (Illustrator 26.5, Feb 2025). It's one 16 × 21.25″ artboard (1152 × 1530 pt) with:
+- a 2-line label at the top: six "n- Pantone" slots, then Print Width and Print Location;
+- two register targets on the centre line, each a circle with a cross and an X, about 0.59 × 0.39″.
+
+**The finished seps** (10798, 10868, 10948, 11046, 9368) show how the template gets filled in:
+- one page per print;
+- the label is in the registration colour at 1.64–1.92″ from the top, on the side away from the art. Line 1 is half the films plus the width ("1/3-1/4BB 2/3-EZWHT 3”"); line 2 is the rest plus location-letter ("3/3-7574OW LC-A");
+- the films leave the mesh off the label, and the base shows its strength;
+- the top target is centred 2.25–2.64″ down, and the bottom one about 1″ under the art;
+- the art's top is 3.56″ down. A left chest sits about 3.7″ right of centre, as on the shirt;
+- files are named `<order>-45LPI-SEPS` for jobs on a base and `-55LPI-` for discharge or direct.
+
+**What the stacked .ai / .pdf export does now** (marks on): it lays the film out that way.
+- The artboard is 16 × 21.25″. It only grows when the art can't fit (e.g. a 20.6″ bandana).
+- The label is Helvetica 10 pt in /All, top left or right, laid out as above.
+- The targets match the template's shape. The top one is centred 2.45″ down; the other sits 1.2″ under the art.
+- The art top is at 3.56″, centred, or ±3.6″ for a left or right chest (from the imprint's placement).
+- The file is named `11090-45LPI-SEPS LC-A.ai`. The PNG, PSD and TIFF zip get the same name start.
+- Untick "Registration marks and label" for the bare art, as before.
+- The spot names are unchanged (`158M-BB`, `230M-107OW`…).
+
+**Measured on the export** (pdftoppm at 36 dpi; the template's figures in brackets):
+- label 1.64–1.92″ (1.64–1.92);
+- target 2.25–2.61″ × 7.69–8.28″ (2.25–2.64 × 7.69–8.28);
+- art top 3.56″ (3.56).
+
+**Not yet:**
+- One file with a page per print for the whole order, which is how the shop's own seps are saved. Today each print exports on its own.
+- The TIFF-per-screen films still use the old cropped layout, because a full 16 × 21.25″ page at 300 dpi per screen is very large.
+
+**Tested** (Playwright, mocked Airtable), 9/9: the name, the 16 × 21.25″ size, the label text and position, the target position and shape, the art top, and the back print ("11”", "B-B", label on the right). All earlier tests pass; the t_seps label check was updated to the template style.
