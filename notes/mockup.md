@@ -904,3 +904,9 @@ Stephen: "yes let's add those update timers for the mockup maker and sep maker" 
 - **Refresh** updates in place and keeps the open order, garment, art and scroll.
 - The timer code is one shared file, pine-drive-watch.js, so Line Item Review, Screens and Seps can use the same one later.
 - About 290 worker requests an hour per open Mockup Maker tab (430 for Sep Maker); ~24–36 an hour when idle; none when hidden.
+
+## 2026-10-27 · v64: the proof fits a laptop screen
+Stephen (laptop screenshot, Proof view): "still have slight scrolling on my laptop". The proof page left a fixed 250 px for everything above it; on a laptop the buttons, the attached-proof chip, the page tabs and the tick boxes take ~400 px, so APPROVED and the colour chips fell below the screen.
+- The proof page's height is now the room actually left under it (measured), re-fitted on resize and when the attached-proof chip appears.
+- The page tabs and the three tick boxes share one row (they wrap on narrow laptops).
+- Checked at 1920×1080, 1440×800, 1366×768 and 1280×720, with and without the attached-proof chip: the whole page is on screen, no scrolling.
