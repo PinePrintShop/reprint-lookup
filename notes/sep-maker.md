@@ -627,3 +627,14 @@ From a study of 51 recent Pine sep files (`<order>-45/55/200LPI-SEPS.ai`) and 42
 - The stacked .ai has spot `158M-BB` and the label `158M-BB (1/4BB)`.
 - Discharge on royal gives WHTDC → 1795DC → BLK, with no WHTDC under the red, a 2 px overlap at the butt, and BLK plain and last. WHTDC moves to second. CRM gives CRMDC, OFFWHT gives OFFWHTDC. Index + discharge works the same way.
 - The earlier Sep Maker tests (v20–v30) pass on v31.
+
+## 2026-10-27 — v32: Pull the art out of an old proof
+Stephen: "can we get that mockup puller also in the separations tool. That might be helpful since the actual artwork should be in there with the size spelled out".
+- An old proof PDF (named like "10125 | 1717-GR.pdf" or "V2 …", or anything named proof/mockup), from a file, a drop or Drive, now opens as **Art in the old proof** instead of the whole page. The tiles show:
+  - drawn art cut out over each shirt, with the shirt photos blanked (pdf-lib swaps every image for a see-through dot). It's sharp, on a clear background, and redrawn at 300 dpi for the proof's own width;
+  - pictures placed on the shirts, at their own size.
+- Each tile names the print and width from the proof ("BACK -10125-D · 11″ wide"). It has **Separate for 11089-D · Back**, and the button for the matching imprint is dark. The art loads on that imprint at that width, ready to separate. The file is named "Back art (from the old proof).png", so the old order number isn't picked up as the imprint.
+- Page arrows step through a multi-page proof. **Open the whole page** keeps the old way. Art PDFs (not proofs) open straight in as before.
+- Same code as Mockup Maker v49, including the real-proof fixes (cut above the labels, keep the main block).
+- Also: the same file can now be opened twice in a row. Before, picking it again did nothing.
+- Tested (Playwright, mocked Airtable) on the real 10125 | 1717-GR.pdf, 11/11. It found 2 prints, matched them to 11090-A Left Chest at 2.2″ and 11090-D Back at 11″, and loaded the back at 3286 px. It separated as 158M-BB → 158M-EZ7499 → 230M-141OW. Open the whole page works, an art PDF goes straight in, and nothing was written to Airtable.
