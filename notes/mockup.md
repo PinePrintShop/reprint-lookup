@@ -611,3 +611,15 @@ Stephen: "can you also edit PDF files in the mockup app? I ask because sometimes
 - **⬇ Download** saves "11080 | old name.pdf" (the old number in the name is swapped). **Attach to 11080-A** uploads it as the line's proof, the same way as Attach proof to line (Airtable plus the order's Drive Proofs folder; "V2 " is added when the line already has a proof). Practice uploads nothing.
 - Known limit: the old text is covered, not deleted. It doesn't show, but a text search of the PDF could still find "6305".
 - Tested (Playwright, mocked Airtable): 15/15 on a 2-page test proof. That covers the numbers filled in, 3 places found, the replacements, a retyped word, Cover & type, the cream panel colour, the download name and size, and attach as "V2 …". The pdftoppm render of the saved PDF is clean. Fits a 390 px phone. The v41–v45 tests still pass.
+
+## 2026-10-27 — v47: old proofs open in the editor first
+Stephen opened 10125 | 1717-YM.pdf from Last proofs on 11089. v46 put it on the shirt straight away, so he asked: "how do I edit it before it places it on the shirt?"
+- A PDF that's an old proof or mockup now opens in the PDF editor, not on the shirt. That covers names like "10125 | 1717-YM.pdf" or "V2 10125 | …", or anything with "proof" or "mockup" in the name, from Last proofs, the Drive folders or a file. Change the job number, then **Attach to 11089-B**. The shirt isn't involved.
+- **Put on the shirt** (in the editor) places the PDF as the art, with your changes, for when you want to crop the design out of it.
+- Other PDFs (art files) still go straight on the shirt, and **✎ Edit PDF** is still on the art card.
+- Tested (Playwright, mocked Airtable): 20/20. The checks were:
+  - an old proof opens in the editor and isn't put on the shirt;
+  - "10125 | 1717-YM.pdf": replace all, then Put on the shirt carries the edits;
+  - a plain art PDF still goes straight on the shirt.
+
+  The v41–v46 tests still pass.
