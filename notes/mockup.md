@@ -656,3 +656,9 @@ Stephen: "let's walk through when the sales references a past order so art dept 
   - The real proof showed that Illustrator's shirt photos run past the clipped shirt, down to the labels. Two fixes came from that:
     - each region is cut off above that shirt's label;
     - only the biggest block of art is kept, so rule lines and stray labels drop out.
+
+## 2026-10-27 — v50: bandana default
+Stephen: "yes natural is direct to fabric" and "that works for the default for bandanas as long as we can edit it".
+- **Auto** on a bandana now means **discharge** on a coloured bandana: inks read "186 DC" and the proof says DISCHARGE. On **Natural or White** it means **direct to fabric**, with plain Pantone numbers. This follows the sep study: about 86 of 99 coloured bandanas discharged, and 28 of 38 Natural printed direct. A DC on the imprint's Pantones still means discharge.
+- **Off** and **Discharge** still change it per print. The hint says which one Auto picked and how to change it.
+- Tested (Playwright, mocked Airtable): 5/5. Red with Auto gives discharge, Off gives direct, Natural with Auto gives direct, Natural can be set to Discharge, and Navy with Auto gives discharge. The v41–v49 tests still pass.

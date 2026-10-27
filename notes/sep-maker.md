@@ -638,3 +638,22 @@ Stephen: "can we get that mockup puller also in the separations tool. That might
 - Same code as Mockup Maker v49, including the real-proof fixes (cut above the labels, keep the main block).
 - Also: the same file can now be opened twice in a row. Before, picking it again did nothing.
 - Tested (Playwright, mocked Airtable) on the real 10125 | 1717-GR.pdf, 11/11. It found 2 prints, matched them to 11090-A Left Chest at 2.2″ and 11090-D Back at 11″, and loaded the back at 3286 px. It separated as 158M-BB → 158M-EZ7499 → 230M-141OW. Open the whole page works, an art PDF goes straight in, and nothing was written to Airtable.
+
+## 2026-10-27 — v33: bandana default
+Stephen: "yes natural is direct to fabric" and "that works for the default for bandanas as long as we can edit it". This is the same rule as Mockup Maker v50.
+- A bandana imprint starts at the **20.6″** all-over size from the study (it was 20″).
+  - **Discharge** is ticked to start on a coloured bandana.
+  - It's unticked, meaning direct to fabric, on **Natural or White**.
+  - A DC on the imprint's Pantones ticks it whatever the colour.
+- The Discharge box still changes it.
+- **Bandanas never get a base**, whether they discharge or print direct. The BB and EZ Auto settings are off on a bandana, and the shirt line says "bandana: direct to fabric, no base". Before this, a coloured bandana printed direct got an EZ layer.
+- Bandanas now draw in their stock colour. The colour chart from Mockup Maker is copied in: the closest Pantone from Stephen's sheet, plus Black, White, Natural and Hippie. "Natural" isn't a web colour name, so before this a Natural bandana kept the previous line's colour.
+- Tested (Playwright, mocked Airtable): 9/9. The checks were:
+  - Navy: Discharge ticked at 20.6″, can be unticked;
+  - Natural: direct with no base, can be ticked;
+  - Natural with "186 - DC": ticked;
+  - Navy art: 1795DC → BLK;
+  - Navy printed direct: 1795 → BLK, with no BB or EZ;
+  - nothing written to Airtable.
+
+  The v31 and v32 tests still pass.
