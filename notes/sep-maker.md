@@ -870,3 +870,19 @@ Stephen tried "Make it 11075-A's sep file", then: "can we undo sep file attached
 - Tests:
   - new: `scratchpad/sm38/t41.js` 12/12, with a real sep (11014-55LPI-Seps.ai → 1 spot colour, 230M-WHTDC): Review, Save as name, copy into #11093 › Seps, link written, master file, no folder, practice;
   - on v41: t39 12/12, t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.
+
+## 2026-10-27 · v42: template layers inside the .ai (a test)
+Stephen: "and can we leave the template layer in there." → "I think everything and we can maybe have it autohide and then we can turn them on if we need to make slight adjustments" → (told Illustrator may not read layers from a PDF-style file) "let's do the embedded-layers version first and see how that works".
+- **Export › "Template layers, hidden"** shows for .ai / .pdf. It's off by default and needs registration marks on.
+- **What it does:**
+  - the order's `Standard-sep-template.ai` (its Drive order folder, or a Seps / Templates folder there) is downloaded and laid over each page (pdf-lib `embedPdf` + `drawPage`, top-left on top-left);
+  - its own layers (PDF optional content) come with it, under their own names, all **off**: Left Chest Area, Long Sleeve Area, Sleeve Area, Pocket Area, NO ART ZONE, Size Tags - Saturn, Double Smooth Reg Marks, REG/TM Symbols, Adjuster, Reg Marks, Artwork;
+  - the seps are wrapped in a new **"Artwork (seps)"** layer, on (`/OC /PineArt BDC … EMC`);
+  - the catalog gets `OCProperties` with the order and ON / OFF.
+  - The films are unchanged: same spot colours (158M-BB, 230M-107OW …), same 16 × 21.25″ page.
+  - No template in the folder → exported without it, and a toast says so.
+- **Checked with poppler:** with the layers off it draws exactly as before. With all on, the template's guides appear (NO ARTWORK AREA, sleeve / left chest areas, size tags).
+- **Unknown until Stephen opens one:** whether Illustrator shows these as layers (it may flatten PDF layers into one, and could show the hidden guides). The guides are process colours, not spot films.
+- Tests:
+  - new: `scratchpad/sm38/t42.js` 6/6, with the real template;
+  - on v42: t41 12/12, t39 12/12, t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.
