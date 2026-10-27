@@ -894,3 +894,13 @@ Stephen asked for a count of how often people scroll in the pop-ups. Before, on 
 - **Export:** 900px wide, two columns on wide screens (what to export + file type | marks, template, Drive save, sep-file ticks); shorter hints → 0 scrolls from 1366 up (a few px at 1280×720).
 - **Art in the old proof:** 1200px wide, side-on tiles 3 across; page arrows stay in the pinned footer → 6 tiles fit with 0 scrolls.
 Measured with the scroll-audit scripts at 1920/1440/1366/1280.
+
+## 2026-10-27 · v44: Drive files show up on their own (shared pine-drive-watch.js)
+Stephen: "yes let's add those update timers for the mockup maker and sep maker" (after Seps v50 got them — the art dept drops files in Drive by hand and wants them to show without reloading).
+- The folders on screen are re-checked every 25 s while the tab is visible. A new file gets a yellow **New** tag (a re-saved one **Updated**) and goes first; folder tiles and the This order / Reprint tabs show "N new". Marks clear when you leave the folder, or after 30 min.
+- "↻ Updated just now / 3 min ago" next to the folder path; tap it to check now.
+- Our own uploads, attached proofs, setup files, exports and Save-as copies never show as New; a trashed or moved file doesn't come back from a check already on its way.
+- Repaints only on a real change, keeps scroll, waits while someone is clicking, uploading or typing. No checks with the tab hidden or a dialog / menu open; checks at once on coming back. After 20 min with no mouse or keys, every 5 min instead. Errors back off up to 5 min. An order with no Drive folder is searched again every 2 min.
+- **Refresh** updates in place and keeps the open order, garment, art and scroll.
+- The timer code is one shared file, pine-drive-watch.js, so Line Item Review, Screens and Seps can use the same one later.
+- About 290 worker requests an hour per open Mockup Maker tab (430 for Sep Maker); ~24–36 an hour when idle; none when hidden.
