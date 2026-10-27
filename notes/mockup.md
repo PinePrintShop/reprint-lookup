@@ -635,3 +635,24 @@ Stephen: "can we also make it so we can delete something we added to the shirt i
   - a 2-file print removes both, and Undo brings both back.
 
   Also: at 1440×900 and 1280×700 the editor and page don't scroll, and Attach stays on screen (22/22 with the v47 checks). The v41–v47 tests still pass.
+
+## 2026-10-27 — v49: Pull the art out of an old proof
+Stephen: "let's walk through when the sales references a past order so art dept can grab the art files from that PDF and put it maybe on a new garment. but the art is only in the mockup". Then: "all old proofs should be PDF made from illustrator files" and "yes to both builds".
+- In the PDF editor (old proofs open there since v47), **Pull the art out** shows a tile for each piece of art on the proof's shirts:
+  - **Drawn art:** the page is redrawn with every picture blanked out. pdf-lib swaps each image for a see-through dot, so the shirt photos vanish and only what's drawn on top is left, on a clear background. A flat page colour touching the edges is cleared too. The art is then cut out over each shirt. When the proof gives the width, the art is redrawn at 300 dpi for that width (up to 6000 px), so it stays sharp.
+  - **Placed picture:** a picture placed on a shirt (PNG art in the Illustrator file) at its own full size. A picture is counted as a shirt when it's big (4%+ of the page) and solid. A picture with see-through parts counts as art.
+- Each tile reads the proof's own label and width under that shirt, e.g. "BACK -10125-D" and "Width: 11"". It has a **Use for 11089-D · Back** button for each imprint, and the one whose location matches the label is dark.
+- Tapping a button picks that imprint, puts the art on the new garment, and sets the width from the proof.
+- If a page has no shirt photos (shirts drawn as vectors, or a flattened PDF), it says so and points to Put on the shirt + Crop.
+- Read-only: nothing goes to Airtable or Drive until you attach a proof.
+- Tested (Playwright, mocked Airtable) on a test proof built like the Illustrator ones: two shirt photos, vector back art, a placed PNG on the left chest, and Width labels. 8/8 passed:
+  - both tiles were found and labelled;
+  - each was matched to 11080-D Back and 11080-A Left Chest;
+  - the back art had no shirt colour and came out 3292 px wide for 11″;
+  - each landed on the right imprint at 11″ and 2.2″.
+
+  The v41–v48 tests still pass.
+- **Tested on a real proof:** 10125 | 1717-GR.pdf (Illustrator 30, two CMYK shirt photos, vector art). The left chest monogram came out clean at 645 px for 2.2″, and the back art at 3286 px for 11″, each matched to its imprint.
+  - The real proof showed that Illustrator's shirt photos run past the clipped shirt, down to the labels. Two fixes came from that:
+    - each region is cut off above that shirt's label;
+    - only the biggest block of art is kept, so rule lines and stray labels drop out.
