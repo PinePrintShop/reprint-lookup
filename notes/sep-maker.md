@@ -833,3 +833,20 @@ Stephen: "it would be great in the separation app a way to review the mockup to 
 - Tests:
   - new: `scratchpad/sm38/t39.js` 12/12: v57 proof with a recolour, a late-arriving proof, an imprint not on the proof, and the 10125 Illustrator proof (reads `141 WHT`);
   - on v39: t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.
+
+## 2026-10-27 · v40: a reprint finds its sep; APPROVED box spaced
+Stephen: "with reprints that should have a sep file...can it scan all past jobs associated with this nwe imprint id and find the folder that has the sep if it doesn't have a master created yet". The master is the canonical file system (Canonical Promotion app), "but that only gets added when we have reprinted that design at least 2 times". Then: "yes build".
+- **What the data showed:**
+  - new reprints link one job back (Previous Imprint ID), and the chain often goes further: 11093-A → 9698-A → 9460-A, and 11089-A → 10125-A → 8783-A;
+  - most older imprints have no Sep File URL, so their seps live only in their order's Drive folder.
+- **1 · Job › "Sep for this reprint"** shows when the imprint is a repeat and has no Sep File URL:
+  - **Master design** first: the imprint's Canonical Design `Master Folder URL` (`fld0Bu2TH7Rgflvm4`, lookup) or its own `Canonical Folder URL`, or the first one found back along the chain. Its sep files are listed.
+  - then back along Previous Imprint ID, up to 8 jobs. For each job, its Sep File URL, else its order's Drive folder: the Seps / Separations / Sep folders (and one level of subfolders), plus the order folder itself.
+  - What counts as a sep file: .ai / .pdf / .psd / .eps whose name has SEP or LPI or that job's imprint code. Templates don't count. Files named for the imprint come first, then the newest.
+  - It stops at the nearest job that has one.
+  - Each find has Open ↗ and **Make it 11093-A's sep file**, which writes Imprints › Sep File URL (the field Export already fills). Practice writes nothing.
+  - An imprint that already has its sep file just shows "Sep file · linked · Open ↗". Nothing found → "No sep found in 9698-A → 9460-A".
+- **APPROVED box** on the proof is spaced out, as Mockup Maker v58.
+- Tests:
+  - new: `scratchpad/sm38/t40.js` 7/7: found 2 jobs back, link written, master via the chain, practice, not a repeat, nothing found;
+  - on v40: t39 12/12, t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.

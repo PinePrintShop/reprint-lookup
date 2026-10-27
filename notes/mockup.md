@@ -837,3 +837,9 @@ Stephen: "it would be great in the separation app a way to review the mockup to 
   - and `inks: [{art: scanned art colour, ink: the ink it became (recolours included), hex}]`.
   - Nothing visible changes.
 - Tests: t54 37/37 and t55 25/25 on v57. A v57 proof with red → 285 recoloured reads back as `{art:#cc1c2c, ink:285}`.
+
+## 2026-10-27 · v58: APPROVED box spaced out
+Stephen, with a screenshot of the proof's sign-off box: "this is nerdy...but can we space this out better". "APPROVED" ran into the white box.
+- APPROVED now has even room on the left (0.4 × the box height), then a clear gap, then the white box to initial, inset evenly. The text is measured, and it shrinks if it wouldn't fit in 60% of the box.
+- Sep Maker v40's proof builder draws the same box.
+- Tests: t54 37/37, t55 25/25 on v58.
