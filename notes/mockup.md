@@ -888,3 +888,9 @@ Stephen, with a client's polo proof marked up in red: "is there a way to toggle 
   - Sizes are set from the page (line 0.012″, text 0.1″), so they read on the PDF.
 - Not on bandanas or accessories.
 - Tests: wilcom 3/3, notes 5/5, t53 61/61, t54 37/37, t55 25/25 on v61.
+
+## 2026-10-27 · v62: before/after slider on "Change this ink", fewer scrolls in the pop-ups
+- **Before/after slider** (Stephen: "maybe a slider to show the original one and what we are changing...just to make sure we are changing the correct thing"). In Change this ink, the ink you're changing stays in colour and the rest goes grey; once it's recoloured, drag the slider (or drag on the picture) — original on the left ("Original"), the change on the right ("Changed").
+- **Pull the art out:** up to 1400px wide (4 tiles across on a big screen), side-on tiles, short chips ("B · Back") under one "Use for" label, the "baked into this proof's shirt photo" note said once above the tiles, and only the tile list scrolls (the header and buttons stay put).
+- **Edit PDF:** the "Tap any word…" hint shares the tools row, so the page gets more room.
+- **Change this ink:** Merge inline, the four buttons in two short rows, a shorter colour list.
