@@ -581,3 +581,10 @@ Stephen: "now that we have the stock bandana colors can we make that a drop down
 - Picking one redraws the bandana in that Pantone's colour, and the proof says that colour name and "Closest Pantone …". The fabric content carries over. Airtable isn't changed.
 - One list instead of two: the always-open colour box is now a small **Custom colour** button for anything not on the list. A custom colour doesn't claim a Pantone, and picking from the list again drops it.
 - Tested (Playwright, mocked Airtable): 12/12 new checks; the v41 tests (Find the art, comments, discharge, upload) still pass.
+
+## 2026-10-27 — v43: phone fixes (order bandanas, "Cap" in a colour name)
+Stephen: "I am on mobile and the bandana is still a color wheel type of thing", then a phone screenshot of 11080-A.
+- A bandana opened from an order now shows step 3's Colour list straight away: its own colour first, then the stock colours with Pantones. In v42 the list only appeared after searching for the garment, so an order's bandana showed just the colour box.
+- 11080-A's Cotton Collective tee comes in "White Cap Off White". The word "Cap" made the app treat it as a hat (Kind: Hat / cap, 8.25″ across). The hat/beanie/tote guess now ignores the colour name and never fires for tees, hoodies, crews, polos or tanks.
+- The long "Show the … colours" button wraps instead of running off a phone screen.
+- Tested at 390px (Playwright, mocked Airtable): 11/11 new checks; the v41/v42 tests still pass.
