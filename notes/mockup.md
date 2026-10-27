@@ -593,3 +593,10 @@ Stephen: "I am on mobile and the bandana is still a color wheel type of thing", 
 Stephen's phone screenshots (taken on v42) showed a cream strip down the right side and a top bar that stopped short. The page was wider than the screen, so the phone shrank everything to fit. Something on the real orders doesn't wrap (a long file name, comment or Art to do card), and the mocked data doesn't show it.
 - On phones (≤900px) the panels are capped at the screen width, long words and buttons wrap, and anything still too wide is clipped instead of widening the page.
 - Tested at 390px with an injected 700px-wide block, a long unbroken file name and a long button: the page stays 390px wide (v43 went to 778px). The v41–v43 tests still pass.
+
+## 2026-10-27 — v45: Undo for Proof done → Review
+Stephen tapped Proof done → Review by accident on 11084-A (Purple bandana). I unticked Awaiting Review by hand; the Slack had already gone. He asked for an Undo: "Yes let's add that".
+- The tap now waits 10 seconds before anything is sent. The button turns into "Undo · 10" and counts down, and a bar says "Sending 11084-A to Review in 10 s" with its own Undo. Undo sends nothing, so there's no Slack.
+- Moving to another line while it counts sends it, as tapped. Closing the page tries to send it. The app's self-update waits until it's done.
+- A line already in Review shows "In Review ✓" instead of the button.
+- Tested (Playwright, mocked Airtable, 390px): 13/13. Undo sends nothing (checked 9 s later). The countdown sends one PATCH. Leaving the line sends it. The v41–v44 tests still pass.
