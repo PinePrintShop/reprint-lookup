@@ -862,3 +862,19 @@ Stephen: "look up order 11084-A to see how we add disclaimers for certain things
 - Notes are kept with "Pick up where you left off".
 - **Still to confirm with Stephen:** which thin-lines wording to use as the default. Garments use "ANY THIN LINE DETAILS <1 POINT MAY NOT PRINT"; bandanas mostly use "PLEASE NOTE: LINES & DETAILS SMALLER THAN 1PT MAY NOT PRINT".
 - Tests: `scratchpad/mk56/notes.js` 5/5, plus t53 61/61, t54 37/37 and t55 25/25 on v59.
+
+## 2026-10-27 · v60: embroidery worksheets (Wilcom) open as art; proof headings fit their column
+Stephen, with Precision Logo_4IN.pdf in Edit PDF: "embroidery files are not pulling the art work correctly. can you look into how we might be able to make this work?". Then, on 11094 (left + right chest embroidery): "got some spacing with imprint ids showing up". And: "it places the pdf on the garment right away vs opening the editor first".
+- **What a worksheet is:** a Wilcom EmbroideryStudio "Production Worksheet" (page 2 is the "Color Film"). The left panel is the stitched design at 1:1 on a flat grey (193) panel, as two ~300 dpi pictures. Beside it: Stitches, Width / Height in inches, Design, and the Stop Sequence (`1. 5 898 Red 5 Wilcom` = stop, needle, stitches, thread, code, brand).
+  - Before: Pull the art out looked for shirt photos, so the whole page went onto the garment.
+- **Now:**
+  - opening one (drop, a Drive tile, or Pull the art out) is detected from its text ("Production Worksheet" / "Color Film" + "Wilcom" / "EmbroideryStudio") and goes straight to the tiles;
+  - there's one tile: the design cut off its panel (border trimmed, the panel grey flooded away from the edges, including the soft grey shadow round the stitches), at the pictures' own resolution;
+  - the tile shows the design name, stitches, Width, and "Threads: 898 Red · 668 Black · 1,220 White …".
+  - **Use for …** puts it on the imprint at the worksheet width, sets the method to **Embroidery**, and sets the stitch count if the imprint has none. It names the scanned colours after the worksheet's threads (nearest by colour), so Thread Colors read RED / BLK / WHT.
+- **Checked on three real worksheets** (Precision 3 colours, Restoration 4 colours, SPORTS 1 white):
+  - Precision: 1219 px over 4.03″ = about 300 dpi;
+  - all three cut out cleanly;
+  - 10125 / 11085 / 6305 pull exactly as before.
+- **Proof page 1 headings:** "EMBROIDERY · LEFT CHEST - 11094-A" ran into the next print's column. Each heading now fits its column: up to about 15% smaller, then the imprint ID on its own line, then smaller still.
+- Tests: `scratchpad/wilcom/inapp.js` 3/3, notes 5/5, t53 61/61, t54 37/37, t55 25/25 on v60.
