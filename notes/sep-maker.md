@@ -850,3 +850,23 @@ Stephen: "with reprints that should have a sep file...can it scan all past jobs 
 - Tests:
   - new: `scratchpad/sm38/t40.js` 7/7: found 2 jobs back, link written, master via the chain, practice, not a repeat, nothing found;
   - on v40: t39 12/12, t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.
+
+## 2026-10-27 · v41: Review an old sep, then Save as the new number
+Stephen tried "Make it 11075-A's sep file", then: "can we undo sep file attached to Airtable just did 11075-A and was just seeing how it works.....was hoping it would pull it into the App to quickly review and then save with the new number".
+- **Undone:** 11075-A's Sep File URL was cleared in Airtable, back to empty as it was that morning.
+- **Each sep found** under "Sep for this reprint" now has **Review** and **Save as 11075-A**. The link-only button is gone.
+- **Review** opens the file in the app (downloaded through `/proxy/drive/file`):
+  - every artboard (page tabs);
+  - its spot colours, read from the PDF's `/Separation` names (a PSD's spot channels for .psd);
+  - where it came from, plus Save as.
+  - Files over 200 MB, or ones it can't read, offer Open in Drive.
+- **Save as:**
+  - the name is ready to edit: the old number becomes the new one (8107-A → 11075-A; "LC-A" keeps the new letter);
+  - it goes into this order's Drive Seps folder (the same one Export uses);
+  - "Make it 11075-A's sep file" is ticked, which writes Sep File URL with the copy's link.
+  - The copy is Drive's own (**worker v32** `POST /proxy/drive/copy`, any size). With an older worker, files up to 25 MB are copied through the app (download + upload); bigger ones ask for worker v32.
+  - The old file is never changed. With no Drive folder for the order, it says so. Practice copies and writes nothing.
+- A Sep File URL that's a folder link is opened, and its sep files are listed.
+- Tests:
+  - new: `scratchpad/sm38/t41.js` 12/12, with a real sep (11014-55LPI-Seps.ai → 1 spot colour, 230M-WHTDC): Review, Save as name, copy into #11093 › Seps, link written, master file, no folder, practice;
+  - on v41: t39 12/12, t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.

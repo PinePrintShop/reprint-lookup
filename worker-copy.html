@@ -58,6 +58,7 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
+  32:{what:'Sep Maker can copy a reprint\'s old sep file into the new order\'s Seps folder under the new number (Drive\'s own copy, any size). The old file is never changed.'},
   31:{what:'Tidy proofs in the order\'s Drive folder from Mockup Maker: move a file to another folder, or to Drive\'s trash (Undo puts it back; Drive keeps trash 30 days). Nothing is deleted for good. Also fixes Check it\'s live.'},
   30:{what:'Real AS Colour garment photos in Mockup Maker, and Drive files up to 200 MB (was 25 MB) so big Photoshop and Illustrator files open straight from Drive.',
       tiny:'In Cloudflare, search the code for <code>&gt; DRIVE_MAX_BYTES) return driveErr(\'File is over 25 MB</code> and change <code>DRIVE_MAX_BYTES</code> on that line to <code>200 * 1024 * 1024</code>. Deploy. (This only does the Drive part — AS Colour photos need the whole worker — and Check it\'s live won\'t show v30.)'},
