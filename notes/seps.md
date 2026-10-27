@@ -293,3 +293,14 @@ Stephen: "in the Seps can we make sure to grab the original sep file or link to 
 - A reorder with no sep yet, whose earlier run has one further back, gets **Use 5504-A's sep** (one tap writes the Sep URL; faked in practice).
 - Checked on real data: 11077-A → 10109-A → 5504-A all point at 5504-200LPI-Seps.ai.
 - Tested (Playwright, mocked Airtable and worker): 89/89 — the v48 checks plus the origin line, file name, original folder, and the "Use … sep" offer and write.
+
+## 2026-10-27 · v50: Drive files show up on their own, Refresh keeps your place
+Stephen: "sometimes the art dept will manually drop something in the google drive and they would like it to show up in the app quicker without having to refresh the whole page and start over again"
+- **Why it didn't before:** v49 read each order's Drive folder once per page load, and its Refresh rebuilt the whole page (lost the open job and scroll) without re-reading Drive.
+- **Auto-check every 25 s** while the tab is visible, only for what's on screen: the open job's order folder, Seps folder (and master Seps on reorders) and its Airtable record; with the Drive window open, just the folder it shows. Pauses when the tab is hidden, in Calendar, with the viewer or ⚙ menu open; checks at once on coming back. Errors back off.
+- **Repaints only on a real change**, and waits while someone is mid-click, saving, uploading, dragging inks or typing — scroll and typed notes are kept.
+- **New / Updated tags** on new or re-saved files, "N new" on folders and the 📁 Order files button; the Drive window shows "↻ Updated just now" (tap to check now).
+- An order folder made by hand is found, and a sep named like the imprint is offered ("Link 11079-A seps.ai?") — never linked on its own.
+- Separator, notes, Sep URL, type and inks changed elsewhere update in place on the open job.
+- **Refresh** now updates the queue in place ("✓ Up to date") and keeps the open job, filters, search and scroll.
+- Airtable writes unchanged; practice mode unchanged. Tests: 56 new checks + the v49 (89) and v45 (56) suites pass on v50.
