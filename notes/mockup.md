@@ -708,3 +708,60 @@ Stephen: "in mockup creator can we also get close ups and specs for all the garm
   - A zip hoodie with LC + LS + Back, plus "Also show on" Navy: FRONT / BACK / LEFT SLEEVE, and a 3-print close-up page each.
 
   The v41–v51 tests give the same results as on v51.
+
+## 2026-10-27 — v53: the left panel, cleaned up
+Stephen: "can we also have an agent scan the left scroll side for the mockup and separation app and offer suggestions for making it flow easier and smoother" … "let's build all of it". A review measured the panel at 2286 px with a job loaded, 2729 px with art and 3488 px while recolouring an ink, with Print width 1257–2403 px down. Every feature stays; things moved, merged, folded or got shorter.
+- **Width and placement under the art.** Print width / height, where the width came from, below collar / off centre, the placement text and Same spot / Own spot now sit right under the art and its file buttons. They show once the print has art (before, the width box did nothing without art). "Art has a solid background — drop it" follows, with **"Everywhere, not just at the edges" directly under it**. Then the Drive files, the inks and the Photoshop layers.
+- **"Change this ink" is a popover** under the swatch you tapped, not a block in the panel. On a phone (≤600 px) it's a bottom sheet. Click outside, ✕ or Esc closes it. Everything is in it: the "where it is in the art" preview, Recolour / Just rename, All garments / Only Black, the ink search and options, Merge into, Remove from the list, Erase, Back to the original, Reset all inks. "Removed from the list: … (put back)" stays in the panel so it can be found after the popover closes.
+- **The job brief folds into the imprint tabs.** Each tab has a second line, e.g. "No inks · New art" or "Black, 186C · Repeat of 9447-F". What the tabs don't say stays in one block: "#11080 Test Brewing · Patrick · ASAP · Due Oct 30", pieces and sizes, a repeat's last proof ↗ / seps ↗ links, the nickname, Print / Ink notes, and the Proofing / Sales notes.
+- **Comments are closed** behind "Comments (n)". They open by themselves, marked "new", when the line has a comment newer than this computer has seen. The last-seen time is kept per line in localStorage (`pine_mk_cmtseen_<line>`), and opening or posting marks them seen.
+- **Garment is one line**, e.g. "Independent IND4000Z · Black · M · no vendor photo", with **Change**. Behind Change: search, size / body length, kind, width across, bandana size and custom colour, the garment note, Your photo, Fabric look. Outside it, always visible: "Also show on" (Colorways), "Showing … instead of the line's …", and the Colour list (for a bandana from an order it shows straight away, as since v43). With no order the search stays open.
+- **File buttons in one row** (40 px at the 380 px panel, even with all five showing): + Add file · Reference · Crop · Edit PDF · ✕ Remove, with full titles and aria-labels.
+- **Old proofs open straight to "Pull the art out"**, as in Sep Maker v35. A PDF that `isProofPdf` used to open the PDF editor. Now it shows the art tiles, each with its "Use for …" buttons (the matching one dark), plus page ‹ › for proofs with more than one page. The two other ways out are **Edit the PDF instead**, which opens the editor (Change / To, Replace everywhere, Cover & type, Attach to this line), and **Put the whole page on the shirt**. The yellow Attach only shows in the editor, never next to the tiles. ✎ Edit PDF on a PDF that's art still opens the editor.
+- **Shorter hints:** "Other colours to show." and "Flat, straight-on photo.". "No order — just a garment" matches Sep Maker's "No order — just separating" (it pointed to a "step 3" you couldn't see). The empty screen says "or search a garment".
+- **House style:** range sliders are black (`accent-color`), the "66% of the print" captions are 12px, and nothing in the panel is under 12px (checked in the test).
+- **Phone (≤900 px):** the mockup comes first and stays pinned while you scroll the controls. Only its zoom bar and picture stay (the picture is 36% of the screen high, sized to fit). The view tabs and buttons scroll away. The Proof, Colorways and Art to do views come first but aren't pinned. `body` clips with `overflow-x:clip` (not `hidden`), so v44's "nothing wider than the screen" still holds and sticky works.
+
+- **Download print art** (Stephen: "yes to download print art"). It sits next to Download PNG / Download PDF and isn't yellow. It saves each imprint that has art as a print-ready transparent PNG:
+  - **The art only.** Crop, the dropped background, several files combined as they sit, and the ink changes for the garment on screen (`RECOL`). The recolour is redone at full size (`recolFull`), because the on-screen one is a 2400 px preview. No garment, no base preview, no opacity preview (opacity is how the mockup shows a weak discharge, not a change to the art).
+  - **300 dpi at the print width.** An 11″ print is 3300 px wide, and 300 dpi is written into the PNG (a pHYs chunk, as in Sep Maker's `transparentPng`), so Illustrator and Photoshop open it at 11″.
+  - **Smaller art** keeps its own pixels and real dpi, and the toast says e.g. "11089-A is only ~236 dpi at 11″ — the real art file is better". Art over 4000 px was shrunk to 4000 px when opened (since v17), so a very wide print can fall under 300 dpi. The toast then adds "(the app works at up to 4000 px)".
+  - **Named** like `11089-B Back art 11in 300dpi.png`, with the colour added when that garment has its own inks. Several imprints download as one zip (`11089 1717 print art.zip`, JSZip 3.10.1 from cdnjs, loaded when needed). If the zip can't load, the files download one after another.
+  - It's local only, so practice mode downloads too.
+
+**Panel height** (Playwright, mocked order with 3 imprints and 2 comments; v52 → v53, comments already seen / unseen):
+
+| | 1440×900 | 1280×720 | 390 (page) |
+|---|---|---|---|
+| Job loaded | 2360 → **1104** / 1340 | 2360 → 1104 / 1340 | 3224 → 1839 / 2074 |
+| With art | 2804 → **1787** / 2023 | same | 3662 → 2541 / 2777 |
+| Recolouring an ink | 3562 → **2192*** / 2428 | same | 4247 → 2449 (sheet) |
+| Bandana with art | 2593 → 1953 / 2189 | same | 3405 → 2644 |
+| Print width, from the panel top | 1703 (2477 recolouring) → **838** | same | — |
+| Phone: preview starts at | — | — | 2722–3919 → **377–398**, then pinned |
+
+\*The popover is laid over the panel. It only adds height where it runs past the panel's end.
+No horizontal scroll at any size (scrollWidth = width).
+
+**Tested** (Playwright, mocked Airtable, `scratchpad/mk53/t53.js`): 61/61 at 1440, 64/64 at 390 and 62/62 in practice mode at 1280. The tests cover:
+- the tabs' second line, the compact brief, comments auto-open / closed / seen / post (practice posts nothing);
+- the garment summary and Change, size in the summary, Also show on, the bandana Colour list with Change closed;
+- width, below collar, placement text, own spot, and Everywhere under its box;
+- the file row on one line with Edit PDF, ✕ Remove and its Undo;
+- the popover anchored under its swatch (a bottom sheet on the phone) with every control, recolour to 286, scope, and Esc / outside click / ✕;
+- the real 10125 proof opening to 2 tiles with no yellow, "Edit the PDF instead" reaching the editor (10125 → 11080), Use for 10977-B at 11″, and Put the whole page;
+- no text under 12px, the slider colour, the phone pin, no overflow, and the 10 s Proof done Undo (nothing sent; it sends after 10 s; practice sends nothing).
+
+**Print art** (`t53art.js`), 14/14 normal and 14/14 practice:
+- an 11″ back from a 3600 px file gives 3300×1747 px with pHYs 300 dpi, transparent around the art;
+- the yellow recoloured to 286 (3,51,156 against 0,51,160) and the red unchanged; the opacity preview isn't baked in;
+- the left chest from a 2601 px file at 11″ keeps 2601 px at 236.45 dpi, with the warning toast;
+- both imprints come in one zip, named with size and dpi.
+
+**Regression copies** (`scratchpad/mk/*__v53.js`, from the `__v52` ones plus `t52`, `t52b`, `t52photo`) give the same counts as on v52:
+- t44 12, t45 13, t48 8, t49_51 8, t49real 1, t50 5, t51s 5, t52 14, t52b 10, t52photo 14, t99 12;
+- t47 21 and t48fit 23: the v52 count plus a new "opens to the tiles" check;
+- t49_50_51 3 + 1 fail, the same failure as on v52 (the synthetic proof's left-chest picture);
+- t75, t83, t90, t92 and t98 only print output. t75 and t98 match. t83 and t90 differ only in the brief, as intended. t92 differs only in the order of two uploads.
+
+What changed in the copies: an old proof now opens to the tiles, so t47, t48fit and t49* wait for the tiles and then tap "Edit the PDF instead" (or skip "Pull the art out"). t99 opens Change before checking the bandana's Custom colour.
