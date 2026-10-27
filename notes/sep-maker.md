@@ -779,3 +779,22 @@ The panel is the same height at 390 px wide. On a phone the preview now comes fi
   - The single-print export is still `11090-45LPI-SEPS B-B.ai`.
 - **Panel test:** 5/5 at 1440 and 7/7 at 390 (no sideways scroll, preview on top and sticky).
 - **Earlier tests, re-run on v36** (selectors updated where controls moved; collapsed sections are opened, nothing loosened): t35 9/9, t32 11/11, t33 9/9, t34 8/8, t_seps 32/32, t_fabric 22/22.
+
+## 2026-10-27 — v37: tidy Separations toolbar; bases show in the .ai
+- **Separations toolbar.** Stephen: "can we clean up the toggle section.....it get funky under the text".
+  - Before, the switch, the tick, the two colour keys and the point-at-the-picture readout shared one wrapping row. As the mouse moved, the readout ("x 160 y 44 px · no ink — shirt") changed length and pushed everything around.
+  - Now there are three steady lines:
+    - Inks / Film / Edges plus "Mark chokes and overlaps";
+    - the keys, shortened to "Choke · 3 px (.010″) per layer" and "Overlap · 2 px (.007″)", with their meaning on hover;
+    - the readout on one line that never wraps.
+  - The toolbar has its own full row under the tabs, with Halftone and 1:1 on the right.
+  - Tested: moving the pointer to 4 spots leaves the toolbar height and width and the picture's position unchanged, at 1440 and 1280.
+- **Bases show in the .ai.** Stephen: "when a sep comes out....can we slightly add a color to the bases so we can see them when we open up the .AI file".
+  - In the stacked .ai / .pdf, each screen's display colour (its spot colour's alternate) is now:
+    - BB: light blue-grey (C28 M12 Y0 K12);
+    - EZ layer and white or near-white screens (WHTDC, HLWHT, a cream EZ): light warm tan (C4 M14 Y32 K0);
+    - all other screens: their ink colour.
+  - This only changes how Illustrator shows them. The spot names, which are what the Xitron goes by, are unchanged, so the films are the same.
+  - Checked in the exported file: /158M-BB 0.28 0.12 0 0.12 and /158M-EZWHT 0.04 0.14 0.32 0. A Ghostscript overprint render shows the bases as tinted areas under the inks.
+  - The .psd's channel colours are unchanged.
+- **Tests on v37:** t35 9/9, t36 56/56, t_seps 32/32, t_fabric 22/22. Panel heights are the same as v36.
