@@ -486,3 +486,13 @@ Stephen: "Just work on the apps we are using" (weekend round of small leftovers)
 - The narrow-width views row (under 900px) now comes from `pine-style-v2.css` instead of a copy here. The 8px row gap stays.
 - No behaviour changes. Self-update, `pineBusy` and practice mode are unchanged.
 - **Tested** (Playwright, mocked Airtable): the v111 test passes on v112 (20 PASS, same output as v111). At 1440 and 390 there are no console errors and practice mode makes 0 writes.
+
+## 2026-10-27 · v113: Adjust sizes
+Stephen: "allow purchasing to adjust sizes they are ordering.....every now and again something is out of size and they need to adjust it and it should then write back to airtable"
+- **✎ Adjust sizes** under the size grid on open lines and in-cart lines not yet ordered (not on ordered lines). A panel shows Was / Now / Change per size and the total as you type.
+- **Invoice warning:** if the total or the 2XL-and-up count changes (Line Total = price × quantity + plus-size up-charges), it says so plainly ("Let sales know") and asks before saving. Moves within XS–XL keep the price the same.
+- **Writes** one PATCH to the Line Item: only the size fields that changed (0 → blank), the matching Extra field when a size goes to 0, and one line in Order Notes: "Sizes changed 10/27 (purchasing): L 20→17, XL 10→13 · <why>" (before the app's own Split / extras lines). No new fields.
+- Re-reads the line first; if someone changed sizes in Airtable since load, it stops and asks for a Refresh. **Undo** puts the old sizes and note back.
+- "OOS." in the Why text becomes "OOS" so it doesn't set off the "SLACK: OOS notification" automation (it watches Order Notes for "OOS."). No other automation watches the size fields.
+- The cart, extras plan, stock pills and costs follow the new sizes. Practice mode sends nothing.
+- Open questions for Stephen: notify sales automatically when the invoice changes? tick "Verify Size Availability"? a one-tap "move the short L to XL" from a warehouse's "short" pill?
