@@ -623,3 +623,15 @@ Stephen opened 10125 | 1717-YM.pdf from Last proofs on 11089. v46 put it on the 
   - a plain art PDF still goes straight on the shirt.
 
   The v41–v46 tests still pass.
+
+## 2026-10-27 — v48: take art off the shirt
+Stephen: "can we also make it so we can delete something we added to the shirt instead of just being only able to upload a new file".
+- **✕ Remove** next to Crop takes the print's art off the shirt. That's one file, or every file in a multi-file print. Each file in a multi-file print still has its own ✕, and references still have Remove.
+- A bar says "Removed art.png from 11080-A · Undo" for 10 seconds. Undo puts it back exactly: crop, size, spot and colour changes. Nothing in Airtable changes. The art only lives in the app until a proof is attached.
+- **PDF editor fits without scrolling** (Stephen: "can we also make this so you don't have to scroll in the pdf editor"). The page is sized to the room left after the controls, by height as well as width, so a landscape proof shows whole, and it refits when the window changes size. Before, it was sized to the width only, so a 3-page proof like 10125 | 1717-GR.pdf ran below the window.
+- Tested (Playwright, mocked Airtable): 8/8. The checks were:
+  - remove, then the drop box is back to "Open art for 11080-A" with nothing printed on the shirt;
+  - Undo restores the art and its spot;
+  - a 2-file print removes both, and Undo brings both back.
+
+  Also: at 1440×900 and 1280×700 the editor and page don't scroll, and Attach stays on screen (22/22 with the v47 checks). The v41–v47 tests still pass.
