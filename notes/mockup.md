@@ -843,3 +843,22 @@ Stephen, with a screenshot of the proof's sign-off box: "this is nerdy...but can
 - APPROVED now has even room on the left (0.4 × the box height), then a clear gap, then the white box to initial, inset evenly. The text is measured, and it shrinks if it wouldn't fit in 60% of the box.
 - Sep Maker v40's proof builder draws the same box.
 - Tests: t54 37/37, t55 25/25 on v58.
+
+## 2026-10-27 · v59: proof notes (the shop's disclaimers) as a drop-down
+Stephen: "look up order 11084-A to see how we add disclaimers for certain things...can you have an agent scan a lot of mockups to try and find the few disclaimers and we can make it a drop down feature to add to the mockups that need it...I believe another one is thin lines".
+- **The research:** an agent read about 1,220 proof PDFs in Drive (2024–2026, full-text search). The disclaimers are all-caps stamp lines per imprint. Most used: thin lines under 1 pt (3 current wordings), fine textures, upscaled to 300 dpi, and "EXPECT SEMI OPAQUE PRINT" with a SEMI-OPAQUE → FULLY-OPAQUE scale (11084; discharge on coloured 4800 bandanas). The full report, with counts and examples, is in this session's history.
+- **2 · Art › "+ Add a note to the proof…"** (per imprint, once there's art). The 16 notes in the shop's own words:
+  - thin lines (`ANY THIN LINE DETAILS <1 POINT MAY NOT PRINT`), fine textures, upscaled to 300 dpi, expect semi-opaque print (+ scale);
+  - large ink coverage, registration marks enlarged, artwork modified, halftones, layering of inks;
+  - low resolution, gradients, metallic, discharge chemistry, tag remnants, middle hat seam, sewout thread;
+  - or "Your own note…" (typed, saved in caps).
+  - "Suggested for this print" comes first: semi-opaque and discharge chemistry for discharge (semi-opaque on bandanas), low-res / upscaled when the art is tagged Low-res or Mockup only, sewout for embroidery, hat seam for hats, coverage for bandanas.
+  - Chosen notes show as chips with ✕.
+- **On the proof:**
+  - page 1: left column, each imprint's notes under "LEFT CHEST - 10977-C" (bandanas: beside APPROVED);
+  - detail page: left of APPROVED;
+  - close-ups: under that print's ink chips.
+  - Proof blue (#1a9ad6), bold caps. The semi-opaque scale is a grey-to-black bar labelled SEMI-OPAQUE / FULLY-OPAQUE, with a blue marker toward semi.
+- Notes are kept with "Pick up where you left off".
+- **Still to confirm with Stephen:** which thin-lines wording to use as the default. Garments use "ANY THIN LINE DETAILS <1 POINT MAY NOT PRINT"; bandanas mostly use "PLEASE NOTE: LINES & DETAILS SMALLER THAN 1PT MAY NOT PRINT".
+- Tests: `scratchpad/mk56/notes.js` 5/5, plus t53 61/61, t54 37/37 and t55 25/25 on v59.
