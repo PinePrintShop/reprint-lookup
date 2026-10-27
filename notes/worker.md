@@ -67,3 +67,11 @@ For Mockup Maker v54 (Stephen: "can we add a way to delete proofs in the folders
 - `/proxy/version` now gets past the route guard (v30's was blocked) → `{"version":31}`.
 - Tested in Node with a mocked Google (real RSA key): 13/13.
 - **Stephen deploys it:** open worker-copy.html, Copy worker v31, paste into Cloudflare (Workers → pine-workers → Edit code) and Deploy. No new settings.
+
+## 2026-10-27 · v32: copy a Drive file
+For Sep Maker v41's "Save as 11075-A" on a reprint's old sep.
+- **New `POST /proxy/drive/copy?id=<file>&to=<folder>&name=<new name>`:** Drive's `files/{id}/copy` (supportsAllDrives) into another folder of Pine's shared drive, under a new name. Any size, nothing downloaded.
+- Files only. Both the file and the folder must be in the shared drive. A name is required. The original is untouched.
+- `/proxy/version` → 32.
+- Tested in Node with a mocked Google: 17/17 (the v31 checks plus copy / other drive / no name / folder).
+- **Stephen deploys it:** worker-copy.html → Copy worker v32 → paste into Cloudflare → Deploy.
