@@ -814,3 +814,22 @@ Stephen: "can we clean this up as well....maybe do another spacing scan for the 
 - **Discharge in 4 · Bases and strokes:** an "Underbase | Discharge" choice at the top of the section. It's the same setting as the Discharge tick beside Spot / Index / Sim under 3 · Inks, kept in step, and hidden for Sim.
 - Scan (`scratchpad/sm38/scan.js`): the wraps, two-row button rows, 0px and uneven gaps are all gone. The imprint tabs still wrap when there are 3 (they can't fit in 368px).
 - Tests on v38: t36 56/56 (practice 55/55), t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22. t36's source-button and heading checks were updated for the new wording.
+
+## 2026-10-27 · v39: inks follow the proof; Check the proof
+Stephen: "it would be great in the separation app a way to review the mockup to make sure it pulled the correct colors. I pulled a job in to test and it re colored it different than the mockup had called out".
+- **Reading the proof:** opening a line reads its latest proof (Line Items › Proof Images, last one, through the worker's Airtable-attachment route).
+  - Mockup Maker v57+ proofs: the `PINE-INKS` callouts in the PDF Keywords.
+  - Older Illustrator proofs: the chips (`141`, `WHT`, `107OW` …) in the text under each "… - 10125-A" label. Mockup proofs from before v57 are pictures, so nothing can be read from them.
+- **Naming the inks:** after the imprint's Pantone list, the proof wins.
+  - When the proof says which art colour became which ink, each sep ink takes the ink of the nearest art colour (within ΔE 40). Recolours carry over: red art printed as 285 is named 285.
+  - Otherwise names are matched one to one by nearest colour (within ΔE 45).
+  - If the proof arrives after the art is open, inks nobody has typed over are renamed.
+  - A line under the ink list says "Ink names from the proof (V2 …): BASE WHT · 107OW · 285OW".
+- **3 · Inks › Check the proof:**
+  - the proof's pages on the left (page tabs);
+  - on the right, the imprint's chips, then each sep ink → what the proof calls it (✓, "Proof: 285" in red, or "not on the proof"), then "On the proof but not in the seps: …";
+  - **Use the proof's inks** renames any that differ;
+  - an imprint the proof doesn't cover, or a picture-only proof, gets "compare by eye".
+- Tests:
+  - new: `scratchpad/sm38/t39.js` 12/12: v57 proof with a recolour, a late-arriving proof, an imprint not on the proof, and the 10125 Illustrator proof (reads `141 WHT`);
+  - on v39: t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.

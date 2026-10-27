@@ -828,3 +828,12 @@ Stephen, with a screenshot of the Customer's files / Find the art area: "can we 
   - Positions are in the shirt-outline units, mapped onto the photo's garment box or the drawn stand-in. Long sleeves (hoodies, crews, L/S) hang down beside the body; the stand-in always has short sleeves.
   - Checked on Bella 3001 Ash and Independent AFX90UNZ Black photos. The flat sleeve view with the measurements stays.
 - Tests: t53 61/61, t53art 28/28, t54 37/37, t55 25/25 on v56.
+
+## 2026-10-27 · v57: the proof carries its ink callouts (for Sep Maker)
+Stephen: "it would be great in the separation app a way to review the mockup to make sure it pulled the correct colors. I pulled a job in to test and it re colored it different than the mockup had called out".
+- **Why it happened:** proof pages are pictures (canvas → JPEG in the PDF), so Sep Maker couldn't read what they called out. Sep Maker named its inks from the imprint's Pantone field, or by its own nearest-Pantone match, which can differ from Mockup Maker's, and never knows about recolours.
+- **The change:** the proof PDF's Keywords now hold `PINE-INKS {json}`:
+  - for each printed imprint: code, location, method, base, and the chips as printed (`BASE WHT`, `107OW`, `285OW`);
+  - and `inks: [{art: scanned art colour, ink: the ink it became (recolours included), hex}]`.
+  - Nothing visible changes.
+- Tests: t54 37/37 and t55 25/25 on v57. A v57 proof with red → 285 recoloured reads back as `{art:#cc1c2c, ink:285}`.
