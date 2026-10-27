@@ -58,3 +58,12 @@ Sep Maker v3 draws the vendor's garment photo into the proof and saves the proof
 - **No key needed:** the same photos are public on the vendors' sites. Everything else is byte-for-byte v28.
 - **Tested** in Node with a mocked fetch: S&S, SanMar and AS Colour images return 200 with CORS; other hosts, http, non-images and POST are refused.
 - **Stephen deploys it:** paste `workers/pine-workers-v29.js` into the Cloudflare worker and Deploy. No new settings.
+
+## 2026-10-27 · v31: move or trash a Drive file
+For Mockup Maker v54 (Stephen: "can we add a way to delete proofs in the folders or move them around").
+- **New `POST /proxy/drive/trash?id=`**, **`/restore?id=`** (Undo) and **`/move?id=&to=<folder>`**. Same Airtable-token gate and shared-drive check as the other Drive routes.
+- Files only (a folder → 400 `not_a_file`); outside Pine's shared drive → 403; a trashed file can't be moved. Trash is Drive's trash (30 days), never a permanent delete; there's no delete route.
+- Trash needs the service account to be a **Content manager** on the shared drive. If it's only a Contributor, Google refuses and the app says so.
+- `/proxy/version` now gets past the route guard (v30's was blocked) → `{"version":31}`.
+- Tested in Node with a mocked Google (real RSA key): 13/13.
+- **Stephen deploys it:** open worker-copy.html, Copy worker v31, paste into Cloudflare (Workers → pine-workers → Edit code) and Deploy. No new settings.

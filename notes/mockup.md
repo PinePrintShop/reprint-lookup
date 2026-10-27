@@ -765,3 +765,21 @@ No horizontal scroll at any size (scrollWidth = width).
 - t75, t83, t90, t92 and t98 only print output. t75 and t98 match. t83 and t90 differ only in the brief, as intended. t92 differs only in the order of two uploads.
 
 What changed in the copies: an old proof now opens to the tiles, so t47, t48fit and t49* wait for the tiles and then tap "Edit the PDF instead" (or skip "Pull the art out"). t99 opens Change before checking the bandana's Custom colour.
+
+## 2026-10-27 · v54: a proof per line, Colorways optional, saved garment photos, tidying doubles
+Stephen, after saving mockups: "they do need to each be assigned to there own line item...right now it sends everythign to one line item", then "oh I see...I need to click on the left side which one I am sending it to." Also: "can we also make colorways optional....it really is great for designs shared across a lot of garments not needed for a tee and hoodie", "when we upload garments to the mockup creator is there a way to store them in Airtable to use again later", and "I was clicking a lot and ended up putting in doubles of the mockups in teh folder....can we add a way to delete proofs in the folders or move them around".
+- **The attach button names the line**: "Attach proof to 3001 Black", then "Attach again to …". No more guessing which line gets it.
+- **Attach to all N** (plain button next to it, when 2+ garments share the design): each line gets its own proof PDF with its own page first and its own file name (`V2 11080 | 3001.pdf`, `11080 | 18500.pdf`), saved to Drive too. Proof done then reads "Proof done → Review (2)" and sends those lines together (one 10 s Undo).
+  - Not done: jumping to the next line after Attach, because the next tap is usually Proof done on the same line.
+- **Colorways page is a tick** under the proof tabs, next to "A page for each garment". On by itself for 3+ garments, off for 2; resets per order.
+- **Saved garment photos** (Garments › front photo `fld8EBpE20bnCZtQj` / back photo `fld8sJrbNfnQGcb9p`, existing fields, no automation on Garments):
+  - after Your photo › Front/Back, **Save to Airtable for next time** uploads the cleaned photo as `Pine mockup - <brand pn colour> - Front.jpg` and keeps only that one in the field;
+  - if the field already has a photo it asks first (button turns into "Replace the photo in Airtable", second tap saves);
+  - next time any line with that garment opens, the "Pine mockup" photo is used first (as your photo, with "Use the vendor photo" to switch); an older photo in the field is used only when the vendor has none;
+  - read through the worker's Airtable-attachment route (`/proxy/pandadoc/file`), since attachment URLs don't allow cross-origin reads;
+  - garments typed in by hand (not in the Garments table) say they can't be saved;
+  - practice saves nothing.
+- **Tidying doubles**:
+  - Proof › "On 3001 Black": the line's proofs in Airtable, each with ✕; Undo (10 s) puts it back.
+  - Customer's files: every file tile has ⋯ › Move to <the order folder / its folders> or Move to Drive trash, each with Undo. Drive keeps trash 30 days; nothing is deleted for good. Needs **worker v31**; an older worker says so.
+- Tests: `scratchpad/mk54/t54.js` 37/37 (practice 36/36: no Airtable or Drive writes), plus the v53 suites on v54: t53 61/61, t53art 28/28.
