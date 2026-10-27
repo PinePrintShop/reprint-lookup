@@ -798,3 +798,19 @@ The panel is the same height at 390 px wide. On a phone the preview now comes fi
   - Checked in the exported file: /158M-BB 0.28 0.12 0 0.12 and /158M-EZWHT 0.04 0.14 0.32 0. A Ghostscript overprint render shows the bases as tinted areas under the inks.
   - The .psd's channel colours are unchanged.
 - **Tests on v37:** t35 9/9, t36 56/56, t_seps 32/32, t_fabric 22/22. Panel heights are the same as v36.
+
+## 2026-10-27 · v38: left-panel spacing; Discharge in Bases
+Stephen: "can we clean this up as well....maybe do another spacing scan for the mockup creator and the separation maker", and "can I select discharge in the separations app" (then: "found the button!").
+- **Customer's files / Find the art:** the same layout as Mockup Maker v56.
+  - One-line heading with small Upload / Open in Drive ↗, then one compact "This order | Reprint #10125 | 🔎 Find the art" row, then the folder path.
+  - Find headings are one line: "Last proofs · open one to pull the art out", "Reprint #10125 · Cohesion Brewing Co · Open in Drive ↗", "This order #…", "Other order #…".
+  - The "No Drive folder" note has its own line (`#driveNote`).
+- **Spacing:**
+  - 24px between the numbered steps and 12px inside them (`--p-s5` / `--p-s3`; was 18 / 10).
+  - Empty hints and an empty imprint row no longer add double gaps.
+  - The empty ink-count badge is hidden.
+  - Ink rows: "✓ close · 52% of art" sits on one line.
+  - Bases: "Top colour stroke" and "Trap" line up.
+- **Discharge in 4 · Bases and strokes:** an "Underbase | Discharge" choice at the top of the section. It's the same setting as the Discharge tick beside Spot / Index / Sim under 3 · Inks, kept in step, and hidden for Sim.
+- Scan (`scratchpad/sm38/scan.js`): the wraps, two-row button rows, 0px and uneven gaps are all gone. The imprint tabs still wrap when there are 3 (they can't fit in 368px).
+- Tests on v38: t36 56/56 (practice 55/55), t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22. t36's source-button and heading checks were updated for the new wording.

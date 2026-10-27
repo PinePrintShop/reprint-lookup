@@ -808,3 +808,23 @@ Stephen: "let's talk through a way to make quick ink color changes in mockup cre
 - Tests:
   - new: `scratchpad/mk55/t55.js` 25/25 (practice 22/22);
   - earlier suites on v55: t53 61/61, t53art 28/28, t54 37/37 and 36/36 practice (its Drive count now expects the setup files too).
+
+## 2026-10-27 · v56: Customer's files tidied, spacing scan, sleeve prints on the shirt
+Stephen, with a screenshot of the Customer's files / Find the art area: "can we clean this up as well....maybe do another spacing scan for the mockup creator and the separation maker", then "and for the sleeve can we also put it on the actual mock up as well".
+- **Customer's files:**
+  - The heading is on one line, with small "⬆ Upload" and "Open in Drive ↗" beside it, and a line sets it off from the art controls above.
+  - One compact row follows: "This order | Reprint #6305 | 🔎 Find the art". The order number is in the hover title.
+  - Then the folder path, then the files. The "No Drive folder for #…" note has its own line (`#driveNote`).
+- **Find the art:**
+  - It no longer repeats its own name, and it hides Upload / Open in Drive because each group has its own link.
+  - Headings: "Last proofs · tap one to edit it or use it", and "Reprint of #6305 · <folder> · Open in Drive ↗" on one line (the folder name is cut short with … if it's long).
+- "Colours in the art · about 2 colours" is now "Colours · about 2", so it fits beside Combine similar ("Threads" for embroidery).
+- **Spacing scan** (`scratchpad/mk56/scan.js`; 1440 / 1280 / 390; states: job, reprint folder, Find the art, art, garment open):
+  - before: "Customer's files" wrapped, the Find heading wrapped, the source pills ran onto 2 rows, there was a 0px gap above the files, and "Colours in the art" wrapped;
+  - after: none. The panel is 20–70px shorter.
+  - The only flags left are on purpose: the folder name cut with …, and the Upload button and the link being different heights.
+- **Sleeve prints on the shirt:** in the front view (mockup, proof page 1, colourways), a left or right sleeve print is also drawn on the shirt's own sleeve.
+  - The wearer's left sleeve is on the right as you look. The print sits its inches below the shoulder seam along the sleeve, at true size, rotated with the sleeve and a little narrower as the sleeve turns away (×0.8; ×0.65 on long sleeves).
+  - Positions are in the shirt-outline units, mapped onto the photo's garment box or the drawn stand-in. Long sleeves (hoodies, crews, L/S) hang down beside the body; the stand-in always has short sleeves.
+  - Checked on Bella 3001 Ash and Independent AFX90UNZ Black photos. The flat sleeve view with the measurements stays.
+- Tests: t53 61/61, t53art 28/28, t54 37/37, t55 25/25 on v56.
