@@ -886,3 +886,11 @@ Stephen: "and can we leave the template layer in there." → "I think everything
 - Tests:
   - new: `scratchpad/sm38/t42.js` 6/6, with the real template;
   - on v42: t41 12/12, t39 12/12, t36 56/56, t35 9/9, t37 3/3, t_seps 32/32, t_fabric 22/22.
+
+## 2026-10-27 · v43: fewer scrolls in the pop-ups
+Stephen asked for a count of how often people scroll in the pop-ups. Before, on a 1366×768 laptop: Save as on "Review an old sep" was ~400px down, the last old-proof art tile ~430px, Download on a whole-order export ~160px, and "Use the proof's inks" was below the screen on laptops.
+- **Every pop-up keeps its title and buttons on screen**; only the middle scrolls (done inside Sep Maker only, so old versions and other apps are untouched).
+- **Review an old sep / Check the proof:** the picture fits the screen instead of a fixed tall size → Save as and Close always visible, 0 scrolls at every size.
+- **Export:** 900px wide, two columns on wide screens (what to export + file type | marks, template, Drive save, sep-file ticks); shorter hints → 0 scrolls from 1366 up (a few px at 1280×720).
+- **Art in the old proof:** 1200px wide, side-on tiles 3 across; page arrows stay in the pinned footer → 6 tiles fit with 0 scrolls.
+Measured with the scroll-audit scripts at 1920/1440/1366/1280.
