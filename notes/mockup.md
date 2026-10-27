@@ -783,3 +783,28 @@ Stephen, after saving mockups: "they do need to each be assigned to there own li
   - Proof › "On 3001 Black": the line's proofs in Airtable, each with ✕; Undo (10 s) puts it back.
   - Customer's files: every file tile has ⋯ › Move to <the order folder / its folders> or Move to Drive trash, each with Undo. Drive keeps trash 30 days; nothing is deleted for good. Needs **worker v31**; an older worker says so.
 - Tests: `scratchpad/mk54/t54.js` 37/37 (practice 36/36: no Airtable or Drive writes), plus the v53 suites on v54: t53 61/61, t53art 28/28.
+
+## 2026-10-27 · v55: pick up where you left off; mockup-only art flagged; art baked into old proof photos
+Stephen: "let's talk through a way to make quick ink color changes in mockup creator flow a little better....when I tried on one it was really just starting from stratch vs picking up where we left off" (changes "can be inks size and placements"), "do we have a way to flag a file that might be able to create a mockup with but is not print ready", and on the 6305 proof: "do you think this is because this mockup is old and the art file is not in these".
+- **Pick up where you left off.**
+  - What's kept for each imprint on the line:
+    - the art file's own pixels, before crop and background drop, plus several files if the print is built from them;
+    - the crop, the background drop, the width;
+    - the spot, plus each garment's own spot and the placement text;
+    - ink changes (merges, names, recolours), base, opacity, method;
+    - the size shown.
+  - **On this computer** (IndexedDB) a few seconds after each change. Practice keeps its own copy.
+  - **In Drive** with every attached proof: `<order> <line> · <line id> · Mockup Maker setup.json` in the order's Proofs folder (data-URL PNGs, up to 24 MB). Older setups for that line go to the Drive trash (worker v31). Setup files are hidden from the Customer's files tiles.
+  - Opening a line with no art loaded shows **Pick up where you left off — date · proof · imprints** (newer of this computer / Drive), with Pick up / Start fresh. Opening art yourself hides it. Ink changes come back because the same pixels scan to the same inks.
+- **Print-ready check** (screen print):
+  - vector .ai/.pdf → fine; an .ai/.pdf with a placed picture → **Low-res** ("check that picture's resolution");
+  - rasters by dpi at the print width (the file's own pixels): under 150 → **Mockup only**; 150–249 → **Low-res**; JPEG noted.
+  - The tag sits on the imprint tab; the reason sits under the width. **Flag for vectorizing ($40)** ticks the line's `[ART] $40 Vectorization` (`fldOwRyczEEoFrPHu`, no automation on it), with Undo. Practice fakes it.
+- **Pull the art out, old proofs with the art in the shirt photo** (6305 | BC3001-TR-staff: three ~300 px shirt photos, white art baked in):
+  - drawn art now only counts where it sits on the shirt fabric (the photo's own background, flooded from its edges, doesn't count), so the "100% COTTON" bar overlapping a photo's white margin is no longer offered as FRONT art;
+  - a shirt with no drawn art gets its prints **cut out of the photo**: on the shirt, not shirt colour, grouped, shirt colour unmixed from the edges, outline pixels and faint shading ignored;
+  - each "Width / Height" on the proof is matched to the print of the closest shape (FRONT 3.5×1.4 → ASCENT STUDIO, SLEEVE 3.25×3.25 → STAFF triangle, BACK 10×10). These come in at ~8–14 ppi, so they're tagged Mockup only.
+  - 10125, 11075 and 11085 pull exactly as before.
+- Tests:
+  - new: `scratchpad/mk55/t55.js` 25/25 (practice 22/22);
+  - earlier suites on v55: t53 61/61, t53art 28/28, t54 37/37 and 36/36 practice (its Drive count now expects the setup files too).
