@@ -574,3 +574,56 @@ Stephen: "can we mimic the separation preview from .ai more in this one or the c
   - solo (4 of 5 hidden) and back;
   - 8× at the circle/rectangle corner shows the yellow choke band and the magenta trap;
   - the v29 export → Sep URL test and the highlight-white tests pass.
+
+## 2026-10-27 — v31: defaults that match how Pine seps
+From a study of 51 recent Pine sep files (`<order>-45/55/200LPI-SEPS.ai`) and 421 Airtable imprints. The files and imprint data stay in the private scratchpad; none are in this repo. Stephen approved items 1–3, and corrected the study: Pine uses "Just waterbase products." That means:
+- waterbase on a blocker base (BB / EZP);
+- waterbase direct on the shirt;
+- discharge (DC);
+- specialty waterbase (puff, glow).
+
+**What changed**
+1. **Base strength from the garment's fabric** (`bbFromGarment`, `fabricMix`, `autoBB`). Auto until the art dept picks one; "back to auto" undoes it.
+   - 100% cotton (Comfort Colors 1717, AS Colour, garment-dyed): **1/4BB**.
+   - CVC, heather, 60/40 and other cotton-rich blends (Next Level 6210, Bella 3001CVC, 3739): **1/2BB**.
+   - Poly, 50/50 and more poly, tri-blend, camo, poly hoodies (35%+ poly): **Full BB**.
+   - It reads Garments › Fabric ("60% Cotton, 40% Polyester", "60/40 cotton/polyester", "50% Polyester, 25% Cotton, 25% Rayon"), then the colour (heather), then a few known styles when the fabric is blank.
+   - A base already on the imprint's Pantone list ("Pantone 1/2 BB - EZP") wins over the fabric.
+   - No order picked, or a fabric it can't read: 1/4BB, the shop's most used.
+   - The note under Strength says why, e.g. "Auto: 1/2BB — 60/40 cotton/poly · Airtable ink 1/2 BB - EZP".
+2. **Naming and chokes**
+   - The base screen is always **`158M-BB`** (spot colour, .psd channel, TIFF name), whatever the strength. v30 called it `158M-1/4BB`.
+   - The strength shows in the film label (`1/4-158M-BB (1/4BB)`), the top legend, and the screen card with its Airtable ink name ("Underbase 1/4BB · ink 1/4 BB - EZP"). Sep Maker writes no ink names to Airtable itself. Proof chips still say BASE.
+   - Default chokes **3 px at 300 ppi**: BB inside the EZ layer, and EZ inside the colours. They scale with the output size as before. The colour-to-colour trap stays **2 px**.
+   - **Thin lines** (`thinCore`): a colour line **7 px (.023″) or wider** keeps a thinner base along its middle (BB 2 px in from the edge, so 3 px of BB on a 7 px line, with the EZ 1 px round it). Lines **6 px or thinner** drop it, show red on the BB film and get the warning. Pine's files keep base from 9 px and drop it at 6, so 7–8 px is our call. "Keep fine lines in the base" still keeps everything.
+3. **Discharge matches the shop**
+   - Every colour is its own DC screen, butted against its neighbours with the 2 px trap. Nothing sits on a WHTDC underlay any more, and there's still no BB.
+   - The white is just another screen in the print order. It isn't forced first; drag it and the traps follow.
+   - White names: WHTDC, **CRMDC** or **OFFWHTDC**, from Light layer › Ink, or from an ink named White / Cream / Off White. A Pantone cream keeps its number (`7527DC`).
+   - **Plain waterbase extras** (BLK, 433 and other very dark inks, L\* under 25) keep their plain name, with no DC, and print last. Each ink's menu on a discharge job reads Discharge (DC) / Waterbase, no DC (prints last) / White DC, so any ink can be switched.
+   - Ticking Discharge re-sets the roles that way; merges stay. The base section and the shirt line say "discharge: no base".
+
+**House rules, updated from the study** (waterbase only)
+- Of 49 jobs with readable films: 21 waterbase on a base, 18 discharge, 10 waterbase direct.
+- Base strength in Airtable: 1/4 BB on 80 imprints, 1/2 BB on 33, FULL BB on 25, plus EZP WHT on 117. Discharge whites: WHT DC 60, OFF WHT DC 17, CRM DC 17.
+- Measured chokes: BB inside EZ, median 2.6 px (49 prints); EZ inside the colours, 3.0 px (26 prints). Colour traps: 2.2 px (64 pairs). The house rule is now 3 / 3 / 2.
+- The base film is named `158M-BB`; the strength is only in the label (`1/3-1/4BB`).
+- Discharge colours butt with a ~2 px trap (e.g. 4985DC × WHTDC on 10813). Waterbase extras on discharge jobs keep plain names: 433 on 10813; BLK and R032 on 10976.
+- White can print mid-order on a discharge job (11012: 2995DC → 297DC → WHTDC → 172DC → 1797DC).
+- File names carry the LPI: 55 LPI (24 files), 45 LPI (17), "200 LPI" (8; not a halftone setting, see v1).
+
+**Not done yet**
+- Halftone tools: split a colour into a solid screen plus a halftone screen, flat tints, `-45LPI-` / `-55LPI-` in the export name, and a warning or cap at 8 screens.
+- Highlight white as `158M-HIWHT` on 158 mesh, printed last (Sep Maker still makes `230M-HLWHT` before black).
+- Presets for puff, glow, totes and bandanas.
+- Shared films across colourways (one set of screens for several garment colours).
+- Real sim-process samples to tune against: the drive copies were too big to download.
+- Sim process keeps its own base (the thin-line rule is spot only), and Index places the base exactly under the dots, as before.
+
+**Tested** (Playwright, mocked Airtable, synthetic art at 300 ppi):
+- Strength: the 1717 gives 1/4BB, the 6210 1/2BB, a 100% poly tee Full BB, and an imprint listing "1/2 BB - EZP" gives 1/2BB. 16 real Garments › Fabric strings land as expected.
+- A yellow square on black: EZ 3 px inside the colour, BB 3 px inside the EZ. Blue/red butt: 2 px trap.
+- Lines of 4 / 6 / 7 / 8 / 9 / 12 px give BB 0 / 0 / 3 / 4 / 3 / 4 px.
+- The stacked .ai has spot `158M-BB` and the label `158M-BB (1/4BB)`.
+- Discharge on royal gives WHTDC → 1795DC → BLK, with no WHTDC under the red, a 2 px overlap at the butt, and BLK plain and last. WHTDC moves to second. CRM gives CRMDC, OFFWHT gives OFFWHTDC. Index + discharge works the same way.
+- The earlier Sep Maker tests (v20–v30) pass on v31.
