@@ -657,3 +657,26 @@ Stephen: "yes natural is direct to fabric" and "that works for the default for b
   - nothing written to Airtable.
 
   The v31 and v32 tests still pass.
+
+## 2026-10-27 — v34: bandana proofs pull as one piece; Export window tidied
+- **Bandana proofs.** Stephen, on 11075 | 4800-HPP.pdf: "on this bandana it makes the art 3 separate images....vs just the white and blue that I want for the sep". Same fix as Mockup Maker v51:
+  - the bandana picture counts as the garment and is the only thing blanked;
+  - everything on it comes out as one tile;
+  - the page's "Width:" is used for a lone garment;
+  - a low-res note points to the real art file.
+  - On the real proof the result is **230M-WHTDC → 230M-2995DC** at 19.9″: only the white and blue, no pink. The proof's pictures are only about 26 ppi at that size, so for production seps the real art file is still better.
+- **Export window.** Stephen: "can we clean up how this is spaced with the wording".
+  - The screens are chips that never break mid-name ("230M-141OW" used to split across lines).
+  - The formats are an even 2-column grid with short names (.ai · Xitron, .pdf · stacked, .psd · channels, .png · 300 dpi, TIFF per screen), with one plain sentence under them.
+  - The options sit below a rule with room between them. "Also save to the order's Drive" is now "Save to the order's Drive".
+- The tile buttons wrap inside their tile.
+- **Tested** (Playwright, mocked Airtable), 8/8:
+  - a Hot Pink bandana has Discharge ticked;
+  - the real bandana proof gives 1 tile with only white and blue (0% pink, 5964 px), separating as WHTDC → 2995DC with no base;
+  - the Export window has no sideways scroll and each screen name sits on one line.
+
+  The v31–v33 tests still pass.
+- **Fine print in the tiles** (Stephen's 11085 | 73051-MDN.pdf: the tiles came out as the proof's fine print). Illustrator clips its shirt photos to the shirt, but the photo's box can reach the fine print and the labels.
+  - The proof is now drawn twice, with and without the photos. The pixels that change mark where the garment really shows, and only art inside that is kept.
+  - On the real 11085 proof the result is the clean back art at 11″ and the left chest at 3.5″.
+  - This also fixed the 10125 left chest, which had picked up extra again (back to 645×857).
