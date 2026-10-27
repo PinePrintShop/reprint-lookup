@@ -34,7 +34,7 @@
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
-| Sep Maker (desktop, art dept) | `sep-maker.html` | v41 |
+| Sep Maker (desktop, art dept) | `sep-maker.html` | v42 |
 | Mockup Maker (desktop, art dept) | `mockup.html` | v60 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
