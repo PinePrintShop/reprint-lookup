@@ -715,3 +715,67 @@ Stephen: "can you review our sep template that is what we need the exports to be
 - The TIFF-per-screen films still use the old cropped layout, because a full 16 × 21.25″ page at 300 dpi per screen is very large.
 
 **Tested** (Playwright, mocked Airtable), 9/9: the name, the 16 × 21.25″ size, the label text and position, the target position and shape, the art top, and the back print ("11”", "B-B", label on the right). All earlier tests pass; the t_seps label check was updated to the template style.
+
+## 2026-10-27 — v36: a tidier panel; the whole order in one file
+Stephen approved both halves of the flow review: the panel cleanup ("let's build all of it") and one sep file per order with a page per print ("yes").
+
+**The panel** (heights of the left panel at 1440 × 900, mocked order 11090):
+
+| | v35 | v36 |
+|---|---|---|
+| no order | 1938 px | 1013 px |
+| order picked | 2037 px | 1114 px |
+| art open | 2314 px | 1361 px |
+| bandana (discharge) | 2248 px | 1276 px |
+
+The panel is the same height at 390 px wide. On a phone the preview now comes first, so the 2000+ px is no longer above it.
+
+- **Steps** run from 1: **1 · Job → 2 · Art → 3 · Inks → 4 · Bases and strokes**.
+  - Method (Spot / Index / Sim) and Discharge are one row at the top of Inks.
+  - The shirt is part of the Job.
+- **Bases and strokes** is closed to one line, e.g. "BB 1/4 · EZWHT · choke 3/3 · trap 2 · Edit". Edit opens every control as before.
+  - On a discharge job it's "4 · Traps": "Discharge: no base · WHTDC · trap 2". Only the trap, the stroke and the DC white's name (WHTDC / CRMDC / OFFWHTDC) are left. Those still change the seps.
+  - On a bandana printed direct it's "Bandana: direct, no base · trap 2".
+  - This replaces 715 px of disabled base controls.
+- **Shirt:** once a line is picked it's one line, "Hot Pink · discharge · Change". Change shows the swatches. With no order the swatches stay open.
+- **Imprint and Location** are text when they come from the job ("11090-C · Bandana · Edit").
+- **Line:** an order with one line shows it as text; it was already picked automatically. With 2+ lines the menu stays.
+  - The garment name isn't repeated under the imprints any more.
+- **ⓘ taps** (tap again to hide) replace the hints that were always on screen:
+  - the inks legend (by the Inks title);
+  - the house rule (by Trap);
+  - Discharge, Keep fine lines, and drop the background / Everywhere;
+  - the Index "Solid areas" and "Smooth" notes.
+- **Inks controls on one row:** − Auto + · Combine · Eyedropper. "Combine similar" is now "Combine"; the tooltip still explains it.
+- **🔎 Find the art** in the Drive box, the same as Mockup Maker v41. It's read-only: worker drive/search, drive/list and drive/file, plus Airtable GETs.
+  - The buttons "This order #… / Reprint of #… / 🔎 Find the art" sit above the files. A reprint with no Drive folder of its own opens the original's.
+  - Find the art lists, in this order:
+    - the original imprints' **Last proofs (Airtable)**; a proof opens in Pull the art out;
+    - every art file two folders down in the reprint's folder, this order's folder and the customer's 6 newest other orders (Sales, Invoices, Embroidery and Old seps are skipped).
+  - A folder with no art offers Find the art right there.
+  - New read-only fields: Orders › Customer, and Imprints › previous imprint / nickname / Proof Images.
+- **Pull the art out:** "Separate for" is said once above the imprint buttons, and each button stays on one line. The tiles are wider.
+- **House style:** sliders are black, the disabled export formats are greyed out, and nothing in the panel is under 12 px.
+- **Phone (≤ 900 px):** once art is open, the preview sits on top and stays there (sticky, 46% of the screen) while the panel scrolls under it. Nothing is wider than the screen at 390 px.
+- **No order:** "No order — just separating" (as before), and the hint says "No order? Just open art and separate.", like Mockup Maker's wording.
+
+**Whole order in one file.** The shop saves seps as one file per order with a page per print (`10798-45LPI-SEPS.ai`). When a line has 2+ prints, Export offers **This print** or **Whole order: all N prints, one page each**.
+- Each print with art is separated with its own saved settings onto its own 16 × 21.25″ template page. Each page has its own label (films, width, LOC-letter), placement (a left chest 3.6″ off centre, the back centred) and spot colours.
+- The spot names can repeat across pages (158M-BB on both); each page is its own set of separations.
+- It's named `11090-45LPI-SEPS.ai`: 45 if any page is on a base, else 55 (the v35 rule, worked out for each print).
+- Prints with no art are listed as "skipped: no art". Progress shows "Print 1 of 2 · 11090-A: Screen 3 of 5: 230M-107OW".
+- **Drive:** it saves to the order's Seps folder. There's a "Make it …'s sep file" tick for each print in the file, ticked when the print has no sep link yet and unticked when it would replace one. Practice uploads and writes nothing.
+- The print you were on comes back exactly as it was: the same settings, inks and preview.
+- PSD, PNG and TIFF stay one print at a time. In Whole order they're greyed out, and the window says "Whole order is .ai / .pdf only".
+
+**Tested** (Playwright, mocked Airtable and worker):
+- **New tests** (`sm36/t36.js`): 56/56 live, 55/55 practice.
+  - The moved controls work: bases Edit and summary, shirt Change, imprint Edit, the ⓘ taps, and the line picked automatically.
+  - The inks bar is on one row.
+  - Find the art shows 4 groups, opens a last proof in the Pull dialog, and uses only GET search/list.
+  - The Separate-for buttons are 40 px tall.
+  - Whole order gives 2 pages of 1152 × 1530 pt. Page 1's label has LC-A and page 2's has 11” and B-B. The art is centred at 11.6″ and 8.0″, and both pages have `/Separation` names. The print is restored.
+  - Live, it uploads to `folder=SP` and PATCHes Sep URL on both imprints. Practice uploads and writes nothing.
+  - The single-print export is still `11090-45LPI-SEPS B-B.ai`.
+- **Panel test:** 5/5 at 1440 and 7/7 at 390 (no sideways scroll, preview on top and sticky).
+- **Earlier tests, re-run on v36** (selectors updated where controls moved; collapsed sections are opened, nothing loosened): t35 9/9, t32 11/11, t33 9/9, t34 8/8, t_seps 32/32, t_fabric 22/22.
