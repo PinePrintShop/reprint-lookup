@@ -662,3 +662,31 @@ Stephen: "yes natural is direct to fabric" and "that works for the default for b
 - **Auto** on a bandana now means **discharge** on a coloured bandana: inks read "186 DC" and the proof says DISCHARGE. On **Natural or White** it means **direct to fabric**, with plain Pantone numbers. This follows the sep study: about 86 of 99 coloured bandanas discharged, and 28 of 38 Natural printed direct. A DC on the imprint's Pantones still means discharge.
 - **Off** and **Discharge** still change it per print. The hint says which one Auto picked and how to change it.
 - Tested (Playwright, mocked Airtable): 5/5. Red with Auto gives discharge, Off gives direct, Natural with Auto gives direct, Natural can be set to Discharge, and Navy with Auto gives discharge. The v41–v49 tests still pass.
+
+## 2026-10-27 — v51: sleeve prints show; bandana proofs pull as one piece
+**Sleeves.** Stephen, on 10977-A, a Left Sleeve on an IND4000Z: "I added a left sleeve design....but it isn't showing up".
+- Sleeve prints were left out of the drawing on purpose, because there were only Front and Back views.
+- A sleeve imprint now gets its own **LEFT SLEEVE** / **RIGHT SLEEVE** view next to Front and Back:
+  - the sleeve is drawn flat in the garment's colour: long (24″, with a cuff) on hoodies, crews and long sleeves, short (8.5″) on tees;
+  - the art is at true size, 3″ down from the shoulder seam, and can be dragged like any other print;
+  - there's no collar line.
+- Sleeves get their own panel on the proof and on Colourways. The proof says "3″ below shoulder seam".
+
+**Bandana proofs.** Stephen, on 11075 | 4800-HPP.pdf: "it makes the art 3 separate images....vs just the white and blue that I want".
+- In those Illustrator proofs the bandana is itself a see-through picture, so it was being counted as art.
+- Now the biggest picture that other art sits on is the garment. Only that picture is blanked (matched by its size), and everything on it (the white layer, the blue layer and any drawn art) comes out as one tile, in place.
+- With one garment on the page, the page's "Width: 19.9″" is used, since on a bandana proof it sits beside the bandana.
+- When the proof's pictures are coarse (about 26 ppi at 19.9″ here), the tile says so.
+- Small blocks split off from the art are dropped only when they hold under 12% of the ink, so scattered motifs stay.
+- Same code as Sep Maker v34.
+- When a line has one imprint, its button is the dark (suggested) one.
+
+**Tested** (Playwright, mocked Airtable):
+- Sleeve, 5/5: an LS print on a zip hoodie shows in the Left Sleeve view, at 3″, draggable, with the right placement text.
+- The real 11075 bandana proof gives 1 tile.
+- The real 10125 proof still gives its 2 tiles.
+- The v41–v50 tests still pass.
+- **Fine print in the tiles** (Stephen's 11085 | 73051-MDN.pdf: the tiles came out as the proof's fine print). Illustrator clips its shirt photos to the shirt, but the photo's box can reach the fine print and the labels.
+  - The proof is now drawn twice, with and without the photos. The pixels that change mark where the garment really shows, and only art inside that is kept.
+  - On the real 11085 proof the result is the clean back art at 11″ and the left chest at 3.5″.
+  - This also fixed the 10125 left chest, which had picked up extra again (back to 645×857).
