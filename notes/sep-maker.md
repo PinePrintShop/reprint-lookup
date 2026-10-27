@@ -907,3 +907,6 @@ Stephen: "yes let's add those update timers for the mockup maker and sep maker" 
 
 ## 2026-10-27 · v45: no Proof tab
 Stephen: "we can remove the PROOF in sep maker that isn't needed". The Proof tab (proof pages, Attach proof, Proof done) is gone — proofs are made and attached in Mockup Maker. "Check the proof" (the mockup proof's inks beside these) stays. The order picker now just says "Order".
+
+## 2026-10-27 · v46: the ink picker finds Pine's inks as you type
+Stephen (typing "cr" in the ink picker and getting 0 matches): "and we have the easy search in Seps as well right?". Same as Mockup Maker v65: Pine's named inks from Airtable › Inks (EZP Cream, EZP Off White, SOW Red Rum Red …, with their Display Hex or a starting colour) come first, then the Pantones; words in any order, part words, shop shorthand (crm, wht, cg8) and small typos match. New "Pine's inks" tab, most printed first; "Closest" now includes them. Bases aren't offered.
