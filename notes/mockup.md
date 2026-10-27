@@ -690,3 +690,21 @@ Stephen: "yes natural is direct to fabric" and "that works for the default for b
   - The proof is now drawn twice, with and without the photos. The pixels that change mark where the garment really shows, and only art inside that is kept.
   - On the real 11085 proof the result is the clean back art at 11″ and the left chest at 3.5″.
   - This also fixed the 10125 left chest, which had picked up extra again (back to 645×857).
+
+## 2026-10-27 — v52: close-ups and specs for every garment; Colorways shows the back
+Stephen: "in mockup creator can we also get close ups and specs for all the garments that share a design...and I noticed for the Colorways it is only the front print can we include the back as well if it does have one"
+- **Colorways shows every printed side.** The proof's Colorways page drew only the first side (the front). Now each garment shows front and back (and sleeves when printed) side by side, each labelled FRONT / BACK / LEFT SLEEVE, with the colour name under the group. The page picks how many garments go across so the pictures are as big as they can be (3 garments × front + back → 2 across, 2 rows). The on-screen Colorways already drew every side; it now labels them too. Bandanas still get one view, unlabelled.
+- **Specs and close-ups for every garment.** With "A page for each garment" on (the default), each garment that shares the design (the order's other lines and the "Also show on" ones) already had its own spec page (since v32). Now it also gets its own **close-up page**: every print on that garment's colour, front first, then back, then sleeves, side by side. Each shows its location and code, size and placement, and its own ink chips: that garment's recolours, OW on a dark garment, DC when it discharges, plain numbers on white or direct, and the base chip.
+- **One close-up page per garment, not one per print per garment.** 3 garments × front + back is now 7 pages: 3 spec pages, Colorways, 3 close-up pages. One page per print per garment would be 10. Up to 3 prints share a page; a 4th starts a second page. Two garments whose close-ups would look exactly the same (same colour, inks, base and placement, e.g. Black in two styles) share one close-up page that names both. Each still gets its own spec page.
+- With one garment, or "A page for each garment" off, the proof is as before: a close-up page per print on the garment you're working on.
+- Code: `colourwaysPage` (all sides), `closeupPage` / `closeupDefs` (new), `proofDefs`, and `inkChips` / `drawChips`, split out of `drawInfo` so the spec and close-up pages label inks the same way. `asLine` is the J.line swap that `page1For` used.
+- PDF size: 0.78 MB for 3 garments × front + back with photos (0.85 MB with photographic art), well under Airtable's 5 MB.
+- Tested (Playwright, mocked Airtable and worker): 24/24.
+  - Black / White / Red tees with front + back: Colorways shows FRONT and BACK for each, on screen and in the PDF.
+  - The pages, their names and order are right.
+  - The ink chips are right: OW + BASE WHT on Black, plain on White, and Red's own recolour.
+  - Two identical Black garments share one close-up page, and the toggle off keeps the old pages.
+  - Red + Natural bandanas: one view each, 186 DC / DISCHARGE on Red, plain 186 on Natural.
+  - A zip hoodie with LC + LS + Back, plus "Also show on" Navy: FRONT / BACK / LEFT SLEEVE, and a 3-print close-up page each.
+
+  The v41–v51 tests give the same results as on v51.
