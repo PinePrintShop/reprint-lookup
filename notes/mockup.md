@@ -600,3 +600,14 @@ Stephen tapped Proof done → Review by accident on 11084-A (Purple bandana). I 
 - Moving to another line while it counts sends it, as tapped. Closing the page tries to send it. The app's self-update waits until it's done.
 - A line already in Review shows "In Review ✓" instead of the button.
 - Tested (Playwright, mocked Airtable, 390px): 13/13. Undo sends nothing (checked 9 s later). The countdown sends one PATCH. Leaving the line sends it. The v41–v44 tests still pass.
+
+## 2026-10-27 — v46: Edit PDF (change an old mockup to the new job number)
+Stephen: "can you also edit PDF files in the mockup app? I ask because sometimes a job is referenced and it only has a mockup that the art dept edits to the new job number".
+- Open the old mockup or proof PDF as art (order folder, Find the art, last proofs, or a file). The art card then has **✎ Edit PDF**.
+- **Change … To …** is filled in with the referenced order's number and this order's number. **Replace everywhere (n)** changes it on every page. "6305-B" becomes this line's imprint ID ("11080-A"), or keeps its letter when the line has more than one imprint.
+- **Tap any word** to retype it.
+- **Cover & type**: for text turned into outlines, drag a box over it and type. The box is filled with the colour around it, so a cream panel stays cream.
+- The changes are written into the PDF itself with pdf-lib 1.17.1 (loaded only when the editor opens; cdnjs, then jsDelivr). The rest of the page stays vector and sharp, and a test proof came out at a few KB. New text is Helvetica (bold where the old text was bold), in the old text's size and colour.
+- **⬇ Download** saves "11080 | old name.pdf" (the old number in the name is swapped). **Attach to 11080-A** uploads it as the line's proof, the same way as Attach proof to line (Airtable plus the order's Drive Proofs folder; "V2 " is added when the line already has a proof). Practice uploads nothing.
+- Known limit: the old text is covered, not deleted. It doesn't show, but a text search of the PDF could still find "6305".
+- Tested (Playwright, mocked Airtable): 15/15 on a 2-page test proof. That covers the numbers filled in, 3 places found, the replacements, a retyped word, Cover & type, the cream panel colour, the download name and size, and attach as "V2 …". The pdftoppm render of the saved PDF is clean. Fits a 390 px phone. The v41–v45 tests still pass.
