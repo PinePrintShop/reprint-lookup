@@ -34,8 +34,8 @@
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
-| Sep Maker (desktop, art dept) | `sep-maker.html` | v37 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v55 |
+| Sep Maker (desktop, art dept) | `sep-maker.html` | v38 |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v56 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
