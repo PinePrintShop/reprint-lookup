@@ -588,3 +588,8 @@ Stephen: "I am on mobile and the bandana is still a color wheel type of thing", 
 - 11080-A's Cotton Collective tee comes in "White Cap Off White". The word "Cap" made the app treat it as a hat (Kind: Hat / cap, 8.25″ across). The hat/beanie/tote guess now ignores the colour name and never fires for tees, hoodies, crews, polos or tanks.
 - The long "Show the … colours" button wraps instead of running off a phone screen.
 - Tested at 390px (Playwright, mocked Airtable): 11/11 new checks; the v41/v42 tests still pass.
+
+## 2026-10-27 — v44: the page can't be wider than a phone
+Stephen's phone screenshots (taken on v42) showed a cream strip down the right side and a top bar that stopped short. The page was wider than the screen, so the phone shrank everything to fit. Something on the real orders doesn't wrap (a long file name, comment or Art to do card), and the mocked data doesn't show it.
+- On phones (≤900px) the panels are capped at the screen width, long words and buttons wrap, and anything still too wide is clipped instead of widening the page.
+- Tested at 390px with an injected 700px-wide block, a long unbroken file name and a long button: the page stays 390px wide (v43 went to 778px). The v41–v43 tests still pass.
