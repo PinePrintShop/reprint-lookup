@@ -904,3 +904,6 @@ Stephen: "yes let's add those update timers for the mockup maker and sep maker" 
 - **Refresh** updates in place and keeps the open order, garment, art and scroll.
 - The timer code is one shared file, pine-drive-watch.js, so Line Item Review, Screens and Seps can use the same one later.
 - About 290 worker requests an hour per open Mockup Maker tab (430 for Sep Maker); ~24–36 an hour when idle; none when hidden.
+
+## 2026-10-27 · v45: no Proof tab
+Stephen: "we can remove the PROOF in sep maker that isn't needed". The Proof tab (proof pages, Attach proof, Proof done) is gone — proofs are made and attached in Mockup Maker. "Check the proof" (the mockup proof's inks beside these) stays. The order picker now just says "Order".
