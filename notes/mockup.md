@@ -878,3 +878,13 @@ Stephen, with Precision Logo_4IN.pdf in Edit PDF: "embroidery files are not pull
   - 10125 / 11085 / 6305 pull exactly as before.
 - **Proof page 1 headings:** "EMBROIDERY · LEFT CHEST - 11094-A" ran into the next print's column. Each heading now fits its column: up to about 15% smaller, then the imprint ID on its own line, then smaller still.
 - Tests: `scratchpad/wilcom/inapp.js` 3/3, notes 5/5, t53 61/61, t54 37/37, t55 25/25 on v60.
+
+## 2026-10-27 · v61: Show distances on the proof
+Stephen, with a client's polo proof marked up in red: "is there a way to toggle showing the distance for the prints....this client paticulary likes reviewing that....maybe we use how we are currently doing it for the toggle".
+- **Proof › "Show distances"** is a tick beside "A page for each garment" / "Colorways page". It's off by default and lasts for the session.
+- **Drawn on page 1's garments** in the art department's red (#d2232a), as thin lines with end ticks and the inches:
+  - down from the collar line to the top of each print; for an off-centre print the line runs along its inside edge;
+  - for an off-centre print, from the centre line to its inside edge (|offset| − half the width; e.g. 3.75 − 1.75 = 2″).
+  - Sizes are set from the page (line 0.012″, text 0.1″), so they read on the PDF.
+- Not on bandanas or accessories.
+- Tests: wilcom 3/3, notes 5/5, t53 61/61, t54 37/37, t55 25/25 on v61.
