@@ -1212,3 +1212,26 @@ Stephen, with a "Security" stitch file whose "e" kept a grey patch: "it is still
 - Flat vector art for embroidery (mostly flat) is left alone.
 - Tested on the made-up stitch render with grey patches added over the P and R counters: the patches and their edges are gone, while the white hexagon border, red fill, black thread and letters stay.
 - Two tries on the way were too greedy (they took the flat white border, then nibbled letters along stitch shadows), which is what led to the compact-blob and 2 px limits.
+
+## 2026-10-28 · v92: fixes from a review of v86–v91
+Stephen: "Let's do a review of the last few mockup makers".
+- **Wrong side on back prints (customer-facing).** The Visual center note and the on-screen label always treated a move to the viewer's right as the wearer's left. That's only true from the front. On a back view the viewer's right is the wearer's right. Both now use `wearerSide(im,dx)`.
+- **Balanced art:** Visual center that moves less than 1/32" no longer adds a note that says "not the true center" for a print on true center. It shows "This art is balanced" instead.
+- **Touch on the iPad:** a tap on the print used to re-round a 1/16" Visual center to the 1/4" grid. A drag now needs at least 1/8" before it moves the print. Dragging back to 0 removes the Visual center note (like the True center button).
+- **Make the reprint's folder:**
+  - Only one request runs at a time.
+  - The new folder opens straight from the worker's answer, because Drive's search can lag behind a brand-new folder (that lag could bring the button back and allow a second folder).
+  - Switching orders while it runs is safe.
+  - If the Art link fails to save to Airtable, the message says so.
+  - A null-order guard comes first.
+- **Height:** an empty or 0 Height puts the box back.
+- **Tested** (mocked Airtable and worker):
+  - The back note reads "0.3" TO THE WEARER'S LEFT" for a print moved to the viewer's left.
+  - A 1px touch keeps -0.3125, and a drag to center gives dx 0 with the note gone.
+  - Balanced art: no note.
+  - A double click makes one folder and one Art link write, and the new folder shows.
+  - Practice mode: no folder and no write.
+- **Not changed (worth knowing):**
+  - `idMap` takes the first match when two new imprints point at the same old one.
+  - The visual balance point is weighed by ink alpha, so fully opaque art (a JPG with Drop background off) always reads as balanced.
+  - The stitch-file flat-patch rule leaves counters over 1.5% of the picture, and would remove a small flat solid patch of any colour (e.g. applique fabric rendered flat).
