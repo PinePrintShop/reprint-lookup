@@ -126,3 +126,13 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
 **Stephen to do:**
 1. Deploy worker v33 (worker-copy.html → Copy worker v33 → paste into Cloudflare → Deploy).
 2. Optional, so it runs on its own: in Cloudflare, Workers → pine-workers → Settings → Triggers → add a Cron Trigger `*/15 * * * *`. Then add a secret `AIRTABLE_WRITE_TOKEN`: a personal access token with data.records:read and data.records:write on the Pine base only.
+
+## 2026-10-28 · First real results: wrong PDF, so the check is paused
+- **What went wrong:** the first 3 checked lines (11068, 11045-A/B) all read CHECK, but the art matched. Stephen's screenshot of 11045's stored page explains why: the worker's PDF (PandaDoc's plain `/download`) had a diagonal "This document is for demo purposes only … Powered by PandaDoc" watermark across the page and no customer initials in the APPROVED box.
+- **What was done:**
+  - pine-signed.js is paused (`CHECK_PAUSED`): it still asks for the sweep, but it doesn't split pages or write checks.
+  - The 3 false CHECKs and their pages were cleared from the Line Items.
+  - **Worker v36** downloads completed documents from `/documents/<id>/download-protected` (PandaDoc's signed copy), with the plain download only as a fallback. Packets stored before v36 get replaced as "… signed (completed).pdf", 10 per run.
+- **Next:** once v36 is live, look at 11045's new Signed Packet.
+  - If it has the initials and no watermark, tune the check on real pages, then switch it back on.
+  - If the watermark is still there, it comes from the PandaDoc API key or plan, not the download type.

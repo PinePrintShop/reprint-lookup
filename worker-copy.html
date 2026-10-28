@@ -58,6 +58,7 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
+  36:{what:'Signed PandaDocs are downloaded as PandaDoc\'s signed copy (with the customer\'s initials, no demo watermark). Packets stored before are replaced, 10 every 15 minutes.'},
   35:{what:'Signed PandaDocs whose PDF didn\'t arrive in Airtable the first time are tried again (at most 10 per run, so PandaDoc isn\'t flooded). Keep the 15-minute Cron Trigger.'},
   34:{what:'The 15-minute signed-PandaDoc check uses the Airtable token the worker already has (no new secret). It runs once you add a Cron Trigger: Settings → Triggers → Cron Triggers → */15 * * * *.'},
   33:{what:'Signed PandaDocs come back into Airtable: the completed PDF goes on its order (Signed Packet, PandaDoc ID, Signed At), so Line Item Review and Screens can check each line\'s signed mockup. Optional: a Cron Trigger (every 15 minutes) plus an AIRTABLE_WRITE_TOKEN secret makes it run on its own. Without them it runs whenever Line Item Review or Screens is opened.'},

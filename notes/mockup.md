@@ -1131,3 +1131,9 @@ Stephen, with the Precision Security stitch render: "can we update the logic to 
   - Within 4 px of the background, the rim fades out smoothly, with the background colour taken back out of the see-through edge, and the render's darker drop shadow goes.
 - Screen-print art keeps the old edge-in drop.
 - **Tested** on a made-up stitch render: dark #1b1e1f background, white textured letters with counters and drop shadows, a red hexagon with a white outline, and black textured thread inside. Counters cleared, black thread kept, no dark rim on a green background.
+
+## 2026-10-28 — v83: true centre line + "Visual centre" note
+Stephen: "can we add a visual center line that can toggle on and off...sometimes we need to align something visually and not the true center", then "it should just be a true center line and then I align the print manually to be where I want it and then can add a note visual center".
+- **Centre line** (zoom bar) toggles a dashed line down the true centre of each garment, labelled "true centre". It's on screen only, not on proofs or colourway PNGs. Drag the print by eye as before.
+- A new proof note under "+ Add a note to the proof…": **Visual centre (not true centre)**. On the proof it reads "PLEASE NOTE: PRINT IS PLACED ON THE VISUAL CENTER OF THE DESIGN, NOT THE TRUE CENTER OF THE GARMENT".
+- A first try that let the line be dragged and snapped prints to it was dropped at Stephen's word.

@@ -103,3 +103,10 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
   - A PandaDoc 429 on the signed link now answers 503 + Retry-After.
 - `/proxy/version` → 35.
 - Tested in Node: 15/15 (ID without a file = stored again; ID with a file = unchanged; 14 waiting = 10 now, 4 next run).
+
+## 2026-10-28 · v36: the signed copy, not the plain download
+- v33–v35 stored PandaDoc's plain `/download`, which had a "demo purposes only" watermark and no customer initials.
+- Completed documents now come from `/documents/<id>/download-protected`; the plain download is only a fallback.
+- Packets stored before v36 (any file not named "… signed (completed).pdf") are stored again, 10 per run.
+- Tested in Node: 15/15. The signed link serves the protected copy.
+- `/proxy/version` → 36.
