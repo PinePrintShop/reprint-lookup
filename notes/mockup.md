@@ -1018,3 +1018,37 @@ Tested with Playwright and mocked Airtable/Drive, plus the v70–v73 suites.
 - The size and placement info blocks stay in their columns.
 
 Tested with Playwright and mocked Airtable/Drive, plus the v70–v74 suites.
+
+## 2026-10-28 · v76: the proof matches the art department's template
+**Why (Stephen):** "can we also really scan how this pdf is setup...to adjust our proof templates to really match what we currently send" (ASC5001 Template.ai on Drive, 134 MB).
+
+**Source:** the .ai is too big for the Drive connector, so I measured "0000 | ASC5001EC.pdf" (exported from it today) and proofs sent from it: 10941 | ASC5001-CM, 11068 | 5001-WH and 10951 | 5001-NY. All are Helvetica, with page 1 at 11 × 8.5″ and one 11 × 11″ page per print.
+
+**Page 1** (inches from the top-left, sizes in pt)
+- Logo 0.98″ square at 0.49 / 0.50. "Proof" bold 51.8 at 1.62 (baseline 1.11). "Order #:" 18 at 1.66 (baseline 1.45).
+- Fine print 8 pt at 4.13″, 6.46″ wide, 0.135″ lines. "The Fine Print:" is bold and the first "mock-up" is italic.
+- Left column at 0.50″: Garment 8 / brand bold 17.8 / style bold 53 / Colorway 8 / colour bold 14 / Fabric Content 8.
+- Fabric bar: #D5CD8D, 1.99 × 0.24″ at 0.49 / 3.74, with 7 pt bold text centred.
+- Garments: 2.56–10.92″ across, 1.78–6.16″ down, side by side (wide ones overlap, from v75).
+- Info block under each garment, about 0.6″ left of its middle (4.11″ / 8.22″ on the template):
+  - a 0.5 pt rule 1.32″ long at 6.38″
+  - the heading in bold 10 pt
+  - Width / Height in 8 pt (Height at +0.61″)
+  - Placement in 8 pt, with the value in 7.5 pt at +0.62″
+  - a rule at 7.05″
+  - Colors in 8 pt
+  - 0.29″ square chips 0.06″ apart: 8 pt bold, 7 pt for 4 characters, 6–6.5 pt over 2–3 lines, light ones outlined 1 pt
+- Blue note 8 pt bold #00A0DF at 0.45″.
+- APPROVED box 2.61 × 0.54″ at 0.45 / 7.52, with "APPROVED" bold 19.5 pt in white.
+
+**Print pages (11 × 11″)**
+- Logo 0.65″. Imprint ID bold 51.8 at 1.27″.
+- Location: / Dimensions: bold 18 at 4.45″, values regular 18. Placement: at 7.24″ with its value under it.
+- Garment colour block 0.5–10.5 × 1.64–9.72″, with the art centred (up to 6.9 × 6.8″).
+- APPROVED centred at 4.19 / 9.97.
+
+**Also:** the PDF now mixes page sizes. The proof font is Helvetica first (Helvetica Neue is wider and wrapped the fine print onto a sixth line).
+
+**Kept on purpose:** our blue note says the print *is* shown to scale, because it is in this app. The template says "sizing is not to scale". Bandana proofs and the per-garment close-up pages are unchanged.
+
+Tested with Playwright and mocked Airtable/Drive: page renders compared side by side with the template, PDF page sizes 11×8.5 + 11×11 ×2, and the v70–v75 suites.
