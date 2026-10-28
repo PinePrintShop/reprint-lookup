@@ -924,3 +924,8 @@ Stephen (laptop screenshot, Proof view): "still have slight scrolling on my lapt
 
 ## 2026-10-28 · v67: a big .psd shows on a phone
 Stephen (on mobile): "selected the .psd but nothing is showing up on the mockup". Phones (iPhone Safari) can't make a canvas over ~16 million pixels; a print-size PSD (e.g. 6000 × 7500) went blank with no error. A PSD over 4000 px a side is now read by our own reader straight at working size (every 2nd/3rd row and column — the same 4000 px cap everything already gets), keeping its transparency and real print size, and only the rows it needs are unpacked (a fraction of the memory). If a file still comes out empty, it says so instead of showing nothing. Tested with a 6000 × 7500 PSD under a simulated phone canvas limit (v66 hung; v67 shows it in ~2.5 s) plus the small RGB / CMYK / multichannel / 16-bit PSDs.
+
+## 2026-10-28 · v68: a garment can have its own art for a shared imprint
+Stephen, on 11095 (one imprint, 11095-A Bandana, on two bandana colours, with Ink-for-NAVY.psd and Ink-for-KHAKI.psd): "I have a slight design change between two colorways but it keeps applying only one to the mockup for both bandana colors". Art was kept per imprint, so the last file opened went on every garment with that imprint.
+- Under the art, when the print is on 2+ garments: **Different art on <colour>**. Tick it on that garment, then open its file — only that garment uses it (mockup, Colorways, its proof page, its ink chips); the others keep the shared art. Untick to go back to the shared art.
+- The saved setup (pick up where you left off) keeps a garment's own art as its own.
