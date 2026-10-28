@@ -1256,3 +1256,10 @@ Stephen: "looks like it is on the 5071 as well...so maybe we scan all of ASColou
   - 5082 Faded Mushroom and 5080 Eucalyptus have no back photo at AS Colour at all.
 - **Some colours have no front in the variants list** (5071 Espresso, Liberty, Pigeon Blue, Shadow; 5026 Espresso, Pigeon Blue; the faded colours on 5082, 5086 and 5166; several caps). The images list has them, labelled with the colour name. v94 takes the front from there too (`ascImages()`, cached and paged).
 - **Tested on real data:** 5001 Ecru/Natural, 5071 Espresso/Shadow/Black, 5082 Faded Olive and 5026 Pigeon Blue all get front and back. A made-up colour still gives none.
+
+## 2026-10-28 · v95: AS Colour photos from the images list first
+Stephen: "5071 ecru ... nope still not loading".
+- The variants list's front photo for 5071 Ecru (`…/17683/5071_CLASSIC_LS_ECRU__94154.1753147192…`) is a stale link that returns 404. The images list has the current one (`…/24547/…1792365285…`).
+- Now the images list ("ECRU" / "ECRU - BACK", exact colour name) comes first for both sides. The variant's photo is only a fallback, and a fuzzy colour match is only used when the variant has nothing.
+- **Lesson:** the v94 scan checked that a link existed, not that it loaded.
+- Tested through the full order flow (real AS Colour data, through the worker's /img): 5071 Ecru front and back both load. The other colours tested before still work.
