@@ -972,3 +972,26 @@ Tested with Playwright and mocked Airtable/Drive: sep chips and screen count 9/9
 **Example:** the test file had 4 artboards on 2 layers: the full back, the front text strip (9.5 × 0.5″), the back text alone and the magpies alone. Each opens on its own.
 
 Tested with Playwright and mocked Airtable/Drive on that file. The customer file stays out of the repo.
+
+## 2026-10-28 · v73: a .psd's colours are its channels; garment photos fill their space; a PNG per colourway
+**Why (Stephen):**
+- "looks like when it brought in the .psd file in the mockup it pulled in more colors than in the file". This was on 11097-45LPI-SEPS_B-A.psd: the proof showed 7696 (not in the file) and missed 7458.
+- "the uploaded garments had a pretty big white border....when that is removed can we make sure to max these out on the mockup".
+- "each individual colorway downloadable on its own as a transparent .png".
+
+**A .psd's colours are its channels**
+- A .psd with ink channels lists exactly those inks. This covers spot channels, the shop's seps and Sep Maker's, and plain channels named like inks.
+- The Colours box is built from the channels: each pixel goes to the nearest channel colour, so overlaps and soft edges are no longer extra colours. Channels of the same colour (BB and EZ7541) count once.
+- Names come from the channel: 230M-7458OW → 7458, PANTONE 186 C → 186, White → WHT, and EZ7541 → 7541 (a light layer that shows).
+- The proof's Colors use those names, whether or not they're named like films.
+- 11097-B/A now gives BASE, BLK, 7541, 7458, 7742, 3015, 7687 (OW on the base garment).
+- The count no longer says "about". Recolour and Combine work as before. Art with no ink channels is read off the picture as before.
+
+**Garment photos fill their space**
+- Mockup and Colorways now size the garment by the garment itself, not the whole photo; the proof already did. A photo with a wide white border went from 42% to 88% of its space.
+
+**⬇ PNG per colourway**
+- Each Colorways garment has a ⬇ PNG button: that garment's sides at 2× with a transparent background, named "<order> <garment>.png".
+- The background is cut from the edges inward, so a white shirt on white keeps its body.
+
+Tested with Playwright and mocked Airtable/Drive, on the 11097 sep, a Sep Maker sep and a plain PSD, plus the v70–v72 suites (preview, per-garment art, .ai picker, laptop fit).
