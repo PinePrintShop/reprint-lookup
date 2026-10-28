@@ -696,3 +696,10 @@ For signed PandaDocs back into Airtable (pandadoc.md).
 - **Send for signature** also saves PandaDoc Pages on the order: which packet page is which proof page of which line(s), and where the customer initials. A proof file shared by several lines lists all of them.
 - **On load**, pine-signed.js stores new signed packets and checks them. A toast says how many were saved, and how many signed mockups don't match the proof in Airtable (see Signed Check on the line).
 - Send test: the same writes as v42, plus PandaDoc Pages and the sweep call.
+
+## 2026-10-28 · v44: imprint rows in a narrow panel
+Stephen, with a screenshot of 11101-A spelled down the page one letter per line: "some weird spacing on line item review details".
+- **Cause:** the imprint row is a three-column grid (ID · description · buttons). The buttons column (No master folder yet / Master design · 🕘 Last time · ✎ Edit) took its full one-line width, which left the description 0 px wide in a narrow detail panel, so it broke after every letter.
+- **Fix:** the panel is a size container. The buttons can take at most half its width, and below 620 px they move to their own row under the description.
+- Checked with the real classes: a 430 px panel went from a 0 × 1041 px description to 278 × 61 px; a 900 px panel is unchanged.
+- The rule lives in this version only; the shared pine-office-v1.css is unchanged, so other office apps aren't affected.
