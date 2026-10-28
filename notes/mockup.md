@@ -1104,3 +1104,13 @@ Stephen: "can we also check that the naming and fabric content are pulled from t
   - Practice mode fakes the write.
 - SanMar's productinfo answer is about 3 MB, so it's now fetched once per style and shared by the photos and the check.
 - Tested with live S&S/SanMar answers and mocked Airtable: 6014 Pepper (fabric differs), 6014 Washed Demin (colour spelling) and PC54 Ash (own blend). The update writes one PATCH with just the fabric, and practice writes nothing. No automations watch the Garments table.
+
+## 2026-10-28 — v80: a new line shows up, no "Could not load"
+Stephen: "I am getting this when a new line item is added and need to manually refresh to get it to show up". The Line box said "Could not load: Cannot read properties of undefined" on #11097 after the Cement line was added.
+- **Crash:** the Proof page drew an info block for every garment side, even a side with nothing printed on it yet (a new line, before its art). That threw, and since picking a line redraws the Proof, picking the order showed it as "Could not load". A side with nothing printed now gets no info block. (This was in v76–v79.)
+- **Stale lines:** the open order kept the lines it had when it was first opened. Refresh re-read the order list but not the open order's lines, so only reloading the page brought a new line in. Now:
+  - picking an order reads its lines fresh from Airtable;
+  - Refresh re-reads the open order's lines and adds a new one in place ("New line on this order — added");
+  - coming back to the tab after a minute away does the same;
+  - Art to do opens a line the app hadn't seen yet (it used to do nothing).
+- Tested with a mock of 11097 (Charcoal with a proof; Cement added after the order was opened): Cement shows after Refresh and on re-picking, its Proof page draws, and there are no page errors.
