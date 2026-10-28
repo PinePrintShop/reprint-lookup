@@ -935,3 +935,26 @@ Stephen, on 11095's white bandana: "when it is white the proof says base instead
 
 ## 2026-10-28 · v70: preview an art file before opening it
 Stephen: "is there a way to preview art files before loading them? in the mockup creator". Each art tile in Customer's files has a 🔍 (under the ⬇): it shows Drive's preview big, with the file type, size and date; ‹ › (or the arrow keys) step through the other art in the folder; **Use this art** (the one yellow button) opens it, Close / Esc doesn't load anything. Nothing is downloaded until you choose it. Files Drive has no preview for say so. (The preview is Drive's 400 px picture — enough to tell files apart.)
+
+## 2026-10-28 · v71: Colors from a sep's screens; sales' screen count; Colorways fits a laptop
+**Why (Stephen):** "if I make a sep in the app and drop it into the maker will it be able to use the .psd channels that it creates instead of trying to guess again" ("please build away"), and "it doesn't pull in the screen count sales assigned to the imprint".
+
+**Colors from the file's screens**
+- Art whose spot channels are named like the shop's films gets its proof Colors from those names, not from colours read off the picture. This covers Sep Maker's -SEPS.psd, .ai and .pdf (158M-BB, 230M-186OW, 158M-BLKSOLID).
+- How the names are read:
+  - Bases (BB, EZWHT) become one BASE chip.
+  - The mesh comes off.
+  - A split black (BLK + BLKSOLID) is one BLK, and HLWHT is WHT.
+  - Cool Gray 7 becomes CG 7.
+  - OW follows the garment's base, as before.
+- Order of priority: recolouring the art, then the file's screens, then the imprint's Pantone field, then the picture.
+- The Colours box says "Colours from the file's screens: …". Art with no film names works as before.
+
+**Sales' screen count**
+- The Colours box now starts with "Sales quoted N screens" (Imprints › `fld8rgkIj1RPO97QU`, read only).
+- Next to it is what the art needs: the sep's screen count, or the proof's colours + base. It says "more than quoted, check with sales" when the art needs more.
+- If sales hasn't set it, it says so.
+
+**Colorways** no longer scrolls on a laptop. The garment pictures are as tall as the screen allows (no scroll at 1280×720, 1366×768, 1440×900 or 1920×1080). Phones are unchanged.
+
+Tested with Playwright and mocked Airtable/Drive: sep chips and screen count 9/9, preview 9/9, per-garment art 8/8, fit check at 4 sizes.
