@@ -1072,3 +1072,17 @@ Tested with Playwright and mocked Airtable/Drive: page renders compared side by 
 **Result on the ski tech pack:** artboard 1 → piece 2 opens as HUCK alone, one green ink (375), 3.75″ wide.
 
 Tested with Playwright on the file (kept out of the repo): pieces, spec line, piece open, width, drag a box, Whole artboard. The Sanpo .ai picker tests were re-run on this version too.
+
+## 2026-10-28 · v78: off-centre is measured to the print's edge everywhere
+**Why (Stephen):** "why does it say 2.5" from center on the mockup and the proof has 0.6" from center".
+
+**Cause:** the Off centre box and the Mockup label measured from the centre line to the print's centre. The proof's red line measures to the print's nearest edge, as the art department draws it and as tech packs give it ("PLACE 2.5" OVER FROM CF"). 2.5″ to the centre of a 3.75″ print is 0.6″ to its edge.
+
+**Fix**
+- On garments the box is now **Centre to print edge (in)**: + is wearer's left, − is wearer's right, 0 is centred.
+- The Mockup label says "2.5″ from centre to edge, wearer's left", the same number the proof shows.
+- The app still stores centre to centre, so saved placements keep the print in the same spot.
+- An old 2.5″ now shows as its edge distance (0.63″). Retype the tech pack number if that's what was meant.
+- Bandanas and hats/bags keep centre to centre, since their prints are placed by their middle.
+
+Tested with Playwright and mocked Airtable/Drive: typing 2.5 stores 4.375 (3.75″ print), the proof line shows 2.5, and 0 centres. The v70–v77 suites pass.
