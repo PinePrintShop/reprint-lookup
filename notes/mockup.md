@@ -995,3 +995,12 @@ Tested with Playwright and mocked Airtable/Drive on that file. The customer file
 - The background is cut from the edges inward, so a white shirt on white keeps its body.
 
 Tested with Playwright and mocked Airtable/Drive, on the 11097 sep, a Sep Maker sep and a plain PSD, plus the v70–v72 suites (preview, per-garment art, .ai picker, laptop fit).
+
+## 2026-10-28 · v74: the Mockup picture takes the garment's shape
+**Why (Stephen):** "the images still look small in v73 for the mockup". Re-uploading the LA Apparel 1801GD Charcoal photos didn't help.
+
+**Cause:** the saved garment photos were already cropped (737 × 594, wider than tall). The Mockup canvas was always 1000 tall, so a wide tee filled its width, left empty bands above and below, and the whole picture was shrunk to fit the screen height.
+
+**Fix:** the canvas is now as tall as the garment needs, plus the side name and the 1″ ruler (520–1000). At 1366×768 a wide tee went from 316×322 px on screen to 405×356 px and fills the picture's height. Photos with no garment box, bandanas and sleeves are unchanged.
+
+Tested with Playwright and mocked Airtable/Drive, plus the v70–v73 suites.
