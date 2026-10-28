@@ -1165,3 +1165,10 @@ Stephen, with a Sanpo back print at −0.25 "Center to print edge" pushed well o
 Stephen: "when I move it back to true center the text still is left. For instance the front is back to true center not visual".
 - **True center**, or typing 0 in Off center, now removes the "Visual center" note from that print.
 - Checked on a mock: Visual center puts dx at 0.4375 with 1 note; True center puts dx back to 0 with no notes.
+
+## 2026-10-28 — v88: the Visual center note says how far
+Stephen: "can it also include the slight move in inches as well on the proof so the customer knows we are taking it serious".
+- The note is now written from where the print currently sits: `PLEASE NOTE: PRINT IS PLACED ON THE VISUAL CENTER OF THE DESIGN, 0.4" TO THE WEARER'S LEFT OF THE GARMENT'S TRUE CENTER`.
+- The number uses the same rounding as the mockup's other measurements, and it follows the print if it's moved.
+- On true center it falls back to the plain wording; v87 already takes the note off there.
+- The sidebar shows the same text.
