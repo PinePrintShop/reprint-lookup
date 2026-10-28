@@ -520,3 +520,9 @@ Stephen: "Can you also have an agent look into this issue with the Scheduler app
   - **Rollover edge cases:** month (Oct 31 → Nov 1), year (Dec 31 → Jan 1) and Feb 28 + 24:00 → Mar 1.
   - All 6 writes were valid and there were no console errors. The v25 suite passes on v26.
 - **Still open (a flow question for Stephen):** a job pushed past midnight now saves, but it lands at 12:30 am the next day (or on a Saturday from a Friday). A better flow would warn when "Next open" goes past the end of the day, or move the job to the next workday's morning.
+
+## 2026-10-28 · v27: location and Hard Deadline on the cards
+From the scheduling department: "see at the bottom it has quantity, screens and due date? Can we add location to that as well? Helps me out especially when I have multiple sleeve prints to sched", "some sort of indication if it's a hard deadline? Ideally like a little emoji or something lol. I read symbols much faster than text", and in the open card "making it inside a red box like the '2 workdays before due' looks would be perfect".
+- Calendar cards' bottom line: qty · screens · **location** · due (e.g. "50 · 3 scr · Left Sleeve · due Oct 30"); it wraps to a second line instead of cutting off on narrow week columns. On Day view the second line is just the job name now (the location moved up).
+- **⏰** starts that line on a Hard Deadline job (it always shows, even on narrow cards).
+- Open card › Due: a red **⏰ HARD DEADLINE** box next to the "N workdays before due" box (ASAP etc. still read as text).
