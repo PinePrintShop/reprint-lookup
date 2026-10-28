@@ -332,3 +332,10 @@ Stephen (phone screenshot): "Doesn't look like I can go through jobs on mobile".
 - **Cause:** a later iPad-portrait rule, `.wk-next{height:30vh}` in the `max-width:1000px and portrait` block, also matched phones and beat the phone rule's `height:auto`. `.wk-next` has `overflow:hidden`, so on an iPhone 13 the list was clipped to 197px of its 684px, about 1–2 jobs, with no way to scroll.
 - **Fix:** at 640px and narrower, `.wk-next{height:auto!important;overflow:visible}`. The whole list now scrolls with the page. CSS only; iPad sizes are unchanged.
 - **Check:** iPhone 13 emulation with 8 jobs: the page grows from 1072px to 1570px tall, every job card is reachable, and nothing is clipped.
+
+## 2026-10-28 · v134: no browser pop-up when a run loses its job
+Stephen: "Do the 5 bugs first" (the last browser pop-ups in the apps).
+- **What it was:** End Run when the app no longer knows which job is running (e.g. it reloaded mid-run) showed a browser `alert()`. On the press iPad that grey box froze the screen until someone found it and tapped OK.
+- **Now:** a red Pine box over run mode, "This run lost track of its job / The app may have reloaded. Nothing was saved. Open the job from the list and tap End Run again.", with one yellow button, **Back to job list** (closes run mode, same next step as before). Red because it's a real problem. It has `role=alertdialog`, so self-update waits while it's up (`pineBusy`).
+- Nothing is written in this path (as before). No other `alert/prompt/confirm` left in Operator.
+- **Tested** (Playwright, mocked Airtable, practice, iPad 1180): the run's job is removed, End Run shows the box (no native dialog; the test fails on any), the button closes run mode, 0 writes. The same test on v133 hits the browser alert.

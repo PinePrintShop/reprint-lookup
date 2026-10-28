@@ -496,3 +496,10 @@ Stephen: "allow purchasing to adjust sizes they are ordering.....every now and a
 - "OOS." in the Why text becomes "OOS" so it doesn't set off the "SLACK: OOS notification" automation (it watches Order Notes for "OOS."). No other automation watches the size fields.
 - The cart, extras plan, stock pills and costs follow the new sizes. Practice mode sends nothing.
 - Open questions for Stephen: notify sales automatically when the invoice changes? tick "Verify Size Availability"? a one-tap "move the short L to XL" from a warehouse's "short" pill?
+
+## 2026-10-28 · v114: no browser pop-ups left
+Stephen: "Do the 5 bugs first".
+- **Reprints › "+ New vendor / warehouse…"** now opens a name field right where the warehouse list was, with **Add** and **Cancel** (Enter adds, Esc cancels; hint "“Company - City, ST” gives a ship time"). It was a browser `prompt()`. A name that's already a supplier is just picked (no new record). A failed save shows the red Pine bar and keeps the field so you can try again. Practice mode still saves nothing (fake id, "Practice — not saved").
+- **⚙ › Airtable token** is a field with Save (Enter works), like Operator. It was a browser `prompt()` too.
+- On a phone the field takes the full width and the buttons sit under it.
+- **Tested** (Playwright, mocked Airtable, 1440/1024/390): 24 checks pass — field shown and focused, empty Add flagged, Esc cancels, existing name picked with no write, practice add 0 writes, live add = one POST to Suppliers with the name, failed add = red bar + field kept, token saved from ⚙. The test fails on any native dialog.

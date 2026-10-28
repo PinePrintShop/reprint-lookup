@@ -423,3 +423,11 @@ Stephen: "The right panel for jobs is showing the sched pretty weird. Can you ch
   - Catching and Operator v130 match to the pixel: logo, name at x=68, Refresh and ⚙ at the same x.
   - No console errors. Practice made 0 writes.
   - The v168 Boxes Packed test gives the same results on v169: live, the same 10 writes; practice, 0.
+
+## 2026-10-28 — v170: Airtable token is a field in ⚙ (no more prompt())
+Stephen: "Do the 5 bugs first".
+- The ⚙ menu's Airtable token row now has a field: paste the token, **Save** (or Enter). **Clear** shows when one is saved. Same as Operator / Screens / Ink. It was a browser `prompt()`, which is blocked inside the Pine Central shell and froze the iPad behind a grey box. An empty Save just marks the field.
+- The "No Airtable token yet" screen says "Tap ⚙ (top right) and paste it under Airtable token."
+- Saving boots the app the same way as before (no reload). No other `alert/prompt/confirm` left in Catching.
+- **APP_VER 170** (Catching's own self-update). Permanent link `pine-catching.html` → v170.
+- **Tested** (Playwright, mocked Airtable, practice, iPad 1180): no token → field → empty Save flagged → Enter saves and today's jobs load → Clear removes it; no native dialog (the test fails on any). The aud2 main flow (work, damage, hand-off, review, order card) passes on v170.
