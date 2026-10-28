@@ -24,7 +24,7 @@
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
 | Production Board | `pine-production-board.html` | v48 |
 | Seps | `seps.html` | v50 |
-| Screens | `screens.html` | v32 |
+| Screens | `screens.html` | v33 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v27 |
 | Pine Central | `pine-central.html` | v176 |
@@ -35,7 +35,7 @@
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v52 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v83 |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v84 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`

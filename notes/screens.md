@@ -184,3 +184,8 @@ Stephen's case: a reorder whose back print changed in PandaDoc, but whose imprin
   - **Signed mockup ↗** and **↩ Previous run** side by side.
 - **✓ Imaged** on a CHECK: the first tap explains and the button becomes "✓ Imaged anyway"; the second tap images.
 - Tested with mocks, live and practice.
+
+## 2026-10-28 · v33: back to v31, no PandaDoc flag
+Stephen: "why would Screens get this pandadoc flag....we really just need it to be able to update the proof line per line item so that Operator and QC see it...and it would be great to also have that in the Sep app as well because they are the ones that first push a reorder and an update through".
+- v32's signed tags, signed block and two-tap Imaged are gone; v33 is v31 with a new version number.
+- The plan instead: the signed page becomes the line's proof, so Screens, Operator and Catching show it with no app changes, and the "signed ≠ proof / reorder" check goes into Seps. See pandadoc.md.

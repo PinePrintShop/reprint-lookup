@@ -1137,3 +1137,8 @@ Stephen: "can we add a visual center line that can toggle on and off...sometimes
 - **Centre line** (zoom bar) toggles a dashed line down the true centre of each garment, labelled "true centre". It's on screen only, not on proofs or colourway PNGs. Drag the print by eye as before.
 - A new proof note under "+ Add a note to the proof…": **Visual centre (not true centre)**. On the proof it reads "PLEASE NOTE: PRINT IS PLACED ON THE VISUAL CENTER OF THE DESIGN, NOT THE TRUE CENTER OF THE GARMENT".
 - A first try that let the line be dragged and snapped prints to it was dropped at Stephen's word.
+
+## 2026-10-28 — v84: "Center"
+Stephen: "can we make it say Center ( USA right! )".
+- US spelling everywhere the app shows the word: the Center line button and its "true center" label, the Visual center note, Center (arrange pieces), "below/above center" and "of center" in the proof's placement text, "Down from center", "Center to print edge", "from center to edge" and the hints.
+- Internal names and the tech-pack text matching (which reads both spellings) are unchanged.
