@@ -1120,3 +1120,14 @@ Stephen, with #11094's J317 proof (left chest + right chest embroidery, back hea
 - **Cause:** with two prints on one side, the info blocks split the front garment's column starting at its left edge (2.7″). The first block ran under the blue notes and the APPROVED box, which end at 3.06″.
 - **Fix:** info blocks now always start at 3.25″ or later, and two or more blocks share what's left of their garment's column. A single block keeps its old place, which was already clear.
 - Checked on a mock with a left chest, right chest and back: nothing overlaps.
+
+## 2026-10-28 — v82: clean art from the digitizer's stitch files
+Stephen, with the Precision Security stitch render: "can we update the logic to pull a cleaner image when pulling out of the embroidery proofs we get from digitazing dept. all the text still has the background in it and it isn't super clean".
+- **Before:** "drop the background" cleared only the background it could reach from the file's edges, with a hard cutoff. The background stayed inside letters (P, R, O…) and between close stitching, and every stitch edge kept a dark rim and drop shadow.
+- **Now, for embroidery and patch imprints:**
+  - The background colour is the median of the file's border.
+  - Every flat patch of that colour goes, anywhere in the picture. Flat means the brightness varies less than 12 across 5×5 pixels; specks smaller than about 0.004% of the image stay.
+  - Thread is never flat (stitches have texture), so black thread on a near-black background stays.
+  - Within 4 px of the background, the rim fades out smoothly, with the background colour taken back out of the see-through edge, and the render's darker drop shadow goes.
+- Screen-print art keeps the old edge-in drop.
+- **Tested** on a made-up stitch render: dark #1b1e1f background, white textured letters with counters and drop shadows, a red hexagon with a white outline, and black textured thread inside. Counters cleared, black thread kept, no dark rim on a green background.
