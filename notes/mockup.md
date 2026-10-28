@@ -958,3 +958,17 @@ Stephen: "is there a way to preview art files before loading them? in the mockup
 **Colorways** no longer scrolls on a laptop. The garment pictures are as tall as the screen allows (no scroll at 1280×720, 1366×768, 1440×900 or 1920×1080). Phones are unchanged.
 
 Tested with Playwright and mocked Airtable/Drive: sep chips and screen count 9/9, preview 9/9, per-garment art 8/8, fit check at 4 sizes.
+
+## 2026-10-28 · v72: open any artboard or layer of an .ai
+**Why (Stephen, with a customer .ai):** "in an .ai file that was uploaded it also had the front text you helped me build... can you find a way for us to open this and be able to pull out other layers as well".
+
+**How it works**
+- An Illustrator file (or PDF) with more than one artboard or layer now opens a picker first. It is shared with the other app in `pine-ai-parts.js`.
+- The picker shows a tile per artboard, cropped to its art with the art's size, a tick box per layer (all on to start), and a big preview.
+- **Open this** brings in that artboard with those layers, cropped to the art at its real size. The file line then says which part it is ("From artboard 2").
+- Esc or Cancel leaves the art that was open. Files with one artboard and one layer open as before.
+- **+ Add file** can bring a second artboard in as another piece (tested: front text + magpies).
+
+**Example:** the test file had 4 artboards on 2 layers: the full back, the front text strip (9.5 × 0.5″), the back text alone and the magpies alone. Each opens on its own.
+
+Tested with Playwright and mocked Airtable/Drive on that file. The customer file stays out of the repo.
