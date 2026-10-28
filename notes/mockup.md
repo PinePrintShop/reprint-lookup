@@ -1160,3 +1160,8 @@ Stephen, with a Sanpo back print at −0.25 "Center to print edge" pushed well o
   - A hint says how far apart the two are, e.g. "The ink's balance point is 0.4″ left of the art's middle".
   - With Center line on, the picked print shows its visual center as a faint dotted line.
 - Checked on a mock: back print Off center, hint 0.4″, Visual center sets dx 0.4375 and adds the note; a left chest keeps "Center to print edge" and has no buttons.
+
+## 2026-10-28 — v87: True center takes the Visual center note off
+Stephen: "when I move it back to true center the text still is left. For instance the front is back to true center not visual".
+- **True center**, or typing 0 in Off center, now removes the "Visual center" note from that print.
+- Checked on a mock: Visual center puts dx at 0.4375 with 1 note; True center puts dx back to 0 with no notes.
