@@ -1199,3 +1199,16 @@ Stephen, on Lunar Outpost 11101: "it didn't match the new imprint ids that where
 **Height.** Stephen: "can we also be able to adjust heights as well in the mockup maker". Height is now a box like Width. Typing it sets the width to keep the art's proportions, and it goes through the width box's code (pieces scale the same way).
 
 **Tested with a mocked Drive:** the button shows on a reprint with no folder; it calls mkorder, writes the Art folder link, and the panel switches to the new folder. Height 4″ on a 3.5 × 2.15″ print gives 6.5″ wide.
+
+## 2026-10-28 — v91: the inside of stitched letters
+Stephen, with a "Security" stitch file whose "e" kept a grey patch: "it is still leaving in the inside portion of the pulled out text".
+- **Cause:** v82 only took away flat patches of the background colour. That patch is a flat light grey (the render's backing showing through).
+- **New rule:** when most of the picture is textured thread (over 60% of the non-background pixels vary by 12 or more across 5×5 pixels), a flat patch of any colour is background too. A patch counts when:
+  - it is very flat (varies by less than 6);
+  - it is between the speck size and 1.5% of the picture;
+  - it is compact, filling at least 35% of its bounding box, so thin outlines and satin borders stay.
+
+  It also takes the 2 px edge of the patch in the patch's own colour (within 45), with no further growth, so it can't run along the thread.
+- Flat vector art for embroidery (mostly flat) is left alone.
+- Tested on the made-up stitch render with grey patches added over the P and R counters: the patches and their edges are gone, while the white hexagon border, red fill, black thread and letters stay.
+- Two tries on the way were too greedy (they took the flat white border, then nibbled letters along stitch shadows), which is what led to the compact-blob and 2 px limits.
