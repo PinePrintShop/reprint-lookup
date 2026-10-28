@@ -1235,3 +1235,13 @@ Stephen: "Let's do a review of the last few mockup makers".
   - `idMap` takes the first match when two new imprints point at the same old one.
   - The visual balance point is weighed by ink alpha, so fully opaque art (a JPG with Drop background off) always reads as balanced.
   - The stitch-file flat-patch rule leaves counters over 1.5% of the picture, and would remove a small flat solid patch of any colour (e.g. applique fabric rendered flat).
+
+## 2026-10-28 · v93: lines added later; AS Colour back photos and colours
+- **Lines added later** (Stephen: "still needing that hard refresh to pull in orders that had line items added later").
+  - The cause: a line only shows once it has imprints, and the v80 check only noticed new line IDs. Sales often add the line first and link the imprints later, so nothing changed as far as the check could tell.
+  - Now the check compares each line's imprints and garment too. It runs on Refresh, when you come back to the tab, and every 1½ minutes while the page is open. A change reloads the order and keeps the line you're on.
+  - The line menu says "N more lines waiting for imprints in Airtable" instead of hiding them.
+- **AS Colour back photos** (Stephen: "ASColour 5001 ... isn't pulling in the back image for the Ecru tee"). The variants list has no back photo at all. The back now comes from `/catalog/products/<style>/images`, using the entry whose imageType is "<COLOUR> - BACK" (urlZoom).
+- **AS Colour colours past page 1.** Variants come 250 to a page, and the 5001 has 569, so only about 33 of 70+ colours (up to roughly Granite) were read. Natural, Navy, White and the rest got no AS Colour photo or colour match. `ascVariants()` reads every page (cached per style). It's used for photos, the vendor colour list and the vendor name/colour check.
+- **Careful:** AS Colour rate-limits hard. A fast scan from here got 429 ("try again in 27 seconds"), and the app then falls back to S&S photos. Keep any bulk scans slow.
+- **Sep Maker v52 has the same one-page limit** (not changed yet).
