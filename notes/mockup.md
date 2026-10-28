@@ -1172,3 +1172,18 @@ Stephen: "can it also include the slight move in inches as well on the proof so 
 - The number uses the same rounding as the mockup's other measurements, and it follows the print if it's moved.
 - On true center it falls back to the plain wording; v87 already takes the note off there.
 - The sidebar shows the same text.
+
+## 2026-10-28 — v89: Edit PDF follows the reprint links, not the letters
+Stephen, on Lunar Outpost 11101: "it didn't match the new imprint ids that where assign to the locations… I had to switch the sleeve to C and the back to B. Looks like sales put them in backwards with the new order".
+- Airtable was right. The two orders just number their locations in a different order:
+
+  | Location | 10940 | 11101 (Previous Imprint) |
+  |---|---|---|
+  | Left Chest | A | A (from 10940-A) |
+  | Left Sleeve | B | C (from 10940-B) |
+  | Back | C | B (from 10940-C) |
+
+- Edit PDF's "Replace everywhere" kept the letter (10940-B → 11101-B), which put the back's ID on the sleeve.
+- Now each old ID becomes the new imprint linked to it as its Previous Imprint (10940-B → 11101-C, 10940-C → 11101-B). Only an old ID with no link keeps its letter, as before.
+- The hint lists the new IDs with their locations and says when the letters changed on this order. That helps most on outlined PDFs, where the new text goes in with Cover & type.
+- Tested: ORDER #: 10940 → 11101; 10940-A/B/C → 11101-A/C/B; an unlinked 10940-D → 11101-D.
