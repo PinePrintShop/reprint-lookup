@@ -1187,3 +1187,15 @@ Stephen, on Lunar Outpost 11101: "it didn't match the new imprint ids that where
 - Now each old ID becomes the new imprint linked to it as its Previous Imprint (10940-B → 11101-C, 10940-C → 11101-B). Only an old ID with no link keeps its letter, as before.
 - The hint lists the new IDs with their locations and says when the letters changed on this order. That helps most on outlined PDFs, where the new text goes in with Cover & type.
 - Tested: ORDER #: 10940 → 11101; 10940-A/B/C → 11101-A/C/B; an unlinked 10940-D → 11101-D.
+
+## 2026-10-28 — v90: make a reprint's Drive folder; type the height
+**Reprint folder.** Stephen: "when customer folder is [not] created yet in Google Drive but it is just a reprint....can we have it create one for that reprint and then have it match all the same folders etc and then drop this in the new proof section?"
+- When the order has no folder yet, the Drive panel shows the original's ("No Drive folder for #11097 yet — showing the original order #10940"). It now offers **Make #11097's folder like #10940's**.
+- That button uses worker v37 `drive/mkorder`. The new folder goes next to the original and is named like it, with the order number swapped ("10940 Lunar Outpost" → "11097 Lunar Outpost"). It gets the same folders inside, up to 3 levels deep, names only; no files are copied.
+- The app then opens the new folder and saves its link as the order's Art folder (Orders `flddst7TDoJfSqb0s`).
+- From then on, Attach (including an edited old proof's Attach) saves into its For Proof / Proofs folder, the same as any order.
+- Practice mode makes nothing.
+
+**Height.** Stephen: "can we also be able to adjust heights as well in the mockup maker". Height is now a box like Width. Typing it sets the width to keep the art's proportions, and it goes through the width box's code (pieces scale the same way).
+
+**Tested with a mocked Drive:** the button shows on a reprint with no folder; it calls mkorder, writes the Art folder link, and the panel switches to the new folder. Height 4″ on a 3.5 × 2.15″ print gives 6.5″ wide.

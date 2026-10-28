@@ -110,3 +110,12 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
 - Packets stored before v36 (any file not named "… signed (completed).pdf") are stored again, 10 per run.
 - Tested in Node: 15/15. The signed link serves the protected copy.
 - `/proxy/version` → 36.
+
+## 2026-10-28 · v37: a reprint's own Drive folder
+- **New `POST /proxy/drive/mkorder?from=<original order folder>&order=<new #>&old=<original #>`**, for Mockup Maker v90.
+- It makes the new order's folder in the same parent as the original, named like the original with the number swapped. If the original's name has no number, the new number goes in front.
+- It also makes the original's folders inside, 3 levels deep, 60 folders at most, names only (numbers swapped the same way). Files are never copied.
+- If a folder for the new order already exists, nothing is made and that folder comes back (`exists:true`).
+- Same Airtable-token gate and shared-drive check as the other Drive routes. Creating folders needs Contributor or higher on the shared drive; Content manager is already set for trash.
+- Tested in Node with a mocked Google Drive: 10/10.
+- `/proxy/version` → 37. Stephen deploys it from worker-copy.html.
