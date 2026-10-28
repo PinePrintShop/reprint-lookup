@@ -703,3 +703,13 @@ Stephen, with a screenshot of 11101-A spelled down the page one letter per line:
 - **Fix:** the panel is a size container. The buttons can take at most half its width, and below 620 px they move to their own row under the description.
 - Checked with the real classes: a 430 px panel went from a 0 × 1041 px description to 278 × 61 px; a 900 px panel is unchanged.
 - The rule lives in this version only; the shared pine-office-v1.css is unchanged, so other office apps aren't affected.
+
+## 2026-10-28 · v45: "Changes requested" only for real requests, and Mark resolved
+Stephen: "find comments that sound like a request and then a marked resolved would be great."
+- **Before:** the tag showed whenever any comment was newer than the newest proof (Proof Images Timestamp), so "Looks good" or "sent to customer" set it too.
+- **Now:** only a comment after the newest proof that reads like a change request counts. That means words like change, fix, move, bigger/smaller, swap, instead, wrong, typo, should be, needs to, add/remove, center, align, font, color, revise, can we / could you, please, or any question.
+  - Plain approvals don't count ("Looks good", "approved", "thanks", 👍).
+  - The tag's tooltip quotes the request.
+- **Mark resolved** sits next to the tag on the Review screen. It writes **Changes Resolved At** (new Line Items field `fldV0jFbUUKghgeCJ`, dateTime), with Undo. Comments up to that time stop counting, and the tag comes back with the next request comment, or naturally once a new proof is uploaded. Practice mode doesn't save.
+- No automation watches the new field (checked: every Line Items automation watches its own fields).
+- **Tested** on 12 sample comments: 5 requests caught, 7 others ignored. A request shows the tag, Mark resolved clears it, and a newer request brings it back.
