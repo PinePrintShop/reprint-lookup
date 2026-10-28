@@ -1623,10 +1623,12 @@ function cardNumsHtml(rec, mode) {
          '<span class="p-num' + (real ? '' : ' is-quiet') + '"><small>Inks</small><b>' + real + '</b></span>';
 }
 function typeOf(f) { return selName(f[F.printMethod]) || ''; }
+function hasInks(rec) { return !!(rec.fields[F.inks] || []).length; }
+// v105: the open job's Mark ready is yellow only once it has inks; with none, + Add ink is the yellow one.
 function readyBtnHtml(rec, main) {
   var id = rec.id;
   if (rec.fields[F.inksReady]) return '<button class="p-btn p-btn-dark ready-btn" type="button" title="Inks are ready. Tap to reopen." onclick="toggleReady(event,\'' + id + '\')">&#10003; Ready</button>';
-  return '<button class="p-btn ready-btn' + (main ? ' p-btn-main' : '') + '" type="button" onclick="toggleReady(event,\'' + id + '\')">' + (main ? '&#10003; ' : '') + 'Mark ready</button>';
+  return '<button class="p-btn ready-btn' + (main && hasInks(rec) ? ' p-btn-main' : '') + '" type="button" onclick="toggleReady(event,\'' + id + '\')">' + (main ? '&#10003; ' : '') + 'Mark ready</button>';
 }
 // mode: 'inplace' (opens below itself) · 'list' (left pane) · 'detail' (right pane head)
 // v101: list / in-place cards are the shared ~96px card; the right pane's head is the shared job header.
@@ -1866,7 +1868,7 @@ function toggleDetail(id) {
   body.hidden = false;
   card.classList.add('is-open');
   var hh = card.querySelector('.p-lc-head'); if (hh) hh.setAttribute('aria-expanded', 'true');
-  var rb = card.querySelector('.ready-btn:not(.p-btn-dark)'); if (rb) rb.classList.add('p-btn-main');   // the open job's Mark ready is the yellow one
+  var rb = card.querySelector('.ready-btn:not(.p-btn-dark)'); if (rb) rb.classList.toggle('p-btn-main', hasInks(findRec(id) || { fields: {} }));   // the open job's Mark ready is the yellow one (v105: once it has inks)
   renderDetail(id, $('detail-' + id));
   var now = card.getBoundingClientRect().top;
   if (now !== top) window.scrollBy(0, now - top);
@@ -1876,6 +1878,12 @@ function toggleDetail(id) {
 // v95: show/hide the buttons that only make sense when the job has inks
 function syncInkButtons(id, n) {
   ['print-all-btn-', 'copy-inks-btn-'].forEach(function(p) { var b = $(p + id); if (b) b.hidden = !n; });
+  // v105: one yellow button — + Add ink while the job has no inks, then the open job's Mark ready
+  var ab = $('add-ink-btn-' + id); if (ab) ab.classList.toggle('p-btn-main', !n);
+  document.querySelectorAll('[data-head="' + id + '"] .ready-btn:not(.p-btn-dark)').forEach(function(b) {
+    var head = b.closest('[data-head]');
+    if (head.getAttribute('data-mode') === 'detail' || openDetailId === id) b.classList.toggle('p-btn-main', !!n);
+  });
   var hdr = $('inks-hdr-lbl-' + id); if (hdr) hdr.textContent = 'Inks (' + n + ')';
 }
 
@@ -1944,7 +1952,7 @@ function renderDetail(id, el) {
   h += '<button class="p-btn" type="button" id="print-all-btn-' + id + '" onclick="printAllLabels(' + q + ')" title="Print every ink label for this job"' + (inks.length ? '' : ' hidden') + '>&#127991;<span class="w"> All labels</span></button>';
   h += '<button class="p-btn" type="button" id="copy-inks-btn-' + id + '" onclick="copyInks(' + q + ')" title="Copy this location\'s colors"' + (inks.length ? '' : ' hidden') + '>Copy colors</button>';
   h += '<button class="p-btn" type="button" id="paste-inks-btn-' + id + '" onclick="pasteInks(' + q + ')" style="display:none"></button>';
-  h += '<button class="p-btn jd-add p-job-push" type="button" id="add-ink-btn-' + id + '" onclick="toggleAddInk(' + q + ')" aria-expanded="false">+ Add ink</button></div>';
+  h += '<button class="p-btn jd-add p-job-push' + (inks.length ? '' : ' p-btn-main') + '" type="button" id="add-ink-btn-' + id + '" onclick="toggleAddInk(' + q + ')" aria-expanded="false">+ Add ink</button></div>';
 
   // Seed notice — shown only if isRepeat and no location-matched prev (filled async)
   h += '<div id="seed-notice-' + id + '"></div>';
@@ -3293,10 +3301,48 @@ function onInkRecipeInput(impRecId, inkRecId, val) {
 function onPrintNotesInput(impRecId, val) {
   markDirty(impRecId);
   debounceSave('printnotes:' + impRecId, function() {
-    patchImprintField(impRecId, F.printNotes, val).catch(function(err) {
+    savePrintNotes(impRecId, val).catch(function(err) {
       console.warn('Print notes save failed', err);
     });
   });
+}
+
+// v105: Seps and Screens edit Print Notes too. Read the field first; if another app changed it since this job loaded,
+// keep their text (v104 sent the whole box and wiped a line Seps had added). One notes save per job at a time.
+var notesChain = {};
+function savePrintNotes(impRecId, val) {
+  var run = function() {
+    var rec = findRec(impRecId);
+    var base = rec ? (rec.fields[F.printNotes] || '') : '';   // as loaded / last saved here
+    beginSave(impRecId);
+    var read = (PRACTICE || !WRITES_ENABLED) ? Promise.resolve(base) :
+      api(TI + '/' + impRecId + '?returnFieldsByFieldId=true').then(function(r) { return (r && r.fields && r.fields[F.printNotes]) || ''; }, function() { return base; });
+    return read.then(function(cur) {
+      var m = mergePrintNotes(base, cur, val, 'Ink');
+      var p = patchImprintField(impRecId, F.printNotes, m.val);
+      endSave(impRecId, true);
+      return p.then(function() {
+        if (!m.merged) return;
+        var ta = $('pn-edit-' + impRecId);
+        if (ta && ta.value.indexOf(val) === 0) { ta.value = m.val + ta.value.slice(val.length); noteGrow(ta); }   // keep anything typed since
+        toast('Print notes were changed in another app — merged, check them', { alert: true, ms: 8000 });
+      });
+    });
+  };
+  var p = (notesChain[impRecId] || Promise.resolve()).then(run, run);
+  notesChain[impRecId] = p.catch(function() {});
+  return p;
+}
+// base = notes as loaded here, cur = notes in Airtable now, mine = the box. Returns { val, merged }.
+function mergePrintNotes(base, cur, mine, app) {
+  if (cur === base || cur === mine) return { val: mine, merged: false };
+  if (mine.indexOf(base) === 0) {   // only added to the end here: their text + the added lines
+    var add = mine.slice(base.length);
+    if (!add.trim()) return { val: cur, merged: false };
+    if (cur && !/\n$/.test(cur) && !/^\n/.test(add)) add = '\n' + add.replace(/^\s+/, '');
+    return { val: cur + add, merged: true };
+  }
+  return { val: cur + (cur ? '\n\n' : '') + app + ' version:\n' + mine, merged: true };   // rewritten on both sides: keep both
 }
 
 // v76: Ink Notes on the collapsed card — debounced PATCH to Imprints.Ink Notes.
@@ -3416,12 +3462,18 @@ function bumpInkUpdated(impRecId, inkRecId) {
 // v88: marking ready removes the card from the (not-ready) queue via re-render; counts refresh.
 // v95: marking the job you have open moves you on: in two panes the next job that needs ink shows on
 // the right; in place the job closes. A toast offers Undo.
-function toggleReady(e, id) {
+function toggleReady(e, id, sure) {
   if (e && e.stopPropagation) e.stopPropagation();
   var rec = findRec(id);
   if (!rec) return;
   var cur = rec.fields[F.inksReady] || false;
   var nxt = !cur;
+  // v105: no inks yet — ask before marking it ready
+  if (nxt && !sure && !hasInks(rec) && window.PineConfirm) {
+    PineConfirm.ask({ title: 'Mark ready with no inks?', body: (rec.fields[F.imprintId] || 'This job') + ' has no inks. Mark it ready anyway?', ok: 'Mark ready' })
+      .then(function(yes) { if (yes) toggleReady(null, id, true); });
+    return;
+  }
   var impId = rec.fields[F.imprintId] || '';
 
   var wide = isWide();

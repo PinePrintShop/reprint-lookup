@@ -517,7 +517,7 @@ body.p-app{font-family:var(--sans);font-size:14px;line-height:normal}   /* v112:
 <body class="p-app">
 <header class="p-bar">
   <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
-  <span class="p-bar-app">Purchasing</span><span class="p-bar-ver" id="verTag">v113</span>
+  <span class="p-bar-app">Purchasing</span><span class="p-bar-ver" id="verTag">v114</span>
   <span class="p-tag p-tag-wait" id="modeBadge" hidden>Practice</span>
   <nav class="p-bar-views" aria-label="Views"><button class="is-on" id="t-order" aria-selected="true" onclick="setTab('order')">Ordering</button><button id="t-inv" onclick="setTab('inv')">Invoice check <span class="p-count" id="inv-n"></span></button><button id="t-past" onclick="setTab('past')">Past orders</button><button id="t-rp" onclick="setTab('rp')">Reprints <span class="p-count" id="rp-n"></span></button></nav>
   <div class="p-bar-sp"><button class="p-barbtn" onclick="refreshAll()">↻ <span class="p-barbtn-word">Refresh</span></button><button class="p-barbtn p-barbtn-icon" id="gearBtn" aria-label="Settings" aria-expanded="false" aria-controls="gear" onclick="toggleGear()">⚙</button></div>
@@ -583,7 +583,7 @@ body.p-app{font-family:var(--sans);font-size:14px;line-height:normal}   /* v112:
    Carts per warehouse → PO (MMDDYY) + ✓ Ordered.  Plan: notes/purchasing-flow.md
    ?practice=1 = nothing is saved (every write is logged to the console instead).
    ============================================================ */
-var VERSION='v113';
+var VERSION='v114';
 var WRITES_ENABLED = !/[?&]practice=1/.test(location.search);
 var BASE='appJkaLk8DykjsgHR', T_LI='tblJx5UlwO7oMSk5H', T_SUP='tbldewW9XDeW7Yruf', T_GAR='tblukWGm0CIelookM', T_IMP='tbln9oAGvz2PNBZLV';
 var PROXY='https://pine-workers.stephen-dab.workers.dev/proxy';
