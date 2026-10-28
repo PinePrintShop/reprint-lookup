@@ -75,3 +75,15 @@ For Sep Maker v41's "Save as 11075-A" on a reprint's old sep.
 - `/proxy/version` → 32.
 - Tested in Node with a mocked Google: 17/17 (the v31 checks plus copy / other drive / no name / folder).
 - **Stephen deploys it:** worker-copy.html → Copy worker v32 → paste into Cloudflare → Deploy.
+
+## 2026-10-28 · v33: signed PandaDoc packets back into Airtable
+- **New `GET /proxy/pandadoc/sweep`** (Airtable token, `?dry=1` only reports).
+  - Lists PandaDoc's completed documents from the last 45 days and matches each to its order by the number in its name. [DEV] documents are ignored.
+  - For orders not finished, it writes PandaDoc ID, Signed At and Signed Packet with the caller's token. A newer completed document replaces an older one.
+- **New `GET /proxy/pandadoc/signed/<id>?exp=&sig=`** serves the completed PDF, so Airtable can fetch it.
+  - It needs no token. The link is HMAC-signed with a key derived from PANDADOC_KEY and expires in 2 days.
+  - Only completed documents are served.
+- **`scheduled()`** runs the same sweep on a Cron Trigger, but only if the `AIRTABLE_WRITE_TOKEN` secret is set.
+- `/proxy/version` → 33.
+- Tested in Node with a mocked PandaDoc and Airtable: 13/13.
+- **Stephen deploys it:** worker-copy.html → Copy worker v33 → paste into Cloudflare → Deploy. Optional cron and write token: see pandadoc.md.

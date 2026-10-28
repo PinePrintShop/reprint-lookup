@@ -690,3 +690,9 @@ Right after v41's downloads, Stephen: "can we also have an upload feature in the
   - no upload on "From last time"
   - one yellow button, nothing under 12px, 390 phone with no sideways scroll, no console errors
 - **Earlier suites on v42:** v34 103/103; v41 13/13; v39 with rows open 78/79 (only its "shows v39" check).
+
+## 2026-10-28 · v43: the page list for signed packets
+For signed PandaDocs back into Airtable (pandadoc.md).
+- **Send for signature** also saves PandaDoc Pages on the order: which packet page is which proof page of which line(s), and where the customer initials. A proof file shared by several lines lists all of them.
+- **On load**, pine-signed.js stores new signed packets and checks them. A toast says how many were saved, and how many signed mockups don't match the proof in Airtable (see Signed Check on the line).
+- Send test: the same writes as v42, plus PandaDoc Pages and the sweep call.
