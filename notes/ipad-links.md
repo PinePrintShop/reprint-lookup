@@ -15,18 +15,18 @@
 
 | App | Permanent link | Opens now |
 |---|---|---|
-| Operator | `pine-operator.html` | v133 |
-| Catching | `pine-catching.html` | v169 |
+| Operator | `pine-operator.html` | v134 |
+| Catching | `pine-catching.html` | v170 |
 | Damage Log | `damage-log.html` | v23 |
-| Ink Queue | `pine-ink-queue.html` | v104 |
-| Purchasing | `pine-purchasing.html` | v113 |
-| Receiving | `receiving.html` | receiving-dashboard v83 |
+| Ink Queue | `pine-ink-queue.html` | v105 |
+| Purchasing | `pine-purchasing.html` | v114 |
+| Receiving | `receiving.html` | receiving-dashboard v84 |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
 | Production Board | `pine-production-board.html` | v48 |
 | Seps | `seps.html` | v50 |
-| Screens | `screens.html` | v33 |
+| Screens | `screens.html` | v34 |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v27 |
+| Schedule | `pine-schedule.html` | v28 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v118 |
 | Line Item Review | `pine-line-item-review.html` | v45 |
@@ -34,7 +34,7 @@
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
-| Sep Maker (desktop, art dept) | `sep-maker.html` | v52 |
+| Sep Maker (desktop, art dept) | `sep-maker.html` | v53 |
 | Mockup Maker (desktop, art dept) | `mockup.html` | v95 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 

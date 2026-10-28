@@ -324,3 +324,14 @@ The ink room's list of which inks to mix for upcoming jobs. Used on a desktop sc
 **Why:** Stephen's top-bar review of the first apps in the new brand colors. The brand uses no emoji on buttons.
 - The filter row's "🏷 Print a label" button is now plain "Print a label" ("Label" on narrow screens, as before). Nothing else changed.
 - **Tested:** the v103 write-compare passes against v104 (16 = 16, identical; practice 0 writes). At 1440 and 390 there are no console errors and practice mode makes 0 writes.
+
+## 2026-10-28 · v105: print notes keep other apps' lines; + Add ink is yellow on a job with no inks
+**Why:** Stephen: "Do the 5 bugs first".
+- **Print notes lost-update bug:** Print Notes (`fldNuEzGIYI8FWqXu`) is edited in Seps, Screens and Ink. v104 sent the whole box, so a line Seps added while Ink had the job open was wiped. Each save now reads the imprint's Print Notes first (one GET):
+  - nobody else changed it: saved as before (one PATCH with the box's text)
+  - someone else changed it and you only added to the end: their text plus your added lines
+  - someone else changed it and you rewrote it: their text, then "Ink version:" and yours. Nothing is silently overwritten.
+  - after a merge the box shows the saved text and a toast says "Print notes were changed in another app — merged, check them".
+  - notes saves for one job now run one at a time, so fast typing can't race itself. Practice mode: no read, no write.
+- **Yellow button on a job with no inks:** v104 made "✓ Mark ready" yellow even with nothing to mix. Now, while a job has no inks, **+ Add ink** is the yellow button and Mark ready is plain. Marking a job with no inks ready asks first ("Mark ready with no inks?", pine-confirm.js). As soon as an ink is added, Mark ready is the yellow button again. Still one yellow button per screen.
+- **Tested** (Playwright, mocked Airtable, 1440×900 two panes and 820×1180 in place), 15 checks passed: the four print-notes cases (plain, both appended, both rewrote, practice = 0 writes); 0 inks → only + Add ink yellow; Mark ready asks, Cancel writes nothing, OK writes Inks Ready once; with inks → Mark ready is the one yellow button and writes without asking; in place, adding an ink turns Mark ready yellow. No page errors.

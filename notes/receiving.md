@@ -281,3 +281,9 @@ Stephen: "review ... the first ones that we did with the new brand colors to mak
 - **Receive buttons stay where Stephen asked:** "I like the recieve all button on the top of the page". The open line's Receive is still top right (checked).
 - Nothing else changed: the same reads, writes, Undo and practice.
 - **Tested** (Playwright, mocked Airtable). The v82 tests pass on v83: garments 73/74, promo 70/70, filters, link, patch, and payloads (8 the same as v78). The one failure is "10a Receive sits in the row under the count boxes". It also fails on v82, because it is a v77 check that v78 undid on purpose (Receive is back on top). At 1440, 1280 and 390 there are no console errors and practice makes 0 writes.
+
+## 2026-10-28 · v84: no browser pop-up in the box-label window
+Stephen: "Do the 5 bugs first".
+- In the box-label window, "✕ Remove Box" on the only box showed a browser `alert()`. It now shows a short black note at the bottom of that window ("This is the only box — it can't be removed."). It goes after 4 seconds and is hidden when printing. The note lives in the label window itself (where the click was), not the main page.
+- No other `alert/prompt/confirm` left in Receiving. Reads, writes and practice unchanged.
+- **Tested** (Playwright, mocked Airtable, practice): order with 3 boxes → remove down to 1 → Remove again shows the note, the box stays, no native dialog (the test fails on any), the note is hidden in print media and fades; add + remove still work; 0 writes.

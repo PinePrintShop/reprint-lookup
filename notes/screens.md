@@ -189,3 +189,14 @@ Stephen's case: a reorder whose back print changed in PandaDoc, but whose imprin
 Stephen: "why would Screens get this pandadoc flag....we really just need it to be able to update the proof line per line item so that Operator and QC see it...and it would be great to also have that in the Sep app as well because they are the ones that first push a reorder and an update through".
 - v32's signed tags, signed block and two-tap Imaged are gone; v33 is v31 with a new version number.
 - The plan instead: the signed page becomes the line's proof, so Screens, Operator and Catching show it with no app changes, and the "signed ≠ proof / reorder" check goes into Seps. See pandadoc.md.
+
+## 2026-10-28 · v34: print notes no longer wipe another app's lines
+Stephen: "Do the 5 bugs first".
+- **The bug:** Print Notes (`fldNuEzGIYI8FWqXu`) is edited in Seps, Screens and Ink. v33 sent the whole box as it was when the job loaded, so a line Seps added while Screens was open was wiped on save.
+- **Now** each save first reads the imprint's Print Notes (one GET), then:
+  - nobody else changed it: saved as before (one PATCH with the box's text)
+  - someone else changed it and you only added to the end: their text plus your added lines
+  - someone else changed it and you rewrote it: their text, then "Screens version:" and yours. Nothing is silently overwritten.
+  - after a merge the box shows the saved text and a toast says "Print notes were changed in another app — merged, check them".
+- Practice mode: no read, no write (as before).
+- **Tested** (Playwright, mocked Airtable, 1440×900), 8 checks passed: plain save = one PATCH with the box; Seps line added meanwhile + Screens line added = both kept; both rewrote = both kept with "Screens version:"; the next save after a merge is plain; practice sends 0 writes. No page errors.
