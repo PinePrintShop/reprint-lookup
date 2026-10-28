@@ -526,3 +526,16 @@ From the scheduling department: "see at the bottom it has quantity, screens and 
 - Calendar cards' bottom line: qty · screens · **location** · due (e.g. "50 · 3 scr · Left Sleeve · due Oct 30"); it wraps to a second line instead of cutting off on narrow week columns. On Day view the second line is just the job name now (the location moved up).
 - **⏰** starts that line on a Hard Deadline job (it always shows, even on narrow cards).
 - Open card › Due: a red **⏰ HARD DEADLINE** box next to the "N workdays before due" box (ASAP etc. still read as text).
+
+## 2026-10-28 · v28: times past midnight read correctly
+Stephen: "Do the 5 bugs first". Code review: "jobs that run past midnight show 5:00p–13:00p".
+- **Bug:** `hm()` (minutes since midnight → shop clock time) only took 12 off once. A job from 5:00 pm with 8 h showed "5:00p–13:00p", and midnight showed as "12:00p".
+- **Fix:** `hm()` wraps the 24-hour day and keeps the app's style:
+  - Mornings stay plain ("8:30").
+  - Afternoons get "p" ("5:00p", "12:30p").
+  - Past midnight (the next day) gets "a" ("12:00a", "12:30a", "1:00a"). The late run now reads "5:00p–1:00a".
+  - Minutes are rounded first, so an end time never shows a fraction.
+- `hm()`/`hmr()` are the only time formatters, so the fix covers every place a time shows: cards, the side list, the job pop-up, the % pop-up, Group by ink, the Undo label and "Runs to 1:00a, past 5:15p".
+- **Past close:** v22 already warns ("! Runs to …, past 5:15p" under the fill bar, and in the % pop-up). Nothing new was added; it now shows the right time.
+- Also fixed: the on-screen version fallback still said 26.
+- **Tested** (mocked Airtable, `?practice=1`, Chromium 1440×900): `hm` 510 → 8:30, 720 → 12:00p, 750 → 12:30p, 1020 → 5:00p, 1440 → 12:00a, 1500 → 1:00a, 1800 → 6:00a. A job at 5:00 pm with 8 h shows "5:00p–1:00a" on Day view and "Runs to 1:00a, past 5:15p". The Day and Week views show no "13:00p" or later. No writes were sent in practice mode and there were no page errors.
