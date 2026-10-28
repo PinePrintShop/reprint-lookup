@@ -1004,3 +1004,17 @@ Tested with Playwright and mocked Airtable/Drive, on the 11097 sep, a Sep Maker 
 **Fix:** the canvas is now as tall as the garment needs, plus the side name and the 1″ ruler (520–1000). At 1366×768 a wide tee went from 316×322 px on screen to 405×356 px and fills the picture's height. Photos with no garment box, bandanas and sleeves are unchanged.
 
 Tested with Playwright and mocked Airtable/Drive, plus the v70–v73 suites.
+
+## 2026-10-28 · v75: bigger garments on the proof
+**Why (Stephen):** "the tees in the mockup up section are now larger....but the proofs are still small?"
+
+**Cause:** on the proof, front and back sit side by side, so a wide tee (LA Apparel 1801GD is wider than tall) runs out of width long before it uses the height.
+
+**Fix**
+- When a garment is width-limited, front and back overlap by up to 30%, with the front on top, and grow toward the full height. Each garment is cut out of its photo's plain background so the overlap is clean.
+- The garment area also runs a little wider (3.2–10.75″ instead of 3.3–10.65″).
+- On a wide tee the garments came out about 25% bigger.
+- **Overlap front & back** in the proof bar turns it off. It only shows when it makes a difference.
+- The size and placement info blocks stay in their columns.
+
+Tested with Playwright and mocked Airtable/Drive, plus the v70–v74 suites.
