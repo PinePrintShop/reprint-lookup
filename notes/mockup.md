@@ -1086,3 +1086,21 @@ Tested with Playwright on the file (kept out of the repo): pieces, spec line, pi
 - Bandanas and hats/bags keep centre to centre, since their prints are placed by their middle.
 
 Tested with Playwright and mocked Airtable/Drive: typing 2.5 stores 4.375 (3.75″ print), the proof line shows 2.5, and 0 centres. The v70–v77 suites pass.
+
+## 2026-10-28 — v79: name, colour and fabric from the vendor
+Stephen: "can we also check that the naming and fabric content are pulled from the vendor and compared against Airtable and will it still update Airtable if Airtable doesn't match the vendor description" … "looks like blossom pulled from the vendor and pepper from Airtable" … "but it should all be from the vendor and then have the option to update airtable with the vendor info".
+
+- Before: the proof printed the Garments record as it was. Both 11099 proofs came from Airtable. The 6014 records disagree: about half say "100% Cotton" (Pepper) and half have the S&S line pasted in (Blossom, created 2026-10-28). Nothing was compared or written.
+- Now every garment is looked up at its vendor: S&S, then SanMar (AS Colour first for AS Colour).
+  - The lookup reads the brand, the style, the vendor's spelling of the colour and the fabric line (the description line with the fibre content).
+  - The vendor's spelling of the colour is matched exactly first. Failing that it takes a near miss (Washed Demin → Washed Denim), then a single partial match (Lagoon Blue → Lagoon).
+  - A colour with its own blend gets that blend with the style's weight. Examples: SanMar "98/2 cotton/poly (Ash)" gives PC54 Ash "5.4-ounce, 98/2 cotton/poly"; S&S "Heather colors are 52/48 …".
+  - The proof uses the vendor's values. The brand stays Airtable's when it's the same brand spelled out (SanMar "Port & Co").
+- Under the garment summary, one of these shows:
+  - "✓ Name, colour and fabric match S&S".
+  - Each difference (Airtable crossed out → vendor), with a tick box and "Update Airtable to match S&S". That PATCHes only the ticked text fields (Colour, Fabric Content, and Product Number if ticked) on that Garments record. Nothing is written on its own.
+  - The style number is unticked by default, since other apps look garments up by it.
+  - Brand is a pick list, so a different brand is only flagged.
+  - Practice mode fakes the write.
+- SanMar's productinfo answer is about 3 MB, so it's now fetched once per style and shared by the photos and the check.
+- Tested with live S&S/SanMar answers and mocked Airtable: 6014 Pepper (fabric differs), 6014 Washed Demin (colour spelling) and PC54 Ash (own blend). The update writes one PATCH with just the fabric, and practice writes nothing. No automations watch the Garments table.
