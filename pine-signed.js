@@ -22,6 +22,9 @@
   const DONE=['Shipped','Completed','Cancelled / Voided','Partially Completed'];
   const LIB={pdflib:'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',pdfjs:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',pdfjsWorker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'};
   const CHECK_PAUSED=true;
+  // 2026-10-28: the sweep is paused too. PandaDoc's downloads kept failing (too many at once), so every run emptied and
+  // re-wrote Signed Packets. Back on when the worker takes signed PDFs from the Pipedrive Drive folders instead.
+  const SWEEP_PAUSED=true;
   const SWEEP_MS=10*60*1000, MAX_ORDERS=4, MATCH=0.025;   // MATCH: how much of any one patch of the page may differ and it is still the same mockup (2.5%)
   // where the customer initials: the APPROVED box, bottom left on Pine's proof template (left/top/right/bottom, 0–1 of the page)
   const APPROVED_BOX=[[0,0.8,0.36,1],[0,0.97,1,1]];   // + a footer strip (a signing stamp)
@@ -127,7 +130,7 @@
     const api=mk(token), out={ok:true,swept:null,orders:[]};
     // 1. new signed packets onto their orders (the worker; at most every 10 minutes from this browser)
     let last=0; try{ last=+localStorage.getItem('pine_signed_sweep')||0; }catch(e){}
-    if(opt.force||Date.now()-last>SWEEP_MS){ try{ const r=await fetch(`${WORKER}/pandadoc/sweep${opt.practice?'?dry=1':''}`,{headers:{Authorization:'Bearer '+token}}); out.swept=await r.json();
+    if(!SWEEP_PAUSED&&(opt.force||Date.now()-last>SWEEP_MS)){ try{ const r=await fetch(`${WORKER}/pandadoc/sweep${opt.practice?'?dry=1':''}`,{headers:{Authorization:'Bearer '+token}}); out.swept=await r.json();
         if(r.ok) try{ localStorage.setItem('pine_signed_sweep',String(Date.now())); }catch(e){} }catch(e){ out.swept={ok:false,error:e.message}; } }
     // 2026-10-28: paused. The worker's PDFs came back with PandaDoc's demo watermark and without the customer's initials,
     // so every page read as "changed" (11045, 11068). Back on once the worker stores the real signed PDF.

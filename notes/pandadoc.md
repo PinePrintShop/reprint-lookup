@@ -136,3 +136,12 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
 - **Next:** once v36 is live, look at 11045's new Signed Packet.
   - If it has the initials and no watermark, tune the check on real pages, then switch it back on.
   - If the watermark is still there, it comes from the PandaDoc API key or plan, not the download type.
+
+## 2026-10-28 (evening) · Sweep paused; next source is the Pipedrive Drive folders
+- **Found:** after v37 went live (21:51 UTC) the sweep kept re-writing Signed Packets. PandaDoc refused some downloads (too many at once), so Airtable ended up with an empty Signed Packet: 18 orders were empty at 22:50, including 11045, which had its file at 21:58. That's about 40 PandaDoc downloads an hour, for nothing.
+- **Paused:** `pine-signed.js` no longer asks the worker for the sweep (`SWEEP_PAUSED`), and the checks stay paused (`CHECK_PAUSED`). Stephen removes the worker's 15-minute Cron Trigger (Cloudflare → pine-workers → Settings → Triggers).
+- **Safe for current flows:** only the new fields are written (Signed Packet, PandaDoc ID, Signed At on Orders; Signed Proof / Signed Check on Line Items, never written while paused). No app shown on the floor reads them (Screens v33 doesn't; LIR v45 only shows a toast). No Airtable automation watches them (checked the recordUpdated automations: Orders watches Order Status, the address fields, Refund Request At and a scheduled-imprint field only).
+- **Next (Monday):** worker v38 takes the signed PDF from Pipedrive's Google Drive folders instead of downloading from PandaDoc: no watermark, no API calls.
+  - Patrick's login (hello@): "Pipedrive (Pine Printshop)" `1UPMct3fRUQky2AjZZxlbyrAaPPGs4o79`. Each signed PandaDoc lands there seconds after signing, as "11045 | Color Coffee Roasters.pdf".
+  - Chris's login (sales@): Pipedrive's Drive sync had an authentication error; Stephen is having Chris reconnect it and turn on "Store Pipedrive files in a separate folder".
+  - Both folders get shared (Viewer) with the worker's service account.
