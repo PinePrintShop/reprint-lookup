@@ -93,3 +93,13 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
 - `scheduled()` now uses `AIRTABLE_WRITE_TOKEN` if it's set, otherwise the existing `AIRTABLE_TOKEN`. If that token can only read, Airtable refuses the write and the worker logs it; nothing else breaks.
 - The check runs only once a Cron Trigger is added in Cloudflare (Workers → pine-workers → Settings → Triggers → Cron Triggers → `*/15 * * * *`). Code pasted into the editor can't set the schedule.
 - Tested in Node: 14/14 (v33's checks, plus: the cron runs with only AIRTABLE_TOKEN, and does nothing with no token at all).
+
+## 2026-10-28 · v35: a signed packet that didn't arrive is tried again
+- **What happened on v34's first runs:** 84 orders got a PandaDoc ID, but some have no Signed Packet file. Airtable's fetch of the PDF probably failed: PandaDoc turns away bursts, and 84 came at once.
+- **Bug:** v33/v34 counted "PandaDoc ID set" as done, so those orders were never tried again.
+- **Fix:**
+  - An order now counts as done only when it has both the ID and the file.
+  - At most 10 packets are stored per run; the rest go in the next 15-minute run.
+  - A PandaDoc 429 on the signed link now answers 503 + Retry-After.
+- `/proxy/version` → 35.
+- Tested in Node: 15/15 (ID without a file = stored again; ID with a file = unchanged; 14 waiting = 10 now, 4 next run).
