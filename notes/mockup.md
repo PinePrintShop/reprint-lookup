@@ -932,3 +932,6 @@ Stephen, on 11095 (one imprint, 11095-A Bandana, on two bandana colours, with In
 
 ## 2026-10-28 · v69: WHT DC reads WHT DC, not BASE
 Stephen, on 11095's white bandana: "when it is white the proof says base instead of white dc". v65 counted WHT DC with the underbases, so a discharge white went into the BASE chip. WHT DC is the white discharge ink — a colour; only underbases (1/4 BB, 1/2 BB, FULL BB, EZ WHT) read BASE. WHT DC is offered in the ink search again (with a white starting colour), at the top as the shop's most-printed ink.
+
+## 2026-10-28 · v70: preview an art file before opening it
+Stephen: "is there a way to preview art files before loading them? in the mockup creator". Each art tile in Customer's files has a 🔍 (under the ⬇): it shows Drive's preview big, with the file type, size and date; ‹ › (or the arrow keys) step through the other art in the folder; **Use this art** (the one yellow button) opens it, Close / Esc doesn't load anything. Nothing is downloaded until you choose it. Files Drive has no preview for say so. (The preview is Drive's 400 px picture — enough to tell files apart.)
