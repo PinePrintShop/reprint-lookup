@@ -1052,3 +1052,23 @@ Tested with Playwright and mocked Airtable/Drive, plus the v70–v74 suites.
 **Kept on purpose:** our blue note says the print *is* shown to scale, because it is in this app. The template says "sizing is not to scale". Bandana proofs and the per-garment close-up pages are unchanged.
 
 Tested with Playwright and mocked Airtable/Drive: page renders compared side by side with the template, PDF page sizes 11×8.5 + 11×11 ×2, and the v70–v75 suites.
+
+## 2026-10-28 · v77: pull one piece out of a tech pack
+**Why (Stephen, with SKI_TEE_TECKPACK.ai):** "let's also explore how to handle files like this".
+
+**The file:** 3 artboards, each a big sheet (35–37″ wide):
+- the HUCK front art with red dimension marks and the line "FRONT GRAPHIC SIZE 3.75”W X 2.6”H", next to the C6014 front schematic;
+- the back art with its own marks and schematic;
+- the colourway grid with ink swatches.
+
+**What changed** (in the shared `pine-ai-parts.js`, used when the app asks for it):
+- The picker outlines each separate piece on the artboard (ink with clear space round it), numbered. Tap one to open just that piece, or drag a box round any part. **Whole artboard** goes back.
+- Only that part is drawn, at the artboard's real size and full resolution.
+- A size line on the artboard is read and shown ("From the tech pack: FRONT GRAPHIC SIZE 3.75″ × 2.6″"). When the piece has that shape, it sets the print width.
+- **Leave out the measurement marks** (on when the artboard has a size line) clears the strong red and cyan the marks are drawn in. Untick it if the art itself is that red.
+- One huge artboard on its own (over 26″) opens the picker too.
+- Older app versions using the shared file are unchanged: the pieces only appear when the app asks for them.
+
+**Result on the ski tech pack:** artboard 1 → piece 2 opens as HUCK alone, one green ink (375), 3.75″ wide.
+
+Tested with Playwright on the file (kept out of the repo): pieces, spec line, piece open, width, drag a box, Whole artboard. The Sanpo .ai picker tests were re-run on this version too.
