@@ -936,3 +936,20 @@ WHT DC is the white discharge ink, not a base (as Mockup Maker v69): it's in the
 - ‹ › step through the art in the list. **Use this art** opens it. Esc closes.
 
 Tested with Playwright and mocked Airtable/Drive at desktop, laptop (1366×768), iPad and phone. The v48 black-split, ink-role and audit suites were re-run on v49.
+
+## 2026-10-28 · v50: a separated .psd opens as its screens; Split is a tick box
+**Why (Stephen):** "if I make a sep in the app and drop it into the maker will it be able to use the .psd channels that it creates instead of trying to guess again" ("please build away"). On v49: "that solid blend tool just opens and you can't close it" and "I want splitting colors to be an option and it looks like it just does it".
+
+**Screens from the file**
+- A .psd with spot channels opens with each channel as a screen, as saved. This covers Sep Maker's own -SEPS.psd and seps saved in Photoshop. Nothing is separated again.
+- Each screen keeps its name, mesh (158M-BB → base on 158; no mesh in the name → 230, or 158 for BB/EZ), ink colour (from the channel's colour record) and order.
+- "3 · Screens from the file" lists them, and the Inks and Bases sections step aside. "Drop the background" and its warning are hidden, since they don't apply.
+- Rename, mesh, print order, hide, halftone preview, the slider and every export work as before. A different print width resizes the channels.
+- **Separate the art again** goes back to separating the picture. **Use the file's screens** returns to the channels.
+- Round trip tested: Sim on navy → export .psd → open it. The same 7 screens come back in the same order, size and colours, with identical ink (mean difference 0.00).
+
+**Split solid / halftone**
+- It's now a tick box on a dark ink's row. Ticking it makes two screens and opens the settings.
+- **Done** folds the settings away and **Settings** brings them back. Unticking makes one screen again (it was the "Merge back" button).
+
+Tested with Playwright and mocked Airtable/Drive: round trip 16/16, split 39/39, roles 11/11, audit 29/29, slider 62/62, preview 18/18.
