@@ -1149,3 +1149,14 @@ Stephen: "the center line needs to be more subtle and show up also on the proof 
 - On screen it has a small grey "center" label; the black/white bar label is gone.
 - With Center line on, it's also drawn on the proof (page 1 and the Colorways page), with no label.
 - Checked on a mock: screen and proof page 1.
+
+## 2026-10-28 — v86: gentler off-center, and the art's visual center
+Stephen, with a Sanpo back print at −0.25 "Center to print edge" pushed well off the middle: "these moves look extreme....is there a way to have it find the visual center and the true center?"
+- **Cause:** v78 measured every garment print from the center line to the print's nearest edge. On a 13″ back print, the first ¼″ step jumped it half its width.
+- **Fix:** only chest prints (Left/Right Chest, Pocket) measure to the edge now. Front, back and everything else are "Off center (in)" again, center to center, in ¼″ steps.
+- **Visual center:** the balance point of the art's ink. Every printed pixel counts by how solid it is, measured on a copy at most 400 px wide, and the result is kept for each file.
+  - Under the placement, front/back prints get **True center** (the art's middle on the center line) and **Visual center** (its balance point on the center line).
+  - Visual center also adds the "Visual center" note to the proof, which can be removed with ✕.
+  - A hint says how far apart the two are, e.g. "The ink's balance point is 0.4″ left of the art's middle".
+  - With Center line on, the picked print shows its visual center as a faint dotted line.
+- Checked on a mock: back print Off center, hint 0.4″, Visual center sets dx 0.4375 and adds the note; a left chest keeps "Center to print edge" and has no buttons.
