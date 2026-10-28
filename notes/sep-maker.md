@@ -920,3 +920,19 @@ WHT DC is the white discharge ink, not a base (as Mockup Maker v69): it's in the
 - **Bases follow "On base"** (Stephen: "having an issue with adding bases as well and not showing up under colors I have selected as OW" · "we usually always do 2 bases and like we have done before sometimes it will be the lightest color in the design"). Any colour set On base (OW) now turns on both bases on Auto — 1/2 BB and the EZ layer (the lightest colour in the design, as before) — on any shirt, bandanas included; the Bases summary, Auto text and shirt line say so. A name only gets OW when a base really prints. Sim makes the base with BB only, and keeps the white when there's no EZ.
 - **Fixes from a code audit:** names ending in C (WHT DC → WHTDC, not WHTDDC; 186 DC → 186DC; 107OW not 107OWOW; EZP White/Cream/Off White → EZWHT/EZCRM/EZOFFWHT); export file names say 45LPI only when a base screen is in the seps; eyedropper inks stay with their print; Export right after a change waits for it; "Use the proof's inks" also sets 107OW → On base and DC → discharge.
 - **Fits a laptop** (Stephen's screenshot): the art on screen is sized to the room left under the tabs and notes, so it no longer runs off the bottom.
+
+## 2026-10-28 · v49: before / after slider on On shirt; preview Drive files
+**Why (Stephen):** "can we also get a slider on the separation app for the whole fit view. so we can see what we are working on vs the original instead of having to toggle between the two tabs" and "can we also have the file preview in the separation maker as well".
+
+**Slider**
+- On shirt shows the original art (on the shirt colour, as on the Art tab) left of a line and the screens right of it. It starts in the middle, with small "Original" and "Screens" tags in the corners.
+- Drag the yellow handle, or press anywhere on the picture to jump the line there. ← → step it 5% when the handle has focus.
+- It stays lined up at Fit, 1:1, 4× and 8×, and when the window resizes. A shirt colour change redraws both sides.
+- **Compare** (next to Halftone and zoom) turns it off. Only On shirt has it; Screens, Separations and Art don't.
+- Preview only. Exports are unchanged.
+
+**Preview** (as Mockup Maker v70)
+- 🔍 on each Drive art tile, under ⬇, opens Drive's preview big without downloading anything.
+- ‹ › step through the art in the list. **Use this art** opens it. Esc closes.
+
+Tested with Playwright and mocked Airtable/Drive at desktop, laptop (1366×768), iPad and phone. The v48 black-split, ink-role and audit suites were re-run on v49.
