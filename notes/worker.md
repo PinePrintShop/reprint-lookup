@@ -87,3 +87,9 @@ For Sep Maker v41's "Save as 11075-A" on a reprint's old sep.
 - `/proxy/version` → 33.
 - Tested in Node with a mocked PandaDoc and Airtable: 13/13.
 - **Stephen deploys it:** worker-copy.html → Copy worker v33 → paste into Cloudflare → Deploy. Optional cron and write token: see pandadoc.md.
+
+## 2026-10-28 · v34: the 15-minute sweep uses the existing token
+Stephen: "We have that read and write to Pine base already in Cloudflare...so does this worker have that 15 min check".
+- `scheduled()` now uses `AIRTABLE_WRITE_TOKEN` if it's set, otherwise the existing `AIRTABLE_TOKEN`. If that token can only read, Airtable refuses the write and the worker logs it; nothing else breaks.
+- The check runs only once a Cron Trigger is added in Cloudflare (Workers → pine-workers → Settings → Triggers → Cron Triggers → `*/15 * * * *`). Code pasted into the editor can't set the schedule.
+- Tested in Node: 14/14 (v33's checks, plus: the cron runs with only AIRTABLE_TOKEN, and does nothing with no token at all).
