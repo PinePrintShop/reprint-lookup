@@ -986,3 +986,16 @@ Tested with Playwright and mocked Airtable/Drive on that file. The customer file
 **Result on the ski tech pack:** artboard 1 → piece 2 opens as HUCK alone, one green ink (375), 3.75″ wide.
 
 Tested with Playwright on the file (kept out of the repo): pieces, spec line, piece open, width, drag a box, Whole artboard. The Sanpo .ai picker tests were re-run on this version too.
+
+## 2026-10-28 · v53: garment photos looked up the way Mockup Maker does
+**Why:** Stephen: "Do the 5 bugs first". The review found Sep Maker's AS Colour code had drifted from Mockup Maker's, which fixed these lookups in v93–v95.
+
+**AS Colour**
+- **Every colour, not just page 1.** Variants come 250 to a page and the 5001 has 569, so Sep Maker only saw colours up to about Granite. `ascVariants()` now reads every page (cached per style).
+- **Back photos.** The variants have no back photo (`backImageUrl` doesn't exist). The back now comes from the style's images list ("ECRU - BACK").
+- **Fronts from the images list first.** Some variant fronts are stale links that 404 (5071 Ecru), and some colours have none (5071 Espresso, the faded 5082 colours). The images list entry named exactly like the colour comes first. The variant photo is only a fallback, and a near-match colour name is only used when nothing else is found. `ascImages()` is paged and cached per style.
+- AS Colour rate-limits hard, so both lists are fetched once per style and kept.
+
+**S&S:** the style is looked up by S&S's own style ID (`ssStyleId`, from Mockup Maker), with the brand in front when the bare number isn't found (OAD 108 → OAD108). Before, a bare style search missed these.
+
+**Tested** with Playwright, mocked Airtable and the real worker (8 AS Colour calls a run): 5001 Ecru and Natural, 5071 Ecru and Espresso, 5082 Faded Olive all get front and back, and every photo loads through /img. A made-up colour gives none. OAD 108 Natural and Gildan 5000 Black get S&S photos.
