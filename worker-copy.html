@@ -58,6 +58,7 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
+  33:{what:'Signed PandaDocs come back into Airtable: the completed PDF goes on its order (Signed Packet, PandaDoc ID, Signed At), so Line Item Review and Screens can check each line\'s signed mockup. Optional: a Cron Trigger (every 15 minutes) plus an AIRTABLE_WRITE_TOKEN secret makes it run on its own. Without them it runs whenever Line Item Review or Screens is opened.'},
   32:{what:'Sep Maker can copy a reprint\'s old sep file into the new order\'s Seps folder under the new number (Drive\'s own copy, any size). The old file is never changed.'},
   31:{what:'Tidy proofs in the order\'s Drive folder from Mockup Maker: move a file to another folder, or to Drive\'s trash (Undo puts it back; Drive keeps trash 30 days). Nothing is deleted for good. Also fixes Check it\'s live.'},
   30:{what:'Real AS Colour garment photos in Mockup Maker, and Drive files up to 200 MB (was 25 MB) so big Photoshop and Illustrator files open straight from Drive.',

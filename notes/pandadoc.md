@@ -83,3 +83,46 @@
 - **Assets:** `assets/pandadoc-terms-v1.pdf` (the Terms page from 10955 with 5 hidden initials tags) and `assets/pine-invoice-logo.png`.
 
 **2026-10-08:** worker v17 deployed. Verified the deployed code matches `workers/pine-workers-v17.js` (only difference: the trailing newline). Same day: **Production key** in `PANDADOC_KEY`, so sends are live ($2 each). The sandbox test page now also makes real, billed documents; use Line Item Review instead.
+
+## 2026-10-28 · Signed packets back into Airtable
+Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtable so we can use the actual signed mockups?" and the case behind it: "Client puts in a reorder we assign all the imprint ids to the reorder imprint ids...client changes back print. Sales forgets to update imprint id but an update is made to the PandaDoc mockup..so client signs the new one...but we still have the old reference in Airtable to screens burns the reorder screens instead of the updated Mockup". Backfill: "the last 2 weeks or really any order that is in production or pending just nothing that is completed".
+
+**New Airtable fields** (Stephen: "Yes add away"):
+- On Orders:
+  - Signed Packet `fldSwLl9yIMSXcT0Y`
+  - PandaDoc ID `fldfQJ8QwtNXxGPE5`
+  - Signed At `fld2h7L1aqDHPfcQM`
+  - PandaDoc Pages `fldlumFLBJi3WrfUS`
+- On Line Items:
+  - Signed Proof `fldYeu8XZgBNSQ3N6`
+  - Signed Check `fldzHcS22EcdZ3xwN`
+- No automations watch any of them.
+
+**How it works:**
+1. **Worker v33** `/proxy/pandadoc/sweep` (see worker.md) puts each completed PandaDoc on its order.
+   - It matches the order by the number in the document name, the same match the QuickBooks zap uses.
+   - Orders that are Shipped, Completed, Cancelled or Partially Completed are skipped.
+   - The PDF reaches Airtable through a signed link that expires after 2 days.
+2. **Line Item Review v43** writes PandaDoc Pages when it sends a packet. That records which page is which line's proof (every line that shares that proof file), plus where the customer initials, so that spot is left out of the comparison.
+3. **pine-signed.js** runs in Line Item Review and Screens when they load.
+   - It asks for the sweep at most every 10 minutes per computer.
+   - For each signed order not yet checked, it finds each line's page(s): from PandaDoc Pages, or for a packet built by hand, by matching the signed pages to the line's proof.
+   - It compares each signed page with the proof in Airtable. Pictures are rendered at 720 px, and the most-changed 16×16 patch must stay under 2.5%. A changed print or an 11 pt text change is caught; an identical page with the customer's initials passes.
+   - It saves the page(s) as Signed Proof and writes Signed Check: "OK · …" or "CHECK · …".
+   - When an imprint on the line is a reorder, it adds "Reorder of 10977-B: compare the signed mockup with the previous run before reusing its screens".
+   - A newer signed document on the same order is checked again.
+4. **Screens v32** tags imprints "✓ Signed" or red "Check signed mockup".
+   - The open imprint shows the signed mockup, the reason, and on a reorder the signed mockup and ↩ Previous run side by side.
+   - ✓ Imaged on a CHECK asks once more before writing.
+
+**Tests (mocked):**
+- Worker: 13/13 (dry run, newest document per order, [DEV] ignored, already stored = unchanged, signed link served without a token, tampered, swapped or expired links refused, the cron needs the write token).
+- pine-signed.js: a page-listed packet with three lines (OK, shared proof page to two lines), and a hand-built packet where the back was changed in PandaDoc on a reorder (CHECK + reorder note). Practice mode writes nothing.
+- Line Item Review v43 send: the same writes as v42 plus PandaDoc Pages.
+- Screens v32: tags, the signed block, and the two-tap Imaged.
+
+**Not tested on real data:** Airtable attachments and PandaDoc can't be reached from here. The first real signed packets will show whether 2.5% is the right threshold.
+
+**Stephen to do:**
+1. Deploy worker v33 (worker-copy.html → Copy worker v33 → paste into Cloudflare → Deploy).
+2. Optional, so it runs on its own: in Cloudflare, Workers → pine-workers → Settings → Triggers → add a Cron Trigger `*/15 * * * *`. Then add a secret `AIRTABLE_WRITE_TOKEN`: a personal access token with data.records:read and data.records:write on the Pine base only.

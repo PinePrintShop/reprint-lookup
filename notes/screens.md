@@ -173,3 +173,14 @@ The screen room's queue: imprints that are sep'd and waiting to be imaged (burne
   - With Drive returning 503, the job and the viewer say so, and pasting and the plain link still work.
   - Imaged, Undo, the No sep file tab, search and the Calendar still work.
   - No page errors, no text under 12px, and no sideways scroll at 1024 or 390.
+
+## 2026-10-28 · v32: the signed mockup, and a check before reorder screens
+Stephen's case: a reorder whose back print changed in PandaDoc, but whose imprint still pointed at the old run's screens.
+- Each imprint reads its line items' Signed Proof and Signed Check (filled by pine-signed.js; see pandadoc.md).
+- **Card tags:** "✓ Signed", or red "Check signed mockup".
+- **The open imprint, "Signed by the customer":**
+  - the reason in red, on a CHECK;
+  - "Reorder of 10977-B: compare the signed mockup with the previous run before reusing its screens", on a reorder;
+  - **Signed mockup ↗** and **↩ Previous run** side by side.
+- **✓ Imaged** on a CHECK: the first tap explains and the button becomes "✓ Imaged anyway"; the second tap images.
+- Tested with mocks, live and practice.
