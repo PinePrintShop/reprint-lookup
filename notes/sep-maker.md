@@ -910,3 +910,6 @@ Stephen: "we can remove the PROOF in sep maker that isn't needed". The Proof tab
 
 ## 2026-10-27 · v46: the ink picker finds Pine's inks as you type
 Stephen (typing "cr" in the ink picker and getting 0 matches): "and we have the easy search in Seps as well right?". Same as Mockup Maker v65: Pine's named inks from Airtable › Inks (EZP Cream, EZP Off White, SOW Red Rum Red …, with their Display Hex or a starting colour) come first, then the Pantones; words in any order, part words, shop shorthand (crm, wht, cg8) and small typos match. New "Pine's inks" tab, most printed first; "Closest" now includes them. Bases aren't offered.
+
+## 2026-10-28 · v47: WHT DC in the ink picker
+WHT DC is the white discharge ink, not a base (as Mockup Maker v69): it's in the picker's Pine's inks again, first as the most printed, with a white starting colour.

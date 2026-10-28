@@ -929,3 +929,6 @@ Stephen (on mobile): "selected the .psd but nothing is showing up on the mockup"
 Stephen, on 11095 (one imprint, 11095-A Bandana, on two bandana colours, with Ink-for-NAVY.psd and Ink-for-KHAKI.psd): "I have a slight design change between two colorways but it keeps applying only one to the mockup for both bandana colors". Art was kept per imprint, so the last file opened went on every garment with that imprint.
 - Under the art, when the print is on 2+ garments: **Different art on <colour>**. Tick it on that garment, then open its file — only that garment uses it (mockup, Colorways, its proof page, its ink chips); the others keep the shared art. Untick to go back to the shared art.
 - The saved setup (pick up where you left off) keeps a garment's own art as its own.
+
+## 2026-10-28 · v69: WHT DC reads WHT DC, not BASE
+Stephen, on 11095's white bandana: "when it is white the proof says base instead of white dc". v65 counted WHT DC with the underbases, so a discharge white went into the BASE chip. WHT DC is the white discharge ink — a colour; only underbases (1/4 BB, 1/2 BB, FULL BB, EZ WHT) read BASE. WHT DC is offered in the ink search again (with a white starting colour), at the top as the shop's most-printed ink.
