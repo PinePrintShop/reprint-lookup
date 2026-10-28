@@ -1142,3 +1142,10 @@ Stephen: "can we add a visual center line that can toggle on and off...sometimes
 Stephen: "can we make it say Center ( USA right! )".
 - US spelling everywhere the app shows the word: the Center line button and its "true center" label, the Visual center note, Center (arrange pieces), "below/above center" and "of center" in the proof's placement text, "Down from center", "Center to print edge", "from center to edge" and the hints.
 - Internal names and the tech-pack text matching (which reads both spellings) are unchanged.
+
+## 2026-10-28 — v85: the center line, subtler and on the proof
+Stephen: "the center line needs to be more subtle and show up also on the proof for the client".
+- The line is now thin, faint and dashed: dark grey on light garments, faint white on dark ones (the app's dark-garment rule). It runs from just above the collar to the hem.
+- On screen it has a small grey "center" label; the black/white bar label is gone.
+- With Center line on, it's also drawn on the proof (page 1 and the Colorways page), with no label.
+- Checked on a mock: screen and proof page 1.
