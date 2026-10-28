@@ -1114,3 +1114,9 @@ Stephen: "I am getting this when a new line item is added and need to manually r
   - coming back to the tab after a minute away does the same;
   - Art to do opens a line the app hadn't seen yet (it used to do nothing).
 - Tested with a mock of 11097 (Charcoal with a proof; Cement added after the order was opened): Cement shows after Refresh and on re-picking, its Proof page draws, and there are no page errors.
+
+## 2026-10-28 — v81: proof spacing with two prints on one side
+Stephen, with #11094's J317 proof (left chest + right chest embroidery, back heat transfer): "looks like we have some spacing issues with the last pdf update".
+- **Cause:** with two prints on one side, the info blocks split the front garment's column starting at its left edge (2.7″). The first block ran under the blue notes and the APPROVED box, which end at 3.06″.
+- **Fix:** info blocks now always start at 3.25″ or later, and two or more blocks share what's left of their garment's column. A single block keeps its old place, which was already clear.
+- Checked on a mock with a left chest, right chest and back: nothing overlaps.
