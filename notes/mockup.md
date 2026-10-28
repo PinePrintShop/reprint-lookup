@@ -1245,3 +1245,14 @@ Stephen: "Let's do a review of the last few mockup makers".
 - **AS Colour colours past page 1.** Variants come 250 to a page, and the 5001 has 569, so only about 33 of 70+ colours (up to roughly Granite) were read. Natural, Navy, White and the rest got no AS Colour photo or colour match. `ascVariants()` reads every page (cached per style). It's used for photos, the vendor colour list and the vendor name/colour check.
 - **Careful:** AS Colour rate-limits hard. A fast scan from here got 429 ("try again in 27 seconds"), and the app then falls back to S&S photos. Keep any bulk scans slow.
 - **Sep Maker v52 has the same one-page limit** (not changed yet).
+
+## 2026-10-28 · v94: AS Colour fronts from the images list too
+Stephen: "looks like it is on the 5071 as well...so maybe we scan all of ASColour".
+- **The scan:** I checked Pine's 60 most-used AS Colour styles slowly (124 calls, waiting out each 429).
+  - 47 styles: every colour gets front and back with v93.
+  - 2 styles had more than 250 variants (5001, 5026). v93 fixed those.
+  - 7 codes in Airtable are unknown to AS Colour: 5101 5130 5121 4069 1121 1111 1118 (old or renamed styles).
+  - Caps and bags (1001, 1107, 1120, 1125) have no back photos. That's expected.
+  - 5082 Faded Mushroom and 5080 Eucalyptus have no back photo at AS Colour at all.
+- **Some colours have no front in the variants list** (5071 Espresso, Liberty, Pigeon Blue, Shadow; 5026 Espresso, Pigeon Blue; the faded colours on 5082, 5086 and 5166; several caps). The images list has them, labelled with the colour name. v94 takes the front from there too (`ascImages()`, cached and paged).
+- **Tested on real data:** 5001 Ecru/Natural, 5071 Espresso/Shadow/Black, 5082 Faded Olive and 5026 Pigeon Blue all get front and back. A made-up colour still gives none.
