@@ -1042,3 +1042,61 @@ Tested with Playwright on the file (kept out of the repo): pieces, spec line, pi
 - Size: tried at 300 dpi, then 200, 150, 100 until under 19.5 MB. Test sizes: a 15″ spot print 0.06 MB; a 14″ 7-screen sim 0.69 MB.
 
 **Tested** with Playwright, mocked Airtable and an in-memory Drive shared with Mockup Maker: combine two files (one cropped, one dragged) → separate → Make the mockup (setup contents, size, 8-bit grayscale PNGs, link) → Mockup Maker; layered .psd (3 flat layers + Reg Marks), 3-layer PDF (Reg Marks skipped), one-layer .psd/.pdf (no offer); sim export to Drive saves the setup; one-file crop; practice: no uploads or writes in either app; no native dialogs; v50 round-trip suite re-run (16/16); desktop, 1024 and phone widths.
+
+## 2026-10-29 · v55: a colour change stays on its screen; .psd layer picker; Remove an ink; Zoom → Fit
+**Why (Stephen):** "also still doing that thing when I start changing the black color or the ink color it starts adding information to other layers even if I am not working on that layer" · "I have a file where the artist added white back in and it looks like the BG might be pulling all of it out" · "can we also remove colors as well in the sep tool" ("not just hide them") · "also when I go to zoom and then fit the image disappears and eventually slides back into view".
+
+**What leaked, and why**
+- The v18 rule (each ink keeps the colour it was separated with) held for the mix colours, but **which ink counts as black** still came from the ink's current name. Black prints last; in Spot/Index the lighter inks run the trap under it; in Sim it is the top of the stack every colour is solved through.
+- So renaming an ink to Black (or a black to another name, when a darker ink exists) moved it in that order. That flipped the trap direction in Spot, and re-solved the whole mix in Sim.
+- Tested on every ink, Spot / Index / Sim, white and black shirt, with: a Pantone chip, search (Reflex Blue), typed names (Black C, Cool Gray 7 C), a typed hex, Re-pick, EZ ink, BB strength, mesh and halftone. Each screen was hashed before and after.
+- v54 had 7 leaks, all "renamed to Black C":
+  - Spot, 1235 → Black C: 0.025 % moved from the 1235 film into 186 (white and black shirt).
+  - Sim, 1595 (orange) → Black C: 1235 +11.4 points, 1595 −10.3, 186 +1.2.
+  - Sim, 1235 → Black C: 1235 −1.1, 186 +0.9, 1595 +0.15, BLK +0.01; 173 On-shirt pixels changed outside that screen.
+  - Sim, 7540 → Black C: tiny (0.003).
+- Chips, search, other names, typed hex, EZ / BB, mesh and halftone changed nothing in either version. Channel / layer screens have no colour edit, and renaming there changes nothing.
+- **v55:** black is decided by the colour the ink was separated as (its name when found or picked), not a later rename. Result: **0 leaks** in 212 checks. A typed hex now shows as that colour.
+- **Re-pick** changes what the screen separates, so it moves pixels only between the picked ink and the inks it takes from or gives to. Example: 186 re-picked on the gold → 186 −9.3 points, 1235 +9.3; nothing else changes.
+
+**.psd layer picker**
+- A .psd with 2+ layers opens a picker like the .ai one:
+  - a tick box per layer and group, each with a thumbnail;
+  - a big preview of the ticked layers on the shirt colour.
+- A layer named Background (or a bottom layer that is one solid colour over the whole canvas), hidden layers and template/marks layers start unticked.
+- **Open this** builds the art from the ticked layers with real see-through, so **drop background is not ticked**. It respects opacity, blend modes, layer masks, clipping and groups.
+- CMYK files are read here (ag-psd won't open them), CMYK → RGB as before.
+- **Use these layers as screens** (in the picker, or later in the panel): one screen per layer, for any layers.
+  - Coverage: a flat layer = its alpha; a tonal dark layer = alpha × darkness; a tonal light layer = alpha × lightness.
+  - Name: from the layer if it names an ink, otherwise from its colour ("White text" → WHT).
+  - Flat / ink-named layers still get the v54 "Use layers" offer.
+- One-layer and spot-channel .psd files open as before.
+- Test file (CMYK: white Background, Red, Black, a white text layer):
+  - Flattened, one layer: drop background left 28,719 white text pixels of 64,316, and "PRINT SHOP" (on the background) was gone.
+  - Picker: 63,528 kept (anti-aliased edges aside), and the layers give a WHT screen.
+
+**Remove an ink** (✕ on each ink)
+- It asks what happens where the ink was: **Erase it — nothing prints there (the shirt shows)** (first) or **Give its area to the nearest ink: <name>**.
+- The ink stops being a screen: not in the exports, print order, screen count, sep setup or Make the mockup. It's listed under **Removed** with **Put back**, and the toast has **Undo** (10 s). Both restore every screen exactly.
+- Erase: other screens only lose what sat inside its area because of it (traps that ran under it, and the base under it, choked back from the new edge). Give: only the nearest ink's screen changes, and it gains that area.
+- Screens from a .psd / layers: ✕ erases that screen.
+- In Sim, the white that is the EZ layer can't be removed: the panel says to turn the EZ layer off instead.
+- Tested on every ink, Spot / Index / Sim × white / black shirt, Erase and Give. Examples:
+  - Spot on black, 186 erased: BB −188k px and EZ −193k px under it; the 1235 trap −340 px; nothing else.
+  - 186 given: 1235 +197k px only.
+
+**Zoom → Fit:** the before/after overlay kept its zoomed size for a frame, which held the stage scrolled far right. The overlay then followed the picture back a few px a frame. Fit now clears the overlay, scrolls to the top-left and lays it on the picture at once.
+
+Tested with Playwright: the leak probe above (v54 vs v55); Remove 188/188 checks; .psd picker CMYK 19/19 and RGB (group, hidden layer, mask, 50 % opacity) 11/11; zoom → Fit at 1440×900 and 1280×800, with Compare off and with Halftone 8/8; v54 layers suite 18/18; v50 round trip 16/16. The test .psd files stay out of the repo.
+
+## 2026-10-29 · Planned (v56): CMYK process
+Stephen: "can it also have a CMYK feature for the sep along with the other options of spot index and simulated process".
+- **Method:** a fourth one, CMYK.
+- **Screens:** **PROCESS CYAN / PROCESS MAGENTA / PROCESS YELLOW / PROCESS BLACK**. Stephen: "Process Cyan...".
+- **Art source:**
+  - CMYK art (e.g. TShirt_Final_Art_CYMK.psd): use the file's own C, M, Y and K channels.
+  - RGB art: convert it. Black takes the neutrals and darks (GCR) so there are no muddy four-colour greys, and the total ink is capped.
+- **Continuous tone:** the RIP sets the angles and screens it ("Let the rip handle it"). The LPI is the existing halftone setting, 55 or 45 ("We will either use 55 or 45").
+- **Dark shirts:** a white underbase under the process inks (existing base rules), plus an optional highlight white on top.
+- **Print order:** base, Y, M, C, K, highlight white.
+- **Unchanged:** mesh per screen, Remove, exports, sep setup and Make the mockup work as for the other methods.
