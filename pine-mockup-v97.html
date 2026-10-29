@@ -3890,19 +3890,21 @@ function embNotes(x,X,Y,W,maxY){ const ims=printed().filter(im=>notesOf(im).leng
     for(const w of ws){ const t=ln?ln+' '+w:w; if(x.measureText(t).width>W&&ln){ ls.push(ln); ln=w; } else ln=t; } if(ln) ls.push(ln);
     x.fillStyle=NOTE_EMB; for(const t of ls){ if(y+lh>maxY) break; x.fillText(t,X,y+fs); y+=lh; } }
   x.fillStyle='#231f20'; return y; }
-function embPage1(x,y0){ const ims=printed(), embs=ims.filter(isEmb), n=embs.length, L=0.5*IN, W=2.35*IN;
-  // the sew-out boxes, right-aligned at the bottom; several share the width left of the notes
+function embPage1(x,y0,gBot){ const ims=printed(), embs=ims.filter(isEmb), n=embs.length, L=0.5*IN, W=2.35*IN, maxY=7.42*IN;
+  // the sew-out boxes, right-aligned at the bottom; several share the width right of the left column
   const gap=0.3*IN, R=10.81*IN, minL=3.15*IN; let bw=4.61*IN; if(n*bw+(n-1)*gap>R-minL) bw=(R-minL-(n-1)*gap)/n;
   const bh=bw/SEW_A, by=8.45*IN-bh, bx0=R-(n*bw+(n-1)*gap);
   embs.forEach((im,i)=>drawSewBox(x,im,bx0+i*(bw+gap),by,bw,bh));
-  // the notes run under the blocks, as wide as the space left of the boxes (the template: 5.1″ with one box)
-  const nW=Math.max(W,Math.min(5.5*IN,bx0-0.35*IN-0.45*IN)), maxY=7.42*IN;
-  const nH=embNotes(document.createElement('canvas').getContext('2d'),0,0,nW,1e6);
-  // the blocks: as the template when they fit; smaller (down to 60 %) when several don't
+  // the blocks: as the template when they fit; smaller (down to 75 %) when several don't
   const chipsH=ims.reduce((t,im)=>t+chipRows(im,W)*0.35*IN,0), textH=ims.length*1.25*IN+(ims.length-1)*0.22*IN;
-  const avail=maxY-y0-(nH?nH+0.24*IN:0), k=Math.max(0.6,Math.min(1,(avail-chipsH)/textH));
+  const k=Math.max(0.75,Math.min(1,(maxY-y0-chipsH)/textH));
   let y=y0; ims.forEach((im,i)=>{ y=drawInfoE(x,im,L,y,W,k)+(i<ims.length-1?0.22*k*IN:0); });
-  if(nH) embNotes(x,0.45*IN,y+0.24*IN,nW,maxY); }
+  // the notes: under the blocks, as wide as the space left of the boxes (the template: 5.1″ with one box);
+  // when that's too short, in the strip under the garment and over the boxes
+  const nW=Math.max(W,Math.min(5.5*IN,bx0-0.35*IN-0.45*IN)), meas=w=>embNotes(document.createElement('canvas').getContext('2d'),0,0,w,1e6);
+  const nH=meas(nW); if(!nH) return;
+  if(y+0.24*IN+nH<=maxY){ embNotes(x,0.45*IN,y+0.24*IN,nW,maxY); return; }
+  const sx=3.2*IN; embNotes(x,sx,gBot+0.06*IN,R-sx,by-0.32*IN); }
 // the fine print, 8 pt, "The Fine Print:" bold and "mock-up" in italics, as the template
 function finePrintT(x,text,X,Y,W){ const runs=[{t:'The Fine Print:',w:700,i:false}].concat(text.split(/\s+/).filter(Boolean).map((t,j,a)=>({t,w:400,i:/^mock-up/i.test(t)&&a.findIndex(z=>/^mock-up/i.test(z))===j})));
   let cx=X, cy=Y; const lh=0.135*IN, fnt=r=>`${r.i?'italic ':''}${r.w} ${(8*PT).toFixed(1)}px ${FONT}`;
@@ -3952,14 +3954,14 @@ function page1T(){
   approvedT(x,0.45*IN,7.52*IN,2.61*IN,0.54*IN);
   // garments 2.56–10.92″ across, 1.78–6.16″ down, side by side; wide ones overlap (v75) to fill the height
   // v97: embroidery: the info is on the left and the sew-out boxes at the bottom right, so the garment starts further right and ends higher
-  const sides=sidesOf(printed()), top=1.78*IN, ph=(emb?4.2:4.38)*IN, left=(emb?2.95:2.56)*IN, right=10.92*IN, n=sides.length, pw=(right-left)/n, P=PH[J.line.id]||{};
+  const sides=sidesOf(printed()), top=1.78*IN, ph=(emb?(printed().filter(isEmb).length>1?4.0:4.2):4.38)*IN, left=(emb?2.95:2.56)*IN, right=10.92*IN, n=sides.length, pw=(right-left)/n, P=PH[J.line.id]||{};
   const asp=sides.map(sd=>{ const b=P[sd]&&P[sd].box; return b&&b.w&&b.h&&!/sleeve$/.test(sd)?b.w/b.h:0; });
   let sw=pw, xs=sides.map((_,k)=>left+k*pw), over=false;
   if(S.overlap!==false&&n>1&&asp.every(a=>a>0)){ const want=Math.max(...asp)*ph*1.04/1.03;
     if(want>sw*1.06){ sw=Math.min(want,(right-left)/(n-0.3*(n-1))); const step=(right-left-sw)/(n-1); xs=sides.map((_,k)=>left+k*step); over=true; } }
   $('ovRow').hidden=!(n>1&&asp.every(a=>a>0)&&Math.max(...asp)*ph*1.04/1.03>pw*1.06);
   (over?sides.map((_,k)=>k).reverse():sides.map((_,k)=>k)).forEach(k=>drawGarment(x,J.line,sides[k],xs[k],top,sw,ph,{fill:true,dims:S.dims,cut:over,cline:true}));
-  if(emb){ embPage1(x,Math.max(4.466*IN,fabEnd+0.3*IN)); return c; }   // v97
+  if(emb){ embPage1(x,Math.max(4.466*IN,fabEnd+0.3*IN),top+ph); return c; }   // v97
   // the info blocks: 4.11″ / 8.22″ on the template (a little left of each garment's middle)
   sides.forEach((sd,k)=>{ const X0=left+k*pw, ims=printed().filter(i=>sideOf(i)===sd), m=Math.max(1,ims.length);
     if(!ims.length) return;   // v80: a side with nothing printed yet (a new line) has no info block
