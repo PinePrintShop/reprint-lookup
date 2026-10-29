@@ -1423,3 +1423,10 @@ Stephen: "can I still save to airtable a garment photo...not seeing that anymore
 
 ## 2026-10-29 · v104: the Colour list folds away
 Stephen: "can we also make the bandana colors a collapsible tab as well". Step 3's Colour list (the open 10-row list on a laptop: bandana stock colours with their closest Pantones, or a style's colours) is now a title, "Colour · Maroon", with a chevron, like "Also show on". Click it to open the list; the picked colour stays on the title. Closed to start; open/closed is remembered on that computer. Tested with a 12-colour bandana list.
+
+## 2026-10-29 · v105: a replaced proof's old PDFs go to Drive trash
+Stephen: "Can we just move them to the Trash then? We don't need them if we are updating it." (instead of a Proofs › unused folder, which needs worker v38 to create folders).
+- When Attach puts a new proof on a line and takes older ones off (v100), the PDFs in that order's Proofs folder **named exactly like the proofs taken off the line** (or an older copy with the new proof's own name) go to Drive trash. Customer files and anything else in the folder are never touched.
+- Undo puts the Airtable proofs and the Drive files back (/drive/restore). The toast says when old PDFs went to trash.
+- Practice: nothing is written or trashed. Attach to all lines works line by line.
+- Tested with a mocked worker: V1 and V2 trashed, "customer logo.pdf" and the new V3 kept, Undo restored both.
