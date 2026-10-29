@@ -287,3 +287,11 @@ Stephen: "Do the 5 bugs first".
 - In the box-label window, "✕ Remove Box" on the only box showed a browser `alert()`. It now shows a short black note at the bottom of that window ("This is the only box — it can't be removed."). It goes after 4 seconds and is hidden when printing. The note lives in the label window itself (where the click was), not the main page.
 - No other `alert/prompt/confirm` left in Receiving. Reads, writes and practice unchanged.
 - **Tested** (Playwright, mocked Airtable, practice): order with 3 boxes → remove down to 1 → Remove again shows the note, the box stays, no native dialog (the test fails on any), the note is hidden in print media and fades; add + remove still work; 0 writes.
+
+## 2026-10-29 · v85: Order Notes on the line
+Stephen: "can we add order notes into this section maybe right below the cream. it is how purchasing can call out things to receiving".
+- The line item's **Order Notes** (fldF378cgWuOcWNL6, the note Purchasing writes on the line) now loads with the line.
+- Open line: the note shows first, right under the cream header and above Flag Mis-ship / Receive, in a white box with a black edge labelled "ORDER NOTES" (line breaks kept, 16px).
+- Closed line: a "Note" tag next to PO / Arrives, so a note isn't missed before the line is opened.
+- Read only: Receiving doesn't edit the note.
+- Tested with a mocked order (one line with a two-line note, one without).
