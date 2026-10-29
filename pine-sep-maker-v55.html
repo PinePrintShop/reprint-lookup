@@ -765,6 +765,19 @@ input[type=range]{accent-color:var(--p-black)}
 .sm-dlg::backdrop{background:rgba(0,0,0,.6)}
 .sm-pcbox{position:absolute;border:2px solid #FBE122;box-shadow:0 0 0 1px #141412;pointer-events:none;z-index:3}
 .sm-layers{display:flex;flex-direction:column;gap:8px;border:2px solid var(--p-black);border-radius:var(--p-r);background:var(--p-yellow-lt);padding:10px;font-size:14px;line-height:1.35}
+/* v55: the .psd layer picker */
+.sm-psd{width:min(1080px,96vw);max-height:92vh}
+.sm-psd-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
+@media (max-width:760px){ .sm-psd-body{grid-template-columns:1fr} }
+.sm-psd-list{display:flex;flex-direction:column;gap:2px;max-height:56vh;overflow:auto;margin:6px 0}
+.sm-psd-list label{display:flex;align-items:center;gap:10px;min-height:44px;font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;border-bottom:1px solid var(--p-line)}
+.sm-psd-list input{width:22px;height:22px;flex:none;accent-color:#141412}
+.sm-psd-list i{font-style:normal;font-weight:400;font-size:12px;color:#5b574f}
+.sm-psd-th{flex:none;display:grid;place-items:center;width:48px;height:40px;background:repeating-conic-gradient(#e6e1d4 0 25%,#f4f0e6 0 50%) 0 0/10px 10px;border-radius:4px;overflow:hidden}
+.sm-psd-th canvas{max-width:46px;max-height:38px;display:block}
+.sm-psd-nm{flex:1;min-width:0;word-break:break-word}
+.sm-psd-pv{display:grid;place-items:center;min-height:260px;max-height:60vh;background:repeating-conic-gradient(#e6e1d4 0 25%,#f4f0e6 0 50%) 0 0/20px 20px;border-radius:8px;overflow:hidden}
+.sm-psd-pv canvas{max-width:100%;max-height:60vh;display:block}
 .sm-layers .sm-row{gap:8px}
 body.layer-offer #exportBtn{background:var(--p-white);color:var(--p-black);border-color:var(--p-line-strong)}
 #mockBtn[hidden]{display:none}
@@ -1964,7 +1977,7 @@ function chanSeparate(W,H){
 function syncChanUi(){
   const on=!!(S.chans&&S.chanMode); document.body.classList.toggle('chan-mode',on); $('chanBlk').hidden=!on;
   syncLayerOffer(); const lay=!!(S.chans&&S.chans.from==='layers');
-  $('chanUseRow').hidden=!(S.chans&&!S.chanMode)||!$('layerOffer').hidden; $('chanUse').textContent=lay?'Use the layers':'Use the file\'s screens';
+  $('chanUseRow').hidden=!(S.chans&&!S.chanMode)||!$('layerOffer').hidden; $('chanUse').textContent=lay?'Use these layers as screens':'Use the file\'s screens';
   if(!S.chans) return;
   const n=S.chans.list.length; $('chanUseTxt').textContent=lay?`This file has ${n} layers that can be the screens.`:`This .psd is already separated: ${n} screen${n===1?'':'s'} in its channels.`;
   $('chanCount').textContent=n; $('chanBlk').querySelector('.p-section').firstChild.textContent=lay?'3 · Screens from the layers ':'3 · Screens from the file ';
@@ -2462,6 +2475,118 @@ function psdColour(dp){ const [a,b,c,k]=dp.c;
     const X=0.95047*fi(fx), Y=fi(fy), Z=1.08883*fi(fz), gm=u=>255*Math.max(0,Math.min(1,u>0.0031308?1.055*Math.pow(u,1/2.4)-0.055:12.92*u));
     return [gm(3.2406*X-1.5372*Y-0.4986*Z),gm(-0.9689*X+1.8758*Y+0.0415*Z),gm(0.0557*X-0.2040*Y+1.0570*Z)]; }
   return [128,128,128]; }
+/* ================= v55: pick the layers of a .psd =================
+   Stephen: "I have a file where the artist added white back in and it looks like the BG might be pulling all of it
+   out". A flattened .psd has no see-through, so "drop the background" took the white design along with the white
+   background it touches. Now a .psd with 2+ layers opens a picker (like the .ai one): a tick box per layer and group,
+   a thumbnail each, and a big preview of the ticked layers. A "Background" layer (or a bottom layer that is one solid
+   colour over the whole canvas) and hidden layers start unticked. "Open this" builds the art from the ticked layers
+   with real transparency, so nothing has to be dropped. "Use these layers as screens" makes each layer one screen.
+   ag-psd won't open CMYK files, so the layers are read here: the header is read as RGB to get the layer list, and each
+   layer's channels are unpacked by hand (raw, RLE or ZIP; 8 or 16 bit). CMYK → RGB the way readPsdFlat does it. */
+async function inflate(u8){ if(typeof DecompressionStream==='undefined') return null;
+  try{ const s=new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate')); return new Uint8Array(await new Response(s).arrayBuffer()); }catch(e){ return null; } }
+async function psdChan(ch,w,h,depth,large){   // one layer channel → 8-bit plane (w × h)
+  const d=ch&&ch.data, bps=depth/8, n=w*h; if(!d||!n) return null; let raw;
+  if(ch.compression===0) raw=d;
+  else if(ch.compression===1){ const cb=large?4:2; let o=h*cb; raw=new Uint8Array(n*bps);
+    for(let y=0;y<h;y++){ const len=large?((d[y*4]<<24)|(d[y*4+1]<<16)|(d[y*4+2]<<8)|d[y*4+3])>>>0:(d[y*2]<<8)|d[y*2+1], end=o+len, pe=(y+1)*w*bps; let p=y*w*bps;
+      while(o<end&&p<pe){ const c=(d[o]<<24)>>24; o++; if(c>=0){ raw.set(d.subarray(o,Math.min(o+c+1,end)),p); o+=c+1; p+=c+1; } else if(c!==-128){ raw.fill(d[o],p,Math.min(pe,p+1-c)); o++; p+=1-c; } }
+      o=end; } }
+  else { raw=await inflate(d); if(!raw) return null;
+    if(ch.compression===3){ if(bps===1){ for(let y=0;y<h;y++){ const r=y*w; for(let x=1;x<w;x++) raw[r+x]=(raw[r+x]+raw[r+x-1])&255; } }
+      else for(let y=0;y<h;y++){ const r=y*w*2; for(let x=1;x<w;x++){ const s=(((raw[r+x*2-2]<<8)|raw[r+x*2-1])+((raw[r+x*2]<<8)|raw[r+x*2+1]))&65535; raw[r+x*2]=s>>8; raw[r+x*2+1]=s&255; } } } }
+  const out=new Uint8Array(n); for(let i=0;i<n;i++) out[i]=raw[i*bps]||0; return out; }
+async function psdLayerTree(buf){
+  if(!window.agPsd||buf.byteLength>400e6) return null;
+  const v=new DataView(buf); if(buf.byteLength<26||v.getUint32(0)!==0x38425053) return null;
+  const H=v.getUint32(14), W=v.getUint32(18), depth=v.getUint16(22), mode=v.getUint16(24);
+  if(![1,3,4].includes(mode)||![8,16].includes(depth)||W*H>40e6) return null;
+  let b2=buf; if(mode!==3){ b2=buf.slice(0); new DataView(b2).setUint16(24,3); }   // ag-psd reads the layer list; the pixels are ours
+  let psd; try{ psd=agPsd.readPsd(b2,{skipThumbnail:true,skipCompositeImageData:true,useRawData:true}); }catch(e){ console.warn('psd layers',e); return null; }
+  const large=v.getUint16(4)===2; let id=0; const leaves=[];
+  const walk=async(list,hid,depth0)=>{ const out=[];
+    for(const l of list||[]){ const hidden=hid||!!l.hidden, nm=String(l.name||'Layer').trim()||'Layer';
+      if(l.children){ const kids=await walk(l.children,hidden,depth0+1); if(kids.length) out.push({id:id++,name:nm,group:true,kids,hidden,op:l.opacity==null?1:l.opacity,blend:l.blendMode,depth:depth0}); continue; }
+      const L=l.left||0, T=l.top||0, w=Math.max(0,(l.right||0)-L), h=Math.max(0,(l.bottom||0)-T), raw=l.rawData; if(!w||!h||!raw) continue;
+      const ch=k=>raw.channels.find(c=>c.id===k), nc=mode===4?4:mode===3?3:1, pl=[];
+      for(let k=0;k<nc;k++){ const q=await psdChan(ch(k),w,h,depth,large); if(!q){ pl.length=0; break; } pl.push(q); }
+      if(!pl.length) continue;   // adjustment / fill layers without pixels
+      const al=ch(-1)?await psdChan(ch(-1),w,h,depth,large):null;
+      let mk=null, m=l.mask; if(m&&!m.disabled&&ch(-2)){ const mw=(m.right||0)-(m.left||0), mh=(m.bottom||0)-(m.top||0); const md=mw>0&&mh>0?await psdChan(ch(-2),mw,mh,depth,large):null; if(md) mk={d:md,x:m.left||0,y:m.top||0,w:mw,h:mh,def:m.defaultColor||0}; }
+      const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'), im=x.createImageData(w,h), o=im.data; let any=0;
+      for(let i=0;i<w*h;i++){ const j=i*4;
+        if(mode===4){ const K=pl[3][i]/255; o[j]=pl[0][i]*K; o[j+1]=pl[1][i]*K; o[j+2]=pl[2][i]*K; }   // stored inverted: 255 = no ink
+        else if(mode===3){ o[j]=pl[0][i]; o[j+1]=pl[1][i]; o[j+2]=pl[2][i]; } else o[j]=o[j+1]=o[j+2]=pl[0][i];
+        let a=al?al[i]:255;
+        if(mk){ const X=L+(i%w)-mk.x, Y=T+((i/w)|0)-mk.y; a=a*((X>=0&&Y>=0&&X<mk.w&&Y<mk.h)?mk.d[Y*mk.w+X]:mk.def)/255; }
+        o[j+3]=a; if(a) any=1; }
+      if(!any) continue;
+      x.putImageData(im,0,0);
+      const n={id:id++,name:nm,cv:c,l:L,t:T,w,h,hidden,op:l.opacity==null?1:l.opacity,blend:l.blendMode,clip:!!l.clipping,depth:depth0};
+      out.push(n); leaves.push(n); }
+    return out; };
+  const top=await walk(psd.children,false,0);
+  if(leaves.length<2) return null;
+  // the background: named so, or the bottom layer when it's one solid colour over the whole canvas
+  const bot=leaves[0]; let solid=false;
+  if(bot&&bot.l<=0&&bot.t<=0&&bot.w>=W&&bot.h>=H){ const d=bot.cv.getContext('2d').getImageData(0,0,bot.w,bot.h).data; solid=true;
+    for(let i=0;i<d.length&&solid;i+=4*97){ if(d[i+3]<250||Math.abs(d[i]-d[0])>10||Math.abs(d[i+1]-d[1])>10||Math.abs(d[i+2]-d[2])>10) solid=false; } }
+  leaves.forEach(n=>{ n.bg=/^(background|bg|back ?ground copy)$/i.test(n.name)||(n===bot&&solid); n.on=!n.hidden&&!n.bg&&!TPL_LAYER.test(n.name)||(!n.hidden&&!n.bg&&leaves.every(q=>q===n||q.hidden||q.bg||TPL_LAYER.test(q.name))); });
+  return {W,H,mode,top,leaves}; }
+const PSD_BLEND={multiply:'multiply',screen:'screen',overlay:'overlay',darken:'darken',lighten:'lighten','color dodge':'color-dodge','color burn':'color-burn','hard light':'hard-light','soft light':'soft-light',difference:'difference',exclusion:'exclusion',hue:'hue',saturation:'saturation',color:'color',luminosity:'luminosity','linear dodge':'lighter'};
+// the ticked layers drawn together (bottom up) at scale k, with opacity, blend modes, clipping masks and groups
+function psdCompose(T,k,only){ const W=Math.max(1,Math.round(T.W*k)), H=Math.max(1,Math.round(T.H*k)), mk=()=>{ const c=document.createElement('canvas'); c.width=W; c.height=H; return c; };
+  const on=n=>only?only.has(n.id):n.on, has=n=>n.group?n.kids.some(has):on(n);
+  const draw=(list,x)=>{ for(let i=0;i<list.length;i++){ const n=list[i]; if(n.clip) continue; if(!has(n)) continue;
+      let src;
+      if(n.group){ src=mk(); draw(n.kids,src.getContext('2d')); }
+      else { src=mk(); const sx=src.getContext('2d'); sx.drawImage(n.cv,n.l*k,n.t*k,n.w*k,n.h*k);
+        for(let j=i+1;j<list.length&&list[j].clip;j++){ const q=list[j]; if(!on(q)) continue; sx.globalAlpha=q.op; sx.globalCompositeOperation='source-atop'; sx.drawImage(q.cv,q.l*k,q.t*k,q.w*k,q.h*k); }
+        sx.globalAlpha=1; sx.globalCompositeOperation='source-over'; }
+      x.globalAlpha=n.op; x.globalCompositeOperation=PSD_BLEND[n.blend]||'source-over'; x.drawImage(src,0,0); x.globalAlpha=1; x.globalCompositeOperation='source-over'; } };
+  const c=mk(); draw(T.top,c.getContext('2d')); return c; }
+// the ticked layers as screen parts: each layer one screen; a group named like an ink is one screen
+function psdParts(T){ const parts=[], walk=list=>{ for(const n of list){ const has=q=>q.group?q.kids.some(has):q.on; if(!has(n)) continue;
+      if(n.group&&inkNamed(n.name)){ const ids=new Set(); const add=q=>{ if(q.group) q.kids.forEach(add); else if(q.on) ids.add(q.id); }; add(n); parts.push({name:n.name,ids}); continue; }
+      if(n.group){ walk(n.kids); continue; }
+      parts.push({name:n.name,ids:new Set([n.id])}); } };
+  walk(T.top); return parts.map(p=>({name:p.name,draw:x=>x.drawImage(psdCompose(T,1,p.ids),0,0)})); }
+function choosePsdLayers(T,name){
+  return new Promise(res=>{
+    const sc=document.createElement('div'); sc.className='p-scrim'; sc.id='psdModal';
+    const rows=[], walk=(list)=>{ for(let i=list.length-1;i>=0;i--){ const n=list[i]; rows.push(n); if(n.group) walk(n.kids); } }; walk(T.top);   // the Layers panel: top layer first
+    const leavesOf=n=>n.group?n.kids.flatMap(leavesOf):[n];
+    sc.innerHTML=`<div class="p-modal sm-psd" role="dialog" aria-modal="true" aria-labelledby="psdT">
+      <div class="p-modal-h"><h2 class="p-h2" id="psdT" style="word-break:break-word">${esc(name)}</h2><button class="p-modal-x" type="button" data-x aria-label="Close">×</button></div>
+      <div class="p-modal-b"><div class="sm-psd-body"><div>
+        <span class="sm-lbl">${T.leaves.length} layers</span>
+        <div class="sm-psd-list">${rows.map(n=>`<label style="padding-left:${n.depth*20}px"><input type="checkbox" data-l="${n.id}"><span class="sm-psd-th" data-th="${n.id}"></span><span class="sm-psd-nm">${esc(n.name)}${n.group?' <i>group</i>':''}${n.bg?' <i>background</i>':n.hidden?' <i>hidden</i>':''}</span></label>`).join('')}</div>
+        <p class="sm-hint" data-why></p>
+      </div><div><div class="sm-psd-pv" data-pv></div><p class="sm-hint" data-sz></p></div></div></div>
+      <div class="p-modal-f"><button class="p-btn" type="button" data-x>Cancel</button><button class="p-btn" type="button" data-scr>Use these layers as screens</button><button class="p-btn p-btn-main" type="button" data-go>Open this</button></div></div>`;
+    document.body.appendChild(sc);
+    const q=s=>sc.querySelector(s), byId=new Map(rows.map(n=>[n.id,n]));
+    // thumbnails
+    rows.forEach(n=>{ const box=q(`[data-th="${n.id}"]`); if(!box) return; const t=document.createElement('canvas'), s=Math.min(1,44/Math.max(T.W,T.H)); t.width=Math.max(1,Math.round(T.W*s)); t.height=Math.max(1,Math.round(T.H*s));
+      const x=t.getContext('2d'); leavesOf(n).forEach(l=>x.drawImage(l.cv,l.l*s,l.t*s,l.w*s,l.h*s)); box.appendChild(t); });
+    const k=Math.min(1,900/Math.max(T.W,T.H));
+    const sync=()=>{ rows.forEach(n=>{ const i=q(`[data-l="${n.id}"]`), ls=leavesOf(n), m=ls.filter(l=>l.on).length; i.checked=m===ls.length; i.indeterminate=m>0&&m<ls.length; });
+      const pv=q('[data-pv]'); pv.innerHTML=''; const on=T.leaves.filter(l=>l.on); q('[data-go]').disabled=!on.length; q('[data-scr]').disabled=on.length<2;
+      if(on.length){ pv.appendChild(psdCompose(T,k)); } else pv.innerHTML='<span class="sm-hint">Tick a layer to see it.</span>';
+      const off=T.leaves.filter(l=>!l.on&&l.bg);
+      q('[data-why]').textContent=(off.length?`${off.map(l=>l.name).join(', ')} is left out, so the art opens see-through where nothing is drawn — white in the design stays. `:'')+'Untick a layer to leave it out.';
+      q('[data-sz]').textContent=`${on.length} of ${T.leaves.length} layers · ${T.W} × ${T.H} px`; };
+    sc.querySelectorAll('[data-l]').forEach(i=>i.onchange=()=>{ const n=byId.get(+i.dataset.l); leavesOf(n).forEach(l=>l.on=i.checked); sync(); });
+    sync();
+    const done=v=>{ document.removeEventListener('keydown',key); sc.remove(); res(v); };
+    const key=e=>{ if(e.key==='Escape') done(null); };
+    document.addEventListener('keydown',key);
+    sc.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>done(null));
+    const pick=asScreens=>{ const off=T.leaves.filter(l=>!l.on).map(l=>l.name); done({asScreens,canvas:psdCompose(T,1),label:off.length?'the layers, without '+off.slice(0,4).join(', ')+(off.length>4?' +'+(off.length-4):''):''}); };
+    q('[data-go]').onclick=()=>pick(false); q('[data-scr]').onclick=()=>pick(true);
+    setTimeout(()=>q('[data-go]').focus(),0);
+  }); }
 async function psdToPng(f){
   if(!window.agPsd) throw new Error('The Photoshop reader did not load. Check the connection and Refresh.');
   const buf=await f.arrayBuffer(); let psd, c;
@@ -2478,15 +2603,19 @@ async function psdToPng(f){
     if(!f||!f.canvas) throw new Error('Could not read this Photoshop file ('+(e.message||e)+'). Try File › Save a Copy with Maximize Compatibility on, or export a PNG.');
     c=f.canvas; psd={imageResources:{alphaChannelNames:f.spots},flatPpi:f.ppi}; }
   if(!c) throw new Error('This Photoshop file has no image I can read. Export a PNG instead.');
-  if(!chans){ try{ chans=psdLayerChans(buf,c.width,c.height); }catch(e){ console.warn('layers',e); } }   // v54: its layers as screens
+  // v55: 2+ layers → the layer picker; the ticked layers are the art, with real transparency
+  let tree=null, picked=null; if(!chans){ try{ tree=await psdLayerTree(buf); }catch(e){ console.warn('psd layers',e); } }
+  if(tree&&tree.W===c.width&&tree.H===c.height){ picked=await choosePsdLayers(tree,f.name); if(!picked) throw new Error('Not opened — pick the layers to open it.');
+    c=picked.canvas; try{ const parts=psdParts(tree); chans=parts.length>=2&&tree.W*tree.H<=36e6&&parts.length<=24?(layerChans(parts,c.width,c.height,false)||layerChans(parts,c.width,c.height,true)):null; }catch(e){ console.warn('layers',e); } }
+  else if(!chans){ try{ chans=psdLayerChans(buf,c.width,c.height); }catch(e){ console.warn('layers',e); } }   // v54: its layers as screens
   let ppi=psd.flatPpi||0; const ri=psd.imageResources&&psd.imageResources.resolutionInfo; if(ri&&ri.horizontalResolution) ppi=ri.horizontalResolution*(/cm/i.test(ri.horizontalResolutionUnit||'')?2.54:1);
   const k=Math.min(1,6000/Math.max(c.width,c.height));
   if(k<1&&chans){ const w=Math.round(c.width*k), h=Math.round(c.height*k), full={x:0,y:0,w:chans.W,h:chans.H};   // v50: the screens shrink with the picture
-    chans={list:chans.list.map(q=>Object.assign({},q,{data:planeAt(q.data,chans.W,chans.H,full,w,h)})),W:w,H:h}; }
+    chans=Object.assign({},chans,{list:chans.list.map(q=>Object.assign({},q,{data:planeAt(q.data,chans.W,chans.H,full,w,h)})),W:w,H:h}); }
   if(k<1){ const t=document.createElement('canvas'); t.width=Math.round(c.width*k); t.height=Math.round(c.height*k); const tx=t.getContext('2d'); tx.imageSmoothingQuality='high'; tx.drawImage(c,0,0,t.width,t.height); c=t; if(ppi) ppi*=k; }
   const spots=((psd.imageResources&&psd.imageResources.alphaChannelNames)||[]).map(String).filter(n=>n&&!/^(Alpha \d*|Transparency)$/i.test(n.trim()));
   const blob=await new Promise(r=>c.toBlob(r,'image/png'));
-  return {blob,ppi,spots,chans};
+  return {blob,ppi,spots,chans,alpha:!!picked,asScreens:!!(picked&&picked.asScreens&&chans),part:picked&&picked.label||''};
 }
 async function loadFile(f,opt){
   const ext=String(f&&f.name||'').toLowerCase().split('.').pop();
@@ -2504,8 +2633,8 @@ async function loadFile(f,opt){
   // a solid (no transparency) image probably has a background to drop
   const t=document.createElement('canvas'); t.width=t.height=8; const tx=t.getContext('2d'); tx.drawImage(img,0,0,8,8);
   const a=tx.getImageData(0,0,8,8).data; let tr=0; for(let i=3;i<a.length;i+=4) if(a[i]<128) tr++;
-  S.dropBg = tr===0; $('dropBg').checked=S.dropBg; S.dropAll=false; $('dropAll').checked=false; $('dropAllRow').hidden=!S.dropBg;
-  S.chans=vec&&vec.chans&&vec.chans.list.length?vec.chans:null; S.chanMode=!!S.chans&&S.chans.from!=='layers'; S.layerOffer=!!S.chans&&S.chans.from==='layers';   // v50 · v54: layers are offered first
+  S.dropBg = tr===0&&!(vec&&vec.alpha); $('dropBg').checked=S.dropBg; S.dropAll=false; $('dropAll').checked=false; $('dropAllRow').hidden=!S.dropBg;
+  S.chans=vec&&vec.chans&&vec.chans.list.length?vec.chans:null; S.chanMode=!!S.chans&&(S.chans.from!=='layers'||!!(vec&&vec.asScreens)); S.layerOffer=!!S.chans&&S.chans.from==='layers'&&!S.chanMode&&S.chans.offer!==false;   // v50 · v54: layers are offered first · v55: flat / ink-named ones; others quietly ("Use these layers as screens")
   S.src=img; S.name=f.name||'pasted art'; S.names={}; S.picked=[]; S.popInk=null; stopPick(); S.combUndo=null; $('combUndo').hidden=true; S.meshes={}; S.order=null; S.hidden={}; S.playN=null;
   trimArt();
   const ppi=vec?vec.ppi:await readPngPpi(f);   // .ai/PDF: the artboard is in points; .psd: its own resolution — so it comes in at its real size
