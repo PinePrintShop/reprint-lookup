@@ -513,8 +513,13 @@ div.rvimg{cursor:default;display:flex}
 .p-off-imp-act{max-width:50cqw}
 @container (max-width:620px){ .p-off-imp{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"id main" ". act" ". note"} .p-off-imp-act{justify-content:flex-start;max-width:none} }
 /* v46: What's changing? panel + the Changes requested bar */
+.rvR .box h3{flex-wrap:wrap;row-gap:6px}   /* v45's tag + Mark resolved ran 110px off a 390px phone */
 .rv-chgbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 10px;padding:10px 12px;border:2px solid var(--p-black);border-radius:8px;background:var(--p-cream-lt)}
-.rv-chgbar .q{flex:1 1 220px;min-width:0;font-size:14px;color:var(--p-ink-2)}
+.rv-chgbar .q{flex:1 1 100%;order:-1;min-width:0;font-size:14px;color:var(--p-ink-2)}
+.rv-chgbar .rv-chg{order:-3}
+.rv-chgbar #rvChgOk{order:-2;margin-left:auto;min-height:36px}
+.box h3 .mmfix{text-transform:none;letter-spacing:0;word-spacing:0;font:700 14px var(--sans);flex:none}
+.rvL h3,.pbox h3{flex-wrap:wrap;row-gap:6px}
 .rv-chgbar .q b{color:var(--p-black)}
 .rv-chgbar .p-btn{min-height:40px}
 .chgm{width:min(820px,100%)}
@@ -1579,7 +1584,8 @@ function rvNewest(id){ const C=S.comments[id]; if(!C||!C.list||!C.list.length) r
 const REQ_RE=/\b(chang\w*|fix\w*|mov\w*|bigger|smaller|larger|wider|narrower|taller|shorter|swap\w*|switch\w*|replac\w*|adjust\w*|updat\w*|resiz\w*|scal\w*|instead|wrong|incorrect|typo|spell\w*|misspel\w*|should\s+be|needs?\s+to|make\s+(it|the|this|them)|add\w*|remov\w*|delet\w*|take\s+(off|out)|lower|raise|higher|up\s+a\s+bit|down\s+a\s+bit|cent(er|re)\w*|align\w*|spacing|font|colou?r|revis\w*|redo|re-?do|tweak\w*|edit\w*|not\s+right|doesn'?t\s+look|can\s+(we|you)|could\s+(we|you)|would\s+(we|you)|please)\b/i;
 const OK_RE=/^\s*(looks?\s+(good|great|perfect)|approved?|lgtm|perfect|great|thanks?|thank\s+you|ok(ay)?|👍|✅)[\s!.]*$/i;
 function isRequest(c){ const t=String(cAuthor(c).text||'').replace(/@\[(usr|ugp)[A-Za-z0-9]+\]/g,' ').replace(/\n?📷 Screenshot: [^\n]+/g,' ').trim();
-  if(!t||OK_RE.test(t)) return false; return REQ_RE.test(t)||/\?/.test(t); }
+  if(!t||OK_RE.test(t)||CHG_NOTE_RE.test(t)) return false; return REQ_RE.test(t)||/\?/.test(t); }
+const CHG_NOTE_RE=/^(Ink change on|Placement change on|New design:)\s/;   // v46: What's changing? notes say what was done, they don't ask
 function changesReq(Ln){ const pa=Date.parse(Ln[L.proofAt]||''); if(!pa) return null; const base=Math.max(pa,Date.parse(Ln[L.resolved]||'')||0);
   const C=S.comments[Ln._id]; if(!C||!C.list) return null;
   return C.list.filter(c=>(Date.parse(c.createdTime)||0)>base&&isRequest(c)).sort((a,b)=>Date.parse(b.createdTime)-Date.parse(a.createdTime))[0]||null; }
@@ -1650,7 +1656,7 @@ function renderChg(){ let sc=$('chgScrim'); if(!CHG){ if(sc) sc.remove(); return
   if(P){ const id=P.id;
     h+=`<div class="chg-sec"><span class="p-label">What's changing on ${esc(id)}?</span><div class="chg-kinds">${['ink','place','new'].map(k=>`<button type="button" class="chg-opt${c.kind===k?' is-on':''}" data-kind="${k}" aria-pressed="${c.kind===k}" onclick="chgKind('${k}')"${dis}><b>${CHG_KIND[k]}</b><small>${k==='new'?'New design · new ID'+(c.next?' '+esc(c.next):''):'Keeps '+esc(id)}</small></button>`).join('')}</div></div>`;
     const shared=using.length>1, others=using.filter(x=>x!==c.lid).length;
-    const fld=(lab,idn,val,ta,ph)=>`<label class="p-field">${lab}${ta?`<textarea class="p-textarea p-input" id="${idn}" rows="2" oninput="CHG.${idn.slice(3).toLowerCase()}=this.value"${dis}>${esc(val)}</textarea>`:`<input class="p-input" id="${idn}" value="${esc(val)}" ${ph?`placeholder="${esc(ph)}"`:''} oninput="CHG.${idn.slice(3).toLowerCase()}=this.value"${dis}>`}</label>`;
+    const fld=(lab,idn,val,ta,ph)=>`<label class="p-field">${lab}${ta?`<textarea class="p-textarea p-input" id="${idn}" rows="2" oninput="CHG.${idn.slice(3).toLowerCase()}=this.value"${dis}>${esc(val)}</textarea>`:`<input class="p-input" id="${idn}" value="${esc(val)}" ${ph?`placeholder="${esc(ph)}"`:''} oninput="CHG.${idn.slice(3).toLowerCase()}=this.value;chgFoot()"${dis}>`}</label>`;
     if(c.kind==='ink'||c.kind==='place'){
       h+=`<div class="p-note" id="chgMeans">Same ID <b>${esc(id)}</b> — the art department updates the proof. Quick adjust is coming for these.</div>`;
       if(c.kind==='ink') h+=fld('Pantone / thread colours','chgPan',c.pan,false,'e.g. 286 C, WHT');
@@ -1665,11 +1671,12 @@ function renderChg(){ let sc=$('chgScrim'); if(!CHG){ if(sc) sc.remove(); return
       h+=fld('Nickname','chgNick',c.nick,false);
       h+=`<div class="p-hint chg-copy">Copied from ${esc(id)}: location, print type, ink notes, screens, ink changes and other counts. Not copied: seps, screens burned, proof images, inks ready, setup and run times.</div>`;
     } }
-  $('chgB').innerHTML=h;
+  $('chgB').innerHTML=h; chgFoot(); }
+function chgFoot(){ const c=CHG, F=$('chgF'); if(!c||!F) return; const P=c.imp?chgPlan(c):null, dis=c.busy?' disabled':'';
   const ok=!!(P&&c.kind&&(c.kind!=='new'||c.next)&&!c.busy);
   const main=!P||!c.kind?'Pick what changes':c.kind==='new'?`Create ${c.next||'new imprint'} · back to art`:c.kind==='ink'&&P.panCh?'Save colour · back to art':'Send back to art';
   const sum=P&&c.kind?`${P.n} line${P.n>1?'s':''} back to art · comment as ${esc(S.me||'?')}${chgReqLines(P.lines)?' · request marked resolved':''}${PRACTICE?' · practice: nothing saved':''}`:'';
-  $('chgF').innerHTML=`<span class="chg-sum" id="chgSum">${sum}</span><button class="p-btn" type="button" onclick="chgClose()"${dis}>Cancel</button><button class="p-btn p-btn-main" type="button" id="chgGo" onclick="chgApply()"${ok?'':' disabled'}>${c.busy?'Saving…':esc(main)}</button>`; }
+  F.innerHTML=`<span class="chg-sum" id="chgSum">${sum}</span><button class="p-btn" type="button" onclick="chgClose()"${dis}>Cancel</button><button class="p-btn p-btn-main" type="button" id="chgGo" onclick="chgApply()"${ok?'':' disabled'}>${c.busy?'Saving…':esc(main)}</button>`; }
 const chgReqLines=ids=>ids.filter(x=>S.lines[x]&&changesReq(S.lines[x])).length;
 async function chgApply(){ const c=CHG; if(!c||c.busy||!c.imp||!c.kind) return; if(c.kind==='new'&&!c.next) return;
   if(!S.me){ toast('Choose who you are (top right) first · the comment is signed',true); const m=$('me'); if(m){ m.classList.add('is-need'); if(ME_MQ.matches) gearShow(true); } return; }
@@ -1745,8 +1752,8 @@ function rvHtml(Ln,o,proofs){
   // v32: no separate status line: each approval shows its own state in place; Changes requested sits on Comments
   const chgTag=chg?`<span class="p-tag rv-chg" id="rvChg" title="${esc('Asked after the newest proof: '+String(cAuthor(chg).text||'').slice(0,160))}">Changes requested</span><button class="lk" type="button" id="rvChgOk" onclick="resolveChg('${Ln._id}')" title="The change is handled (or it wasn't a request). The tag comes back with the next request comment.">Mark resolved</button>`:'';   // v45
   // v46: what was asked, once, with the two ways to act on it
-  const chgBar=chg?`<div class="rv-chgbar" id="rvChgBar"><span class="q"><b>${esc(cAuthor(chg).name)}:</b> “${esc(String(cAuthor(chg).text||'').replace(/\n?📷 Screenshot: [^\n]+/g,'').replace(/@\[(usr|ugp)[A-Za-z0-9]+\]/g,'').trim().slice(0,140))}”</span><button class="p-btn p-btn-dark" type="button" id="rvChgWhat" onclick="openChg('${Ln._id}')">What's changing?</button>${mmLink(Ln,'rvChgMM')}</div>`:'';
-  const right=`<div class="rvR">${rvPriceHtml(Ln,p,nx,b,q)}${commentsHtml(Ln,chgTag,chgBar)}</div>`;
+  const chgBar=chg?`<div class="rv-chgbar" id="rvChgBar">${chgTag}<span class="q"><b>${esc(cAuthor(chg).name)}:</b> “${esc(String(cAuthor(chg).text||'').replace(/\n?📷 Screenshot: [^\n]+/g,'').replace(/@\[(usr|ugp)[A-Za-z0-9]+\]/g,'').trim().slice(0,140))}”</span><button class="p-btn p-btn-dark" type="button" id="rvChgWhat" onclick="openChg('${Ln._id}')">What's changing?</button>${mmLink(Ln,'rvChgMM')}</div>`:'';
+  const right=`<div class="rvR">${rvPriceHtml(Ln,p,nx,b,q)}${commentsHtml(Ln,'',chgBar)}</div>`;
   const det=`<div class="rvdet${S.rvDet?' is-open':''}"><button class="rvdh" type="button" id="rvDetBtn" aria-expanded="${S.rvDet}" onclick="S.rvDet=!S.rvDet;keepTyping(renderDet);if(S.rvDet){const b=$('rvDetBtn');if(b)b.scrollIntoView({block:'start',behavior:'smooth'});}"><b>Details ${S.rvDet?'▾':'▸'}</b><span>${rvDetSummary(Ln)}</span></button>
     ${S.rvDet?`<div class="rvdb">${impsHtml(Ln)}${garmentHtml(Ln,true)}${notesHtml(Ln)}</div>`:''}</div>`;
   return `<div class="rvgrid" id="rvGrid">${left}${right}</div>${det}`; }

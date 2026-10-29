@@ -713,3 +713,39 @@ Stephen: "find comments that sound like a request and then a marked resolved wou
 - **Mark resolved** sits next to the tag on the Review screen. It writes **Changes Resolved At** (new Line Items field `fldV0jFbUUKghgeCJ`, dateTime), with Undo. Comments up to that time stop counting, and the tag comes back with the next request comment, or naturally once a new proof is uploaded. Practice mode doesn't save.
 - No automation watches the new field (checked: every Line Items automation watches its own fields).
 - **Tested** on 12 sample comments: 5 requests caught, 7 others ignored. A request shows the tag, Mark resolved clears it, and a newer request brings it back.
+
+## 2026-10-29 · v46: "What's changing?" for change requests, and Fix in Mockup Maker ↗
+Stephen: "Really only color and placement can change and keep the imprint id everything else really is a new design" · "changing the size of the artwork is a new imprint id" · "We can save the old imprint we just need it off the line item. That way no one sees that reference and only sees the new imprint with the new artwork... We don't need replaced by just need what matches the proof".
+- **Where:** on Review, a line with Changes requested gets a bar under the Comments title. It holds the tag, Mark resolved, the request (quoted once), **What's changing?** and **Fix in Mockup Maker ↗**. Any line also has **Change an imprint…** under the mockup and in the Imprints panel.
+- **Fix in Mockup Maker ↗** opens `mockup.html?order=<order #>&line=<line id>` in a new tab (plus `&practice=1` in practice). It's also in the Review mockup header and in the Proof panel on the other tabs.
+- **The panel** opens in the page, not as a browser dialog. You pick the imprint (it's already picked when the line has only one), then what changes:
+  - **Ink / thread colour:** keeps the ID ("Same ID 11101-B — the art department updates the proof. Quick adjust is coming for these"). The imprint's Pantone / thread colours (`fldzEbYXESOVnYrtw`) can be edited in place.
+  - **Placement:** keeps the ID. "What moves?" goes into the comment.
+  - **Size, artwork or text:** this is a new design. It makes a new Imprint linked to the order, copying the old one's type, location, nickname, print notes, Pantone, ink notes, screens, ink changes, custom ink charges, stitch count, Supacolor size, thread name and Inks. Inks are only copied if the colours weren't changed. The colours, notes and nickname can be edited before saving.
+    - Not copied: Imprint ID, seps / sep link / Sep'd, Screens Burned, Inks Ready, setup and run fields, schedule, equipment, costs, Repeat / Previous Imprint ID, and proof images.
+    - The new imprint replaces the old one in the line's Imprints, on this line only or on every line using it (default: every line).
+    - The old imprint isn't edited or deleted.
+- **The Imprint ID** comes from Airtable's "Copy Imprint ID" automation (order # + letter by position), the same way Create order does it. The panel shows the next free letter: it checks every imprint on the order and its lines, plus any imprint starting with the order # (so 11101-D somewhere else → E). After about 4 s the app reads the real ID back. If it's different, the comments are corrected and a toast names the ID.
+- **Then, on every affected line:**
+  - Awaiting Review and Quality approved are unticked, so the line is back in Art to do here and in Mockup Maker. Price approval is kept.
+  - A signed comment is posted: "[Stephen] New design: 11101-B → 11101-D (size change) — needs new proof, seps and screens" / "[Stephen] Ink change on 11101-B: 186 → 286 — proof update" / "[Stephen] Placement change on 11101-B — proof update · 1" lower".
+  - The change request is marked resolved. These comments never count as a new request.
+  - For colour and placement on a shared imprint, all the lines using it go back.
+- **Undo** (7 s) puts back the lines' links, ticks and resolved time, the old Pantone, and deletes the comments and any imprint that was just made.
+- **Signed orders** (PandaDoc ID or Signed At set, or a status past Awaiting Proof) show a red note: the customer will need to sign the new proof.
+- **Practice:** nothing is written, and the toast says what would have happened.
+- **Fixed:** at 390 px the v45 tag + Mark resolved ran 110 px off the screen. The titles wrap now.
+- **Automations:** none of the notes record a check of recordUpdated triggers on Imprints › Pantone or Line Items › Imprints. Check those before shipping. Screens Burned (`fldEL51Nwrxuyn9Zo`) is never written.
+- **Tested** with mocked Airtable (`lir46/t46.js`, 77/77):
+  - colour (Pantone PATCH only, both sharing lines back to art, comments, resolved, Undo)
+  - placement
+  - new design on every line and on this line only (A,B,C → D; the old imprint is untouched)
+  - Undo deletes the new record
+  - a different read-back ID gets its comments corrected
+  - the signed warning
+  - practice makes zero writes
+  - no native dialogs
+  - one yellow button
+  - nothing under 12 px
+  - 390 px with no sideways scroll
+- v42 suite 72/73 (only "shows v42"); v45 request check unchanged.
