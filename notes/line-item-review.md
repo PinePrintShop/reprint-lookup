@@ -749,3 +749,34 @@ Stephen: "Really only color and placement can change and keep the imprint id eve
   - nothing under 12 px
   - 390 px with no sideways scroll
 - v42 suite 72/73 (only "shows v42"); v45 request check unchanged.
+
+## 2026-10-29 · v47: the old imprint comes off the order too, and Price approved stays unless the colours change
+Stephen's answers on v46:
+- **"Should be the order as well":** a new design now also takes the old imprint off the order. The order is removed from the old imprint's Linked Orders (`flds9F80ZDkTH1M1t`).
+  - This only happens when no line on the order still uses it. With "this line only" while another line keeps 11101-B, it stays on the order.
+  - That link is the only thing written to the old imprint. It isn't deleted.
+  - It happens after the new imprint is made, so Airtable's position letter is unchanged.
+  - Undo puts the order link back before deleting the new imprint.
+- **"Bigger print doesn't change the cost. Adding colors would but that is it, a new design is just a new design so it would need a new screen or thread count":**
+  - Price approved stays on a new design or size change. It comes off only when the number of colours changes:
+    - screen print: the Screen Count (now editable on the new-design form, prefilled from the old imprint), or the number of colours in the Pantone list
+    - embroidery: the number of thread colours (the field is labelled "Thread colours")
+    - Ink / thread colour: the same check applies when colours are added or removed.
+  - The footer warns before saving ("3 → 4 screens: Price approved comes off").
+  - The comment ends "· 3 → 4 colours, price needs another look".
+- **Deep link:** Mockup Maker v96's "Review in Line Item Review" (`pine-line-item-review.html?order=&line=`) opens the line on the tab it's in (Review / Ready to send) instead of All.
+- **Watch:**
+  - With the old imprint off the order, the order counts one fewer imprint. If Airtable's "Imprint ID Generator" counts by position, the next imprint made on that order could get a letter already used (A, C, D on the order → the next one could be D again).
+  - LIR previews the free letter and corrects its comments on read-back, but Create order doesn't. Check the generator, or rename the duplicate in Airtable.
+  - Also not checked: whether "Copy Imprint ID" re-runs when Linked Orders changes (the notes say it runs on create).
+- **Tested:** `lir47/t47.js`, 102/102. It adds:
+  - off the order when no line uses it, kept when one does
+  - Undo restores the order link and price approvals
+  - more screens or colours untick Price approved; the same count keeps it
+  - embroidery shows thread colours, not a screen count
+  - the deep link through the permanent link lands on the line in Review
+  - practice makes zero writes
+- **Held back at ship (lead, same day):** taking the old imprint off the ORDER is switched off (`OFF_ORDER=false`).
+  - Why: the letter comes from the imprint's position on the order. Imprint ID Generator `fldHjjQ5lzm66ox5j` = order # + the letter at the imprint's position, copied once by "Imprint Created > Copy Imprint ID".
+  - Example: with A, B, C → new D, then B off the order, the next imprint anyone adds is 4th again and gets a second D.
+  - It goes back on once that automation picks the next free letter. The old imprint still comes off the line(s).
