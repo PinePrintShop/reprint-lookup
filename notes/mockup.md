@@ -1402,3 +1402,4 @@ Stephen: "this is a PDF and it says it should have artwork...but it is just a gi
 The file has a hidden "Layer 1" that is a white sheet over the whole design. The picker ticked every layer, so that sheet covered the art.
 Now each layer starts ticked or unticked the way it was saved in the file, and hidden ones say "(hidden in file)" so they can still be turned on.
 Shared file, so Mockup Maker and Sep Maker both get it straight away (no new version numbers).
+- Same day, follow-up: Stephen unticked "DO NOT PRINT - Fabric Base Color" to get rid of the maroon, and everything went. In this file the whole design (maroon and cream) is on that layer; the "ARTWORK" layer is empty. When nothing shows and a layer is unticked, the picker now says the art is on an unticked layer and points to "drop the background" (Everywhere), which takes the maroon out and keeps the cream.
