@@ -2,7 +2,7 @@
    also had the front text you helped me build... can you find a way for us to open this and be able to pull out other
    layers as well").
    An .ai saved with "Create PDF Compatible File" holds every artboard as a page and its layers as optional content.
-   PineAiParts.choose(doc, {name, crop}) shows them (only when there's more than one artboard or layer — or, with crop,
+   PineAiParts.choose(doc, {name, crop, knock}) shows them (only when there's more than one artboard or layer — or, with crop,
    when the artboard is a big sheet like a tech pack):
      - a tile per artboard, cropped to its art, with the art's size
      - a tick box per layer (all on to start)
@@ -17,6 +17,8 @@
        clears the strong red and cyan the marks are drawn in, after the app renders the piece
      - spec: a tech pack's size line on that artboard ("FRONT GRAPHIC SIZE 3.75"W X 2.6"H" → {w:3.75,h:2.6,text}), shown
        in the picker; the app may use it for the print size
+   knock: a solid background colour ([r,g,b]) to drop, or null — the app calls PineAiParts.knock(canvas, knock) after it
+   renders (crop is then the print without it).
    Read only; uses the page's pdf.js and the Pine style classes (p-scrim, p-modal, p-btn). */
 (function(){
   const PX=1/72;   // inches per PDF point
@@ -36,6 +38,7 @@
 .pap-layers label{display:flex;align-items:center;gap:10px;min-height:40px;font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer}
 .pap-layers input{width:22px;height:22px;accent-color:#141412}
 .pap-pv{position:relative;display:grid;place-items:center;min-height:260px;max-height:58vh;background:repeating-conic-gradient(#e6e1d4 0 25%,#f4f0e6 0 50%) 0 0/20px 20px;border-radius:8px;overflow:hidden}
+.pap-pv.is-dark{background:repeating-conic-gradient(#3a3934 0 25%,#2a2925 0 50%) 0 0/20px 20px}
 .pap-pv canvas{max-width:100%;max-height:58vh;display:block}
 .pap-stage{position:relative;line-height:0;touch-action:none;cursor:crosshair}
 .pap-stage canvas{max-width:100%;max-height:58vh}
@@ -81,6 +84,32 @@
   const fmt=v=>(Math.round(v*10)/10).toString();
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+  // 2026-10-29 (Stephen, a bandana drawn on its fabric colour: "would it be better to have that before open this as
+  // well... would it be able to autocrop to the actual print"): a solid background colour can go in the picker. The
+  // preview drops it everywhere and crops to what's left (the real print size); the app renders, then knock()s.
+  const LIN=new Float32Array(256); for(let i=0;i<256;i++){ const c=i/255; LIN[i]=c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4); }
+  const lab=(r,g,b)=>{ const R=LIN[r],G=LIN[g],B=LIN[b], f=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116;
+    const x=f((R*0.4124+G*0.3576+B*0.1805)/0.95047), y=f(R*0.2126+G*0.7152+B*0.0722), z=f((R*0.0193+G*0.1192+B*0.9505)/1.08883);
+    return [116*y-16,500*(x-y),200*(y-z)]; };
+  const de=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+  // the colour all four corners of the art share, when it's solid there (a background, not art that bleeds off)
+  function bgOf(c,b){ if(!b||b.w<20||b.h<20) return null; const d=c.getContext('2d').getImageData(b.x,b.y,b.w,b.h).data, W=b.w, H=b.h, cs=[];
+    for(const [x,y] of [[2,2],[W-3,2],[2,H-3],[W-3,H-3]]){ const i=(y*W+x)*4; if(d[i+3]<250) return null; cs.push([d[i],d[i+1],d[i+2]]); }
+    const L0=lab(...cs[0]); return cs.every(q=>de(lab(...q),L0)<6)?cs[0]:null; }
+  // take that colour out everywhere; where art meets it, the blend is made part see-through with the colour taken back out
+  function knock(c,rgb){ try{ const W=c.width,H=c.height, x=c.getContext('2d',{willReadFrequently:true}), id=x.getImageData(0,0,W,H), d=id.data, bl=lab(...rgb);
+      const dis=new Float32Array(W*H), gone=new Uint8Array(W*H), cache=new Map();
+      for(let i=0;i<W*H;i++){ if(d[i*4+3]<8){ gone[i]=1; continue; } const k=(d[i*4]<<16)|(d[i*4+1]<<8)|d[i*4+2]; let v=cache.get(k); if(v===undefined){ v=de(lab(d[i*4],d[i*4+1],d[i*4+2]),bl); if(cache.size<200000) cache.set(k,v); }
+        dis[i]=v; if(v<8){ gone[i]=1; d[i*4+3]=0; } }
+      for(let y=0;y<H;y++) for(let xx=0;xx<W;xx++){ const i=y*W+xx; if(gone[i]||dis[i]>=40) continue; let near=false;
+        for(let dy=-2;dy<=2&&!near;dy++) for(let dx=-2;dx<=2;dx++){ const X=xx+dx,Y=y+dy; if(X>=0&&Y>=0&&X<W&&Y<H&&gone[Y*W+X]&&d[(Y*W+X)*4+3]===0){ near=true; break; } }
+        if(!near) continue; const a=(dis[i]-8)/32;
+        for(let k=0;k<3;k++) d[i*4+k]=Math.max(0,Math.min(255,Math.round(rgb[k]+(d[i*4+k]-rgb[k])/a)));
+        d[i*4+3]=Math.round(d[i*4+3]*a); }
+      x.putImageData(id,0,0); return true; }catch(e){ return false; } }
+  const hex=q=>'#'+q.map(v=>v.toString(16).padStart(2,'0')).join('');
+  const BG_LAYER=/do not print|fabric|base colou?r|background/i;
+
   // layers start as the artist left them: a hidden layer (e.g. a white cover sheet over the art) stays off
   async function layersOf(doc){ try{ const occ=await doc.getOptionalContentConfig(); const g=occ&&occ.getGroups&&occ.getGroups(); if(!g) return {occ:null,list:[]};
       return {occ,list:Object.keys(g).map(id=>({id,name:String(g[id].name||'Layer'),on:g[id].visible!==false}))}; }catch(e){ return {occ:null,list:[]}; } }
@@ -90,7 +119,7 @@
     let sheet=false; if(opt.crop&&n<2&&L.list.length<2){ try{ const v=(await doc.getPage(1)).getViewport({scale:1}); sheet=Math.max(v.width,v.height)*PX>26; }catch(e){} }   // one huge artboard = a sheet of pieces
     if(n<2&&L.list.length<2&&!sheet) return {page:1,occ:null,label:'',crop:null,spec:null};
     style();
-    const st={page:1,on:Object.fromEntries(L.list.map(l=>[l.id,l.on])),crop:null,pick:-1,spec:null};
+    const st={page:1,on:Object.fromEntries(L.list.map(l=>[l.id,l.on])),crop:null,pick:-1,spec:null,bg:null,knock:null,auto:null,box:null};
     const sc=document.createElement('div'); sc.className='p-scrim'; sc.id='papModal';
     sc.innerHTML=`<div class="p-modal pap-modal" role="dialog" aria-modal="true" aria-labelledby="papT">
       <div class="p-modal-h"><h2 class="p-h2" id="papT" style="word-break:break-word">${esc(opt.name||'This file')}</h2><button class="p-modal-x" type="button" data-x aria-label="Close">×</button></div>
@@ -98,23 +127,31 @@
         ${n>1?`<span class="pap-lbl">${n} artboards</span><div class="pap-tiles" data-tiles></div>`:''}
         ${L.list.length>1?`<span class="pap-lbl">Layers</span><div class="pap-layers" data-layers>${L.list.map(l=>`<label><input type="checkbox"${l.on?' checked':''} data-l="${esc(l.id)}">${esc(l.name)}${l.on?'':' <small>(hidden in file)</small>'}</label>`).join('')}</div>`:''}
         <p class="pap-hint">${n>1?'Each artboard is its own design. ':''}${L.list.length>1?'Untick a layer to leave it out. ':''}${opt.crop?'Tap a numbered piece to open just that, or drag a box round any part. ':''}It opens cropped to the art, at its real size.</p>
-      </div><div><div class="pap-pv" data-pv><span class="pap-hint">Loading…</span></div>${opt.crop?'<div class="pap-row"><button class="p-btn" type="button" data-all hidden>Whole artboard</button></div>':''}<div class="pap-spec" data-spec hidden></div><label class="pap-row" data-nm hidden style="font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;min-height:40px"><input type="checkbox" data-nmc checked style="width:22px;height:22px;accent-color:#141412"> Leave out the measurement marks (red / blue lines and labels)</label><p class="pap-hint" data-sz></p></div></div></div>
+      </div><div><div class="pap-pv" data-pv><span class="pap-hint">Loading…</span></div>${opt.crop?'<div class="pap-row"><button class="p-btn" type="button" data-all hidden>Whole artboard</button></div>':''}<label class="pap-row" data-kn hidden style="font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;min-height:40px"><input type="checkbox" data-knc style="width:22px;height:22px;accent-color:#141412"><span data-ksw style="width:22px;height:22px;border-radius:4px;border:1px solid #141412;display:inline-block"></span> Drop the background colour (crops to the print)</label><div class="pap-spec" data-spec hidden></div><label class="pap-row" data-nm hidden style="font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;min-height:40px"><input type="checkbox" data-nmc checked style="width:22px;height:22px;accent-color:#141412"> Leave out the measurement marks (red / blue lines and labels)</label><p class="pap-hint" data-sz></p></div></div></div>
       <div class="p-modal-f"><button class="p-btn" type="button" data-x>Cancel</button><button class="p-btn p-btn-main" type="button" data-go>Open this</button></div></div>`;
     document.body.appendChild(sc);
     const $=s=>sc.querySelector(s), occOf=()=>{ if(!L.occ) return null; for(const l of L.list) L.occ.setVisibility(l.id,!!st.on[l.id]); return L.occ; };
     let tok=0, PV=null;
-    const sizeText=()=>{ if(!PV) return ''; const b=st.crop?{w:st.crop.w*PV.s,h:st.crop.h*PV.s}:PV.b; return `${st.crop?'Piece':'Art'} ${fmt(b.w/PV.s*PX)} × ${fmt(b.h/PV.s*PX)}″${n>1?` · artboard ${st.page} of ${n}`:''}`; };
+    const sizeText=()=>{ if(!PV) return ''; const b=st.crop?{w:st.crop.w*PV.s,h:st.crop.h*PV.s}:PV.b; return `${st.crop?'Piece':st.knock?'Print':'Art'} ${fmt(b.w/PV.s*PX)} × ${fmt(b.h/PV.s*PX)}″${n>1?` · artboard ${st.page} of ${n}`:''}`; };
     function syncPick(){ if(!PV||!PV.stage) return; PV.stage.querySelectorAll('.pap-box').forEach(e=>e.classList.toggle('is-on',+e.dataset.i===st.pick)); const all=$('[data-all]'); if(all) all.hidden=!st.crop; $('[data-sz]').textContent=sizeText(); }
     async function preview(){ const me=++tok, page=await doc.getPage(st.page), v=page.getViewport({scale:1}), s=Math.min(3,1100/Math.max(v.width,v.height));
       st.crop=null; st.pick=-1;
-      const c=await draw(page,s,occOf()); if(me!==tok) return; const b=inkBox(c), pv=$('[data-pv]'); pv.innerHTML='';
-      if(!b){ pv.innerHTML='<span class="pap-hint" style="padding:0 24px;text-align:center">Nothing on this artboard with these layers.'+(L.list.some(l=>!st.on[l.id])?' The art is on a layer you unticked. To take out a background colour, keep it ticked, open the file, then use “drop the background” (Everywhere).':'')+'</span>'; $('[data-sz]').textContent=''; $('[data-go]').disabled=true; PV=null; return; }
+      let c=await draw(page,s,occOf()); if(me!==tok) return; let b=inkBox(c); const pv=$('[data-pv]'); pv.innerHTML='';
+      // a solid background: offer to drop it (ticked to start when a layer on says it's the fabric / background)
+      const bg=opt.knock?bgOf(c,b):null, kn=$('[data-kn]'); st.bg=bg; kn.hidden=!bg;   // only apps that knock() after rendering ask for it
+      if(bg){ if(st.auto===null) st.auto=L.list.some(l=>st.on[l.id]&&BG_LAYER.test(l.name)); if(st.knock===null&&st.auto) st.knock=true;
+        $('[data-ksw]').style.background=hex(bg); $('[data-knc]').checked=!!st.knock; }
+      st.box=null;
+      if(bg&&st.knock){ const k=document.createElement('canvas'); k.width=c.width; k.height=c.height; k.getContext('2d').drawImage(c,0,0);
+        if(knock(k,bg)){ const kb=inkBox(k); if(kb){ c=k; b=kb; st.box={x:kb.x/s,y:kb.y/s,w:kb.w/s,h:kb.h/s}; } } }
+      pv.classList.toggle('is-dark',!!st.box);   // light art shows on a dark see-through grid
+      if(!b){ pv.innerHTML='<span class="pap-hint" style="padding:0 24px;text-align:center">Nothing on this artboard with these layers.'+(L.list.some(l=>!st.on[l.id])?' The art is on a layer you unticked. To take out a background colour, keep it ticked'+(opt.knock?' and tick “Drop the background colour”.':', open the file, then use “drop the background” (Everywhere).'):'')+'</span>'; $('[data-sz]').textContent=''; $('[data-go]').disabled=true; PV=null; return; }
       $('[data-go]').disabled=false;
       if(!opt.crop){ pv.appendChild(crop(c,b,4)); PV={s,b}; $('[data-sz]').textContent=sizeText(); return; }
       // pieces: drawn over the whole (cropped-to-ink) artboard; the boxes and drags are in the cropped picture's pixels
       const view=crop(c,b,4), ox=Math.max(0,b.x-4), oy=Math.max(0,b.y-4), stage=document.createElement('div'); stage.className='pap-stage'; stage.appendChild(view); pv.appendChild(stage);
       PV={s,b,ox,oy,stage,view};
-      const ps=(opt.crop?pieces(c,s):[]).filter(p=>!(p.w>=b.w*0.97&&p.h>=b.h*0.97)), sp=await specOf(page); if(me!==tok) return;
+      const ps=(opt.crop&&!st.box?pieces(c,s):[]).filter(p=>!(p.w>=b.w*0.97&&p.h>=b.h*0.97)), sp=await specOf(page); if(me!==tok) return;
       st.spec=sp; const sv=$('[data-spec]'); sv.hidden=!sp; if(sp) sv.textContent='From the tech pack: '+sp.text; $('[data-nm]').hidden=!sp;
       const pct=(v0,t)=>(v0/t*100)+'%';
       if(ps.length>1) ps.forEach((p,i)=>{ const e=document.createElement('div'); e.className='pap-box'; e.dataset.i=i;
@@ -139,6 +176,7 @@
       (async()=>{ for(let p=1;p<=n;p++){ try{ const page=await doc.getPage(p), v=page.getViewport({scale:1}), s=Math.min(1,260/Math.max(v.width,v.height)), c=await draw(page,s,null), b=inkBox(c), t=box.querySelector(`[data-p="${p}"]`);
           if(!t) return; t.querySelector('.pap-th').appendChild(crop(c,b,2)); t.querySelector('[data-s]').textContent=b?`${fmt(b.w/s*PX)} × ${fmt(b.h/s*PX)}″ of art`:'Empty'; }catch(e){} } })(); }
     sc.querySelectorAll('[data-l]').forEach(i=>i.onchange=()=>{ st.on[i.dataset.l]=i.checked; preview(); });
+    $('[data-knc]').onchange=e=>{ st.knock=e.target.checked; preview(); };
     const all=$('[data-all]'); if(all) all.onclick=()=>{ st.crop=null; st.pick=-1; const s2=PV&&PV.stage&&PV.stage.querySelector('.pap-box[data-i="-2"]'); if(s2) s2.remove(); syncPick(); };
     preview();
     return new Promise(res=>{
@@ -148,10 +186,11 @@
       sc.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>done(null));
       $('[data-go]').onclick=()=>{ const off=L.list.filter(l=>!st.on[l.id]).map(l=>l.name);
         const nm=$('[data-nm]'), noMarks=!!(nm&&!nm.hidden&&st.crop&&$('[data-nmc]').checked);
-        done({page:st.page,occ:off.length?occOf():null,crop:st.crop,spec:st.spec,noMarks,
-          label:[n>1?'artboard '+st.page:'',st.crop?(st.pick>=0?'piece '+(st.pick+1):'the part you boxed'):'',off.length?'without '+off.join(', '):''].filter(Boolean).join(' · ')}); };
+        const kn=!!(st.bg&&st.knock&&st.box);
+        done({page:st.page,occ:off.length?occOf():null,crop:st.crop||(kn?st.box:null),spec:st.spec,noMarks,knock:kn?st.bg:null,
+          label:[n>1?'artboard '+st.page:'',st.crop?(st.pick>=0?'piece '+(st.pick+1):'the part you boxed'):'',off.length?'without '+off.join(', '):'',kn?'background dropped':''].filter(Boolean).join(' · ')}); };
       setTimeout(()=>$('[data-go]').focus(),0);
     });
   }
-  window.PineAiParts={choose,draw,inkBox,pieces,stripMarks};
+  window.PineAiParts={choose,draw,inkBox,pieces,stripMarks,knock};
 })();

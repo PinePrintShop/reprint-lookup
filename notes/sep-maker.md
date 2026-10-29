@@ -1148,3 +1148,6 @@ The file has a hidden "Layer 1" that is a white sheet over the whole design. The
 Now each layer starts ticked or unticked the way it was saved in the file, and hidden ones say "(hidden in file)" so they can still be turned on.
 Shared file, so Mockup Maker and Sep Maker both get it straight away (no new version numbers).
 - Same day, follow-up: Stephen unticked "DO NOT PRINT - Fabric Base Color" to get rid of the maroon, and everything went. In this file the whole design (maroon and cream) is on that layer; the "ARTWORK" layer is empty. When nothing shows and a layer is unticked, the picker now says the art is on an unticked layer and points to "drop the background" (Everywhere), which takes the maroon out and keeps the cream.
+
+## 2026-10-29 · v57: drop a solid background in the .ai / PDF picker (as Mockup Maker v101)
+Same picker option ("Drop the background colour (crops to the print)"). The art opens see-through and cropped to the print, and each layer used as a screen is knocked out the same way. Bandana test: 6000 px, 21″, one cream ink plus base on a black shirt, about 3 s slower to open than v56 at 300 dpi.

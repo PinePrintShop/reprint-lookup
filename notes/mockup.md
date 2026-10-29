@@ -1403,3 +1403,12 @@ The file has a hidden "Layer 1" that is a white sheet over the whole design. The
 Now each layer starts ticked or unticked the way it was saved in the file, and hidden ones say "(hidden in file)" so they can still be turned on.
 Shared file, so Mockup Maker and Sep Maker both get it straight away (no new version numbers).
 - Same day, follow-up: Stephen unticked "DO NOT PRINT - Fabric Base Color" to get rid of the maroon, and everything went. In this file the whole design (maroon and cream) is on that layer; the "ARTWORK" layer is empty. When nothing shows and a layer is unticked, the picker now says the art is on an unticked layer and points to "drop the background" (Everywhere), which takes the maroon out and keeps the cream.
+
+## 2026-10-29 · v101: drop a solid background in the .ai / PDF picker, cropped to the print
+Stephen: "would it be better to have that before open this as well....would it be able to autocrop to the actual print that I am uploading....right now ... I remove the background than manually crop so I can get it 20x20 since the 22x22 border stays".
+- The picker (pine-ai-parts.js) shows "Drop the background colour (crops to the print)" with a swatch when all four corners of the art are one solid colour.
+- It starts ticked when a layer that's on is named like a fabric/background layer ("DO NOT PRINT", "Fabric", "Base Color", "Background").
+- Ticked: the preview takes that colour out everywhere, shows the rest on a dark see-through grid, and crops to it with its real size ("Print 20.9 × 20.9″" for the bandana; the outer cream border is 20.9″). The numbered pieces are hidden then; dragging a box still works.
+- Open this: the art opens already see-through and cropped, so no "drop the background" and no Crop afterwards. Where the art meets the colour the blend is made part see-through with the colour taken back out, so the soft edges don't show up as extra colours (bandana: 2 colours, 97% / 3%, was 4).
+- Only v101 / Sep Maker v57 ask the picker for this (opt.knock); v100 / v56 see the picker as before.
+- Tested with the bandana PDF (mocked Airtable): picker, open, size 21 (the width box rounds to ¼″), colours.
