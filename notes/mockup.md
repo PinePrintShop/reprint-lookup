@@ -1319,3 +1319,25 @@ Stephen sent 10876 | VC300Y-NY-BERKELEY.pdf as the embroidery template: "the bot
   - Practice mode: attach and Proof done made no writes.
   - The phone Art to do at 390 × 844.
 - **Still open:** which file in the digitizing folder is the sew-out close-up (.JPG or .PNG). Once Stephen confirms, Mockup Maker can offer it from Drive automatically.
+
+## 2026-10-29 — v98
+Stephen (iPhone screenshot, editing "Off center"): "Mobile get funky when trying to make changes." · "on laptop can you review the ink and or garment change color. It feels super tight to see".
+
+- **Phone, typing in a field.** The pinned mockup plus a two-row zoom bar took ~40% of the screen, and the field being edited could sit under it. Now:
+  - While a field in the controls is focused, the pinned mockup shrinks to a strip (30% of the height the keyboard leaves, the whole garment still shown) and the zoom bar is hidden.
+  - The field and its label are scrolled to just under the strip, with the next fields below. The page also keeps a scroll padding the height of the pinned block, so iOS's ⌃ ⌄ arrows and other scrolls don't hide things under it.
+  - Zoom bar on a phone is one row: − 1× + Fit · To print · Center (Center is a toggle chip on the right).
+- **Number pad.** Number fields have `inputmode="decimal"`: iOS shows the number pad, not the full symbols keyboard. The pad has no minus key, so Off center / Center to print edge (and Down from center on bandanas and flat items) have a **±** button. On a non-zero value ± flips the sign; on 0 or empty it turns black (−) and the next number typed is negative. ± keeps the keyboard up. It's hidden on a mouse/trackpad, where "-" can be typed. The fields stay `type="number"` so the values, steps and arrow keys behave as before.
+- **Keyboard no longer drops.** Every change rebuilt the placement rows, so the field being typed in was replaced, the keyboard closed, and the ⌃ ⌄ arrows landed nowhere. Now the rows are only rebuilt when they actually change; otherwise just the numbers are updated in place.
+- **Laptop: ink and garment colours.**
+  - The left column is wider on a laptop (up to 470px, was 380px).
+  - While "Change this ink" is open it widens to up to 640px. The panel shows inks as a grid of 38px swatches with full names (14px), a taller before/after, and the two toggles side by side.
+  - It has a yellow **Done** that stays in view. "Attach proof" turns white while the panel is open, so there's one yellow button.
+  - "Also show on" garment colours use the same grid and get a taller list. The Colour list (after picking a style) shows open, 10 rows, instead of a closed menu.
+  - What the buttons do is unchanged.
+- The proof is unchanged: page 1 is pixel-identical to v97 for a screen-printed hoodie (front + back) and an embroidered cap.
+- Tested with mocked Airtable (Playwright):
+  - iPhone 390 × 844 with touch. Focused Off center, Print width and Below collar, then shrank the viewport to 390 × 420 for the keyboard. Each field and its label were fully visible under the strip and not covered.
+  - ± flips the value, and ± on 0 then typing 1 gives −1. The field keeps focus and isn't rebuilt.
+  - Ink and garment colour panels at 1440 × 900 and 1280 × 800, before and after.
+  - Practice mode: recolour, attach and Proof done made no writes. No native dialogs.
