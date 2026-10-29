@@ -1042,3 +1042,15 @@ Tested with Playwright on the file (kept out of the repo): pieces, spec line, pi
 - Size: tried at 300 dpi, then 200, 150, 100 until under 19.5 MB. Test sizes: a 15″ spot print 0.06 MB; a 14″ 7-screen sim 0.69 MB.
 
 **Tested** with Playwright, mocked Airtable and an in-memory Drive shared with Mockup Maker: combine two files (one cropped, one dragged) → separate → Make the mockup (setup contents, size, 8-bit grayscale PNGs, link) → Mockup Maker; layered .psd (3 flat layers + Reg Marks), 3-layer PDF (Reg Marks skipped), one-layer .psd/.pdf (no offer); sim export to Drive saves the setup; one-file crop; practice: no uploads or writes in either app; no native dialogs; v50 round-trip suite re-run (16/16); desktop, 1024 and phone widths.
+
+## 2026-10-29 · Planned (v56): CMYK process
+Stephen: "can it also have a CMYK feature for the sep along with the other options of spot index and simulated process".
+- **Method:** a fourth one, CMYK.
+- **Screens:** **PROCESS CYAN / PROCESS MAGENTA / PROCESS YELLOW / PROCESS BLACK**. Stephen: "Process Cyan...".
+- **Art source:**
+  - CMYK art (e.g. TShirt_Final_Art_CYMK.psd): use the file's own C, M, Y and K channels.
+  - RGB art: convert it. Black takes the neutrals and darks (GCR) so there are no muddy four-colour greys, and the total ink is capped.
+- **Continuous tone:** the RIP sets the angles and screens it ("Let the rip handle it"). The LPI is the existing halftone setting, 55 or 45 ("We will either use 55 or 45").
+- **Dark shirts:** a white underbase under the process inks (existing base rules), plus an optional highlight white on top.
+- **Print order:** base, Y, M, C, K, highlight white.
+- **Unchanged:** mesh per screen, Remove, exports, sep setup and Make the mockup work as for the other methods.

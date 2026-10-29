@@ -513,6 +513,8 @@ body{margin:0;background:var(--p-cream-lt)}
 .sm-chanlist li{display:flex;align-items:center;gap:8px;font:700 14px/1.3 var(--p-sans)}
 .sm-chanlist i{width:16px;height:16px;border-radius:3px;border:1px solid rgba(0,0,0,.35);flex:none}
 .sm-chanlist .sm-hint{font-weight:400;margin-left:auto}
+.sm-chanlist li.is-gone{opacity:.6}
+.sm-chanlist .sm-x{flex:none}
 body.chan-mode #inksBlk,body.chan-mode #baseBlk,body.chan-mode .sm-checki:has(#dropBg),body.chan-mode #tipBg,body.chan-mode #dropAllRow,body.chan-mode #tipAll{display:none!important}
 /* v49: 🔍 preview, under the ⬇ */
 .sm-pv{position:absolute;top:40px;right:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--p-black);background:var(--p-white);font:700 13px/1 var(--p-sans);cursor:pointer;display:grid;place-items:center}
@@ -532,7 +534,7 @@ body.chan-mode #inksBlk,body.chan-mode #baseBlk,body.chan-mode .sm-checki:has(#d
 .sm-sw input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .sm-sw-custom{background:conic-gradient(#e33,#ee3,#3e3,#3ee,#33e,#e3e,#e33)}
 .sm-inks{display:flex;flex-direction:column;border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
-.sm-ink{display:grid;grid-template-columns:30px 76px 1fr;grid-template-areas:"sw name role" "sw pct pct";gap:4px 8px;align-items:center;padding:8px 10px;border-top:1px solid var(--p-line)}
+.sm-ink{display:grid;grid-template-columns:30px 76px 1fr 40px;grid-template-areas:"sw name role x" "sw pct pct pct";gap:4px 8px;align-items:center;padding:8px 10px;border-top:1px solid var(--p-line)}
 .sm-ink:first-child{border-top:0}
 .sm-ink.is-off{opacity:.55}
 .sm-ink .sw{grid-area:sw;width:30px;height:30px;border-radius:5px;border:1px solid var(--p-line-strong);cursor:pointer;padding:0}
@@ -552,6 +554,14 @@ body.chan-mode #inksBlk,body.chan-mode #baseBlk,body.chan-mode .sm-checki:has(#d
 .sm-ink .nm{grid-area:name;min-height:32px;padding:4px 6px;font-weight:700;font-size:var(--p-fs-s)}
 .sm-ink .pc{grid-area:pct;font-size:var(--p-fs-xs);color:var(--p-ink-3)}
 .sm-ink .p-select{grid-area:role;min-height:40px;padding:6px 8px;font-size:var(--p-fs-s)}
+.sm-x{grid-area:x;width:40px;height:40px;border:1px solid var(--p-line-strong);border-radius:6px;background:var(--p-white);color:var(--p-black);font:700 16px/1 Helvetica,Arial,sans-serif;cursor:pointer;padding:0}
+.sm-x:hover{border-color:var(--p-black)}
+.sm-rm{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px;border-top:1px dashed var(--p-line);background:var(--p-cream-lt);font-size:14px}
+.sm-rm .p-btn{justify-content:flex-start;text-align:left;min-height:44px;white-space:normal}
+.sm-rm i{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.35);margin-right:6px;vertical-align:-2px}
+.sm-rm .sm-lnk{align-self:flex-start}
+.sm-gone{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-top:1px solid var(--p-line);font-size:14px}
+.sm-gone i{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.35);margin-right:6px;vertical-align:-2px}
 .sm-num{display:flex;align-items:center;gap:6px}
 .sm-num .p-input{width:72px;text-align:center;font-variant-numeric:tabular-nums}
 .sm-check{display:flex;gap:10px;align-items:flex-start;font-size:var(--p-fs-s);cursor:pointer;line-height:1.3}
@@ -1182,6 +1192,7 @@ const codeOf=k=>{ const c=inkCode(k.name), b=c.replace(/(OW|DC)$/,''); return b|
 function displayHex(ink){
   const T=window.PANTONE_HEX||{}; const n=String(ink.name).trim();
   if(T[n]) return T[n];
+  if(/^#[0-9a-f]{6}$/i.test(n)) return n.toLowerCase();   // v55: a typed hex shows as that colour (the film is unchanged)
   if(/^white$/i.test(n)) return '#ffffff';
   const pe=PINE_BY[n.toUpperCase()]; if(pe&&pe.hex) return pe.hex;   // v46
   return rgbHex(ink.rgb);
@@ -1426,6 +1437,7 @@ function carryInks(old,neu,rolesOnly){
   pairs.sort((a,b)=>a.d-b.d);
   for(const {o,n} of pairs){ if(map.has(o.id)||used.has(n.id)) continue; map.set(o.id,n.id); used.add(n.id);
     if(o.userSet){ n.role=o.role; n.roleWas=o.roleWas; n.into=o.into; n.userSet=true; n._merge=o.role==='merge'?old.find(x=>x.id===o.into)||null:null; }
+    if(o.removed) n.removed=o.removed;   // v55
     if(rolesOnly) continue;
     if(o.userSolid){ n.solid=o.solid; n.userSolid=true; }
     if(o.split){ n.split=Object.assign({},o.split); n.userSet=true; if(!o.userSet) n.role=o.role; }
@@ -1563,7 +1575,44 @@ function thinCore(D,W,H,scale){
   return out;
 }
 /* builds the films at a scale (1 = 300 dpi output). Returns {W,H,plates,warn} */
-async function separate(scale,progress){
+/* v55 (Stephen: "can we also remove colors as well in the sep tool" — "not just hide them"): a removed ink is still
+   separated (so every other screen comes out exactly as before), then taken out afterwards:
+   · Erase — its screen goes; nothing prints where it was. Other screens only lose what sat inside its area because of
+     it: the traps that ran under it, and the base under it (choked back from the new edge). Nothing is added anywhere.
+   · Give its area to the nearest ink (by the separated colours) — that ink's screen gains the area; no other screen
+     changes. Sim: the nearest ink takes its tones (added, up to 100%).
+   · Channel / layer screens (.psd seps, Use layers): Erase only — the screen is simply left out.
+   Undo / Put back restore it exactly (the separation is the same as before the remove). */
+let _sepMasks=null;
+async function separate(scale,progress){ _sepMasks=null; const r=await separate0(scale,progress); return dropRemoved(r,_sepMasks,scale); }
+const liveInk=k=>k.role!=='skip'&&k.role!=='merge'&&!k.removed;
+function giveTarget(k){ let best=null,bd=1e18; for(const o of S.inks){ if(o===k||!liveInk(o)) continue; const d=dist2(o.lab,k.lab); if(d<bd){ bd=d; best=o; } } return best; }
+function dropRemoved(r,masks,scale){
+  if(!r||!r.plates) return r;
+  if(S.chanMode&&S.chans){ const g=S.chanGone||{}; r.plates=r.plates.filter(p=>!g[p.key]); return r; }
+  const gone=(S.inks||[]).filter(k=>k.removed&&k.role!=='skip'&&k.role!=='merge'); if(!gone.length) return r;
+  const N=r.W*r.H, cp=p=>{ if(!p._own){ p.data=Uint8Array.from(p.data); p._own=1; } return p.data; };
+  for(const k of gone){
+    const own=r.plates.filter(p=>p.ink===k&&!p.base), tgt=k.removed==='give'?giveTarget(k):null;
+    const tp=tgt&&(r.plates.find(p=>p.ink===tgt&&!p.base&&p.split!=='solid')||r.plates.find(p=>p.ink===tgt));
+    if(masks&&masks[k.id]){   // spot / index / discharge: the ink's own pixels
+      const raw=masks[k.id];
+      if(tp){ const d=cp(tp); for(let i=0;i<N;i++) if(raw[i]) d[i]=255; }
+      else { const sc=scale||1, grow={bb:(S.ezChoke+S.bbChoke)*sc,ez:S.ezChoke*sc};
+        for(const p of r.plates){ if(own.includes(p)) continue; const mine=p.ink&&!p.base?masks[p.ink.id]:null, isBase=p.kind==='bb'||!!p.base;
+          const area=isBase&&grow[p.kind]>0?dilate(raw,r.W,r.H,grow[p.kind]):raw;
+          for(let i=0;i<N;i++) if(area[i]&&p.data[i]&&!(mine&&mine[i])&&(isBase||raw[i])) cp(p)[i]=0; } } }
+    else {   // sim: the ink's tones
+      const ch=new Uint8Array(N); own.forEach(p=>{ for(let i=0;i<N;i++) if(p.data[i]>ch[i]) ch[i]=p.data[i]; });
+      if(tp){ const d=cp(tp); for(let i=0;i<N;i++) if(ch[i]) d[i]=Math.min(255,d[i]+ch[i]); }
+      else { const tops=r.plates.filter(p=>!own.includes(p)&&(p.kind==='ink'||p.kind==='hlw')), bases=r.plates.filter(p=>p.kind==='bb'||p.base);
+        for(let i=0;i<N;i++){ if(!ch[i]||tops.some(p=>p.data[i])) continue; for(const b of bases) if(b.data[i]) cp(b)[i]=0; } } }
+    r.plates=r.plates.filter(p=>!own.includes(p));
+  }
+  return r; }
+// v55: black as separated — the name the ink got when its colour was found / picked (a rename doesn't count)
+const sepBlk=k=>inkCode(k.autoName||k.name)==='BLK';
+async function separate0(scale,progress){
   const full=outSize(), W=Math.max(1,Math.round(full.W*scale)), H=Math.max(1,Math.round(full.H*scale));
   if(S.chanMode&&S.chans){ if(progress){ progress('Reading the screens'); await new Promise(r=>setTimeout(r,0)); } return ordered(chanSeparate(W,H)); }   // v50
   const px=pixelsAt(W,H), N=W*H;
@@ -1572,7 +1621,10 @@ async function separate(scale,progress){
   const inks=S.inks.filter(k=>k.role!=='skip'&&k.role!=='merge');
   const dark=isDark(), dc=S.discharge&&S.method!=='sim';
   const plates=[], warn=[];
-  const sortLight=(a,b)=>{ const ab=inkCode(a.name)==='BLK', bb=inkCode(b.name)==='BLK'; if(ab!==bb) return ab?1:-1; return b.lab[0]-a.lab[0]; };
+  // v55 (Stephen: "when I start changing the black color or the ink color it starts adding information to other layers"):
+  // which ink is "black" (printed last, so the others trap under it) comes from the colour it was separated as, not
+  // from a later rename — renaming 1235 to Black C flipped the trap direction and moved pixels into the 186 film
+  const sortLight=(a,b)=>{ const ab=sepBlk(a), bb=sepBlk(b); if(ab!==bb) return ab?1:-1; return b.lab[0]-a.lab[0]; };
 
   if(S.method==='sim'){ await tick('Blending channels'); return simSeparate(px,W,H,scale,inks,dark,plates,warn); }
 
@@ -1582,6 +1634,7 @@ async function separate(scale,progress){
   else lab=labelMap(px);
   const masks={};
   for(const ink of inks){ const i=S.inks.indexOf(ink), m=new Uint8Array(N); let n=0; for(let p=0;p<N;p++) if(lab[p]===i){m[p]=1;n++;} masks[ink.id]=m; ink._n=n; }
+  _sepMasks=masks;   // v55: for removed inks
 
   const ezInk = inks.find(k=>k.role==='ez');
   const based = inks.filter(k=>k.role==='ow'||k.role==='ez');
@@ -1858,7 +1911,7 @@ function simSeparate(px,W,H,scale,inks,dark,plates,warn){
   const useBase=inks.some(k=>k.role==='ow'||k.role==='ez');
   const ezCode=!effEZ()||S.ez==='none'?null:(white0?codeOf(white0):S.ez), bbOn=useBase&&effBB();
   const white=ezCode?white0:null;   // v48: no EZ screen → the white prints as an ink (v47 dropped it)
-  let cols=inks.filter(k=>k!==white).sort((a,b)=>{ const ab=inkCode(a.name)==='BLK', bb=inkCode(b.name)==='BLK'; if(ab!==bb) return ab?1:-1; return b.lab[0]-a.lab[0]; });
+  let cols=inks.filter(k=>k!==white).sort((a,b)=>{ const ab=sepBlk(a), bb=sepBlk(b); if(ab!==bb) return ab?1:-1; return b.lab[0]-a.lab[0]; });   // v55: the stacking order (and so the mix) by the separated colour, not a rename
   if(S.order){ const def=cols.slice(); cols.sort((a,b)=>{ const ra=orderRank('ink'+a.id), rb=orderRank('ink'+b.id); return ra!==rb?ra-rb:def.indexOf(a)-def.indexOf(b); }); }
   const sx=k=>k.solveHex||displayHex(k);   // v18: mix with the colour the ink was separated with, not a later rename
   // v48: a base is the EZ layer, or BB on its own when only the underbase is ticked
@@ -1980,9 +2033,13 @@ function syncChanUi(){
   $('chanUseRow').hidden=!(S.chans&&!S.chanMode)||!$('layerOffer').hidden; $('chanUse').textContent=lay?'Use these layers as screens':'Use the file\'s screens';
   if(!S.chans) return;
   const n=S.chans.list.length; $('chanUseTxt').textContent=lay?`This file has ${n} layers that can be the screens.`:`This .psd is already separated: ${n} screen${n===1?'':'s'} in its channels.`;
-  $('chanCount').textContent=n; $('chanBlk').querySelector('.p-section').firstChild.textContent=lay?'3 · Screens from the layers ':'3 · Screens from the file ';
+  $('chanCount').textContent=n-Object.keys(S.chanGone||{}).filter(k=>+k.slice(2)<n).length; $('chanBlk').querySelector('.p-section').firstChild.textContent=lay?'3 · Screens from the layers ':'3 · Screens from the file ';
   $('chanSum').textContent=lay?'Each layer is a screen, named from the layer — nothing is separated. Rename, change mesh, re-order or hide them in Screens and Print order.':'Each channel is a screen, as saved — nothing is separated again. Rename, change mesh, re-order or hide them in Screens and Print order.';
-  $('chanList').innerHTML=S.chans.list.map((q,i)=>{ const p=chanPlate(q,i); return `<li><i style="background:${p.hex}"></i>${esc(p.mesh+'M-'+p.code)}<span class="sm-hint">${p.kind==='bb'?'base':p.kind==='ez'?'EZ layer':p.kind==='hlw'?'highlight white':''}</span></li>`; }).join('');
+  const gone=S.chanGone||{};   // v55: Remove (Erase only — each screen is its own layer / channel)
+  $('chanList').innerHTML=S.chans.list.map((q,i)=>{ const p=chanPlate(q,i), g=!!gone[p.key]; return `<li class="${g?'is-gone':''}"><i style="background:${p.hex}"></i>${esc(p.mesh+'M-'+p.code)}<span class="sm-hint">${g?'removed':p.kind==='bb'?'base':p.kind==='ez'?'EZ layer':p.kind==='hlw'?'highlight white':''}</span>${g?`<button type="button" class="sm-lnk" data-chback="${p.key}">Put back</button>`:`<button type="button" class="sm-x" data-chrm="${p.key}" aria-label="Remove ${esc(p.code)}" title="Remove this screen (erase it)">✕</button>`}</li>`; }).join('');
+  $('chanList').querySelectorAll('[data-chrm]').forEach(b=>b.onclick=()=>{ const k=b.dataset.chrm, nm=b.getAttribute('aria-label').replace(/^Remove /,''); S.chanGone=Object.assign({},S.chanGone,{[k]:1}); if(S.plateKey===k) S.plateKey=null; syncChanUi(); schedule(0);
+    toastUndo(`Removed ${nm} — erased`,()=>{ const g=Object.assign({},S.chanGone); delete g[k]; S.chanGone=g; syncChanUi(); schedule(0); }); });
+  $('chanList').querySelectorAll('[data-chback]').forEach(b=>b.onclick=()=>{ const g=Object.assign({},S.chanGone); delete g[b.dataset.chback]; S.chanGone=g; syncChanUi(); schedule(0); });
 }
 function setChanMode(on){ S.chanMode=on; S.order=null; S.hidden={}; S.names={}; S.meshes={}; S.playN=null; S.preview=null; syncChanUi(); schedule(0); }
 /* ================= v4: check chokes and overlaps ================= */
@@ -2033,11 +2090,17 @@ function sepImage(res,vis,ctx){
 const ZOOMS=[['Fit',0],['1:1',1],['4×',4],['8×',8]];
 function applyZoom(center){
   const cv=$('view'), z=ZOOMS[S.zoomLvl||0][1], st=$('stage');
+  // v55 (Stephen: "when I go to zoom and then fit the image disappears and eventually slides back into view"): the
+  // before/after overlay kept its zoomed size and place for a frame, which kept the stage scrolled far right; the
+  // overlay then followed the picture back a few px a frame. On Fit the overlay is cleared first, the stage scrolls to
+  // the top-left and the overlay is laid on the picture straight away.
+  if(!z) ['cmp','cmpH','cmpL','cmpR'].forEach(i=>{ const e=$(i); if(!e) return; e.style.left=e.style.top='0px'; if(i!=='cmpL'&&i!=='cmpR') e.style.height='0px'; if(i==='cmp') e.style.width='0px'; });
   cv.classList.toggle('zoom',z>0); cv.style.width=z>1?(cv.width*z)+'px':''; cv.style.height=z>1?(cv.height*z)+'px':'';
   // v48 (Stephen, laptop screenshot): Fit = the room the stage really has, whatever notes sit above it
   cv.style.maxHeight=z||innerWidth<=900?'':Math.max(200,st.clientHeight-34)+'px';
   $('zoomBtn').textContent=ZOOMS[((S.zoomLvl||0)+1)%ZOOMS.length][0];
-  if(typeof syncCmp==='function') requestAnimationFrame(syncCmp);
+  if(!z){ st.scrollLeft=0; st.scrollTop=0; if(typeof syncCmp==='function') syncCmp(); st.scrollLeft=0; st.scrollTop=0; }
+  else if(typeof syncCmp==='function') requestAnimationFrame(syncCmp);
   if(center&&z) requestAnimationFrame(()=>{ st.scrollLeft=(st.scrollWidth-st.clientWidth)/2; st.scrollTop=(st.scrollHeight-st.clientHeight)/2; });
 }
 
@@ -2066,7 +2129,7 @@ function render(){
   const res=S.preview; if(!res) return;
   const n=res.plates.length;
   document.querySelectorAll('.sm-split').forEach(d=>{ const k=S.inks.find(o=>o.id===+d.dataset.split); if(k) syncSplitStat(d,k); });
-  $('filmCount').textContent=n; $('inkCount').textContent=S.inks.filter(k=>k.role!=='skip'&&k.role!=='merge').length||'';
+  $('filmCount').textContent=n; $('inkCount').textContent=S.inks.filter(liveInk).length||'';
   $('exportBtn').disabled=!n;
   const w=$('warn'); w.innerHTML='';
   const notes=[...res.warn];
@@ -2190,16 +2253,17 @@ function renderInks(){
   $('count').value=S.count||'Auto';
   if(!S.inks.length){ box.innerHTML='<div class="sm-ink"><span class="sm-hint" style="grid-column:1/-1">Open art to find its colours.</span></div>'; return; }
   const ezTaken=S.inks.find(k=>k.role==='ez');
-  S.inks.forEach(ink=>{
+  S.inks.forEach(ink=>{ if(ink.removed) return;   // v55: listed under "Removed" below
     const row=document.createElement('div'); row.className='sm-ink'+(ink.role==='skip'||ink.role==='merge'?' is-off':'');
-    const others=S.inks.filter(o=>o!==ink&&o.role!=='merge');
+    const others=S.inks.filter(o=>o!==ink&&o.role!=='merge'&&!o.removed);
     const opts=dcOn()?[['ow','Discharge (DC)'],['shirt','Waterbase, no DC (prints last)'],['ez','White DC (WHTDC / CRMDC / OFFWHTDC)'],['skip','Shirt — no ink']]   // v31
       :[['ow','On base (OW)'],['shirt','On shirt'],['ez','EZ layer (white/cream)'],['skip','Shirt — no ink']];
     row.innerHTML=`<button type="button" class="sw" style="background:${displayHex(ink)}" title="Change the Pantone — art colour ${rgbHex(ink.rgb)}"></button>
       <input class="p-input nm" value="${esc(ink.name)}" aria-label="Pantone">
       <span class="pc">${ink.role==='merge'?(()=>{ const t=activeInk(ink); return `merged into <b>${esc(t.name)}</b> · <button type="button" class="p-link" data-unmerge style="border:0;background:none;padding:0;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer">Unmerge</button>`; })():''}${ink.role==='merge'?'':(()=>{ const q=matchOf(ink); return `<span class="mq ${q.cls}" title="Art colour vs this Pantone: ΔE ${q.d.toFixed(1)}">${q.mark}</span> · `+(ink.picked?'picked':(ink.pct<1?ink.pct.toFixed(1):Math.round(ink.pct))+'% of art'); })()}${S.method==='sim'&&ink.role!=='ez'&&ink.role!=='skip'&&ink.role!=='merge'&&!splitOn(ink)?` · <label class="sm-solid" title="100% or nothing: never halftoned (a tint mixed in the bucket)"><input type="checkbox" ${ink.solid?'checked':''}> Solid</label>`:''}${canSplit(ink)||splitOn(ink)?` · <label class="sm-solid" title="Two screens: the shading as halftone, the big solid shapes (bold text) as a solid screen printed after it"><input type="checkbox" data-split ${splitOn(ink)?'checked':''}> Split solid / halftone</label>${splitOn(ink)&&!ink.splitOpen?` <button type="button" class="sm-lnk" data-splitset aria-label="Split settings for ${esc(ink.name)}">Settings</button>`:''}`:''}</span>
       <select class="p-select" aria-label="How it prints">${opts.map(([v,t])=>`<option value="${v}" ${ink.role===v?'selected':''} ${v==='ez'&&ezTaken&&ezTaken!==ink?'disabled':''}>${t}</option>`).join('')}
-        ${others.length?`<optgroup label="Merge into">${others.map(o=>`<option value="m${o.id}" ${ink.role==='merge'&&ink.into===o.id?'selected':''}>${esc(o.name)}</option>`).join('')}</optgroup>`:''}</select>`;
+        ${others.length?`<optgroup label="Merge into">${others.map(o=>`<option value="m${o.id}" ${ink.role==='merge'&&ink.into===o.id?'selected':''}>${esc(o.name)}</option>`).join('')}</optgroup>`:''}</select>
+      <button type="button" class="sm-x" data-rm aria-label="Remove ${esc(ink.name)}" title="Remove this colour from the seps">✕</button>`;
     row.querySelector('.nm').onchange=e=>{ ink.name=e.target.value.trim()||ink.name; renderInks(); schedule(); };
     row.querySelector('.sw').onclick=()=>{ S.popInk=S.popInk===ink.id?null:ink.id; renderInks(); };
     const um=row.querySelector('[data-unmerge]'); if(um) um.onclick=()=>{ unmergeInk(ink); ink.userSet=true; renderInks(); schedule(); };
@@ -2207,13 +2271,20 @@ function renderInks(){
     // v50 (Stephen: "I want splitting colors to be an option" / "it just opens and you can't close it"): a tick box —
     // ticked = two screens, unticked = one; the settings fold away with Done and come back with Settings
     const sp=row.querySelector('[data-split]'); if(sp) sp.onchange=e=>{ if(e.target.checked){ ink.split={th:SPLIT_TH,min:SPLIT_MIN}; ink.userSetWas=!!ink.userSet; ink.userSet=true; ink.splitOpen=true; renderInks(); schedule(0); } else unsplit(ink); };
+    row.querySelector('[data-rm]').onclick=()=>{ S.rmAsk=S.rmAsk===ink.id?null:ink.id; S.popInk=null; renderInks(); const b=document.querySelector('.sm-rm [data-erase]'); if(b) b.focus(); };
     const ss=row.querySelector('[data-splitset]'); if(ss) ss.onclick=()=>{ ink.splitOpen=true; renderInks(); };
     row.querySelector('select').onchange=e=>{ const v=e.target.value; ink.userSet=true; if(v[0]==='m'){ ink.role='merge'; ink.into=+v.slice(1); } else { ink.role=v; ink.into=-1; }
       S.inks.forEach(o=>{ if(o.role==='merge'&&o.into===ink.id&&ink.role==='merge') { o.into=ink.into; } }); renderInks(); schedule(); };
     box.appendChild(row);
     if(splitOn(ink)&&ink.splitOpen) box.appendChild(splitPanel(ink));
     if(S.popInk===ink.id) box.appendChild(inkPop(ink));
+    if(S.rmAsk===ink.id) box.appendChild(removePanel(ink));
   });
+  const gone=S.inks.filter(k=>k.removed);
+  if(gone.length){ const d=document.createElement('div'); d.className='sm-gone';
+    d.innerHTML='<b>Removed</b> '+gone.map(k=>`<span><i style="background:${displayHex(k)}"></i>${esc(k.name)} <span class="sm-hint">${k.removed==='give'?'area given to '+esc((giveTarget(k)||{name:'—'}).name):'erased'}</span> <button type="button" class="sm-lnk" data-back="${k.id}">Put back</button></span>`).join('');
+    d.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ const k=S.inks.find(o=>o.id===+b.dataset.back); if(k){ delete k.removed; renderInks(); schedule(); toast(k.name+' is back'); } });
+    box.appendChild(d); }
 }
 // v48: the split's two screens, its two sliders, and Merge back
 function splitName(ink,which){ const res=S.preview, p=res&&res.plates.find(q=>q.key==='ink'+ink.id+(which==='solid'?'s':'')); if(p) return plateName(p);
@@ -2233,6 +2304,22 @@ function splitPanel(ink){
   return d;
 }
 function unsplit(ink){ delete ink.split; ink.splitOpen=false; if(ink.userSetWas===false) ink.userSet=false; delete ink.userSetWas; if(S.plateKey==='ink'+ink.id+'s') S.plateKey=null; renderInks(); schedule(0); toast(ink.name+': one screen again'); }
+// v55: Remove — ask what prints where it was (Erase first), then Undo for 10 s
+function removePanel(ink){
+  const d=document.createElement('div'); d.className='sm-rm'; const t=giveTarget(ink);
+  d.innerHTML=`<span>Remove <b>${esc(ink.name)}</b> from the seps. Where it was:</span>
+    <button type="button" class="p-btn" data-erase>Erase it — nothing prints there (the shirt shows)</button>
+    ${t?`<button type="button" class="p-btn" data-give><i style="background:${displayHex(t)}"></i>Give its area to the nearest ink: ${esc(t.name)}</button>`:''}
+    <button type="button" class="sm-lnk" data-cancel>Cancel</button>`;
+  const go=how=>{ ink.removed=how; S.rmAsk=null; if(S.plateKey&&S.plateKey.startsWith('ink'+ink.id)) S.plateKey=null; renderInks(); schedule(0);
+    toastUndo(`Removed ${ink.name}${how==='give'&&t?' — its area goes to '+t.name:' — erased'}`,()=>{ delete ink.removed; renderInks(); schedule(0); }); };
+  d.querySelector('[data-erase]').onclick=()=>go('erase'); const g=d.querySelector('[data-give]'); if(g) g.onclick=()=>go('give');
+  d.querySelector('[data-cancel]').onclick=()=>{ S.rmAsk=null; renderInks(); };
+  return d; }
+function toastUndo(msg,undo){
+  document.querySelectorAll('.p-toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='p-toast'; t.style.cssText='display:flex;align-items:center;gap:12px';
+  t.innerHTML=`<span>${esc(msg)}</span><button class="p-btn" type="button">Undo</button>`; t.querySelector('button').onclick=()=>{ t.remove(); undo(); };
+  document.body.appendChild(t); setTimeout(()=>t.remove(),10000); }
 function syncSplitStat(d,ink){ const res=S.preview, st=d&&d.querySelector('[data-stat]'); if(!st) return;
   const p=res&&res.plates.find(q=>q.key==='ink'+ink.id+'s'), h=res&&res.plates.find(q=>q.key==='ink'+ink.id);
   if(!p||!h){ st.textContent='Working…'; return; }
@@ -2270,7 +2357,7 @@ function inkPop(ink){
     n.querySelectorAll('button').forEach(b=>b.onclick=()=>{ ink.name=b.dataset.n; S.popInk=null; renderInks(); schedule(); });
     pop.insertBefore(n,pop.children[1]); }
   // v22: combine this ink with another
-  const tg=S.inks.filter(o=>o!==ink&&o.role!=='merge'&&o.role!=='skip');
+  const tg=S.inks.filter(o=>o!==ink&&liveInk(o));
   if(tg.length&&ink.role!=='merge'){ const cw=document.createElement('div'); cw.className='sm-hint';
     cw.innerHTML=`<b>Combine with</b> — this colour prints as:<div class="chips" style="margin-top:6px">${tg.map(o=>`<button type="button" data-into="${o.id}"><i style="background:${displayHex(o)}"></i>${esc(o.name)}</button>`).join('')}</div>`;
     cw.querySelectorAll('[data-into]').forEach(b=>b.onclick=()=>{ mergeInto(ink,S.inks.find(o=>o.id===+b.dataset.into)); S.popInk=null; renderInks(); schedule(); });
@@ -2304,11 +2391,11 @@ function pickAt(e){
   if(fx<0||fy<0||fx>1||fy>1) return;
   const rgb=sampleArt(fx,fy); if(!rgb){ toast('That spot is empty — tap on the art.'); return; }
   const lab=labOf(...rgb), pm=nearestPms(lab); let name=pm?pm.name:'INK'; if(lab[0]>93&&chroma(lab)<6) name='White';
-  if(S.pickFor!=null){ const ink=S.inks.find(k=>k.id===S.pickFor); if(ink){ Object.assign(ink,{rgb,lab,name}); ink.solveHex=displayHex(ink); toast(`${name} — re-picked from the art`); } }
+  if(S.pickFor!=null){ const ink=S.inks.find(k=>k.id===S.pickFor); if(ink){ Object.assign(ink,{rgb,lab,name,autoName:name}); ink.solveHex=displayHex(ink); toast(`${name} — re-picked from the art`); } }
   else {
     const near=S.inks.find(k=>k.role!=="merge"&&Math.sqrt(dist2(k.lab,lab))<2.5);
     if(near){ toast(`Already an ink: ${near.name}`); S.popInk=near.id; stopPick(); renderInks(); return; }
-    const id=Math.max(-1,...S.inks.map(k=>k.id))+1, ink={id,lab,rgb,pct:0,name,role:'shirt',into:-1,picked:true}; ink.solveHex=displayHex(ink);
+    const id=Math.max(-1,...S.inks.map(k=>k.id))+1, ink={id,lab,rgb,pct:0,name,autoName:name,role:'shirt',into:-1,picked:true}; ink.solveHex=displayHex(ink);
     ink.role=roleFor(ink); S.inks.push(ink); (S.picked=S.picked||[]).push(ink); toast(`Added ${name}`);
   }
   stopPick(); renderInks(); schedule();
@@ -2329,7 +2416,7 @@ function combineSimilar(){
   // smallest first: each colour joins the nearest bigger colour within ΔE 15 (or the same Pantone). A colour that has
   // taken another in stays put, and nothing chains — so a gradient keeps its steps instead of collapsing into one ink
   S.combUndo=S.inks.map(k=>({id:k.id,role:k.role,into:k.into,roleWas:k.roleWas,userSet:k.userSet}));
-  const a=S.inks.filter(k=>k.role!=='merge'&&k.role!=='skip').sort((x,y)=>x.pct-y.pct), kept=new Set(); let n=0;
+  const a=S.inks.filter(liveInk).sort((x,y)=>x.pct-y.pct), kept=new Set(); let n=0;
   for(const k of a){ if(kept.has(k.id)||k.role==='merge') continue;
     const t=a.filter(o=>o!==k&&o.role!=='merge'&&o.pct>=k.pct&&(o.role==='ez')===(k.role==='ez')).map(o=>({o,d:Math.sqrt(dist2(o.lab,k.lab))})).filter(x=>x.d<15||x.o.name===k.name).sort((p,q)=>p.d-q.d)[0];
     if(t){ mergeInto(k,t.o); kept.add(t.o.id); n++; continue; }
@@ -2635,7 +2722,7 @@ async function loadFile(f,opt){
   const a=tx.getImageData(0,0,8,8).data; let tr=0; for(let i=3;i<a.length;i+=4) if(a[i]<128) tr++;
   S.dropBg = tr===0&&!(vec&&vec.alpha); $('dropBg').checked=S.dropBg; S.dropAll=false; $('dropAll').checked=false; $('dropAllRow').hidden=!S.dropBg;
   S.chans=vec&&vec.chans&&vec.chans.list.length?vec.chans:null; S.chanMode=!!S.chans&&(S.chans.from!=='layers'||!!(vec&&vec.asScreens)); S.layerOffer=!!S.chans&&S.chans.from==='layers'&&!S.chanMode&&S.chans.offer!==false;   // v50 · v54: layers are offered first · v55: flat / ink-named ones; others quietly ("Use these layers as screens")
-  S.src=img; S.name=f.name||'pasted art'; S.names={}; S.picked=[]; S.popInk=null; stopPick(); S.combUndo=null; $('combUndo').hidden=true; S.meshes={}; S.order=null; S.hidden={}; S.playN=null;
+  S.src=img; S.name=f.name||'pasted art'; S.chanGone={}; S.rmAsk=null; S.names={}; S.picked=[]; S.popInk=null; stopPick(); S.combUndo=null; $('combUndo').hidden=true; S.meshes={}; S.order=null; S.hidden={}; S.playN=null;
   trimArt();
   const ppi=vec?vec.ppi:await readPngPpi(f);   // .ai/PDF: the artboard is in points; .psd: its own resolution — so it comes in at its real size
   // the file's own size sets the print width, unless it can't be right for the job's location (a 10" file on a left chest)
@@ -3186,7 +3273,7 @@ const LOC_WIDTH={F:11,B:11,LC:3.5,RC:3.5,LS:3,RS:3,Nape:3,Bandana:20.6,Tote:10,O
 function startDC(im){ if(/\d\s*DC\b|\bDC\b|discharge/i.test(im&&im.pantone||'')) return true;
   const band=im&&(im.loc==='Bandana'||(J.garment&&(/bandana/i.test(J.garment.type)||/carolina creative/i.test(J.garment.brand))));
   return !!band&&!/natural|\bwhite\b/i.test(J.garment&&J.garment.color||''); }
-const PRINT_KEYS=['pieces','pieceBox','pieceSel','userCrop','chans','chanMode','layerOffer','img','src','imgW','imgH','srcPpi','name','thumbUrl','widthIn','imprint','loc','method','discharge','count','inks','bb','ez','choke','trap','keepThin','dropBg','indexDot','indexDither','indexClean','indexSnap','indexSmooth','soft','hlw','simBase','dropAll','useBB','useEZ','bbChoke','ezChoke','stroke','order','hidden','names','meshes','preview','plateKey','picked','rolesNoDC'];   // v48: + picked (eyedropper inks), rolesNoDC
+const PRINT_KEYS=['chanGone','pieces','pieceBox','pieceSel','userCrop','chans','chanMode','layerOffer','img','src','imgW','imgH','srcPpi','name','thumbUrl','widthIn','imprint','loc','method','discharge','count','inks','bb','ez','choke','trap','keepThin','dropBg','indexDot','indexDither','indexClean','indexSnap','indexSmooth','soft','hlw','simBase','dropAll','useBB','useEZ','bbChoke','ezChoke','stroke','order','hidden','names','meshes','preview','plateKey','picked','rolesNoDC'];   // v48: + picked (eyedropper inks), rolesNoDC
 const lsx={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
 let TOKEN=lsx.get('pine_at_key','');   // the same key the other Pine apps use (same site, so it's usually already saved)
 const J={orders:[],allImps:[],order:null,lines:[],line:null,garment:null,imps:[],cur:null,prints:{},place:{},placeText:{},photos:{},photoState:'',attached:null,sent:false,busy:false};
@@ -3662,7 +3749,7 @@ function switchPrint(id){
   const snap=J.prints[id];
   if(snap) PRINT_KEYS.forEach(k=>S[k]=snap[k]);
   else { Object.assign(S,{img:null,src:null,imgW:0,imgH:0,srcPpi:0,name:'',thumbUrl:'',inks:[],names:{},meshes:{},preview:null,plateKey:null,count:0,
-    imprint:im.code,loc:im.loc,widthIn:LOC_WIDTH[im.loc]||11,discharge:startDC(im),dropBg:false,bb:null,pieces:null,pieceBox:null,userCrop:null,chans:null,chanMode:false,layerOffer:false}); }   // v31: base strength back to Auto (this garment's fabric)
+    imprint:im.code,loc:im.loc,widthIn:LOC_WIDTH[im.loc]||11,discharge:startDC(im),dropBg:false,bb:null,pieces:null,pieceBox:null,userCrop:null,chans:null,chanMode:false,layerOffer:false,chanGone:null}); }   // v31: base strength back to Auto (this garment's fabric)
   clearCache(); syncControls(); renderImps();
   if(S.view!=='proof') setView(S.img?S.view:'shirt'); else renderProof();
 }
@@ -3773,7 +3860,7 @@ function renderProofCmp(){ const box=$('pfCmp'), im=J.imps&&J.imps.find(x=>x.id=
     <div><div class="sm-pfrow" style="border-top:0;font-size:12px;font-weight:700"><span></span><span>SEPS</span><span></span><span></span><span>PROOF</span></div>${rows}</div>
     ${missing.length?`<span class="bad" style="color:var(--p-red,#c8102e);font-weight:700">On the proof but not in the seps: ${missing.map(esc).join(', ')}</span>`:''}`;
   $('pfUse').hidden=!bad; }
-function inkList(){ return `<div>${(S.inks||[]).filter(k=>k.role!=='skip'&&k.role!=='merge').map(k=>`<div class="sm-pfrow"><i style="background:${displayHex(k)}"></i><span>${esc(k.name)}</span><span></span><span></span><span></span></div>`).join('')}</div>`; }
+function inkList(){ return `<div>${(S.inks||[]).filter(liveInk).map(k=>`<div class="sm-pfrow"><i style="background:${displayHex(k)}"></i><span>${esc(k.name)}</span><span></span><span></span><span></span></div>`).join('')}</div>`; }
 
 /* ---------- garment photos: AS Colour for AS Colour, else S&S, else SanMar ---------- */
 const ckey=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
