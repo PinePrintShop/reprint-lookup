@@ -1430,3 +1430,10 @@ Stephen: "Can we just move them to the Trash then? We don't need them if we are 
 - Undo puts the Airtable proofs and the Drive files back (/drive/restore). The toast says when old PDFs went to trash.
 - Practice: nothing is written or trashed. Attach to all lines works line by line.
 - Tested with a mocked worker: V1 and V2 trashed, "customer logo.pdf" and the new V3 kept, Undo restored both.
+
+## 2026-10-29 · v106: a .psd's ink-named layers name the inks (same as Sep Maker)
+Stephen: "the seps found the pantones in the .psd but th emockup make did not....can we make sure those both are the same".
+- Sep Maker reads a layer named like an ink as that ink: 186, PANTONE 186 C, 230M-186OW, BLK, WHT, Cool Gray 7, BASE, and so on (its `inkNamed` rule). Mockup Maker's .psd layer picker (v100) only drew the ticked layers, then guessed the colours from the pixels.
+- Now, when every ticked layer is named like an ink (the same rule, copied in), each layer's name and its own colour are the inks. They show as "in the file, not a guess", the way spot channels already did. Change the layers re-reads them.
+- A layer with any other name ("Layer 1", "Art") means the colours are guessed as before.
+- Tested with a .psd built in the browser (layers "PANTONE 186 C" and "BLK"): v105 said 186 / 419, v106 says 186 / BLK.
