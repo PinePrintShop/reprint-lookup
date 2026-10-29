@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-<!-- Sep Maker v54 (2026-10-29): start the print in Sep Maker, then make the mockup from its seps (Stephen: "let's actually
+<!-- Sep Maker v55 (2026-10-29): four fixes from Stephen.
+     - "when I start changing the black color or the ink color it starts adding information to other layers": which ink
+       counts as black (printed last; the others trap under it, and in Sim it's the top of the stack the mix is solved
+       in) came from the ink's current name. Renaming a colour to Black C (or a black to something else) flipped the
+       traps (Spot/Index) and re-solved the whole mix (Sim). It now comes from the colour the ink was separated as.
+       A typed hex (#00aa55) shows as that colour. A rename / new Pantone changes no film; Re-pick only moves pixels
+       between the picked ink and the inks it takes them from or gives them to.
+     - .psd layer picker ("the BG might be pulling all of it out"): a .psd with 2+ layers opens a picker (tick box,
+       thumbnail, big preview; Background / hidden layers unticked). The ticked layers make the art with real
+       transparency (CMYK read by hand, ag-psd won't), so "drop background" isn't needed. "Use these layers as screens".
+     - Remove an ink (✕): Erase it, or give its area to the nearest ink; other screens keep their films. Undo / Put back.
+       Channel and layer screens: ✕ = erase.
+     - Zoom → Fit: the picture shows at once (it slid back in from the right).
+     Sep Maker v54 (2026-10-29): start the print in Sep Maker, then make the mockup from its seps (Stephen: "let's actually
      have it start in the sep and then go into mockup maker that way we are making the mockup with a more accurate print
      setup" · "For now that makes sense" for screen print). Three parts:
      - "+ Add file" (ported from Mockup Maker v29/v30, Stephen: "can you also see if the separations maker also has that
@@ -457,7 +470,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sep Maker v54 — Pine</title>
+<title>Sep Maker v55 — Pine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
 <link rel="stylesheet" href="pine-style-v2.css">
@@ -557,7 +570,7 @@ body.chan-mode #inksBlk,body.chan-mode #baseBlk,body.chan-mode .sm-checki:has(#d
 .sm-x{grid-area:x;width:40px;height:40px;border:1px solid var(--p-line-strong);border-radius:6px;background:var(--p-white);color:var(--p-black);font:700 16px/1 Helvetica,Arial,sans-serif;cursor:pointer;padding:0}
 .sm-x:hover{border-color:var(--p-black)}
 .sm-rm{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px;border-top:1px dashed var(--p-line);background:var(--p-cream-lt);font-size:14px}
-.sm-rm .p-btn{justify-content:flex-start;text-align:left;min-height:44px;white-space:normal}
+.sm-rm .p-btn{justify-content:flex-start;text-align:left;min-height:44px;height:auto;padding:8px 12px;line-height:1.3;white-space:normal}
 .sm-rm i{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.35);margin-right:6px;vertical-align:-2px}
 .sm-rm .sm-lnk{align-self:flex-start}
 .sm-gone{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-top:1px solid var(--p-line);font-size:14px}
@@ -796,7 +809,7 @@ body.layer-offer #exportBtn{background:var(--p-white);color:var(--p-black);borde
 <body class="p-app">
 <header class="p-bar">
   <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
-  <span class="p-bar-app">Sep Maker</span><span class="p-bar-ver" id="ver">v54</span>
+  <span class="p-bar-app">Sep Maker</span><span class="p-bar-ver" id="ver">v55</span>
   <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
   <div class="p-bar-sp">
     <button class="p-barbtn" id="refreshBtn" type="button" title="Check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
@@ -2307,6 +2320,9 @@ function unsplit(ink){ delete ink.split; ink.splitOpen=false; if(ink.userSetWas=
 // v55: Remove — ask what prints where it was (Erase first), then Undo for 10 s
 function removePanel(ink){
   const d=document.createElement('div'); d.className='sm-rm'; const t=giveTarget(ink);
+  if(S.method==='sim'&&ink.role==='ez'&&effEZ()&&S.ez!=='none'){   // the sim's colours are mixed over this white: it's the base, not a screen of its own
+    d.innerHTML=`<span><b>${esc(ink.name)}</b> is the EZ layer the Sim colours are built on. To print without it, turn the EZ layer off in Bases, or set this colour to "Shirt — no ink".</span><button type="button" class="sm-lnk" data-cancel>OK</button>`;
+    d.querySelector('[data-cancel]').onclick=()=>{ S.rmAsk=null; renderInks(); }; return d; }
   d.innerHTML=`<span>Remove <b>${esc(ink.name)}</b> from the seps. Where it was:</span>
     <button type="button" class="p-btn" data-erase>Erase it — nothing prints there (the shirt shows)</button>
     ${t?`<button type="button" class="p-btn" data-give><i style="background:${displayHex(t)}"></i>Give its area to the nearest ink: ${esc(t.name)}</button>`:''}
@@ -2648,7 +2664,7 @@ function choosePsdLayers(T,name){
       <div class="p-modal-h"><h2 class="p-h2" id="psdT" style="word-break:break-word">${esc(name)}</h2><button class="p-modal-x" type="button" data-x aria-label="Close">×</button></div>
       <div class="p-modal-b"><div class="sm-psd-body"><div>
         <span class="sm-lbl">${T.leaves.length} layers</span>
-        <div class="sm-psd-list">${rows.map(n=>`<label style="padding-left:${n.depth*20}px"><input type="checkbox" data-l="${n.id}"><span class="sm-psd-th" data-th="${n.id}"></span><span class="sm-psd-nm">${esc(n.name)}${n.group?' <i>group</i>':''}${n.bg?' <i>background</i>':n.hidden?' <i>hidden</i>':''}</span></label>`).join('')}</div>
+        <div class="sm-psd-list">${rows.map(n=>`<label style="padding-left:${n.depth*20}px"><input type="checkbox" data-l="${n.id}"><span class="sm-psd-th" data-th="${n.id}"></span><span class="sm-psd-nm">${esc(n.name)}${n.group?' <i>group</i>':''}${n.bg&&!/^background$/i.test(n.name)?' <i>solid background</i>':''}${n.hidden?' <i>hidden</i>':''}</span></label>`).join('')}</div>
         <p class="sm-hint" data-why></p>
       </div><div><div class="sm-psd-pv" data-pv></div><p class="sm-hint" data-sz></p></div></div></div>
       <div class="p-modal-f"><button class="p-btn" type="button" data-x>Cancel</button><button class="p-btn" type="button" data-scr>Use these layers as screens</button><button class="p-btn p-btn-main" type="button" data-go>Open this</button></div></div>`;
@@ -2656,14 +2672,14 @@ function choosePsdLayers(T,name){
     const q=s=>sc.querySelector(s), byId=new Map(rows.map(n=>[n.id,n]));
     // thumbnails
     rows.forEach(n=>{ const box=q(`[data-th="${n.id}"]`); if(!box) return; const t=document.createElement('canvas'), s=Math.min(1,44/Math.max(T.W,T.H)); t.width=Math.max(1,Math.round(T.W*s)); t.height=Math.max(1,Math.round(T.H*s));
-      const x=t.getContext('2d'); leavesOf(n).forEach(l=>x.drawImage(l.cv,l.l*s,l.t*s,l.w*s,l.h*s)); box.appendChild(t); });
+      const x=t.getContext('2d'); leavesOf(n).forEach(l=>x.drawImage(l.cv,l.l*s,l.t*s,l.w*s,l.h*s)); box.appendChild(t); if(S.shirt) box.style.background=S.shirt; });
     const k=Math.min(1,900/Math.max(T.W,T.H));
     const sync=()=>{ rows.forEach(n=>{ const i=q(`[data-l="${n.id}"]`), ls=leavesOf(n), m=ls.filter(l=>l.on).length; i.checked=m===ls.length; i.indeterminate=m>0&&m<ls.length; });
       const pv=q('[data-pv]'); pv.innerHTML=''; const on=T.leaves.filter(l=>l.on); q('[data-go]').disabled=!on.length; q('[data-scr]').disabled=on.length<2;
-      if(on.length){ pv.appendChild(psdCompose(T,k)); } else pv.innerHTML='<span class="sm-hint">Tick a layer to see it.</span>';
+      if(on.length){ pv.appendChild(psdCompose(T,k)); pv.style.background=S.shirt||''; }   // on the shirt colour, so white art shows else pv.innerHTML='<span class="sm-hint">Tick a layer to see it.</span>';
       const off=T.leaves.filter(l=>!l.on&&l.bg);
       q('[data-why]').textContent=(off.length?`${off.map(l=>l.name).join(', ')} is left out, so the art opens see-through where nothing is drawn — white in the design stays. `:'')+'Untick a layer to leave it out.';
-      q('[data-sz]').textContent=`${on.length} of ${T.leaves.length} layers · ${T.W} × ${T.H} px`; };
+      q('[data-sz]').textContent=`${on.length} of ${T.leaves.length} layers · ${T.W} × ${T.H} px · on the ${S.shirtName||'shirt'} colour`; };
     sc.querySelectorAll('[data-l]').forEach(i=>i.onchange=()=>{ const n=byId.get(+i.dataset.l); leavesOf(n).forEach(l=>l.on=i.checked); sync(); });
     sync();
     const done=v=>{ document.removeEventListener('keydown',key); sc.remove(); res(v); };
@@ -2963,6 +2979,8 @@ function layerPlane(d,W,H,name){
   if(light) for(let i=0;i<N;i++){ const j=i*4; lite[i]=Math.round(d[j+3]*(0.299*d[j]+0.587*d[j+1]+0.114*d[j+2])/255); }
   return {rgb:hx,flat,data:light?lite:data,n,lab}; }
 // v55: a layer that isn't named like an ink gets its film name from its colour (white text → WHT, black → BLK, red → 186)
+// the layer's own name is used when it names an ink (186, BLK, BASE, 230M-186OW) or is one colour word (Blue, Navy)
+const labelIsInk=l=>{ const t=String(l||'').trim(); return inkNamed(t)||/^\d{2,3}\s*M\s*-/i.test(t)||(!/\s/.test(t)&&String(nameColour(t))!=='128,128,128'); };
 function colourFilm(lab){ if(lab[0]>88&&chroma(lab)<10) return 'White'; if(lab[0]<18&&chroma(lab)<10) return 'Black'; const pm=nearestPms(lab); return pm?pm.name:'INK'; }
 function layerChans(parts,W,H,any){   // parts: [{name, draw(ctx)}], bottom (first printed) first · v55 any: every layer, flat or not
   const out=[];
@@ -2971,7 +2989,7 @@ function layerChans(parts,W,H,any){   // parts: [{name, draw(ctx)}], bottom (fir
   const flatOnes=out.every(q=>q.flat||inkNamed(q.label));
   if(out.length<2||(!any&&!flatOnes)) return null;
   const hasBase=out.some(q=>isBaseLayer(q.label));
-  const list=out.map(q=>({name:layerFilm(any&&!inkNamed(q.label)&&!/^\d{2,3}\s*M\s*-/i.test(q.label)?colourFilm(q.lab):q.label,hasBase),label:q.label,rgb:q.rgb,sol:1,data:q.data}));
+  const list=out.map(q=>({name:layerFilm(labelIsInk(q.label)?q.label:colourFilm(q.lab),hasBase),label:q.label,rgb:q.rgb,sol:1,data:q.data}));
   list.sort((a,b)=>(/^158M-(BB|EZ)/.test(b.name)?1:0)-(/^158M-(BB|EZ)/.test(a.name)?1:0));   // bases print first
   return {list,W,H,from:'layers',offer:flatOnes}; }
 // .psd: visible pixel layers (a group named like an ink is one screen); template / marks layers left out
@@ -3048,7 +3066,7 @@ async function buildSepSetup(res,dpiWant){
   for(let i=0,j=0;i<sm.W*sm.H;i++,j+=4){ let r=0,g=0,b=0,A=0; for(const p of pl){ const a=p.d[i]/255; if(!a) continue; r=r*(1-a)+p.c[0]*a; g=g*(1-a)+p.c[1]*a; b=b*(1-a)+p.c[2]*a; A=A+(1-A)*a; } if(A>0){ o[j]=r/A; o[j+1]=g/A; o[j+2]=b/A; o[j+3]=A*255; } }
   tx.putImageData(id,0,0); pc.width=Math.max(1,Math.round(sm.W*pk)); pc.height=Math.max(1,Math.round(sm.H*pk)); const px=pc.getContext('2d'); px.imageSmoothingQuality='high'; px.drawImage(tc,0,0,pc.width,pc.height);
   const W=Math.round(res.W*k), H=Math.round(res.H*k);
-  return {kind:'pine-sep-setup',v:SETUP_V,app:'Sep Maker v'+((window.PineUpdate&&PineUpdate.ver)||54),saved:new Date().toISOString(),
+  return {kind:'pine-sep-setup',v:SETUP_V,app:'Sep Maker v'+((window.PineUpdate&&PineUpdate.ver)||55),saved:new Date().toISOString(),
     order:J.order?String(J.order.num):'',orderId:J.order?J.order.id:'',imprint:{id:im?im.id:'',code:im?im.code:(S.imprint||''),loc:S.loc,locName:im?im.locName:''},
     line:J.line?J.line.id:'',lines:J.line?[J.line.id]:[],garment:J.garment?{name:J.garment.name||'',color:J.garment.color||''}:null,shirt:{name:S.shirtName||'',hex:S.shirt},
     method:S.chanMode&&S.chans?(S.chans.from==='layers'?'layers':'file'):S.method,discharge:!!dcOn(),
