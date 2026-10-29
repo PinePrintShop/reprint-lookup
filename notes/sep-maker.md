@@ -999,3 +999,46 @@ Tested with Playwright on the file (kept out of the repo): pieces, spec line, pi
 **S&S:** the style is looked up by S&S's own style ID (`ssStyleId`, from Mockup Maker), with the brand in front when the bare number isn't found (OAD 108 → OAD108). Before, a bare style search missed these.
 
 **Tested** with Playwright, mocked Airtable and the real worker (8 AS Colour calls a run): 5001 Ecru and Natural, 5071 Ecru and Espresso, 5082 Faded Olive all get front and back, and every photo loads through /img. A made-up colour gives none. OAD 108 Natural and Gildan 5000 Black get S&S photos.
+
+## 2026-10-29 · v54: start in Sep Maker, then make the mockup; + Add file; layers as screens
+**Why (Stephen):** "let's actually have it start in the sep and then go into mockup maker that way we are making the mockup with a more accurate print setup" ("For now that makes sense" for screen print; "No real rules yet....just working through flow right now"). Found "+ Add file" in Mockup Maker: "can you also see if the separations maker also has that feature as well". And: "also in sep maker if it is a .psd or .ai or .pdf and has layers...can we pull those in first before suggesting colors".
+
+**+ Add file (ported from Mockup Maker v29/v30)**
+- Once there's art, **+ Add file**: the next file opened (click, drop, paste or a Drive tile) goes into the same print, ¼″ under what's there. A file with a real size keeps it; one without starts as wide as the first file. .ai/.pdf go through the artboard/layer picker as usual.
+- **Files in this print**: per file its width, ▲▼ (which is on top), ✂ crop, BG (drop its own solid background; on by itself for a file with no transparency) and ✕ (one file left → a plain print again). **Stack / Side by side / Center**.
+- **Drag moves one file** on the picture (On shirt, Separations, Art); the picked file has a yellow outline. **Drag as usual** gives the picture back to the before/after slider. (Mockup Maker's "Drag moves the whole print" places the print on the garment, which Sep Maker doesn't do.)
+- Typing a print width scales all the files together. **Crop** works on a one-file print too, keeping the file's scale.
+- The combined picture is what gets separated (inks, bases, sizes, export). A separated .psd's channels or a file's layers don't carry into a combined print: it's separated again.
+- The code is one block marked "PORTED from Mockup Maker" so it can move into a shared file later.
+
+**Layers first**
+- A .psd with 2+ visible pixel layers (a group named like an ink counts as one), or an .ai/PDF with 2+ visible layers, where each layer is one flat colour or is named like an ink (186, PANTONE 186 C, BASE, WHT, BLK, 186OW, Cool Gray 7…), is offered first: "**This file has 3 layers** — use them as the 3 screens: BB, 186OW, BLK" · **Use layers** (the yellow button while it shows; Export turns white) · **Suggest colours instead**.
+- One screen per layer: coverage = the layer's alpha (a tonal layer: alpha × darkness); ink = the layer's main colour (a Pantone in the name for a tonal layer; the base grey for a base layer). Names as films: BASE → 158M-BB, Black → BLK, 186 → 186OW when there's a base layer. Bases print first; then bottom layer up (Illustrator lists the top layer first).
+- Left out: hidden layers and template/marks layers (Template, Reg Marks, Double Smooth Reg Marks, REG/TM Symbols, Adjuster, Artwork guides, Notes, the template's area layers, Background…).
+- They become the "Screens from the layers" list (the v50 "Screens from the file" path): rename, mesh, order, hide work as for a separated .psd. Merging inks isn't available there; **Separate the art again** goes to the colour scan.
+- A one-layer file, or layers that are neither flat nor ink-named, open as before.
+
+**Make the mockup ↗ (top bar, white)**
+- One click: saves the imprint's sep setup and opens `mockup.html?order=<num>&line=<line rec>&imprint=<imprint rec>` (+ `&practice=1`) in a new tab. Shown once an order's imprint has seps.
+- A one-print export with "Save to Drive" ticked saves the setup too, so exporting the films needs no extra click. (Whole-order exports don't, yet.)
+- **Where:** the order's Seps folder (as exports; else the order folder), named `<order> <imprint> · Sep Maker setup.json`. Every save uploads a new file; older ones stay, Mockup Maker takes the newest. A copy is also kept on this computer (IndexedDB `pine-sepsetup`), which Mockup Maker reads too.
+- **Practice:** nothing is uploaded; the copy on this computer is still made, so the practice flow into Mockup Maker works.
+
+**Sep setup JSON (v1)**
+```
+{ kind:"pine-sep-setup", v:1, app:"Sep Maker v54", saved:<ISO time>,
+  order:"11097", orderId:<rec>, imprint:{id:<rec>, code:"11097-A", loc:"F", locName:"Front"}, line:<rec>, lines:[<rec>],
+  garment:{name, color}, shirt:{name, hex}, method:"spot"|"index"|"sim"|"file"|"layers", discharge:bool,
+  print:{widthIn, heightIn, dpi, W, H},          // the print box; W × H px at dpi
+  sources:["A-text.png","B-shapes.png"],          // the files the print was made from
+  scaled:null | "Screens saved at 150 dpi (not 300) to keep the file under 20 MB",
+  screens:[ { n:1, film:"1/4BB", screen:"158M-BB", mesh:158, ink:"#d8d8d4", kind:"bb"|"ez"|"ink"|"hlw", base:true,
+              tone:"solid"|"halftone", opacity:0.85, coverage:3.0 /* % of the box */,
+              x, y, w, h /* px at print.dpi: the screen's ink box inside the print box */,
+              png:"data:image/png;base64,…" /* 8-bit grayscale, black = ink, as the film */ }, … ],   // print order
+  preview:"data:image/png;base64,…" }              // ≤ 600 px, the screens in their inks, clear background
+```
+- `film` is the name as written on the film (the label's names: 1/4BB, EZWHT, 186OW, 2756, BLK); `screen` adds the mesh (the spot/channel name). `tone` is "halftone" when over 5% of the inked pixels are in-between values.
+- Size: tried at 300 dpi, then 200, 150, 100 until under 19.5 MB. Test sizes: a 15″ spot print 0.06 MB; a 14″ 7-screen sim 0.69 MB.
+
+**Tested** with Playwright, mocked Airtable and an in-memory Drive shared with Mockup Maker: combine two files (one cropped, one dragged) → separate → Make the mockup (setup contents, size, 8-bit grayscale PNGs, link) → Mockup Maker; layered .psd (3 flat layers + Reg Marks), 3-layer PDF (Reg Marks skipped), one-layer .psd/.pdf (no offer); sim export to Drive saves the setup; one-file crop; practice: no uploads or writes in either app; no native dialogs; v50 round-trip suite re-run (16/16); desktop, 1024 and phone widths.

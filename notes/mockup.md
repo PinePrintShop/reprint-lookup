@@ -1341,3 +1341,18 @@ Stephen (iPhone screenshot, editing "Off center"): "Mobile get funky when trying
   - ± flips the value, and ± on 0 then typing 1 gives −1. The field keeps focus and isn't rebuilt.
   - Ink and garment colour panels at 1440 × 900 and 1280 × 800, before and after.
   - Practice mode: recolour, attach and Proof done made no writes. No native dialogs.
+
+## 2026-10-29 · v99: seps from Sep Maker
+**Why (Stephen):** "let's actually have it start in the sep and then go into mockup maker that way we are making the mockup with a more accurate print setup". Screen print only for now ("For now that makes sense"); embroidery and transfers still start here. "No real rules yet....just working through flow right now", so nothing is gated: the two apps link and hand off.
+
+- **`&imprint=<record id>`** in the link opens that imprint after the order and line (Sep Maker v54's "Make the mockup ↗" opens `mockup.html?order=…&line=…&imprint=…`).
+- **Seps from Sep Maker.** A screen-print imprint with no art, whose order has a Sep Maker setup for it, shows: "**Seps from Sep Maker** — Oct 29 2:53 PM · 11097-A · 5 screens: 1/4BB, EZWHT, 186OW, 2756, BLK · 15.4″ wide · **Use the seps** / Not now".
+  - Found in the order's Seps folder (or the order folder): the newest "<order> <imprint> · Sep Maker setup.json" for that imprint code, and its imprint record id must match. A copy saved on this computer by Sep Maker counts too (that's how practice works). Setup files are hidden from the file tiles.
+  - With a "Pick up where you left off" too, the newer one is on top and the other says "(older)"; both can be used.
+- **Use the seps** lays each film in its ink in print order (as a separated .psd's spot channels are laid in), at the setup's width. The art's inks are the films (the v73 path for a .psd's channels), so:
+  - the proof's Colors read as the films: BASE, 186OW, 2756, BLK (a film printed direct stays plain, e.g. 2756, even on a base);
+  - Underbase follows the films: a BB / EZ film → White (EZCRM only → Cream); DC films and no base → Discharge; otherwise Off;
+  - Quick adjust works as for any art: recolouring 186OW to 286 shows 286OW on the proof (the OW/DC of the film is kept).
+- Embroidery, patches and heat transfers: unchanged (no offer).
+- **The proof from normal art is unchanged:** page 1 is pixel-identical to v98 for a tee with a front print (+ note) and a back print.
+- Tested with Playwright, mocked Airtable and an in-memory Drive shared with Sep Maker v54 (the upload from Sep Maker is what Mockup Maker lists and downloads): banner, Use the seps (inks, width, base, chips), recolour, the newer-first order with a pick-up, no offer on embroidery; practice: no writes in either app; no native dialogs.
