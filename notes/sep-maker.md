@@ -1184,3 +1184,11 @@ Stephen: "yes do the same for both", as Mockup Maker v110 does with Proofs › w
 - "<order> <imprint> · Sep Maker setup.json" (what Mockup Maker's "Use the seps" opens) is saved in Seps › working files when the folder has one, else in Seps as before.
 - The older copy for that imprint (in either place) goes to Drive trash.
 - Mockup Maker v111 reads both places.
+
+## 2026-10-29 · v60: move or trash Drive files
+Stephen: "does sep maker not allow me to move google drive files around?" It didn't; Mockup Maker has had it since v63.
+- Each file in the Drive panel has a ⋯ (top left of its tile). It opens:
+  - **Move to**: the order folder, its folders, and the folders in the one you're in (e.g. Seps › working files, Seps › unused);
+  - **Move to Drive trash**.
+- Each has Undo. It uses the same worker routes and is ported from Mockup Maker v111. Practice moves nothing.
+- Tested with a mocked Seps folder: menu lists the order folder, Proofs, Seps › working files, Seps › unused and trash; moving to unused called drive/move.
