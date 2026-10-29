@@ -780,3 +780,12 @@ Stephen's answers on v46:
   - Why: the letter comes from the imprint's position on the order. Imprint ID Generator `fldHjjQ5lzm66ox5j` = order # + the letter at the imprint's position, copied once by "Imprint Created > Copy Imprint ID".
   - Example: with A, B, C → new D, then B off the order, the next imprint anyone adds is 4th again and gets a second D.
   - It goes back on once that automation picks the next free letter. The old imprint still comes off the line(s).
+
+## 2026-10-29 · v48: the old imprint comes off the order too
+Stephen: "Yes use the next free letter or whatever helps make the old imprint not be assigned" and "i updated it".
+- **The Airtable change:** the "Imprint Created > Copy Imprint ID" automation (`wflgNQt8jFPh5Yum4`) is now a script.
+  - It keeps the position letter (the Imprint ID Generator formula) when no other imprint already has that ID.
+  - Otherwise it takes the next letter after the highest one used for that order number.
+  - Stephen tested it (7435-A kept its own ID) and published it.
+- **v48:** `OFF_ORDER` is on. On a new design the old imprint comes off the line(s) and, once no line on the order uses it, off the order. It stays in Airtable.
+- **Tests:** t48 passes 102/102, including the order-removal and Undo cases.
