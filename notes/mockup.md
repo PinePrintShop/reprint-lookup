@@ -1452,3 +1452,10 @@ Stephen: "alot of these have proofs attached. Can we make sure the logic is scan
 - The hint says, e.g., "2 orders awaiting proof. 1 more already has its proofs in Airtable."
 - Attaching a proof updates the menu (the next time no line is open).
 - Tested with mocked Airtable: an order with proofs on every line was left out; orders with a missing proof stayed.
+
+## 2026-10-29 · v109: archived orders leave the order menu
+Stephen, #10569 Cheba Hut HQ (archived in Line Item Review: outsourced to promo): "looks like this job is archived but is still showing up in the mockup creator but it is looking cleaner".
+- Art to do already skipped archived orders.
+- v108's menu kept any order whose lines it hadn't read, and archived orders' lines are never read. Now an archived order is left out. The open order and ?order= orders stay.
+- The hint counts archived orders ("1 archived").
+- Tested with mocked Airtable: an archived order with no proofs was left out; the rest are as in v108.
