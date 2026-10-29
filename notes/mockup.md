@@ -1280,3 +1280,16 @@ Stephen: "let me explore the pipeline links but if you think it will make these 
   - `?order=` opens a Scheduled order on the line asked for.
   - The link URL is right, with practice=1 in practice.
   - Practice mode makes no writes, and there are no native dialogs.
+
+## 2026-10-29 · Planned (v97): embroidery proof layout + sew-out box
+Stephen sent 10876 | VC300Y-NY-BERKELEY.pdf as the embroidery template: "the bottom right box is blank until quality approve is then we send it to digitizing and once we get back the sew out we will update the proof and add the close up of the sew out to that bottom right box". Ignore its youth and hat-seam warnings.
+- **Layout to match the template:**
+  - EMBROIDERY / Width · Height / Placement and THREAD COLORS chips go on the left, under Colorway.
+  - Notes in pink, not the screen-print blue.
+  - Hats read "Placement: FRONT" (the location name), not inches below the neck.
+  - The bottom right has a box labelled with the imprint ID (10876-A).
+- **Sew-out box:**
+  - Blank until the sew-out comes back. Stephen: "yes blank until sew out".
+  - Several embroidery spots on one garment get one box each, side by side. Stephen: "Yes to multiple embroidery locations".
+  - "Add sew-out" on the imprint: drop in the photo, crop it to the box, and the proof is rebuilt as the next version.
+- **Open question:** which file in the digitizing folder (e.g. `11100-A/11100A-FRISCO.DST/.EMB/.JPG/.PNG`) is the sew-out close-up, the .JPG or the .PNG? Stephen checks tomorrow. After that, Mockup Maker can find it in Drive automatically.
