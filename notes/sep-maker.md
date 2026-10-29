@@ -1164,3 +1164,17 @@ Stephen's answers (2026-10-29):
 2. Size: "20 is the typical max print size...I think we sometimes go less but not more". Art drawn bigger (the 22″ maroon file is about 20.8″) gets scaled down to 20″ at most.
 3. 3″ from the top: "Probably...since it might match the guides we have on press to line up screens". Keep that position.
 4. No order # / colour / mesh label on the film: "No we are trying to move away from that so we have less stuff to tape up on a screen". The filename and swatch names carry it.
+
+## 2026-10-29 · v58: the bandana template export
+Stephen: "we can build the bandana template export".
+- A Bandana print (location Bandana, or a bandana garment) exports .ai / .pdf on the shop's bandana template, from the setup noted above:
+  - a 24 × 26.853″ sheet;
+  - the print centred in the 20 × 20″ area (3″ to 23″ from the top);
+  - a "T" (0.8″ bar, 0.4″ stem) 1.0–1.4″ from the top and a starburst target at 25.15″, both in the registration colour on the centre line;
+  - no film label;
+  - named `<order>-<LPI>LPI-SEPS.ai`, with no location on the end.
+- Every screen is still its own spot colour on the one artboard.
+- The Bandana starting width is 20″ (was 20.6″). Export's hint describes the template, and says so when the print is over 20″.
+- Shirt seps are unchanged.
+- Tested with the 22x22 maroon bandana: background dropped in the picker, 20″, exported PDF. Page 1728 × 1933.43 pt; art 2–22″ across and 3–23″ down; T at 1.0″; target at 25.15″.
+- Still to check on the press: a test film from the Xitron.
