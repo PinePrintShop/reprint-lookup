@@ -108,7 +108,7 @@
     async function preview(){ const me=++tok, page=await doc.getPage(st.page), v=page.getViewport({scale:1}), s=Math.min(3,1100/Math.max(v.width,v.height));
       st.crop=null; st.pick=-1;
       const c=await draw(page,s,occOf()); if(me!==tok) return; const b=inkBox(c), pv=$('[data-pv]'); pv.innerHTML='';
-      if(!b){ pv.innerHTML='<span class="pap-hint">Nothing on this artboard with these layers.</span>'; $('[data-sz]').textContent=''; $('[data-go]').disabled=true; PV=null; return; }
+      if(!b){ pv.innerHTML='<span class="pap-hint" style="padding:0 24px;text-align:center">Nothing on this artboard with these layers.'+(L.list.some(l=>!st.on[l.id])?' The art is on a layer you unticked. To take out a background colour, keep it ticked, open the file, then use “drop the background” (Everywhere).':'')+'</span>'; $('[data-sz]').textContent=''; $('[data-go]').disabled=true; PV=null; return; }
       $('[data-go]').disabled=false;
       if(!opt.crop){ pv.appendChild(crop(c,b,4)); PV={s,b}; $('[data-sz]').textContent=sizeText(); return; }
       // pieces: drawn over the whole (cropped-to-ink) artboard; the boxes and drags are in the cropped picture's pixels
