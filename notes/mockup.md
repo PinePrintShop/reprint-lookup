@@ -1474,3 +1474,6 @@ Stephen, with 11106's Proofs folder (11106 | 3604-NT-BK.pdf, the setup .json, Te
   - the setup was uploaded to working files and the two old setups trashed;
   - Undo moved both proofs back.
 - Not changed yet: Sep Maker's "· Sep Maker setup.json" in Seps, and proofs attached from Line Item Review.
+
+## 2026-10-29 · v111: Use the seps also looks in Seps › working files
+Sep Maker v59 saves its setup there (Stephen: "yes do the same for both").

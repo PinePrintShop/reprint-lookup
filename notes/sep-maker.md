@@ -1178,3 +1178,9 @@ Stephen: "we can build the bandana template export".
 - Shirt seps are unchanged.
 - Tested with the 22x22 maroon bandana: background dropped in the picker, 20″, exported PDF. Page 1728 × 1933.43 pt; art 2–22″ across and 3–23″ down; T at 1.0″; target at 25.15″.
 - Still to check on the press: a test film from the Xitron.
+
+## 2026-10-29 · v59: the setup .json goes in Seps › working files
+Stephen: "yes do the same for both", as Mockup Maker v110 does with Proofs › working files.
+- "<order> <imprint> · Sep Maker setup.json" (what Mockup Maker's "Use the seps" opens) is saved in Seps › working files when the folder has one, else in Seps as before.
+- The older copy for that imprint (in either place) goes to Drive trash.
+- Mockup Maker v111 reads both places.
