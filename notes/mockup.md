@@ -1293,3 +1293,29 @@ Stephen sent 10876 | VC300Y-NY-BERKELEY.pdf as the embroidery template: "the bot
   - Several embroidery spots on one garment get one box each, side by side. Stephen: "Yes to multiple embroidery locations".
   - "Add sew-out" on the imprint: drop in the photo, crop it to the box, and the proof is rebuilt as the next version.
 - **Open question:** which file in the digitizing folder (e.g. `11100-A/11100A-FRISCO.DST/.EMB/.JPG/.PNG`) is the sew-out close-up, the .JPG or the .PNG? Stephen checks tomorrow. After that, Mockup Maker can find it in Drive automatically.
+
+## 2026-10-29 · v97: embroidery proof layout + sew-out box
+Stephen sent 10876 | VC300Y-NY-BERKELEY.pdf as the embroidery template: "the bottom right box is blank until quality approve is then we send it to digitizing and once we get back the sew out we will update the proof and add the close up of the sew out to that bottom right box". Then: "Yes to multiple embroidery locations", "yes blank until sew out".
+- **Page 1 with embroidery** (any imprint whose method is Embroidery) now follows the template, measured off the PDF:
+  - The info blocks sit on the left under Colorway / Fabric Content: hairline, **EMBROIDERY** and the location + imprint ID ("FRONT - 10876-A"), Width / Height, Placement, hairline, **THREAD COLORS** and the chips. Several imprints stack, each labelled. They shrink (down to 60 %) when they don't fit above APPROVED, and all use the same heading style.
+  - The garment moves right and ends a little higher, to leave room for the sew-out boxes.
+  - Notes are in the template's pink (#FF0049, sampled from the PDF), 10.5 pt, under the blocks. If they don't fit there, they go in the strip under the garment. Embroidery notes are pink on the print pages too.
+  - Hats and beanies read "Placement: FRONT" (the imprint's location; with any offset after it). "Placement text on the proof" still overrides it.
+  - The "PRINT SIZE IS SHOWN TO SCALE" note isn't on embroidery proofs (the template doesn't have it). The "THREAD COLOR ON PHYSICAL SEWOUT…" note appears once a sew-out photo is on the proof, unless an imprint already has it as a note.
+  - Patches and heat transfers keep the screen print layout.
+  - **Screen print proofs are unchanged.** Checked pixel for pixel against v96 on a tee (front + back, with a note), a screen-printed cap and a hoodie (2 chest prints). Every proof page was identical.
+- **Sew-out box:** one per embroidery imprint at the bottom right, its ID above it. One imprint gets the template's 4.6 × 2″ box; several sit side by side and share the width. It's a thin outline until the sew-out is added.
+- **Add sew-out** (Art section of an embroidery imprint, under the notes). Choose a file, drop it on the box, paste it, or pick it in the Drive panel, the same way as Reference. Drag the photo to position it and use Zoom to get in close; the proof shows the same crop. Replace and ✕ Remove sew-out (with Undo).
+  - It's kept per imprint and line. Another garment with the same imprint uses it too, until it gets its own.
+  - It's saved with the line's setup (`sew` in setup.json: a JPEG, at most 2000 px, plus the crop). Pick up where you left off brings it back.
+- **Art to do on a phone** (Stephen, iPhone screenshot: "This is still happening on mobile"). The garment text was squeezed to a letter per line, because the IDs kept 150px and the status pill didn't wrap.
+  - Now the IDs and the pill are on the first row and the garment (and any request) is below at full width. The search box gets more room too.
+  - Row text was iOS-button blue. Buttons now default to Pine black: an element rule, so every class colour still wins. This also covers the method / Drive source toggles and the @mention buttons. On desktop the only change is #000 → Pine black #141412.
+- Tested with mocked Airtable (Playwright):
+  - A cap with one embroidery imprint: blank box, then a sew-out added, dragged and zoomed.
+  - Two embroidery imprints on a cap (front + back) and on a hoodie (two chests), with notes.
+  - A sew-out added by dropping it, and by picking it as if from Drive.
+  - Pick up after a reload (and through the Drive JSON) restores the sew-out and crop.
+  - Practice mode: attach and Proof done made no writes.
+  - The phone Art to do at 390 × 844.
+- **Still open:** which file in the digitizing folder is the sew-out close-up (.JPG or .PNG). Once Stephen confirms, Mockup Maker can offer it from Drive automatically.
