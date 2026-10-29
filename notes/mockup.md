@@ -1420,3 +1420,6 @@ Stephen: "would it be better to have that before open this as well....would it b
 
 ## 2026-10-29 · v103: Save photo on the garment line
 Stephen: "can I still save to airtable a garment photo...not seeing that anymore". v102 put Add photo on the folded garment line, but "Save to Airtable for next time" stayed behind Change. Now, while a photo of yours isn't saved, the line shows **Save photo** (the same save: Garments › front/back photo, so that style and colour opens with it next time). After a save it goes away; it says "Replace photo" when Airtable already has one. It only shows for a garment linked to Garments in Airtable, as before. The toast after Add photo mentions it. Tested in practice mode (upload → Save photo → saved, button gone).
+
+## 2026-10-29 · v104: the Colour list folds away
+Stephen: "can we also make the bandana colors a collapsible tab as well". Step 3's Colour list (the open 10-row list on a laptop: bandana stock colours with their closest Pantones, or a style's colours) is now a title, "Colour · Maroon", with a chevron, like "Also show on". Click it to open the list; the picked colour stays on the title. Closed to start; open/closed is remembered on that computer. Tested with a 12-colour bandana list.
