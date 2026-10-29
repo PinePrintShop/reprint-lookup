@@ -29,13 +29,13 @@
 | Schedule | `pine-schedule.html` | v28 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v118 |
-| Line Item Review | `pine-line-item-review.html` | v49 |
+| Line Item Review | `pine-line-item-review.html` | v50 |
 | Create order | `create-order.html` | v25 |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
-| Sep Maker (desktop, art dept) | `sep-maker.html` | v58 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v110 |
+| Sep Maker (desktop, art dept) | `sep-maker.html` | v59 |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v111 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`

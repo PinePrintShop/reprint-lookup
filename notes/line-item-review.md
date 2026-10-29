@@ -796,3 +796,11 @@ Stephen: "how often do comments to refreshed in the line item review". They didn
 - The read is quiet: the list only redraws when something changed, a comment being typed is kept, and while an edit is open (change request, invoice, sizes, imprint) the new comments wait for the next redraw.
 - Refresh also forgets the other lines' saved comments, so each reads fresh when opened ("Changes asked" is worked out again).
 - Tested: open (1 comment) → read again (2 comments, the new one shown) → read again (no change, no redraw).
+
+## 2026-10-29 · v50: attaching a proof tidies the Proofs folder
+Stephen: "yes do the same for both", as Mockup Maker v110.
+- After a proof attached here is copied into the order's Proofs folder (Art to do), older copies of that proof there go into **Proofs › unused**: the same name with any V number or none ("11106 | 3604-NT-BK.pdf", "V2 …" when "V3 …" goes in). Drive trash is used only when there's no unused folder.
+- Other files are never touched.
+- The save line says "2 older copies moved to Proofs › unused".
+- Airtable is unchanged: "Attach another" still adds to the line.
+- Tested with a mocked Proofs folder: the un-numbered proof and V2 moved to unused; Terms of Service stayed.
