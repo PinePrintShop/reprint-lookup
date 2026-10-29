@@ -1263,3 +1263,33 @@ Stephen: "5071 ecru ... nope still not loading".
 - Now the images list ("ECRU" / "ECRU - BACK", exact colour name) comes first for both sides. The variant's photo is only a fallback, and a fuzzy colour match is only used when the variant has nothing.
 - **Lesson:** the v94 scan checked that a link existed, not that it loaded.
 - Tested through the full order flow (real AS Colour data, through the worker's /img): 5071 Ecru front and back both load. The other colours tested before still work.
+
+## 2026-10-29 · v96: pipeline links (Art to do ↔ Line Item Review)
+Stephen: "let me explore the pipeline links but if you think it will make these better then let's go".
+- **Changes asked on Art to do.** Before, Art to do only listed lines with no proof, or a proof not yet sent to Review. A line in Review where someone asked for a change never came back.
+  - Now a line in Review with an open request shows too, tagged "Changes asked", with who asked and the request (shortened; the full text is in the tooltip and in Comments on the line).
+  - The rule is Line Item Review v45's "Changes requested", copied as is (`REQ_RE`, `OK_RE`, `isRequest`, `changesReq`, in one marked block). It looks for the newest request-like comment after the newest proof (Proof Images Timestamp) and after Changes Resolved At. "Looks good!" doesn't count, and Mark resolved in Line Item Review clears it. Lines that are Ready to send (Quality and Pricing approved) are left out. **If Line Item Review changes this rule, change both.**
+  - Attaching a new proof answers the request, because the proof time moves on and the line drops off again.
+  - Lines Line Item Review v46 sends back (by unticking Awaiting Review) show as before, and get the tag too if there's a request.
+- **Comments: which ones are read.** Airtable has no "last comment" field, so it takes one call per line. Only lines that have a proof on orders awaiting proof are read (in Review or sent back, not Ready to send). That's the same set Line Item Review's Review tab reads. They're read 4 at a time after the list shows, and again on Refresh. Lines with no proof can't have an open request, so they're never read.
+- **"Review in Line Item Review ↗"** sits next to Proof done once the line is in Review (straight after Proof done, or already in Review). It opens `pine-line-item-review.html?order=<num>&line=<record id>` (plus `practice=1` in practice), which Line Item Review v45 already reads. It's hidden for orders that aren't awaiting proof, because Line Item Review only lists those.
+- **`?order=` for any status.** An order that isn't in the Awaiting Proof list is fetched by number and opened. It's added to the order menu with its status ("#11050 · Sanpo Studios · Scheduled") and stays there through Refresh. It is never put on Art to do.
+- Tested with mocked Airtable and comments:
+  - A request comment shows the tag and text, and "Looks good!" doesn't.
+  - A Changes Resolved At later than the comment hides it.
+  - `?order=` opens a Scheduled order on the line asked for.
+  - The link URL is right, with practice=1 in practice.
+  - Practice mode makes no writes, and there are no native dialogs.
+
+## 2026-10-29 · Planned (v97): embroidery proof layout + sew-out box
+Stephen sent 10876 | VC300Y-NY-BERKELEY.pdf as the embroidery template: "the bottom right box is blank until quality approve is then we send it to digitizing and once we get back the sew out we will update the proof and add the close up of the sew out to that bottom right box". Ignore its youth and hat-seam warnings.
+- **Layout to match the template:**
+  - EMBROIDERY / Width · Height / Placement and THREAD COLORS chips go on the left, under Colorway.
+  - Notes in pink, not the screen-print blue.
+  - Hats read "Placement: FRONT" (the location name), not inches below the neck.
+  - The bottom right has a box labelled with the imprint ID (10876-A).
+- **Sew-out box:**
+  - Blank until the sew-out comes back. Stephen: "yes blank until sew out".
+  - Several embroidery spots on one garment get one box each, side by side. Stephen: "Yes to multiple embroidery locations".
+  - "Add sew-out" on the imprint: drop in the photo, crop it to the box, and the proof is rebuilt as the next version.
+- **Open question:** which file in the digitizing folder (e.g. `11100-A/11100A-FRISCO.DST/.EMB/.JPG/.PNG`) is the sew-out close-up, the .JPG or the .PNG? Stephen checks tomorrow. After that, Mockup Maker can find it in Drive automatically.
