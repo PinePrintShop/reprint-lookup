@@ -1100,3 +1100,44 @@ Stephen: "can it also have a CMYK feature for the sep along with the other optio
 - **Dark shirts:** a white underbase under the process inks (existing base rules), plus an optional highlight white on top.
 - **Print order:** base, Y, M, C, K, highlight white.
 - **Unchanged:** mesh per screen, Remove, exports, sep setup and Make the mockup work as for the other methods.
+
+## 2026-10-29 · v56: CMYK process; pick up where you left off
+Builds the "Planned (v56): CMYK process" entry above (now done), plus pick-up.
+
+**CMYK** (Stephen: "can it also have a CMYK feature for the sep along with the other options of spot index and simulated process")
+- A fourth tab next to Spot / Index / Sim. Four screens: **PROCESS YELLOW, PROCESS MAGENTA, PROCESS CYAN, PROCESS BLACK** ("Process Cyan..."). Chips: C #00AEEF, M #EC008C, Y #FFF200, K #231F20.
+- **CMYK art** (a CMYK .psd, flattened or through the v55 layer picker) gives its own C, M, Y and K data, with no reconversion. Coverage = channel value. Picked layers are combined in CMYK with Normal blending, opacity, masks, clipping and groups. Other blend modes go in as Normal.
+- **RGB art** is converted with GCR and an ink limit. No ICC profile, so the same art always gives the same films:
+  - c′=1−R, m′=1−G, y′=1−B; grey g=min(c′,m′,y′);
+  - K = g·(GCR + (1−GCR)·g). At GCR 85%, black takes 85% of a mid grey and all of a full black;
+  - C=(c′−K)/(1−K), and M, Y the same way;
+  - if C+M+Y+K is over the ink limit (270%), C, M and Y are scaled down to fit.
+  - Sliders: Black (GCR) 50–100% and Ink limit 220–320%. They are hidden for CMYK files.
+  - Tested: a grey ramp comes out mostly black (C/M/Y ≤ 12%), pure black is K only, white is no ink, skin is M+Y with little K, and the maximum total is 270%.
+- **Continuous tone** ("Let the rip handle it"): no angles or screening in any file. The LPI is the Halftone setting ("We will either use 55 or 45"). The file name says 55LPI / 45LPI from that setting; with Halftone off, it follows the usual base rule. The Halftone preview shows dots at C 15°, M 75°, Y 0°, K 45° (preview only). Exports match Sim: .ai/.pdf have one continuous-tone spot image per screen (the v13 vector dots were dropped in v14), plus .psd channels, PNG and TIFF.
+- **Base**: dark and coloured shirts get a white underbase from the usual Auto / ticks (BB + EZ on dark, chokes). There's no base where the art is as dark as black (L* < 20) or matches the shirt. It's full size where the art is white (the base is the white) and choked under the inks elsewhere. Light shirts: no base. **Highlight white** is optional, off by default, and prints last. Discharge and "On base" don't apply in CMYK.
+- **Print order**: base, Y, M, C, K, highlight white. The ↑↓ arrows, mesh per screen, renames, hide and ✕ Remove (erase, Undo / Put back) all work. The Inks panel shows the four process rows (chip, film name, coverage) instead of the colour list.
+- **The inks overprint**: they multiply in On shirt, Separations, the PNG and TIFF proof, and the setup preview. Separations doesn't mark them as overlaps. In .ai/.pdf they show as process C/M/Y/K with overprint on, and the .psd channels are 0% solidity.
+- **Sep setup JSON**: method "cmyk", top-level blend "multiply" + lpi + cmykFrom ("file" / "rgb"). Each process screen has "blend":"multiply" and "process":"C"/"M"/"Y"/"K".
+  - **Mockup Maker follow-up:** v99's artFromSeps lays each film over the ones before it (opaque), so CMYK would look wrong there (magenta covers yellow). It needs to multiply screens marked blend "multiply". Mockup Maker was not changed here.
+- No-leak (v55 rule) holds: renames (ink rows, Screens), mesh and renaming the hidden palette change no CMYK film (hash check).
+- A combined print (+ Add file) is converted from RGB. A file's own CMYK data only carries for a single file. Our own CMYK -SEPS.psd opens again with its PROCESS channels see-through.
+- Also: long screen names wrap in Print order (they all read "230M-PR…"). The Print order list also lost a yellow box it picked up from the v54 layer offer's CSS.
+
+**Pick up where you left off** (Stephen asked whether the next update resets his in-progress sep. It did.)
+- The work is saved on this computer (IndexedDB "pine-sepwork") 2.5 s after each change. It keeps the last 5 jobs; practice keeps its own 5.
+- **A job** is the order / line / imprint, and every print on it with art:
+  - **The art as it opened.** A PNG/JPG is the file itself. A .psd/.ai/.pdf is the picture its picker made, so no picker is asked again. Also saved: the channel / layer screens and the CMYK data. A multi-file print keeps each file with its width, place, crop and BG drop.
+  - **Every setting:** width, crop, drop background, method, inks (names, roles, merges, splits, removed), eyedropper inks, mesh, names, print order, hidden screens, bases / chokes / traps, GCR / ink limit, and removed process screens. Also the shirt, view and Halftone.
+- Pictures are stored once and shared between saves. Parts that no kept job uses are deleted.
+- With nothing open (including right after "Update now" reloads), the empty screen shows: "**Pick up where you left off** — date · imprint · file · n screens · n prints" with **Pick up** (the yellow button) and **Start fresh**. The 4 earlier jobs are listed under it.
+- Pick up re-opens the order and line (fetching the order even if it's no longer Awaiting Proof). It rebuilds each print and returns to the imprint you were on.
+
+Tested with Playwright and mocked Airtable / Drive:
+- **CMYK, 52/52:** the file's channels = screens (max difference 0/255); layered CMYK; RGB conversion; base on black; names and order; all 5 exports; setup JSON; no-leak; Remove / Undo; practice with no writes and no dialogs; 1024 and phone widths.
+- **Pick up, 22/22 + 1 test-only check:**
+  - an order with 2 prints (spot with a merged ink, a removed ink, a rename, a mesh and a reorder; 2 files side by side in CMYK with magenta removed): reload → Pick up → identical films (hash) on both;
+  - a no-order layered CMYK .psd picks up with no picker;
+  - live and practice are kept apart; last 5 kept;
+  - no writes and no dialogs.
+- **v55 suites re-run on v56:** .psd picker 19/19, layers 18/18, v50 round trip 16/16, Remove, leak probe.
