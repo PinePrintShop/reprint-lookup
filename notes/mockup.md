@@ -1412,3 +1412,8 @@ Stephen: "would it be better to have that before open this as well....would it b
 - Open this: the art opens already see-through and cropped, so no "drop the background" and no Crop afterwards. Where the art meets the colour the blend is made part see-through with the colour taken back out, so the soft edges don't show up as extra colours (bandana: 2 colours, 97% / 3%, was 4).
 - Only v101 / Sep Maker v57 ask the picker for this (opt.knock); v100 / v56 see the picker as before.
 - Tested with the bandana PDF (mocked Airtable): picker, open, size 21 (the width box rounds to ¼″), colours.
+
+## 2026-10-29 · v102: Add photo on the garment line; "Also show on" folds away
+- Stephen: "we sometimes have garments from vendors that don't pull in photos like Shakawear on some blanks...but doesn't look like I can upload photos". Your photo was there, but hidden behind Change once step 3 folds to its one-line summary. With no vendor photo (and none of yours), the summary line now has **Add photo** (click, or drop a picture on the line); it's the front, and a toast says Change has the back and the size. The line reads "your photo" or nothing once one is in.
+- Stephen: "can we also make the garment colors collapsible". "Also show on" is now a title with a chevron; the colours, filter and "Show this style's colours" fold under it. The count (+N) stays on the title. Closed to start; open/closed is remembered on that computer.
+- Tested with a mocked Shaka Wear line (no vendor photo): Add photo shows, upload works and it goes away; Also show on opens and closes.
