@@ -1459,3 +1459,18 @@ Stephen, #10569 Cheba Hut HQ (archived in Line Item Review: outsourced to promo)
 - v108's menu kept any order whose lines it hadn't read, and archived orders' lines are never read. Now an archived order is left out. The open order and ?order= orders stay.
 - The hint counts archived orders ("1 archived").
 - Tested with mocked Airtable: an archived order with no proofs was left out; the rest are as in v108.
+
+## 2026-10-29 · v110: a tidier Proofs folder (old proofs → unused, setup → working files)
+Stephen, with 11106's Proofs folder (11106 | 3604-NT-BK.pdf, the setup .json, Terms of Service.pdf, unused, V3 11106 | 3604-NT-BK.pdf, working files): "unused is in all of the folder systems we use for order numbers. So let's look at how to makes these cleaner and what is the .json".
+- **Old proofs → Proofs › unused.** When a new proof is attached, the line's older proof PDFs move into the order's own unused folder. Drive trash is used only when the folder has no unused. That replaces v105's trash, which was there because we thought unused would need creating.
+  - "Older" = the same proof name with any V number or none ("11106 | 3604-NT-BK.pdf", "V2 …" when V3 goes in), or a proof just taken off the line in Airtable.
+  - Other lines' proofs, Terms of Service, and anything else are never touched.
+  - Undo moves them back.
+- **The .json** is "… · Mockup Maker setup.json". It's what "Pick up where you left off" opens: the art (with its crop and dropped background), size, placement, ink changes and notes, so a proof can be reworked later without starting over. It's saved with each attached proof.
+  - It now goes in **Proofs › working files**, and older copies (in working files or left in Proofs) go to trash. Pick up looks in both places.
+- Tested with a mocked 11106 Proofs folder:
+  - the un-numbered proof and V2 moved to unused;
+  - Terms of Service.pdf and another line's proof stayed;
+  - the setup was uploaded to working files and the two old setups trashed;
+  - Undo moved both proofs back.
+- Not changed yet: Sep Maker's "· Sep Maker setup.json" in Seps, and proofs attached from Line Item Review.
