@@ -789,3 +789,10 @@ Stephen: "Yes use the next free letter or whatever helps make the old imprint no
   - Stephen tested it (7435-A kept its own ID) and published it.
 - **v48:** `OFF_ORDER` is on. On a new design the old imprint comes off the line(s) and, once no line on the order uses it, off the order. It stays in Airtable.
 - **Tests:** t48 passes 102/102, including the order-removal and Undo cases.
+
+## 2026-10-29 · v49: comments refresh
+Stephen: "how often do comments to refreshed in the line item review". They didn't: a line's comments loaded once, the first time it was opened. Neither the 3-minute auto refresh nor Refresh read them again, so someone else's new comment only showed after a page reload.
+- The open line's comments are now read again **every minute** while the tab is in front, and with each refresh (coming back to the tab, Refresh).
+- The read is quiet: the list only redraws when something changed, a comment being typed is kept, and while an edit is open (change request, invoice, sizes, imprint) the new comments wait for the next redraw.
+- Refresh also forgets the other lines' saved comments, so each reads fresh when opened ("Changes asked" is worked out again).
+- Tested: open (1 comment) → read again (2 comments, the new one shown) → read again (no change, no redraw).
