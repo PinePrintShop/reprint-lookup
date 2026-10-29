@@ -2742,16 +2742,22 @@ function layerPlane(d,W,H,name){
   else for(let i=0;i<N;i++){ const j=i*4; data[i]=Math.round(d[j+3]*(255-(0.299*d[j]+0.587*d[j+1]+0.114*d[j+2]))/255); }   // a tonal layer: darker = more ink
   let hx=flat?rgb:(/\d{3,4}/.test(name)?nameColour(name):rgb);
   if(isBaseLayer(name)) hx=hexRgb(BASE_HEX);
-  return {rgb:hx,flat,data,n}; }
-function layerChans(parts,W,H){   // parts: [{name, draw(ctx)}], bottom (first printed) first
+  // v55: a tonal layer in a light colour (white shading, a highlight) is ink where it's light, not where it's dark
+  const light=!flat&&lab[0]>=55&&!isBaseLayer(name), lite=light?new Uint8Array(N):null;
+  if(light) for(let i=0;i<N;i++){ const j=i*4; lite[i]=Math.round(d[j+3]*(0.299*d[j]+0.587*d[j+1]+0.114*d[j+2])/255); }
+  return {rgb:hx,flat,data:light?lite:data,n,lab}; }
+// v55: a layer that isn't named like an ink gets its film name from its colour (white text → WHT, black → BLK, red → 186)
+function colourFilm(lab){ if(lab[0]>88&&chroma(lab)<10) return 'White'; if(lab[0]<18&&chroma(lab)<10) return 'Black'; const pm=nearestPms(lab); return pm?pm.name:'INK'; }
+function layerChans(parts,W,H,any){   // parts: [{name, draw(ctx)}], bottom (first printed) first · v55 any: every layer, flat or not
   const out=[];
   for(const p of parts){ const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d',{willReadFrequently:true}); p.draw(x);
     const pl=layerPlane(x.getImageData(0,0,W,H).data,W,H,p.name); if(!pl) continue; out.push(Object.assign(pl,{label:p.name})); }
-  if(out.length<2||!out.every(q=>q.flat||inkNamed(q.label))) return null;
+  const flatOnes=out.every(q=>q.flat||inkNamed(q.label));
+  if(out.length<2||(!any&&!flatOnes)) return null;
   const hasBase=out.some(q=>isBaseLayer(q.label));
-  const list=out.map(q=>({name:layerFilm(q.label,hasBase),label:q.label,rgb:q.rgb,sol:1,data:q.data}));
+  const list=out.map(q=>({name:layerFilm(any&&!inkNamed(q.label)&&!/^\d{2,3}\s*M\s*-/i.test(q.label)?colourFilm(q.lab):q.label,hasBase),label:q.label,rgb:q.rgb,sol:1,data:q.data}));
   list.sort((a,b)=>(/^158M-(BB|EZ)/.test(b.name)?1:0)-(/^158M-(BB|EZ)/.test(a.name)?1:0));   // bases print first
-  return {list,W,H,from:'layers'}; }
+  return {list,W,H,from:'layers',offer:flatOnes}; }
 // .psd: visible pixel layers (a group named like an ink is one screen); template / marks layers left out
 function psdLayerChans(buf,W,H){
   if(!window.agPsd||W*H>36e6||buf.byteLength>150e6) return null; let psd;
