@@ -1437,3 +1437,9 @@ Stephen: "the seps found the pantones in the .psd but th emockup make did not...
 - Now, when every ticked layer is named like an ink (the same rule, copied in), each layer's name and its own colour are the inks. They show as "in the file, not a guess", the way spot channels already did. Change the layers re-reads them.
 - A layer with any other name ("Layer 1", "Art") means the colours are guessed as before.
 - Tested with a .psd built in the browser (layers "PANTONE 186 C" and "BLK"): v105 said 186 / 419, v106 says 186 / BLK.
+
+## 2026-10-29 · v107: ink names from the attached proof / the imprint's Pantones (same as Sep Maker)
+Stephen, with 11106's .psd (layers "Layer 2/3/4"): Sep Maker said BLK · 485 · 7510, Mockup Maker said ≈547 · ≈7597 · ≈7510. "just need them both to be the same!"
+- v106 wasn't the cause. Sep Maker took the names from **the line's attached proof** (V2 11106 | 3604-NT-BK: its PINE-INKS callouts, which Mockup Maker writes into every proof), matching each ink by the art colour it came from. Without a proof, it uses **the imprint's Pantones** in Airtable (nearest, one to one). Mockup Maker only guessed the nearest ink.
+- Now, after the colour scan, Mockup Maker uses the same two sources, in the same order (proof first, then the imprint's Pantones), and the same matching: art colour within ΔE 40, else nearest one to one within ΔE 45. It names only colours nobody has named. The file's own ink names (spot channels, ink-named layers) still win. The Colours panel says "Ink names from the proof (…): BLK · 485 · 7510."
+- Tested with a mocked V2 proof carrying BLK / 485 / 7510 callouts: v106 said 433≈ / 7597≈ / 7510≈, v107 says Black / 485 / 7510.
