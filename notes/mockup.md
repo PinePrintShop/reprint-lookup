@@ -1396,3 +1396,9 @@ Tested with Playwright, mocked Airtable and a shared in-memory Drive:
 - Attach replace / Undo / batch / practice 16/16.
 - Zoom → Fit 6/6.
 - No native dialogs.
+
+## 2026-10-29 · layer picker (pine-ai-parts.js): layers start as the artist left them
+Stephen: "this is a PDF and it says it should have artwork...but it is just a giant white square" (22x22-Digital-Bandana_maroon.pdf).
+The file has a hidden "Layer 1" that is a white sheet over the whole design. The picker ticked every layer, so that sheet covered the art.
+Now each layer starts ticked or unticked the way it was saved in the file, and hidden ones say "(hidden in file)" so they can still be turned on.
+Shared file, so Mockup Maker and Sep Maker both get it straight away (no new version numbers).
