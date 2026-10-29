@@ -1589,6 +1589,141 @@ async function resolveChg(id){ const Ln=S.lines[id]; if(!Ln) return; const was=L
     toastUndo(PRACTICE?'Practice — marked resolved, not saved':'Marked resolved — it comes back with the next request comment',async()=>{ Ln[L.resolved]=was; renderList(); renderDet();
       if(!PRACTICE) try{ await at(`${T_LI}/${id}`,{method:'PATCH',body:JSON.stringify({fields:{[L.resolved]:was}})}); }catch(e){ toast('Could not undo: '+e.message,true); } }); }
   catch(e){ Ln[L.resolved]=was; renderList(); renderDet(); toast('Could not save: '+e.message,true); } }
+/* ---------- v46: What's changing? ----------
+   Stephen (Oct 29): "Really only color and placement can change and keep the imprint id everything else really is a new
+   design" · "changing the size of the artwork is a new imprint id" · "We can save the old imprint we just need it off the
+   line item... We don't need replaced by just need what matches the proof".
+   Colour / placement: same imprint (colour edited in place). Size, artwork or text: a new imprint takes the old one's place
+   on the line(s); the old record is left alone. Either way the line(s) go back to art with a signed comment. */
+const IC={order:'flds9F80ZDkTH1M1t',stitch:'fld3nysvEoi0hb7iC',supSize:'flddqYCsxScYXQccG',inkLinks:'fldpNCCXTgHyDhvak',threadName:'fldgidlwQTyFzSCMt'};
+// what a new design copies from the old imprint (what Create order sets on an imprint, plus its colours, notes and pricing counts)
+const NEW_COPY=[I.type,I.loc,I.nick,I.notes,I.pantone,I.inkNotes,I.screens,I.inkCh,I.customInk,IC.stitch,IC.supSize,IC.threadName,IC.inkLinks];
+const LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const CHG_KIND={ink:'Ink / thread colour',place:'Placement',new:'Size, artwork or text'};
+let CHG=null;
+function mmUrl(Ln){ const o=lineOrder(Ln._id)||{}; return `mockup.html?order=${encodeURIComponent(o.num||'')}&line=${encodeURIComponent(Ln._id)}${PRACTICE?'&practice=1':''}`; }
+function mmLink(Ln,id){ return `<a class="lk mmfix" id="${id}" href="${esc(mmUrl(Ln))}" target="_blank" rel="noopener" title="Open this line in Mockup Maker to fix the proof">Fix in Mockup Maker ↗</a>`; }
+function signedWarn(o){ const f=(o&&o.f)||{}, at_=f[O.signedAt], st=sel(f[O.status]);
+  if(at_||f[O.pdId]) return `The customer already signed this order's PandaDoc${at_?' ('+fmtDate(String(at_).slice(0,10))+')':''}. They will need to sign the new proof.`;
+  if(st&&!/^awaiting proof$/i.test(st)) return `This order is at ${st}. The customer will need to sign the new proof.`;
+  return ''; }
+const chgImpRec=c=>(((S.imps[c.lid]||{}).list)||[]).find(f=>f._rid===c.imp)||null;
+const chgUsing=c=>{ const o=S.orders.find(x=>x.id===c.oid); return o?o.lines.filter(id=>S.lines[id]&&(S.lines[id][L.imps]||[]).includes(c.imp)):[]; };
+function chgLines(c){ const u=chgUsing(c); if(!u.includes(c.lid)) u.unshift(c.lid); return c.kind==='new'&&c.scope==='one'?[c.lid]:u; }
+async function openChg(lid){ const Ln=S.lines[lid]; if(!Ln) return; const o=lineOrder(lid)||{}, rq=changesReq(Ln);
+  CHG={lid,oid:o.id,imp:null,kind:null,scope:'all',pan:'',notes:'',nick:'',why:'',busy:false,next:'',req:rq?cAuthor(rq):null};
+  renderChg(); chgNext(CHG);
+  if(!S.imps[lid]||!S.imps[lid].list) await loadImps(Ln);
+  const l=((S.imps[lid]||{}).list)||[]; if(CHG&&CHG.lid===lid&&!CHG.imp&&l.length===1) chgImp(l[0]._rid); else renderChg();
+  const x=document.querySelector('#chgScrim .chg-opt'); if(x) x.focus(); }
+function chgClose(){ if(CHG&&CHG.busy) return; CHG=null; renderChg(); }
+function chgImp(rid){ const c=CHG; if(!c||c.busy) return; c.imp=rid; const f=chgImpRec(c)||{}; c.pan=String(f[I.pantone]||'').trim(); c.notes=String(f[I.notes]||''); c.nick=String(f[I.nick]||''); renderChg(); }
+function chgKind(k){ const c=CHG; if(!c||c.busy) return; c.kind=k; renderChg(); const e=$(k==='place'?'chgWhy':'chgPan'); if(e) e.focus(); }
+function chgScope(v){ if(!CHG||CHG.busy) return; CHG.scope=v; renderChg(); }
+// the next free letter on the order: every imprint ID on its lines, on the order, and any 11101-x imprint at all
+async function chgNext(c){ const o=S.orders.find(x=>x.id===c.oid); if(!o||!o.num) return; const ids=new Set();
+  o.lines.forEach(id=>{ const Ln=S.lines[id]; if(Ln) impIds(Ln).forEach(x=>ids.add(x)); });
+  Object.values(S.imps).forEach(x=>(x.list||[]).forEach(f=>ids.add(String(f[I.id]||'').trim())));
+  try{ const oi=(o.f&&o.f[O.imps])||[]; if(oi.length) (await byIds(T_IMP,oi,[I.id])).forEach(r=>ids.add(String(r.fields[I.id]||'').trim()));
+    (await atAll(T_IMP,`pageSize=100&${flds([I.id])}&filterByFormula=${encodeURIComponent(`FIND('${o.num}-',{Imprint ID})=1`)}`,300)).forEach(r=>ids.add(String(r.fields[I.id]||'').trim()));
+  }catch(e){ c.nextErr=e.message; }
+  let max=-1; const re=new RegExp('^'+o.num+'-([A-Z])$','i'); ids.forEach(x=>{ const m=re.exec(x); if(m) max=Math.max(max,LETTERS.indexOf(m[1].toUpperCase())); });
+  c.next=LETTERS[max+1]?`${o.num}-${LETTERS[max+1]}`:`${o.num}-?`; if(CHG===c) renderChg(); }
+function chgPlan(c){ const f=chgImpRec(c)||{}, id=String(f[I.id]||'').trim()||'this imprint', panWas=String(f[I.pantone]||'').trim(), pan=c.pan.trim(), why=c.why.trim().replace(/\s+/g,' ');
+  const lines=chgLines(c), n=lines.length, panCh=pan!==panWas;
+  const text=c.kind==='ink'?`Ink change on ${id}${panCh?`: ${panWas||'—'} → ${pan||'—'}`:''} — proof update${why?' · '+why:''}`
+    :c.kind==='place'?`Placement change on ${id} — proof update${why?' · '+why:''}`
+    :`New design: ${id} → ${c.next||'(new)'} (${why||'new artwork'}) — needs new proof, seps and screens`;
+  return {f,id,panWas,pan,panCh,why,lines,n,text}; }
+function renderChg(){ let sc=$('chgScrim'); if(!CHG){ if(sc) sc.remove(); return; }
+  const c=CHG, Ln=S.lines[c.lid], o=S.orders.find(x=>x.id===c.oid)||{lines:[]}; if(!Ln){ CHG=null; if(sc) sc.remove(); return; }
+  if(!sc){ sc=document.createElement('div'); sc.className='p-scrim'; sc.id='chgScrim'; sc.onclick=e=>{ if(e.target===sc) chgClose(); };
+    sc.innerHTML=`<div class="p-modal chgm" role="dialog" aria-modal="true" aria-labelledby="chgT"><div class="p-modal-h"><h2 class="p-h2" id="chgT"></h2><button class="p-modal-x" type="button" aria-label="Close" onclick="chgClose()">✕</button></div><div class="p-modal-b" id="chgB"></div><div class="p-modal-f" id="chgF"></div></div>`;
+    document.body.appendChild(sc); }
+  $('chgT').textContent=`What's changing? · #${o.num||''}`;
+  const ims=S.imps[c.lid], list=(ims&&ims.list)||[], warn=signedWarn(o), dis=c.busy?' disabled':'';
+  const P=c.imp?chgPlan(c):null, using=c.imp?chgUsing(c):[];
+  let h=warn?`<div class="p-note p-note-alert" id="chgSigned" style="margin:0 0 12px">${esc(warn)}</div>`:'';
+  if(c.req) h+=`<div class="chg-req" id="chgReq"><span class="k">${esc(c.req.name)} asked:</span>“${esc(String(c.req.text||'').replace(/\n?📷 Screenshot: [^\n]+/g,'').replace(/@\[(usr|ugp)[A-Za-z0-9]+\]/g,'').trim().slice(0,240))}”</div>`;
+  h+=`<p class="p-hint chg-rule">Colour and placement keep the imprint ID. Size, artwork or text is a new design with a new ID.</p>`;
+  h+=`<div class="chg-sec"><span class="p-label">Which imprint · ${esc(gName(Ln))}</span>${!ims||!ims.list?'<div class="p-hint">Loading imprints…</div>':!list.length?'<div class="p-hint">No imprint is linked to this line. Fix the proof in Mockup Maker, or add the imprint in Airtable.</div>':`<div class="chg-imps">${list.map(f=>`<button type="button" class="chg-opt${c.imp===f._rid?' is-on':''}" data-imp="${f._rid}" aria-pressed="${c.imp===f._rid}" onclick="chgImp('${f._rid}')"${dis}><span class="p-id">${esc(f[I.id]||'—')}</span><span>${esc([sel(f[I.loc]),sel(f[I.type])].filter(Boolean).join(' · ')||'Imprint')}</span>${f[I.pantone]||f[I.inks]?`<small>${esc(String(f[I.pantone]||inkNames(f).join(', ')).slice(0,80))}</small>`:''}</button>`).join('')}</div>`}</div>`;
+  if(P){ const id=P.id;
+    h+=`<div class="chg-sec"><span class="p-label">What's changing on ${esc(id)}?</span><div class="chg-kinds">${['ink','place','new'].map(k=>`<button type="button" class="chg-opt${c.kind===k?' is-on':''}" data-kind="${k}" aria-pressed="${c.kind===k}" onclick="chgKind('${k}')"${dis}><b>${CHG_KIND[k]}</b><small>${k==='new'?'New design · new ID'+(c.next?' '+esc(c.next):''):'Keeps '+esc(id)}</small></button>`).join('')}</div></div>`;
+    const shared=using.length>1, others=using.filter(x=>x!==c.lid).length;
+    const fld=(lab,idn,val,ta,ph)=>`<label class="p-field">${lab}${ta?`<textarea class="p-textarea p-input" id="${idn}" rows="2" oninput="CHG.${idn.slice(3).toLowerCase()}=this.value"${dis}>${esc(val)}</textarea>`:`<input class="p-input" id="${idn}" value="${esc(val)}" ${ph?`placeholder="${esc(ph)}"`:''} oninput="CHG.${idn.slice(3).toLowerCase()}=this.value"${dis}>`}</label>`;
+    if(c.kind==='ink'||c.kind==='place'){
+      h+=`<div class="p-note" id="chgMeans">Same ID <b>${esc(id)}</b> — the art department updates the proof. Quick adjust is coming for these.</div>`;
+      if(c.kind==='ink') h+=fld('Pantone / thread colours','chgPan',c.pan,false,'e.g. 286 C, WHT');
+      h+=fld(c.kind==='ink'?'Note for art (optional)':'What moves?','chgWhy',c.why,false,c.kind==='ink'?'e.g. customer wants navy':'e.g. 1" lower, centred');
+      if(shared) h+=`<div class="p-hint chg-copy" id="chgShared">${esc(id)} is on ${using.length} lines of this order, so ${c.kind==='ink'?'the colour changes on all of them and ':''}all ${using.length} go back to art.</div>`;
+    } else if(c.kind==='new'){
+      h+=`<div class="p-note" id="chgMeans">New design: <b>${esc(id)} → ${esc(c.next||'…')}</b>. ${esc(id)} stays in Airtable but comes off the line${shared&&c.scope==='all'?'s':''}, so only the new art shows.</div>`;
+      if(shared) h+=`<div class="chg-sec"><span class="p-label">Which lines get ${esc(c.next||'the new design')}?</span><div class="chg-scope"><button type="button" class="chg-opt${c.scope==='all'?' is-on':''}" id="chgAll" aria-pressed="${c.scope==='all'}" onclick="chgScope('all')"${dis}><b>Every line using ${esc(id)}</b><small>${using.length} lines · usually the same design</small></button><button type="button" class="chg-opt${c.scope==='one'?' is-on':''}" id="chgOne" aria-pressed="${c.scope==='one'}" onclick="chgScope('one')"${dis}><b>This line only</b><small>the other ${others} keep${others===1?'s':''} ${esc(id)}</small></button></div></div>`;
+      h+=fld('What changed?','chgWhy',c.why,false,'e.g. size change, new text');
+      h+=fld('Pantone / thread colours','chgPan',c.pan,false,'e.g. 286 C, WHT');
+      h+=fld('Print notes (size, placement)','chgNotes',c.notes,true);
+      h+=fld('Nickname','chgNick',c.nick,false);
+      h+=`<div class="p-hint chg-copy">Copied from ${esc(id)}: location, print type, ink notes, screens, ink changes and other counts. Not copied: seps, screens burned, proof images, inks ready, setup and run times.</div>`;
+    } }
+  $('chgB').innerHTML=h;
+  const ok=!!(P&&c.kind&&(c.kind!=='new'||c.next)&&!c.busy);
+  const main=!P||!c.kind?'Pick what changes':c.kind==='new'?`Create ${c.next||'new imprint'} · back to art`:c.kind==='ink'&&P.panCh?'Save colour · back to art':'Send back to art';
+  const sum=P&&c.kind?`${P.n} line${P.n>1?'s':''} back to art · comment as ${esc(S.me||'?')}${chgReqLines(P.lines)?' · request marked resolved':''}${PRACTICE?' · practice: nothing saved':''}`:'';
+  $('chgF').innerHTML=`<span class="chg-sum" id="chgSum">${sum}</span><button class="p-btn" type="button" onclick="chgClose()"${dis}>Cancel</button><button class="p-btn p-btn-main" type="button" id="chgGo" onclick="chgApply()"${ok?'':' disabled'}>${c.busy?'Saving…':esc(main)}</button>`; }
+const chgReqLines=ids=>ids.filter(x=>S.lines[x]&&changesReq(S.lines[x])).length;
+async function chgApply(){ const c=CHG; if(!c||c.busy||!c.imp||!c.kind) return; if(c.kind==='new'&&!c.next) return;
+  if(!S.me){ toast('Choose who you are (top right) first · the comment is signed',true); const m=$('me'); if(m){ m.classList.add('is-need'); if(ME_MQ.matches) gearShow(true); } return; }
+  const o=S.orders.find(x=>x.id===c.oid), P=chgPlan(c), n=P.n, ls=n>1?`${n} lines`:'the line';
+  if(PRACTICE){ CHG=null; renderChg();
+    toast(c.kind==='new'?`Practice — would create ${c.next} (a copy of ${P.id}), put it on ${ls} instead of ${P.id}, send ${n>1?'them':'it'} back to art and post the comment. Nothing saved.`
+      :c.kind==='ink'?`Practice — would ${P.panCh?`save ${P.pan||'no colours'} on ${P.id}, `:''}send ${ls} back to art and post the comment. Nothing saved.`
+      :`Practice — would send ${ls} back to art and post the placement comment. Nothing saved.`); return; }
+  c.busy=true; renderChg();
+  const done={kind:c.kind,lines:[],comments:[],newRid:null,newId:c.next,oldRid:c.imp,oldId:P.id,impRid:c.imp,panWas:null,undone:false}, now=new Date().toISOString();
+  try{
+    if(c.kind==='new'){ const full=await at(`${T_IMP}/${c.imp}?returnFieldsByFieldId=true`), ff=(full&&full.fields)||{}, nf={};
+      NEW_COPY.forEach(k=>{ const v=ff[k]; if(v==null||v===''||(Array.isArray(v)&&!v.length)) return; nf[k]=v; });
+      const put=(k,v)=>{ v=String(v||'').trim(); if(v) nf[k]=v; else delete nf[k]; };
+      put(I.pantone,c.pan); put(I.notes,c.notes); put(I.nick,c.nick);
+      if(P.panCh) delete nf[IC.inkLinks];   // new colours → the old Ink records don't match any more
+      nf[IC.order]=[o.id];   // Linked Orders: Airtable's "Copy Imprint ID" automation names it order # + next letter
+      const r=await at(T_IMP,{method:'POST',body:JSON.stringify({fields:nf,returnFieldsByFieldId:true})}); done.newRid=r.id;
+      IMPN[r.id]=c.next; if(o.f) o.f[O.imps]=[...new Set(((o.f[O.imps])||[]).concat([r.id]))]; }
+    if(c.kind==='ink'&&P.panCh){ await at(`${T_IMP}/${c.imp}`,{method:'PATCH',body:JSON.stringify({fields:{[I.pantone]:P.pan||null}})}); done.panWas=P.panWas;
+      const f=chgImpRec(c); if(f) f[I.pantone]=P.pan; }
+    for(const x of P.lines){ const Y=S.lines[x]; if(!Y) continue; const fields={}, was={};
+      if(Y[L.ready2]){ fields[L.ready2]=false; was[L.ready2]=true; } if(Y[L.qok]){ fields[L.qok]=false; was[L.qok]=true; }
+      if(c.kind==='new'){ const cur=Y[L.imps]||[]; fields[L.imps]=cur.map(id=>id===c.imp?done.newRid:id); was[L.imps]=cur.slice(); }
+      if(changesReq(Y)){ fields[L.resolved]=now; was[L.resolved]=Y[L.resolved]||null; }
+      if(Object.keys(fields).length){ await patch(x,fields); done.lines.push({id:x,was}); }
+      if(c.kind==='new'){ const Z=S.lines[x], v=Z[L.impIds]; if(Array.isArray(v)) Z[L.impIds]=v.map(t=>String(t).trim()===P.id?c.next:t); }
+      const cm=await addComment(x,`[${S.me}] ${P.text}`); done.comments.push({id:x,cid:cm&&cm.id}); delete S.imps[x]; }
+  }catch(e){ c.busy=false; renderChg(); const part=done.newRid||done.lines.length||done.panWas!=null;
+    toast(`Didn't finish: ${e.message}`+(part?' · part of it saved: Undo puts it back':''),true);
+    if(part) setTimeout(()=>toastUndo('Part of the change saved',()=>chgUndo(done)),5100); return; }
+  CHG=null; renderChg(); renderList(); renderDet();
+  toastUndo(c.kind==='new'?`${c.next} made · on ${ls} instead of ${P.id} · back to art`:c.kind==='ink'?`${P.panCh?'Colour saved on '+P.id+' · ':''}back to art`:`Back to art · placement change on ${P.id}`,()=>chgUndo(done));
+  if(c.kind==='new') setTimeout(()=>chgReadBack(done,P.text,0),4000); }
+// the real Imprint ID, once the automation has filled it in. If it isn't the letter shown, the comments are corrected.
+async function chgReadBack(done,text,k){ if(done.undone||!done.newRid) return;
+  try{ const r=await at(`${T_IMP}/${done.newRid}?returnFieldsByFieldId=true`), id=String(((r&&r.fields)||{})[I.id]||'').trim();
+    if(!id){ if(k<2) setTimeout(()=>chgReadBack(done,text,k+1),4000); return; }
+    if(done.undone||id===done.newId) return; const was=done.newId; done.newId=id; IMPN[done.newRid]=id;
+    for(const x of done.comments){ const Z=S.lines[x.id]; if(Z&&Array.isArray(Z[L.impIds])) Z[L.impIds]=Z[L.impIds].map(t=>t===was?id:t);
+      if(x.cid) try{ const t=`[${S.me}] `+text.split(was).join(id); await at(`${T_LI}/${x.id}/comments/${x.cid}`,{method:'PATCH',body:JSON.stringify({text:t})}); const cm=((S.comments[x.id]||{}).list||[]).find(q=>q.id===x.cid); if(cm) cm.text=t; }catch(e){} }
+    Object.keys(S.imps).forEach(x=>{ if(done.comments.some(q=>q.id===x)) delete S.imps[x]; });
+    renderList(); keepTyping(renderDet); toast(`Airtable named the new imprint ${id}`);
+  }catch(e){} }
+async function chgUndo(done){ if(done.undone) return; done.undone=true;
+  try{ for(const l of done.lines) await patch(l.id,l.was);
+    if(done.newRid){ await at(`${T_IMP}/${done.newRid}`,{method:'DELETE'}); delete IMPN[done.newRid]; const o=S.orders.find(x=>x.lines.includes((done.lines[0]||done.comments[0]||{}).id)); if(o&&o.f&&o.f[O.imps]) o.f[O.imps]=o.f[O.imps].filter(x=>x!==done.newRid); }
+    if(done.panWas!=null) await at(`${T_IMP}/${done.impRid}`,{method:'PATCH',body:JSON.stringify({fields:{[I.pantone]:done.panWas||null}})});
+    for(const x of done.comments){ const Z=S.lines[x.id]; if(done.kind==='new'&&Z&&Array.isArray(Z[L.impIds])) Z[L.impIds]=Z[L.impIds].map(t=>t===done.newId?done.oldId:t);
+      if(x.cid) try{ await at(`${T_LI}/${x.id}/comments/${x.cid}`,{method:'DELETE'}); const C=S.comments[x.id]; if(C&&C.list) C.list=C.list.filter(q=>q.id!==x.cid); }catch(e){} delete S.imps[x.id]; }
+    toast('Undone — back as it was');
+  }catch(e){ toast('Undo didn\'t finish: '+e.message,true); }
+  renderList(); keepTyping(renderDet); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&CHG){ e.preventDefault(); chgClose(); } });
 // the Review list needs each line's comments for the tag: read them (GET only), a few at a time
 function rvPrefetch(lines){ lines.forEach(Ln=>{ if(!S.comments[Ln._id]&&!S.rvQ.includes(Ln._id)) S.rvQ.push(Ln._id); }); rvPump(); }
 let rvRun=0; function rvPump(){ while(rvRun<4&&S.rvQ.length){ const id=S.rvQ.shift(); if(S.comments[id]) continue; rvRun++; loadComments(id).finally(()=>{ rvRun--; rvPump(); }); } }
