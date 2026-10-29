@@ -295,3 +295,10 @@ Stephen: "can we add order notes into this section maybe right below the cream. 
 - Closed line: a "Note" tag next to PO / Arrives, so a note isn't missed before the line is opened.
 - Read only: Receiving doesn't edit the note.
 - Tested with a mocked order (one line with a two-line note, one without).
+
+## 2026-10-29 · v86: Late = not counted in 4 days before the print date
+Stephen asked how Late worked: it was only "the arrival date has passed and the line isn't received". He said: "let's change receiving to be 4 days before scheduled print date".
+- A line is now **Late** when it isn't received and **its print date (else the order's due date) is 4 days away or less**. It's also Late, as before, when its arrival date has passed.
+- The Late tab counts orders with any late line.
+- The line's tag says why: "Late · prints Oct 31" (with the arrival date next to it), "Late · order due …", or "Late · due Oct 29" (arrival passed).
+- Tested with mocked lines (print in 2 days / arrival passed / neither / received): Late = 2 orders (was 1).

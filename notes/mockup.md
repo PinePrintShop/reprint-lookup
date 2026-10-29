@@ -1443,3 +1443,12 @@ Stephen, with 11106's .psd (layers "Layer 2/3/4"): Sep Maker said BLK · 485 · 
 - v106 wasn't the cause. Sep Maker took the names from **the line's attached proof** (V2 11106 | 3604-NT-BK: its PINE-INKS callouts, which Mockup Maker writes into every proof), matching each ink by the art colour it came from. Without a proof, it uses **the imprint's Pantones** in Airtable (nearest, one to one). Mockup Maker only guessed the nearest ink.
 - Now, after the colour scan, Mockup Maker uses the same two sources, in the same order (proof first, then the imprint's Pantones), and the same matching: art colour within ΔE 40, else nearest one to one within ΔE 45. It names only colours nobody has named. The file's own ink names (spot channels, ink-named layers) still win. The Colours panel says "Ink names from the proof (…): BLK · 485 · 7510."
 - Tested with a mocked V2 proof carrying BLK / 485 / 7510 callouts: v106 said 433≈ / 7597≈ / 7510≈, v107 says Black / 485 / 7510.
+
+## 2026-10-29 · v108: the order menu leaves out orders that already have their proofs
+Stephen: "alot of these have proofs attached. Can we make sure the logic is scanning Airtable to confirm" / "and remove if the proof is attached".
+- "Order awaiting proof" listed every order whose Order Status is Awaiting Proof.
+- Now, once the lines are read from Airtable (the same read Art to do uses), an order is listed only while at least one of its lines (fee lines aside) has **no proof in Proof Images**, or has **changes asked**.
+- The order on screen and orders opened with ?order= stay listed.
+- The hint says, e.g., "2 orders awaiting proof. 1 more already has its proofs in Airtable."
+- Attaching a proof updates the menu (the next time no line is open).
+- Tested with mocked Airtable: an order with proofs on every line was left out; orders with a missing proof stayed.

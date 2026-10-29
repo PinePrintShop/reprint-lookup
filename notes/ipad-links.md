@@ -20,7 +20,7 @@
 | Damage Log | `damage-log.html` | v23 |
 | Ink Queue | `pine-ink-queue.html` | v105 |
 | Purchasing | `pine-purchasing.html` | v114 |
-| Receiving | `receiving.html` | receiving-dashboard v85 |
+| Receiving | `receiving.html` | receiving-dashboard v86 |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
 | Production Board | `pine-production-board.html` | v48 |
 | Seps | `seps.html` | v50 |
@@ -35,7 +35,7 @@
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v58 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v107 |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v108 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
