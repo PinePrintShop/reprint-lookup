@@ -1151,3 +1151,16 @@ Shared file, so Mockup Maker and Sep Maker both get it straight away (no new ver
 
 ## 2026-10-29 · v57: drop a solid background in the .ai / PDF picker (as Mockup Maker v101)
 Same picker option ("Drop the background colour (crops to the print)"). The art opens see-through and cropped to the print, and each layer used as a screen is knocked out the same way. Bandana test: 6000 px, 21″, one cream ink plus base on a black shirt, about 3 s slower to open than v56 at 300 dpi.
+
+## 2026-10-29 · How the shop's bandana seps are set up (for a future bandana export)
+An agent read the bandana seps in Drive (read only). They all come from **Templates › Pre-press Templates › Separation Templates › Bandana-sep-template.ai**. Files checked: 11020, 10986, the Deer bandana, and I-12774 Flower Pattern.
+- **Sheet:** one artboard, 24″ × 26.853″ portrait, with all colours on it. Each colour is a spot swatch named `<mesh>M-<Pantone>[DC]` (e.g. `230M-540`, `230M-186DC`), and the RIP makes one film per swatch. So far every one has been 230 mesh.
+- **Print area:** at most 20″ × 20″, centred left to right, running 3.0″ to 23.0″ from the top.
+- **Registration:** in Registration ("All") colour on the centre line. A "T" bar sits about 1.6″ above the art and a starburst target about 1.8″ below it. No corner marks.
+- **Art:** never pre-halftoned. It's vector, or a raster in the spot colour at 300 ppi (or 600 ppi tiled). The filename is `<order#>-<LPI>LPI-SEPS.ai`.
+
+Stephen's answers (2026-10-29):
+1. "DC" = discharge: "yes".
+2. Size: "20 is the typical max print size...I think we sometimes go less but not more". Art drawn bigger (the 22″ maroon file is about 20.8″) gets scaled down to 20″ at most.
+3. 3″ from the top: "Probably...since it might match the guides we have on press to line up screens". Keep that position.
+4. No order # / colour / mesh label on the film: "No we are trying to move away from that so we have less stuff to tape up on a screen". The filename and swatch names carry it.
