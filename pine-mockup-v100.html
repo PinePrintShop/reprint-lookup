@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!-- Mockup Maker v100 (2026-10-29):
+     - CMYK seps from Sep Maker v56 (method "cmyk"): screens marked blend "multiply" overprint (ink × what's under it, as
+       Sep Maker's own preview), spot films stay opaque, base / highlight white as before. Proof chips read C / M / Y / K
+       under "Colors · CMYK process"; a process ink can't be recoloured or erased (it's a set).
+     - .psd layer picker ported from Sep Maker v55 (Stephen: "I have a file where the artist added white back in and it
+       looks like the BG might be pulling all of it out"): a layered .psd opens see-through from the ticked layers, drop
+       background off. Sep .psd files (ink channels) and one-layer files open as before.
+     - Attach proof replaces the line's older proofs (Stephen: "looks like the lastest mockup maker when saving to Airtable
+       keeps the other ones instead of removing them"), with Undo. -->
 <!-- Mockup Maker v99 (2026-10-29): seps from Sep Maker (Stephen: "let's actually have it start in the sep and then go into
      mockup maker that way we are making the mockup with a more accurate print setup"; screen print only for now).
      - ?imprint=<record id> opens on that imprint (Sep Maker's "Make the mockup ↗" link: ?order=&line=&imprint=).
@@ -731,7 +740,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockup Maker v99 — Pine</title>
+<title>Mockup Maker v100 — Pine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
 <link rel="stylesheet" href="pine-style-v2.css">
@@ -752,6 +761,19 @@ body{margin:0;background:var(--p-cream-lt)}
 .mk-row>.p-field{flex:1 1 0;min-width:0}
 .mk-lbl{font:700 var(--p-fs-xs)/1.2 var(--p-sans);color:var(--p-ink-2);text-transform:uppercase;letter-spacing:.04em}
 .mk-hint{font-size:var(--p-fs-xs);color:var(--p-ink-3);line-height:1.35}
+/* v100: the .psd layer picker (as Sep Maker v55's) */
+.mk-psd{width:min(1080px,96vw);max-height:92vh}
+.mk-psd-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
+@media (max-width:760px){ .mk-psd-body{grid-template-columns:1fr} }
+.mk-psd-list{display:flex;flex-direction:column;gap:2px;max-height:56vh;overflow:auto;margin:6px 0}
+.mk-psd-list label{display:flex;align-items:center;gap:10px;min-height:44px;font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;border-bottom:1px solid var(--p-line)}
+.mk-psd-list input{width:22px;height:22px;flex:none;accent-color:#141412}
+.mk-psd-list i{font-style:normal;font-weight:400;font-size:12px;color:#5b574f}
+.mk-psd-th{flex:none;display:grid;place-items:center;width:48px;height:40px;background:repeating-conic-gradient(#e6e1d4 0 25%,#f4f0e6 0 50%) 0 0/10px 10px;border-radius:4px;overflow:hidden}
+.mk-psd-th canvas{max-width:46px;max-height:38px;display:block}
+.mk-psd-nm{flex:1;min-width:0;word-break:break-word}
+.mk-psd-pv{display:grid;place-items:center;min-height:260px;max-height:60vh;background:repeating-conic-gradient(#e6e1d4 0 25%,#f4f0e6 0 50%) 0 0/20px 20px;border-radius:8px;overflow:hidden}
+.mk-psd-pv canvas{max-width:100%;max-height:60vh;display:block}
 .mk-drop{border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);padding:14px;display:flex;gap:12px;align-items:center;cursor:pointer;background:var(--p-cream-lt)}
 .mk-drop:hover,.mk-drop.is-over{border-color:var(--p-black);background:var(--p-yellow-lt)}
 .mk-drop canvas{width:56px;height:56px;object-fit:contain;background:#bbb;border-radius:4px;flex:0 0 auto}
@@ -1090,7 +1112,7 @@ body.mk-rcopen #attachBtn.p-btn-main{background:var(--p-white)}   /* one yellow 
 <body class="p-app">
 <header class="p-bar">
   <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
-  <span class="p-bar-app">Mockup Maker</span><span class="p-bar-ver" id="ver">v99</span>
+  <span class="p-bar-app">Mockup Maker</span><span class="p-bar-ver" id="ver">v100</span>
   <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
   <div class="p-bar-sp">
     <button class="p-barbtn" id="refreshBtn" type="button" title="Reload orders and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
@@ -1902,10 +1924,11 @@ async function openArtFile(blob,name,opt){
     renderImps(); render();
   }catch(e){ console.error(e); msg.textContent=e.message; toast(e.message); }
 }
-async function readArtFile(blob,name,im){
+async function readArtFile(blob,name,im,opt){
   const ext=extOf(name), msg=$('dropSub');
   {
     let canvas=null, layers=null, psd=null, solid=false, ppi=0, psdInfo='', pdfImg=0, fileInks=null;
+    let pickK=1, psdTree=null;   // v100
     if(ext==='psd'){
       if(!window.agPsd) throw new Error('The Photoshop reader did not load. Check the connection and Refresh.');
       // just the flattened image and the layer list — every layer's pixels at full size is what ran browsers out of memory
@@ -1914,7 +1937,13 @@ async function readArtFile(blob,name,im){
       // v67: a big PSD (over 4000 px a side) is read by our own reader at working size, never at full size
       const dv=new DataView(buf), big=buf.byteLength>26&&dv.getUint32(0)===0x38425053&&Math.max(dv.getUint32(14),dv.getUint32(18))>ART_CAP;
       const sp=readPsdFlat(buf,!big); psdInfo=psdInfoText(sp);
-      if(sp&&sp.canvas){ psd={flat:true,imageResources:{alphaChannelNames:sp.spots}}; canvas=sp.canvas; fileInks=sp.fileInks&&sp.fileInks.length?sp.fileInks:null; ppi=sp.ppi; solid=big&&!sp.nSpot&&!sp.alpha; }
+      // v100: 2+ pixel layers and no ink channels → the layer picker (ported from Sep Maker v55); the ticked layers are
+      // the art, see-through, so drop background stays off. A phone only takes it for files up to 12 MP (v67: memory).
+      let tree=null; if(!(sp&&sp.fileInks&&sp.fileInks.length)&&!(opt&&opt.noPick)){ try{ tree=await psdLayerTree(buf,matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<700?12e6:40e6); }catch(e){ console.warn('psd layers',e); } }
+      if(tree){ const pick=await choosePsdLayers(tree,name); if(!pick) throw new Error('Not opened — pick the layers to open it.');
+        const pp=psdPicked(tree); canvas=pp.canvas; pickK=pp.k; ppi=(tree.ppi||(sp&&sp.ppi)||0)*pp.k; solid=false; psdTree=tree;
+        psd={flat:true,imageResources:{alphaChannelNames:(sp&&sp.spots)||[]}}; psdInfo=(psdInfo?psdInfo+' · ':'')+`From the layers (${pick.label})`; }
+      else if(sp&&sp.canvas){ psd={flat:true,imageResources:{alphaChannelNames:sp.spots}}; canvas=sp.canvas; fileInks=sp.fileInks&&sp.fileInks.length?sp.fileInks:null; ppi=sp.ppi; solid=big&&!sp.nSpot&&!sp.alpha; }
       else try{ psd=agPsd.readPsd(buf,{skipThumbnail:true,skipLayerImageData:true}); }
       catch(e){   // v31: CMYK (and other modes the reader refuses) → read the flattened image ourselves
         const f=readPsdFlat(buf); psdInfo=psdInfoText(f)||psdInfo; if(!f||!f.canvas) throw e;
@@ -1948,9 +1977,10 @@ async function readArtFile(blob,name,im){
     }
     if(!ppi) ppi=await fileDpi(blob,ext);
     // work at no more than 4000 px a side (still sharp at any zoom); the real print size comes from the file's own size
-    let capped=false, capK=1; if(canvas&&Math.max(canvas.width,canvas.height)>ART_CAP){ const k=ART_CAP/Math.max(canvas.width,canvas.height); canvas=fitArt(canvas,Math.round(canvas.width*k),Math.round(canvas.height*k)); if(ppi) ppi*=k; capped=true; capK=k; }
+    let capped=pickK<1, capK=pickK; if(canvas&&Math.max(canvas.width,canvas.height)>ART_CAP){ const k=ART_CAP/Math.max(canvas.width,canvas.height); canvas=fitArt(canvas,Math.round(canvas.width*k),Math.round(canvas.height*k)); if(ppi) ppi*=k; capped=true; capK=k; }
     const spots=await spotNames(blob,ext,psd);
     const a={name,blob:ext==='psd'?blob:null,src:canvas,psd,layers,dropBg:solid,dropAll:false,widthIn:null,spots,fileInks,opaque:!hasTransparency(canvas),psdInfo,capped,q:{ext,k:capK,pdfImg}};
+    if(psdTree){ a.psdTree=psdTree; a.blob=null; }   // v100: kept for "Change the layers"
     buildArt(a);
     const acc0=accOf(J.line), max=acc0?accW(J.line)*0.85:(LOC_MAX[im.loc]||22);   // a hat print can't be wider than the hat
     if(ppi>=72&&a.canvas.width/ppi<=max&&a.canvas.width/ppi>=0.5){ a.widthIn=Math.round(a.canvas.width/ppi*4)/4;
@@ -2022,7 +2052,7 @@ function arrange(im,how){
 /* v97: the sew-out photo for an embroidery imprint on this line (shrunk to 2000 px; JPEG keeps the setup small) */
 const a0name=im=>{ const a=ART[im.id]; return a&&a.canvas?`${a.canvas.width} × ${a.canvas.height} px · click to change`:''; };
 async function setSew(im,blob,name,keep){ const ext=extOf(name); let src;
-  if(['pdf','ai','psd'].includes(ext)) src=(await readArtFile(blob,name,im)).src;
+  if(['pdf','ai','psd'].includes(ext)) src=(await readArtFile(blob,name,im,{noPick:true})).src;
   else { const url=URL.createObjectURL(blob), img=new Image(); img.src=url; try{ await img.decode(); }catch(e){ URL.revokeObjectURL(url); throw new Error('That file isn\'t a picture: use the sew-out photo (JPG or PNG)'); } src=img; setTimeout(()=>URL.revokeObjectURL(url),0); }
   const w0=src.naturalWidth||src.width, h0=src.naturalHeight||src.height, k=Math.min(1,2000/Math.max(w0,h0)), c=document.createElement('canvas'); c.width=Math.round(w0*k); c.height=Math.round(h0*k);
   const cx=c.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,c.width,c.height); cx.drawImage(src,0,0,c.width,c.height);
@@ -2054,7 +2084,7 @@ function drawSewEd(){ const im=curImp(), s=im&&J.line&&SEW[im.id+'|'+J.line.id],
     if(f&&im) setSew(im,f,f.name).catch(er=>toast(er.message)); }); })();
 async function setRef(im,blob,name){
   const ext=extOf(name); let url;
-  if(['pdf','ai','psd'].includes(ext)){ const a=await readArtFile(blob,name,im); url=a.src.toDataURL('image/png'); }
+  if(['pdf','ai','psd'].includes(ext)){ const a=await readArtFile(blob,name,im,{noPick:true}); url=a.src.toDataURL('image/png'); }
   else url=URL.createObjectURL(blob);
   REF[im.id]={url,name};
 }
@@ -2666,7 +2696,7 @@ function syncScan(a){
   else if(sc.white) f.push('Has white ink.');
   $('scanFlags').innerHTML=f.map(t=>`<div class="mk-flag">${t}</div>`).join('');
   // v62: the ink being changed in colour, the rest grey; original on the left, the change on the right (slider)
-  const box2=$('cmpBox'); box2.hidden=SCAN_SEL<0||!sc.inks[SCAN_SEL]; $('cmpPos').hidden=true;
+  const box2=$('cmpBox'); box2.hidden=SCAN_SEL<0||!sc.inks[SCAN_SEL]||!!procOf(a,groupOf(a,SCAN_SEL));   // v100: a process ink is everywhere in the mixes — no "where it is" $('cmpPos').hidden=true;
   if(!box2.hidden){ const src=a.canvas, s=Math.min(1,600/Math.max(src.width,src.height)), W=Math.max(1,Math.round(src.width*s)), H=Math.max(1,Math.round(src.height*s));
     const key=SCAN_SEL+'|'+W+'x'+H+'|'+sc.inks.length+'|'+((groupOf(a,SCAN_SEL)||{members:[]}).members.join(',')); let mk=a._cmpMask&&a._cmpMask.key===key?a._cmpMask:null;
     const grey=(c)=>{ const x=c.getContext('2d',{willReadFrequently:true}), img=x.getImageData(0,0,W,H), d=img.data;
@@ -2716,8 +2746,12 @@ function syncArt(){ syncOpac(); syncOwnArt();
   syncQ(im,a); syncNotes(); syncSew();
   $('dropBg').checked=!!a.dropBg; $('dropAll').checked=!!a.dropAll; $('dropAllRow').hidden=!a.dropBg;
   $('dropBg').parentElement.hidden=!!a.pieces; if(a.pieces){ $('dropAllRow').hidden=true; $('dropSub').textContent='click to replace all the files'; }
-  const lb=$('layerBox'); lb.hidden=!a.layers||!a.layers.length;
-  if(a.layers&&a.layers.length){ const box=$('layers'); box.innerHTML='';
+  const lb=$('layerBox'); lb.hidden=(!a.layers||!a.layers.length)&&!a.psdTree;
+  if(a.psdTree){ const T=a.psdTree, on=T.leaves.filter(l=>l.on);   // v100: picked layers → say which, and offer the picker again
+    $('layers').innerHTML=`<p class="mk-hint" style="margin:0 0 6px">${on.length} of ${T.leaves.length} layers: ${on.map(l=>esc(l.name)).join(', ')}</p><button class="p-btn" type="button" id="psdRepick">Change the layers…</button>`;
+    $('psdRepick').onclick=async()=>{ const pick=await choosePsdLayers(T,a.name); if(!pick) return; const pp=psdPicked(T); a.src=pp.canvas; a.psdInfo=String(a.psdInfo||'').replace(/From the layers \(.*\)$/,'')+`From the layers (${pick.label})`;
+      const w=a.widthIn; buildArt(a); a.widthIn=w; resetRecol(im); syncArt(); render(); }; }
+  else if(a.layers&&a.layers.length){ const box=$('layers'); box.innerHTML='';
     [...a.layers].reverse().forEach(it=>{ const r=document.createElement('label'); r.style.paddingLeft=(it.depth*14)+'px';
       r.innerHTML=`<input type="checkbox" ${it.on?'checked':''}> ${it.l.children?'📁 ':''}${esc(it.l.name||'Layer')}`;
       r.querySelector('input').onchange=async e=>{ it.on=e.target.checked;
@@ -3097,7 +3131,7 @@ function sepBase(st){ const sc=st.screens.filter(s=>s.png); const base=sc.filter
 async function useSeps(){ const im=curImp(), l=J.line, x=im&&l&&SEPS[l.id+'|'+im.id]; if(!x) return; const btn=$('sepPickBtn'); btn.disabled=true; btn.textContent='Opening…';
   try{ const a=await artFromSeps(x.st); ART[im.id]=a; resetRecol(im); if(!PLACE[im.id]) defaultPlace(im); UBASE[im.id]=sepBase(x.st);
     $('sepPick').hidden=true; renderImps(); syncArt(); render(); setTimeout(()=>{ renderImps(); render(); },120);
-    toast(`${im.code}: ${x.st.screens.filter(s=>s.png).length} screens from Sep Maker. Tap an ink to change it.`); }
+    toast(`${im.code}: ${x.st.screens.filter(s=>s.png).length} screens from Sep Maker${a.cmyk?' (CMYK process)':'. Tap an ink to change it'}.`); }
   catch(e){ console.error(e); toast('Could not open the seps: '+e.message); }
   btn.disabled=false; btn.textContent='Use the seps'; }
 
@@ -4039,7 +4073,7 @@ function chipsOf(im,line){
   const edited=a&&a.ed&&(Object.keys(a.ed.merge).length||Object.keys(a.ed.name).length||Object.keys(a.ed.gone).length);
   if((m||edited)&&a&&a.scan){ const seen=new Set(), lab=k=>/^\d/.test(k)?k:k[0]==='#'?k.toUpperCase():k.toUpperCase().replace(/^BLACK$/,'BLK').replace(/^WHITE$/,'WHT');
     // v99: seps from Sep Maker keep their film names (186OW, 2756); a recoloured film keeps its OW / DC
-    const film=k=>{ const f=a.fromSeps&&a.fileInks&&a.fileInks.find(f=>inkKeyOf(f.name)===k); return f?(f.process||f.name):null; },   // v100: a process film's chip is its letter sfx=k=>{ const f=film(k); return f==null?null:((f.match(/(OW|DC)$/)||[])[1]||''); };
+    const film=k=>{ const f=a.fromSeps&&a.fileInks&&a.fileInks.find(f=>inkKeyOf(f.name)===k); return f?(f.process||f.name):null; },   /* v100: a process film's chip is its letter */ sfx=k=>{ const f=film(k); return f==null?null:((f.match(/(OW|DC)$/)||[])[1]||''); };
     return inkGroups(a).filter(G=>!G.gone&&!(m&&m[G.j]==='none')).map(G=>m&&m[G.j]?{k:m[G.j],hex:inkHex(m[G.j]),sfx:sfx(G.key)}:{k:G.key,hex:G.keyHex,film:film(G.key)}).filter(o=>o&&!seen.has(o.k)&&seen.add(o.k))
       .map(o=>o.film!=null?{t:o.film,hex:o.hex,keep:true}:o.sfx!=null?{t:lab(o.k)+o.sfx,hex:o.hex,keep:true}:{t:lab(o.k),hex:o.hex}); }
   if(a&&a.fromSeps&&a.fileInks){ const seen=new Set(); return a.fileInks.filter(f=>!seen.has(f.name)&&seen.add(f.name)).map(f=>f.process?{t:f.process,hex:rgbHex(f.rgb.map(Math.round)),keep:true,proc:f.name}:{t:f.name,hex:rgbHex(f.rgb.map(Math.round)),keep:true}); }   // v99: the films, as named
@@ -4459,7 +4493,9 @@ function renderProof(){
   $('proofPages').innerHTML=names.map((n,i)=>`<button type="button" class="p-tab${i===S.proofPage?' is-on':''}" data-pg="${i}">${esc(n)}</button>`).join('');
   $('proofPages').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{ S.proofPage=+b.dataset.pg; render(); });
 }
-function proofName(l=J.line){ const g=l.g, n=(l.f[LF.proof]||[]).length; return (n?`V${n+1} `:'')+`${J.order?J.order.num:'MOCKUP'} | ${g.pn||'PRINT'}${g.abbr?'-'+g.abbr:''}`.replace(/[\\/:*?"<>]/g,'-')+'.pdf'; }
+// v100: older proofs are replaced now, so the next V number comes from the newest proof's name (unnumbered = V1), not the count
+const proofVer=l=>Math.max(0,...((l&&l.f[LF.proof])||[]).map(a=>+((String(a.filename||'').match(/^V(\d+) /)||[])[1]||1)));
+function proofName(l=J.line){ const g=l.g, n=proofVer(l); return (n?`V${n+1} `:'')+`${J.order?J.order.num:'MOCKUP'} | ${g.pn||'PRINT'}${g.abbr?'-'+g.abbr:''}`.replace(/[\\/:*?"<>]/g,'-')+'.pdf'; }
 // v57: the proof's ink callouts, for Sep Maker (the pages are pictures): per imprint, the chips as printed and which art
 // colour (as scanned) became which ink — so the seps get the same names even where the art was recoloured
 function proofInkData(l){ return asLine(l,()=>({v:1,line:l.id,imps:printed().map(im=>{ const a=ART[im.id], m=recolMap(im,l);
@@ -4496,11 +4532,13 @@ async function attachProof(){
   J.busy=false; syncProofButtons(); syncLineSel();
 }
 async function attachAll(){
-  const ls=attachLines(); if(ls.length<2||!proofReady()) return; J.busy=true; let ok=0;
+  const ls=attachLines(); if(ls.length<2||!proofReady()) return; J.busy=true; let ok=0; const outs=[];
   for(const l of ls){ J.busyMsg=`Attaching ${ok+1} of ${ls.length}…`; syncProofButtons();
-    try{ await uploadProof(await proofPdf(l),proofName(l),l); ok++; }catch(e){ toast(`Attach failed on ${lineShort(l)}: ${e.message}`); break; } }
+    try{ outs.push(await uploadProof(await proofPdf(l),proofName(l),l,{quiet:true})); ok++; }catch(e){ toast(`Attach failed on ${lineShort(l)}: ${e.message}`); break; } }
   J.busy=false; J.busyMsg=''; J.batch=ok?ls.slice(0,ok):null; syncProofButtons(); syncLineSel();
-  if(ok===ls.length) toast(PRACTICE?`Practice — ${ok} proofs not uploaded`:`${ok} proofs attached, one on each line. Proof done sends them all to Review.`);
+  const rep=outs.reduce((t,o)=>t+(o&&o.replaced||0),0), undos=outs.map(o=>o&&o.undo).filter(Boolean);   // v100: older proofs replaced, one Undo for all
+  if(ok===ls.length){ const msg=PRACTICE?`Practice — ${ok} proofs not uploaded${rep?`; they would replace ${olderTxt(rep)}`:''}`:`${ok} proofs attached, one on each line${rep?` — replaced ${olderTxt(rep)}`:''}. Proof done sends them all to Review.`;
+    if(undos.length) toastUndo(msg,async()=>{ try{ for(const u of undos) await u(); toast(`Put back the ${olderTxt(rep)}`); }catch(e){ toast('Could not put them all back: '+e.message); } }); else toast(msg); }
 }
 // v54: the line's proofs in Airtable, each with ✕ (Undo puts it back) — for doubles from tapping Attach twice
 function renderLineProofs(){ const box=$('lineProofs'), l=J.line, ps=(l&&l.id!=='quick'&&!l.extra&&J.order&&l.f[LF.proof])||[];
@@ -4517,17 +4555,34 @@ async function removeLineProof(l,attId){ const before=(l.f[LF.proof]||[]).slice(
   catch(e){ toast('Could not remove the proof: '+e.message); } }
 function syncLineSel(){ if(!J.order) return; [...$('lineSel').options].forEach(o=>{ const l=J.lines.find(x=>x.id===o.value); if(l) o.textContent=l.g.name+((l.f[LF.proof]||[]).length||l._att?' · proof attached':''); }); }
 // v46: shared by Attach proof to line and Edit PDF › Attach
-async function uploadProof(blob,name,l=J.line){
+/* v100 (Stephen, 2026-10-29: "looks like the lastest mockup maker when saving to Airtable keeps the other ones instead of
+   removing them"): uploadAttachment adds to Proof Images, so every older proof stayed on the line (and went into Line
+   Item Review's packet too). Now, once the new proof is up, the line's Proof Images is set to just the new one (PATCH
+   [{id}]). Undo (10 s) PATCHes the full list back (old attachment ids stay valid on the same record). Drive copies are
+   untouched. Practice: nothing written; the toast says what would happen. opt.quiet: Attach to all lines toasts once. */
+const putProofs=(l,list)=>at(`${T_LI}/${l.id}`,{method:'PATCH',body:JSON.stringify({fields:{[LF.proof]:list.map(a=>({id:a.id}))}})});
+const setProofs=(l,list)=>{ l.f[LF.proof]=list; if(Q.lines[l.id]) Q.lines[l.id][LF.proof]=list; };
+const olderTxt=n=>`${n} older proof${n===1?'':'s'}`;
+async function uploadProof(blob,name,l=J.line,opt={}){
   {
     if(blob.size>5e6) throw new Error(`The proof is ${(blob.size/1e6).toFixed(1)} MB; Airtable takes up to 5 MB.`);
     // v96: a new proof moves Airtable's Proof Images Timestamp on, which answers an open "Changes asked" (mirrored until the next load)
     const stamp=()=>{ const now=new Date().toISOString(); l.f[LF.proofAt]=now; if(Q.lines[l.id]) Q.lines[l.id][LF.proofAt]=now; };
-    if(PRACTICE){ stamp(); l._att=name; if(l===J.line) J.attached={name}; toast('Practice — proof not uploaded'); syncTodoCount(); }
-    else { const b64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); });
-      const r=await at(`https://content.airtable.com/v0/${BASE}/${l.id}/${LF.proof}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:'application/pdf',file:b64,filename:name})});
-      const v=r&&r.fields&&(r.fields[LF.proof]||Object.values(r.fields).find(Array.isArray)); if(v){ l.f[LF.proof]=v; if(Q.lines[l.id]) Q.lines[l.id][LF.proof]=v; } stamp(); l._att=name; if(l===J.line) J.attached={name}; toast('Proof attached: '+name);
-      try{ const w=await proofToDrive(blob,name); if(w) toast(`Proof attached and saved to ${w}`); }catch(e){ toast('Attached to Airtable, but saving to Drive failed: '+e.message); }
-      setupToDrive(l,name).catch(e=>console.warn('setup',e)); syncTodoCount(); } }
+    const before=(l.f[LF.proof]||[]).slice();
+    if(PRACTICE){ stamp(); l._att=name; if(l===J.line) J.attached={name}; if(!opt.quiet) toast(`Practice — proof not uploaded${before.length?`; it would replace the ${olderTxt(before.length)} on the line`:''}`); syncTodoCount(); return {replaced:before.length,undo:null}; }
+    const b64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); });
+    const r=await at(`https://content.airtable.com/v0/${BASE}/${l.id}/${LF.proof}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:'application/pdf',file:b64,filename:name})});
+    const v=r&&r.fields&&(r.fields[LF.proof]||Object.values(r.fields).find(Array.isArray)); if(v) setProofs(l,v); stamp(); l._att=name; if(l===J.line) J.attached={name};
+    // v100: only the new proof stays on the line
+    const full=Array.isArray(v)?v.slice():null, fresh=full&&(full.filter(a=>!before.some(b=>b.id===a.id)).pop()||null);
+    let replaced=0, warn='';
+    if(fresh&&full.length>1){ try{ await putProofs(l,[fresh]); setProofs(l,[fresh]); replaced=full.length-1; }catch(e){ warn=` (the ${olderTxt(full.length-1)} could not be taken off: ${e.message})`; } }
+    const undo=replaced?async()=>{ await putProofs(l,full); setProofs(l,full); syncProofButtons(); syncLineSel(); render(); }:null;
+    let drv=''; try{ const w=await proofToDrive(blob,name); if(w) drv=` and saved to ${w}`; }catch(e){ drv=' (saving to Drive failed: '+e.message+')'; }
+    setupToDrive(l,name).catch(e=>console.warn('setup',e)); syncTodoCount();
+    if(!opt.quiet){ const msg=`Proof attached: ${name}${drv}${replaced?` — replaced ${olderTxt(replaced)}`:''}${warn}`;
+      if(undo) toastUndo(msg,()=>undo().then(()=>toast(`Put back the ${olderTxt(replaced)}`)).catch(e=>toast('Could not put them back: '+e.message))); else toast(msg); }
+    return {replaced,undo}; }
 }
 // v45: Proof done waits 10 s with an Undo before anything reaches Airtable (and the Slack automation)
 const SEND={t:0,left:0,line:null,lines:null,order:null};
@@ -5143,7 +5198,7 @@ $('pdfBox').onclick=()=>{ ED.box=!ED.box; $('pdfBox').classList.toggle('is-on',E
 $('pdfPrev').onclick=()=>{ if(ED.p>1){ ED.p--; drawPdfPage(); } }; $('pdfNext').onclick=()=>{ if(ED.p<ED.doc.numPages){ ED.p++; drawPdfPage(); } };
 $('pdfDl').onclick=async()=>{ const b=$('pdfDl'); b.disabled=true; try{ download(await pdfOut(),pdfOutName()); ED.warned=true; }catch(e){ toast('Could not save the PDF: '+e.message); } b.disabled=false; };
 $('pdfAttach').onclick=async()=>{ const b=$('pdfAttach'); b.disabled=true; const t=b.textContent; b.textContent='Attaching…'; J.busy=true;
-  try{ const name=pdfOutName(), n=(J.line.f[LF.proof]||[]).length; await uploadProof(await pdfOut(),(n&&!/^V\d+ /.test(name)?`V${n+1} `:'')+name); ED.warned=true; $('pdfDlg').close(); }
+  try{ const name=pdfOutName(), n=proofVer(J.line);   /* v100 */ await uploadProof(await pdfOut(),(n&&!/^V\d+ /.test(name)?`V${n+1} `:'')+name); ED.warned=true; $('pdfDlg').close(); }
   catch(e){ toast('Attach failed: '+e.message); }
   J.busy=false; b.disabled=false; b.textContent=t; syncProofButtons(); };
 $('cropBtn').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(a&&!a.pieces) cropArt(im,a); };

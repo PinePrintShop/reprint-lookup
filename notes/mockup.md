@@ -1356,3 +1356,43 @@ Stephen (iPhone screenshot, editing "Off center"): "Mobile get funky when trying
 - Embroidery, patches and heat transfers: unchanged (no offer).
 - **The proof from normal art is unchanged:** page 1 is pixel-identical to v98 for a tee with a front print (+ note) and a back print.
 - Tested with Playwright, mocked Airtable and an in-memory Drive shared with Sep Maker v54 (the upload from Sep Maker is what Mockup Maker lists and downloads): banner, Use the seps (inks, width, base, chips), recolour, the newer-first order with a pick-up, no offer on embroidery; practice: no writes in either app; no native dialogs.
+
+## 2026-10-29 · v100: CMYK seps, .psd layer picker, Attach replaces older proofs
+**CMYK seps from Sep Maker v56** (Stephen, in Sep Maker: "can it also have a CMYK feature for the sep along with the other options of spot index and simulated process")
+- v99's Use the seps laid each film over the ones before it, so a CMYK sep looked wrong (magenta covered yellow). Films marked `blend:"multiply"` now overprint: ink colour × what's under them (the base, the process inks before them), the same maths as Sep Maker's own preview. Base and highlight white stay opaque, and the base rules are as before.
+- Checked against Sep Maker's preview PNG in the setup (an RGB photo on a black tee: base + Y M C K). The mean difference is 0.2/255 over black and over white. v99 was 17.9/255, with 11.6% of pixels clearly off.
+- **Proof chips:** BASE, then **Y, M, C, K** in print order, under the heading "Colors · CMYK process". "PROCESS MAGENTA" won't fit a 0.29″ chip above 4.5 pt. A letter on the ink's own colour reads at the chip's normal 8 pt, and the heading says once what the letters are. The full film names (PROCESS CYAN …) stay in the data, the Colours list and the panels.
+- **No recolouring of a process ink.** Every colour in the print is a mix of all four, so changing or erasing one ink makes no sense. Tapping one says so: "One of the four CMYK process inks … change the art in Sep Maker and use the new seps". The base white still works as before.
+- A pick-up keeps the film chips: `fromSeps` / `cmyk` are now saved with the art.
+- **Spot seps are unchanged.** The art is pixel-identical to v99, with the same chips and the same page 1.
+
+**.psd layer picker** (ported from Sep Maker v55. Stephen: "I have a file where the artist added white back in and it looks like the BG might be pulling all of it out")
+- A flattened .psd with no transparency came in with "Art has a solid background — drop it" ticked. White in the design that touched the background vanished with it.
+- Now a .psd with 2+ pixel layers (CMYK too: the layer pixels are read here) opens the picker. Each layer and group has a tick box and a thumbnail, and a big preview shows the ticked layers on the garment colour.
+  - Background, hidden layers and template / marks layers start unticked.
+  - **Open this** makes see-through art from the ticked layers, and **drop background is not ticked**.
+  - "Change the layers…" (under the art) opens it again. Cancel keeps the layers as they were.
+- Test file (CMYK: Background, Red, Black, White text): 63,528 white text pixels kept. v99 kept 28,719, after its auto drop.
+- Unchanged:
+  - sep .psd files (ink channels, v73), including Sep Maker's -SEPS.psd;
+  - one-layer files (identical to v99);
+  - sew-out and reference pictures (no picker).
+- Phones: the picker is only offered for files up to 12 MP (v67 memory).
+- The code is marked as a shared-file candidate (the same as Sep Maker v55's).
+
+**Attach replaces the older proofs** (Stephen: "looks like the lastest mockup maker when saving to Airtable keeps the other ones instead of removing them")
+- uploadAttachment adds to Proof Images. After the upload, the line's Proof Images is now set to only the new proof (PATCH `[{id}]`). This applies to Attach, Attach to all lines and Edit PDF › Attach.
+- The toast says "replaced N older proofs", with **Undo** for 10 s, which PATCHes the full list back (ids, original order). Attach to all lines has one toast and one Undo.
+- Drive copies are untouched. Practice writes nothing, and the toast says what would be replaced.
+- The V number on the next proof now comes from the newest proof's name (V3 → V4), not the count of proofs, which is now 1.
+- Line Item Review gathers every proof on the line for the packet, so old proofs no longer go in. Signed pages map by filename|size of the current proofs, so this still works for packets built after the attach. A packet sent before a re-attach maps to proofs that are no longer on the line.
+- The PATCH also moves Proof Images Timestamp (as the upload already did), so an Undo counts as a new proof for "Changes asked".
+
+**Zoom → Fit:** the Sep Maker bug doesn't happen here. At 1440×900 and 1280×800, zoomed 5× or 8× (buttons or ctrl-wheel) and scrolled, Fit shows the whole garment in the first frame and it stays. Nothing changed.
+
+Tested with Playwright, mocked Airtable and a shared in-memory Drive:
+- Sep Maker v56 → setup → Mockup Maker (CMYK and spot) 15/15.
+- .psd picker, flattened / sep .psd and normal proofs identical to v99, practice 16/16.
+- Attach replace / Undo / batch / practice 16/16.
+- Zoom → Fit 6/6.
+- No native dialogs.
