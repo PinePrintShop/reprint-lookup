@@ -1141,3 +1141,9 @@ Tested with Playwright and mocked Airtable / Drive:
   - live and practice are kept apart; last 5 kept;
   - no writes and no dialogs.
 - **v55 suites re-run on v56:** .psd picker 19/19, layers 18/18, v50 round trip 16/16, Remove, leak probe.
+
+## 2026-10-29 · layer picker (pine-ai-parts.js): layers start as the artist left them
+Stephen: "this is a PDF and it says it should have artwork...but it is just a giant white square" (22x22-Digital-Bandana_maroon.pdf).
+The file has a hidden "Layer 1" that is a white sheet over the whole design. The picker ticked every layer, so that sheet covered the art.
+Now each layer starts ticked or unticked the way it was saved in the file, and hidden ones say "(hidden in file)" so they can still be turned on.
+Shared file, so Mockup Maker and Sep Maker both get it straight away (no new version numbers).

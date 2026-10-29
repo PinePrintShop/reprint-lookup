@@ -81,21 +81,22 @@
   const fmt=v=>(Math.round(v*10)/10).toString();
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+  // layers start as the artist left them: a hidden layer (e.g. a white cover sheet over the art) stays off
   async function layersOf(doc){ try{ const occ=await doc.getOptionalContentConfig(); const g=occ&&occ.getGroups&&occ.getGroups(); if(!g) return {occ:null,list:[]};
-      return {occ,list:Object.keys(g).map(id=>({id,name:String(g[id].name||'Layer')}))}; }catch(e){ return {occ:null,list:[]}; } }
+      return {occ,list:Object.keys(g).map(id=>({id,name:String(g[id].name||'Layer'),on:g[id].visible!==false}))}; }catch(e){ return {occ:null,list:[]}; } }
 
   async function choose(doc,opt){
     opt=opt||{}; const n=doc.numPages, L=await layersOf(doc);
     let sheet=false; if(opt.crop&&n<2&&L.list.length<2){ try{ const v=(await doc.getPage(1)).getViewport({scale:1}); sheet=Math.max(v.width,v.height)*PX>26; }catch(e){} }   // one huge artboard = a sheet of pieces
     if(n<2&&L.list.length<2&&!sheet) return {page:1,occ:null,label:'',crop:null,spec:null};
     style();
-    const st={page:1,on:Object.fromEntries(L.list.map(l=>[l.id,true])),crop:null,pick:-1,spec:null};
+    const st={page:1,on:Object.fromEntries(L.list.map(l=>[l.id,l.on])),crop:null,pick:-1,spec:null};
     const sc=document.createElement('div'); sc.className='p-scrim'; sc.id='papModal';
     sc.innerHTML=`<div class="p-modal pap-modal" role="dialog" aria-modal="true" aria-labelledby="papT">
       <div class="p-modal-h"><h2 class="p-h2" id="papT" style="word-break:break-word">${esc(opt.name||'This file')}</h2><button class="p-modal-x" type="button" data-x aria-label="Close">×</button></div>
       <div class="p-modal-b"><div class="pap-body"><div>
         ${n>1?`<span class="pap-lbl">${n} artboards</span><div class="pap-tiles" data-tiles></div>`:''}
-        ${L.list.length>1?`<span class="pap-lbl">Layers</span><div class="pap-layers" data-layers>${L.list.map(l=>`<label><input type="checkbox" checked data-l="${esc(l.id)}">${esc(l.name)}</label>`).join('')}</div>`:''}
+        ${L.list.length>1?`<span class="pap-lbl">Layers</span><div class="pap-layers" data-layers>${L.list.map(l=>`<label><input type="checkbox"${l.on?' checked':''} data-l="${esc(l.id)}">${esc(l.name)}${l.on?'':' <small>(hidden in file)</small>'}</label>`).join('')}</div>`:''}
         <p class="pap-hint">${n>1?'Each artboard is its own design. ':''}${L.list.length>1?'Untick a layer to leave it out. ':''}${opt.crop?'Tap a numbered piece to open just that, or drag a box round any part. ':''}It opens cropped to the art, at its real size.</p>
       </div><div><div class="pap-pv" data-pv><span class="pap-hint">Loading…</span></div>${opt.crop?'<div class="pap-row"><button class="p-btn" type="button" data-all hidden>Whole artboard</button></div>':''}<div class="pap-spec" data-spec hidden></div><label class="pap-row" data-nm hidden style="font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;min-height:40px"><input type="checkbox" data-nmc checked style="width:22px;height:22px;accent-color:#141412"> Leave out the measurement marks (red / blue lines and labels)</label><p class="pap-hint" data-sz></p></div></div></div>
       <div class="p-modal-f"><button class="p-btn" type="button" data-x>Cancel</button><button class="p-btn p-btn-main" type="button" data-go>Open this</button></div></div>`;
