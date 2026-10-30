@@ -815,3 +815,8 @@ Stephen: "yes do the same for both", as Mockup Maker v110.
   - It also doesn't redraw while a comment, upload or screenshots are in progress, and stops on a phone once the line is closed.
 - **Change an imprint window.** The header and buttons stay put and only the middle scrolls; Create was ~440px below a laptop screen. After a part-saved failure the window closes, with Undo in the toast, so it can't be pressed twice.
 - **Phone.** The small links on a line are 40px tall.
+
+## 2026-10-30 — v52: the art department's comments aren't "changes asked"
+- **Stephen** (11110 Black Hills): "black hills is attached proof but it still shows up as needing a proof".
+- **Cause:** the Art Department's question to sales after the proof ("keep it as DISCHARGE or switch it to BASE?") was read as a change request.
+- **Now:** comments by the Art Department account are never counted as one. Same rule in Mockup Maker v122.
