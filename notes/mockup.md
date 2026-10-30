@@ -1606,3 +1606,12 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - Now the Art Department's own comments never count, here and in Line Item Review v52.
   - So 11110 sits under "Proof attached — not sent to Review yet" until it's sent.
 - **Tested:** bandana close-up pages, one and two garments.
+
+## 2026-10-30 — v123: the upscale comes out in the art's real inks
+- **Stephen** (one-white toucan / Pura Vida names): "I tried the upscale again and it still isn't getting me one clean white".
+- **Cause:** the colour scan found two inks: #fafbfb (89%) and a light blue-grey #d7dae1 (11%), which is the shading along the art's edges. The upscale snaps to the scanned inks, so it kept both.
+- **Fix:** a small ink (under 25%) that is only a lighter or darker shade of an ink at least twice its size is folded into that ink. "Same shade" means the same hue/chroma within 8 and lightness within 30.
+  - Real colours, meaning any hue change, are kept.
+  - The toast says how many shades were folded in. "Back to the original" undoes it.
+- **Tested:** the toucan came out 86% white + 12% grey before; now it is one white.
+- **Stephen also asked** whether Download print art is the cleaned version: it is whatever art is on the imprint now — the upscaled art after an upscale, otherwise the original grab. The same goes for the copy in Seps › working files.
