@@ -1477,3 +1477,17 @@ Stephen, with 11106's Proofs folder (11106 | 3604-NT-BK.pdf, the setup .json, Te
 
 ## 2026-10-29 · v111: Use the seps also looks in Seps › working files
 Sep Maker v59 saves its setup there (Stephen: "yes do the same for both").
+
+## 2026-10-30 · v112 (+ pine-ai-parts.js): fixes from the overnight bug test (agent, mocked Airtable/Drive)
+- **High, shared proof names.** Two lines with the same style and colour make the same proof name, so line B's proof moved line A's PDFs to unused ("Attach to all" even moved A's brand-new proof). Now:
+  - when another line on the order has the same proof name, Drive is left alone;
+  - otherwise only the proofs taken off the line, and older V-numbers of its name, move (never a newer one).
+  - Retested: single line moves V1/V2; shared name moves nothing.
+- **Undo** is offered whenever Drive files moved, and says if any couldn't be put back (it used to say "Put back" even when the move failed).
+- **Ink names from the proof** were lost when the art was rebuilt (Drop background etc.) and never came back. They're worked out again on each rebuild.
+- **The garment line** says "your photo" after Add photo.
+- **Layer picker:**
+  - a layer the file hid, ticked back on, is now in the opened art (it was dropped because no occ was passed). Retested.
+  - the buttons stay on screen and only the middle scrolls (on a phone they were below the screen);
+  - "(hidden in file)" is 12px.
+- Not changed (suspected only): ink-name matching by art colour within ΔE 40 is loose; knockout leaves holes where the design uses the background colour, so it's only on by default for fabric/background layers.
