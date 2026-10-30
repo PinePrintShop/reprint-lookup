@@ -1615,3 +1615,23 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - The toast says how many shades were folded in. "Back to the original" undoes it.
 - **Tested:** the toucan came out 86% white + 12% grey before; now it is one white.
 - **Stephen also asked** whether Download print art is the cleaned version: it is whatever art is on the imprint now — the upscaled art after an upscale, otherwise the original grab. The same goes for the copy in Seps › working files.
+
+## 2026-10-30 — v124: Trace to vector, and a thin-line check
+- **Stephen:** "any ideas for getting an even tighter and cleaner upscale" → "yeah let's build that".
+- **Trace to vector** sits next to Try a 300 dpi upscale, for the same flat art.
+  - **How it works:**
+    1. Each ink is found on a smoothed 2–4× copy of the art (at most 16 MP).
+    2. The ink is traced into smooth curves with Potrace. This uses esm-potrace-wasm 0.5.1, loaded from jsdelivr only when first used.
+    3. The curves are drawn at 300 dpi at the print width.
+  - **Download .svg** gives the vector for Illustrator, with real inches.
+  - **Back to the original** undoes it. The proof gets the "upscaled" note.
+  - **Speed:** about 5 s for the toucan at 12″ and 9 s for The Mill at 20″.
+- **Edge halos fold into their ink** (upscale and trace).
+  - v123's shade rule covers inks under 25% within 30 lightness / 8 hue of a bigger ink.
+  - **New:** an ink under 10% that sits at least 80% on edges, next to a bigger ink within 60 lightness / 14 hue, folds into that ink.
+  - **Example:** The Mill's leaves kept a grey edge, the old white background blended in. It came out as a traced grey outline round every leaf; now it's one olive.
+  - **Real colours are kept:** tested with red + blue + a 6 px yellow outline + white text, and all 4 inks stayed.
+- **Thin-line check** after an upscale or a trace.
+  - **What it flags:** lines under about 1 pt at print size, found by opening the shape by half a point. It counts a run about ¼″ long, not pointed tips or corners.
+  - **What you see:** a warning with the number of spots, and "Show where" opens a small picture with them boxed in red.
+  - **Tested:** a 3 px × 2″ line was caught; the 12 px line, tips and bold text were not. The toucan at 12″ has none.
