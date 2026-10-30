@@ -1521,3 +1521,14 @@ Stephen, with 11022 | CT106656-CH (a Carhartt long sleeve, "SKYBEAR" down the le
 - **Why Mockup Maker didn't show it:** since v56 it draws a sleeve print along the shirt's sleeve in the FRONT view (true size, rotated with the sleeve, narrowed ×0.65 on long sleeves). But the front view only came up when there was a front print. A sleeve + back job showed only the flat sleeve.
 - **Now:** a sleeve print brings in the front view (mockup, proof page 1, Colourways). Sleeve + back gives FRONT (with the sleeve), BACK and LEFT SLEEVE, as on 11022's proof. Nothing to set: give the imprint the Left Sleeve or Right Sleeve location and open its art.
 - **Tested with 11022's own front photo** (as "your photo") and its sleeve art at 2.3″: proof page 1 shows the shirt with SKYBEAR down the left sleeve beside the flat sleeve, labelled "LEFT SLEEVE - 11022-D · 2.3 × 14.9″ · 3″ below shoulder seam".
+
+## 2026-10-30 · v116: the sleeve on the shirt matches the art dept's
+Stephen: "can we work on that sleeve to try and match what we actually did" (11022 | CT106656-CH, SKYBEAR down the left sleeve).
+- **What the art dept did:** the print at full width, toward the outside of the sleeve and running off it, so the letters are cut where the sleeve turns away and it reads as going round the arm.
+- **v115** put it in the middle of the sleeve, squeezed to 65%.
+- **v116**, on a long-sleeve photo:
+  - the print keeps its width;
+  - it sits toward the outside of the sleeve (offset 42% of its width);
+  - it's cut off where the garment ends, using a mask of the photo's garment (everything but the plain background).
+- Short sleeves and the drawn stand-in shirt are unchanged.
+- **Compared side by side with 11022's proof at the same scale:** the width, the outer-edge position, the wrap and the clipped "SK" at the shoulder all match. The art dept's starts about 1″ lower; that's the placement ("AS SEEN", about 4″ below the shoulder seam), which can be dragged or typed.
