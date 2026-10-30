@@ -804,3 +804,14 @@ Stephen: "yes do the same for both", as Mockup Maker v110.
 - The save line says "2 older copies moved to Proofs › unused".
 - Airtable is unchanged: "Attach another" still adds to the line.
 - Tested with a mocked Proofs folder: the un-numbered proof and V2 moved to unused; Terms of Service stayed.
+
+## 2026-10-30 · v51: fixes from the overnight bug test (agent, mocked Airtable/Drive)
+- **Proof tidy was too broad (high).** v50 moved any file with the same name after "V<n> ". In testing, another line's image.png moved, the customer's logo.png in the order folder went to trash, and V1 going in moved a newer V2. Now it only acts when all of these hold:
+  - the files are proof-named ("<order#> | …", optionally "V<n> ");
+  - they have a lower version than the new one;
+  - they sit in a Proofs folder that has an unused folder.
+  Files are moved, never trashed. Retested: only the older V1/V2 moved; V4, image.png and logo.png stayed.
+- **Comment race (medium).** A comment posted while a refresh was on its way vanished until the next refresh. The refresh now drops its answer if the list changed meanwhile, and keeps practice comments. Retested: v50 lost it, v51 keeps it.
+  - It also doesn't redraw while a comment, upload or screenshots are in progress, and stops on a phone once the line is closed.
+- **Change an imprint window.** The header and buttons stay put and only the middle scrolls; Create was ~440px below a laptop screen. After a part-saved failure the window closes, with Undo in the toast, so it can't be pressed twice.
+- **Phone.** The small links on a line are 40px tall.

@@ -302,3 +302,11 @@ Stephen asked how Late worked: it was only "the arrival date has passed and the 
 - The Late tab counts orders with any late line.
 - The line's tag says why: "Late · prints Oct 31" (with the arrival date next to it), "Late · order due …", or "Late · due Oct 29" (arrival passed).
 - Tested with mocked lines (print in 2 days / arrival passed / neither / received): Late = 2 orders (was 1).
+
+## 2026-10-30 · v87: fixes from the overnight bug test
+- The order's due date is a lookup. v86 missed the plain-array shape, so "Late · order due …" never showed without a print date. It's now read in every shape. If there are two dates, the earliest wins.
+- Dates written 10/28/2026 or with a time show as "Oct 28".
+- An arrival that has passed now says "Late · arrival was Oct 28". "due" read like the order's due date.
+- Picking a tab scrolls it into view (phone; the Late tab was off-screen).
+- Retested: due-date-only line = Late (order due); Late count 3 of 5 mocked lines.
+- Still open: on a 1366px laptop, the "Received (24h)" tab sits at the edge of the scrolling tab strip.

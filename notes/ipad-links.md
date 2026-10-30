@@ -20,7 +20,7 @@
 | Damage Log | `damage-log.html` | v23 |
 | Ink Queue | `pine-ink-queue.html` | v105 |
 | Purchasing | `pine-purchasing.html` | v114 |
-| Receiving | `receiving.html` | receiving-dashboard v86 |
+| Receiving | `receiving.html` | receiving-dashboard v87 |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
 | Production Board | `pine-production-board.html` | v48 |
 | Seps | `seps.html` | v50 |
@@ -29,7 +29,7 @@
 | Schedule | `pine-schedule.html` | v28 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v118 |
-| Line Item Review | `pine-line-item-review.html` | v50 |
+| Line Item Review | `pine-line-item-review.html` | v51 |
 | Create order | `create-order.html` | v25 |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
