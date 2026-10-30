@@ -1556,3 +1556,19 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - Download print art uses the upscaled art.
 - **Tested:** the toucan went 532 px → 3600 px in about 9 s; the warning and note were right; undo put back 532 px.
 - **Not done:** AI upscaling (an ESRGAN-type model is many MB and is made for photos; for screen-print art, snapping to the inks is the better fit). Sep Maker already smooths low-res edges when it separates.
+
+## 2026-10-30 — v119: upscaler dialled in, and print art saved to Drive for seps
+- **Stephen:** "it only upscaled to 200dpi and still could use some work getting cleaned up more" (The Mill Glen Arbor bandana PNG, 2000 px).
+  - **Fixed:** v118 stopped at 4000 px, which is only about 200 dpi on a 20″ bandana. It now goes to a true 300 dpi (6000 px). Only art over about 50 MP is held back, and the message says so.
+  - **Cleaner:** the softening step used to thin out fine lines (fish outlines, small letters). Anything the plain enlargement shows as solid now stays solid. The outer edge also gets a soft 2–3 px ramp instead of a jagged cut.
+  - **Tested on the Mill Glen Arbor PNG:** 97 → 300 dpi at 20″ in about 7 s, with clean letters and fins.
+- **Stephen:** "can we also have the art we rebuilt or upscaled be uploaded to the drive folder as well to make seps quicker".
+  - When a proof is attached, each printed imprint's art also goes to Drive. It's the same 300 dpi PNG as Download print art, with the ink changes.
+  - **Where:** the order's Seps › working files; if there's no such folder, then Seps; otherwise Proofs › working files.
+  - **File name:** `<order> <imprint> … · Mockup print art.png`.
+  - The older copy for that imprint goes to the Drive trash. Nothing else in the folder is touched.
+  - **Which art:**
+    - raster art always (upscaled, pulled from a mockup, cropped, background dropped);
+    - vector PDF/AI only when it was changed here.
+  - Attach to all lines sends it once. Practice mode only says where it would go.
+  - **Tested with mocked Drive:** the upload landed in Seps › working files, the old copy was trashed, and the customer's file was left alone.
