@@ -1202,3 +1202,7 @@ Fixed:
 - **Setup save:** the old copy is trashed only once the new upload is confirmed, and the Drive panel refreshes after.
 - **Phone:** the Drive tile buttons are 40px and the Move menu items 44px.
 Not changed: from a folder three levels deep, its parent isn't offered in Move to.
+
+## 2026-10-30 — shared picker (pine-ai-parts.js): pick one design off a slide PDF
+- **Change:** a PDF page with two or more separate designs (a slide flattened into one picture) now opens the picker with numbered pieces. Before, it opened as one image.
+- **Details:** see notes/mockup.md v127.
