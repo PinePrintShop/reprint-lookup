@@ -1491,3 +1491,10 @@ Sep Maker v59 saves its setup there (Stephen: "yes do the same for both").
   - the buttons stay on screen and only the middle scrolls (on a phone they were below the screen);
   - "(hidden in file)" is 12px.
 - Not changed (suspected only): ink-name matching by art colour within ΔE 40 is loose; knockout leaves holes where the design uses the background colour, so it's only on by default for fabric/background layers.
+
+## 2026-10-30 · v113: "Change this ink" no longer covers colours
+Stephen (screenshot: "Colours · 4" with only 3 showing): "looks like some colors are getting hidden with this new bigger window".
+- The window opened just under the colour you tapped, so with two rows of colours it covered the second row.
+- It now opens under the whole colour list. Every colour stays in view, and you can tap from one to the next.
+- Phones under 600px still get the bottom sheet, as before.
+- Tested at 622px with 4 colours, tapping the 3rd: v112 covered the 4th; v113 shows all 4.
