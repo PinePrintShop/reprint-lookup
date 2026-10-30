@@ -24,7 +24,9 @@
   const PX=1/72;   // inches per PDF point
   let css=false;
   function style(){ if(css) return; css=true; const s=document.createElement('style'); s.textContent=`
-.pap-modal{width:min(1040px,96vw);max-height:92vh}
+.pap-modal{width:min(1040px,96vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.pap-modal .p-modal-h,.pap-modal .p-modal-f{flex:none}
+.pap-modal .p-modal-b{flex:1 1 auto;min-height:0;overflow:auto}
 .pap-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:16px;align-items:start}
 @media (max-width:760px){ .pap-body{grid-template-columns:1fr} }
 .pap-lbl{display:block;font:700 12px/1.3 Helvetica,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px}
@@ -125,7 +127,7 @@
       <div class="p-modal-h"><h2 class="p-h2" id="papT" style="word-break:break-word">${esc(opt.name||'This file')}</h2><button class="p-modal-x" type="button" data-x aria-label="Close">×</button></div>
       <div class="p-modal-b"><div class="pap-body"><div>
         ${n>1?`<span class="pap-lbl">${n} artboards</span><div class="pap-tiles" data-tiles></div>`:''}
-        ${L.list.length>1?`<span class="pap-lbl">Layers</span><div class="pap-layers" data-layers>${L.list.map(l=>`<label><input type="checkbox"${l.on?' checked':''} data-l="${esc(l.id)}">${esc(l.name)}${l.on?'':' <small>(hidden in file)</small>'}</label>`).join('')}</div>`:''}
+        ${L.list.length>1?`<span class="pap-lbl">Layers</span><div class="pap-layers" data-layers>${L.list.map(l=>`<label><input type="checkbox"${l.on?' checked':''} data-l="${esc(l.id)}">${esc(l.name)}${l.on?'':' <small style="font-size:12px">(hidden in file)</small>'}</label>`).join('')}</div>`:''}
         <p class="pap-hint">${n>1?'Each artboard is its own design. ':''}${L.list.length>1?'Untick a layer to leave it out. ':''}${opt.crop?'Tap a numbered piece to open just that, or drag a box round any part. ':''}It opens cropped to the art, at its real size.</p>
       </div><div><div class="pap-pv" data-pv><span class="pap-hint">Loading…</span></div>${opt.crop?'<div class="pap-row"><button class="p-btn" type="button" data-all hidden>Whole artboard</button></div>':''}<label class="pap-row" data-kn hidden style="font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;min-height:40px"><input type="checkbox" data-knc style="width:22px;height:22px;accent-color:#141412"><span data-ksw style="width:22px;height:22px;border-radius:4px;border:1px solid #141412;display:inline-block"></span> Drop the background colour (crops to the print)</label><div class="pap-spec" data-spec hidden></div><label class="pap-row" data-nm hidden style="font:700 14px/1.3 Helvetica,Arial,sans-serif;cursor:pointer;min-height:40px"><input type="checkbox" data-nmc checked style="width:22px;height:22px;accent-color:#141412"> Leave out the measurement marks (red / blue lines and labels)</label><p class="pap-hint" data-sz></p></div></div></div>
       <div class="p-modal-f"><button class="p-btn" type="button" data-x>Cancel</button><button class="p-btn p-btn-main" type="button" data-go>Open this</button></div></div>`;
@@ -187,7 +189,8 @@
       $('[data-go]').onclick=()=>{ const off=L.list.filter(l=>!st.on[l.id]).map(l=>l.name);
         const nm=$('[data-nm]'), noMarks=!!(nm&&!nm.hidden&&st.crop&&$('[data-nmc]').checked);
         const kn=!!(st.bg&&st.knock&&st.box);
-        done({page:st.page,occ:off.length?occOf():null,crop:st.crop||(kn?st.box:null),spec:st.spec,noMarks,knock:kn?st.bg:null,
+        const changed=L.list.some(l=>!!st.on[l.id]!==!!l.on);   // 2026-10-30: a hidden layer ticked back on needs the occ too
+        done({page:st.page,occ:off.length||changed?occOf():null,crop:st.crop||(kn?st.box:null),spec:st.spec,noMarks,knock:kn?st.bg:null,
           label:[n>1?'artboard '+st.page:'',st.crop?(st.pick>=0?'piece '+(st.pick+1):'the part you boxed'):'',off.length?'without '+off.join(', '):'',kn?'background dropped':''].filter(Boolean).join(' · ')}); };
       setTimeout(()=>$('[data-go]').focus(),0);
     });

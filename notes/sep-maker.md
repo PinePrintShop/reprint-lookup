@@ -1192,3 +1192,13 @@ Stephen: "does sep maker not allow me to move google drive files around?" It did
   - **Move to Drive trash**.
 - Each has Undo. It uses the same worker routes and is ported from Mockup Maker v111. Practice moves nothing.
 - Tested with a mocked Seps folder: menu lists the order folder, Proofs, Seps › working files, Seps › unused and trash; moving to unused called drive/move.
+
+## 2026-10-30 · v61: fixes from the overnight bug test (agent, mocked Airtable/Drive)
+The test passed the bandana template at 20″ (24 × 26.853″ sheet, art 2–22″ × 3–23″, T at 1.0–1.4″, target at 25.15″, no label) and the shirt template at location F (16 × 21.25″, label present). It also passed the setup save to working files and the Drive menu.
+Fixed:
+- **Bandana width:** a file bigger than 20″ opens at 20″ (the maroon bandana opened at 21″).
+- **Target position:** if a print is made wider anyway, the bottom target moves down so it never sits on the art. Retested at 22″: art ends 25.0″, target at 25.4–25.75″.
+- **Bandana with no order:** a Bandana location now counts as a bandana job, so no bases, discharge or direct, and 55 LPI. Before, it only counted once a garment was loaded. Retested: art-55LPI-SEPS, no 158M bases.
+- **Setup save:** the old copy is trashed only once the new upload is confirmed, and the Drive panel refreshes after.
+- **Phone:** the Drive tile buttons are 40px and the Move menu items 44px.
+Not changed: from a folder three levels deep, its parent isn't offered in Move to.
