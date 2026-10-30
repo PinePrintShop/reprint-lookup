@@ -1540,3 +1540,19 @@ Stephen, with 11111's proof (the "COOL GRAY 6 OW" chip spilled out of its square
 - A chip's text first gets a little smaller, then breaks into words, then shrinks further (down to 3 pt) until it's inside the square.
 - Only the chip text changes; ink names elsewhere are as before.
 - Tested with BASE, Cool Gray 6 OW, Cool Gray 10 OW, Warm Gray 3, 7621 OW and BLK: v116 overflowed two chips, v117 fits all six.
+
+## 2026-10-30 · v118: "Try a 300 dpi upscale" for low-res art
+Stephen: "can we explore putting in an upscaling tool for low res files to 300dpi? still a warning but just so we can see if we can get a clean upscale".
+- **How it works:** for flat spot-colour art, the art is enlarged to 300 dpi at its print width (4000 px at most) and softened a little (blur ≈ 0.6 × the scale). Then every pixel is set to the nearest of its scanned inks and is either in or out, so edges are redrawn crisp instead of blurry.
+- **Explored on the customer's toucan back print (44 dpi at 12″):**
+  - a plain smooth resize is blurry;
+  - "ink-snap" gives clean names and line art;
+  - more softening (0.6 × scale) gives rounder edges than 0.35 × scale;
+  - the tiniest specks soften.
+- **In the app:** next to the Low-res / Mockup-only warning, **Try a 300 dpi upscale** appears. It's offered only for flat art (not blended or photo-like with more than 6 colours, not vector PDF/.ai).
+  - After it runs, the warning stays: "Upscaled from ~44 dpi to ~300 dpi at 12″ — check the edges and small details before seps".
+  - The proof note "Upscaled to 300 dpi" is added.
+  - **Back to the original** undoes it and takes the note off.
+  - Download print art uses the upscaled art.
+- **Tested:** the toucan went 532 px → 3600 px in about 9 s; the warning and note were right; undo put back 532 px.
+- **Not done:** AI upscaling (an ESRGAN-type model is many MB and is made for photos; for screen-print art, snapping to the inks is the better fit). Sep Maker already smooths low-res edges when it separates.
