@@ -1532,3 +1532,11 @@ Stephen: "can we work on that sleeve to try and match what we actually did" (110
   - it's cut off where the garment ends, using a mask of the photo's garment (everything but the plain background).
 - Short sleeves and the drawn stand-in shirt are unchanged.
 - **Compared side by side with 11022's proof at the same scale:** the width, the outer-edge position, the wrap and the clipped "SK" at the shoulder all match. The art dept's starts about 1″ lower; that's the placement ("AS SEEN", about 4″ below the shoulder seam), which can be dragged or typed.
+
+## 2026-10-30 · v117: ink chips say CG 10 / WG 3
+Stephen, with 11111's proof (the "COOL GRAY 6 OW" chip spilled out of its square and "COOL GRAY 10" was cut off): "can we tighten up how the longer text fit in the swatch box.....we can appreviate these to CG 10 etc".
+- On the proof's colour chips, Cool Gray is shortened to **CG** and Warm Gray to **WG**: CG 6 / OW, CG 10 / OW, WG 3.
+- "CG 10" stays on one line.
+- A chip's text first gets a little smaller, then breaks into words, then shrinks further (down to 3 pt) until it's inside the square.
+- Only the chip text changes; ink names elsewhere are as before.
+- Tested with BASE, Cool Gray 6 OW, Cool Gray 10 OW, Warm Gray 3, 7621 OW and BLK: v116 overflowed two chips, v117 fits all six.
