@@ -1583,3 +1583,10 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - orders already sent;
   - archived orders.
 - Once every line is sent to Review, the order leaves the menu.
+
+## 2026-10-30 — v121: no ring round the print on a discharged bandana
+- **Stephen** (The Mill on brown): "the mockup has a weird ring" … "bandanas never get a base it is just either discharge or direct to fabric".
+- **Cause:** the discharge preview was drawn like a shirt's underbase, choked (pulled in) 1/64″. That left a band of ink straight on the brown round every shape, which looked like an outline.
+- **Fix:** on a bandana the discharge is the ink itself, so the discharge preview now covers the whole shape with no choke.
+- Shirts' white, cream and discharge bases are unchanged.
+- **Tested:** rendered The Mill badge on brown before and after.
