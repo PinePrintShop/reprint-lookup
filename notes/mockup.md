@@ -1498,3 +1498,19 @@ Stephen (screenshot: "Colours · 4" with only 3 showing): "looks like some color
 - It now opens under the whole colour list. Every colour stays in view, and you can tap from one to the next.
 - Phones under 600px still get the bottom sheet, as before.
 - Tested at 622px with 4 colours, tapping the 3rd: v112 covered the 4th; v113 shows all 4.
+
+## 2026-10-30 · v114: Pull the art out of a PNG / JPG mockup
+Stephen, with a customer's front + back mockup that sales said was "the only file they got from the client": "would we also be able to pull information from a png that has mutiple images".
+- A PNG / JPG / WebP that is shirts on a plain, non-see-through background opens as **art tiles**, like an old proof PDF's "Pull the art out". Each shirt's print is cut off the shirt colour using v55's photo cut. The pieces of one print stay together (the names beside the toucan).
+- **Naming.** Each tile is named by where it sits: a small print high on one side is Left Chest or Right Chest (the wearer's side); a big print on the shirt that has no chest print is the Back; otherwise it's Front. The matching imprint is pre-picked.
+- **Shirts that touch** at the sleeves are split by the body width 60% down.
+- **Width** is estimated from the shirt (a tee's body taken as 20″ across), capped at 4″ for a chest and 12″ for front/back, because mockups draw prints big. The tile also shows how big the mockup drew it, and the ppi.
+- A note says the result is fine for the proof but needs redrawing or vectorizing for seps.
+- **Other images still open as plain art:**
+  - "Put the whole picture on the shirt" opens the picture as it is.
+  - Pictures with see-through corners (logos), and shapes that aren't wider at the sleeves than the body (badges, posters), open as before.
+- **Tested with the customer's file** (1536 × 1024 px):
+  - Left Chest "global leadership": 4″, about 33 ppi (drawn about 5.3″);
+  - Back toucan + names: 12″, about 44 ppi (drawn about 18.5″);
+  - Use for B · Back put it on 11120-B at 12″, read as White;
+  - a see-through logo, a badge on white and a poster on white still opened as plain art.
