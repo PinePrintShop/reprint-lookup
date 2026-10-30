@@ -1635,3 +1635,28 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - **What it flags:** lines under about 1 pt at print size, found by opening the shape by half a point. It counts a run about ¼″ long, not pointed tips or corners.
   - **What you see:** a warning with the number of spots, and "Show where" opens a small picture with them boxed in red.
   - **Tested:** a 3 px × 2″ line was caught; the 12 px line, tips and bold text were not. The toucan at 12″ has none.
+
+## 2026-10-30 — v125: Retype the text…
+- **Stephen:** "can we also build the font idea and can we automate that feature so if selected the app can handle all the spelling to match the image".
+- **Where:** a "Retype the text…" button in the art box. It shows after Trace to vector or the upscale, or on print-ready raster art.
+- **How it works:**
+  1. **Reads the text** with Tesseract.js 5.1.1, using the core and English data from jsdelivr (about 10 MB the first time).
+     - The art is read at about 1300 px and about 2400 px wide, and each line keeps its surer reading. That beat one read at full size: the toucan's names went from 3–4 wrong to 1 ("Mia" read "Ma").
+     - Lines under 80% are boxed yellow to check. Drawing scraps (short or unsure) start unticked.
+  2. **The list:** each line has a tick and an editable text box. The app types exactly what's in each box, so spelling is checked there.
+  3. **Finds each line's letters** as the shapes inside its box (padded ¼ of a line). Artwork that touches the box isn't one of them, so it stays.
+  4. **Ranks about 70 Google Fonts.** Only the letters needed are loaded, via `text=`.
+     - Each line is squeezed to 256 × 40 and compared to the font's rendering.
+     - The font's letter spacing is fitted to the art's width : height first. Art lettering is often spaced wider than the font; without that, the slanted Kalam Bold won on the toucan.
+  5. **Shows the first ticked line** in the art, then in the 8 closest fonts. Tap one, or pick any from the list, or "Another Google Font…" to load one by name.
+     - Stephen: "I thought a few other fonts fit better than the patrick hand bold". So the pick is the user's, and the ranking only orders the list.
+  6. **Retype ticked lines:**
+     - each line's letters and their 3 px soft edge are taken out;
+     - the line is typed back with its size from the letters' height and spacing from their width, centred where it was (tilted lines keep their angle);
+     - it uses the ink nearest the letters' colour.
+     - A traced .svg is traced again so it includes the new type. Undo is in the toast.
+- **Fixed before shipping:** the fonts were first loaded with only the sample lines' letters, so other letters fell back to a serif. Every ticked line's letters are now loaded before the preview and the retype.
+- **Tested:** the toucan at 12″ — the trace, then Retype.
+  - 33 of 34 names read right with no typing.
+  - Patrick Hand Bold and Gaegu Bold rank first.
+  - The names were retyped in place and the .svg re-traced (about 25 s to read and rank).
