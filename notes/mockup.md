@@ -1688,3 +1688,14 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Tested:**
   - BANDANA.pdf: picker with 3 pieces; piece 2 opens alone at 20″.
   - The layered bandana PDF still gets its layer picker; proofV2.pdf still opens straight away.
+
+## 2026-10-30 — v128: Pull the art out finds the designs on a slide too
+- **Stephen:** "v127 and still not working".
+- **Cause:** a PDF named like an order proof ("11113 | BANDANA.pdf") opens in Edit PDF's "Pull the art out" step, not the opening picker v127 fixed. That step looks for shirts, and on this slide it returned the whole picture as one "Drawn art" tile.
+- **Fix — "Pull the art out" (PDF) and PNG / JPG mockups:**
+  - When there are fewer than 2 shirt tiles, separate designs (two or more, at least 1.5″ each) become a tile each, numbered left to right and row by row.
+  - The shared piece finder is used; the page's paper colour doesn't count as art.
+  - Designs are found on a copy at no more than 2 px per point, then cut from the full page. At full size, compression specks along the edges bridged the 0.19″ gap and two panels came out as one.
+  - A bandana's tile opens at 20″.
+- **`pine-ai-parts.js?v=128`:** the page now asks for the new shared picker by version, so a browser can't keep the old one for its 10-minute cache after an update.
+- **Tested** with BANDANA.pdf as "11113 | BANDANA.pdf" (Pull the art out), as "BANDANA.pdf" (opening picker) and as a PNG of the slide: 3 designs each time, and the third opens alone at 20″.
