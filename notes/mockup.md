@@ -1514,3 +1514,10 @@ Stephen, with a customer's front + back mockup that sales said was "the only fil
   - Back toucan + names: 12″, about 44 ppi (drawn about 18.5″);
   - Use for B · Back put it on 11120-B at 12″, read as White;
   - a see-through logo, a badge on white and a poster on white still opened as plain art.
+
+## 2026-10-30 · v115: a sleeve print always shows on the shirt
+Stephen, with 11022 | CT106656-CH (a Carhartt long sleeve, "SKYBEAR" down the left sleeve, back print, no front print): "can you see how we did this sleeve mockup and try and create an easy way for us to replicate that in the mockup builder".
+- **What the art dept did by hand:** the front photo with the sleeve print rotated down the wearer's left sleeve (on the right as you look), with the sleeve art (2.3 × 15″) on its own page.
+- **Why Mockup Maker didn't show it:** since v56 it draws a sleeve print along the shirt's sleeve in the FRONT view (true size, rotated with the sleeve, narrowed ×0.65 on long sleeves). But the front view only came up when there was a front print. A sleeve + back job showed only the flat sleeve.
+- **Now:** a sleeve print brings in the front view (mockup, proof page 1, Colourways). Sleeve + back gives FRONT (with the sleeve), BACK and LEFT SLEEVE, as on 11022's proof. Nothing to set: give the imprint the Left Sleeve or Right Sleeve location and open its art.
+- **Tested with 11022's own front photo** (as "your photo") and its sleeve art at 2.3″: proof page 1 shows the shirt with SKYBEAR down the left sleeve beside the flat sleeve, labelled "LEFT SLEEVE - 11022-D · 2.3 × 14.9″ · 3″ below shoulder seam".
