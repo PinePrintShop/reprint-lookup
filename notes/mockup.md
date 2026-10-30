@@ -1699,3 +1699,13 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - A bandana's tile opens at 20″.
 - **`pine-ai-parts.js?v=128`:** the page now asks for the new shared picker by version, so a browser can't keep the old one for its 10-minute cache after an update.
 - **Tested** with BANDANA.pdf as "11113 | BANDANA.pdf" (Pull the art out), as "BANDANA.pdf" (opening picker) and as a PNG of the slide: 3 designs each time, and the third opens alone at 20″.
+
+## 2026-10-30 — v129: upscale / trace on a bandana picked from a PDF slide
+- **Stephen:** "does the upscale and or vectorize not show up on bandanas?"
+- **Cause:** it was the file, not the bandana. A design picked in the opening picker is still a PDF, and every PDF was taken as vector, so the buttons never showed. The message only said "has a picture placed in it".
+- **Now:** a PDF that is a picture gets its real dpi.
+  - The dpi is the picture's pixels ÷ the page's inches (a floor), times the piece's inches on the page, ÷ the print width. BANDANA.pdf piece 3 is ~42 dpi at 20″.
+  - It gets the same "Mockup only" / "Low-res" warning and the upscale / trace buttons as a PNG.
+- **Colour count:** the limit is now checked after edge shades fold in, cached per scan. The paisley scanned 7 with its shades, over the 6 allowed for photo-like art.
+- **Messages:** "Upscaled / traced from ~X dpi" uses that real dpi too. The result counts as a picture (png), so it reads "Vector trace…", not "a PDF with a picture"; undo puts the PDF back.
+- **Tested:** BANDANA.pdf piece 3 through the picker shows both buttons and traces cleanly at 20″. The "Pull the art out" route already showed them.
