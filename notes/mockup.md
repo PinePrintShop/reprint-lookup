@@ -1590,3 +1590,19 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Fix:** on a bandana the discharge is the ink itself, so the discharge preview now covers the whole shape with no choke.
 - Shirts' white, cream and discharge bases are unchanged.
 - **Tested:** rendered The Mill badge on brown before and after.
+
+## 2026-10-30 — v122: every close-up uses the new template; the art department's questions aren't change requests
+- **Stephen:** "our close up proof reverted back to the old layout vs the new one we worked on the other day".
+  - v76 moved only the single-garment close-up page to the art department's 11 × 11″ template.
+  - Bandanas and the per-garment close-ups (a proof with several garments or "Also show on") kept the old layout.
+  - Now every print gets the template page:
+    - logo, imprint ID, Location / Dimensions / Placement, the garment-colour block and APPROVED;
+    - on each garment's own colour;
+    - with a "Garment:" line (e.g. "Brown · Bandana 22″ · Discharge") when the proof has more than one garment;
+    - with "Print: Discharge" when it's discharged.
+  - Garments that would look the same still share a page.
+- **Stephen:** "black hills is attached proof but it still shows up as needing a proof" (11110).
+  - The Art Department asked sales "keep it as DISCHARGE or switch it to BASE?" right after the proof. Any comment with a "?" or a change word after the proof counted as "changes asked".
+  - Now the Art Department's own comments never count, here and in Line Item Review v52.
+  - So 11110 sits under "Proof attached — not sent to Review yet" until it's sent.
+- **Tested:** bandana close-up pages, one and two garments.
