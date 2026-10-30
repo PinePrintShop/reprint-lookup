@@ -1572,3 +1572,14 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
     - vector PDF/AI only when it was changed here.
   - Attach to all lines sends it once. Practice mode only says where it would go.
   - **Tested with mocked Drive:** the upload landed in Seps › working files, the old copy was trashed, and the customer's file was left alone.
+
+## 2026-10-30 — v120: orders with proofs attached stay on the menu until sent to Review
+- **Stephen** (#11113 The Mill Hospitality): "looks like the mill is missing now but it hasn't been clicked for ready to review".
+- **Why it was missing:** since v108, an order left the order menu as soon as every line had a proof attached.
+- **Now:** an order whose proofs are all attached but which has a line not yet sent to Review stays on the menu, in a "Proof attached — not sent to Review yet" group at the bottom.
+- **The hint under the menu** counts:
+  - orders awaiting proof;
+  - orders in this new group;
+  - orders already sent;
+  - archived orders.
+- Once every line is sent to Review, the order leaves the menu.
