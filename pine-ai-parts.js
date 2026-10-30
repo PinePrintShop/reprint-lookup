@@ -9,6 +9,8 @@
      - a big preview of the artboard with those layers
    and resolves to {page, occ, label, crop, spec} (occ: the pdf.js OptionalContentConfig to render with, or null) or to
    null when the person cancels.
+   2026-10-30: also on a normal-size page with two or more separate designs (≥1.5″ each) — a slide of options flattened
+   into one picture; the page's paper colour isn't ink there, and pieces join across ~0.12″ instead of ~0.25″.
    With opt.crop (2026-10-28, Stephen with SKI_TEE_TECKPACK.ai: "let's also explore how to handle files like this"):
      - the preview outlines each separate piece on the artboard (ink with clear space round it) — tap one to open just
        that piece; or drag a box round any part; "Whole artboard" goes back
@@ -62,8 +64,19 @@
   function crop(c,b,pad){ if(!b) return c; const p=pad||0, x=Math.max(0,b.x-p), y=Math.max(0,b.y-p), w=Math.min(c.width-x,b.w+2*p), h=Math.min(c.height-y,b.h+2*p);
     const o=document.createElement('canvas'); o.width=w; o.height=h; o.getContext('2d').drawImage(c,x,y,w,h,0,0,w,h); return o; }
   // the separate pieces on a sheet: ink on a coarse grid, joined across small gaps (gap ≈ 0.25″), largest first
-  function pieces(c,s){ const W=c.width,H=c.height, d=c.getContext('2d').getImageData(0,0,W,H).data, cell=Math.max(2,Math.round(0.12*72*s)), gw=Math.ceil(W/cell), gh=Math.ceil(H/cell), G=new Uint8Array(gw*gh);
-    for(let y=0;y<H;y+=2) for(let x=0;x<W;x+=2) if(d[(y*W+x)*4+3]>24) G[((y/cell)|0)*gw+((x/cell)|0)]=1;
+  // 2026-10-30 (Stephen, BANDANA.pdf — a slide saved from Preview: one flat picture of three bandanas on a light card):
+  // on a flattened page, colours close to its paper colour aren't ink (the slide's light grey card), so the designs come out
+  // as separate pieces
+  function pieces(c,s){ const W=c.width,H=c.height, d=c.getContext('2d').getImageData(0,0,W,H).data;
+    let paper=null; const pc=new Map();
+    { // the paper: when much of the page is solid (a flattened picture, not a vector sheet), its commonest light, grey-ish colour
+      const hist=new Map(); let op=0, tot=0; for(let i=0;i<d.length;i+=32){ tot++; if(d[i+3]<250) continue; op++; const k=((d[i]>>3)<<10)|((d[i+1]>>3)<<5)|(d[i+2]>>3); hist.set(k,(hist.get(k)||0)+1); }
+      if(op>tot*0.4){ let bk=-1,bn=0; hist.forEach((v,k)=>{ if(v>bn){ bn=v; bk=k; } }); const q=[((bk>>10)&31)*8+4,((bk>>5)&31)*8+4,(bk&31)*8+4], L=lab(...q);
+        if(bn>op*0.3&&L[0]>85&&Math.hypot(L[1],L[2])<8) paper=L; } }
+    // a flattened page's designs sit closer together (a slide's panels ~0.23″ apart): join across ~0.12″ there, ~0.25″ on a sheet
+    const cell=Math.max(2,Math.round((paper?0.06:0.12)*72*s)), gw=Math.ceil(W/cell), gh=Math.ceil(H/cell), G=new Uint8Array(gw*gh);
+    const isPaper=i=>{ if(!paper) return false; const k=(d[i]<<16)|(d[i+1]<<8)|d[i+2]; let v=pc.get(k); if(v===undefined){ v=de(lab(d[i],d[i+1],d[i+2]),paper)<10; pc.set(k,v); } return v; };
+    for(let y=0;y<H;y+=2) for(let x=0;x<W;x+=2){ const i=(y*W+x)*4; if(d[i+3]>24&&!isPaper(i)) G[((y/cell)|0)*gw+((x/cell)|0)]=1; }
     const D=new Uint8Array(gw*gh); for(let y=0;y<gh;y++) for(let x=0;x<gw;x++) if(G[y*gw+x]) for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx,yy=y+dy; if(xx>=0&&yy>=0&&xx<gw&&yy<gh) D[yy*gw+xx]=1; }
     const seen=new Uint8Array(gw*gh), out=[];
     for(let i=0;i<gw*gh;i++){ if(!D[i]||seen[i]) continue; let x0=1e9,y0=1e9,x1=-1,y1=-1,n=0; const st=[i]; seen[i]=1;
@@ -119,6 +132,11 @@
   async function choose(doc,opt){
     opt=opt||{}; const n=doc.numPages, L=await layersOf(doc);
     let sheet=false; if(opt.crop&&n<2&&L.list.length<2){ try{ const v=(await doc.getPage(1)).getViewport({scale:1}); sheet=Math.max(v.width,v.height)*PX>26; }catch(e){} }   // one huge artboard = a sheet of pieces
+    // 2026-10-30: a normal-size page with two or more separate designs on it (a presentation slide of options) gets the
+    // picker too — two pieces at least 1.5″ each (Stephen: "the pdf pop up to grab art didn't work with this one")
+    if(opt.crop&&n<2&&L.list.length<2&&!sheet){ try{ const pg=await doc.getPage(1), v=pg.getViewport({scale:1}), s=Math.min(2,900/Math.max(v.width,v.height)), vp=pg.getViewport({scale:s}), c=document.createElement('canvas');
+        c.width=Math.round(vp.width); c.height=Math.round(vp.height); await pg.render({canvasContext:c.getContext('2d'),viewport:vp,background:'rgba(0,0,0,0)'}).promise;
+        sheet=pieces(c,s).filter(b=>b.w/s*PX>=1.5&&b.h/s*PX>=1.5).length>=2; }catch(e){ console.warn('pieces',e); } }
     if(n<2&&L.list.length<2&&!sheet) return {page:1,occ:null,label:'',crop:null,spec:null};
     style();
     const st={page:1,on:Object.fromEntries(L.list.map(l=>[l.id,l.on])),crop:null,pick:-1,spec:null,bg:null,knock:null,auto:null,box:null};

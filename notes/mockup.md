@@ -1675,3 +1675,16 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - So a light font is judged on its shapes and comes out as heavy as the art. Didact Gothic has no bold.
   - On the toucan, Didact Gothic only needed a little (1.5%) and still ranks lower on shape; it can be picked from the list.
 - **Stephen** on v125: "I think the font it suggested turned out great!"
+
+## 2026-10-30 — v127 (+ pine-ai-parts.js): pick one design off a slide PDF
+- **Stephen** (BANDANA.pdf): "the pdf pop up to grab art didn't work with this one".
+- **The file:** saved from Preview, an 11 × 8.5″ page that is one flat picture (3305 × 1584): three bandana designs on a light grey card. It has no layers, so it opened whole.
+- **Why the picker didn't come up:** numbered pieces were only offered on huge sheets (over 26″). Even then, the flat picture was all one piece, because its card isn't see-through.
+- **pine-ai-parts.js** (shared with Sep Maker):
+  - A normal-size page with two or more separate designs, each 1.5″ or more, now gets the picker with numbered pieces.
+  - When much of the page is solid (at least 40% — a flattened picture, not a vector sheet), its most common light grey/white is paper, not ink.
+  - Pieces there join across about 0.12″ instead of 0.25″ (the slide's panels are about 0.23″ apart).
+- **Mockup v127:** a bandana design that comes in under 8″ (drawn small on a slide or mockup) opens at 20″, the usual most, with a note to change it.
+- **Tested:**
+  - BANDANA.pdf: picker with 3 pieces; piece 2 opens alone at 20″.
+  - The layered bandana PDF still gets its layer picker; proofV2.pdf still opens straight away.
