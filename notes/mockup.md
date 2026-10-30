@@ -1660,3 +1660,18 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - 33 of 34 names read right with no typing.
   - Patrick Hand Bold and Gaegu Bold rank first.
   - The names were retyped in place and the .svg re-traced (about 25 s to read and rank).
+
+## 2026-10-30 — v126: Retype fixes — names stay inside the art, compare, movable window, matching line weight
+- **Stephen:** "looks like some names got pushed out of the art border".
+  - **Cause:** when the font is wider than the art's lettering even at its tightest spacing (−5%), the line came out wider. Lines are centred where they were, so names starting at the art's left edge were cut off.
+  - **Fix:** a line that would come out wider now has its size brought down to the original width. Its centre is also kept far enough inside that nothing passes the art's edge.
+  - **Tested** with Short Stack, a very wide font: every left-hand name is inside.
+- **Stephen:** "can we make the little pop up moveable....or at least show the original along with what it found so i can compare". Now:
+  - The window drags by its title.
+  - "Compare whole art" shows the original and the retyped art side by side, and follows the font picked.
+  - Tapping a line's text box previews that line against the fonts.
+- **Stephen:** "didact gothic looked nice". Fonts are now thickened to the art's line weight before they are compared and drawn.
+  - Stroke ÷ height is measured as 2 × ink area ÷ outline length, and an outline is added (up to 20% of the size) until the font matches.
+  - So a light font is judged on its shapes and comes out as heavy as the art. Didact Gothic has no bold.
+  - On the toucan, Didact Gothic only needed a little (1.5%) and still ranks lower on shape; it can be picked from the list.
+- **Stephen** on v125: "I think the font it suggested turned out great!"
