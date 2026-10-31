@@ -1709,3 +1709,20 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Colour count:** the limit is now checked after edge shades fold in, cached per scan. The paisley scanned 7 with its shades, over the 6 allowed for photo-like art.
 - **Messages:** "Upscaled / traced from ~X dpi" uses that real dpi too. The result counts as a picture (png), so it reads "Vector trace…", not "a PDF with a picture"; undo puts the PDF back.
 - **Tested:** BANDANA.pdf piece 3 through the picker shows both buttons and traces cleanly at 20″. The "Pull the art out" route already showed them.
+
+## 2026-10-31 — v130: open EPS files
+- **Stephen:** "Can we also be able to open an eps and select the correct layer or image".
+- **How:** an EPS is PostScript, which a browser can't draw. It's turned into a PDF in the browser with Ghostscript, then opens like any PDF.
+  - **Library:** @okathira/ghostpdl-wasm 1.1.0 from jsdelivr, loaded only the first time an EPS is opened (about 15 MB).
+  - **Ghostscript flags:** `-dSAFER -dEPSCrop -dAutoRotatePages=/None -sDEVICE=pdfwrite`, so it's cropped to the EPS bounding box.
+  - **Name:** the file becomes "<name> (EPS).pdf", so Edit PDF works on it too.
+- **The picker:**
+  - Tap a numbered piece (each separate design or placed picture), drag a box round any part, or tick "Drop the background colour".
+  - Real layers aren't possible: PostScript keeps none. Illustrator's layer data in an EPS isn't readable, so pieces and boxes stand in for them.
+- **Where:** the file chooser, drag-and-drop and Drive tiles all accept .eps now.
+- **Licence:** Ghostscript is AGPL. We load it unchanged from the CDN; it isn't modified or hosted by us.
+- **Tested** with a hand-made EPS (a red circle with type, and a blue square with a placed picture):
+  - converted in the browser;
+  - the picker offered both pieces;
+  - piece 1 opened alone.
+- **Not tested:** a real Illustrator EPS. Stephen to try one.
