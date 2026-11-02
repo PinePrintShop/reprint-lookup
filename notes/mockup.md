@@ -1803,3 +1803,20 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - **What counts:** "Customer Supplied" in the name or brand, style 0000, or a name ending "- Any".
   - **Not caught:** Gildan 5000, Port 10000, "Any Color".
   - Your photo still works for the job, on screen and on the proof.
+
+## 2026-11-02 — v138: type in the garment (customer supplied / not in the system yet)
+- **Stephen:** "can we have it be able to custom the garment and fabric for customer supplied and or products that are not in the system yet".
+- **Where:** Garment › Change › "Type in the garment".
+  - It opens by itself on the Customer Supplied stand-in.
+  - Fields: Brand, Style, Colour + swatch, Fabric content, Kind (tee, long sleeve, tank, youth tee, crew, hoodie, zip hoodie, youth fleece, onesie, other).
+  - "Use this garment" applies it; "Back to the order's garment" undoes it.
+  - The swatch follows the colour name until you pick one.
+- **What it drives:**
+  - the proof page's Garment / style / Colorway / Fabric Content;
+  - the mockup colour;
+  - the stand-in shape and size from the Kind (hoodie: hood and long sleeves);
+  - a style S&S knows still brings its photo.
+  - The "Garment photo not found" label is left off a typed-in garment's front; "**BACK IMAGE UNAVAILABLE" stays on the back.
+- **Kept:** per line on this computer (`pine_mk_customg`) and in the saved setup, so "Pick up where you left off" brings it back on another computer. Airtable is not changed.
+- **Also:** the stand-in shape for hoodies, crews and long-sleeve tees now has long sleeves (it had a tee's).
+- **Tested:** Customer Supplied 0000 - Any → the panel opened by itself → Etwood / H100 Heavyweight Hoodie / Brown #5c4a40 / 100% Cotton, 14 oz French Terry / Hoodie → proof page 1 shows them; brown hoodie stand-in front and back; "Back to the order's garment" restores it.
