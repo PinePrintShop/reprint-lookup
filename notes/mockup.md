@@ -1795,3 +1795,11 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Now:** a garment's close-ups — the single-garment pages and the per-garment ones — all use the darker of its front / back photo colours (`closeHex`). Garments with a photo on one side only use that side's colour. Bandanas still use the bandana colour.
 - **Unchanged:** the mockup itself still shades each side by its own photo.
 - **Tested:** front #5c4a40 with back #8a7a6a; both close-ups fill 92,74,64.
+
+## 2026-11-02 — v137: no "Save photo" on the stand-in garment
+- **Stephen:** "whoops I just saved this to a garment called - Customer Supplied 0000 - Any but that is a stock drop down".
+- **Airtable (asked for):** Garments › Customer Supplied 0000 - Any (rec6v500ytRYFcdan) had only the two photos just saved — "Pine mockup - Customer Supplied 0000 Any - Front.jpg / - Back.jpg". Both were cleared, so its Front / Back are empty again, as before.
+- **App:** Save photo / Replace photo is hidden on stand-in garments, and saving is refused there too.
+  - **What counts:** "Customer Supplied" in the name or brand, style 0000, or a name ending "- Any".
+  - **Not caught:** Gildan 5000, Port 10000, "Any Color".
+  - Your photo still works for the job, on screen and on the proof.
