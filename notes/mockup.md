@@ -1820,3 +1820,9 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Kept:** per line on this computer (`pine_mk_customg`) and in the saved setup, so "Pick up where you left off" brings it back on another computer. Airtable is not changed.
 - **Also:** the stand-in shape for hoodies, crews and long-sleeve tees now has long sleeves (it had a tee's).
 - **Tested:** Customer Supplied 0000 - Any → the panel opened by itself → Etwood / H100 Heavyweight Hoodie / Brown #5c4a40 / 100% Cotton, 14 oz French Terry / Hoodie → proof page 1 shows them; brown hoodie stand-in front and back; "Back to the order's garment" restores it.
+
+## 2026-11-02 — v139: the garment line wraps; no Save photo on a typed-in garment
+- **Stephen** (screenshot after Done: "Elwood Clothing CORE HOODIE · Vintage Brown · M · the back photo is on a 5′10″ person…" squeezed to a letter a line beside "Add a back photo", "Save photo" and "Change").
+- **Layout:** the garment line now wraps. The text keeps at least 220 px, and the buttons go under it when they don't fit beside it.
+- **Save photo:** hidden on a typed-in garment, and refused if pressed. Its record is still the order's — here Customer Supplied — so saving would have put the photo on the shared stand-in again (as in v137).
+- **Tested:** the long line with three buttons at 1400 / 820 / 390 px wide wraps under the text; Save photo is hidden for the typed-in hoodie.
