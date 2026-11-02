@@ -1754,3 +1754,19 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - The close-up page (v76 template) blows the print up to fill its block — up to 6.9 × 6.8″ — to show detail. It is not to scale.
   - Page 1 (the garments) is the true-size view.
 - **Tested** with Stephen's screenshot: front flat-lay 1.24× (kept), back on a person 2.2× (drawn to size); the summary line and button as above.
+
+## 2026-11-02 — v133: size a photo on a person from their height; how body length is measured
+- **Stephen:** "I don't have a flat photo...so can we figure out what a true to size print would be on this photo since it is all I have". The vendor: "Male model is 5'10 and is wearing a size Medium"; M = Length 26 1/2″ × Chest 52 1/2″.
+- **New box:** when a side's photo is on a person, the garment line shows "Height of the person in the back photo".
+  - It takes 5'10", 5 10, 70 or 178cm.
+  - Head to shoes in the photo = that height, so the real photo is used at true size.
+  - The yellow collar line starts 15% of the height down from the top of the head; drag it onto the collar / hood seam. It's kept separately from flat-photo collar lines.
+  - The height is kept on this computer per style + colour + side (`pine_person`).
+  - Leave the box empty to go back to the drawn-to-size shape (v132).
+- **Stephen:** "can we also see how the 29 is being measured? meaning from the collar to the bottom seam or ... the sleeve?"
+  - **Body length** is spec-sheet length: from the high point of the shoulder (where the shoulder seam meets the collar) straight down to the bottom hem. It is not the sleeve and not the hood.
+  - A flat photo's garment height = body length + what rises above the shoulder (4.5″ of hood on a hoodie, 0.5″ of collar otherwise).
+  - **Why 29:** no S&S spec sheet, and the type wasn't a hoodie, so the typical 29″ was used and no hood.
+  - **Fix for that job:** in Change, set the type to Pullover Hoodie and Body length 26.5 (the vendor's M).
+  - The box now reads "Body length (in) · shoulder to hem", with the full explanation on hover.
+- **Tested** with Stephen's screenshot as the photos: the height box shows for the back; 5'10" → "the back photo is on a 5′10″ person — sized from their height", and the 12.5″ print sits in proportion on the hoodie.
