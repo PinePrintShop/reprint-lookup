@@ -1740,3 +1740,17 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Saved and undone:** the angle is saved with the setup. Upscale / trace / Retype bake the turn in (the angle goes back to 0), and their undo restores it.
 - **Not for** a print made of several files ("+ Add file"), same as Crop.
 - **Tested:** the toucan on a black tee: ↻ 90°, then −12°, then Straight, with the sizes as above and 12″ back at the end.
+
+## 2026-11-02 — v132: a vendor photo of a person doesn't set the size
+- **Stephen** (a hoodie whose vendor back photo is a person wearing it): "how do we handle dimensions when the only visual is from the site and it has a body in it".
+- **Cause:** the scale comes from the garment's height in the photo, taken as the spec length plus above the HPS. On that photo the "garment" was the whole person, head to shoes, so the inches were far too big and the 12.5″ back print covered the back and the pants.
+- **Now:**
+  - A photo whose garment outline is more than 1.65× taller than wide is "on a person". A flat-laid hoodie or tee is about 1.2×; the person was 2.2×.
+  - That side is drawn to size as the plain hoodie / tee shape in the garment colour, with "**BACK IMAGE UNAVAILABLE" on the proof as before.
+  - The garment line says "the back photo is on a person, so it's drawn to size — add a flat photo", and its button is "Add a back photo".
+  - Adding your own photo for one side now keeps the vendor's photo for the other side. Before, it dropped it.
+- **Not touched:** caps, totes and other accessories, which are sized across, not by height.
+- **Stephen also asked how close the front close-up is:**
+  - The close-up page (v76 template) blows the print up to fill its block — up to 6.9 × 6.8″ — to show detail. It is not to scale.
+  - Page 1 (the garments) is the true-size view.
+- **Tested** with Stephen's screenshot: front flat-lay 1.24× (kept), back on a person 2.2× (drawn to size); the summary line and button as above.
