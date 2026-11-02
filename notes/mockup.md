@@ -1779,3 +1779,12 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - The hint and a toast say "it's on a person, so type their height in the box (like 5'10")".
   - The cursor goes to the box.
 - **Tested:** the back of Stephen's screenshot added as your own back photo, with Change open → height box shown and focused → typed 5'10" → "the back photo is on a 5′10″ person — sized from their height".
+
+## 2026-11-02 — v135: centring on a photo of a person
+- **Stephen:** "Closer....but it doesn't let me center it and I don't want to use the tool because it will be true center but If I use the tool it will say it is moved over".
+- **Cause:** on a person photo, the garment's middle was the middle of the whole person, and arms, hands and pants pull it off. A true-centre print sat off the hoodie's middle, and fixing it with Off center would have printed "moved over" on the proof.
+- **Now, automatic:** the middle comes from the shoulders-to-chest rows, 12–30% down the person: the median of each row's left/right midpoint, where the garment is widest and symmetric. On the test photo it moved 14 px (of 520) from the figure's middle.
+- **Now, by hand:** the yellow collar line on a person photo drags sideways as well as up and down (move cursor). That sets the garment's middle (`NECKX`, a share of the person's height, at most ±15%).
+- **The print's own Off center stays 0**, so the proof still says true center.
+- The height box hint says so.
+- **Tested:** the back of Stephen's earlier screenshot as your own photo at 5'10"; a 12.5″ print centred on the hoodie, and a 30 px sideways drag of the collar line stored the nudge.
