@@ -1726,3 +1726,17 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - the picker offered both pieces;
   - piece 1 opened alone.
 - **Not tested:** a real Illustrator EPS. Stephen to try one.
+
+## 2026-11-02 — v131: Rotate
+- **Stephen:** "in the mockup creator can I be able to rotate an image".
+- **The control:** "Rotate" sits next to Crop and opens a row with:
+  - ↺ 90° and ↻ 90° (art that came in sideways);
+  - an Angle box for any angle (a tilted print) — plus turns right, minus left;
+  - Straight, to put it back.
+  - The button shows the angle ("Rotate · −12°").
+- **How:** the turn is the last step of building the art, after the background drop and crop, which keep working in the file's own pixels; then the art is trimmed again.
+  - So the mockup, proof, print art, upscale, trace and Retype all follow it.
+  - The print keeps its scale: a 12 × 13.9″ toucan turned 90° is 13.9 × 12″, and −12° is 13.1 × 13.5″.
+- **Saved and undone:** the angle is saved with the setup. Upscale / trace / Retype bake the turn in (the angle goes back to 0), and their undo restores it.
+- **Not for** a print made of several files ("+ Add file"), same as Crop.
+- **Tested:** the toucan on a black tee: ↻ 90°, then −12°, then Straight, with the sizes as above and 12″ back at the end.
