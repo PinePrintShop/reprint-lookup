@@ -1770,3 +1770,12 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
   - **Fix for that job:** in Change, set the type to Pullover Hoodie and Body length 26.5 (the vendor's M).
   - The box now reads "Body length (in) · shoulder to hem", with the full explanation on hover.
 - **Tested** with Stephen's screenshot as the photos: the height box shows for the back; 5'10" → "the back photo is on a 5′10″ person — sized from their height", and the 12.5″ print sits in proportion on the hoodie.
+
+## 2026-11-02 — v134: adding your own photo of a person works
+- **Stephen:** "the back image with the person is not uploading....I might just need to wait for a minute but I am on the new version".
+- **Cause:** it was uploading, but a photo on a person waits for their height (v132/v133). The height box was hidden while Change was open — which is where your own photo is added — and the hint just said "Back photo in". So nothing seemed to happen.
+- **Now:**
+  - The height box shows with Change open.
+  - The hint and a toast say "it's on a person, so type their height in the box (like 5'10")".
+  - The cursor goes to the box.
+- **Tested:** the back of Stephen's screenshot added as your own back photo, with Change open → height box shown and focused → typed 5'10" → "the back photo is on a 5′10″ person — sized from their height".
