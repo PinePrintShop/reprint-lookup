@@ -1861,3 +1861,13 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Now:** it sits in step 2 · Art, right under Ink opacity, with the other "how the print looks" settings. It's no longer in the Change panel.
 - Same setting and behaviour as before.
 - **Tested:** CC 1717 Bay with a print — the row shows under Ink opacity, and Strong switches on and redraws.
+
+## 2026-11-02 — v142: crop the garment photo
+- **Stephen:** "can we also get a feature where we can crop the actual photo as well...that way if it is a person wearing it we can just crop to mostly just show the hoodie".
+- **Where:**
+  - Change › your-photo area › "Crop the photo · Front / Back" (shown for any side with a photo — vendor or yours).
+  - "Crop the photo" next to the person's-height box when a side is on a person.
+  - It uses the same drag-a-box window as the art Crop; "No crop" shows the whole photo again.
+- **How:** only what shows changes. The size, the garment's middle and the collar line are still measured on the whole photo, so a cropped model photo stays true to size and the print keeps its size against the garment.
+- **Saved:** per style + colour + side on this computer (`pine_mk_pcrop`). The button shows ✓ when a crop is set.
+- **Tested:** Stephen's model photo at 5'10" with a 12.5″ back print, cropped round the hoodie in the window: the view zooms to the hoodie and the print keeps its proportion; the crop is stored and the ✓ shows.
