@@ -1788,3 +1788,10 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **The print's own Off center stays 0**, so the proof still says true center.
 - The height box hint says so.
 - **Tested:** the back of Stephen's earlier screenshot as your own photo at 5'10"; a 12.5″ print centred on the hoodie, and a 30 px sideways drag of the collar line stored the nudge.
+
+## 2026-11-02 — v136: a garment's close-ups share one colour (the darker)
+- **Stephen** (11122-A front vs 11122-B back): "since the lighting for the back is slightly different the close up change...but I think keeping it uniform is better...so it should match the darker one".
+- **Cause:** each close-up page took its own side's photo colour, and a brighter-lit back photo made a lighter back close-up.
+- **Now:** a garment's close-ups — the single-garment pages and the per-garment ones — all use the darker of its front / back photo colours (`closeHex`). Garments with a photo on one side only use that side's colour. Bandanas still use the bandana colour.
+- **Unchanged:** the mockup itself still shades each side by its own photo.
+- **Tested:** front #5c4a40 with back #8a7a6a; both close-ups fill 92,74,64.
