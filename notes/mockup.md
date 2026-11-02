@@ -1854,3 +1854,10 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Tested live** (the worker, real SanMar / S&S):
   - 1717 Bay, 1467 Black and 18500 Sport Grey come up as SanMar flats in 2.7–4.8 s; Bella 3001 Black comes from S&S.
   - The collar line lands on the 1717's rib and the 18500's hood V.
+
+## 2026-11-02 — v141: Fabric look moved to the Art step
+- **Stephen:** "did we lose the fabric adjustments for how a print looks like on a shirt..>I can't seem to find it right now".
+- **Cause:** not lost. "Fabric look on the print" (Off / Light / Medium / Strong) was inside the garment's Change panel, which has been folded into one line since v53.
+- **Now:** it sits in step 2 · Art, right under Ink opacity, with the other "how the print looks" settings. It's no longer in the Change panel.
+- Same setting and behaviour as before.
+- **Tested:** CC 1717 Bay with a print — the row shows under Ink opacity, and Strong switches on and redraws.
