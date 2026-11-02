@@ -1826,3 +1826,31 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **Layout:** the garment line now wraps. The text keeps at least 220 px, and the buttons go under it when they don't fit beside it.
 - **Save photo:** hidden on a typed-in garment, and refused if pressed. Its record is still the order's — here Customer Supplied — so saving would have put the photo on the shared stand-in again (as in v137).
 - **Tested:** the long line with three buttons at 1400 / 820 / 390 px wide wraps under the text; Save photo is hidden for the typed-in hoodie.
+
+## 2026-11-02 — v140: flat lays first, ghost shots as the fall-back
+- **Stephen:** "can you check Sanmar and S&S and see if comfort colors has flat shots now?" → "can we have it scan for flats first. and the fall back is 'ghost'".
+- **What we found:**
+  - **S&S:** the Comfort Colors product photos are ghost-mannequin shots (1717 all 68 colours, 1566 20 of 21, 1467 all 11, 6014 all 51; on-model shots separately).
+  - **SanMar:** true flat lays front and back for all of them (1717 81 colours, 1566 19, 1467 10, 6014 46 fronts / 50 backs), dated 2018–2025. Mockup Maker was taking S&S first.
+- **Now:**
+  - For every brand but AS Colour, SanMar and S&S are asked at the same time.
+  - The order is: a SanMar flat (`frontFlat`), else the S&S ghost shot, else SanMar's model / product photo.
+  - SanMar's brand must match the garment's: a shared style number can't bring another brand. Bella 3001 is BC3001 at SanMar, so it still comes from S&S.
+- **Collar on a flat:** the `COLLAR` scan was made on S&S ghost shots, so a flat uses its own readings (`SAN_COLLAR`, share of the body width from the top of the photo), read on ruled close-ups:
+
+  | Style | Front | Back |
+  |---|---|---|
+  | CC 1717 | 0.225 | 0.055 |
+  | 1566 | 0.235 | 0.065 |
+  | 6014 | 0.21 | 0.055 |
+  | 1467 (hood V / hood bottom) | 0.60 | 0.47 |
+  | Gildan 5000 | 0.245 | 0.07 |
+  | 18000 | 0.29 | — |
+  | 18500 | 0.63 | 0.52 |
+  | PC54 | 0.265 | — |
+
+  Other styles' flats use defaults: front tee 0.25 / crew 0.27 / hoodie 0.61 / tank 0.33; back 0.06 / 0.065 / 0.5. The line still drags, and is remembered.
+- **Scale on a hoodie flat:** the hood stands up, about 31% of the body length above the shoulder (read on 1467 and 18500), instead of the 4.5″ used for ghost shots. Without this, prints on hoodie flats would draw about 15% too big.
+- **Tested live** (the worker, real SanMar / S&S):
+  - 1717 Bay, 1467 Black and 18500 Sport Grey come up as SanMar flats in 2.7–4.8 s; Bella 3001 Black comes from S&S.
+  - The collar line lands on the 1717's rib and the 18500's hood V.
