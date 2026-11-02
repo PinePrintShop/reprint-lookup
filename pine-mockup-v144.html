@@ -1309,8 +1309,11 @@ input[type=range]{accent-color:var(--p-black)}
 @media (hover:hover) and (pointer:fine){ .mk-pm{display:none} }
 /* ===== v98: laptop — room for the ink and garment colour panels ===== */
 .mk-rcsegs{display:flex;flex-direction:column;gap:8px}
-.mk-rcfoot{display:flex;justify-content:flex-end;position:sticky;bottom:0;background:var(--p-white);padding:8px 0 2px;margin-bottom:-2px;box-shadow:0 -8px 8px -8px rgba(20,20,18,.25)}
-.mk-rcfoot .p-btn{min-height:44px;padding:0 28px}
+/* v144 (Stephen: "clean up that floating done banner"): Done is in the panel's title bar instead of a bar that floated over
+   Remove / Erase; on a phone the title bar stays at the top of the sheet as it scrolls */
+.mk-rchead{align-items:center;gap:8px}
+.mk-pop .mk-rchead .p-btn{min-height:40px;padding:0 24px;flex:0 0 auto}
+@media (max-width:600px){ .mk-rchead{position:sticky;top:-12px;z-index:2;background:var(--p-white);margin:-12px -12px 0;padding:12px 12px 8px;box-shadow:0 8px 8px -8px rgba(20,20,18,.2)} }
 body.mk-rcopen #attachBtn.p-btn-main{background:var(--p-white)}   /* one yellow button: Done, while the ink panel is open */
 @media (min-width:901px){
   .mk{grid-template-columns:clamp(380px,32vw,470px) minmax(0,1fr)}
@@ -1559,7 +1562,7 @@ body.mk-rcopen #attachBtn.p-btn-main{background:var(--p-white)}   /* one yellow 
 
     <!-- v53: "Change this ink" — a popover by the swatch tapped (a bottom sheet on a phone) -->
     <div class="mk-rc mk-pop" id="rcBox" hidden role="dialog" aria-labelledby="rcTitle">
-      <div class="mk-row" style="align-items:center;gap:8px"><span class="mk-lbl" id="rcTitle" style="flex:1">Change this ink to</span><button class="p-modal-x" id="rcClose" type="button" aria-label="Close">✕</button></div>
+      <div class="mk-row mk-rchead"><span class="mk-lbl" id="rcTitle" style="flex:1">Change this ink to</span><button class="p-btn p-btn-main" id="rcDone" type="button">Done</button></div>
       <div class="mk-cmp" id="cmpBox" hidden><canvas id="scanCv"></canvas><span class="mk-cmpl" id="cmpL">Original</span><span class="mk-cmpr" id="cmpR">Changed</span></div>
       <input type="range" class="mk-cmprange" id="cmpPos" min="0" max="100" value="50" hidden aria-label="Slide between the original and the change">
       <div class="mk-rcsegs"><div class="mk-seg" id="rcMode"><button type="button" data-m="recolour" class="is-on">Recolour the art</button><button type="button" data-m="rename">Just rename it</button></div>
@@ -1571,7 +1574,6 @@ body.mk-rcopen #attachBtn.p-btn-main{background:var(--p-white)}   /* one yellow 
       <div class="mk-row mk-shade" id="rcFxRow" hidden><span class="mk-lbl" title="How this ink looks on the mockup">Effect</span><div class="mk-seg" id="rcFx" role="group" aria-label="Effect"><button type="button" data-f="none">None</button><button type="button" data-f="metallic">Metallic</button><button type="button" data-f="glitter">Glitter</button><button type="button" data-f="puff">Puff</button></div><span class="mk-hint" id="rcFxHint"></span></div>
       <label class="mk-rcmerge"><span class="mk-lbl">Merge into</span><select class="p-select" id="rcMerge"></select></label>
       <div class="mk-rcbtns"><button class="p-btn" id="rcRemove" type="button" title="Leave the art as it is; don't count it as an ink">Remove from the list</button><button class="p-btn" id="rcErase" type="button" title="Take this colour out of the art">Erase from the art</button><button class="p-btn" id="rcReset" type="button">Back to the original</button><button class="p-btn" id="rcResetAll" type="button">Reset all inks</button></div>
-      <div class="mk-rcfoot"><button class="p-btn p-btn-main" id="rcDone" type="button">Done</button></div>
     </div>
   </aside>
 
@@ -6404,7 +6406,7 @@ function rcWide(on){ const b=document.body; b.classList.toggle('mk-rcopen',on); 
 try{ new MutationObserver(()=>{ if($('rcBox').hidden) rcWide(false); }).observe($('rcBox'),{attributes:true,attributeFilter:['hidden']}); }catch(e){}
 $('rcDone').onclick=()=>closeRc();
 function closeRc(){ const im=curImp(), a=im&&ART[im.id]; SCAN_SEL=RC.j=-1; $('rcBox').hidden=true; if(a&&a.scan) syncScan(a); }
-$('rcClose').onclick=closeRc;
+
 document.addEventListener('pointerdown',e=>{ if($('rcBox').hidden||document.querySelector('dialog[open]')) return; if(e.target.closest&&e.target.closest('#rcBox,#scanSw button')) return; closeRc(); },true);
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('rcBox').hidden&&!document.querySelector('dialog[open]')){ e.preventDefault(); closeRc(); } });
 $('gChange').onclick=()=>{ S.gOpen=!S.gOpen; syncGSum(); };
