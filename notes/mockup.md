@@ -1871,3 +1871,21 @@ Stephen: "can we explore putting in an upscaling tool for low res files to 300dp
 - **How:** only what shows changes. The size, the garment's middle and the collar line are still measured on the whole photo, so a cropped model photo stays true to size and the print keeps its size against the garment.
 - **Saved:** per style + colour + side on this computer (`pine_mk_pcrop`). The button shows ✓ when a crop is set.
 - **Tested:** Stephen's model photo at 5'10" with a 12.5″ back print, cropped round the hoodie in the window: the view zooms to the hoodie and the print keeps its proportion; the crop is stored and the ✓ shows.
+
+## 2026-11-02 — v143
+Stephen: "Also let's build the embroidery into the mock creator" (after the sew-out study).
+
+- **Embroidery drawn as stitches**, built from our digitizer's sew-outs (`<order>A-<NAME>_final.jpg` in the digitizing folders: CULT, MOOTS, LUCID, FRISCO). Each thread colour is its own object. Narrow columns are **satin**: the stitches run across the column, with a rounded top and a shine that changes with the stitch direction. Wide areas are **tatami fill**: rows 0.4 mm apart, 3 mm stitches, brick offset. The edges dip into the fabric with small teeth, and two soft shadows sit under it (0.5 mm / 45% and 1.6 mm / 25%). This replaces the old diagonal sheen filter. Fabric look still applies on top, at the lower strength for thread.
+- **Art step › Stitches:** Auto / Satin / Fill + satin edge, per imprint, saved with the setup.
+  - **Auto:** satin up to ~11 mm wide, fill above. This matches MOOTS, which was all satin.
+  - **Satin:** everything satin.
+  - **Fill:** tatami with a 1.1 mm satin border, and only fine strokes stay satin. This is how CULT was stitched.
+- **Fine lettering stays sharp:** columns under ~1.5 mm keep crisp edges, with less dip and no teeth. The outline is cut a touch wide, so 1/8″ text stays solid.
+- **Wide shapes stay clean:** a corner of a wide shape takes the width of its widest column of the same thread within 1.5 mm, so it doesn't turn into streaks of satin.
+- **Stitch pictures aren't stitched twice:** if the art is already a stitch picture (the digitizer's render), it is shown as it is, and the Stitches row says so. The test is mostly textured thread: it caught all four digitizer renders and no flat art.
+- **Speed:**
+  - Worked out at about 250 ppi of the stitched size. Low-res art is enlarged, and the work is capped at 2.2 MP, about 0.3–1.2 s.
+  - The result is cached per art, size and style.
+  - On the live mockup and Colourways, a size change shows the last result and catches up 0.2 s after you stop.
+  - Proofs and downloads wait for the real one.
+- Tested in Chromium on flat versions of the four sew-out designs against the real photos, on a 1/8″ small-text sample, and in the app: Stitches row, Fill saved, and the digitizer render skipped.
