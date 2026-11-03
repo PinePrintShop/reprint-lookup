@@ -2090,3 +2090,16 @@ Stephen: "looks like the line goes down the sleeve vs just to the bottom hem".
 - Tested on the Elwood PDF:
   - the line ends on the hem rib on both sides;
   - sizes front 27.0 → 24.4 and back 29.9 → 27.0 px/in (no width set).
+
+## 2026-11-03 — v158
+Stephen: "the back should start closer to where I have the collar distance one that is usually how they size from that top seam part on the collar on one of the edges".
+
+- **The back is sized from its collar line** once that line has been dragged by hand.
+  - On spec sheets, body length runs from the high point of the shoulder (where the shoulder seam meets the collar) to the hem. From the back, that's about ¾″ above the back collar seam.
+  - So: hem (at the middle) − collar line = body length − ¾″.
+  - The back's height line then starts there, and whatever is above it is shown as hood.
+  - Until the collar line is set, the back still matches the front's width (v150), because the default collar spot on a hoodie back can be the hood's point.
+  - A hem width that fits the photo still comes first. With Widen on, the widen scale uses the collar sizing too.
+- **Tested on the Elwood PDF** with the back collar line set on the hood seam:
+  - the back's body-length line starts just above the collar line, with +3.8″ hood above it;
+  - the back draws ~11% bigger than when matched to the front (28.3 → 25.2 px/in).
