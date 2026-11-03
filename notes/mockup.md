@@ -2282,3 +2282,21 @@ Stephen (screenshot of 11131-D, Patch): "should it be trying to open the main cu
 - **Cause:** 11131's Embroidery folder holds imprint folders "11131-A" and "11131-B" (made 18:59). Drive's search for the order number finds those too, and the app took the first result. So "This order" opened the empty 11131-B. Proofs, setups and print art would also have been saved there. The proofs attached earlier today went in before those folders existed, so they're in the right place.
 - **Fix:** `orderFolder()` picks the order's own folder ("11131 - Lydia Cruz Illustration"; any "NUM - …" name) first. Then any name that isn't an imprint letter. An imprint-letter folder ("11131-B") is used only when it's the only match. Opening, saving and Find the art all go through it.
 - **Tested** with the folders returned in different orders: it always picks the order folder.
+
+## 2026-11-03 — v176
+
+Stephen, 11131-B (an embroidered dog on a Burgundy corduroy BA703 cap; the customer wrote "Ebony and Bone White (I would like the negative space in the png to be filled in with the bone white)"): "thoughts on how we could handle something like that in the mockup creator?", then "also need to create logic to help this image wrap around curved surfaces if this is all the stock photos have".
+
+- **Fill the open space inside the outline** (a new checkbox under "Art has a solid background — drop it"):
+  - The see-through or dropped space inside the drawing's outline becomes solid white. The outside stays clear.
+  - Gaps in a sketchy outline are sealed, the same way as transfers (0.9% of the art's size).
+  - White then appears in the colours, and you tap it to recolour it to the thread or ink asked for (Bone White).
+  - It's kept in the setup and comes back on pick-up.
+  - Tested on a transparent ellipse with a gap: inside filled, outside clear, the dark patch untouched, and colours read White + Black.
+- **Curve round the crown** (cap or beanie photo):
+  - Wrap / Turn / Arc sliders under the placement, plus Flat.
+  - The art is laid on a cylinder. **Wrap** sets how far round it goes; it starts from the print's width on a ~3.2″-radius crown (3.5″ for a beanie), so a 4″ cap print starts at 50. The sides squeeze in and shade a little.
+  - **Turn** is for a 3/4 photo, so one side squeezes more. **Arc** makes the ends rise (+) or drop (−); a cap starts at 10.
+  - Only the mockup on the photo curves. The proof's close-up and the setup file stay flat.
+  - Kept in the setup.
+  - Tested on the real S&S BA703 Burgundy photo through the worker: flat, default and turned −25 all look right.
