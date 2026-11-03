@@ -5126,6 +5126,17 @@ const FINE_ACC='This is a mock-up. Color may not appear exactly as it does here.
 const FINE_BANDANA='This is a mock-up. Fabric and ink color may vary slightly from what you see here. Although we do our best to match proofs exactly, some variation can occur from a computer screen to a printed bandana. Our bandanas are not 100% perfectly square 100% of the time. Therefore, the distance between the print and the edge of the fabric can vary from one bandana to the next. By approving this proof, you are acknowledging and accepting that these slight variations may be present on your finished product.';
 let LOGO=null; (()=>{ const im=new Image(); im.onload=()=>{ LOGO=im; if(S.view==='proof') render(); }; im.src='assets/pine-script.svg'; })();
 function drawLogoBox(x,X,Y,S0){ x.fillStyle='#231f20'; x.fillRect(X,Y,S0,S0); if(LOGO){ const w=S0*0.72,h=w*134.5/165.6; const c=document.createElement('canvas'); c.width=Math.round(w); c.height=Math.round(h); const cx=c.getContext('2d'); cx.drawImage(LOGO,0,0,c.width,c.height); cx.globalCompositeOperation='source-in'; cx.fillStyle='#fff'; cx.fillRect(0,0,c.width,c.height); x.drawImage(c,X+(S0-w)/2,Y+(S0-h)/2); } }
+// v144: the semi-opaque swatches, as the art department does them (11048): the Pine logo printed dull on the bandana's own
+// colour (SEMI-OPAQUE) beside the same logo bright on black (FULLY-OPAQUE), each labelled in the proof's blue
+function drawSemiSwatches(x,im,X,Y,sq){ const u=DPP, gap=0.16*u;
+  const chs=inkChips(im,J.line).filter(c=>c.t!=='BASE'&&c.hex), lum=h=>{ const r=hexRgb(h); return 0.299*r[0]+0.587*r[1]+0.114*r[2]; };
+  const ink=chs.length?chs.slice().sort((a,b)=>lum(b.hex)-lum(a.hex))[0].hex:'#ffffff', fab=garmentHex(J.line)||'#1c3f94';
+  const logo=(bg,alpha,X0)=>{ x.fillStyle=bg; x.fillRect(X0,Y,sq,sq); if(!LOGO) return; const w=sq*0.74, h=w*134.5/165.6, c=document.createElement('canvas'); c.width=Math.round(w); c.height=Math.round(h);
+    const cx=c.getContext('2d'); cx.drawImage(LOGO,0,0,c.width,c.height); cx.globalCompositeOperation='source-in'; cx.fillStyle=ink; cx.fillRect(0,0,c.width,c.height);
+    x.save(); x.globalAlpha=alpha; x.drawImage(c,X0+(sq-w)/2,Y+(sq-h)/2,w,h); x.restore(); };
+  logo(fab,0.6,X); logo('#231f20',1,X+sq+gap);
+  let fs=0.1*u; x.font=`700 ${Math.round(fs)}px ${FONT}`; const tw=x.measureText('FULLY-OPAQUE').width; if(tw>sq+gap*0.8){ fs*=(sq+gap*0.8)/tw; x.font=`700 ${Math.round(fs)}px ${FONT}`; }
+  x.fillStyle='#1a9ad6'; x.fillText('SEMI-OPAQUE',X,Y+sq+fs+0.05*u); x.fillText('FULLY-OPAQUE',X+sq+gap,Y+sq+fs+0.05*u); x.fillStyle='#231f20'; }
 // the sign-off box: APPROVED with even room around it, then the white box to initial (Stephen: "can we space this out better")
 function drawApproved(x,X,Y,w,h){ const pad=h*0.4, ins=Math.max(3,h*0.12), gap=h*0.36; let fs=Math.round(h*0.44);
   x.font=`700 ${fs}px ${FONT}`; let tw=x.measureText('APPROVED').width; const room=w*0.6-2*pad;
@@ -5174,7 +5185,7 @@ const NOTES=[
   {k:'thin',t:'ANY THIN LINE DETAILS <1 POINT MAY NOT PRINT',l:'Thin lines under 1 pt'},
   {k:'texture',t:'PLEASE NOTE: FINE TEXTURES MAY NOT PRINT',l:'Fine textures'},
   {k:'upscaled',t:'PLEASE NOTE: ARTWORK HAS BEEN UPSCALED TO 300DPI. UPSCALED ARTWORK MAY HAVE SLIGHT DISCREPANCIES FROM ORIGINAL FILES.',l:'Upscaled to 300 dpi'},
-  {k:'semi',t:'EXPECT SEMI OPAQUE PRINT',l:'Expect semi-opaque print (with the scale)'},
+  {k:'semi',t:'EXPECT SEMI OPAQUE PRINT',l:'Expect semi-opaque print (+ swatches on a bandana)'},
   {k:'coverage',t:'NOTE: DUE TO LARGE INK COVERAGE SMALL FLAWS & THREADS MAY BE PRESENT IN FINAL PRODUCT.',l:'Large ink coverage'},
   {k:'reg',t:'PLEASE NOTE: SIZE OF REGISTRATION MARKS HAS BEEN INCREASED TO ENSURE PRINTABILITY.',l:'Registration marks enlarged'},
   {k:'modified',t:'PLEASE NOTE: ARTWORK MODIFIED TO ENSURE PRINTABILITY',l:'Artwork modified for printability'},
@@ -5200,7 +5211,7 @@ function suggestNotes(im){ const out=[], a=ART[im.id], q=a&&artQ(a), me=methOf(i
 function syncNotes(){ const im=curImp(), sel=$('noteSel'), box=$('noteChips'); $('noteRow').hidden=!im||!ART[im.id]; if(!im) return;
   const have=notesOf(im), sug=suggestNotes(im), opt=n=>`<option value="${n.k}">${esc(n.l)}</option>`, left=NOTES.filter(n=>!have.some(h=>h.k===n.k));
   sel.innerHTML=`<option value="">+ Add a note to the proof…</option>${sug.length?`<optgroup label="Suggested for this print">${left.filter(n=>sug.includes(n.k)).map(opt).join('')}</optgroup>`:''}<optgroup label="${sug.length?'All notes':'Notes'}">${left.filter(n=>!sug.includes(n.k)).map(opt).join('')}<option value="own">Your own note…</option></optgroup>`;
-  box.innerHTML=have.map((n,i)=>`<div class="mk-note"><span>${esc(noteText(im,n))}${n.k==='semi'?' <span class="mk-hint" style="text-transform:none">(+ opacity scale)</span>':''}</span><button type="button" data-i="${i}" aria-label="Remove this note">✕</button></div>`).join('');
+  box.innerHTML=have.map((n,i)=>`<div class="mk-note"><span>${esc(noteText(im,n))}${n.k==='semi'&&isBandana()?' <span class="mk-hint" style="text-transform:none">(+ semi / fully opaque swatches)</span>':''}</span><button type="button" data-i="${i}" aria-label="Remove this note">✕</button></div>`).join('');
   box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{ (DISC[im.id]=notesOf(im).slice()).splice(+b.dataset.i,1); syncNotes(); render(); }); }
 // v88: the Visual center note with the move in inches, from where the print is now (+ = wearer's left)
 function noteText(im,n){ if(n.k!=='visual') return n.t; const dx=(placeOf(im,J.line)||{}).dx||0; if(Math.abs(dx)<0.01) return n.t;
@@ -5209,17 +5220,15 @@ function noteText(im,n){ if(n.k!=='visual') return n.t; const dx=(placeOf(im,J.l
 const wearerSide=(im,dx)=>(sideOf(im)==='back'?dx<0:dx>0)?'left':'right';
 function dropVisNote(im){ if(notesOf(im).some(n=>n.k==='visual')){ DISC[im.id]=notesOf(im).filter(n=>n.k!=='visual'); syncNotes(); } }   // v87: back on true center
 function addNote(im,n){ if(!n||!n.t) return; const list=DISC[im.id]=notesOf(im).slice(); if(!list.some(h=>h.k===n.k&&h.t===n.t)) list.push({k:n.k,t:n.t}); syncNotes(); render(); }
-// on the proof: the imprint's notes, wrapped to the block's width, in the proof's blue; the semi-opaque scale as on 11084
+// on the proof: the imprint's notes, wrapped to the block's width, in the proof's blue
+// v144 (Stephen: "we usually just show a pine swatch with the more dull print vs a bright print"): no more drawn
+// SEMI-OPAQUE → FULLY-OPAQUE bar; page 1 of a bandana shows the two Pine swatches (as on 11048), the note is just its line
 // v97: o = {fs (px), wt}: the embroidery page 1 draws its notes bigger, as the template. Embroidery notes are pink (NOTE_EMB)
 function drawNotes(x,im,X,Y,Wd,maxY,o){ const u=DPP, ns=notesOf(im); if(!ns.length) return Y; let y=Y;
   const NC=isEmb(im)?NOTE_EMB:'#1a9ad6', wt=(o&&o.wt)||700;
   const fs=(o&&o.fs)||Math.max(9,Math.round(0.085*u)), lh=fs*1.3; x.font=`${wt} ${fs}px ${FONT}`;
   for(const n of ns){
-    if(n.k==='semi'){ const bw=Math.min(Wd,2.4*u), bh=0.07*u, ty=y+fs; if(maxY&&ty+bh+lh>maxY) break;
-      x.fillStyle='#231f20'; x.font=`700 ${Math.round(fs*0.85)}px ${FONT}`; x.fillText('SEMI-OPAQUE',X,ty); const fw=x.measureText('FULLY-OPAQUE').width; x.fillText('FULLY-OPAQUE',X+bw-fw,ty);
-      const g=x.createLinearGradient(X,0,X+bw,0); g.addColorStop(0,'rgba(35,31,32,.15)'); g.addColorStop(1,'rgba(35,31,32,1)'); x.fillStyle=g; x.fillRect(X,ty+4,bw,bh);
-      const mx=X+bw*0.3; x.fillStyle=NC; x.beginPath(); x.moveTo(mx,ty+4+bh+1); x.lineTo(mx-5,ty+4+bh+9); x.lineTo(mx+5,ty+4+bh+9); x.closePath(); x.fill();
-      y=ty+bh+14; x.font=`${wt} ${fs}px ${FONT}`; }
+    if(n.k==='semi'&&o&&o.noSemi) continue;   // v144: page 1 of a bandana shows the swatches instead
     const words=String(noteText(im,n)).toUpperCase().split(/\s+/), lines=[]; let ln='';
     for(const w of words){ const t=ln?ln+' '+w:w; if(x.measureText(t).width>Wd&&ln){ lines.push(ln); ln=w; } else ln=t; } if(ln) lines.push(ln);
     x.fillStyle=NC; for(const t of lines){ if(maxY&&y+lh>maxY) return y; x.fillText(t,X,y+fs); y+=lh; } y+=lh*0.35; }
@@ -5236,13 +5245,13 @@ function drawInfo(x,im,X,Y,Wd){
   x.font=`700 ${Math.round(k*u)}px ${FONT}`; lines.forEach((t,i)=>x.fillText(t,X,Y+0.22*u+i*k*1.15*u)); Y+=(lines.length-1)*k*1.15*u;
   x.font=`400 ${Math.round(0.11*u)}px ${FONT}`; x.fillText(sz?`Width: ${fmtIn(sz.w)}"  Height: ${fmtIn(sz.h)}"`:'Width: –  Height: –',X,Y+0.42*u);
   x.fillText('Placement: '+placementText(im),X,Y+0.6*u); x.fillRect(X,Y+0.7*u,Wd*0.62,2); x.fillText(me==='emb'?'Thread Colors':'Colors',X,Y+0.9*u);
-  drawChips(x,inkChips(im,J.line),X,Y+0.98*u,Wd);
+  return drawChips(x,inkChips(im,J.line),X,Y+0.98*u,Wd);
 }
 // v59: page 1's notes, each imprint's under its name — in the left column (garments) or beside APPROVED (bandanas)
-function drawPageNotes(x,X,Y,Wd,maxY){ const u=DPP; let y=Y;
-  for(const im of printed()){ if(!notesOf(im).length) continue; if(y+0.3*u>maxY) break;
+function drawPageNotes(x,X,Y,Wd,maxY,o){ const u=DPP; let y=Y;
+  for(const im of printed()){ if(!notesOf(im).filter(n=>!(o&&o.noSemi&&n.k==='semi')).length) continue; if(y+0.3*u>maxY) break;
     x.fillStyle='#231f20'; x.font=`700 ${Math.round(0.085*u)}px ${FONT}`; x.fillText(`${(im.locName||'PRINT').toUpperCase()} - ${im.code}`,X,y+0.085*u); y+=0.14*u;
-    y=drawNotes(x,im,X,y,Wd,maxY)+0.06*u; } }
+    y=drawNotes(x,im,X,y,Wd,maxY,o)+0.06*u; } }
 // v52: an imprint's ink chips as they read on this garment (its recolours; OW / DC / plain for its colour; a base chip)
 function inkChips(im,line){
   const bk=methOf(im)==='print'&&baseOf(im,line,sideOf(im)), chs=chipsOf(im,line);
@@ -5441,10 +5450,14 @@ function page1Band(){
     x.fillStyle='#1a9ad6'; x.font=`700 ${Math.round(0.095*u)}px ${FONT}`; (accOf(J.line)?['PLEASE NOTE: PRINT SIZE IS SHOWN TO SCALE','ON A TYPICAL '+accOf(J.line).name.toUpperCase(),'(REFER TO PRINT LOCATION FOR ACTUAL SIZE)']:['PLEASE NOTE: PRINT SIZE IS SHOWN TO SCALE','ON A SIZE '+S.size+' GARMENT','(REFER TO PRINT LOCATION FOR ACTUAL SIZE)']).forEach((t,i)=>x.fillText(t,L,6.62*u+i*0.14*u)); x.fillStyle='#231f20'; }
   if(emb&&!band){ x.fillStyle='#1a9ad6'; x.font=`700 ${Math.round(0.085*u)}px ${FONT}`; ['PLEASE NOTE: THREAD COLOR ON PHYSICAL SEWOUT','DOES NOT MATCH THREAD COLOR OF FINAL PRODUCT'].forEach((t,i)=>x.fillText(t,L,7.1*u+i*0.13*u)); x.fillStyle='#231f20'; }
   drawApproved(x,0.45*u,7.45*u,2.6*u,0.55*u);
-  if(band) drawPageNotes(x,4.1*u,7.45*u,5.75*u,PH_-0.1*u); else drawPageNotes(x,L,4.35*u,2.5*u,6.45*u);   // v59
+  // v144: the semi-opaque swatches go in the left column under the colours when there's room (as 11048), else beside APPROVED
+  const semiOn=band&&printed().some(i=>notesOf(i).some(n=>n.k==='semi')), leftEnd=Y; let semiLow=false;
+  if(semiOn){ const im0=printed()[0]||J.imps[0], infoY=Math.max(leftEnd+0.08*u,Math.min(5.35*u,7.33*u-1.34*u-1.12*u)); semiLow=infoY+1.34*u+1.12*u>7.36*u; }
+  if(band) drawPageNotes(x,semiLow?6.05*u:4.1*u,7.45*u,semiLow?3.8*u:5.75*u,PH_-0.1*u,{noSemi:true}); else drawPageNotes(x,L,4.35*u,2.5*u,6.45*u);   // v59
   if(band){ const im=printed()[0]||J.imps[0], X=4.1*u, Yb=1.6*u, s=5.75*u;
     drawGarment(x,J.line,'front',X,Yb,s,s,{fill:true,dims:S.dims});
-    if(im) drawInfo(x,im,0.5*u,5.35*u,2.6*u); }
+    if(im){ const infoY=semiOn&&!semiLow?Math.max(leftEnd+0.08*u,Math.min(5.35*u,7.33*u-1.34*u-1.12*u)):5.35*u, cy=drawInfo(x,im,0.5*u,infoY,2.6*u);
+      if(semiOn) semiLow?drawSemiSwatches(x,im,4.1*u,7.45*u,0.78*u):drawSemiSwatches(x,im,0.5*u,cy+0.12*u,0.9*u); } }
   else { const sides=sidesOf(printed());
     // v13: the garment is bigger — photo cropped to the garment, and taller space (info blocks moved down)
     // v75: a little wider, and wide garments overlap (front on top) so they can fill the height
