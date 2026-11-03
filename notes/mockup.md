@@ -2148,3 +2148,15 @@ What changed in the app:
   - the Colours list is hidden and the line shows;
   - page 1 has "FRONT - 11140-A" and the Supacolour logo under Colors;
   - the white inside the frame is kept (v160).
+
+## 2026-11-03 — v162
+Stephen, on v161: "not seeing the white in the design staying" · "nope still not working".
+
+- **Switching the method redoes the background drop.** It used to be done once, as whatever the method was when the art went in (screen print). Switching to Heat transfer afterwards kept the knocked-out inside.
+- **On a transfer, "drop it everywhere" works from the edges too**, so the white inside outlines is kept: on a transfer that white is printed.
+- **Tested** on Stephen's logo, art in as screen print, then switched to Heat transfer:
+
+  | Version | Middle of the white panel |
+  |---|---|
+  | v161 | alpha 0 after the switch, 0 with "everywhere" |
+  | v162 | 255 after the switch, 255 with "everywhere" |
