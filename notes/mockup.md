@@ -2078,3 +2078,15 @@ Stephen: "still pretty squishy but we are getting closer" · "can you show me a 
 - Tested on the Elwood PDF with Length 26½″, Chest 52½″, Widen at 60%:
   - ×1.48 on both sides, sleeves at their own width;
   - height lines: front +4.5″ hood, back +1.5″.
+
+## 2026-11-03 — v157
+Stephen: "looks like the line goes down the sleeve vs just to the bottom hem".
+
+- **A flat's height runs to the hem, not the cuff.** On a hoodie or crew flat, the garment box ends at a sleeve cuff hanging below the hem. The size and the height line now run to the bottom of the hem at the middle of the garment (`hemBot`, found when the photo is read).
+  - Body length + the hood allowance now covers top-to-hem, not top-to-cuff.
+  - On Elwood's flats this draws the garment ~10% bigger (the print relatively smaller).
+  - Tee flats are unchanged: their hem is the lowest point.
+- **The height line sits on the body.** It's just inside the width bar's left end, or 3.5″ left of the middle. Its body-length label is lower, clear of the width bar's label.
+- Tested on the Elwood PDF:
+  - the line ends on the hem rib on both sides;
+  - sizes front 27.0 → 24.4 and back 29.9 → 27.0 px/in (no width set).
