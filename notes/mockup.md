@@ -2065,3 +2065,16 @@ Stephen, on Widen: "squishes it a little too much since it looses the height as 
 - **It may run up to 20% past its slot.** At 30% the outer sleeves were cut off at the edge of the view.
 - **No white box over the next side.** A widened photo is drawn from the cut-out (no white background), so it can overlap the side next to it.
 - **Tested on the Elwood PDF** with Widen at ×1.6: both sides stay taller than in v154 and are fully in view, and the 11″ back print reads at a believable size.
+
+## 2026-11-03 — v156
+Stephen: "still pretty squishy but we are getting closer" · "can you show me a visual line for how we are doing the height of the hoodie".
+
+- **Widen stretches only the body.** Only the part between the yellow bar's ends (the side seams) is widened toward the spec width. The sleeves keep their own width and move out. The photo is drawn in three pieces, and prints, the fabric look, the long-sleeve mask, sleeve prints and the bar all use the same mapping. It can now go up to ×1.8.
+- **Widen slider** next to the tick: 0% is the photo as it is, 100% is the spec width (`pine_mk_hem` › widenAmt), so it can be set by eye. Elwood's spec (26¼″ × 26½″ body) is as wide as it's long, and the full spec looks heavy on its styled photo.
+- **Height line** (on screen, beside a flat photo, at the garment's left edge):
+  - a solid span: "26.5″ body length · shoulder to hem (size M)", measured up from the bottom at the photo's scale;
+  - a dashed span above it: "+4.5″ hood above the shoulder" (or collar).
+  - It shows how the app splits the photo's height, so a wrong body length or hood allowance is easy to spot.
+- Tested on the Elwood PDF with Length 26½″, Chest 52½″, Widen at 60%:
+  - ×1.48 on both sides, sleeves at their own width;
+  - height lines: front +4.5″ hood, back +1.5″.
