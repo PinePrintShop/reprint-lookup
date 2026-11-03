@@ -2103,3 +2103,14 @@ Stephen: "the back should start closer to where I have the collar distance one t
 - **Tested on the Elwood PDF** with the back collar line set on the hood seam:
   - the back's body-length line starts just above the collar line, with +3.8″ hood above it;
   - the back draws ~11% bigger than when matched to the front (28.3 → 25.2 px/in).
+
+## 2026-11-03 — v159
+Stephen, editing an old proof (10282 → 11135) and attaching it: "clicking attach the updated numbers but nothing is happening" · "oh it is saying it is too big for Airtable....but this old proof is from Airtable" · "so maybe we need to increase the MB send".
+
+- **An edited proof over 5 MB attaches.** Airtable's own window takes big files, but the upload apps use is capped at 5 MB, and that cap is Airtable's to set.
+  - When the edited PDF is over 4.9 MB, it's rebuilt with each page (edits included) as a picture: 150 dpi JPEG, then 125, then 100 if still too big. That's how our own proofs are made.
+  - The button reads "Making it smaller…" meanwhile. Download still gives the full-size file.
+- **Messages show on top of an open window.** The "too big" message was behind the PDF editor, so it looked like nothing happened.
+  - A toast now goes into the open dialog.
+  - Long messages stay up longer (up to 9 s).
+- **Tested** on a generated 4-page, 62 MB worst-case PDF (noise images): 4.3 MB at 150 dpi in ~1 s, 4 pages at the same page size. The toast appears inside the open PDF window.
