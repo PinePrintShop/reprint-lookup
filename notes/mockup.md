@@ -2044,3 +2044,16 @@ Stephen: "based on the sizing I provided from the vendor do you think this is ho
   - Against the length (26½″), the 11″ print is drawn true to size.
   - Elwood's photos fold the hoodie's sides under. Measured from its length, the visible body is ~18–19″ across, but the real chest is 26¼″. So the print takes up ~60% of the visible width, where on the real hoodie it would be ~42%.
   - Option offered to Stephen: stretch the photo sideways to the spec's proportions, or use an unfolded flat (our own photo of a blank).
+
+## 2026-11-03 — v154
+Stephen: "Widen to spec ... sounds like a good idea" · "we just need to have tools to make it look more realistic to the final print".
+
+- **"Widen the photo to this width"** is a tick box under Width, shown once a width is set. It's for vendor flats with the sides folded under, like Elwood.
+  - The photo keeps its true length scale (Body length).
+  - It's stretched sideways until the yellow bar is the spec width, from ×0.8 to ×1.6. The garment then has its real proportions, so the print looks as big as it will on it.
+  - The bar reads "26¼″ across · photo widened ×1.60". Drag its ends onto the side seams and the stretch follows.
+  - Everything that maps onto the photo follows the stretch: prints, fabric look, sleeve placement, the long-sleeve mask, and the bar's drag.
+  - Saved per style + colour (`pine_mk_hem` › widen).
+- **The width bar's first spot:** at chest height, halfway between the hem's body-only ends and the outside at chest height (sleeves included). On a flat the side seams sit under the hanging sleeves. The hem rib alone had given ×2.
+- **The "doesn't fit this photo" note** now says to tick Widen the photo.
+- **Tested on the Elwood PDF** with Length 26½″ and Chest 52½″ (26¼″ across), Widen on: ×1.6 on both sides. The body comes out about as wide as it is long, as the spec says, and the 11″ back print covers ~45% of the width. Without Widen, a width that doesn't fit is still set aside (v152).
