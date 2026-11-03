@@ -2006,3 +2006,15 @@ Stephen, Elwood CH0001W from the v149 PDF picker: "now the back is too small and
   - With a front photo too (and no hem set), the back is scaled so its body is as wide as the front's.
 - **Elwood's sizing in this test:** the CORE hoodie is boxy, so sizing by the default body length draws it narrow (~22″) and the print large. With its 24″ hem the print draws 10% smaller.
 - Tested (Chromium) on the Elwood PDF: front 4″ and back 11″ prints, then a 24″ hem with the bar on both sides.
+
+## 2026-11-03 — v151
+Stephen typed Elwood's spec: "Length 26 1/2" x Chest 52 1/2"". The result: "makes it huge and the 11" print super super tiny".
+
+- **The box takes a spec sheet's chest.** Elwood's chest is all the way round. 52½″ taken as "across" drew the hoodie twice its width (26¼″ laid flat), so the print came out half size.
+  - 36″ or more is now read as all the way round and halved, and a toast says so ("52½″ is all the way round, so 26¼″ across").
+  - "52 1/2" is read as 52.5.
+  - The box is now "Width (in) · chest or hem, optional".
+  - The bar reads "26¼″ across".
+- **Where the bar starts:** across the body where the app measures its width, about halfway down, rather than on the narrower hem rib. On a drop-shoulder flat like Elwood's, the arms lie over the body's edges there, so the full width is the chest.
+- **The collar line stays put** on a flat with a width set. In v150 it moved, because the person-photo collar rule was applied to flats.
+- Tested on the Elwood PDF with "52 1/2": stored as 26.25″. Against v149 the front print draws 26% smaller and the back 27% smaller. The bar is across both sides, and the collar lines are back.
