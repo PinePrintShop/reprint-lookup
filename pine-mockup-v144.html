@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<!-- Mockup Maker v144 (2026-11-02, in review — mockup.html still points at v143): special inks (Stephen: "adding puff and
+<!-- Mockup Maker v144 (2026-11-03): (1) a hoodie's back is sized right (Stephen: the 11″ back print on a District DT6102
+     "should feel bigger"): from the back the hood lies down the back, so only ~1″ counts above the shoulder, not the standing
+     hood's ~31% — back prints on hoodie photos were drawn ~20% small. (2) Semi-opaque: the Pine swatches (dull on the bandana
+     colour / bright on black, SEMI-OPAQUE · FULLY-OPAQUE) as the art department does them (11048), instead of the drawn
+     scale. (3) The ink panel's Done is in its title bar (it floated over Remove / Erase). (4) Special inks (Stephen: "adding puff and
      or actually special effects...metallic inks and glow in the dark"). Each ink's panel has Effect: None / Metallic /
      Glitter / Puff, guessed from the ink's name (Metallic Silver, 877, Glitter, Puff White …). Tuned on the shop's photos
      in Drive (MISC › Pine Support Images from Hoffman, Glitter Swatches, ORB_PUFF). Embroidery gets a "3D puff" stitch
@@ -4499,7 +4503,7 @@ function sizeOf(im){ const a=ART[im.id]; return a?{w:a.widthIn,h:a.widthIn*a.can
 const SPECW=line=>(S.bodyW[line.id+'|'+S.size]||{w:(BODY_W[line.g.type]||20)+(SIZE_STEP[S.size]||0)}).w;
 const SPECL=line=>(S.bodyW[line.id+'|'+S.size]||{l:(BODY_L[line.g.type]||29)+(LEN_STEP[S.size]||0)}).l;
 // the photo's garment height covers the body length plus the collar standing above the shoulder point (or the hood)
-const ABOVE_HPS=line=>{ const p=line&&PH[line.id]; return isHood(line)?(p&&p.flat?SPECL(line)*0.31:4.5):0.5; };   // v140: a flat lay's hood stands up — ~31% of the body length above the shoulder (SanMar 1467, 18500)
+const ABOVE_HPS=(line,side)=>{ const p=line&&PH[line.id]; if(isHood(line)&&side==='back') return 1; return isHood(line)?(p&&p.flat?SPECL(line)*0.31:4.5):0.5; };   // v144: from the back a hood lies down the back (Stephen: the 11″ back print on a DT6102 "should feel bigger") — ~1″ above the shoulder, not the standing hood's height   // v140: a flat lay's hood stands up — ~31% of the body length above the shoulder (SanMar 1467, 18500)
 function silhouette(x,X,Y,w,h,color,hood,long){
   x.save(); x.translate(X,Y); x.scale(w/100,h/110); x.beginPath();
   // v138: long sleeves for hoodies, crews and long-sleeve tees (the stand-in for a typed-in hoodie had a tee's sleeves)
@@ -4562,7 +4566,7 @@ function drawGarment(x,line,side,X,Y,w,h,opts){
     if(cr){ x.save(); x.beginPath(); x.rect(ox+bx.x*s,oy+bx.y*s,bx.w*s,bx.h*s); x.clip(); }
     x.drawImage(opts.cut&&cutOf(ph)||im,ox,oy,dw,dh);   // v75: overlapping on the proof → the garment cut out of its white
     if(cr) x.restore();
-    const b=ph.box, ppi=acc?b.w*s/accW(line):pH?b.h*s/pH:b.h*s/(SPECL(line)+ABOVE_HPS(line));   // v133: on a person, their height
+    const b=ph.box, ppi=acc?b.w*s/accW(line):pH?b.h*s/pH:b.h*s/(SPECL(line)+ABOVE_HPS(line,side));   // v133: on a person, their height
     // v135: on a person, the garment's middle (its shoulders / chest), plus any sideways nudge of the collar line
     const cx0=pH&&ph.cxT!=null?ox+ph.cxT*s:ox+(b.x+b.w/2)*s, nx=pH?(NECKX[neckKey(line,side)]||0)*b.h*s:0;
     geo={ppi, cx:cx0+nx, top:oy+b.y*s, bot:oy+(b.y+b.h)*s, ph, ox, oy, s, bpx:pH?b.h*s:ph.bodyPx*s, person:pH};
