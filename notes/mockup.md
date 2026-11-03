@@ -2355,3 +2355,17 @@ Stephen: "still looks like the blend is fading it vs shouldn't that tool just be
   - The slider also set the strength of the photo's fold shading. That shading is now fixed and light (0.3), the same at any bend.
   - The turned-away side was darkened up to 45%. Now it's at most 12%, and only right at the turn.
 - **Tested** on the S&S BA703 photo at 40 and 100: the whites stay white to the edge, and the art bends and tucks behind the side.
+
+## 2026-11-03 — v181
+
+Stephen: "looks like when I click an embroidery option for the visual it just removes all the options" and "I noticed you are not following the curve of the bill? can we build the frame to include those curves".
+
+- **Stitches row stays:**
+  - **Cause:** shaded art (the pencil dog) reads as "blended tones" once its colours are scanned. That showed it as print and hid the whole Stitches row. The click redrew the panel after the scan.
+  - **Now:** the row always shows for embroidery. Picking a style stitches shaded art anyway (`a.embForce`, kept in the setup).
+  - **Tested** by forcing "blended": in v180 the row went hidden; in v181 it stays through Satin / Fill / Auto.
+- **Curves on the frame:**
+  - A bent hat print's dashed frame follows its curve: top and bottom edges from the projection.
+  - The yellow brim-seam line bends the same way, as the crown's circle at the seam, lowest where it faces you.
+  - Flat prints keep the straight box and line.
+  - **Tested** on the S&S BA703 photo at 40 and 100.
