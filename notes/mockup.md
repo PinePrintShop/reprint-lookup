@@ -2160,3 +2160,12 @@ Stephen, on v161: "not seeing the white in the design staying" · "nope still no
   |---|---|
   | v161 | alpha 0 after the switch, 0 with "everywhere" |
   | v162 | 255 after the switch, 255 with "everywhere" |
+
+## 2026-11-03 — v163
+
+Stephen, on the IPTA / Iron Horse logo as a heat transfer: "still getting this", then "oh is that because the box has a slight opening?", then "let's also still have an option for a full removal of the background in heat transfers as well.....and the options to re color colors".
+
+- **Yes, the opening was the cause.** The frame is broken where the heart sits on it. The seal that stops the background drop slipping through a gap (v160) was 0.6% of the file's size. On the full 2000 px file that was enough. The "Design 1" tile pulled from the file is a tight 1531 px crop, so the seal came out 9 px, and 10 were needed to close the gap beside the heart. The seal is now 0.9% (min 4 px).
+- **Auto-drop on transfers.** When a transfer's art sits on a plain solid edge (every border pixel opaque and the same colour), "Art has a solid background — drop it" is ticked automatically. This happens when the art is opened and when the method is switched to Heat transfer. Unticking it keeps it off.
+- **"Everywhere" is a full removal again on transfers.** It removes every pixel of the background colour, including white inside outlines. Leaving it off keeps the white inside (the default for transfers). v162 had made it edges-only.
+- **Recolour on transfers.** The colour list shows on transfers again, titled "Recolour". The proof still shows the Supacolour logo under Colors, not ink chips. The method hint now says so in one line.
