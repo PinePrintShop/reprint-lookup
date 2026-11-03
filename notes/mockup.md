@@ -1930,3 +1930,26 @@ Stephen, on 11123: "the only file for the separator is the .png and not a file w
 - **Download setup PSD** (was Download print art) gives the same file, zipped when there are several.
 - **Vector art:** art the app didn't change still isn't copied, because the original is the file to separate. A vector with an ink change now gets a setup PSD too, since the change is only in the app.
 - Tested (Chromium, mocked Airtable) on 11123-like art: two inks with the red changed to 2028. The PSD reads back with an Inks group (2028, 419) under Approved art; the ink layers add up exactly to the art; the file was 0.9 MB. File names checked for 11123-A, 8594-B, a bandana and a back.
+
+## 2026-11-03 — v146
+Stephen: "so we are not going to have a .ai setup file?" … "yes build away".
+
+- **Vector art stays vector.** When the art came from an .ai, .pdf or .eps and was changed here (an ink changed, cropped), the setup file is `<order><letter>-<FILE NAME>_<LOCATION>_setup.ai`:
+  - The customer's page is placed at the print size and cut to the art, using the same box as the mockup, after any crop.
+  - Every fill and stroke in a changed ink is rewritten to the new ink inside the file's own drawing code (RGB, CMYK, grey; forms nested up to 6 deep).
+  - A colour belongs to its nearest scanned ink. CMYK gets more room because 100% K shows as #2c2c34 on screen.
+  - Nothing is turned into pixels.
+  - It's a PDF-based file, which Illustrator opens as editable art. **Check the first real one in Illustrator.** If it doesn't open as .ai, it becomes `_setup.pdf`.
+  - No per-ink layers: Illustrator drops PDF layers. Each ink is one colour, so Select › Same › Fill Color picks it.
+- **Falls back to the v145 layered PSD** when it can't stay vector:
+  - background dropped, turned, an ink erased;
+  - layers picked or the background knocked out in the picker;
+  - pieces, upscale or trace;
+  - a turned page;
+  - or no colour in the file matched the changed ink.
+- **Unchanged vector art** still isn't copied: the original is the file.
+- **Download setup file** (was Download setup PSD) gives whichever one the imprint gets.
+- Tested (Chromium) on a generated vector page with a CMYK black bar, an RGB red circle and a grey bar:
+  - red → green: 1 swap, no pictures in the file, 12″ wide, cut to the art;
+  - all three changed: 3 swaps;
+  - raster art still gives the layered PSD.
