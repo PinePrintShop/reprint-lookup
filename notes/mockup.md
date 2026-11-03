@@ -2396,3 +2396,12 @@ An agent compared Mockup Maker's tee, front+back, hat, embroidered and tote proo
 - **No BASE swatch** on the tee page; the inks only, as on 10998.
 - **Close-up:** reads "Location: FRONT", in capitals.
 - **Next up:** the garment on page 1 is ~¾″ wider than theirs; then the embroidered shirt (their tee layout with thread strips), the hat (square sew-out box, no fabric bar, one page) and the tote.
+
+## 2026-11-03 — v185
+
+Stephen: "oh we need the base swatch when we are adding a base. and I personally like the vendor's product description and would like to continue to use that".
+
+- The BASE swatch is back on the tee page whenever a base is added. v184 had dropped it to match 10998.
+- The fabric bar shows the vendor's product description again. v184 had cut it to the fibre content.
+- Kept from v184: red notes above the art on the close-up, and "Location: FRONT" in capitals.
+- **House choices:** where our proofs differ from the art department's on purpose, keep these two.
