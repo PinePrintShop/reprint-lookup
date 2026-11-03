@@ -2274,3 +2274,11 @@ Stephen: "S&S has value cap 300A but it is not pulling in that hat".
 - **Cause:** S&S lists the hat as **VC300A** (Valucap's short prefix, styleID 494). The app searched S&S for "300A" (nothing found), then for the brand name in front ("VALUCAP300A", also nothing).
 - **Fix:** when both fail, the app looks in S&S's full style list (cached a day) for the brand's style ending in that number, allowing up to 4 extra letters in front. It uses it only when exactly one such style exists. Brand names match loosely, so "Valucap" and "Value Cap" both work.
 - **Tested live through the worker:** v173 found nothing for 300A. v174 finds 494 for both "Valucap" and "Value Cap", with its front and back photos. 1717 and OAD 108 still resolve as before.
+
+## 2026-11-03 — v175
+
+Stephen (screenshot of 11131-D, Patch): "should it be trying to open the main customer folder and not a specific letter".
+
+- **Cause:** 11131's Embroidery folder holds imprint folders "11131-A" and "11131-B" (made 18:59). Drive's search for the order number finds those too, and the app took the first result. So "This order" opened the empty 11131-B. Proofs, setups and print art would also have been saved there. The proofs attached earlier today went in before those folders existed, so they're in the right place.
+- **Fix:** `orderFolder()` picks the order's own folder ("11131 - Lydia Cruz Illustration"; any "NUM - …" name) first. Then any name that isn't an imprint letter. An imprint-letter folder ("11131-B") is used only when it's the only match. Opening, saving and Find the art all go through it.
+- **Tested** with the folders returned in different orders: it always picks the order folder.
