@@ -1915,3 +1915,18 @@ Stephen: "Also let's build the embroidery into the mock creator" (after the sew-
   - bandana proofs with and without discharge;
   - the ink panel on desktop and phone;
   - effect renders next to the shop's photos.
+
+## 2026-11-03 — v145
+Stephen, on 11123: "the only file for the separator is the .png and not a file with the layers". He used the customer's PSD, changed the red, and the proof was approved. Answers: "use the file name sales assigned", "you can stop saving the .png", "per ink layers would be great along with the approved art".
+
+- **Layered setup PSD instead of the flat PNG.**
+  - **When:** attaching a proof saves `<order><letter>-<FILE NAME>_<LOCATION>_setup.psd` to Seps › working files (else Seps, else Proofs › working files).
+  - **Name:** from the imprint's File Name in Airtable (`fldyGOHRKNz00MaYQ`, what sales typed), e.g. `11123A-ROACH-RIPPER_FRONT_setup.psd`. The location is left off when the name already says it (`8594B-TOPO-JAPANESE-LC`).
+  - **Layers:**
+    - **Approved art** on top: exactly as approved, ink changes and all.
+    - Under it, an **Inks** group with one layer per ink, named as on the proof (2028, BLK, 186 OW …). Each pixel goes to its nearest ink.
+  - **Size:** the print size, up to 300 dpi. The file records its real dpi.
+- **No more "· Mockup print art.png".** Only our own earlier copy, with the same name, goes to the Drive trash. The separator's files are never touched.
+- **Download setup PSD** (was Download print art) gives the same file, zipped when there are several.
+- **Vector art:** art the app didn't change still isn't copied, because the original is the file to separate. A vector with an ink change now gets a setup PSD too, since the change is only in the app.
+- Tested (Chromium, mocked Airtable) on 11123-like art: two inks with the red changed to 2028. The PSD reads back with an Inks group (2028, 419) under Approved art; the ink layers add up exactly to the art; the file was 0.9 MB. File names checked for 11123-A, 8594-B, a bandana and a back.
