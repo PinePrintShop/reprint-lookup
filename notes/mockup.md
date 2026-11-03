@@ -2471,3 +2471,10 @@ Stephen: "can we actually make the second page in bandanas a square of color. Al
   - **Already happening (unchanged):** see-through margins are always trimmed. Any picture with no see-through pixels (JPG, flat PNG) opens with "Art has a solid background — drop it" on, so its background is dropped from the edges in and the print is sized to the art. In the test, a 1500 × 1000 picture with a 600 × 300 logo was sized as the logo at 11″ × 5.5″, in v189 too.
   - **New:** art pulled from a PDF or mockup, or a flat PSD, on a plain solid edge also gets this (v163 did it for transfers only).
   - **New:** a toast says what happened and the size used: "The picture's plain background was dropped, so the print is sized to the art itself — 11″ × 5.5″. Untick … to keep it". It doesn't show on pick-up. Unticking keeps it off.
+
+## 2026-11-03 — v191: bandanas drawn from Pine's own photos
+Stephen: "Turns out we did have pictures of our actual bandanas! These should all be labeled and easy to change over to this one".
+- A bandana mockup now uses Pine's own bandana photo from Drive folder `1psiFJhAPUOCn2xo8nSwMrSsjuKXL1Xwg` (the art dept's bandana photos), matched by file name (`bright yellow.png`, `burnt-orange.png`, `kellygreen.png`, …). Aliases cover the name differences (Charcoal Gray → charcoal-grey, Olive Green → olive, Brown → cocoa, Athletic Gold → gold, …).
+- The photo is trimmed to the bandana, squared to the same 20″ frame as the drawn bandana, and its body colour (centre 40%) is used for the page-2 colour square, so the print sits in the same place as before.
+- The folder list and photos load once per session through the worker's Drive routes (same login as the rest of the app). Colours without a photo (Forest, Turquoise, Purple today) keep the drawn bandana; adding a photo to the folder with the colour's name picks it up.
+- Tested with mocked Drive: Black, Bright Yellow and Burnt Orange use their photos; Forest falls back to the drawn one.
