@@ -2193,3 +2193,10 @@ Stephen, on the 11136 bandana proof: "seems like Discharge is said a lot and the
   - Page 1 drew the bandana as fabric (weave, soft shading, ink sitting in it).
   - Page 2 drew a flat, wider-than-tall box of #004d28 with brighter cream ink, so the two pages didn't match and page 2 didn't look like a square bandana.
   - Page 2 now draws the bandana square, exactly as page 1 does.
+
+## 2026-11-03 — v166
+
+Stephen: "we can also remove the Print:Discharge on the close up. that isn't normal for us".
+
+- The close-up page (page 2) no longer has the "Print: Discharge" line, on any garment. The inks' DC says it, as on the art department's proofs. "Garment:" still shows when the page names a garment.
+- Page 1 of a bandana proof no longer shows "Closest Pantone 3537" under the bandana colour (Stephen: "remove the closest color reference that is just internal for customers it is just forest green"). The app still draws each bandana in its closest Pantone. The proof shows only the colour name.
