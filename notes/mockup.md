@@ -2300,3 +2300,23 @@ Stephen, 11131-B (an embroidered dog on a Burgundy corduroy BA703 cap; the custo
   - Only the mockup on the photo curves. The proof's close-up and the setup file stay flat.
   - Kept in the setup.
   - Tested on the real S&S BA703 Burgundy photo through the worker: flat, default and turned −25 all look right.
+
+## 2026-11-03 — v177
+
+Stephen (11131-B dog on the BA703 cap):
+- "can we keep working on this and maybe just try and make it one slider....just need it to disappear or become part of the hat fold. I believe photo shop has a mockup filter for this"
+- "also the fill get it a border as well instead of just filling inside"
+- "it is saying this image is a stitch already but it is not...so can we have that be a toggle"
+
+**Blend into the hat** is one slider (0–100, starts at 50, plus a Flat button). It replaces v176's Wrap / Turn / Arc and follows how Photoshop mockups work (Displace filter with a desaturated, blurred copy of the photo, plus Multiply / Blend If shading, plus a warp):
+- **Curve:** the art goes round the crown on a cylinder. The angle comes from the print's width on a ~3.2″ crown, times the slider. It never goes past the visible edge.
+- **Turn:** which side turns away is read from where the print sits against the photo's garment box (left of it on a 3/4 photo → the left side turns away), capped at ±35.
+- **Fade:** the edges darken and fade as they turn away, so the art goes into the fold.
+- **Folds and shadows:** the print is drawn first (stitches or ink, on its own layer). Then the photo under it is read as blurred luminance (a 120-wide grid, blurred twice, bilinear). Its slope pushes the print's pixels (displacement) and its darks shade them (multiply-like, strength from the slider).
+- **Still flat:** the proof's close-up and the setup file.
+
+**Fill without a border:** v176 also whitened the line's soft outer edge, which made a white halo round the drawing. Now only see-through pixels inside are filled, and a soft edge pixel is filled only where it touches the fill. The seal is finer (0.5%), so less gets filled between legs.
+
+**Already a stitch picture:** the "this art is a stitch picture already" guess is now a checkbox in the Stitches row. Untick it and flat art gets the stitch look. It's kept in the setup. The curved / shaded copy carries the art's own answer, so the shading isn't mistaken for thread texture.
+
+**Tested** on the S&S BA703 photo through the worker with an embroidered test design at 0 / 50 / 100: clean stitches, folds shading over them, and the left side fading where the crown turns. An earlier draft shaded before the stitches, which drew contour lines; the stitches now go first.
