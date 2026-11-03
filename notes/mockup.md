@@ -2405,3 +2405,13 @@ Stephen: "oh we need the base swatch when we are adding a base. and I personally
 - The fabric bar shows the vendor's product description again. v184 had cut it to the fibre content.
 - Kept from v184: red notes above the art on the close-up, and "Location: FRONT" in capitals.
 - **House choices:** where our proofs differ from the art department's on purpose, keep these two.
+
+## 2026-11-03 — v186
+
+Stephen: "looks like one of the mockup creator updates removed the glitter ink selectors etc".
+
+- **Not removed:** the Effect row (None / Metallic / Glitter / Puff) is still in the colour popover; tap a colour in the list. It works the same in v144, v160, v175 and v185 on flat art.
+- **Hidden since v144 when:**
+  - the art reads as a photo or shaded drawing (`a.scan.photo`). That's common for client art like 11131's pencil dog. **Fixed:** effects now show for any screen-print or transfer ink, whatever the art.
+  - the imprint is embroidery or a patch. Unchanged: embroidery has its own 3D puff in Stitches.
+- **Tested:** with the photo flag forced, v185 hid the row and v186 shows it.
