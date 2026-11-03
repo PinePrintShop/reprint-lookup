@@ -2210,3 +2210,12 @@ The bandana proof's left column is now on the art department's grid, measured of
 - **Print block:** the same block as the garment template (rule, heading, Width/Height, Placement, rule, Colors, swatches), with its first rule at 5.02″ as on their proofs. Semi-opaque swatches go under the colours when there's room, else beside APPROVED.
 - **Heading:** a bandana's print heading no longer adds "· DISCHARGE" here either.
 - **Checked:** a tee's page 1 is pixel-identical to v166.
+
+## 2026-11-03 — v168
+
+Stephen: "almost...looks like you are still adding some wording. can you pull up the reference and this one so we can compare and also the line weight on the approval box on page 1 is way thicker than page 2 and page 2 is more accurate also some blue text is gets added that doesnt need to be there".
+
+I compared his V2 11136 proof side by side with the art department's 11048 L.A. TACO bandana proof.
+- **Wording:** page 1 has no "Print · Discharge" group (the inks' DC says it). The print heading reads "PRINT - 11136-A" and the colours label "COLORS" in bold caps, as 11048 does.
+- **APPROVED box:** page 1 uses the same thin-line box as page 2. It was the old box with a thick black frame.
+- **Blue text on page 2:** a bandana's note ("EXPECT SEMI OPAQUE PRINT") sits centred in blue between the header and the bandana, as on 11048. It was tiny at the bottom-left. Page 1 still shows the semi-opaque swatches instead of the note.
