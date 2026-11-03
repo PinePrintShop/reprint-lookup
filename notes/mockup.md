@@ -2369,3 +2369,21 @@ Stephen: "looks like when I click an embroidery option for the visual it just re
   - The yellow brim-seam line bends the same way, as the crown's circle at the seam, lowest where it faces you.
   - Flat prints keep the straight box and line.
   - **Tested** on the S&S BA703 photo at 40 and 100.
+
+## 2026-11-03 — v182 + v183
+
+Stephen: "curve should be the other way....since the bill curves down", "looks a little high still vs hugging the curve of the bill", then he drew the grid on the BA703 photo in the Hat Bend Grid page: "this is the grid it should fit inside....not necessarily how big the image can be".
+
+- **v182 (not shipped on its own):** the cylinder bend arched the other way (high at the front, down at the sides) and the default brim seam went lower (0.69). It was a step toward v183.
+- **v183: a cap's front panel.** Stephen's 4×4 points become the panel: a 4¼″ × 2″ surface along the crown, its bottom row on the brim seam. They're stored as shares of the photo's garment box (BA703 box 45, 310, 912.5 × 632.5).
+  - **Placement:** a print is placed at its real size; Down / Off center are measured from the panel's middle. It's drawn flat with its stitches / ink, then warped smoothly through the panel (Catmull-Rom surface, 28×14 mesh of triangles), so it follows the crown's cone, drops with the bill, and squeezes where the panel turns away.
+  - **Masking:** cut to the hat's outline; the photo's folds are still laid over it.
+  - **Two starting panels:**
+    - **3/4:** Stephen's, for S&S's side-on shots. Mirrored when the hat faces the other way.
+    - **Front-on:** a symmetric panel measured by eye on VC300A, for straight-on shots.
+    - Which is used: read from the photo (the crown reaching further one side of the garment box's middle than the other).
+  - **Fit front panel** shows the 16 dots to drag onto any photo. It's saved per style and colour; Reset panel goes back.
+  - **Slider:** at 100 (the default on a cap) the print lies on the panel; lower blends toward flat.
+  - **Guides:** the yellow outline marks the panel ("front panel · 4¼″ × 2″"). The print's label says when it's bigger than the panel. The frame follows the warped print.
+  - The proof's close-up and setup files stay flat.
+- **Tested** on the S&S BA703 photo: a 4 × 2.1″ embroidered test grid follows the panel and is flagged as bigger than it (2.1″ > 2″). The panel dots show when fitting.
