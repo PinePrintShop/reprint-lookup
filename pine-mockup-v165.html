@@ -2,7 +2,7 @@
 <!-- Mockup Maker v165 (2026-11-03): bandana proofs (Stephen, 11136: "Discharge is said a lot" and "make sure the swatch boxes
      all stay the same and stack text if needed"): every swatch is the same square, a long ink name stacked and smaller (the
      garment template's rule, now on the bandana page too); a bandana says Discharge in its spec panel and the inks' DC, not
-     again in each heading.
+     again in each heading. Page 2 draws the bandana square, as page 1 (it was a flat wide box with brighter ink).
      Mockup Maker v164 (2026-11-03): art from a vector file always sends the vector _setup.ai to Seps; the PSD goes with it when the approved look differs (background dropped, layer hidden, …). Stephen, 11136: "I used the provided .ai file and it still sent a .PSD file".
      Mockup Maker v163 (2026-11-03): on a heat transfer, a plain background round the art is dropped by itself (Stephen: "still
      getting this" — a white box round his Supacolor logo; "Art has a solid background — drop it" was off for the pulled
@@ -5612,7 +5612,7 @@ function drawChipsT(x,chs,X,Y,Wd){ return chipSquares(x,chs,X,Y,Wd,0.29*IN,0.06*
 function chipSquares(x,chs,X,Y,Wd,sq,gap,P){ if(chs.length===1&&chs[0].supa) return drawSupa(x,X,Y+sq*0.15,sq*0.62); let cx=X, cy=Y; x.textAlign='center'; const PT=P;
   for(const c of chs){ if(cx+sq>X+Wd+1&&cx>X){ cx=X; cy+=sq+gap; }
     let ls=chipLines(c.t); const fitW=sq*0.862, fnt=k=>`700 ${(k*PT).toFixed(1)}px ${FONT}`;
-    let k=ls.length>1?6.5:(ls[0].length>=4?7:8); x.font=fnt(k);
+    let k=ls.length>2?6:ls.length>1?8.5:9.5; x.font=fnt(k);   // v165: past proofs' 9.5 pt bold, filling the square
     while(ls.some(t=>x.measureText(t).width>fitW)&&k>6){ k-=0.25; x.font=fnt(k); }   // v117: a little smaller before breaking words apart
     if(ls.some(t=>x.measureText(t).width>fitW)){ const w=ls.join(' ').split(/\s+/); if(w.length>ls.length&&w.length<=3) ls=w; k=Math.min(k,ls.length>2?6:6.5); x.font=fnt(k); }
     while(ls.some(t=>x.measureText(t).width>fitW)&&k>3){ k-=0.25; x.font=fnt(k); }   // v117: always inside the square
@@ -5696,9 +5696,10 @@ function finePrintT(x,text,X,Y,W){ const runs=[{t:'The Fine Print:',w:700,i:fals
       else { x.fillStyle='#231f20'; x.fillText(t,cx,cy); cx+=tw+sp; } } }
   return cy; }
 // v117: the chip's words, short — Cool Gray 10 → CG 10, Warm Gray 3 → WG 3
-function chipShort(t){ return String(t).trim().toUpperCase().replace(/\bCOOL\s*GR[AE]Y\s*/,'CG ').replace(/\bWARM\s*GR[AE]Y\s*/,'WG ').replace(/\s+/g,' ').trim(); }
+function chipShort(t){ return String(t).trim().toUpperCase().replace(/\bCOOL\s*GR[AE]Y\s*/,'CG ').replace(/\bWARM\s*GR[AE]Y\s*/,'WG ').replace(/\bWHITE\b/,'WHT').replace(/\bCREAM\b/,'CRM').replace(/\bBLACK\b/,'BLK').replace(/\s+/g,' ').trim(); }   // v165: OFF WHT, as the art department writes it
 function chipLines(t){ const s=chipShort(t), m=s.match(/^(.*\d)\s*(OW|DC)$/)||s.match(/^(.*\S)\s+(OW|DC)$/); if(m&&m[1]) return [m[1],m[2]];
   if(/^(CG|WG) \d+$/.test(s)) return [s];   // v117: CG 10 on one line
+  { const w=s.split(' '); if(w.length===3&&/^(OW|DC)$/.test(w[2])&&!/^(CG|WG)$/.test(w[0])) return w; }   // v165: a word a line (OFF / WHT / DC), as past proofs
   const i=s.lastIndexOf(' '); return i>0?[s.slice(0,i),s.slice(i+1)]:[s]; }
 function drawChips(x,chs,X,Y,Wd){ const ch=0.36*DPP; return chipSquares(x,chs,X,Y,Wd,ch,ch*0.2,ch/20.88); }
 drawGarment=ctxWrap(drawGarment,1); artFor=ctxWrap(artFor,1); chipsOf=ctxWrap(chipsOf,1); inkChips=ctxWrap(inkChips,1);   // v68: each garment's own art
@@ -5829,8 +5830,12 @@ function detailPage(im,who){
   tText(x,'Placement:',7.24*IN,0.76*IN,18,700); tText(x,qIn(placementText(im)),7.26*IN,1.03*IN,18,400,null,3.4*IN);
   { const dc=baseOf(im,J.line,sideOf(im))==='discharge', g=[who,dc?'Discharge':''].filter(Boolean).join(' · ');
     if(g){ const gw=tText(x,who?'Garment:':'Print:',4.45*IN,1.32*IN,14,700); tText(x,g,4.45*IN+gw+0.06*IN,1.32*IN,14,400,null,10.5*IN-4.51*IN-gw); } }
-  const X=0.5*IN, Y=1.64*IN, W=10*IN, H=8.08*IN; x.fillStyle=closeHex(J.line)||'#dfdfdd'; x.fillRect(X,Y,W,H);   // v136: one colour for front and back
-  if(a){ const art=artFor(im,J.line)||a.canvas, s=Math.min(6.9*IN/art.width,6.8*IN/art.height); x.drawImage(art,X+(W-art.width*s)/2,Y+(H-art.height*s)/2,art.width*s,art.height*s); }
+  const X=0.5*IN, Y=1.64*IN, W=10*IN, H=8.08*IN;
+  // v165 (Stephen, 11136: "the bandana color is funky"): a bandana's page 2 is the bandana as page 1 draws it — square, its
+  // fabric and the ink on it — not a flat wide box of the colour with brighter ink
+  if(isBandana()){ const sq=Math.min(W,H); drawGarment(x,J.line,'front',X+(W-sq)/2,Y,sq,sq,{fill:true}); }
+  else { x.fillStyle=closeHex(J.line)||'#dfdfdd'; x.fillRect(X,Y,W,H); }   // v136: one colour for front and back
+  if(a&&!isBandana()){ const art=artFor(im,J.line)||a.canvas, s=Math.min(6.9*IN/art.width,6.8*IN/art.height); x.drawImage(art,X+(W-art.width*s)/2,Y+(H-art.height*s)/2,art.width*s,art.height*s); }
   drawNotes(x,im,0.5*IN,9.8*IN,3.5*IN,10.9*IN);   // v59
   approvedT(x,4.19*IN,9.97*IN,2.62*IN,0.54*IN); return c;
 }
