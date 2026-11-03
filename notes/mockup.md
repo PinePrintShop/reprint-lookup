@@ -2015,6 +2015,11 @@ Stephen typed Elwood's spec: "Length 26 1/2" x Chest 52 1/2"". The result: "make
   - "52 1/2" is read as 52.5.
   - The box is now "Width (in) · chest or hem, optional".
   - The bar reads "26¼″ across".
-- **Where the bar starts:** across the body where the app measures its width, about halfway down, rather than on the narrower hem rib. On a drop-shoulder flat like Elwood's, the arms lie over the body's edges there, so the full width is the chest.
+- **Where the bar starts** (Stephen: "is chest laid flat really include the sleeves as well?" — no): at chest height, side seam to side seam on the body only.
+  - The ends come from the body's sides at the bottom: each half of the narrowest run through the middle, just above the hem where the cuffs don't touch, with the narrower half mirrored.
+  - An earlier build of v151 spanned the arms, which made the garment look too wide.
+- **Vendor flats fold the sides under.** On Elwood's photos the visible body is far narrower than the 26¼″ chest. Sized by that width, the hoodie would come out ~50″ long.
+  - For styled flats, Body length (shoulder to hem) is the number to use, and the width box's tip and toast say so.
+  - With Elwood's M length (26½″) and no width, the size is consistent: hood ~4½″ above the shoulder, the cuffs about level with the hem.
 - **The collar line stays put** on a flat with a width set. In v150 it moved, because the person-photo collar rule was applied to flats.
-- Tested on the Elwood PDF with "52 1/2": stored as 26.25″. Against v149 the front print draws 26% smaller and the back 27% smaller. The bar is across both sides, and the collar lines are back.
+- Tested on the Elwood PDF with "52 1/2": stored as 26.25″. The bar runs on the body only on both sides, and the collar lines are back.

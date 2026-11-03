@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!-- Mockup Maker v151 (2026-11-03): the width box takes a spec sheet's chest (Stephen typed Elwood's "Chest 52 1/2"" and "it
      makes it huge and the 11" print super super tiny"): 36″ or more is the chest all the way round, so it's halved (52½ →
-     26¼″ across); "52 1/2" is read too. It's "Width (in) · chest or hem", and the yellow bar starts across the body (where
-     the app measures the body), not on the narrower hem rib.
+     26¼″ across); "52 1/2" is read too. It's "Width (in) · chest or hem", and the yellow bar starts at chest height with its
+     ends on the body's sides (side seam to side seam — the sleeves aren't part of a chest width).
      Mockup Maker v150 (2026-11-03): (1) a hoodie's back is sized to match its front (Stephen, Elwood CH0001W: "now the back is
      too small and the 11" wide print looks huge"): v144 counted ~1″ of hood above the shoulder on every back (right for
      SanMar's DT6102, whose hood lies down; Elwood's back stands up), so the back is now scaled so its body is as wide as the
@@ -1572,7 +1572,7 @@ body.mk-rcopen #attachBtn.p-btn-main{background:var(--p-white)}   /* one yellow 
         <div class="mk-row mk-sizes">
           <label class="p-field"><span class="mk-lbl">Show at size</span><select class="p-select" id="size"><option>XS</option><option>S</option><option selected>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></label>
           <label class="p-field" title="Measured like a spec sheet: from the high point of the shoulder (where the shoulder seam meets the collar) straight down to the bottom hem — not the sleeve, not the hood"><span class="mk-lbl">Body length (in) · shoulder to hem</span><input class="p-input" id="bodyW" type="number" inputmode="decimal" min="8" max="45" step="0.25"></label>
-          <label class="p-field" id="hemWrap" title="The garment's width from its spec sheet — chest or hem, laid flat (a chest given all the way round, like 52½, is halved). Set it and each photo is sized from it: a yellow bar sits across the body — drag its ends to the garment's edges at the height it's measured"><span class="mk-lbl">Width (in) · chest or hem, optional</span><input class="p-input" id="hemW" type="text" inputmode="decimal" placeholder="e.g. 22" autocomplete="off"></label>
+          <label class="p-field" id="hemWrap" title="The garment's width from its spec sheet — chest or hem, laid flat, side seam to side seam (not the sleeves); a chest given all the way round, like 52½, is halved. Set it and each photo is sized from it: a yellow bar sits across the body — drag its ends to the side seams. Vendor flat-lay photos often fold the sides under, so the body looks narrower than it is: then Body length (shoulder to hem) is the better number"><span class="mk-lbl">Width (in) · chest or hem, optional</span><input class="p-input" id="hemW" type="text" inputmode="decimal" placeholder="e.g. 22" autocomplete="off"></label>
         </div>
         <div class="mk-row" id="accRow" hidden>
           <label class="p-field"><span class="mk-lbl">Width across (in)</span><input class="p-input" id="accW" type="number" inputmode="decimal" min="2" max="60" step="0.25"></label>
@@ -4499,7 +4499,18 @@ function photoInfo(o){
       const okW=ws.filter(v=>v>(x1-x0)*0.25).sort((p,q)=>p-q); if(okW.length){ info.bodyPx=okW[Math.min(1,okW.length-1)]/s;
         const r=rw.find(q=>q.w===okW[Math.min(1,okW.length-1)]); if(r) info.bodyRow={y:r.y/s,x0:r.a/s,x1:(r.b+1)/s}; }   // v151: where, for the width bar
       // v150: where the hem is on a flat photo (the hem measure's first guess): just above the lowest point of the middle
-      if(!info.hemG){ let yb=y1; while(yb>y0&&!isG(cx,yb)) yb--; const y=Math.round(yb-(y1-y0)*0.025); let a=cx,b=cx; if(isG(cx,y)){ while(a>x0&&isG(a-1,y)) a--; while(b<x1&&isG(b+1,y)) b++; info.hemG={y:y/s,x0:a/s,x1:(b+1)/s}; } }
+      if(!info.hemG){ let yb=y1; while(yb>y0&&!isG(cx,yb)) yb--;
+        // v151: the narrowest run through the middle near the bottom — where the cuffs don't touch the hem — is the body alone
+        // each half on its own (one cuff can still touch while the other is clear), the narrower half mirrored
+        let y=Math.round(yb-(y1-y0)*0.025), a=cx, b=cx, best=1e9, hl=1e9, hr=1e9, yl=y, yr=y;
+        for(let yy=Math.round(yb-(y1-y0)*0.12);yy<=yb-1;yy++){ if(!isG(cx,yy)) continue; let p=cx,q=cx; while(p>x0&&isG(p-1,yy)) p--; while(q<x1&&isG(q+1,yy)) q++;
+          if(cx-p>(x1-x0)*0.15&&cx-p<hl){ hl=cx-p; yl=yy; } if(q-cx>(x1-x0)*0.15&&q-cx<hr){ hr=q-cx; yr=yy; } }
+        if(hl<1e9&&hr<1e9){ const h=Math.min(hl,hr); best=2*h; y=hl<=hr?yl:yr; a=cx-h; b=cx+h-1; }
+        if(best<1e9||isG(cx,y)){ if(best===1e9){ while(a>x0&&isG(a-1,y)) a--; while(b<x1&&isG(b+1,y)) b++; } info.hemG={y:y/s,x0:a/s,x1:(b+1)/s};
+        // the chest laid flat is the body only, side seam to side seam under the arms (Stephen: "is chest laid flat really
+        // include the sleeves as well?" — no). On a flat the arms can lie over the body's edges, so the bar starts at chest
+        // height with its ends where the body's sides are at the hem (the hem run is body only)
+        info.chestG={y:(y0+(y1-y0)*0.42)/s,x0:a/s,x1:(b+1)/s}; } }
     }
     const px=[]; for(let y=Math.round(H*0.5);y<H*0.62;y++) for(let xx=Math.round(W*0.45);xx<W*0.55;xx++){ const i=(y*W+xx)*4; px.push([d[i],d[i+1],d[i+2]]); }
     if(px.length){ const m=k=>px.map(p=>p[k]).sort((a,b)=>a-b)[px.length>>1]; info.body=rgbHex([m(0),m(1),m(2)]); }
@@ -4726,7 +4737,7 @@ function drawGarment(x,line,side,X,Y,w,h,opts){
     x.drawImage(opts.cut&&cutOf(ph)||im,ox,oy,dw,dh);   // v75: overlapping on the proof → the garment cut out of its white
     if(cr) x.restore();
     const fr=side!=='front'&&!hm&&!pH&&!ph.onModel?PH[line.id]&&PH[line.id].front:null, frOk=fr&&fr.box&&!fr.onModel&&fr.bodyPx&&ph.bodyPx&&isHood(line);
-    const b=ph.box, hx=hm&&(hm.x1!=null?hm:Object.assign({},ph.bodyRow||ph.hemG||{},{in:hm.in})), ppi=acc?b.w*s/accW(line):frOk?(ph.bodyPx/(fr.bodyPx/(fr.box.h/(SPECL(line)+ABOVE_HPS(line,'front')))))*s:   // v150: a hoodie's back as wide as its front (its hood may stand or lie)
+    const b=ph.box, hx=hm&&(hm.x1!=null?hm:Object.assign({},ph.chestG||ph.hemG||{},{in:hm.in})), ppi=acc?b.w*s/accW(line):frOk?(ph.bodyPx/(fr.bodyPx/(fr.box.h/(SPECL(line)+ABOVE_HPS(line,'front')))))*s:   // v150: a hoodie's back as wide as its front (its hood may stand or lie)
       hx&&hx.x1>hx.x0?(hx.x1-hx.x0)*s/hm.in:pH?(ph.cut&&ph.headPx?Math.max(b.h*s/pH,ph.headPx*s/(0.106*pH)):b.h*s/pH):b.h*s/(SPECL(line)+ABOVE_HPS(line,side));   // v133: on a person, their height · v148: the hem measure first; a person cut off at the bottom, by the head
     // v135: on a person, the garment's middle (its shoulders / chest), plus any sideways nudge of the collar line
     const cx0=(pH||hm&&ph.onModel)&&ph.cxT!=null?ox+ph.cxT*s:ox+(b.x+b.w/2)*s, nx=pH||hm&&ph.onModel?(NECKX[neckKey(line,side)]||0)*b.h*s:0;
@@ -5895,7 +5906,7 @@ window.addEventListener('pagehide',()=>{ if(SEND.t) sendNow(); });
     if(P.size>2) return;
     const now=Date.now(); if(e.pointerType!=='mouse'&&now-lastTap<300){ lastTap=0; zoomTo(Z.z<1.9?2.5:1,e.clientX,e.clientY); return; } lastTap=now;
     const p=pt(e), h=hit(p);
-    if(h&&h.hem){ const k=hemKey(h.line), ph=PH[h.line.id][h.side], cur=Object.assign({},ph.bodyRow||ph.hemG||{},(HEM[k]||{})[h.side]); drag={hem:h,k,start:p,v:{y:cur.y,x0:cur.x0,x1:cur.x1}}; }   // v148 · v150: per side
+    if(h&&h.hem){ const k=hemKey(h.line), ph=PH[h.line.id][h.side], cur=Object.assign({},ph.chestG||ph.hemG||{},(HEM[k]||{})[h.side]); drag={hem:h,k,start:p,v:{y:cur.y,x0:cur.x0,x1:cur.x1}}; }   // v148 · v150: per side
     else if(h&&h.neck) drag={neck:h,start:p,v:neckDrop(h.line,h.side),vx:NECKX[neckKey(h.line,h.side)]||0};
     else if(h&&h.id===J.cur&&S.pieceDrag==='piece'&&ART[h.id]&&ART[h.id].pieces){   // v29: move one file of the print
       const comp=ART[h.id], ix=comp.box.x0+(p.x-h.x)/h.ppi, iy=comp.box.y0+(p.y-h.y)/h.ppi;
@@ -6616,7 +6627,7 @@ function setHem(raw){ const l=J.line; if(!l) return; const t=String(raw||'').tri
   if(t&&!(v>4&&v<130)){ toast('Type the width in inches, like 26 (or the chest all the way round, like 52½)'); return; }
   const round=v>=36; if(round) v=v/2;
   if(v) HEM[k]=Object.assign(HEM[k]||{},{in:v}); else delete HEM[k]; saveHem(); syncGSum(); render();
-  if(v) toast(`${round?`${fmtIn(v*2)}″ is all the way round, so ${fmtIn(v)}″ across. `:''}Sized from a ${fmtIn(v)}″ width — drag the ends of the yellow bar on each side to the garment's edges, at the height it's measured (chest: just under the arms)`); }
+  if(v) toast(`${round?`${fmtIn(v*2)}″ is all the way round, so ${fmtIn(v)}″ across. `:''}Sized from a ${fmtIn(v)}″ width — drag the ends of the yellow bar on each side to the body's side seams (not the sleeves), at the height it's measured (chest: just under the arms). Vendor flats often fold the sides under — if the garment then looks far too big, clear Width and use Body length instead`); }
 $('hemW').onchange=e=>setHem(e.target.value);   // v150
 $('gCustomBtn').onclick=()=>{ const b=$('gCustom'); b.hidden=!b.hidden; b._closed=b.hidden; syncCustomG(); };   // v138
 $('cgUse').onclick=useCustomG; $('cgClear').onclick=clearCustomG; $('cgHex').oninput=()=>{ $('cgHex')._set=true; };
