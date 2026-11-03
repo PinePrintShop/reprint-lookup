@@ -2485,3 +2485,10 @@ Stephen: "and then I guess we just need to cross reference that these match the 
 - Off: grey.png #848484 sits between Silver 429 and Charcoal 431; hot-pink.png #f554bf is lighter/lilac vs 219 #e01783; orange.png #e25700 is nearer 717 than 1655. Asked Stephen; no Pantone changed.
 - green.png (#386237) is Forest: Forest bandanas now use it (alias FOREST → GREEN). Turquoise and Purple still have no photo.
 - The page-2 colour square was already Whitney's Pantone (bandHex reads BAND_HEX first); the photo colour only shades the print.
+
+## 2026-11-03 — v193: bandana photos shifted to their Pantones on load
+Stephen (Light Blue): "our photo is a lot more green than the actual product" → reviewed a shifted Light Blue: "I think it looks great....let's just have it run on load for now while we keep dialing it in".
+- When a bandana photo loads, its body colour (centre 40%) is measured and every pixel is moved in Lab by the same amount to land on the colour's Pantone from Whitney's sheet (BAND_PMS → PMS_SHEET), or the custom colour if one is set. Folds, shadows and the hem keep their light and dark. The Drive files are untouched.
+- `BAND_SHIFT` (1 = all the way) sets the strength, for dialling in.
+- Black, White, Natural (no Pantone) and Grey (no Pantone yet) stay as photographed. Hot Pink is shifted to 219 while Stephen checks that one.
+- Tested with all 26 real photos behind mocked Drive: Light Blue #a4c7d4 → #9bb7d4, Hot Pink #f453be → #e01783, Forest (green.png) #376036 → #004d28, Burnt Orange #bb4b00 → #d65f00, Black unchanged.
