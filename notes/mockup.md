@@ -2057,3 +2057,11 @@ Stephen: "Widen to spec ... sounds like a good idea" · "we just need to have to
 - **The width bar's first spot:** at chest height, halfway between the hem's body-only ends and the outside at chest height (sleeves included). On a flat the side seams sit under the hanging sleeves. The hem rib alone had given ×2.
 - **The "doesn't fit this photo" note** now says to tick Widen the photo.
 - **Tested on the Elwood PDF** with Length 26½″ and Chest 52½″ (26¼″ across), Widen on: ×1.6 on both sides. The body comes out about as wide as it is long, as the spec says, and the 11″ back print covers ~45% of the width. Without Widen, a width that doesn't fit is still set aside (v152).
+
+## 2026-11-03 — v155
+Stephen, on Widen: "squishes it a little too much since it looses the height as well now".
+
+- **A widened photo keeps its height.** It had been shrunk to fit its slot's width, so the garment lost height along with it.
+- **It may run up to 20% past its slot.** At 30% the outer sleeves were cut off at the edge of the view.
+- **No white box over the next side.** A widened photo is drawn from the cut-out (no white background), so it can overlap the side next to it.
+- **Tested on the Elwood PDF** with Widen at ×1.6: both sides stay taller than in v154 and are fully in view, and the 11″ back print reads at a believable size.
