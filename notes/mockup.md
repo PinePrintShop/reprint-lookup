@@ -2235,3 +2235,11 @@ Stephen, 11136 V2: "did the code go back to only doing .psd files or do you thin
 - **Fix:** the setup now keeps the vector file (a Blob on this computer, a data URL in the Drive copy) and a pick-up restores it. v170 gives the .ai + .psd both ways.
 - **Size:** the Drive setup grows by about 1.35× the vector file. A 2.5 MB .ai adds about 3.4 MB, well under the 24 MB limit.
 - **Older setups** saved before v170 don't hold the vector file, so for those, open the .ai again once.
+
+## 2026-11-03 — v171
+
+Stephen: "also for location it should just always say Front". An agent also collected the close-ups (page 2) of 12 past art-department semi-opaque bandana proofs (10426–11030).
+
+- **Location:** a bandana's close-up always reads "Location: Front", as on every one of those proofs.
+- **Notes:** a bandana close-up shows one note per line, centred above the bandana, with "EXPECT SEMI OPAQUE PRINT" last (as 10978, 10994 and 11030). v168 put them on one line joined with "·".
+- **Not changed yet:** those proofs draw the close-up bandana as a flat square of the fabric colour. Ours has the fabric texture since v165. This waits on Stephen.
