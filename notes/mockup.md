@@ -1965,3 +1965,21 @@ Stephen, his photo of a mocha hoodie on a grey studio wall: "when it was removin
 - **Tested** on Stephen's photo:
   - v146 blotches on the hood and sleeve; v147 keeps the whole hoodie.
   - Same garment box, about 0.4 s.
+
+## 2026-11-03 — v148
+Stephen, on his mocha hoodie photo (on a person, cut off at the thighs): "the 11" wide print feel[s] smaller". I offered two fixes: "let's do both!"
+
+- **A person cut off at the bottom is sized by the head.**
+  - The photo was sized as head-to-shoes = the height typed. When the person runs off the bottom of the photo, that squeezed the whole height into half a body; this photo drew the print about 40% small.
+  - Now the head's width is used instead: the widest row before the outline narrows into the neck, taken as 0.106 of the height (≈7.4″ at 5′10″). It's never smaller than the old head-to-shoes figure.
+  - The collar line starts 1½ head-widths below the top of the head.
+  - The garment line says "(cut off at the bottom, so by the head)".
+- **Hem width:** a new box next to the height.
+  - Type the garment's spec hem width, e.g. 22. A yellow "hem 22″" bar sits on the hem (first guess: the run through the middle, 80% down a cut-off photo, 55% otherwise).
+  - Drag the bar up or down, or either end to the hem's edge.
+  - The hem wins over the height, and the photo can be used with just the hem.
+  - Saved per style + colour + side on this computer (`pine_mk_hem`). The bar shows on screen only, not on the proof.
+- Tested (Chromium) on Stephen's photo with a 5′10″ height:
+  - v147: 12.5 px/in.
+  - v148 by the head: 18.6 px/in.
+  - v148 with a 22″ hem: 17.0 px/in, with the bar on the hem; the guess runs a little wide over the right arm until its end is dragged in.
