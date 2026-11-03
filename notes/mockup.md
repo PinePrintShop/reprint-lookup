@@ -2200,3 +2200,13 @@ Stephen: "we can also remove the Print:Discharge on the close up. that isn't nor
 
 - The close-up page (page 2) no longer has the "Print: Discharge" line, on any garment. The inks' DC says it, as on the art department's proofs. "Garment:" still shows when the page names a garment.
 - Page 1 of a bandana proof no longer shows "Closest Pantone 3537" under the bandana colour (Stephen: "remove the closest color reference that is just internal for customers it is just forest green"). The app still draws each bandana in its closest Pantone. The proof shows only the colour name.
+
+## 2026-11-03 — v167
+
+Stephen: "can we also get nerdy and really clean up the spacing of the text on the left side of the mockup".
+
+The bandana proof's left column is now on the art department's grid, measured off their bandana proofs 4747 and 7649:
+- **Groups:** Bandana Color / Fabric Content / Bandana Dimensions (and Print · Discharge when it's discharge). Each is an 8 pt label with its 17.5 pt bold value 0.29″ below it, one group every 0.56″. Text sits 0.47″ from the edge, and a long colour name shrinks to fit. The groups end above the print block. Before, the gaps were uneven and there was a big empty space under Order #.
+- **Print block:** the same block as the garment template (rule, heading, Width/Height, Placement, rule, Colors, swatches), with its first rule at 5.02″ as on their proofs. Semi-opaque swatches go under the colours when there's room, else beside APPROVED.
+- **Heading:** a bandana's print heading no longer adds "· DISCHARGE" here either.
+- **Checked:** a tee's page 1 is pixel-identical to v166.
