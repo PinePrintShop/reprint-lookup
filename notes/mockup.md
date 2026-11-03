@@ -2169,3 +2169,13 @@ Stephen, on the IPTA / Iron Horse logo as a heat transfer: "still getting this",
 - **Auto-drop on transfers.** When a transfer's art sits on a plain solid edge (every border pixel opaque and the same colour), "Art has a solid background — drop it" is ticked automatically. This happens when the art is opened and when the method is switched to Heat transfer. Unticking it keeps it off.
 - **"Everywhere" is a full removal again on transfers.** It removes every pixel of the background colour, including white inside outlines. Leaving it off keeps the white inside (the default for transfers). v162 had made it edges-only.
 - **Recolour on transfers.** The colour list shows on transfers again, titled "Recolour". The proof still shows the Supacolour logo under Colors, not ink chips. The method hint now says so in one line.
+
+## 2026-11-03 — v164
+
+Stephen, 11136: "I used the provided .ai file and it still sent a .PSD file", then "oh I did remove the background".
+
+- A vector setup .ai was only made when the approved art matched the file exactly. Dropping the background (or knocking it out, hiding a layer or stripping crop marks in the picker, rotating, erasing a colour) quietly fell back to the PSD only.
+- Now art opened from a vector file always sends `<stem>_setup.ai`. It is the customer's vector at print size, with the colour changes made.
+- When the approved look can't be kept exactly in vector, the layered `<stem>_setup.psd` goes alongside it. The .ai still has the background, and the separator removes it in Illustrator. The PSD shows exactly what was approved.
+- The same applies to Download setup file, which zips both.
+- Tested with a PDF holding a white background box: untouched gives the .ai only; with the background dropped it gives the .ai (12″ wide) plus the PSD.
