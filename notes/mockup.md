@@ -2442,3 +2442,20 @@ Stephen: "can we also review the fabric filter strength....it doesn't seem to be
   - **Strong:** deep folds, full texture and a wider range (0.42–1.45). The ink is 10% see-through, so it sits in the fabric.
   - Thread and patches follow less, as before.
 - **Tested** on 1717 Black, 3001 Heather Mauve and DT6102 New Navy. The print's tonal spread now rises clearly Off → Light → Medium → Strong (13.5 → 14 → 15.6 → 19.4 on the 1717). On the hoodie, Strong shows the zipper, drawcords and fleece through the print.
+
+## 2026-11-03 — v189 (+ worker v39)
+
+Stephen: "and we are grabbing the correct body length per size and style if the specs are on S&S or SanMar or AS Colour right? let's try and always use the actual product specs and not just a filler we decide".
+
+- **Before:** only S&S spec sheets were read. AS Colour styles (S&S doesn't carry them) and SanMar-only styles (PC54 …) got our typical numbers. So did any S&S style without a row for the size.
+- **Now**, per size, in this order:
+  1. **S&S spec sheet**, as before.
+  2. **AS Colour's own size guide**, for AS Colour styles. It's the `sizeGuideURL` image on AS Colour's store, read in the browser with Tesseract, with rows "Body Width (inches)" / "Body Length (inches)" by size. An OCR slip like "29-12" is read as 29½.
+  3. **SanMar's measurements PDF**, for other styles. It's the `<specSheet>` in SanMar's product info, fetched through the new worker route `/proxy/doc` (v39) and read with pdf.js. Labels handled: Body Length / Length, Body Width / 1/2 Chest / Chest (halved).
+  4. Only then the typical number, now labelled "typical … — no spec sheet found" in the garment line, so it's obvious.
+  - A vendor table is kept a week on this computer (`pine_mk_vspec_v1`).
+- **Tested live through the worker:** AS Colour 5001 (M 20½ × 29½, L 22¼ × 31, all 9 sizes) and 5161 (M 23½ × 28¾) read correctly, and a 5001 at size L sizes from them. 1717 still uses S&S (20¼ × 28). The table reader was also tested on two SanMar-style layouts.
+- **Gaps:**
+  - SanMar PDFs need worker v39 deployed; I couldn't download a real SanMar sheet from here, so check PC54 once it's live.
+  - AS Colour 5102's own guide link is broken (404 on their site).
+  - 5080's guide is on AS Colour's second store address, which also needs v39.
