@@ -2035,3 +2035,12 @@ Stephen, Elwood CH0001W with 26″ across: "still looking huge compared to the p
 - Tested on the Elwood PDF:
   - With 26″, the sizes match no width at all (front 27.0, back 30.25 vs 29.9 width-matched), and the bar carries the note.
   - "0" empties the store and the sizes go back.
+
+## 2026-11-03 — v153
+Stephen: "based on the sizing I provided from the vendor do you think this is how large an 11" wide print would look? still feels huge".
+
+- **The back still matches the front's width** when a width has been set aside (v152). Without this, the back fell to its own length with ~1″ counted above the shoulder, but Elwood's back hood stands up. On the Elwood test that was a ~1% difference.
+- **Why it still feels huge** (not changed here):
+  - Against the length (26½″), the 11″ print is drawn true to size.
+  - Elwood's photos fold the hoodie's sides under. Measured from its length, the visible body is ~18–19″ across, but the real chest is 26¼″. So the print takes up ~60% of the visible width, where on the real hoodie it would be ~42%.
+  - Option offered to Stephen: stretch the photo sideways to the spec's proportions, or use an unfolded flat (our own photo of a blank).
