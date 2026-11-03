@@ -2475,6 +2475,13 @@ Stephen: "can we actually make the second page in bandanas a square of color. Al
 ## 2026-11-03 — v191: bandanas drawn from Pine's own photos
 Stephen: "Turns out we did have pictures of our actual bandanas! These should all be labeled and easy to change over to this one".
 - A bandana mockup now uses Pine's own bandana photo from Drive folder `1psiFJhAPUOCn2xo8nSwMrSsjuKXL1Xwg` (the art dept's bandana photos), matched by file name (`bright yellow.png`, `burnt-orange.png`, `kellygreen.png`, …). Aliases cover the name differences (Charcoal Gray → charcoal-grey, Olive Green → olive, Brown → cocoa, Athletic Gold → gold, …).
-- The photo is trimmed to the bandana, squared to the same 20″ frame as the drawn bandana, and its body colour (centre 40%) is used for the page-2 colour square, so the print sits in the same place as before.
+- The photo is trimmed to the bandana and squared to the same 20″ frame as the drawn bandana, so the print sits in the same place as before. Its body colour (centre 40%) only shades the print; the page-2 colour square stays Whitney's Pantone.
 - The folder list and photos load once per session through the worker's Drive routes (same login as the rest of the app). Colours without a photo (Forest, Turquoise, Purple today) keep the drawn bandana; adding a photo to the folder with the colour's name picks it up.
 - Tested with mocked Drive: Black, Bright Yellow and Burnt Orange use their photos; Forest falls back to the drawn one.
+
+## 2026-11-03 — v192: Forest uses green.png; photos checked against Whitney's Pantones
+Stephen: "and then I guess we just need to cross reference that these match the pantones Whitney created for these as well." → "yes please proceed".
+- All 26 photos measured (median of the centre 40%) against BAND_PMS / PMS_SHEET (ΔE2000). Close (<5): Royal, Maroon, Silver, Kelly. 5–10 (lighting): most others; shifts go both ways, the photos come from several shoots.
+- Off: grey.png #848484 sits between Silver 429 and Charcoal 431; hot-pink.png #f554bf is lighter/lilac vs 219 #e01783; orange.png #e25700 is nearer 717 than 1655. Asked Stephen; no Pantone changed.
+- green.png (#386237) is Forest: Forest bandanas now use it (alias FOREST → GREEN). Turquoise and Purple still have no photo.
+- The page-2 colour square was already Whitney's Pantone (bandHex reads BAND_HEX first); the photo colour only shades the print.
