@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- Mockup Maker v166 (2026-11-03): no "Print: Discharge" on the close-up page (Stephen: "that isn't normal for us") — the inks' DC says it.
+<!-- Mockup Maker v166 (2026-11-03): no "Print: Discharge" on the close-up page (Stephen: "that isn't normal for us") — the inks' DC says it;
+     no "Closest Pantone" under the bandana colour on page 1 ("that is just internal").
      Mockup Maker v165 (2026-11-03): bandana proofs (Stephen, 11136: "Discharge is said a lot" and "make sure the swatch boxes
      all stay the same and stack text if needed"): every swatch is the same square, a long ink name stacked and smaller (the
      garment template's rule, now on the bandana page too); a bandana says Discharge in its spec panel and the inks' DC, not
@@ -5771,7 +5772,7 @@ function page1Band(){
     if(x.measureText(t).width>maxW){ lines=[]; let ln=''; for(const wd of t.split(/\s+/)){ const tt=ln?ln+' '+wd:wd; if(x.measureText(tt).width>maxW&&ln){ lines.push(ln); ln=wd; } else ln=tt; } if(ln) lines.push(ln);
       lines=lines.slice(0,3); while(lines.some(l=>x.measureText(l).width>maxW)&&k>s*0.25){ k*=0.9; x.font=fnt(k); } }
     lines.forEach((l,i)=>{ Y+=k*u*(i?1.05:0.78); x.fillText(l,L,Y); }); Y+=k*u*0.3+0.18*u; };
-  if(band){ Y=(printed().some(i=>baseOf(i,J.line,sideOf(i))==='discharge')?2.45:3.15)*u; small('Bandana Color'); big(bandName(J.line),0.24); if(bandPms(J.line)){ Y-=0.12*u; small('Closest Pantone '+bandPms(J.line)); } small('Fabric Content'); big(g.fabric&&g.fabric.length<24?g.fabric:'100% Cotton',0.24); small('Bandana Dimensions'); big(`${fmtIn(bandSize(J.line))} x ${fmtIn(bandSize(J.line))} inches`,0.24);
+  if(band){ Y=(printed().some(i=>baseOf(i,J.line,sideOf(i))==='discharge')?2.45:3.15)*u; small('Bandana Color'); big(bandName(J.line),0.24);   /* v166 (Stephen: "remove the closest color reference that is just internal"): the Pantone stays in the app, not on the proof */ small('Fabric Content'); big(g.fabric&&g.fabric.length<24?g.fabric:'100% Cotton',0.24); small('Bandana Dimensions'); big(`${fmtIn(bandSize(J.line))} x ${fmtIn(bandSize(J.line))} inches`,0.24);
     if(printed().some(i=>baseOf(i,J.line,sideOf(i))==='discharge')){ small('Print'); big('Discharge',0.24); } }   // v37: discharge called out
   else { small('Garment'); Y-=0.12*u; big(g.brand||'',0.22); Y-=0.12*u; big(g.pn||'',0.55); small('Colorway'); big(g.color||'',0.19); small('Fabric Content');
     const fab=(g.fabric||'').replace(/\s+/g,' ').trim();
