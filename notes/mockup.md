@@ -1889,3 +1889,29 @@ Stephen: "Also let's build the embroidery into the mock creator" (after the sew-
   - On the live mockup and Colourways, a size change shows the last result and catches up 0.2 s after you stop.
   - Proofs and downloads wait for the real one.
 - Tested in Chromium on flat versions of the four sew-out designs against the real photos, on a 1/8″ small-text sample, and in the app: Stitches row, Fill saved, and the digitizer render skipped.
+
+## 2026-11-03 — v144
+- **Hoodie backs sized right.** Stephen: "this back mockup is looking pretty big compared to the size it says and the print is 11" wide so it should feel bigger" (District DT6102 New Navy).
+  - A hoodie photo is sized by body length plus what stands above the shoulder. That was the standing hood: ~31% of the body length on a flat lay, 4.5″ on a ghost shot.
+  - From the back, the hood lies down the back, so only ~1″ counts there now.
+  - Back prints on hoodie photos were drawn ~20% small. The DT6102 back's 11″ print is now 27% bigger, which matches the body length.
+- **Semi-opaque swatches.** Stephen: "we usually just show a pine swatch with the more dull print vs a bright print...on a bandana that is not dischargable like the green or royal one".
+  - The drawn SEMI-OPAQUE → FULLY-OPAQUE bar is gone.
+  - Page 1 of a bandana proof shows the art department's two swatches, as on 11048 L.A. TACO: the Pine logo in the print's lightest ink, dull on the bandana's own colour (SEMI-OPAQUE) and bright on black (FULLY-OPAQUE), labelled in proof blue.
+  - They sit in the left column under the colours when there's room, otherwise under the art beside APPROVED.
+  - Elsewhere the note is just "EXPECT SEMI OPAQUE PRINT".
+- **Ink panel:** Done is in the title bar. Stephen: "clean up that floating done banner"; it floated over Remove / Erase. On a phone, the title bar stays at the top of the sheet.
+- **Special inks.** Stephen: "adding puff and or actually special effects...metallic inks and glow in the dark".
+  - Tap an ink › Effect: None / Metallic / Glitter / Puff. One ink only; the rest stay flat. The ink gets a ✦ in the list. Saved with the setup.
+  - The effect is guessed from the ink's name: Metallic …, Gold, Silver, Pearl, Celestial, Pantone 871–877 / 8xxx metallics, … Glitter, Puff, HD.
+  - Tuned on the shop's photos (Drive › MISC › Pine Support Images from Hoffman, Glitter Swatches, ORB_PUFF):
+    - **Metallic:** a fine grain under a soft, wide sheen.
+    - **Glitter:** ~0.25 mm flakes, the bright ones a little tinted on light inks, some dark.
+    - **Puff:** a chalkier colour, a suede grain, rounded raised edges and a soft shadow.
+  - **Embroidery › Stitches › 3D puff:** satin over foam, with a taller column and a deeper shadow.
+  - Glow in the dark, reflective and neon wait on photos. Matsui's "Glow" pigments are fluorescent, not glow-in-the-dark. CCI neon is D-FLO (discharge) and W-FLO (over a base).
+- Tested in Chromium:
+  - the DT6102 back via the live worker (SanMar flat);
+  - bandana proofs with and without discharge;
+  - the ink panel on desktop and phone;
+  - effect renders next to the shop's photos.
