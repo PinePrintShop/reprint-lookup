@@ -119,3 +119,16 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
 - Same Airtable-token gate and shared-drive check as the other Drive routes. Creating folders needs Contributor or higher on the shared drive; Content manager is already set for trash.
 - Tested in Node with a mocked Google Drive: 10/10.
 - `/proxy/version` → 37. Stephen deploys it from worker-copy.html.
+
+## 2026-11-03 · v38: the order's own folder first
+- **Stephen (11131):** "should it be trying to open the main customer folder and not a specific letter … let's change the worker since that is cleaner".
+- **Cause:** `drive/search?order=` sorted matches newest first. Imprint folders made inside an order ("11131-A", "11131-B" in 11131 › Embroidery, 18:59) came back ahead of "11131 - Lydia Cruz Illustration" (18:30). Mockup Maker, Sep Maker, Seps, Screens and Line Item Review all take the first result, so they opened (and could save into) the empty 11131-B.
+- **Fix:** results are ranked by `orderRank`:
+  - 0: the order's folder ("11131 - …", "10940 Lunar Outpost").
+  - 1: other names with the number ("PO11029", "V2 11029 …").
+  - 2: imprint-letter folders ("11131-B", "11131 B").
+  - Newest first within each rank.
+- `drive/mkorder`'s "already has a folder" check skips imprint folders the same way.
+- Mockup Maker v175 also picks the order folder itself, so it's right either way.
+- Tested in Node with mocked Drive results: 5/5.
+- `/proxy/version` → 38. **Stephen deploys it:** worker-copy.html → Copy worker v38 → paste into Cloudflare (Workers → pine-workers → Edit code) → Deploy.
