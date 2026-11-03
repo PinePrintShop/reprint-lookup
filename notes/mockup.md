@@ -2332,3 +2332,16 @@ Stephen: "also what are the measurements on a hat like that....can we use the sp
 - **Brim seam line:** a yellow dashed line labelled "brim seam · 3″ crown". It starts at 64% of the hat's height and can be dragged onto the real seam. It's saved per style and colour, the same way as the collar line.
 - **Placement:** the front panel's middle (Down from center 0) sits half a crown above the seam.
 - **Tested** on the S&S BA703 Burgundy photo: a 4 × 2.1″ print fills the front panel as on a real cap, in line with S&S's suggested 2¼ × 4½″ area for VC300A.
+
+## 2026-11-03 — v179
+
+Stephen (screenshot of the dog on the BA703 cap): "looks like the new one tool just stretches it and then fades it vs bends it to the hat … and the image is still hanging off the hat vs feeling like it folds around".
+
+- **Why v177 looked wrong:** it mapped the curved art back into the full print box, which stretched the part facing you. It then faded the turned-away part, which washed the white chest grey. And nothing kept the art inside the hat.
+- **Now a true projection round the crown:**
+  - The art is laid round the crown at its real size: its arc length = its width, radius from the slider. The part facing you stays 1:1, the turned-away part gets narrower, and the art's own middle stays where it's placed. The box shrinks to the projected width.
+  - Every line curves as a circle round the crown does seen from a little above: lowest where it faces you, higher toward the sides (tilt 0.16, more with the slider). The turned-away side darkens a little.
+  - **Cut to the hat's outline** (the photo's garment mask, as for long-sleeve prints), so whatever goes round the side disappears behind it.
+  - The photo's folds and shadows still go over the finished print (v177).
+- **The slider:** starts at 40, which is the print's true angle on a ~3.2″ crown; higher bends more. Turn is read from where the print sits on the photo (up to ±60).
+- **Tested** on the S&S BA703 photo, with an embroidered test design 0.5″ left of centre, at 0 / 40 / 100.
