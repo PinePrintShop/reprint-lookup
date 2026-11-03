@@ -2492,3 +2492,7 @@ Stephen (Light Blue): "our photo is a lot more green than the actual product" �
 - `BAND_SHIFT` (1 = all the way) sets the strength, for dialling in.
 - Black, White, Natural (no Pantone) and Grey (no Pantone yet) stay as photographed. Hot Pink is shifted to 219 while Stephen checks that one.
 - Tested with all 26 real photos behind mocked Drive: Light Blue #a4c7d4 → #9bb7d4, Hot Pink #f453be → #e01783, Forest (green.png) #376036 → #004d28, Burnt Orange #bb4b00 → #d65f00, Black unchanged.
+
+## 2026-11-03 — v194: APPROVED box position saved in the proof
+- Stephen (11138 PandaDoc): every mockup page had two APPROVED boxes. Line Item Review couldn't find the mockup's own box (the proof is a picture) and added one.
+- Each page's white initial box is now saved in the PDF callouts (`PINE-INKS` JSON, `appr`: one `[x0,y0,x1,y1]` per page in PDF points, y up). Line Item Review v53 puts the PandaDoc initials there. Sep Maker and Mockup Maker ignore the new key.

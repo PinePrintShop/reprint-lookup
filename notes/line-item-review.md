@@ -820,3 +820,14 @@ Stephen: "yes do the same for both", as Mockup Maker v110.
 - **Stephen** (11110 Black Hills): "black hills is attached proof but it still shows up as needing a proof".
 - **Cause:** the Art Department's question to sales after the proof ("keep it as DISCHARGE or switch it to BASE?") was read as a change request.
 - **Now:** comments by the Art Department account are never counted as one. Same rule in Mockup Maker v122.
+
+## 2026-11-03 — v53: no second APPROVED box on mockup pages
+- **Stephen** (11138 PandaDoc, screenshot): "looks like we need to review the PandaDoc building in Line Item Review now that we changed all the mockups".
+- **Cause:** Mockup Maker proofs are pictures. Send for signature looked for the word APPROVED as text, found none, and added its own APPROVED box bottom-right on every mockup page, so each page had two.
+- **Now** the customer's initials go in the proof's own APPROVED box. It's found in this order:
+  1. Mockup Maker v194+ saves each page's white box in the PDF's callouts (`PINE-INKS` … `appr`).
+  2. The art department's PDFs: the APPROVED text, as before.
+  3. Older Mockup Maker proofs (already attached, e.g. 11138): the box is found in the page's picture (white box right of the dark APPROVED bar, lower half).
+  4. Only if none of those: the added APPROVED box, as before.
+- The send sheet now says "N in the proof's own APPROVED box".
+- Tested on a bandana and a tee proof from Mockup Maker v194: the saved box and the picture search found the same box on both pages (within 3 pt); a PDF that isn't from Mockup Maker isn't searched.
