@@ -2023,3 +2023,15 @@ Stephen typed Elwood's spec: "Length 26 1/2" x Chest 52 1/2"". The result: "make
   - With Elwood's M length (26½″) and no width, the size is consistent: hood ~4½″ above the shoulder, the cuffs about level with the hem.
 - **The collar line stays put** on a flat with a width set. In v150 it moved, because the person-photo collar rule was applied to flats.
 - Tested on the Elwood PDF with "52 1/2": stored as 26.25″. The bar runs on the body only on both sides, and the collar lines are back.
+
+## 2026-11-03 — v152
+Stephen, Elwood CH0001W with 26″ across: "still looking huge compared to the print". Then: "I can't zero out the width and only use the height".
+
+- **A width that doesn't fit the photo is set aside.** On a flat, the width is checked against the photo's own length (Body length + what stands above the shoulder).
+  - More than 20% off → the photo is sized by the length, and the yellow bar reads "26″ across doesn't fit this photo — sized by body length".
+  - Elwood's flats fold the sides under, so 26″ across the visible body had made the hoodie ~50″ long.
+  - Photos on a person aren't checked: the bar there is placed on the hem by hand.
+- **0 clears the width**, as well as an empty box (0 was refused as "too small"). It says "Width off — sized by Body length". The placeholder is "e.g. 26 · empty = off".
+- Tested on the Elwood PDF:
+  - With 26″, the sizes match no width at all (front 27.0, back 30.25 vs 29.9 width-matched), and the bar carries the note.
+  - "0" empties the store and the sizes go back.
