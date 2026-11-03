@@ -1953,3 +1953,15 @@ Stephen: "so we are not going to have a .ai setup file?" … "yes build away".
   - red → green: 1 swap, no pictures in the file, 12″ wide, cut to the art;
   - all three changed: 3 swaps;
   - raster art still gives the layered PSD.
+
+## 2026-11-03 — v147
+Stephen, his photo of a mocha hoodie on a grey studio wall: "when it was removing the background it got a little intense". White blotches appeared across the lit hood and right sleeve.
+
+- **Cause:** the backdrop is shaded (lighter in the middle, darker at the edges). The clean-up loosened its colour match to cope (up to 90 apart, steps of 14), then crept along the fabric's lit side, which is close to the light grey.
+- **Fix, in "Your photo" › Front / Back:**
+  - A pixel more colourful than the backdrop is never backdrop.
+  - The reach is capped at 70 and steps at 10.
+  - The clean-up is redone inside the backdrop shrunk by 3 px, then grown back, so it can't slip through gaps narrower than ~7 px.
+- **Tested** on Stephen's photo:
+  - v146 blotches on the hood and sleeve; v147 keeps the whole hoodie.
+  - Same garment box, about 0.4 s.
