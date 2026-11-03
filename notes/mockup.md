@@ -2254,3 +2254,14 @@ Stephen: "can you see why the NDLON updated to new numbers not save the proof to
   - The app tries again every 3 minutes for 30 minutes while the page stays open. It saves the proof as soon as the folder appears, then the setup and the print art too if the same order is still open.
   - After 10 tries it says to attach again once the folder exists.
 - **Tested:** with a stand-in Drive, it saved on the 3rd try; with no folder ever, it gave the closing message after 10 tries.
+
+## 2026-11-03 — v173
+
+Stephen: "yep! 85% is a great opacity for those". An agent measured the semi-opaque swatches on 19 art-department bandana proofs (10426 … 11048). Every one uses the same template, and page 1 now matches it:
+- **Squares:** two 1.00″ squares, 0.10″ apart, 0.10″ under the colour chips. That puts their top at about 6.34″, as on 11048.
+- **SEMI-OPAQUE:** the Pine logo in white at 85% on the bandana colour. FULLY-OPAQUE: white at 100% on near-black #110F0D.
+- **Logo colour:** always white, whatever the ink. Before, the logo used the print's lightest ink at 60%, which read too dull and too tinted.
+- **Logo size:** 0.68″ wide (68% of the square), a little above centre.
+- **Captions:** 9 pt bold process cyan #00A1E0, 0.19″ under the squares.
+- **Below the swatches:** a bandana's APPROVED box moved to 7.6″, as on their proofs, and the blue sizing note moved with it.
+- **No room:** when the colours run to two rows, the swatches go beside APPROVED, smaller but in proportion.
