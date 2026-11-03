@@ -539,3 +539,9 @@ Stephen: "Do the 5 bugs first". Code review: "jobs that run past midnight show 5
 - **Past close:** v22 already warns ("! Runs to …, past 5:15p" under the fill bar, and in the % pop-up). Nothing new was added; it now shows the right time.
 - Also fixed: the on-screen version fallback still said 26.
 - **Tested** (mocked Airtable, `?practice=1`, Chromium 1440×900): `hm` 510 → 8:30, 720 → 12:00p, 750 → 12:30p, 1020 → 5:00p, 1440 → 12:00a, 1500 → 1:00a, 1800 → 6:00a. A job at 5:00 pm with 8 h shows "5:00p–1:00a" on Day view and "Runs to 1:00a, past 5:15p". The Day and Week views show no "13:00p" or later. No writes were sent in practice mode and there were no page errors.
+
+## 2026-11-03 · v29: a colour for Press 1 & 2 split jobs
+- Stephen: "can we create a new color for the scheduler's 1+2 press when they share a job".
+- Split jobs ("Press 1 & 2 - SPLIT", the SP lane) used Press 1's teal, so they looked like Press 1 jobs.
+- They now have their own colour: half Press 1 teal (7473), half Press 2 mustard (7563), split down the middle at a slight slant. It's used on cards, tags, lane and day headers, the machine chip, fills and the impressions bars. The border and black text are kept.
+- Checked in practice mode: P1, P2 and SP cards and tags side by side.
