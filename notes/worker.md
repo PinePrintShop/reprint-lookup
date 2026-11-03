@@ -132,3 +132,11 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
 - Mockup Maker v175 also picks the order folder itself, so it's right either way.
 - Tested in Node with mocked Drive results: 5/5.
 - `/proxy/version` → 38. **Stephen deploys it:** worker-copy.html → Copy worker v38 → paste into Cloudflare (Workers → pine-workers → Edit code) → Deploy.
+
+## 2026-11-03 · v39: vendor spec sheets
+- **Asked for:** Stephen, "always use the actual product specs and not just a filler".
+- **New `GET /proxy/doc?u=<SanMar spec sheet PDF>`:**
+  - Allowed hosts: docs.companycasuals.com and sanmar.com. PDFs only, 10 MB max, read-only, cached a week.
+  - Mockup Maker v189 reads SanMar's body length and width per size from it.
+- **`/proxy/img`:** also allows AS Colour's second store address, `store-hsi95a83fz.mybigcommerce.com`, where some size guides live (5080).
+- `/proxy/version` → 39. **Stephen deploys it:** worker-copy.html → Copy worker v39 → paste into Cloudflare → Deploy. This also brings v38's Drive folder fix.
