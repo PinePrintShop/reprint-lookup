@@ -2459,3 +2459,15 @@ Stephen: "and we are grabbing the correct body length per size and style if the 
   - SanMar PDFs need worker v39 deployed; I couldn't download a real SanMar sheet from here, so check PC54 once it's live.
   - AS Colour 5102's own guide link is broken (404 on their site).
   - 5080's guide is on AS Colour's second store address, which also needs v39.
+
+## 2026-11-03 — v190
+
+Stephen: "can we actually make the second page in bandanas a square of color. Also do we autocrop when bringing in a png with a background? or ways to make sure it feels true to size when we set it up".
+
+- **Bandana close-up (page 2):**
+  - A flat square of the bandana's colour (Display Hex / closest Pantone), with the print on it at true scale (its size and spot on the 22″ bandana). This replaces the textured bandana from v165. Stephen's new call supersedes his earlier "I like the fabric texture" (2026-11-03).
+  - Notes stay centred above, in blue.
+- **Autocrop:**
+  - **Already happening (unchanged):** see-through margins are always trimmed. Any picture with no see-through pixels (JPG, flat PNG) opens with "Art has a solid background — drop it" on, so its background is dropped from the edges in and the print is sized to the art. In the test, a 1500 × 1000 picture with a 600 × 300 logo was sized as the logo at 11″ × 5.5″, in v189 too.
+  - **New:** art pulled from a PDF or mockup, or a flat PSD, on a plain solid edge also gets this (v163 did it for transfers only).
+  - **New:** a toast says what happened and the size used: "The picture's plain background was dropped, so the print is sized to the art itself — 11″ × 5.5″. Untick … to keep it". It doesn't show on pick-up. Unticking keeps it off.
