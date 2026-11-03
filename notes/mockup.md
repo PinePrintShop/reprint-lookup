@@ -2006,3 +2006,20 @@ Stephen, Elwood CH0001W from the v149 PDF picker: "now the back is too small and
   - With a front photo too (and no hem set), the back is scaled so its body is as wide as the front's.
 - **Elwood's sizing in this test:** the CORE hoodie is boxy, so sizing by the default body length draws it narrow (~22″) and the print large. With its 24″ hem the print draws 10% smaller.
 - Tested (Chromium) on the Elwood PDF: front 4″ and back 11″ prints, then a 24″ hem with the bar on both sides.
+
+## 2026-11-03 — v151
+Stephen typed Elwood's spec: "Length 26 1/2" x Chest 52 1/2"". The result: "makes it huge and the 11" print super super tiny".
+
+- **The box takes a spec sheet's chest.** Elwood's chest is all the way round. 52½″ taken as "across" drew the hoodie twice its width (26¼″ laid flat), so the print came out half size.
+  - 36″ or more is now read as all the way round and halved, and a toast says so ("52½″ is all the way round, so 26¼″ across").
+  - "52 1/2" is read as 52.5.
+  - The box is now "Width (in) · chest or hem, optional".
+  - The bar reads "26¼″ across".
+- **Where the bar starts** (Stephen: "is chest laid flat really include the sleeves as well?" — no): at chest height, side seam to side seam on the body only.
+  - The ends come from the body's sides at the bottom: each half of the narrowest run through the middle, just above the hem where the cuffs don't touch, with the narrower half mirrored.
+  - An earlier build of v151 spanned the arms, which made the garment look too wide.
+- **Vendor flats fold the sides under.** On Elwood's photos the visible body is far narrower than the 26¼″ chest. Sized by that width, the hoodie would come out ~50″ long.
+  - For styled flats, Body length (shoulder to hem) is the number to use, and the width box's tip and toast say so.
+  - With Elwood's M length (26½″) and no width, the size is consistent: hood ~4½″ above the shoulder, the cuffs about level with the hem.
+- **The collar line stays put** on a flat with a width set. In v150 it moved, because the person-photo collar rule was applied to flats.
+- Tested on the Elwood PDF with "52 1/2": stored as 26.25″. The bar runs on the body only on both sides, and the collar lines are back.
