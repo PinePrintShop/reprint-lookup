@@ -2387,3 +2387,12 @@ Stephen: "curve should be the other way....since the bill curves down", "looks a
   - **Guides:** the yellow outline marks the panel ("front panel · 4¼″ × 2″"). The print's label says when it's bigger than the panel. The frame follows the warped print.
   - The proof's close-up and setup files stay flat.
 - **Tested** on the S&S BA703 photo: a 4 × 2.1″ embroidered test grid follows the panel and is flagged as bigger than it (2.1″ > 2″). The panel dots show when fitting.
+
+## 2026-11-03 — v184
+
+An agent compared Mockup Maker's tee, front+back, hat, embroidered and tote proofs with the art department's own (10998, 11014, 10971, 10933, 10703, 10891). Stephen: "let's match the proof we are referencing so red. I would leave what we had going" (the blue "SHOWN TO SCALE ON A SIZE M GARMENT" note stays). This version does the tee:
+- **Fabric bar:** only the fibre content, e.g. "100% COTTON". It used to show the vendor's whole spec line (weight, yarn, singles).
+- **Notes:** a print's notes ("ANY THIN LINE DETAILS <1 POINT MAY NOT PRINT", …) go on its close-up, red bold, centred above the art, as on 10998. They're no longer on page 1 or tiny at the bottom of page 2. Embroidery notes are unchanged (pink, as on the hat proofs).
+- **No BASE swatch** on the tee page; the inks only, as on 10998.
+- **Close-up:** reads "Location: FRONT", in capitals.
+- **Next up:** the garment on page 1 is ~¾″ wider than theirs; then the embroidered shirt (their tee layout with thread strips), the hat (square sew-out box, no fabric bar, one page) and the tote.
