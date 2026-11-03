@@ -1983,3 +1983,13 @@ Stephen, on his mocha hoodie photo (on a person, cut off at the thighs): "the 11
   - v147: 12.5 px/in.
   - v148 by the head: 18.6 px/in.
   - v148 with a 22″ hem: 17.0 px/in, with the bar on the hem; the guess runs a little wide over the right arm until its end is dragged in.
+
+## 2026-11-03 — v149
+Stephen, with Elwood's "CORE HOODIES" line sheet (4 pages, one colour a page, front and back flats on white): "can you also make the photo upload be able to upload a pdf and then select the garment I need".
+
+- **Front / Back photo (and Add photo) take a PDF.** A window shows every page (up to 40) with its garment photos, found as separate pieces on the page. Under each photo are **Front** and **Back** buttons; a page with two photos also gets **Use both (front + back)** (left = front, right = back).
+- **The page naming this garment's colour is first and outlined.** It's read from the page's text. Elwood draws its names as shapes, so when a PDF has no text, the header above the photos is read with the same OCR as Retype; the cards are renamed and re-sorted as it reads ("CORE HOODIE - CH0001W · VINTAGE BROWN").
+- **The chosen photo** is cut from the page at about 200 dpi, with a little room around it, then cleaned and measured like any photo you add.
+- Tested (Chromium) on the Elwood PDF with an Elwood CH0001W Vintage Brown line:
+  - the four pages were read and named, with Vintage Brown first;
+  - Use both gave a clean front and back (flats, not on a person).
