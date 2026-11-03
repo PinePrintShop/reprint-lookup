@@ -2114,3 +2114,14 @@ Stephen, editing an old proof (10282 → 11135) and attaching it: "clicking atta
   - A toast now goes into the open dialog.
   - Long messages stay up longer (up to 9 s).
 - **Tested** on a generated 4-page, 62 MB worst-case PDF (noise images): 4.3 MB at 150 dpi in ~1 s, 4 pages at the same page size. The toast appears inside the open PDF window.
+
+## 2026-11-03 — v160
+Stephen, a Supacolor logo (Integrated Pediatric Therapy / Iron Horse, a white panel inside a black frame with a heart sitting over the top edge): "we still need the white in the image inside the black lines to be filled in".
+
+- **On a heat transfer, the background drop keeps the white inside an outline.**
+  - The edge-in background removal got through the tiny gap where the heart's own white meets the frame, and knocked out the whole inside panel.
+  - On a transfer that white is printed, so the removal is now redone inside the background shrunk by R (≈0.6% of the art's size), then grown back. It can't pass gaps under about 1% of the art's size.
+  - Screen print is unchanged, because there the white inside can be the garment.
+- **Tested** on Stephen's logo as a heat transfer:
+  - v159: the left panel's white was dropped (alpha 0 in the middle).
+  - v160: it stays (255), and the outside is still dropped.
