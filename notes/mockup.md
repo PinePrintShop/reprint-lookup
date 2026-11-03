@@ -2428,3 +2428,17 @@ Stephen: "I see them now....but it isn't changing the ink color I selected....al
   - **Effect hint:** now a tooltip on the Effect buttons.
   - **Under "More":** merge, remove, erase and the resets are folded under "More: merge, remove, erase, reset".
   - Phones keep the bottom sheet.
+
+## 2026-11-03 — v188
+
+Stephen: "can we also review the fabric filter strength....it doesn't seem to be really doing anything when I toggle between them".
+
+- **Measured before the fix:** on a 1717 Black, Light / Medium / Strong changed the print's tonal spread by less than 1% from each other. Two causes:
+  - all three only followed big folds, which a flat vendor photo barely has (grain blurred away);
+  - the result was clamped to 0.55–1.25 and then compressed with a ^0.75 curve before the strength applied.
+- **Now three clear steps** (`SHADES`: fold strength, texture, range, sink):
+  - **Light:** folds and light only.
+  - **Medium:** stronger folds, plus about half of the fabric's own texture (the photo sharp minus its blurred self: weave, heather, garment dye). The ink is 3% see-through.
+  - **Strong:** deep folds, full texture and a wider range (0.42–1.45). The ink is 10% see-through, so it sits in the fabric.
+  - Thread and patches follow less, as before.
+- **Tested** on 1717 Black, 3001 Heather Mauve and DT6102 New Navy. The print's tonal spread now rises clearly Off → Light → Medium → Strong (13.5 → 14 → 15.6 → 19.4 on the 1717). On the hoodie, Strong shows the zipper, drawcords and fleece through the print.
