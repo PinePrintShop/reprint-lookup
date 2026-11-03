@@ -2345,3 +2345,13 @@ Stephen (screenshot of the dog on the BA703 cap): "looks like the new one tool j
   - The photo's folds and shadows still go over the finished print (v177).
 - **The slider:** starts at 40, which is the print's true angle on a ~3.2″ crown; higher bends more. Turn is read from where the print sits on the photo (up to ±60).
 - **Tested** on the S&S BA703 photo, with an embroidered test design 0.5″ left of centre, at 0 / 40 / 100.
+
+## 2026-11-03 — v180
+
+Stephen: "still looks like the blend is fading it vs shouldn't that tool just be how it folds against the hat?"
+
+- **Renamed:** the slider is now **Bend round the hat**, and it only changes the shape: how far the art goes round the crown and how much its lines curve. 40 is true to a dad hat's curve.
+- **What made it read as a fade:**
+  - The slider also set the strength of the photo's fold shading. That shading is now fixed and light (0.3), the same at any bend.
+  - The turned-away side was darkened up to 45%. Now it's at most 12%, and only right at the turn.
+- **Tested** on the S&S BA703 photo at 40 and 100: the whites stay white to the edge, and the art bends and tucks behind the side.
