@@ -2415,3 +2415,16 @@ Stephen: "looks like one of the mockup creator updates removed the glitter ink s
   - the art reads as a photo or shaded drawing (`a.scan.photo`). That's common for client art like 11131's pencil dog. **Fixed:** effects now show for any screen-print or transfer ink, whatever the art.
   - the imprint is embroidery or a patch. Unchanged: embroidery has its own 3D puff in Stitches.
 - **Tested:** with the photo flag forced, v185 hid the row and v186 shows it.
+
+## 2026-11-03 — v187
+
+Stephen: "I see them now....but it isn't changing the ink color I selected....also can we review the color pop up window and clean it up to really reduce scrolling".
+
+- **Effects draw on photo / shaded art:** the per-ink effect map (`fxMapOf`) still skipped photo / shaded art, so v186 showed the buttons but nothing drew. Now it works on any screen-print or transfer art. Tested with the photo flag forced: Glitter changes the mockup in v187, and didn't in v186.
+- **Colour pop-up fits one screen:** 863 → 509 px tall on a 1440 × 900 desktop, with the swatch you tapped already open.
+  - **Preview:** up to 110 px tall (was 200).
+  - **Controls:** the mode / scope buttons are 34 px.
+  - **Colour tiles:** four across, 38 px tall with 28 px swatches (were three across at 50 px).
+  - **Effect hint:** now a tooltip on the Effect buttons.
+  - **Under "More":** merge, remove, erase and the resets are folded under "More: merge, remove, erase, reset".
+  - Phones keep the bottom sheet.
