@@ -2265,3 +2265,12 @@ Stephen: "yep! 85% is a great opacity for those". An agent measured the semi-opa
 - **Captions:** 9 pt bold process cyan #00A1E0, 0.19″ under the squares.
 - **Below the swatches:** a bandana's APPROVED box moved to 7.6″, as on their proofs, and the blue sizing note moved with it.
 - **No room:** when the colours run to two rows, the swatches go beside APPROVED, smaller but in proportion.
+- 2026-11-03, Stephen on the close-up's bandana: "No I like the fabric texture". Page 2 keeps the textured bandana (v165), unlike the art department's flat square. Don't change it.
+
+## 2026-11-03 — v174
+
+Stephen: "S&S has value cap 300A but it is not pulling in that hat".
+
+- **Cause:** S&S lists the hat as **VC300A** (Valucap's short prefix, styleID 494). The app searched S&S for "300A" (nothing found), then for the brand name in front ("VALUCAP300A", also nothing).
+- **Fix:** when both fail, the app looks in S&S's full style list (cached a day) for the brand's style ending in that number, allowing up to 4 extra letters in front. It uses it only when exactly one such style exists. Brand names match loosely, so "Valucap" and "Value Cap" both work.
+- **Tested live through the worker:** v173 found nothing for 300A. v174 finds 494 for both "Valucap" and "Value Cap", with its front and back photos. 1717 and OAD 108 still resolve as before.
