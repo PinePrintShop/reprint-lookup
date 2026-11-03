@@ -2179,3 +2179,17 @@ Stephen, 11136: "I used the provided .ai file and it still sent a .PSD file", th
 - When the approved look can't be kept exactly in vector, the layered `<stem>_setup.psd` goes alongside it. The .ai still has the background, and the separator removes it in Illustrator. The PSD shows exactly what was approved.
 - The same applies to Download setup file, which zips both.
 - Tested with a PDF holding a white background box: untouched gives the .ai only; with the background dropped it gives the .ai (12″ wide) plus the PSD.
+
+## 2026-11-03 — v165
+
+Stephen, on the 11136 bandana proof: "seems like Discharge is said a lot and the bandana color is funky", and "make sure the swatch boxes all stay the same and stack text if needed. Scan past mockups to find the pattern".
+
+- **Swatches.** An agent read about 20 art-department bandana proofs made before 2026-10-20 and measured three of them. Every box is the same ~20.7 pt square, with one word per line ("OFF / WHT / DC", "179 / DC") in bold at about 9.5 pt. Light colours get an outline.
+  - The bandana page's swatches used to grow wider for long names ("OFF WHITE DC"). Every proof page now uses the garment template's fixed-square rule.
+  - Names now start at 9.5 pt (8.5 pt for two lines, 6 pt for three) and shrink only to fit.
+  - WHITE / CREAM / BLACK read WHT / CRM / BLK, and "OFF WHT DC" goes on three lines, as the art department writes them.
+- **Discharge said once.** Past proofs show it as DC on the swatches, plus a caution note when there is one. A bandana's page 1 keeps its "Print · Discharge" in the spec panel and page 2 keeps "Print: Discharge". The extra "· DISCHARGE" after the heading (page 1 and close-ups) is gone on bandanas. Garment proofs are unchanged.
+- **Bandana colour.** Rendering the real 11136 proof showed:
+  - Page 1 drew the bandana as fabric (weave, soft shading, ink sitting in it).
+  - Page 2 drew a flat, wider-than-tall box of #004d28 with brighter cream ink, so the two pages didn't match and page 2 didn't look like a square bandana.
+  - Page 2 now draws the bandana square, exactly as page 1 does.
