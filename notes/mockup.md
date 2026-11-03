@@ -1993,3 +1993,16 @@ Stephen, with Elwood's "CORE HOODIES" line sheet (4 pages, one colour a page, fr
 - Tested (Chromium) on the Elwood PDF with an Elwood CH0001W Vintage Brown line:
   - the four pages were read and named, with Vintage Brown first;
   - Use both gave a clean front and back (flats, not on a person).
+
+## 2026-11-03 — v150
+Stephen, Elwood CH0001W from the v149 PDF picker: "now the back is too small and the 11" wide print looks huge. where is the adjust hem height button".
+
+- **Hem width for every photo.** Garment › Change, next to Body length: "Hem width (in) · optional".
+  - It's one hem per style + colour, the garment's, with the bar's spot remembered per side. Saved on this computer (`pine_mk_hem`); v148's per-side entries carry over.
+  - Set it and each side is sized from its hem. A yellow "hem 24″" bar sits just above the lowest point of the garment's middle; drag its ends to the hem's edges, or the bar up and down.
+  - Before, it was only next to the height of a person, so a flat lay had no way to set it.
+- **A hoodie's back now matches its front's width.**
+  - v144 counted ~1″ of hood above the shoulder on every back. That's right for SanMar's DT6102 (hood lying down), not for a flat whose hood stands, like Elwood's.
+  - With a front photo too (and no hem set), the back is scaled so its body is as wide as the front's.
+- **Elwood's sizing in this test:** the CORE hoodie is boxy, so sizing by the default body length draws it narrow (~22″) and the print large. With its 24″ hem the print draws 10% smaller.
+- Tested (Chromium) on the Elwood PDF: front 4″ and back 11″ prints, then a 24″ hem with the bar on both sides.
