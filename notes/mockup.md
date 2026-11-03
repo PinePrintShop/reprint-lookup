@@ -2226,3 +2226,12 @@ Stephen: "looks like we are missing the blue text on the front that has the warn
 
 - Page 1 of a bandana proof now has the art department's blue note beside APPROVED, word for word as 11048: "PLEASE NOTE: SIZING IS NOT TO SCALE ON / GARMENT REPRESENTATION / (REFER TO PRINT LOCATION FOR ACTUAL SIZE)". It is 7.5 pt bold, 3.25″ in, level with the APPROVED box.
 - The print's own notes (if any) now start further right, at 6.05″.
+
+## 2026-11-03 — v170
+
+Stephen, 11136 V2: "did the code go back to only doing .psd files or do you think it is something that happened when I picked back up vs re uploading the .ai again".
+
+- **Cause:** the pick-up. A saved setup ("Pick up where you left off", from this computer or the "… Mockup Maker setup.json" on Drive) brought the art back as a PNG only. The customer's vector file wasn't saved, so after a pick-up only the PSD went to Seps. Reproduced in v169 with a vector bandana with its background dropped: the .ai + .psd before saving, only the .psd after a pick-up.
+- **Fix:** the setup now keeps the vector file (a Blob on this computer, a data URL in the Drive copy) and a pick-up restores it. v170 gives the .ai + .psd both ways.
+- **Size:** the Drive setup grows by about 1.35× the vector file. A 2.5 MB .ai adds about 3.4 MB, well under the 24 MB limit.
+- **Older setups** saved before v170 don't hold the vector file, so for those, open the .ai again once.
