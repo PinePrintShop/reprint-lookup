@@ -2125,3 +2125,26 @@ Stephen, a Supacolor logo (Integrated Pediatric Therapy / Iron Horse, a white pa
 - **Tested** on Stephen's logo as a heat transfer:
   - v159: the left panel's white was dropped (alpha 0 in the middle).
   - v160: it stays (255), and the outside is still dropped.
+
+## 2026-11-03 — v161
+Stephen: "since supacolor is a full color printing option we don't really need to pull colors...can you have an agent scan mockups that have supacolor and grab how those look".
+
+An agent read 14 of the art department's Supacolor proofs in Drive (2022–2026). The 2026 ones show:
+- the **Supacolour logo** under "Colors" in place of ink chips (10401, 10482, 10948, 11094);
+- no OW / BASE / Pantone chips;
+- shirt headings the same as screen print ("FRONT - 10948-A");
+- one transfer note, on V4 10482.
+
+What changed in the app:
+- **Heat transfer imprints don't pull colours.**
+  - The Colours list in the Art step is off for a transfer. A line under the method says why: "colours aren't pulled — the proof shows the Supacolour logo under Colors, and white inside the design stays".
+  - The proof's Colors area shows the Supacolour logo (`assets/supacolour.png`, the image from the art department's proofs).
+  - The setup PSD's ink layers ignore it.
+- **The heading drops "HEAT TRANSFER ·"** (page 1, the proof page, close-ups), matching the art department's "FRONT - 11140-A".
+- **New note** "PLEASE NOTE: SUPACOLOR TRANSFERS CANNOT CONTAIN TRANSPARENCIES. A SOLID SHAPE WILL BE PLACED BEHIND ARTWORK TO MATCH THE GARMENT COLOR, BUT A PERFECT COLOR MATCH CANNOT BE GUARANTEED".
+  - Its wording is the art department's.
+  - It's suggested for a transfer whose art has see-through edges (over 8% part-transparent pixels).
+- **Tested** with Stephen's logo as a heat transfer:
+  - the Colours list is hidden and the line shows;
+  - page 1 has "FRONT - 11140-A" and the Supacolour logo under Colors;
+  - the white inside the frame is kept (v160).
