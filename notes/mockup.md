@@ -2320,3 +2320,15 @@ Stephen (11131-B dog on the BA703 cap):
 **Already a stitch picture:** the "this art is a stitch picture already" guess is now a checkbox in the Stitches row. Untick it and flat art gets the stitch look. It's kept in the setup. The curved / shaded copy carries the art's own answer, so the shading isn't mistaken for thread texture.
 
 **Tested** on the S&S BA703 photo through the worker with an embroidered test design at 0 / 50 / 100: clean stitches, folds shading over them, and the left side fading where the crown turns. An earlier draft shaded before the stitches, which drew contour lines; the stitches now go first.
+
+## 2026-11-03 — v178
+
+Stephen: "also what are the measurements on a hat like that....can we use the specs on the site and reverse engineer how it might look to size?"
+
+- **Before:** a cap photo was sized as if the whole hat, brim included, were 8¼″ wide. A 3/4 photo's brim made that drift.
+- **Now:** a cap is sized from its **crown height**. Crown top to the brim seam on the photo = the crown height + 0.3″ for the button.
+  - The crown height comes from S&S's spec sheet when the style lists "Crown Height" (VC300A 3″, 6245CM 3⅛″; checked live). Otherwise 3″ for a low-profile / dad / unstructured cap, 3½″ for a trucker / structured / high one.
+  - BA703 has no spec rows on S&S, so it uses 3″.
+- **Brim seam line:** a yellow dashed line labelled "brim seam · 3″ crown". It starts at 64% of the hat's height and can be dragged onto the real seam. It's saved per style and colour, the same way as the collar line.
+- **Placement:** the front panel's middle (Down from center 0) sits half a crown above the seam.
+- **Tested** on the S&S BA703 Burgundy photo: a 4 × 2.1″ print fills the front panel as on a real cap, in line with S&S's suggested 2¼ × 4½″ area for VC300A.
