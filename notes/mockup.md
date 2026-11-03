@@ -2243,3 +2243,14 @@ Stephen: "also for location it should just always say Front". An agent also coll
 - **Location:** a bandana's close-up always reads "Location: Front", as on every one of those proofs.
 - **Notes:** a bandana close-up shows one note per line, centred above the bandana, with "EXPECT SEMI OPAQUE PRINT" last (as 10978, 10994 and 11030). v168 put them on one line joined with "·".
 - **Not changed yet:** those proofs draw the close-up bandana as a flat square of the fabric colour. Ours has the fabric texture since v165. This waits on Stephen.
+
+## 2026-11-03 — v172
+
+Stephen: "can you see why the NDLON updated to new numbers not save the proof to the drive folder?"
+
+- **Cause:** "11135 | LS15001-NAT.pdf" went onto line 11135-A in Airtable at 18:50 UTC. The "11135 - NDLON" Drive folder didn't exist until about 19:12 UTC. With no folder for the order, saving to Drive skipped quietly: the toast just said "Proof attached" with no "and saved to Drive".
+- **Fix:**
+  - The toast now says the proof wasn't saved to Drive because there's no folder for the order yet.
+  - The app tries again every 3 minutes for 30 minutes while the page stays open. It saves the proof as soon as the folder appears, then the setup and the print art too if the same order is still open.
+  - After 10 tries it says to attach again once the folder exists.
+- **Tested:** with a stand-in Drive, it saved on the 3rd try; with no folder ever, it gave the closing message after 10 tries.
