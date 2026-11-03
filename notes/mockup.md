@@ -2219,3 +2219,10 @@ I compared his V2 11136 proof side by side with the art department's 11048 L.A. 
 - **Wording:** page 1 has no "Print · Discharge" group (the inks' DC says it). The print heading reads "PRINT - 11136-A" and the colours label "COLORS" in bold caps, as 11048 does.
 - **APPROVED box:** page 1 uses the same thin-line box as page 2. It was the old box with a thick black frame.
 - **Blue text on page 2:** a bandana's note ("EXPECT SEMI OPAQUE PRINT") sits centred in blue between the header and the bandana, as on 11048. It was tiny at the bottom-left. Page 1 still shows the semi-opaque swatches instead of the note.
+
+## 2026-11-03 — v169
+
+Stephen: "looks like we are missing the blue text on the front that has the warning".
+
+- Page 1 of a bandana proof now has the art department's blue note beside APPROVED, word for word as 11048: "PLEASE NOTE: SIZING IS NOT TO SCALE ON / GARMENT REPRESENTATION / (REFER TO PRINT LOCATION FOR ACTUAL SIZE)". It is 7.5 pt bold, 3.25″ in, level with the APPROVED box.
+- The print's own notes (if any) now start further right, at 6.05″.
