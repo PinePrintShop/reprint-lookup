@@ -2509,3 +2509,21 @@ Stephen: "when you are bringing in more files in the mockup creator can the stac
 ## 2026-11-04 — v196: no "· DISCHARGE" after the imprint ID
 Stephen (11071-A, screenshot of "FRONT - 11071-A · DISCHARGE"): "we don't need it to say discharge after the imprint id".
 - Every proof heading (page 1 info block, page 2 headings, the old layout) now reads "FRONT - 11071-A". The inks' DC chips (298 DC, 7591 DC …) already say it's discharge. Bandanas lost it in v165.
+
+## 2026-11-04 — v197: every upload is checked for lines under 1 pt
+Stephen: "when I upload a file into Mockup Maker does it scan to find any line weights under 1pt and if it doesn't can it".
+- **Before:** the thin-line check (v124) only ran after Upscale or Trace to vector, and its message sat inside the art-quality box, which is hidden for print-ready art.
+- **Now:** every screen-print upload is checked at its print size, one ink at a time.
+  - The art is drawn at 216 dpi (1 pt = 3 px); each ink's shape is opened by 1 px, and what disappears is under 1 pt.
+  - **Gaps** are checked the same way (an ink closed by 1 px), so a thin white line or cut through a dark shape is found.
+  - A colour too small for the colour scan (that thin white line) counts as its own ink.
+  - Counted in ¼″ squares; a run about ¼″ long counts, a pointed tip or corner doesn't.
+  - Re-checked half a second after the width changes, since a line that's thin at 10″ can hold at 20″.
+- **The box** (its own, under the art): "⚠ Lines or gaps under 1 pt at 10″ wide in 7626 and White — they may not hold on press." It has two buttons:
+  - **Show where:** a small picture with the spots boxed in red.
+  - **Add the note to the proof:** adds "ANY THIN LINE DETAILS <1 POINT MAY NOT PRINT". The button hides once the note is on.
+- **Tested** (Playwright, practice): a 10″ art with red lines of 0.5 / 0.8 / 1.5 / 3 pt and a 0.5 pt white line through a black bar.
+  - At 10″: the 0.5 and 0.8 pt lines and the white line were flagged; the 1.5 and 3 pt lines weren't.
+  - At 20″: nothing flagged (the thinnest is now 1 pt).
+  - Bold type, Georgia italic and a 3 pt ring at 11″: nothing flagged.
+  - About 2 s on a 20″ print.
