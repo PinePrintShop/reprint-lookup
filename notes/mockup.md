@@ -2505,3 +2505,7 @@ Stephen: "when you are bringing in more files in the mockup creator can the stac
   - Any other file is centred on the first one at its own width.
 - Which file is on top is the existing layer order in the file list; each file can still be dragged after.
 - Tested: a red ring and blue "PINE" text exported as two 1200 px layers. After On top, the text sat centred inside the ring as on the artboard (ring 11″, text 4.64″ at 4.8″ down).
+
+## 2026-11-04 — v196: no "· DISCHARGE" after the imprint ID
+Stephen (11071-A, screenshot of "FRONT - 11071-A · DISCHARGE"): "we don't need it to say discharge after the imprint id".
+- Every proof heading (page 1 info block, page 2 headings, the old layout) now reads "FRONT - 11071-A". The inks' DC chips (298 DC, 7591 DC …) already say it's discharge. Bandanas lost it in v165.
