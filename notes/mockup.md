@@ -2527,3 +2527,22 @@ Stephen: "when I upload a file into Mockup Maker does it scan to find any line w
   - At 20″: nothing flagged (the thinnest is now 1 pt).
   - Bold type, Georgia italic and a 3 pt ring at 11″: nothing flagged.
   - About 2 s on a 20″ print.
+
+## 2026-11-04 — v198: Thicken to 1 pt
+Stephen: "is there a way to have a simple thicken lines tool?"
+- The thin-line box (v197) has **Thicken to 1 pt**. It works on the art's own pixels (`a.src`, its resolution), one ink at a time:
+  1. Each ink's parts that a 1 pt opening removes (the thin lines) grow by about half a point on each side, in that ink. They grow over see-through, the dropped background or a neighbouring ink, never over another ink's thin line.
+  2. A thin see-through cut inside an ink opens up the same way (the ink around it goes see-through, or the dropped background colour).
+  3. Everything else is untouched.
+- **After it runs:** the box says "✓ Thickened: no lines under 1 pt now." and the button becomes **Undo thicken**; the toast also has Undo.
+- **Files sent:** the proof and the layered setup PSD use the thickened art. The exact-vector `_setup.ai` isn't offered for thickened art (`canVector` false); the customer's vector still goes along as the loose `.ai` (v163).
+- **Not offered:** for prints made of several files, or when PSD layers are hidden (it says to turn them back on). Art under ~86 ppi at print size is told to try the 300 dpi upscale first.
+- **Tested** (Playwright, practice): 10″ art at 300 ppi.
+
+  | Line | Before | After |
+  |---|---|---|
+  | 0.5 pt red line | 0.54 pt | 1.63 pt |
+  | 0.5 pt white cut through black | 0.54 pt | 1.63 pt |
+  | 1.5 pt and 3 pt lines | — | unchanged |
+
+  - The check finds nothing after; Undo puts back the exact original (48 spots again).
