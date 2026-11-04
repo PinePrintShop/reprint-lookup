@@ -2560,3 +2560,15 @@ Stephen: "can we also look at doing an auto crop once we remove the background" 
 - **Tested** (Playwright, practice): a 10″ art (black box, red and blue type).
   - Recoloured red → green and erased black: cropped to 4.13″ × 2.03″ (the type's own size at the same scale).
   - The erase and the green kept their place after Fill on and Fill off (two rebuilds); the mockup shows the type only, green and blue.
+
+## 2026-11-04 — v200: the auto-crop works on JPEGs; "Crop to the art" button
+Stephen: "how does the auto crop work when removing the background I am still not seeing it".
+- **Cause:** a JPEG's box isn't one flat colour. Erasing it in the colour list left faint specks (partly see-through, from the compression noise) all over the box, and v199's crop counted any pixel over 6% as art, so the box never shrank.
+- **Now:** only solid pixels count (over ~38%), and a row or column needs more than a speck (0.2% of its length) to count as art.
+- **Crop to the art** (new, under the colours next to Combine similar): the same crop, any time. "Already cropped to the art" when there's nothing to trim.
+- **How it's used:**
+  - A plain background touching the edges is dropped by "Art has a solid background — drop it" (on by default for flat pictures) and the art is trimmed then.
+  - A box or panel colour inside the edge is erased in the colour list (tap the colour › Erase, All garments). That now crops right away, with Undo.
+- **Tested** (Playwright, practice):
+  - JPEG with a black box (2400 px) behind red/blue type on white, erased: the box went 11″ → 5.39″ × 2.6″, the type's own size at the same scale. v199 left it at 11″.
+  - The clean PNG test still crops to 4.12″ and keeps the erase + green recolour through Fill on/off.
