@@ -2546,3 +2546,17 @@ Stephen: "is there a way to have a simple thicken lines tool?"
   | 1.5 pt and 3 pt lines | — | unchanged |
 
   - The check finds nothing after; Undo puts back the exact original (48 spots again).
+
+## 2026-11-04 — v199: auto-crop after erasing a background; colour changes survive rebuilds
+Stephen: "can we also look at doing an auto crop once we remove the background" and "also ever time I do a change it re works all the colors and adds back colors I erased etc".
+- **Auto-crop:** erasing a colour everywhere in the colour list (Erase, "this print" scope), e.g. a black box behind the type, now crops the art to what's left.
+  - Same scale, so the art doesn't jump. The width becomes the art's own, and the note says "Cropped to the art after erasing — same scale as the file."
+  - The toast says the new size ("Cropped to the art that's left: 4.1″ × 2″ (same scale)") and has Undo.
+  - It uses the Crop tool's crop. The erase stays a colour change, so soft edges are kept.
+  - A background dropped with the checkbox was already trimmed (v190).
+- **Colour changes kept:**
+  - **Cause:** every rebuild of the art (drop background on/off, Everywhere, Fill, Crop, layers, rotate, Thicken) threw the colour list's changes away (`buildArt` deleted `RECOL`), so erased colours came back and recolours reset.
+  - **Now:** before a rebuild, the changes and the old inks are kept. After the new scan, each change follows its ink by colour (nearest within ΔE 15) onto the new list, and the mockup redraws. Ink edits (combine / rename) come back when the inks scan the same, as v29 did.
+- **Tested** (Playwright, practice): a 10″ art (black box, red and blue type).
+  - Recoloured red → green and erased black: cropped to 4.13″ × 2.03″ (the type's own size at the same scale).
+  - The erase and the green kept their place after Fill on and Fill off (two rebuilds); the mockup shows the type only, green and blue.
