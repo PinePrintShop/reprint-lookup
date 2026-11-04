@@ -2496,3 +2496,12 @@ Stephen (Light Blue): "our photo is a lot more green than the actual product" �
 ## 2026-11-03 — v194: APPROVED box position saved in the proof
 - Stephen (11138 PandaDoc): every mockup page had two APPROVED boxes. Line Item Review couldn't find the mockup's own box (the proof is a picture) and added one.
 - Each page's white initial box is now saved in the PDF callouts (`PINE-INKS` JSON, `appr`: one `[x0,y0,x1,y1]` per page in PDF points, y up). Line Item Review v53 puts the PandaDoc initials there. Sep Maker and Mockup Maker ignore the new key.
+
+## 2026-11-04 — v195: "On top" for prints made from several files
+Stephen: "when you are bringing in more files in the mockup creator can the stack function stack on top of themselves".
+- Files in this print now has **Stack · Side by side · On top · Center**. Stack still puts them one under the other.
+- **On top** puts every file on top of the first one:
+  - Files cut from the same page size (colour layers exported from one artboard, each trimmed) go back where they sat on that page, at the first file's scale, so they line up as drawn.
+  - Any other file is centred on the first one at its own width.
+- Which file is on top is the existing layer order in the file list; each file can still be dragged after.
+- Tested: a red ring and blue "PINE" text exported as two 1200 px layers. After On top, the text sat centred inside the ring as on the artboard (ring 11″, text 4.64″ at 4.8″ down).
