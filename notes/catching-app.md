@@ -452,3 +452,17 @@ Stephen: "how can I find the card on the iPad and would the iPad store the caugh
   - Find 11060 → P2, 11011 Beige 250 and 11060 Beige 14 (under 11060). A tap saved under the v170 key came back (1 smudge, M).
   - The issue payload for that tap links 11060's line item and order.
   - Complete 11011 then 11060 → imprints A, B caught once (on the second), 11060 → Caught - Awaiting Ship, 11011 → Caught - Awaiting Ship. No console errors.
+
+## 2026-11-04 — v172: a reprint run shows on its own press (10835)
+Stephen: "Press 2 ROQ You operator app has job 10835 but it is not showing up in the catching app".
+- **Cause:**
+  - 10835's 1812GD-CR owes a reprint (Order Issue RE-PRINT, In progress, 96 pcs), run as a new imprint, 10835-H, on P2 today at 13:30.
+  - The tag-press imprint on the same line, 10835-G (caught Oct 19), was also dated today at 08:30.
+  - Since v129 an owed line re-includes its caught imprints (for reprints that reuse the original imprint). Both landed on the one card for that line, which took the first imprint's press, so it was the Tag Press. The card sat on the Heat tab; P2 didn't have it.
+- **Now:** when a line owing a reprint has an uncaught imprint loaded (its reprint run), its caught imprints stay out. The card has only the reprint run and sits on that run's press.
+  - Reprints that reuse the original (caught) imprint work as before.
+  - The card id is unchanged, so saved taps stay.
+- **Tested** (Playwright, mocked Airtable copy of 10835-G/H, both line items, the RE-PRINT issue):
+  - v171: one reprint card on Heat press - Tag Press with G + H.
+  - v172: the card on Press 2 - ROQ YOU with H only, reprint mode on.
+- **Workaround on v171:** the card was on the Heat Press tab (or All).
