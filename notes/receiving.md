@@ -310,3 +310,22 @@ Stephen asked how Late worked: it was only "the arrival date has passed and the 
 - Picking a tab scrolls it into view (phone; the Late tab was off-screen).
 - Retested: due-date-only line = Late (order due); Late count 3 of 5 mocked lines.
 - Still open: on a 1366px laptop, the "Received (24h)" tab sits at the edge of the scrolling tab strip.
+
+## 2026-11-04 — v88: the 4x6 box label in Pine style v2
+Stephen: "can you see if the box label in receiving follows along our new font structure etc".
+- **Before:** the label was all Arial, so the order number wasn't Poppins Black. Several printed bits were under 12 px (9 pt):
+  - Prints / Due / Press / Delivery labels 6.5 pt
+  - QR caption 6 pt
+  - table header 7 pt
+  - colour + design line 7.5 pt
+  - "Staged by" 8.5 pt
+  - "Continued" 7.5 pt
+
+  The on-screen parts used the old yellow #E8E832, a green bar and orange/amber highlights.
+- **Now:**
+  - The order number is in **Poppins Black** (loaded in the label window). Everything else is Helvetica.
+  - Nothing printed is under 9 pt.
+  - The QR caption reads **MOCKUPS** (one line at 9 pt; "SCAN FOR MOCKUPS" wrapped).
+  - Screen-only parts use yellow #FBE122, cream #EFE2CD and black (the feedback bar is black, the remove bar and edit highlight cream).
+- **Same room for 7 lines:** table cells have 1 px less padding top and bottom, so with 7 garment lines the notes still get a line, as in v87 (long notes still end "… see job sheet").
+- **Tested** (Playwright print media, 4×6): 2 lines and 7 lines both fit the 6 in label with nothing cut off.
