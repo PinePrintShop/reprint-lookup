@@ -431,3 +431,24 @@ Stephen: "Do the 5 bugs first".
 - Saving boots the app the same way as before (no reload). No other `alert/prompt/confirm` left in Catching.
 - **APP_VER 170** (Catching's own self-update). Permanent link `pine-catching.html` → v170.
 - **Tested** (Playwright, mocked Airtable, practice, iPad 1180): no token → field → empty Save flagged → Enter saves and today's jobs load → Clear removes it; no native dialog (the test fails on any). The aud2 main flow (work, damage, hand-off, review, order card) passes on v170.
+
+## 2026-11-04 — v171: 🔍 Find an order, and shared runs (11011 / 11060 Topo)
+Stephen: "how can I find the card on the iPad and would the iPad store the caught qty's", "why is the 14 rolled into the total qty for that card vs just what the 14 invoice should have?", "Yes build away".
+- **Background:** 11060 (14 Black + 14 Beige) printed on 11011's imprints (each set up for 264 = 250 + 14). The Beige was caught but never completed in Catching. Screen print tabs only list today's jobs, and the home-screen app can't open a link, so the Oct 28 card (with that iPad's saved taps) couldn't be reached.
+- **🔍 Find** (top bar):
+  - Type an order number. Its jobs load from any day, alongside today's, and the app goes to the first open card. A toast says where they are ("Order 11060: P2 ×2 to catch"), or that everything is caught (opens Completed).
+  - It finds the imprints through the order's line items, so an order that only shares another order's imprints (11060) is found too.
+  - The button shows the order number while it's on; **Back to today only** clears it.
+  - Saved taps on this iPad show on the card (they're keyed the same as before).
+- **Shared run cards:**
+  - A card belongs to its line item's own order. 11060's card sits under 11060 with its customer and shipping.
+  - It shows its own 14 by size (S 2, M 4, L 4, XL 2, 2XL 2). Before, its line item wasn't found (it was looked up under 11011), so the card fell back to the whole run: 264.
+  - Damage goes to 11060's line item and order.
+- **Status on a shared run:**
+  - An order's caught count now includes the imprints its line items print on, so 11060 (no imprints of its own) can move.
+  - When a card marks imprints caught, every other order on those imprints gets its status re-checked (forward only, as before). Catching the last card of 11011/11060 moves both.
+- **Tested** (Playwright, mocked Airtable copy of 11011-A/B + 11011/11060 Beige line items + a today job, iPad 1180×820):
+  - Today: only the today job.
+  - Find 11060 → P2, 11011 Beige 250 and 11060 Beige 14 (under 11060). A tap saved under the v170 key came back (1 smudge, M).
+  - The issue payload for that tap links 11060's line item and order.
+  - Complete 11011 then 11060 → imprints A, B caught once (on the second), 11060 → Caught - Awaiting Ship, 11011 → Caught - Awaiting Ship. No console errors.
