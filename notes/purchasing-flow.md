@@ -503,3 +503,18 @@ Stephen: "Do the 5 bugs first".
 - **⚙ › Airtable token** is a field with Save (Enter works), like Operator. It was a browser `prompt()` too.
 - On a phone the field takes the full width and the buttons sit under it.
 - **Tested** (Playwright, mocked Airtable, 1440/1024/390): 24 checks pass — field shown and focused, empty Add flagged, Esc cancels, existing name picked with no write, practice add 0 writes, live add = one POST to Suppliers with the name, failed add = red bar + field kept, token saved from ⚙. The test fails on any native dialog.
+
+## 2026-11-05 · v115: ⛔ Out of stock tells sales in Slack
+Stephen: "Out of Stock would be great and then we could list the sizes and it coudl trigger the slack to notify sales".
+- **Before:** purchasing could see stock and adjust sizes, but the only way to tell sales was typing "OOS." into Order Notes by hand (the "SLACK: OOS notification" automation watches for it). The v113 size editor deliberately removes "OOS." so it never fires.
+- **Button:** "⛔ Out of stock" sits next to "⚠ Garment issue" on every line. It opens a pop-up:
+  - The line's sizes as chips with their quantities, plus "All sizes". Sizes that are short at **every** warehouse the stock check answered for are picked already ("Picked: the sizes short at every S&S warehouse we checked.").
+  - Optional "Back in stock" and "Note for sales".
+  - A preview of the exact text, and who gets tagged (the order's sales rep).
+  - **Send to sales.**
+- **Write:** one line added to the line item's Order Notes, e.g. `OOS. 11/5 (purchasing): L 20, XL 10 out · most at one warehouse: L 12, XL 3 · checked S&S · back Dec 12 · <note>`. The automation (Line Items, Order Notes contains "OOS.") makes the OUT OF STOCK BOT post in sales' channel with the garment, the order, Order Notes as the summary, and tags the rep. Checked read-only: deployed, 10 recent runs all succeeded.
+- **Re-alerts:** the automation is "when a record matches conditions", so it fires only when a line *starts* containing "OOS.". If the line already has an "OOS." (typed earlier or an older alert), the app first saves Order Notes with it changed to "OOS" (stops matching), waits 4 seconds, then saves the new line. Not yet confirmed live that Airtable re-fires after the 4-second gap; watch the first one.
+- **After sending:** the line shows a red "⛔ OOS: L, XL · sales told 11/5" tag with **✓ Sorted**. Sorted (Pine confirm) changes that line's "OOS." to "OOS … · sorted 11/6": the tag comes off, nothing goes to Slack, and a later OOS on the line alerts again.
+- The app's OOS lines are app-managed (like "Split:" and "6X extras:"), so they don't show in the Order Notes box and editing that box keeps them. Any "OOS." typed into the note text becomes "OOS" so it can't double-fire.
+- Practice mode sends nothing.
+- **Tested** (Playwright, mocked Airtable, 1440×900 and 390×844): L and XL preselected from mocked S&S stock (short at Reno and Olathe); the save is exactly one PATCH of Order Notes with the line added after the existing notes and Split line; a line with an earlier "OOS." gets two PATCHes 4 seconds apart (clear, then add); Sorted makes one PATCH and the tag goes; the Order Notes box shows only the user's note; practice 0 writes; no console errors.
