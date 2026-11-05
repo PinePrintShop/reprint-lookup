@@ -2650,3 +2650,15 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - v205: stays grey with the label "Attach proof to line".
   - v206: on, reading "Attach proof to 1717 Ivory".
 - Checked v205's other changes for the same mistake; none found.
+
+## 2026-11-05 — v207: Edit PDF preview text the right size
+- Stephen, changing 11154's order number: "looks to be shrinking the text when you update to the new order number".
+- **Cause:** v202's note on the colour sampling had swallowed the line that sets the font. The preview drew typed or replaced text in the browser's default 10px font. The saved and attached PDF was always the right size.
+- **Fix:** the font line is out of the note.
+- **Same mistake elsewhere** (a `//` note in the middle of a line hiding the code after it). Searched the whole file and found two older ones, now fixed:
+  - **v139:** the folded "Save photo" button (`gSave`) hadn't been following the garment since v139.
+  - **v100:** the colour-compare slider is reset to hidden again before it's redrawn.
+- **Tested** Edit PDF with "Order #: 10835" replaced by 11154:
+  - v206: small text in the preview.
+  - v207: same size and weight as the original.
+  - No console errors.
