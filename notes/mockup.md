@@ -2572,3 +2572,23 @@ Stephen: "how does the auto crop work when removing the background I am still no
 - **Tested** (Playwright, practice):
   - JPEG with a black box (2400 px) behind red/blue type on white, erased: the box went 11″ → 5.39″ × 2.6″, the type's own size at the same scale. v199 left it at 11″.
   - The clean PNG test still crops to 4.12″ and keeps the erase + green recolour through Fill on/off.
+
+## 2026-11-05 — v201: fabric line in the middle, all proof notes blue, old base names → BASE
+Stephen: "a middle ground for the fabric content … between super simple and a little more information", "make all the warnings blue and nothing red", "for reprint jobs instead of keeping the old base swatches that had 1/2 blocker etc. can we also update those along with the text".
+- **Fabric Content** (`fabMid`, page 1 of garment proofs and the older layout): **weight · what it's made of · one standout**.
+  - Kept: ring-spun, organic, recycled, pima. The standout is garment dyed, pigment dyed, fleece or tri-blend.
+  - Dropped: yarn counts ("30 singles"), seams, labels, "combed", brand words (Airlume), CA weights.
+  - If it can't read the vendor's line, the line stays as written. Bandanas unchanged (already simple).
+  - Examples:
+
+    | Vendor line | Proof shows |
+    |---|---|
+    | 6.1 oz., 100% ring spun cotton, garment dyed, soft washed, double-needle stitching | 6.1 OZ · 100% RING-SPUN COTTON · GARMENT DYED |
+    | 5.3 oz./yd² (US) …, 100% cotton | 5.3 OZ · 100% COTTON |
+    | 4.2 oz., 100% Airlume combed and ring-spun cotton, 32 singles | 4.2 OZ · 100% RING-SPUN COTTON |
+    | 4.3 oz., 60/40 combed ring-spun cotton/polyester, 30 singles | 4.3 OZ · 60/40 RING-SPUN COTTON/POLY |
+    | 3.8 oz., 50/25/25 polyester/… cotton/rayon, tri-blend | 3.8 OZ · 50/25/25 POLY/COTTON/RAYON |
+    | 8 oz., 50% cotton, 50% polyester fleece | 8 OZ · 50% COTTON, 50% POLY · FLEECE |
+- **Notes blue:** the close-up's print notes (red since v184) and the embroidery template's pink notes are now the proof blue #1a9ad6. No red on the proofs.
+- **Reprints:** `isBaseName` also knows the older base names: Blocker (1/2, 1/4, gray, black), Underbase / UB, White Base, Flash White. A reprint whose imprint copied "1/2 Blocker, 7527, 186" now shows BASE | 7527 OW | 186 OW (v200 also showed a "1/2 BLOCKER OW" swatch).
+- **Tested** (practice): Comfort Colors 1717 with the vendor line above (page 1 shows the short line), thin-line note on the close-up in blue, and chips for three imprint texts.
