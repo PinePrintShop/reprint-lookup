@@ -2719,3 +2719,17 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - **Tested** with mocked Airtable:
   - 11152 open with art; 11160 added to Airtable; the check fired (2 minutes simulated).
   - Result: the menu lists #11160 and #11152; 11152 is still selected and open, with its art and Attach still on; the toast named 11160; no console errors.
+
+## 2026-11-05 — v213: the shoulder mark keeps the print's size unless asked
+- Stephen: "when I place artwork on the back and adjust the garment length it adjust the image size". Then: "I was just adjusting that new garment length tool and it was changing the image size". Asked what the mark should do; he chose "Both, with a lock".
+- **Why it happened:** v204's drag sets the photo's scale (body length + collar above the shoulder). Moving the mark changes how many inches the photo stands for, so the print (still 11″) drew bigger or smaller on the shirt.
+- **Now, by default:** dragging the mark moves it and the collar point together (`HPSOFF`, inches, localStorage `pine_mk_hpsoff`). "3″ below neck" is measured from that collar point. The print moves with them and keeps its size; the scale still comes from the spec length.
+  - The length label then reads "26.9″ to the hem as marked · 28″ spec sets the scale".
+- **"Mark fixes scale"** (button above the mockup, beside Fit; remembered in `pine_mk_hpsscale`): v204's drag, which re-scales the photo. It replaces a moved-only offset.
+- **Double-click** the mark resets both.
+- **Mistake caught in testing:** my new `// v213` note on the length-label line commented out the "collar above the shoulder" label after it. That's the third slip of this kind today, after v205 and v202. Fixed, and the whole file was re-checked for code after a `// vNNN` note.
+- **Tested** with live photos of the 3010 Black, an 11″ back print, real mouse drags:
+  - Normal drag down: 215 px wide either way; the print top moved 199 → 222 px with the mark.
+  - "Mark fixes scale" on, dragged: 218.6 px (re-scaled), offset cleared.
+  - Double-click: back to 215 px at 199.
+  - Proof page 1 (Ivory, Black): no console errors.
