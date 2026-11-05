@@ -84,3 +84,9 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - **Row height:** worked out so the sheet has the page's shape (10.2 × 7.5″ inside the margins), between 15 and 48 pt. The sheet's width comes from the column widths (a character ≈ 7 px + 5 px padding at 96 dpi).
 - **Text:** carton-row text grows with the rows, 10–12 pt, centred in the cell. SKU (18), Destination (30), Description (40) and Size (12) are a little wider so nothing wraps.
 - **Tested** with PO0003352, 9 cartons with one mixed: LibreOffice prints 1 Letter page (792 × 612) that the table fills, with no wrapping.
+
+## 2026-11-05 — v8: ask before picking up saved cartons
+- Stephen: "I messed it up and trying to re upload the PO but it picks up where I left off".
+- **Re-dropping a PO** that has saved cartons now asks first: "You have N cartons saved for PO …". OK picks up where you left off; Cancel starts fresh and clears the saved cartons.
+- **Start over** now also clears season, Pine order # and ship date, and resets the empty box weight to 2.
+- **Tested:** 10 cartons saved; re-drop + OK gives 10, re-drop + Cancel gives 0 and the save is cleared. No page errors.
