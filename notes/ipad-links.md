@@ -37,7 +37,7 @@
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
 | Mockup Maker (desktop, art dept) | `mockup.html` | v225 (stickers too) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
-| Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v3 |
+| Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v4 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
