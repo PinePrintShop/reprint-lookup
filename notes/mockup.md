@@ -2745,3 +2745,26 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - Keep print size: moved only, size held.
   - Double-click: reset.
   - Code-after-a-note check: 0. No console errors.
+
+## 2026-11-05 — v215: the file's spot colours first; screen count on the proof
+- **Spot colours first.** Stephen: "if the file has a spot color can we use that one first" · "it is not a pantone color we have".
+  - **Before:** an .ai/.pdf's spot names were only listed in the scan box ("Spot colours named in the file"). The inks were named by the nearest Pantone in the shop's list, and the imprint's Airtable Pantones went on the proof ahead of them. PSD spot channels were already used (`fileInks`).
+  - **Now:** `spotColours()` reads each spot's own colour at 100%:
+    - Separation colour spaces with a CMYK / RGB / Gray / Lab / ICC alternate and a type 2 tint function (`/C1`), inline or as a separate object.
+    - Also inside compressed object streams (ObjStm, inflated with DecompressionStream).
+    - Also older .ai `%%CMYKCustomColor` / `%%RGBCustomColor` comments.
+    - A spot with no readable colour but a Pantone number uses the Pantone's colour.
+  - `spotNamePass()` runs after every scan: an ink within ΔE 15 of a spot takes the spot's name and colour (`ink.spot`). That covers a Pantone the shop doesn't stock, or a custom name ("BRAND RED").
+  - The proof's Colors use those names first, ahead of the imprint's Pantones. Naming from a past proof or the imprint's Pantones (`nameFromProof`) skips spot-named inks.
+  - The scan box says "Spot colours from the file: … — the inks and the proof's Colors use these".
+  - `spotCols` is kept with the saved art.
+- **Screen count.** Stephen: "bring in more imprint id information like the screen count sales is asking for".
+  - Page 1's Colors heading reads "Colors · 3 screens"; the embroidery-style block reads "COLORS · 3 SCREENS".
+  - `screenCount()` uses the imprint's Screens (Airtable, `fld8rgkIj1RPO97QU`) when set, otherwise one per swatch on the proof (BASE counts as a screen). Printed imprints only; not transfers.
+- **Tested:**
+  - A hand-built PDF with "Brand Red" (CMYK spot) and "PANTONE 7621 C" (Lab spot, separate tint-function object). The imprint's Pantones say 186.
+    - Colours read: Brand Red [230,23,34], 7621 [177,24,31].
+    - v214: Warm Red · 186. v215: BRAND RED · 7621, and the scan box flags 186 on the imprint but not in the art.
+    - Proof page 1: "Colors · 2 screens" with BRAND / RED and 7621 swatches in their own colours.
+  - v210's 7 white-ink cases are unchanged.
+  - Code-after-a-note check: 0. No console errors.
