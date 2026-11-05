@@ -90,3 +90,12 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - **Re-dropping a PO** that has saved cartons now asks first: "You have N cartons saved for PO …". OK picks up where you left off; Cancel starts fresh and clears the saved cartons.
 - **Start over** now also clears season, Pine order # and ship date, and resets the empty box weight to 2.
 - **Tested:** 10 cartons saved; re-drop + OK gives 10, re-drop + Cancel gives 0 and the save is cleared. No page errors.
+
+## 2026-11-05 — v9: Topo's PO as they write it, full ship-to address
+- Stephen had me check the 11011 packing list against Topo's blank sheet. The workbook's hidden tabs include an earlier vendor's filled packing list and a summary, which write the PO as "PO0002149".
+- Stephen: "no weight if they didn't ask since it is on the carton labels. but yes let's try and match the pos they provided us that match this packing list", then "oh and full shipping address under to:".
+- **PO:** Cust PO and "Packing Details of" read **PO0003352**, as on Topo's PO, instead of 3352. A PO typed by hand becomes PO + 7 digits. Manufacturer PO stays Pine's order #. Carton labels keep "PO#: 3352", as on past labels. Cust PO column widened to 13.5.
+- **Ship-to address (full):** a new field, filled from the PO ("Baja Fulfillment, 6987 Calle de Linea, Suite 109, San Diego CA 92154"). It's used for "Ship To Address:" and after "To:". The Destination column keeps the short name, and the field is saved with the cartons.
+- **No weight columns,** per Stephen.
+- **Also found in his file:** TOTAL 498 against the PO's 500 (carton 1 had 36 LS XX-Large; the PO has 38). I told Stephen.
+- **Tested** with PO0003352: the header and rows read PO0003352 and the full address. LibreOffice prints 1 page. No page errors.
