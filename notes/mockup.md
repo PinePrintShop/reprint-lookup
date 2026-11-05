@@ -2805,3 +2805,8 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - **Now:** `attachAll` turns off the per-garment pages and the Colorways page while it attaches, then restores both settings. Each line's PDF is its own garment's page 1 plus its close-ups. The single Attach still follows the checkboxes.
 - **Tested** with mocked Airtable (3 lines, default settings): every line's PDF is "Page 1 / 11199-A", its own garment. Code-after-a-note check: 0. No console errors.
 - **11161:** the 8 lines carry v217 PDFs with all 8 garments in each. Attach to all again on v219 replaces each one with that line's own proof.
+
+## 2026-11-05 — v220: EZP WHT on screen prints only
+- Stephen: "EZP WHT is just for screen printing and not for emboirdery etc". v210 had made every top white read EZP WHT.
+- `inkLabel(t,suf,scr)` now takes whether the imprint is a screen print (`methOf(im)==='print'`). Embroidery, patches and transfers keep the white as typed, and an "EZP WHT" on one of them reads WHT. Screen prints are unchanged: EZP WHT on top, WHT DC on discharge, BASE for bases.
+- Checked: WHT/White on a print → EZP WHT; WHT DC stays; WHT/EZP WHT on embroidery → WHT.
