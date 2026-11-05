@@ -2592,3 +2592,10 @@ Stephen: "a middle ground for the fabric content … between super simple and a 
 - **Notes blue:** the close-up's print notes (red since v184) and the embroidery template's pink notes are now the proof blue #1a9ad6. No red on the proofs.
 - **Reprints:** `isBaseName` also knows the older base names: Blocker (1/2, 1/4, gray, black), Underbase / UB, White Base, Flash White. A reprint whose imprint copied "1/2 Blocker, 7527, 186" now shows BASE | 7527 OW | 186 OW (v200 also showed a "1/2 BLOCKER OW" swatch).
 - **Tested** (practice): Comfort Colors 1717 with the vendor line above (page 1 shows the short line), thin-line note on the close-up in blue, and chips for three imprint texts.
+
+## 2026-11-05 — v202: the quick reprint changeover relabels old base swatches
+Stephen: "for reprint jobs instead of keeping the old base swatches that had 1/2 blocker etc. can we also update those along with the text" → "it was just that quick reprint changeover".
+- **Edit PDF › Replace everywhere** (the old proof → the new order) now also relabels the old base swatches: a swatch reading a base name (1/2 BLOCKER, UNDERBASE, EZ WHT, 1/2 BB …) or a stacked pair (1/2 over BB / BLOCKER, UNDER over BASE) is covered in the swatch's own colour (sampled from its middle) and reads **BASE**, bold, centred.
+- WHITE / BLACK ink swatches and the colour swatches are left alone.
+- The button counts them ("Replace everywhere (4)") and the toast says "Changed 2 places · 2 old base swatches → BASE"; Undo works as for any edit.
+- **Tested** (Playwright, practice): a made-up old proof with "10835-A", swatches 1/2-over-BB, 7527/OW, UNDER-over-BASE and WHITE. After Replace everywhere (10835 → 11200): PRINT - 11200-A; BASE, 7527 OW, BASE, WHITE; covers matched the swatch grey.
