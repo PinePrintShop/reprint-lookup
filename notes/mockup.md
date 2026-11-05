@@ -2858,3 +2858,12 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   5. Only background pixels outside the outline are taken out, so black inside the design stays black.
 - Square dilation runs on rows then columns with running counts, so it is linear in the pixel count.
 - **Tested** with Stephen's 11156 PNG on black: the inner black areas are kept, the die-cut edge is smooth, and there are no page errors.
+
+## 2026-11-05 — v224: the shoulder mark always takes the drag
+- Stephen, CornerStone jacket front: "looks like I can't adjust that garment selector on the front now?"
+- **Cause:** the canvas picked whichever handle was drawn last. Prints, and the collar-bottom line, were drawn after the shoulder mark, so they took the drag wherever they overlapped it. On a jacket front the collar bottom sits at shoulder height. The mark also couldn't go above the top of the photo.
+- **Now:** `hit()` prefers the shoulder mark, then the hem ends, when the pointer is on them; otherwise it works as before. The mark can go up to 2″ above the photo's top, and HPS still stops at −2.
+- **Tested** on a live SanMar CSJ60 Black:
+  - drag down 5.8″;
+  - onto the collar-bottom line (the hit boxes overlap) and drag again: the mark moves (4.5″);
+  - drag above the photo: −1.6″.
