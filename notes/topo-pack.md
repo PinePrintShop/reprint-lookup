@@ -24,3 +24,10 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
   - Written as a real .xlsx (a stored zip, no library); it opened in LibreOffice.
 - **Tested** with PO0003352: 10 SKUs and 500 pcs read, "one carton per size" with Stephen's SS numbers (S 10 … XXL 6), labels (20 pages) and packing list both checked.
 - **Open:** season for this PO; LS carton numbers and box sizes; weights. Saving to the order's Drive "UPC & Carton Labels" folder could come next.
+
+## 2026-11-05 — v2: Duplicate a carton
+- Stephen: "would it be best to add a box field so I can add each boxes dimensions and maybe and a copy and paste for simliar ones…", then: "oh I just needed to click carton size!"
+- Each carton row has **Duplicate**: a new carton with the same box size and weight, holding the next SKU still to pack (and its quantity left).
+- With no cartons yet, the table says to click One carton per size or ＋ Carton.
+- "Empty box weight (lbs)" is renamed, and its hint says about 2 lbs. Stephen had typed 35 there, which makes every net weight 0.
+- Tested: the PO is read, One carton per size gives 10 cartons, and Duplicate copies the size and weight. No page errors.
