@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!-- Sticker Proof v1 (2026-11-05). Stephen, with 11156's two sticker proofs (STICKER-DESIGN1.pdf / DESIGN2.pdf from Illustrator):
+     "Here is our sticker template....I don't know yet how we make the mockups...but we can at least get this template setup in
+     the system. Please match it exactly".
+     Sticker lines (Line Items › Product Type "Stickers") have no imprints or garment, so Mockup Maker doesn't list them. Here:
+     type the order number, pick a sticker line, drop in the art (PNG / JPG / PDF / PDF-compatible .ai). The page is the art
+     department's template, measured off those PDFs in points (letter landscape, 792 × 612): logo box, "Stickers", Order #,
+     Shipping & Billing / ASI# / Order Contact / Payment Terms, the grey art panel, the blue size marks (fixed, as on the
+     template), Border / Finishing / Colors (full-colour bar + FULL COLOR in Arial Black) and APPROVED. Attach puts the PDF on the
+     line's Proof Images as "<order> | STICKER-<DESIGN>.pdf" (only the new proof stays, as Mockup Maker); Download saves it.
+     ?practice=1 writes nothing. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sticker Proof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pine-style-v2.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+.sp{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:20px;padding:20px;align-items:start}
+@media (max-width:900px){.sp{grid-template-columns:1fr;padding:16px}}
+.sp-side{display:flex;flex-direction:column;gap:14px}
+.sp-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}.sp-row .p-field{flex:1;min-width:110px}
+.sp-lines{display:flex;flex-direction:column;gap:6px}
+.sp-line{text-align:left;padding:10px 12px;border:1.5px solid rgba(0,0,0,.15);border-radius:8px;background:#fff;cursor:pointer;font:400 14px Helvetica,Arial,sans-serif}
+.sp-line b{display:block;font-size:15px}.sp-line.is-on{border-color:#000;box-shadow:inset 0 0 0 1px #000}
+.sp-side .p-card{display:flex;flex-direction:column;gap:12px}.sp-side [hidden]{display:none!important}
+.sp-drop{display:block;border:2px dashed rgba(0,0,0,.25);border-radius:10px;padding:18px;text-align:center;background:#fff;cursor:pointer;font:400 14px Helvetica,Arial,sans-serif}
+.sp-drop.is-over{border-color:#000;background:#FBE122}
+.sp-pv{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.12);padding:10px;position:sticky;top:76px}
+.sp-pv canvas{width:100%;height:auto;display:block}
+.sp-chk{display:flex;gap:8px;align-items:center;font:400 14px Helvetica,Arial,sans-serif;min-height:32px}
+</style></head>
+<body class="p-app">
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Sticker Proof</span><span class="p-bar-ver" id="ver">v1</span><span class="p-tag p-tag-wait" id="practiceTag" hidden>Practice</span>
+  <div class="p-bar-sp"><button class="p-barbtn" id="refresh" type="button">↻ <span class="p-barbtn-word">Refresh</span></button></div></header>
+<main class="sp">
+  <section class="sp-side">
+    <div class="p-card" id="tokCard" hidden><div class="p-label">Airtable key</div><p class="p-hint">This computer has no saved Airtable key. Paste the one the other Pine apps use (saved on this computer only).</p>
+      <div class="sp-row"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="tokSave" type="button">Save</button></div></div>
+    <div class="p-card"><div class="sp-row"><label class="p-field"><span class="p-label">Order #</span><input class="p-input" id="ord" inputmode="numeric" placeholder="11156"></label><button class="p-btn" id="ordGo" type="button">Open</button></div>
+      <div class="p-hint" id="ordMsg">Type the order number to list its sticker lines.</div><div class="sp-lines" id="lines"></div></div>
+    <div class="p-card"><div class="p-label">Art</div><label class="sp-drop" id="drop">Drop the sticker art here, or click to pick it<br><small>PNG · JPG · PDF · .ai (saved PDF-compatible)</small><input type="file" id="file" accept=".png,.jpg,.jpeg,.webp,.pdf,.ai,image/*,application/pdf" hidden></label>
+      <label class="sp-chk"><input type="checkbox" id="dropWhite" checked> Take off a plain white background</label>
+      <label class="sp-chk"><input type="checkbox" id="edge" checked> White die-cut edge around the art</label></div>
+    <div class="p-card">
+      <div class="sp-row"><label class="p-field"><span class="p-label">Width (in)</span><input class="p-input" id="w" inputmode="decimal" value="3"></label><label class="p-field"><span class="p-label">Height (in)</span><input class="p-input" id="h" inputmode="decimal" placeholder="from the art"></label></div>
+      <div class="sp-row"><label class="p-field"><span class="p-label">Border</span><input class="p-input" id="border" value="Die Cut" list="borders"></label><label class="p-field"><span class="p-label">Finishing</span><input class="p-input" id="finish" value="Semi-Gloss" list="finishes"></label></div>
+      <datalist id="borders"><option>Die Cut</option><option>Kiss Cut</option><option>Circle</option><option>Rounded Corners</option><option>Square</option></datalist>
+      <datalist id="finishes"><option>Semi-Gloss</option><option>Gloss</option><option>Matte</option><option>Holographic</option><option>Clear</option></datalist>
+      <label class="p-field"><span class="p-label">Colors</span><input class="p-input" id="colors" value="FULL COLOR"></label>
+      <div class="p-hint">"FULL COLOR" shows the colour bar, as on the template.</div></div>
+    <div class="sp-row"><button class="p-btn p-btn-main" id="attach" type="button" disabled>Attach to line</button><button class="p-btn" id="dl" type="button" disabled>Download PDF</button></div>
+    <div class="p-hint" id="msg"></div>
+  </section>
+  <section class="sp-pv"><canvas id="cv" width="1650" height="1275" aria-label="Sticker proof preview"></canvas></section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const PRACTICE=/[?&]practice=1/.test(location.search);
+const lsx={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+let TOKEN=lsx.get('pine_at_key','');
+const BASE='appJkaLk8DykjsgHR', T_LI='tblJx5UlwO7oMSk5H', T_ORD='tbl8Tf0AeS9gnHOOS', OF_LINES='fldU6fgrz6sU3wyIZ';
+const LF={ptype:'fld8LIkrBXv8WoRRb',size:'fldg7mDtQwtesvv6U',desc:'fldKpcYiNDhlknPyv',nProof:'fldWdnT83KLEvBrg4',nSales:'fldG3tzTzUC3QQJ1I',qty:'fldFfuKAcduwWQp8g',proof:'flddhvdkKI31tFTdX'};
+const S={num:'',lines:[],line:null,art:null,busy:false};
+window.pineBusy=()=>S.busy||!!S.art;
+const toast=m=>{ document.querySelectorAll('.p-toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='p-toast'; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),4200); };
+async function at(path,opt){ if(!TOKEN) throw new Error('no Airtable key');
+  const r=await fetch(path.startsWith('http')?path:`https://api.airtable.com/v0/${BASE}/${path}`,Object.assign({},opt||{},{headers:Object.assign({Authorization:'Bearer '+TOKEN},(opt&&opt.body)?{'Content-Type':'application/json'}:{})}));
+  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status)); } return r.json(); }
+const selName=v=>v&&typeof v==='object'?(v.name||''):String(v||'');
+
+/* ================= order → sticker lines ================= */
+async function openOrder(n){ n=String(n||'').replace(/\D/g,''); if(!n) return; S.num=n; S.line=null; $('lines').innerHTML=''; $('ordMsg').textContent='Looking up '+n+'…';
+  if(!TOKEN){ $('tokCard').hidden=false; $('ordMsg').textContent='Add the Airtable key first.'; return; }
+  try{ const flds=Object.values(LF).map(f=>'fields%5B%5D='+f).join('&');
+    const o=((await at(`${T_ORD}?returnFieldsByFieldId=true&pageSize=1&fields%5B%5D=${OF_LINES}&filterByFormula=${encodeURIComponent('{Invoice / Order Number}='+n)}`)).records||[])[0];
+    if(!o){ $('ordMsg').textContent=`No order ${n} in Airtable.`; draw(); return; }
+    const ids=o.fields[OF_LINES]||[];
+    const d=ids.length?await at(`${T_LI}?returnFieldsByFieldId=true&pageSize=100&${flds}&filterByFormula=${encodeURIComponent('OR('+ids.map(i=>`RECORD_ID()='${i}'`).join(',')+')')}`):{records:[]};
+    d.records=(d.records||[]).sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));
+    S.lines=(d.records||[]).filter(r=>/sticker/i.test(selName(r.fields[LF.ptype]))).map(r=>({id:r.id,f:r.fields}));
+    if(!S.lines.length){ $('ordMsg').textContent=`No sticker lines on ${n} (Product Type "Stickers").`; draw(); return; }
+    $('ordMsg').textContent=`${S.lines.length} sticker line${S.lines.length===1?'':'s'} on ${n}:`;
+    $('lines').innerHTML=S.lines.map((l,i)=>{ const f=l.f, nm=f[LF.nProof]||f[LF.nSales]||`Sticker ${i+1}`, pr=(f[LF.proof]||[]).length; return `<button class="sp-line" data-i="${i}" type="button"><b>${esc(nm)}</b>${esc([selName(f[LF.size]),f[LF.desc],f[LF.qty]?f[LF.qty]+' pcs':''].filter(Boolean).join(' · '))}${pr?' · proof attached':''}</button>`; }).join('');
+    $('lines').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>pickLine(+b.dataset.i));
+    pickLine(0); }
+  catch(e){ $('ordMsg').textContent='Could not load: '+e.message; } }
+function pickLine(i){ S.line=S.lines[i]||null; $('lines').querySelectorAll('[data-i]').forEach(b=>b.classList.toggle('is-on',+b.dataset.i===i));
+  const f=S.line&&S.line.f, sz=f&&parseFloat(String(selName(f[LF.size])).replace(/[^\d.]/g,'')); if(sz>0){ $('w').value=sz; syncH(); }
+  if(f&&/kiss/i.test(f[LF.desc]||'')) $('border').value='Kiss Cut'; else if(f&&/die/i.test(f[LF.desc]||'')) $('border').value='Die Cut';
+  draw(); sync(); }
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const designName=()=>{ const f=S.line&&S.line.f; return String((f&&(f[LF.nProof]||f[LF.nSales]))||'Design').trim(); };
+const fileName=()=>`${S.num||'Order'} | STICKER-${designName().toUpperCase()}.pdf`;
+
+/* ================= art ================= */
+async function loadArt(file){ if(!file) return; $('msg').textContent='Opening '+file.name+'…';
+  try{ let c; const ext=(file.name.split('.').pop()||'').toLowerCase();
+    if(ext==='pdf'||ext==='ai'){ const doc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise, pg=await doc.getPage(1), v1=pg.getViewport({scale:1}), sc=Math.min(8,2400/Math.max(v1.width,v1.height)), vp=pg.getViewport({scale:sc});
+      c=document.createElement('canvas'); c.width=Math.round(vp.width); c.height=Math.round(vp.height); await pg.render({canvasContext:c.getContext('2d'),viewport:vp,background:'rgba(0,0,0,0)'}).promise; }
+    else { const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('That image could not be read')); i.src=URL.createObjectURL(file); });
+      const k=Math.min(1,2400/Math.max(im.naturalWidth,im.naturalHeight)); c=document.createElement('canvas'); c.width=Math.round(im.naturalWidth*k); c.height=Math.round(im.naturalHeight*k); c.getContext('2d').drawImage(im,0,0,c.width,c.height); }
+    S.raw=c; S.rawName=file.name; buildArt(); $('msg').textContent='';
+  }catch(e){ $('msg').textContent='Could not open it: '+e.message; } }
+// the art as cut: white background off (from the edges), trimmed, then the white die-cut edge around it
+function buildArt(){ if(!S.raw){ S.art=null; draw(); sync(); return; }
+  const src=S.raw, W=src.width, H=src.height, c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0);
+  const id=x.getImageData(0,0,W,H), d=id.data;
+  let opaque=true; for(let i=3;i<d.length;i+=4*97) if(d[i]<250){ opaque=false; break; }
+  if($('dropWhite').checked&&opaque){ const seen=new Uint8Array(W*H), st=[]; const wh=i=>d[i*4]>238&&d[i*4+1]>238&&d[i*4+2]>238;
+    for(let xx=0;xx<W;xx++){ st.push(xx,(H-1)*W+xx); } for(let yy=0;yy<H;yy++){ st.push(yy*W,yy*W+W-1); }
+    while(st.length){ const i=st.pop(); if(seen[i]||!wh(i)) continue; seen[i]=1; d[i*4+3]=0; const xx=i%W; if(xx>0) st.push(i-1); if(xx<W-1) st.push(i+1); if(i>=W) st.push(i-W); if(i<W*(H-1)) st.push(i+W); }
+    x.putImageData(id,0,0); }
+  let x0=W,y0=H,x1=-1,y1=-1; for(let yy=0;yy<H;yy++) for(let xx=0;xx<W;xx++) if(d[(yy*W+xx)*4+3]>16){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(yy<y0)y0=yy; if(yy>y1)y1=yy; }
+  if(x1<0){ S.art=null; $('msg').textContent='The art came out empty.'; draw(); sync(); return; }
+  const tw=x1-x0+1, th=y1-y0+1, r=$('edge').checked?Math.round(Math.max(tw,th)*0.035):0, o=document.createElement('canvas'); o.width=tw+2*r; o.height=th+2*r; const ox=o.getContext('2d');
+  if(r){ const sil=document.createElement('canvas'); sil.width=tw; sil.height=th; const sx=sil.getContext('2d'); sx.drawImage(c,x0,y0,tw,th,0,0,tw,th); sx.globalCompositeOperation='source-in'; sx.fillStyle='#fff'; sx.fillRect(0,0,tw,th);
+    for(let a=0;a<360;a+=10){ const t=a*Math.PI/180; ox.drawImage(sil,r+Math.cos(t)*r,r+Math.sin(t)*r); } for(let q=0.5;q<1;q+=0.25) for(let a=0;a<360;a+=20){ const t=a*Math.PI/180; ox.drawImage(sil,r+Math.cos(t)*r*q,r+Math.sin(t)*r*q); } }
+  ox.drawImage(c,x0,y0,tw,th,r,r,tw,th); S.art=o; S.artAspect=th/tw; syncH(true); draw(); sync(); }
+function syncH(fromArt){ if(!S.art) return; const w=parseFloat($('w').value); if(!(w>0)) return; if(fromArt||!$('h').dataset.hand) $('h').value=Math.round(w*S.artAspect*10)/10; }
+
+/* ================= the template (points on a 792 × 612 letter-landscape page; measured off 11156's PDFs) ================= */
+const DPP=150, K=DPP/72, BLUE='#51ADE5', INK='#231f20', GREY='#D0CFCD';
+let LOGO=null; (()=>{ const im=new Image(); im.onload=()=>{ LOGO=im; draw(); }; im.src='assets/pine-script.svg'; })();
+const fmtIn=v=>{ const n=Math.round(v*10)/10; return String(n).replace(/\.0$/,''); };
+function draw(){ const cv=$('cv'), x=cv.getContext('2d'); x.setTransform(1,0,0,1,0,0); x.fillStyle='#fff'; x.fillRect(0,0,cv.width,cv.height); x.setTransform(K,0,0,K,0,0);
+  // fixed template words are drawn to the exact width they have on the template (its tracking, and whatever Helvetica this computer has)
+  const T=(t,X,Y,pt,bold,col,fam,Wd)=>{ x.font=`${bold===900?'900 ':bold?'700 ':''}${pt}px ${fam||'Helvetica,"Helvetica Neue",Arial,sans-serif'}`; x.fillStyle=col||INK;
+    const m=x.measureText(t).width; if(Array.isArray(Wd)) Wd=m*Wd[1]/x.measureText(Wd[0]).width; if(Wd&&m>0){ x.save(); x.translate(X,Y); x.scale(Wd/m,1); x.fillText(t,0,0); x.restore(); } else x.fillText(t,X,Y); };
+  // logo box
+  { const X=29.52,Y=33.84,S0=69.9; x.fillStyle=INK; x.fillRect(X,Y,S0,S0); if(LOGO){ const w=S0*0.72,h=w*134.5/165.6, c=document.createElement('canvas'); c.width=Math.round(w*K); c.height=Math.round(h*K); const cx=c.getContext('2d'); cx.drawImage(LOGO,0,0,c.width,c.height); cx.globalCompositeOperation='source-in'; cx.fillStyle='#fff'; cx.fillRect(0,0,c.width,c.height); x.drawImage(c,X+(S0-w)/2,Y+(S0-h)/2,w,h); } }
+  T('Stickers',111.6,72.5,45,true,0,0,175.1); T('Order #: '+(S.num||''),111.9,94.7,16,false,0,0,['Order #: 11156',108]);
+  T('Shipping & Billing:',415,37,12,true,0,0,107.34); [['Pine Printshop',413.9,51.9,81.84],['2649 E Mulberry St',413.9,66.3,92.99],['Unit 26&27',413.9,81.2,54.22],['Fort Collins, CO 80524',414.2,94.4,128.18],['(970) 672-4650',414.2,108.8,85.8]].forEach(([t,X,Y,Wd])=>T(t,X,Y,12,false,0,0,Wd));
+  T('ASI#:',573,36,12,true,0,0,30.67); T('295976',607,36,12,false,0,0,40.03); T('Order Contact:',573,54,12,true,0,0,88.48); T('Mike- (970) 672-4650',573,69,12,false,0,0,120.17); T('purchasing@pineprintshop.com',573,83.4,12,false,0,0,176.72);
+  T('Payment Terms:',573,104,12,true,0,0,96.28); T('Credit Card',573,119,12,false,0,0,64.25);
+  T('Border:',485.5,131.5,12,false,0,0,41.09); T($('border').value.trim(),484.8,150.2,17.76,true,0,0,['Die Cut',62.14]);
+  T('Finishing:',488.7,178.8,12,false,0,0,51.35); T($('finish').value.trim(),487.3,197.5,17.76,true,0,0,['Semi-Gloss',97.69]);
+  T('Colors:',485.5,227,12,false,0,0,39.73); { const col=$('colors').value.trim(), full=/full\s*colou?r/i.test(col);
+    if(full){ const g=x.createLinearGradient(486,0,568.8,0); [[487,'#47A3DD'],[499,'#364AA2'],[511,'#8E1E8D'],[517,'#D00E8A'],[529,'#EA1854'],[535,'#EB2232'],[541,'#EE6127'],[547,'#F2AA1E'],[553,'#EFE818'],[559,'#A5CC2E'],[565,'#5DB242']].forEach(([p,c])=>g.addColorStop(Math.max(0,Math.min(1,(p-486)/82.8)),c)); x.fillStyle=g; x.fillRect(486,234.72,82.8,8.64); T(col.toUpperCase(),571.2,243.6,12,900,INK,'"Arial Black","Arial",sans-serif',col.toUpperCase()==='FULL COLOR'?84.48:0); }
+    else T(col.toUpperCase(),486,243.6,12,900,INK,'"Arial Black","Arial",sans-serif'); }
+  // the art panel
+  x.fillStyle=GREY; x.fillRect(29.16,124.32,438.48,438.48); x.strokeStyle=INK; x.lineWidth=0.8; x.strokeRect(29.16,124.32,438.48,438.48);
+  if(S.art){ const k=Math.min(251/S.art.height,300/S.art.width), w=S.art.width*k, h=S.art.height*k; x.imageSmoothingQuality='high'; x.drawImage(S.art,241-w/2,331.5-h/2,w,h); }
+  // the size marks (fixed, as on the template) and their labels
+  x.strokeStyle=BLUE; x.lineWidth=0.72; x.beginPath(); x.moveTo(126.72,469.56); x.lineTo(351.6,469.56); x.moveTo(414.12,227.28); x.lineTo(414.12,443.04); x.stroke();
+  const wv=parseFloat($('w').value), hv=parseFloat($('h').value);
+  x.font='10.89px Helvetica,Arial,sans-serif'; x.fillStyle=BLUE; if(wv>0){ const t=fmtIn(wv)+'”'; x.fillText(t,239.16-x.measureText(t).width/2,495.5); } if(hv>0) x.fillText(fmtIn(hv)+'”',425.1,340.6);
+  // APPROVED
+  { const X=573.84,Y=550.56,w=189.12,h=39.84; x.fillStyle='#fff'; x.fillRect(X,Y,w,h); x.fillStyle=INK; x.fillRect(X,Y,w*0.769,h); x.strokeStyle=INK; x.lineWidth=0.72; x.strokeRect(X+0.36,Y+0.36,w-0.72,h-0.72); T('APPROVED',591,578.3,19.54,true,'#fff',0,113.04); }
+  x.setTransform(1,0,0,1,0,0); }
+function sync(){ $('attach').disabled=!(S.art&&S.line)||S.busy; $('dl').disabled=!S.art||S.busy; $('attach').textContent=S.busy?'Attaching…':S.line?'Attach to '+designName():'Attach to line'; }
+async function pdfBlob(){ draw(); const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'pt',format:'letter',compress:true}); doc.addImage($('cv').toDataURL('image/jpeg',0.92),'JPEG',0,0,792,612); doc.setProperties({title:fileName().replace(/\.pdf$/,''),creator:'Pine Sticker Proof'}); return doc.output('blob'); }
+async function attach(){ if(!S.art||!S.line) return; S.busy=true; sync();
+  try{ const blob=await pdfBlob(), name=fileName(); if(blob.size>5e6) throw new Error('The proof is over 5 MB');
+    if(PRACTICE){ toast(`Practice — not attached. It would go on ${designName()} as "${name}"`); return; }
+    const before=(S.line.f[LF.proof]||[]).map(a=>a.id);
+    const b64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); });
+    const r=await at(`https://content.airtable.com/v0/${BASE}/${S.line.id}/${LF.proof}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:'application/pdf',file:b64,filename:name})});
+    const all=(r&&r.fields&&(r.fields[LF.proof]||Object.values(r.fields).find(Array.isArray)))||[], fresh=all.filter(a=>!before.includes(a.id)).pop();
+    let note=''; if(fresh&&all.length>1){ try{ await at(`${T_LI}/${S.line.id}`,{method:'PATCH',body:JSON.stringify({fields:{[LF.proof]:[{id:fresh.id}]}})}); note=` — replaced ${all.length-1} older`; }catch(e){ note=' (older proofs could not be taken off)'; } }
+    S.line.f[LF.proof]=fresh?[fresh]:all; toast(`Attached "${name}" to ${designName()}${note}`);
+  }catch(e){ toast('Attach failed: '+e.message); }
+  finally{ S.busy=false; sync(); } }
+async function download(){ const b=await pdfBlob(), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=fileName(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+
+/* ================= wiring ================= */
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+$('practiceTag').hidden=!PRACTICE; $('tokCard').hidden=!!TOKEN;
+$('tokSave').onclick=()=>{ TOKEN=$('tok').value.trim(); lsx.set('pine_at_key',TOKEN); $('tok').value=''; $('tokCard').hidden=!!TOKEN; if(S.num) openOrder(S.num); };
+$('ordGo').onclick=()=>openOrder($('ord').value); $('ord').addEventListener('keydown',e=>{ if(e.key==='Enter') openOrder($('ord').value); });
+$('file').onchange=e=>loadArt(e.target.files[0]);
+const dz=$('drop'); ['dragenter','dragover'].forEach(t=>dz.addEventListener(t,e=>{ e.preventDefault(); dz.classList.add('is-over'); })); ['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{ e.preventDefault(); dz.classList.remove('is-over'); }));
+dz.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) loadArt(f); });
+$('dropWhite').onchange=buildArt; $('edge').onchange=buildArt;
+$('w').oninput=()=>{ syncH(); draw(); }; $('h').oninput=()=>{ $('h').dataset.hand=$('h').value?'1':''; draw(); };
+['border','finish','colors'].forEach(id=>$(id).oninput=draw);
+$('attach').onclick=attach; $('dl').onclick=download;
+$('refresh').onclick=()=>{ if(S.num) openOrder(S.num); if(window.PineUpdate) PineUpdate.check().then(f=>{ if(!f) toast('You have the newest version'); }); };
+{ const q=new URLSearchParams(location.search).get('order'); if(q){ $('ord').value=q; openOrder(q); } }
+draw(); sync();
+</script>
+<script src="pine-update.js" data-link="sticker-proof.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver) document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body></html>
