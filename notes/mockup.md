@@ -2879,3 +2879,13 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - Open order # 11138 opens it.
   - The note shows "Ivory: 7626 · Black: 7626OW" and Attach asks first.
   - No page errors.
+
+## 2026-11-05 — v226: ink names as typed, and extra inks
+- Stephen: "can we also make a manual change or add ink color. I have 7501 OW but the art dept want it to Say 7501 EZP so i need both options".
+- **Change:** tap the ink, then Rename, and type "7501 EZP". A chip whose name already ends in its type (EZP, SOW, OW or DC, after a space) now prints exactly as typed. Before, the proof added OW or DC on top ("7501 EZP OW").
+- **Add:** a new "Add an ink to the proof" box under the ink list. It adds a chip to this imprint's proof, uppercased as typed, with the colour from its Pantone where known. The chips show under the box, and × takes one off. They're kept in the job's saved work (`imps[id].extra`) and come back on Pick up.
+- **Tested** with a mocked 1717 Ivory + Black line (Black has a base):
+  - before: 7626 / BASE · 7626OW;
+  - renamed: 7501 EZP on both lines (no OW added);
+  - added "7502 sow": 7502 SOW chip on both;
+  - × removes it.
