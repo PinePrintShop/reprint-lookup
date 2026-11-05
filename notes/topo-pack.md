@@ -50,3 +50,16 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - A vendor box with fewer than 3 numbers counts as "No box size yet" in the checks.
 - Sizes are stored and printed as "24 x 16 x 14".
 - Tested: carton 1 set to Pine S, carton 2 to a vendor 18×14×10, the rest on the Pine L default. The check flags the vendor box until all 3 numbers are in. No page errors.
+
+## 2026-11-05 — v5: Topo's own packing list, filled
+- Stephen sent the v3 packing list back: "packing slip is still a little wild.....are you able to match the XLSX they provided".
+- **How:** drop Topo's packing list workbook once (the one with the "PKL" sheet). It's kept in this computer's browser storage, so Topo's file stays out of the repo.
+  - The browser unzips it (`DecompressionStream`), fills the PKL sheet through the DOM and zips it back (`CompressionStream`). Fonts, borders, column widths, the hidden columns, merges, the QTY group header and the TOTAL SUBTOTAL row all stay Topo's.
+- **Header cells:** F3 ship to, F4 invoice (Pine order #), F5 date, F6 PO + memo, and H7 "From: Pine Printshop To: …".
+- **Rows 10–123:**
+  - B–D carton range, E Manufacturer PO (Pine order #), F Cust PO, G SKU#, H Color, J Destination, K Description, L Size, M QTY CTN, N PCS/CTN, O Total QTY.
+  - Cartons in a row with the same SKU and quantity share one row ("6 - 8", QTY CTN 3).
+  - A mixed carton gets a row per SKU, with B–D merged down, as in their sample (7 - 7 over three rows).
+- **Clean-up:** the template's sample numbers and merges are cleared, unused data rows are hidden so it prints on one page, `calcChain` is dropped and `fullCalcOnLoad` set so TOTAL recalculates. Topo's hidden sheets are left as they were.
+- **No template added:** the plain v3 layout is used and a toast says so.
+- **Tested** with Topo's workbook and PO0003352, as 9 cartons with one mixed (LS XXL + SS XXL in carton 5): it opens and prints on 1 page in LibreOffice, and every XML part parses. Destination and Description are cut off by Topo's own column widths.
