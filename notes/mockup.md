@@ -2599,3 +2599,17 @@ Stephen: "for reprint jobs instead of keeping the old base swatches that had 1/2
 - WHITE / BLACK ink swatches and the colour swatches are left alone.
 - The button counts them ("Replace everywhere (4)") and the toast says "Changed 2 places · 2 old base swatches → BASE"; Undo works as for any edit.
 - **Tested** (Playwright, practice): a made-up old proof with "10835-A", swatches 1/2-over-BB, 7527/OW, UNDER-over-BASE and WHITE. After Replace everywhere (10835 → 11200): PRINT - 11200-A; BASE, 7527 OW, BASE, WHITE; covers matched the swatch grey.
+
+## 2026-11-05 — v203: SanMar flats for brands under a SanMar prefix (Bella+Canvas, Next Level, Alternative)
+Stephen: "when you look for flat photos....is it for all brands or just comfort colors?" → "can you look up the 3010 by bella canvas and see if any of the vendors have flats of that one".
+- **Cause:** the flat-first search (v140) is for every brand, but it asks SanMar by the vendor's style number. SanMar lists some brands under its own prefix: Bella+Canvas 3010 is **BC3010**. It has flat lays for all 177 of its colour/size rows, but "3010" found nothing, so the app used S&S's ghost photo.
+- **Checked on SanMar** (worker):
+
+  | Style | SanMar lists it as |
+  |---|---|
+  | Bella+Canvas 3010 / 3001 | BC3010 (177 rows) / BC3001 (741), all flats |
+  | Next Level 3600 | NL3600 (350, flats) |
+  | Alternative 1070 | AA1070 (flats) |
+  | Comfort Colors 1717, Gildan 5000 / 8000, Port & Co PC54, District DT6000, Champion S700 | plain number, flats (already worked) |
+- **Now:** `sanmarText(pn, brand)` asks the plain number first. If SanMar has nothing, it asks again with the brand's prefix (Bella+Canvas BC, Next Level NL, Alternative AA). Photos, the vendor name/fabric check and the spec sheet (body lengths) all use it.
+- **Tested** (live vendor data through the worker): Bella+Canvas 3010 Black. v202 used the S&S ghost; v203 uses SanMar's flat (BC3010_black_flat_front.jpg), flat = true.
