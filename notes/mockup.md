@@ -2842,3 +2842,8 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - Circle, Triangle and Rounded corners;
   - back to the garment line, where the normal stage returns;
   - live run: upload "11156 | STICKER-DESIGN 1.pdf", then PATCH Ready for Review. No page errors.
+
+## 2026-11-05 — v222: size run at one scale
+- Stephen (11163, AA 1301 Black): "Can we emulate not just the print getting smaller but maybe we keep the print the same size and show the shirts getting larger....I just think that flows on the eye better".
+- `sizeRun` reads every size's body length first. The longest fills its column, and each other size is drawn smaller in proportion (length ÷ longest), centred, with the collars on one line. Pixels per inch are therefore the same on every shirt, so the print is the same size everywhere and the shirts grow S → 2XL. The caption now says "Every size drawn to the same scale."
+- Tested on a mocked 1717 Ivory, S–2XL: BIRD is 123–124 px wide on every shirt, and the shirts grow from 26.6″ to 31.6″ long.
