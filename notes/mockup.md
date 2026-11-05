@@ -2623,3 +2623,20 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - **Double-click** (or double-tap) the tick to go back to the standard.
   - Kept per garment, colour and side on this computer (`pine_mk_hps`). Your own uploaded photos keep their own sizing.
 - **Tested** (live vendor photo, Bella+Canvas 3010 Black flat from SanMar): the standard was 0.5″; dragging the tick up gave 0.06″ "set by hand"; double-click went back to 0.5″. No console errors.
+
+## 2026-11-05 — v205: Size run, back shoulder mark, page 2+ dimensions
+- **Size run** button (next to the PDF button). Stephen: "a quickdownload for print size across garments when the client wants to see how the design looks on all the sizes they are getting".
+  - One PNG with the garment once per size on the line (sizes with quantities; S–2XL if none are entered yet).
+  - Each size is drawn at its vendor body length and width. The print is the same real size on every one, so the client sees how it sits on a small vs a 2XL.
+  - Each size is labelled with its length, width and pieces. Front and back get their own rows when both are printed. Sleeves, bandanas and accessories are left out.
+- **Back shoulder mark drags again.** Stephen: "the back set collar isn't working".
+  - Cause: once a back collar line had been set by hand (v158), the back was sized from it, so the v204 shoulder mark couldn't move.
+  - Now a shoulder mark set by hand wins over the collar line, the front match and the hem width. Double-click the mark to go back.
+- **Page 2+ header.** Stephen: "make sure we are not shrinking the fonts for the dimensions and we can move that text on the right a little".
+  - Dimensions are always full 18 pt (they used to shrink to fit 1.2″).
+  - Placement starts 0.3″ after the dimensions (never left of where it was). Its own text shrinks only if it runs out of room.
+- **Tested** with live Bella+Canvas 3010 Black photos:
+  - Size run: S–2XL at 27.5″–31.8″ long, with the print the same size on each.
+  - Back mark: with a back collar line set, v204 didn't move and v205 does.
+  - Proof page 2 with a 12.3″ wide print: dimensions at full size, Placement moved right.
+  - No console errors.
