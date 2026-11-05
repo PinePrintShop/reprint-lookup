@@ -43,3 +43,10 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
   - CTN# and TOTAL span the carton-number columns, and the header row is 30 pt and wraps.
   - The TOTAL row adds up cartons, pieces, gross and net.
 - Checked in LibreOffice with PO0003352 (10 cartons): it prints on 1 page.
+
+## 2026-11-05 — v4: box size menu
+- Stephen: "can we include the pine box sizes and then a vendor one to add a custom size".
+- Box size, both the default and each carton, is now a menu: **Pine S 12×12×6, Pine M 24×16×6, Pine L 24×16×14** (the sizes Shipping v8 and Receiving use), or **Vendor box…**, which opens L × W × H boxes in inches.
+- A vendor box with fewer than 3 numbers counts as "No box size yet" in the checks.
+- Sizes are stored and printed as "24 x 16 x 14".
+- Tested: carton 1 set to Pine S, carton 2 to a vendor 18×14×10, the rest on the Pine L default. The check flags the vendor box until all 3 numbers are in. No page errors.
