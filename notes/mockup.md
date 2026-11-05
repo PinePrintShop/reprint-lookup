@@ -2668,3 +2668,9 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - **Proof** (page 1, and the multi-garment pages): the center line is now solid light blue (`CLINE_C` #4cc3e6), about 1.1 pt, with "center" in light blue under its end. It was a faint grey dashed line, 0.6 pt at 32%. The on-screen guide is unchanged.
 - **Not changed:** our measurement lines (`drawDims`) are still red. In the example they're light blue too; switch them if Stephen wants.
 - **Tested:** page 1 for the 1717 in Ivory and in Black. Clear on both; no console errors.
+
+## 2026-11-05 — v209: measurements blue too
+- Stephen: "yes all blue please".
+- The proof's measurements (`drawDims`: inches below the neck, and the gap from center for an off-center print) are now the center line's light blue (`CLINE_C` #4cc3e6) instead of red.
+- Their numbers and the "center" label are the same size (DPP × 0.13).
+- **Tested:** 1717 Ivory page 1 with the center line and measurements on. All blue, no console errors.
