@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!-- Signed PandaDocs check v1 (2026-11-05). Stephen: "get me the new worker ... so we can see about getting into Chris's
+     folder since I did share it with that google connection". Needs worker v40. Shows whether the worker can open each
+     sales rep's Pipedrive Drive folder (where every signed PandaDoc lands, "11139 | Outer Range Brewing.pdf"), its newest
+     signed PDFs, and finds an order's signed PDF. Read-only: nothing is written anywhere. Uses the Airtable sign-in the
+     other Pine apps saved on this computer. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Signed PandaDocs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.fold h2{margin:0 0 4px}.fold ul,.hits{list-style:none;margin:8px 0 0;padding:0}
+.fold li,.hits li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(0,0,0,.1);font-size:14px}
+.fold li span:last-child,.hits .when{color:#555;white-space:nowrap}
+.bad{color:#c8102e;font-weight:700}.okk{font-weight:700}
+.find{display:flex;gap:8px;flex-wrap:wrap}.find .p-input{flex:1;min-width:160px}
+</style></head>
+<body class="p-app">
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Signed PandaDocs</span><span class="p-bar-ver">v1</span>
+  <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
+<main>
+  <div class="p-note" id="msg">Checking…</div>
+  <div class="cols" id="folders"></div>
+  <section class="p-card"><h2 class="p-h2">Find an order's signed PDF</h2>
+    <div class="find"><input class="p-input" id="ord" inputmode="numeric" placeholder="Order number, e.g. 11139"><button class="p-btn p-btn-main" id="go" type="button">Find</button></div>
+    <ul class="hits" id="hits"></ul></section>
+  <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
+    <div class="find"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="save" type="button">Save</button></div></div>
+</main>
+<script>
+const W='https://pine-workers.stephen-dab.workers.dev/proxy';
+const $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tok=()=>{ try{ return localStorage.getItem('pine_at_key')||''; }catch(e){ return ''; } };
+const when=t=>t?new Date(t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+async function api(p){ const r=await fetch(W+p,{headers:{Authorization:'Bearer '+tok()},cache:'no-store'}); const j=await r.json().catch(()=>({})); if(!r.ok) throw Object.assign(new Error(j.error||('HTTP '+r.status)),{code:j.code,status:r.status}); return j; }
+async function check(){
+  if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in below first.'; return; }
+  $('msg').className='p-note'; $('msg').textContent='Checking…'; $('folders').innerHTML='';
+  try{ const v=await fetch(W+'/version',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}));
+    if(!(+v.version>=40)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'} — this needs v40. Paste worker v40 into Cloudflare first (worker-copy.html).`; return; }
+    const j=await api('/drive/signed/status');
+    $('msg').className='p-note'+(j.folders.every(f=>f.ok)?' p-note-done':' p-note-wait');
+    $('msg').textContent=j.folders.every(f=>f.ok)?`Worker v${v.version} can open every sales folder (as ${j.account}).`:`Worker v${v.version}: a folder isn't shared yet — share it with ${j.account} as Viewer, then Check again.`;
+    $('folders').innerHTML=j.folders.map(f=>`<section class="p-card fold"><h2 class="p-h2">${esc(f.label)}</h2>`
+      +(f.ok?`<div class="okk">✓ Can open “${esc(f.name)}”</div><ul>${(f.recent||[]).map(x=>`<li><span>${esc(x.name)}</span><span>${when(x.modifiedTime)}</span></li>`).join('')||'<li>No PDFs yet</li>'}</ul>`
+        :`<div class="bad">✕ ${esc(f.error)}</div><p class="p-hint"><a href="https://drive.google.com/drive/folders/${esc(f.id)}" target="_blank" rel="noopener">Open the folder in Drive ↗</a> › Share</p>`)+`</section>`).join('');
+  }catch(e){ $('msg').className='p-note p-note-alert'; $('msg').textContent=e.status===401?'The saved Airtable sign-in was refused — paste it again below.':'Could not check: '+e.message; if(e.status===401) $('signin').hidden=false; }
+}
+async function find(){ const n=$('ord').value.replace(/\D/g,''); const ul=$('hits'); if(!n){ ul.innerHTML='<li>Type an order number</li>'; return; }
+  ul.innerHTML='<li>Looking…</li>';
+  try{ const j=await api('/drive/signed?order='+n);
+    ul.innerHTML=j.files.length?j.files.map(f=>`<li><span>${esc(f.name)} <span class="p-hint">· ${esc(f.folder)}</span></span><span><span class="when">${when(f.modifiedTime)}</span> <button class="p-btn" data-id="${esc(f.id)}" type="button">Open</button></span></li>`).join('')
+      :`<li>No signed PDF for ${n} in the sales folders${j.errors&&j.errors.length?' (can’t open: '+j.errors.map(e=>esc(e.label)).join(', ')+')':''}</li>`;
+    ul.querySelectorAll('[data-id]').forEach(b=>b.onclick=async()=>{ b.disabled=true; b.textContent='Opening…'; const w=window.open('','_blank');
+      try{ const r=await fetch(W+'/drive/signed/file?id='+encodeURIComponent(b.dataset.id),{headers:{Authorization:'Bearer '+tok()}}); if(!r.ok) throw new Error('HTTP '+r.status);
+        const u=URL.createObjectURL(await r.blob()); if(w) w.location=u; else location.href=u; }catch(e){ if(w) w.close(); alert('Could not open it: '+e.message); }
+      b.disabled=false; b.textContent='Open'; }); }
+  catch(e){ ul.innerHTML=`<li class="bad">${esc(e.message)}</li>`; } }
+$('again').onclick=check; $('go').onclick=find; $('ord').addEventListener('keydown',e=>{ if(e.key==='Enter') find(); });
+$('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
+check();
+</script>
+</body></html>
