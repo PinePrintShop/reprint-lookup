@@ -2674,3 +2674,27 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - The proof's measurements (`drawDims`: inches below the neck, and the gap from center for an off-center print) are now the center line's light blue (`CLINE_C` #4cc3e6) instead of red.
 - Their numbers and the "center" label are the same size (DPP × 0.13).
 - **Tested:** 1717 Ivory page 1 with the center line and measurements on. All blue, no console errors.
+
+## 2026-11-05 — v210: top-colour white reads EZP WHT
+- Stephen: "can we change all the whites in the mockup creator to be EZP WHT". Asked which whites; he chose top-colour white only.
+- **Changed:** `inkLabel` names a top white (WHT / WHITE / EZP WHT, with or without OW) "EZP WHT", except on discharge. That covers:
+  - the proof chip (EZP / WHT, never OW on a base);
+  - the ink list (was "White").
+- **Unchanged:** underbases still read BASE, and discharge white still reads WHT DC.
+- **"EZP WHT" is a colour now, not a base:**
+  - `isBaseName` skips EZP (EZ WHT is still a base).
+  - The white-base guess from an imprint's Pantones only takes "EZ WHT".
+- **Tested** (proof chips, v209 → v210):
+
+  | Garment | Imprint's Pantones | v209 | v210 |
+  |---|---|---|---|
+  | Black | WHT, 186 | BASE · WHT · 186OW | BASE · EZP WHT · 186OW |
+  | Ivory | WHT, 186 | WHT · 186 | EZP WHT · 186 |
+  | Black | WHT DC, 186 DC | WHT DC · 186 DC | unchanged |
+  | Black | 1/2 BB, EZP WHT, 186 | BASE · 186OW | BASE · EZP WHT · 186OW |
+  | Ivory | EZ WHT, 186 | BASE · 186OW | unchanged |
+  | Ivory | EZP WHT, 186 | BASE · 186OW | EZP WHT · 186 |
+  | Black | (none; scanned white art) | BASE · WHT | BASE · EZP WHT |
+
+  - Ink list: "≈ White" → "≈ EZP WHT".
+  - No console errors.
