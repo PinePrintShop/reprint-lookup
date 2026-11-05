@@ -150,3 +150,15 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
 - Share each Pipedrive Drive folder (Viewer) with **pine-apps-drive@pine-apps.iam.gserviceaccount.com**, the worker's service account (from LIR › ⚙ › Google Drive).
   - Patrick's: "Pipedrive (Pine Printshop)".
   - Chris's: once his Pipedrive Drive sync is reconnected with "Store Pipedrive files in a separate folder" on.
+
+## 2026-11-05 · Worker v40 reads Chris's folder; the agreed flow
+- **Worker v40 is live.** signed-check.html shows Chris's "Pipedrive (Pine Printshop)" ✓ with its newest signed PDFs (11139, 11127, 11022, 11126, 11132). Patrick's folder isn't shared yet.
+- **Stephen:** wait for Patrick's folder before anything writes to Airtable.
+- **The flow, agreed with Stephen:**
+  1. The customer signs in PandaDoc. Pipedrive puts "<order #> | <customer>.pdf" in the rep's folder.
+  2. The worker attaches it to the order's **Signed Packet**: empty ones only, never overwriting, a few per run. No PandaDoc downloads.
+  3. Each line item's **Signed Proof** gets its own signed page(s) from the packet.
+  4. Seps, Screens, Inks, Operator and QC (Catching) show the signed mockup for the job in front of them.
+- **Open questions for the build:**
+  - Each app shows the line's page only, or the whole packet? Suggested: the line's page, plus a link to the packet.
+  - A "Not signed yet" flag (not red) when there's no Signed Proof?
