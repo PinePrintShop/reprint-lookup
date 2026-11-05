@@ -2662,3 +2662,9 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - v206: small text in the preview.
   - v207: same size and weight as the original.
   - No console errors.
+
+## 2026-11-05 — v208: the proof's center line reads like the art department's
+- Stephen: "on the mockup creator can we make that center line a little more readable on page 1". He sent the art department's example: a solid light-blue line with "center" under it, in the same blue as their measurements.
+- **Proof** (page 1, and the multi-garment pages): the center line is now solid light blue (`CLINE_C` #4cc3e6), about 1.1 pt, with "center" in light blue under its end. It was a faint grey dashed line, 0.6 pt at 32%. The on-screen guide is unchanged.
+- **Not changed:** our measurement lines (`drawDims`) are still red. In the example they're light blue too; switch them if Stephen wants.
+- **Tested:** page 1 for the 1717 in Ivory and in Black. Clear on both; no console errors.
