@@ -99,3 +99,8 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - **No weight columns,** per Stephen.
 - **Also found in his file:** TOTAL 498 against the PO's 500 (carton 1 had 36 LS XX-Large; the PO has 38). I told Stephen.
 - **Tested** with PO0003352: the header and rows read PO0003352 and the full address. LibreOffice prints 1 page. No page errors.
+
+## 2026-11-05 — v10: full address fills in on pick-up too
+- Stephen: "shipping address are not showing up". v9 filled the full ship-to address only when starting fresh. Picking up cartons saved before v9 (which have no address) left it blank, so the packing list fell back to the short name.
+- Now the full address (and the short one) are filled from the PO whenever the field is empty.
+- Tested: a v8-era save picked up with OK gives "Baja Fulfillment, 6987 Calle de Linea, Suite 109, San Diego CA 92154". No page errors.
