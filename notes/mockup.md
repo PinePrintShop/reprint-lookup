@@ -2640,3 +2640,13 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - Back mark: with a back collar line set, v204 didn't move and v205 does.
   - Proof page 2 with a 12.3″ wide print: dimensions at full size, Placement moved right.
   - No console errors.
+
+## 2026-11-05 — v206: Attach proof turns on again
+- Stephen, on 11152: "the attach to line is greyed out".
+- **Cause:** v205 put its Size run comment in the middle of a line. That commented out the rest of the line, which turns on the Attach, PDF and art-download buttons once art is added, so they stayed grey.
+- **Fix:** the comment moved to the end of the line. Nothing else changed.
+- **Tested** with a mock of 11152 (1717 Ivory, 11152-A Front):
+  - v204: on after art.
+  - v205: stays grey with the label "Attach proof to line".
+  - v206: on, reading "Attach proof to 1717 Ivory".
+- Checked v205's other changes for the same mistake; none found.
