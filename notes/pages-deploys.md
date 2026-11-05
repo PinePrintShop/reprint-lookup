@@ -8,3 +8,7 @@ The site (`https://pineprintshop.github.io/reprint-lookup/`) is published by Git
 - Run 2188 (PR 600, Receiving v88) failed in a minute: "in progress deployment … Please cancel 46ea0a3 first". Its re-run also sat in the queue.
 - Fix tried: a new commit to `main` (this note) to start a fresh publish of the whole site.
 - **If this happens again:** open the run on the Actions tab and click **Cancel workflow**. If that won't cancel it either, wait: GitHub clears a stuck queue on its own (check githubstatus.com). Any later merge publishes everything.
+
+## 2026-11-05 · GitHub 500s on deploy
+- PR 612 (Mockup Maker v207) and PR 613 (notes): the build passed, then "Deploy to GitHub Pages" failed with "Failed to create deployment (status: 500) … Server error, is githubstatus.com reporting a Pages outage?". The same minute, GitHub's API also returned 500 on a PR create.
+- A re-run of the failed job sat queued for over 10 minutes. As on Nov 4, a fresh merge to main publishes everything: this entry is that merge.
