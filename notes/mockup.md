@@ -2867,3 +2867,15 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - drag down 5.8″;
   - onto the collar-bottom line (the hit boxes overlap) and drag again: the mark moves (4.5″);
   - drag above the photo: −1.6″.
+
+## 2026-11-05 — v225: shared imprint, different inks · open any order
+- Stephen, 11138: two bandanas (Natural 7563 / 7475; Olive Green 7579 DC / 7527 DC) proofed on one imprint, 11138-A. "can it do better in logic to help me not make this mistake again … some trigger when changing colors that help catch this … this is the one I need to fix and add another imprint ID but I can't find it".
+- **Found:** in Airtable, the Olive Green line (recgJY9rDFDZiFJgT) is already on 11138-B, but its proof "V4 11138 | 4800-OG.pdf" was made while it shared 11138-A, so it still says PRINT - 11138-A. The order is in Pre-press, so it wasn't in the Awaiting Proof menu.
+- **Shared imprint, different inks:** for each imprint on more than one line, each line's inks are read as the proof writes them: `inkChips(im,line)`, so recolours and OW / DC count, and bases are ignored.
+  - If they differ, a red note under the imprints names each colourway ("11138-A prints in different inks — Natural: … · Olive Green: …") and says each colourway needs its own imprint ID in Airtable.
+  - Attach and Attach to all ask before attaching. It's a warning, not a block.
+- **Open order # (any status):** a box under the order menu. It finds the order by number, whatever its status, adds it to the menu marked with its status (as `?order=` does) and opens it.
+- **Tested:** mocked order 11138 in Pre-press with 2 lines (1717 Ivory, Black) on one imprint.
+  - Open order # 11138 opens it.
+  - The note shows "Ivory: 7626 · Black: 7626OW" and Attach asks first.
+  - No page errors.
