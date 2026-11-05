@@ -162,3 +162,8 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
 - **Open questions for the build:**
   - Each app shows the line's page only, or the whole packet? Suggested: the line's page, plus a link to the packet.
   - A "Not signed yet" flag (not red) when there's no Signed Proof?
+- **Decided (Stephen, 2026-11-05):**
+  - Show the line's signed page, with a link to the whole packet.
+  - Yes to the "Not signed yet" flag.
+  - In QC (Catching), a job with no Signed Proof also gets a link to its PandaDoc document. Use the order's PandaDoc ID: `https://app.pandadoc.com/a/#/documents/<id>`. If there's no ID, link to a PandaDoc search for the order number. That way QC can see where signing stands before the job goes out.
+  - Build all of this once Patrick's folder shows ✓ on signed-check.html.
