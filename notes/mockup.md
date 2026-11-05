@@ -2799,3 +2799,9 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - Stephen: "can we remove the color - 2 screens call out above the swatch area".
 - Page 1's heading reads "Colors" again, and so does the embroidery-style block. `screenCount()` stays in the file, unused, in case the count is wanted somewhere else, e.g. in the app rather than on the proof.
 - **Tested:** the v215 spot-colour PDF's page 1 reads "Colors" with the BRAND RED and 7621 swatches. Code-after-a-note check: 0. No console errors.
+
+## 2026-11-05 — v219: "Attach to all" gives each line only its own mockup
+- Stephen, 11161: "when I saw attach all 8 it is added all eight to each line item vs just the one it matches". v217 had misread his earlier message ("all mockups on all line items") and put all 8 garments in every line's PDF (2.5 MB each).
+- **Now:** `attachAll` turns off the per-garment pages and the Colorways page while it attaches, then restores both settings. Each line's PDF is its own garment's page 1 plus its close-ups. The single Attach still follows the checkboxes.
+- **Tested** with mocked Airtable (3 lines, default settings): every line's PDF is "Page 1 / 11199-A", its own garment. Code-after-a-note check: 0. No console errors.
+- **11161:** the 8 lines carry v217 PDFs with all 8 garments in each. Attach to all again on v219 replaces each one with that line's own proof.
