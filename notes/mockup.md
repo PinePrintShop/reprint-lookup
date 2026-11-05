@@ -2847,3 +2847,14 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - Stephen (11163, AA 1301 Black): "Can we emulate not just the print getting smaller but maybe we keep the print the same size and show the shirts getting larger....I just think that flows on the eye better".
 - `sizeRun` reads every size's body length first. The longest fills its column, and each other size is drawn smaller in proportion (length ÷ longest), centred, with the collars on one line. Pixels per inch are therefore the same on every shirt, so the print is the same size everywhere and the shirts grow S → 2XL. The caption now says "Every size drawn to the same scale."
 - Tested on a mocked 1717 Ivory, S–2XL: BIRD is 123–124 px wide on every shirt, and the shirts grow from 26.6″ to 31.6″ long.
+
+## 2026-11-05 — v223: sticker background off follows the art's outline
+- Stephen, 11156 art on black: "Looks like it did a rough knockout of that black". v221 flooded the background colour in from the edges. With art on black, it leaked through small gaps in the white outline, ate the black areas inside the design, and left a rough edge.
+- **Now:**
+  1. Pixels near the edge colour, within the tolerance, count as background.
+  2. The art is grown by 0.6% of its size to close small gaps.
+  3. The outside is filled in from the edges.
+  4. The outside is grown back by the same amount, so the cut sits on the art's own edge.
+  5. Only background pixels outside the outline are taken out, so black inside the design stays black.
+- Square dilation runs on rows then columns with running counts, so it is linear in the pixel count.
+- **Tested** with Stephen's 11156 PNG on black: the inner black areas are kept, the die-cut edge is smooth, and there are no page errors.
