@@ -23,3 +23,6 @@ Stephen sent 11156's two sticker proofs (made by hand in Illustrator) and said: 
 - `?practice=1`: Attach writes nothing.
 - Tested with mocked Airtable and the art cropped out of 11156's two PDFs, overlaid on the originals. The text and lines match; the art is placed in the same box.
 - Still open: how the sticker *mockups* are made (Stephen hasn't decided).
+
+## 2026-11-05 — moved into Mockup Maker v221
+Stephen: "can we fold Sticker Proof into mockup creator". `sticker-proof.html` now redirects to `mockup.html`. The v221 version adds background removal with a tolerance, shapes, borders and a shape colour.

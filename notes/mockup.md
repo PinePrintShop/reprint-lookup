@@ -2810,3 +2810,35 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - Stephen: "EZP WHT is just for screen printing and not for emboirdery etc". v210 had made every top white read EZP WHT.
 - `inkLabel(t,suf,scr)` now takes whether the imprint is a screen print (`methOf(im)==='print'`). Embroidery, patches and transfers keep the white as typed, and an "EZP WHT" on one of them reads WHT. Screen prints are unchanged: EZP WHT on top, WHT DC on discharge, BASE for bases.
 - Checked: WHT/White on a print → EZP WHT; WHT DC stays; WHT/EZP WHT on embroidery → WHT.
+
+## 2026-11-05 — v221: stickers in Mockup Maker
+- Stephen: "can we fold Sticker Proof into mockup creator", and "with stickers we do need a way to remove the background and do different shapes and borders".
+- **Which lines:** an order's Stickers lines, plus Promo Product lines whose description or notes say sticker, decal or slap. They show in the Line menu as "Sticker · <name>". The name is the short first line of the Proofing / Sales Notes or Promo description ("Design 1"), else "Sticker N".
+  - An order with only sticker lines opens the first one.
+  - Art to do opens a sticker line straight away.
+- **Picking a sticker:** the Art and Garment panels and the stage are replaced by the Sticker panel and the template. The template is the same as Sticker Proof v1, measured off 11156's PDFs.
+- **Background off:** the commonest colour round the art's edge (white on most files) is flooded out, with a "How much of it" slider.
+- **Shapes:** Die Cut (white edge follows the art), Circle, Square, Rectangle, Rounded Corners, Oval, Triangle. Kiss cut was dropped: it is never asked for in 172 sticker lines.
+- **Borders:** None, 1/16, 1/8 (default) or 1/4 inch of the real sticker. On a die cut it's the white edge; on a shape it's the margin inside it.
+- **Shape colour** for backgrounds; it is black when the notes say "black background".
+- **Defaults come from the line's notes** (Description is a formula that always says "die-cut"):
+  - size "3x3", "2x4.75" → width × height; for a die cut only the width, and the height follows the art;
+  - circle / square / rectangle / rounded / oval / triangle;
+  - finish: matte, metallic, gloss, semi.
+- **Attach proof** goes through `uploadProof` with `{sticker:true}`: only the new proof stays and it is saved to the order's Drive Proofs folder, but there is no imprint setup file or print art. The file is named "<order> | STICKER-<NAME>.pdf".
+- **Proof done → Review** ticks the line's Ready for Review.
+- `?practice=1` writes nothing.
+- `sticker-proof.html` now redirects to `mockup.html`. Sticker Proof v1 stays as a file.
+- **Research (agent scan of 172 sticker lines, read only):**
+  - Most common sizes are 3x3, 2x2 and 3.5". The Size field is a pricing bucket (2/3/4/5 inch).
+  - Shapes: die cut 34, circle 34, square 14, contour ~9, rectangle 8, rounded 4, triangle 2, oval 1. Kiss cut 0.
+  - Finish is rarely stated: semi-gloss 3, matte 1, metallic 1.
+  - Vendors: Die Cut Stickers.com 90 (orders come in multiples of 50) and Stickerbeat 42 (rushes).
+  - Backgrounds come up a lot (black, tie-dye, photo, colourways).
+  - Sticker sheets and postcards: 3 lines. Not handled yet.
+- **Tested:** mocked 11156 with a garment line, 2 Stickers lines and a Promo sticker line:
+  - die cut with the 11156 art: 3 × 4 in;
+  - the Promo line: Square with a black fill from its notes;
+  - Circle, Triangle and Rounded corners;
+  - back to the garment line, where the normal stage returns;
+  - live run: upload "11156 | STICKER-DESIGN 1.pdf", then PATCH Ready for Review. No page errors.
