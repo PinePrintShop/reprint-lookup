@@ -63,3 +63,17 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - **Clean-up:** the template's sample numbers and merges are cleared, unused data rows are hidden so it prints on one page, `calcChain` is dropped and `fullCalcOnLoad` set so TOTAL recalculates. Topo's hidden sheets are left as they were.
 - **No template added:** the plain v3 layout is used and a toast says so.
 - **Tested** with Topo's workbook and PO0003352, as 9 cartons with one mixed (LS XXL + SS XXL in carton 5): it opens and prints on 1 page in LibreOffice, and every XML part parses. Destination and Description are cut off by Topo's own column widths.
+
+## 2026-11-05 — v6: packing list rebuilt with ExcelJS
+- Stephen: "the xslx has never worked.....can we wipe the slate clean on that and try to build it back up to work".
+- **Removed:** v1–v5's hand-written .xlsx (my own XML and zip) and v5's "drop Topo's workbook" filler, including the template card and its localStorage copy.
+- **Now:** ExcelJS 4.4.0 (cdnjs) writes Topo's Packing Details (PKL) layout directly, with styles taken from their sheet:
+  - Calibri 20 bold title; Arial 10 bold labels; Tahoma 10 values; Calibri 10 bold headers with thin black borders.
+  - The QTY group header over PCS/CTN + Total QTY.
+  - Data rows Calibri 10, with CTN# in Calibri 11.
+  - A grey TOTAL row with SUBTOTAL formulas (and cached results).
+  - Topo's row heights (24 / 22.5 / 18 / 27.75 / 12.75 / 25.5 / 15).
+- **Changed from theirs:** the hidden Order and REMARK columns are left out. Destination (26) and Description (36) are wider than theirs (11 / 18) so the text isn't cut off. SKU and PO are stored as text, so they never turn into 4.1E+11.
+- **Fits** one landscape page wide, print area set, gridlines off.
+- **Runs:** cartons in a row with the same SKU and quantity share one row ("6 - 8", QTY CTN 3); a mixed carton gets a row per SKU with CTN# merged down.
+- **Tested** with PO0003352, 9 cartons with one mixed: valid zip, every XML part parses, LibreOffice opens it and prints 1 page. I could not open it in Excel from here.
