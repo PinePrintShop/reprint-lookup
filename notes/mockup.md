@@ -2794,3 +2794,8 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - v216: each PDF was "Page 1 / Colorways / 11199-A".
   - v217: e.g. Black's PDF is "Black / Ivory / Pepper / Colorways / Black · 11199-A / Ivory · … / Pepper · …".
   - The setting was still off afterwards; no console errors.
+
+## 2026-11-05 — v218: screen count off the proof
+- Stephen: "can we remove the color - 2 screens call out above the swatch area".
+- Page 1's heading reads "Colors" again, and so does the embroidery-style block. `screenCount()` stays in the file, unused, in case the count is wanted somewhere else, e.g. in the app rather than on the proof.
+- **Tested:** the v215 spot-colour PDF's page 1 reads "Colors" with the BRAND RED and 7621 swatches. Code-after-a-note check: 0. No console errors.
