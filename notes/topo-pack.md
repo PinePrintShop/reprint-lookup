@@ -77,3 +77,10 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - **Fits** one landscape page wide, print area set, gridlines off.
 - **Runs:** cartons in a row with the same SKU and quantity share one row ("6 - 8", QTY CTN 3); a mixed carton gets a row per SKU with CTN# merged down.
 - **Tested** with PO0003352, 9 cartons with one mixed: valid zip, every XML part parses, LibreOffice opens it and prints 1 page. I could not open it in Excel from here.
+
+## 2026-11-05 — v7: packing list fills a Letter landscape page
+- Stephen: "it is working....can we make it fill an 8.5x11 landscape paper".
+- **Page:** fit to exactly 1 × 1 page, Letter landscape, centred on the page.
+- **Row height:** worked out so the sheet has the page's shape (10.2 × 7.5″ inside the margins), between 15 and 48 pt. The sheet's width comes from the column widths (a character ≈ 7 px + 5 px padding at 96 dpi).
+- **Text:** carton-row text grows with the rows, 10–12 pt, centred in the cell. SKU (18), Destination (30), Description (40) and Size (12) are a little wider so nothing wraps.
+- **Tested** with PO0003352, 9 cartons with one mixed: LibreOffice prints 1 Letter page (792 × 612) that the table fills, with no wrapping.
