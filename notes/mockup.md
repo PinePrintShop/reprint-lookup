@@ -2698,3 +2698,11 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 
   - Ink list: "≈ White" → "≈ EZP WHT".
   - No console errors.
+
+## 2026-11-05 — v211: Edit PDF cover stops at the line
+- Stephen, 11158-A: "looks like when it replaced this imprint id it snuck ontop of the image".
+- **Cause:** the white cover behind replaced text reached 26% of the text height below the baseline (`editGeom`), room for descenders. The imprint ID sits right on the photo, so the cover cut a white strip into the photo's top edge, in both the preview and the saved PDF.
+- **Fix:** the cover goes that low only when the old or new text has hanging characters (g j p q y , ; ( ) [ ] { } | _). Otherwise it stops 7% under the line. The top stays where it was.
+- **Tested:** "11158-A" on a dark box starting 1 pt under its baseline, replaced with 11159.
+  - Light pixels in the box's top 3 pt: v210 306/306 (saved PDF and preview); v211 0/306 in both.
+  - No console errors.
