@@ -31,3 +31,15 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - With no cartons yet, the table says to click One carton per size or ＋ Carton.
 - "Empty box weight (lbs)" is renamed, and its hint says about 2 lbs. Stephen had typed 35 there, which makes every net weight 0.
 - Tested: the PO is read, One carton per size gives 10 cartons, and Duplicate copies the size and weight. No page errors.
+
+## 2026-11-05 — v3: packing list tidied
+- Stephen sent the v1 packing list back: "also this is funky".
+- **What was wrong:** it printed across 3 portrait pages, the labels ran into their values, the Order column was empty, and the TOTAL row was tall.
+- **Now:**
+  - It fits one page wide in landscape (`fitToPage`, margins 0.4 / 0.5″).
+  - The title spans the table.
+  - The header labels (B:F) and values (G:J) are merged cells, and "Consignee: TOPO DESIGNS" has its own row.
+  - The Order column and the "From / To" cell are gone.
+  - CTN# and TOTAL span the carton-number columns, and the header row is 30 pt and wraps.
+  - The TOTAL row adds up cartons, pieces, gross and net.
+- Checked in LibreOffice with PO0003352 (10 cartons): it prints on 1 page.
