@@ -2613,3 +2613,13 @@ Stephen: "when you look for flat photos....is it for all brands or just comfort 
   | Comfort Colors 1717, Gildan 5000 / 8000, Port & Co PC54, District DT6000, Champion S700 | plain number, flats (already worked) |
 - **Now:** `sanmarText(pn, brand)` asks the plain number first. If SanMar has nothing, it asks again with the brand's prefix (Bella+Canvas BC, Next Level NL, Alternative AA). Photos, the vendor name/fabric check and the spec sheet (body lengths) all use it.
 - **Tested** (live vendor data through the worker): Bella+Canvas 3010 Black. v202 used the S&S ghost; v203 uses SanMar's flat (BC3010_black_flat_front.jpg), flat = true.
+
+## 2026-11-05 — v204: the shoulder mark on the height guide drags
+Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark a little off): "can we make this adjustable for when it doesn't quite hit right".
+- **Before:** the height guide (v156) put the shoulder point a fixed amount below the photo's top: a tee's collar is taken as 0.5″ above the shoulder, a hood a share of the body length. The print's scale comes from the same split (photo height = body length + that amount).
+- **Now:**
+  - **Drag the solid shoulder tick** up or down to where the shoulder actually is on the photo. The collar / hood amount above it, and so the print's scale, follow.
+  - The label says "· set by hand" (otherwise "· drag the mark to adjust").
+  - **Double-click** (or double-tap) the tick to go back to the standard.
+  - Kept per garment, colour and side on this computer (`pine_mk_hps`). Your own uploaded photos keep their own sizing.
+- **Tested** (live vendor photo, Bella+Canvas 3010 Black flat from SanMar): the standard was 0.5″; dragging the tick up gave 0.06″ "set by hand"; double-click went back to 0.5″. No console errors.
