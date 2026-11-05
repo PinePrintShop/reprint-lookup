@@ -2733,3 +2733,15 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - "Mark fixes scale" on, dragged: 218.6 px (re-scaled), offset cleared.
   - Double-click: back to 215 px at 199.
   - Proof page 1 (Ivory, Black): no console errors.
+
+## 2026-11-05 — v214: the shoulder mark starts the spec length again (flip of v213)
+- Stephen, on a Champion S149 crew: "it is measured from where the shoulder hits the seam down ... if the garment specs say 28.5 shouldn't it start at that point and then have the dashes". He agreed to flip it.
+- **Default drag (v204 again):** drop the mark where the shoulder seam meets the collar. The solid line is the spec (28.5″) to the hem, the collar above is dashed, and the print takes its true size.
+  - Any earlier move-only offset is replaced.
+- **"Keep print size"** (button by Fit; `pine_mk_hpskeep`) is v213's move-only drag, now the option.
+- **That crew's screenshot:** "Champion S149 - Cardinal" (`recRQHv7zldlOT4QO`, created 2026-11-05) is typed **Pullover Hoodie** in Airtable; every other S149 is Sweatshirt. So the app assumed an 8.8″ standing hood above the shoulder and labelled it "hood". The type needs to be Sweatshirt; asked Stephen.
+- **Tested** (3010 back, 11″ print, real drags):
+  - Default drag: re-scaled, 215 → 206 px.
+  - Keep print size: moved only, size held.
+  - Double-click: reset.
+  - Code-after-a-note check: 0. No console errors.
