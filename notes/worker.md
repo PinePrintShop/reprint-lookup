@@ -144,3 +144,22 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
 ## 2026-11-05 · The Drive service account
 - The worker reads Drive as **pine-apps-drive@pine-apps.iam.gserviceaccount.com**. It's not a secret; the worker shows it in Line Item Review › ⚙ › Google Drive: "Connected · Printshop · as …".
 - Share any folder outside the Printshop shared drive with this address as **Viewer**. That includes the sales Pipedrive folders with the signed PandaDocs.
+
+## 2026-11-05 · v40: the sales reps' signed PandaDocs folders (read-only)
+- **Stephen:** "get me the new worker ... so we can see about getting into Chris's folder since I did share it with that google connection". Chris's Pipedrive Drive sync is reconnected, and his "Pipedrive (Pine Printshop)" folder gets each signed PandaDoc ("11139 | Outer Range Brewing.pdf").
+- **Why a new worker:** v37 to v39 only open items in Pine's shared drive (`driveCheck`). The reps' folders are in their own Drive, so they were refused.
+- **New, read-only, only these folders:**
+  - `GET /proxy/drive/signed/status`: for each folder, whether the worker can open it, plus its 5 newest PDFs.
+  - `GET /proxy/drive/signed?order=11139`: PDFs whose name starts with the order number. Not 111390, not "PO 11139".
+  - `GET /proxy/drive/signed/file?id=`: the PDF. Only a PDF whose parent is one of these folders; 25 MB max.
+- **Folders:** Chris (sales@) `1YxDfnUUoYDDEMkQqzJtKq9XIddndXWcD` and Patrick (hello@) `1UPMct3fRUQky2AjZZxlbyrAaPPGs4o79`.
+  - Optional Cloudflare setting `SIGNED_FOLDERS` ("Chris: <id or link>, Patrick: <id or link>") replaces the list.
+  - Each folder must be shared with pine-apps-drive@pine-apps.iam.gserviceaccount.com. Viewer is enough; Editor also works.
+- **Nothing is written to Airtable yet.** The Signed Packet sweep stays paused (`SWEEP_PAUSED` in pine-signed.js). The next step, once both folders read fine: fill Signed Packet from these PDFs instead of PandaDoc downloads.
+- **Check page:** `signed-check.html` uses the Airtable sign-in saved by the other apps. It shows each folder ✓/✕ with its newest PDFs and finds an order's signed PDF (Open).
+- **Tested** in Node with mocked Google and a real RSA key, 12/12:
+  - version; status with one folder shared and then both; order match (11139, not 111390 or "PO 11139"); bad order.
+  - The file route serves a folder PDF and refuses a file outside the folders.
+  - `SIGNED_FOLDERS` with a label and a full link; no token gives 401; drive/list still refuses non-shared-drive folders.
+- The page was tested in Playwright against a mocked worker on v37, then v40 with one folder shared, then both.
+- `/proxy/version` → 40. **Stephen deploys it:** worker-copy.html → Copy worker v40 → paste into Cloudflare → Deploy. It also brings v38 and v39 (the live worker was on v37).
