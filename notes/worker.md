@@ -140,3 +140,7 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
   - Mockup Maker v189 reads SanMar's body length and width per size from it.
 - **`/proxy/img`:** also allows AS Colour's second store address, `store-hsi95a83fz.mybigcommerce.com`, where some size guides live (5080).
 - `/proxy/version` → 39. **Stephen deploys it:** worker-copy.html → Copy worker v39 → paste into Cloudflare → Deploy. This also brings v38's Drive folder fix.
+
+## 2026-11-05 · The Drive service account
+- The worker reads Drive as **pine-apps-drive@pine-apps.iam.gserviceaccount.com**. It's not a secret; the worker shows it in Line Item Review › ⚙ › Google Drive: "Connected · Printshop · as …".
+- Share any folder outside the Printshop shared drive with this address as **Viewer**. That includes the sales Pipedrive folders with the signed PandaDocs.

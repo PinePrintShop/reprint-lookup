@@ -145,3 +145,8 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
   - Patrick's login (hello@): "Pipedrive (Pine Printshop)" `1UPMct3fRUQky2AjZZxlbyrAaPPGs4o79`. Each signed PandaDoc lands there seconds after signing, as "11045 | Color Coffee Roasters.pdf".
   - Chris's login (sales@): Pipedrive's Drive sync had an authentication error; Stephen is having Chris reconnect it and turn on "Store Pipedrive files in a separate folder".
   - Both folders get shared (Viewer) with the worker's service account.
+
+## 2026-11-05 · Who to share the sales folders with
+- Share each Pipedrive Drive folder (Viewer) with **pine-apps-drive@pine-apps.iam.gserviceaccount.com**, the worker's service account (from LIR › ⚙ › Google Drive).
+  - Patrick's: "Pipedrive (Pine Printshop)".
+  - Chris's: once his Pipedrive Drive sync is reconnected with "Store Pipedrive files in a separate folder" on.
