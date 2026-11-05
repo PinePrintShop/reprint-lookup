@@ -2785,3 +2785,12 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   | Bella+Canvas 3001 Black | found | found |
 
   - No console errors.
+
+## 2026-11-05 — v217: "Attach to all" puts every mockup on every line
+- Stephen, 11161 (8 lines on 11161-A): "if I attach all 8 mockups....it only sends them to each individual line item and doesn't add them to all the line items" → "all mockups on all line items".
+- **Cause:** with "A page for each garment" unticked (`pine_mk_perg`=0, remembered per computer), each line's proof held only its own garment's page.
+- **Fix:** `attachAll` turns the per-garment pages on while it attaches and puts the setting back afterwards. Every line's PDF has every garment's page, its own first, plus the Colorways page when on, and every garment's close-ups. The checkbox now only affects the single Attach. The button tooltip says so.
+- **Tested** with mocked Airtable: 3 lines (1717 Ivory / Black / Pepper) on one imprint, checkbox off, Attach to all.
+  - v216: each PDF was "Page 1 / Colorways / 11199-A".
+  - v217: e.g. Black's PDF is "Black / Ivory / Pepper / Colorways / Black · 11199-A / Ivory · … / Pepper · …".
+  - The setting was still off afterwards; no console errors.
