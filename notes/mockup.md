@@ -2706,3 +2706,16 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
 - **Tested:** "11158-A" on a dark box starting 1 pt under its baseline, replaced with 11159.
   - Light pixels in the box's top 3 pt: v210 306/306 (saved PDF and preview); v211 0/306 in both.
   - No console errors.
+
+## 2026-11-05 — v212: the order list keeps itself up to date
+- Stephen: "the mockup creator doesn't seem to be auto freshing when a new order comes through....can it scan so that when an order comes through it updates?"
+- **Before:** the Awaiting Proof orders (the order menu and Art to do) were read once on load and on Refresh. Only the open order's lines were re-checked every 1½ min (v93).
+- **Now:** `pollOrders()` reads them again (`loadOrders(true)`, quiet):
+  - every 2 minutes while the page is open;
+  - and when you come back to the tab after a minute or more away.
+- **A new order:** a toast says "New order awaiting proof: #11160 · Lunar Outpost" (or the count, if several came in).
+- **Unchanged during a check:** the open order, its art, the menu selection and Art to do's scroll.
+- **Skipped** while the order menu is open, a proof is attaching (`J.busy`) or the tab is hidden.
+- **Tested** with mocked Airtable:
+  - 11152 open with art; 11160 added to Airtable; the check fired (2 minutes simulated).
+  - Result: the menu lists #11160 and #11152; 11152 is still selected and open, with its art and Attach still on; the toast named 11160; no console errors.
