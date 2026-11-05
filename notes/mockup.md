@@ -2768,3 +2768,20 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
     - Proof page 1: "Colors · 2 screens" with BRAND / RED and 7621 swatches in their own colours.
   - v210's 7 white-ink cases are unchanged.
   - Code-after-a-note check: 0. No console errors.
+
+## 2026-11-05 — v216: S&S lookup keeps to the garment's brand
+- Stephen, 11161 (Lost Range CBD): "it shows products on S&S but it is not pulling them in", for Plum and Darkwood Tree Camo.
+- **Cause:** those two garments had style "4000" in Airtable; the other six said IND4000. On S&S, "4000" is **Bayside 4000** and **Paragon 4000**. `ssStyleId` took the first exact match even though the brand didn't match. That style has no Plum, so there was no photo, and the v174 fallbacks never ran.
+- **Fix:**
+  - An exact style match from another brand is dropped. The brand-prefix ("IND"+"4000") and "brand's style ending in this number" fallbacks then find IND4000.
+  - Airtable, with Stephen's OK: the two garments' Style Number changed 4000 → IND4000 (`recZpOR74NEbFgl9R` Plum, `rec0iGXGQfAaBA6Rl` Darkwood Tree Camo).
+- **Tested** against live S&S:
+
+  | Lookup | v215 | v216 |
+  |---|---|---|
+  | Independent 4000 Plum | not found | found |
+  | Independent 4000 Darkwood Tree Camo | not found | found |
+  | IND4000 Plum | found | found |
+  | Bella+Canvas 3001 Black | found | found |
+
+  - No console errors.
