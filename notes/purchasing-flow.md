@@ -518,3 +518,13 @@ Stephen: "Out of Stock would be great and then we could list the sizes and it co
 - The app's OOS lines are app-managed (like "Split:" and "6X extras:"), so they don't show in the Order Notes box and editing that box keeps them. Any "OOS." typed into the note text becomes "OOS" so it can't double-fire.
 - Practice mode sends nothing.
 - **Tested** (Playwright, mocked Airtable, 1440×900 and 390×844): L and XL preselected from mocked S&S stock (short at Reno and Olathe); the save is exactly one PATCH of Order Notes with the line added after the existing notes and Split line; a line with an earlier "OOS." gets two PATCHes 4 seconds apart (clear, then add); Sorted makes one PATCH and the tag goes; the Order Notes box shows only the user's note; practice 0 writes; no console errors.
+
+## 2026-11-06 · v116: the PO date follows the calendar
+Stephen: "why is the PO in the purchasing app not updating when I click refresh".
+- **Cause:** `TODAY` was set once when the page opened. The cart's PO # (MMDDYY, `todayPO()`) is built from it, and so are the dates in "Sizes changed" / OOS notes, the price log and the arrival estimates.
+  - The purchasing computer keeps the page open for days. Refresh reloaded Airtable but not the date, so the PO kept the day the page was opened.
+- **Fix:** `syncToday()` re-reads the date on Refresh, when the page comes back to the front, and every 5 minutes. A new day redraws the carts.
+- **Tested** with Playwright's clock:
+  - v115: opened Nov 5 → Refresh on Nov 6 → still 110526.
+  - v116: 110526 → Refresh on Nov 6 → 110626 (notes say 11/6) → Nov 7 with no click → 110726.
+  - No errors.
