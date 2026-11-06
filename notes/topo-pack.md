@@ -104,3 +104,16 @@ Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labe
 - Stephen: "shipping address are not showing up". v9 filled the full ship-to address only when starting fresh. Picking up cartons saved before v9 (which have no address) left it blank, so the packing list fell back to the short name.
 - Now the full address (and the short one) are filled from the PO whenever the field is empty.
 - Tested: a v8-era save picked up with OK gives "Baja Fulfillment, 6987 Calle de Linea, Suite 109, San Diego CA 92154". No page errors.
+
+## 2026-11-06 — v11: POs with no SKUs
+Stephen (PO0003354, Topo × New Belgium reorder, order 11056): "I don't have skus for this batch....we are just dropping it off at New Belgium so need to just make a nice packing list in the same style as the other topo one".
+- That PO lists only "<product> (<colour>, <size>)", quantity and rate. PDF.js reads them as three columns (all items, then all quantities, then all rates).
+- When no SKU lines are found, v11 reads those columns: one line per colour + size, keyed internally (`~1`…). The SKU is blank on the labels and the packing list; the on-screen list shows "—".
+- The message says "5 lines (no SKUs on this PO)".
+- **Ship To without a Bill to column:** read as "NBB - Res 3620 Weicker Drive Fort Collins CO 80524".
+- **Addresses with a street suffix** (Drive, Street, Ave…) get a comma after the street: "NBB - Res, 3620 Weicker Drive, Fort Collins CO 80524". Baja's address is unchanged.
+- **Made for Stephen:** "11056 TOPO PO3354 PACKING LIST.xlsx" (+ PDF). One carton per size (5 cartons, 336 pcs), no weights, Invoice Number 11056 (found in Airtable: 11056-Topo Designs-LA Apparel-1807GD-Black, 336 pcs).
+- **Tested:**
+  - The New Belgium PO reads 5 lines (48/60/84/84/60) and the address.
+  - The packing list fits 1 Letter landscape page; the labels PDF builds.
+  - The 11011 PO (PO0003352, with SKUs) still reads 10 SKUs / 500 pcs and the Baja address, as in v10.
