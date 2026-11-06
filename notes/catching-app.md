@@ -466,3 +466,21 @@ Stephen: "Press 2 ROQ You operator app has job 10835 but it is not showing up in
   - v171: one reprint card on Heat press - Tag Press with G + H.
   - v172: the card on Press 2 - ROQ YOU with H only, reprint mode on.
 - **Workaround on v171:** the card was on the Heat Press tab (or All).
+
+## 2026-11-06 · v173: QC approves and ends the screen-print runs (with Operator v135)
+Stephen: "operators hit start and then QC handle approved and end time" (QC's Approve starts the run; QC taps End run).
+- **The QC strip** sits under the top bar for ROQ NEXT / ROQ YOU, on that press's tab or both on All. Hidden on Flat / Embroidery / Heat and on Completed.
+  - **Setup done — check the print** (yellow edge):
+    - **✓ Approve · start run** logs `SETUP COMPLETE | Approved by QC` + `RUN START | Approved by QC` and ticks Setup Finished + Run Started.
+    - **✗ Needs a fix** → Ink change / Burn new screen / Print looks off: logs `FIX START | … (QC)`.
+  - **Running 0:42:10** (live) or **Paused · reason**: **■ End run** asks first, then logs `RUN COMPLETE | Ended by QC | run time` and ticks Run Finished. A split job (both presses in the log) is ticked only once the other press is done too.
+  - "Setting up" shows with no button.
+- **How it reads:** every 10 s, the imprints with Setup Started, not Run Finished, on a ROQ press, start time in the last 4 days. Fields: the event log (Additional Notes), ID, nickname, customer. The phase comes from the same rules as Operator's timer rebuild.
+- **Each button** re-reads that imprint first. If the press has moved on (e.g. the operator used the backup link), it says so and saves nothing.
+- The press iPad (Operator v135) follows within ~8 s.
+- Practice mode: the writes stay on this iPad, so the handoff between iPads can only be tried live.
+- **Tested** (Playwright, mocked Airtable, Denver time):
+  - the full press ↔ QC handoff (see Operator v135);
+  - a split job: ending P2 leaves Run Finished off, ending P1 ticks it;
+  - the strip follows the tab;
+  - no page errors.
