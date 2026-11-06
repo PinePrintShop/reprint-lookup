@@ -77,3 +77,9 @@ Stephen: "let's just do Dancing Script....also some things still get cut off in 
 - **Signature:** Dancing Script only (PandaDoc's default look). The style picker is gone; the sign step is "Use this" or Draw.
 - **Terms while initialing:** each Next scrolls the whole term to the top of the screen (not just its box), and the term being initialed gets a cream highlight with a yellow edge. On phones the terms text is 15px with tighter spacing so long terms fit.
 - **Tested (iPhone 13 and iPhone SE):** all 5 terms land fully visible above the bottom bar and are highlighted. v4 cut off Payment and Damages. The signature renders in Dancing Script. No errors.
+
+## 2026-11-06 — v6
+Stephen: "looks like the description of the terms gets cut off during the flow"
+- **Cause:** on iPad and computer screens the black top bar stays pinned, and v5 scrolled each term to the very top of the window — under the bar. Only the last line of the term showed. (Phones were fine; the bar scrolls away there. The v5 test measured against the window top, so it missed this.)
+- **Fix:** the page measures the pinned bar and sets the scroll padding to its height, so terms and proofs stop just below it.
+- **Tested** (iPhone 13, iPhone 14 Pro Max, iPad portrait and landscape, 1440×900, 1280×720): every term lands fully between the top bar and the bottom bar. v5 cut every term on iPad and desktop. Full flow signs, no errors.
