@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Approve your order — Pine Printshop</title>
+<!-- Pine Approve v2 (2026-11-06): what you're approving stays on screen while you initial / sign (Stephen, on his phone: "Can we
+     space it better so the proof invoice are viewable while you sign"). On a phone: the top bar scrolls away, proofs are
+     shorter (image capped at about a third of the screen, specs in two tight columns, the approve box beside "Request a
+     change"), the invoice is tighter with the signature box shorter and name + date side by side, and the bottom bar is
+     slimmer. Next scrolls a proof card to the top (image, specs and its box together) and the signature to just above the
+     bottom bar (the total stays in view). The date box no longer runs past the card edge on iPhone. -->
+<!-- Pine Approve v1 (2026-11-06): our own order approval + signing page, to replace PandaDoc (Stephen: "let's start building something
+     so we can review it in real time. I think have an quick tabable signing and having them go through everything is a good
+     flow...forces them to have to read over the details and we should make all the fields required").
+     PROTOTYPE: sample order only (?demo is the default) — nothing is saved or sent. The live version will load the order's
+     packet through the worker with a private per-order link and write the signature + approvals to Airtable.
+     Flow: adopt your name + initials once → Next ▸ steps through every required field in order (5 Terms initials, an APPROVED
+     initial on every proof, the invoice signature, printed name, date) → Finish is locked until all are done. Any proof can
+     be sent back with "Request a change" instead, which turns Finish into "Send change requests" (no signature). -->
+<link rel="icon" type="image/svg+xml" href="pine-favicon-black.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+:root{--ap-y:#FBE122;--ap-cream:#EFE2CD;--ap-ink:#141412;--ap-line:#d9d2c3;--ap-red:#c8102e;--ap-w:760px}
+body{background:var(--ap-cream);margin:0}
+.ap{max-width:var(--ap-w);margin:0 auto;padding:16px 16px 140px}
+.ap-hero{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px}
+.ap-hero h1{font:900 26px/1.1 Poppins,Helvetica,sans-serif;text-transform:uppercase;margin:0 0 6px}
+.ap-hero p{margin:6px 0 0;font:15px/1.45 Helvetica,Arial,sans-serif}
+.ap-meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font:13px/1.3 Helvetica,Arial,sans-serif;color:#4a453c}
+.ap-meta b{color:var(--ap-ink)}
+.ap-sec{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px}
+.ap-sec h2{font:900 20px/1.1 Poppins,Helvetica,sans-serif;text-transform:uppercase;margin:0 0 4px;display:flex;align-items:baseline;gap:10px}
+.ap-sec h2 small{font:700 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.06em;color:#6b6457}
+.ap-sec h2 small.ok{color:#1d7a46}
+.ap-sec>.ap-lead{font:14px/1.45 Helvetica,Arial,sans-serif;color:#4a453c;margin:0 0 12px}
+.ap-term{border-top:1px solid var(--ap-line);padding:14px 0;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.ap-term p{margin:0;font:15px/1.5 Helvetica,Arial,sans-serif}
+.ap-term p b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.ap-term details{grid-column:1/-1;font:13px/1.5 Helvetica,Arial,sans-serif;color:#4a453c}
+.ap-term details summary{cursor:pointer;font-weight:700;color:var(--ap-ink)}
+/* the required boxes */
+.ap-f{min-width:120px;min-height:56px;border:2px dashed var(--ap-ink);border-radius:6px;background:#fffbd0;font:700 14px/1.1 Helvetica,Arial,sans-serif;color:var(--ap-ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:6px 12px;position:relative}
+.ap-f:focus-visible{outline:4px solid var(--ap-ink);outline-offset:3px}
+.ap-f.is-next{background:var(--ap-y);border-style:solid;box-shadow:0 0 0 4px rgba(251,225,34,.45)}
+.ap-f.is-done{border:2px solid #1d7a46;background:#fff;color:#1d7a46;cursor:default}
+.ap-f .ini{font:italic 700 24px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b}
+.ap-f .req{position:absolute;top:-9px;right:-6px;background:var(--ap-red);color:#fff;font:700 12px/1 Helvetica,Arial,sans-serif;border-radius:10px;padding:3px 6px}
+.ap-f.is-done .req{display:none}
+/* proofs */
+.ap-proof{border-top:1px solid var(--ap-line);padding:16px 0}
+.ap-proof-h{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin-bottom:10px}
+.ap-proof-h b{font:900 16px/1.1 Poppins,Helvetica,sans-serif;text-transform:uppercase}
+.ap-proof-h span{font:13px/1.3 Helvetica,Arial,sans-serif;color:#4a453c}
+.ap-proof-img{background:#f6f3ec;border-radius:6px;display:flex;justify-content:center;padding:12px}
+.ap-proof-img svg{width:100%;max-width:520px;height:auto}
+.ap-specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 16px;margin:12px 0;font:14px/1.35 Helvetica,Arial,sans-serif}
+.ap-specs div span{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#6b6457}
+.ap-act{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.ap-act .ap-f{min-width:180px}
+.ap-chg{background:none;border:none;text-decoration:underline;font:600 14px/1 Helvetica,Arial,sans-serif;color:#4a453c;cursor:pointer;min-height:44px;padding:0 4px}
+.ap-chgbox{width:100%;margin-top:10px}
+.ap-chgbox textarea{width:100%;box-sizing:border-box;min-height:84px;border:2px solid var(--ap-ink);border-radius:6px;padding:10px;font:15px/1.4 Helvetica,Arial,sans-serif}
+.ap-chgbox .p-hint{margin-top:4px}
+.ap-proof.is-chg .ap-f{display:none}
+.ap-chgtag{display:none;background:var(--ap-red);color:#fff;font:700 12px/1 Helvetica,Arial,sans-serif;border-radius:4px;padding:6px 8px;text-transform:uppercase;letter-spacing:.05em}
+.ap-proof.is-chg .ap-chgtag{display:inline-block}
+/* invoice */
+.ap-inv{width:100%;border-collapse:collapse;font:14px/1.35 Helvetica,Arial,sans-serif;margin-bottom:8px}
+.ap-inv th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#6b6457;border-bottom:2px solid var(--ap-ink);padding:6px 4px}
+.ap-inv td{border-bottom:1px solid var(--ap-line);padding:8px 4px;vertical-align:top}
+.ap-inv .r{text-align:right;white-space:nowrap}
+.ap-inv tfoot td{border:none;padding:4px}
+.ap-inv tfoot tr.tot td{font:900 18px/1.2 Poppins,Helvetica,sans-serif;border-top:2px solid var(--ap-ink);padding-top:8px}
+.ap-sign{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
+.ap-sign label{font:700 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6b6457;display:block;margin-bottom:6px}
+.ap-sign .ap-f{width:100%;min-height:96px}
+.ap-sign .ap-f .sig{font:italic 400 38px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b}
+.ap-sign .ap-f img{max-height:80px;max-width:100%}
+.ap-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ap-sign input.p-input{width:100%;box-sizing:border-box;min-height:56px;font-size:16px}
+.ap-sign input.is-next{box-shadow:0 0 0 4px rgba(251,225,34,.7);border-color:var(--ap-ink)}
+/* the bottom bar: progress + the one main button */
+.ap-bar{position:fixed;left:0;right:0;bottom:0;background:var(--ap-ink);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:50}
+.ap-bar-in{max-width:var(--ap-w);margin:0 auto;display:flex;align-items:center;gap:12px}
+.ap-prog{flex:1;min-width:0}
+.ap-prog b{font:700 14px/1.2 Helvetica,Arial,sans-serif;display:block}
+.ap-prog i{display:block;height:6px;background:#3a3832;border-radius:3px;margin-top:6px;overflow:hidden}
+.ap-prog i span{display:block;height:100%;background:var(--ap-y);width:0;transition:width .25s}
+.ap-go{min-height:56px;min-width:160px;border:none;border-radius:6px;background:var(--ap-y);color:var(--ap-ink);font:900 18px/1 Poppins,Helvetica,sans-serif;text-transform:uppercase;cursor:pointer;padding:0 20px}
+.ap-go:disabled{background:#5b584f;color:#bdb7aa;cursor:not-allowed}
+/* adopt + sign modals */
+.ap-scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+@media (min-width:700px){ .ap-scrim{align-items:center} }
+.ap-modal{background:#fff;border-radius:10px 10px 0 0;width:min(560px,100%);padding:20px;box-sizing:border-box;max-height:92vh;overflow:auto}
+@media (min-width:700px){ .ap-modal{border-radius:10px} }
+.ap-modal h3{font:900 20px/1.1 Poppins,Helvetica,sans-serif;text-transform:uppercase;margin:0 0 6px}
+.ap-modal p{font:14px/1.45 Helvetica,Arial,sans-serif;color:#4a453c;margin:0 0 12px}
+.ap-modal label{font:700 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6b6457;display:block;margin:10px 0 6px}
+.ap-modal input.p-input{width:100%;box-sizing:border-box;min-height:52px;font-size:16px}
+.ap-prev{display:flex;gap:16px;align-items:center;border:1px solid var(--ap-line);border-radius:6px;padding:12px;margin:12px 0}
+.ap-prev .sig{font:italic 400 34px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b;flex:1}
+.ap-prev .ini{font:italic 700 26px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b}
+.ap-tabs{display:flex;gap:6px;margin:8px 0}
+.ap-tabs button{flex:1;min-height:44px;border:2px solid var(--ap-ink);background:#fff;border-radius:6px;font:700 14px/1 Helvetica,Arial,sans-serif;cursor:pointer}
+.ap-tabs button.is-on{background:var(--ap-ink);color:#fff}
+.ap-pad{width:100%;height:160px;border:2px dashed var(--ap-ink);border-radius:6px;touch-action:none;background:#fff;display:block}
+.ap-modal label.ap-consent{display:flex;gap:10px;align-items:flex-start;font:14px/1.45 Helvetica,Arial,sans-serif;letter-spacing:0;text-transform:none;color:var(--ap-ink);margin:14px 0}
+.ap-consent input{width:22px;height:22px;flex:0 0 auto;margin-top:1px}
+.ap-mbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.ap-mbtns .p-btn{min-height:52px}
+.ap-done{background:#fff;border-radius:8px;padding:28px 20px;text-align:center}
+.ap-done h1{font:900 28px/1.1 Poppins,Helvetica,sans-serif;text-transform:uppercase;margin:0 0 10px}
+.ap-done p{font:15px/1.5 Helvetica,Arial,sans-serif;margin:6px 0}
+.ap-audit{text-align:left;background:var(--ap-cream);border-radius:6px;padding:12px;margin-top:16px;font:13px/1.5 Helvetica,Arial,sans-serif}
+.ap-audit b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.ap-demo{background:var(--ap-y);color:var(--ap-ink);font:700 13px/1.35 Helvetica,Arial,sans-serif;padding:8px 12px;border-radius:6px;margin-bottom:12px}
+/* v2 — scroll targets: a proof card lands at the top, a box lands just above the bottom bar */
+.ap-proof{scroll-margin-top:8px}
+.ap-f,.ap-sign input,.ap-chgbox textarea{scroll-margin-bottom:96px}
+.ap-sign input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;display:block}
+.ap-two>div{min-width:0}
+@media (max-width:700px){
+  .p-bar{position:static}
+  .ap{padding:10px 10px 110px}
+  .ap-hero,.ap-sec{padding:14px;margin-bottom:10px}
+  .ap-proof{padding:12px 0}
+  .ap-proof-h{margin-bottom:6px}
+  .ap-proof-img{padding:6px}
+  .ap-proof-img svg{max-height:34vh;width:auto;max-width:100%}
+  .ap-specs{grid-template-columns:1fr 1fr;gap:4px 12px;margin:8px 0;font-size:13px}
+  .ap-specs div span{font-size:12px}
+  .ap-act{flex-wrap:nowrap;gap:8px}
+  .ap-act .ap-f{min-width:0;flex:1;min-height:52px}
+  .ap-chg{white-space:nowrap;font-size:13px}
+  .ap-inv{font-size:13px;margin-bottom:4px}
+  .ap-inv th{padding:4px 3px}
+  .ap-inv td{padding:5px 3px}
+  .ap-inv tfoot td{padding:2px 3px}
+  .ap-inv tfoot tr.tot td{font-size:16px;padding-top:5px}
+  .ap-sign{margin-top:10px;gap:8px}
+  .ap-sign label{margin-bottom:4px}
+  .ap-sign .ap-f{min-height:72px}
+  .ap-sign .ap-f .sig{font-size:30px}
+  .ap-sign .ap-f img{max-height:60px}
+  .ap-two{grid-template-columns:1fr 1fr!important;gap:8px}
+  .ap-sign input.p-input{min-height:48px;font-size:16px;padding-left:10px;padding-right:6px}
+  .ap-bar{padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+  .ap-prog b{font-size:13px}
+  .ap-go{min-height:48px;min-width:120px;font-size:16px}
+  .ap-sec h2{font-size:18px}
+}
+@media (max-width:520px){ .ap-term{grid-template-columns:1fr} .ap-term .ap-f{width:100%} .ap-go{min-width:110px} .ap-hero h1{font-size:22px} }
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Approve your order</span><span class="p-bar-ver" id="ver">v2</span></header>
+<main class="ap" id="main">
+  <div class="ap-demo" id="demoNote">Sample order — this is a preview. Nothing you enter is saved or sent.</div>
+  <section class="ap-hero">
+    <h1 id="hTitle">Review &amp; approve</h1>
+    <p id="hLead"></p>
+    <div class="ap-meta" id="hMeta"></div>
+  </section>
+  <section class="ap-sec" id="secTerms" aria-labelledby="tTerms"><h2 id="tTerms">1 · Terms <small id="cTerms"></small></h2>
+    <p class="ap-lead">Read each one and add your initials.</p><div id="terms"></div></section>
+  <section class="ap-sec" id="secProofs" aria-labelledby="tProofs"><h2 id="tProofs">2 · Proofs <small id="cProofs"></small></h2>
+    <p class="ap-lead">Check spelling, colors, sizes and placement on every proof. We print exactly what you approve.</p><div id="proofs"></div></section>
+  <section class="ap-sec" id="secInv" aria-labelledby="tInv"><h2 id="tInv">3 · Invoice &amp; signature <small id="cInv"></small></h2>
+    <div id="inv"></div>
+    <div class="ap-sign">
+      <div><label for="fSig">Signature</label><button type="button" class="ap-f" id="fSig" data-k="sig"><span class="lbl">Tap to sign</span><span class="req">Required</span></button></div>
+      <div class="ap-two">
+        <div><label for="fName">Printed name</label><input class="p-input" id="fName" autocomplete="name" placeholder="Your full name" data-k="name"></div>
+        <div><label for="fDate">Date</label><input class="p-input" id="fDate" type="date" data-k="date"></div>
+      </div>
+      <p class="p-hint" style="margin:0">By signing you approve the proofs above, agree to the terms, and authorize this invoice.</p>
+    </div>
+  </section>
+</main>
+<div class="ap-bar" role="region" aria-label="Signing progress"><div class="ap-bar-in">
+  <div class="ap-prog"><b id="progTxt"></b><i><span id="progBar"></span></i></div>
+  <button type="button" class="ap-go" id="go">Start ▸</button>
+</div></div>
+<script>
+/* ===== Sample order (demo). The live page will load this from the order's packet through the worker. ===== */
+const DEMO={order:'00000',customer:'Sample Co.',contact:{name:'Jordan Sample',email:'jordan@sample.co'},rep:'Your Pine sales rep',
+  due:'Fri, Dec 4',ship:'Ship · UPS Ground',
+  proofs:[
+    {id:'p1',line:'Comfort Colors 1717 · Pepper',loc:'Front',size:'11″ × 9.4″',inks:['White','Pantone 1655 (orange)'],placement:'3″ below the collar, centered',qty:'S 6 · M 12 · L 12 · XL 6 · 2XL 4',art:'front'},
+    {id:'p2',line:'Comfort Colors 1717 · Pepper',loc:'Back',size:'3″ × 1.2″',inks:['White'],placement:'1″ below the collar, centered',qty:'S 6 · M 12 · L 12 · XL 6 · 2XL 4',art:'back'},
+    {id:'p3',line:'Carolina Creative 4800 · Natural (bandana)',loc:'All over',size:'20″ × 20″',inks:['Pantone 1655','Black'],placement:'Centered on the bandana',qty:'100',art:'bandana'}],
+  invoice:[{d:'Comfort Colors 1717 · Pepper — front + back print',q:40,p:21.5},{d:'2XL and up',q:4,p:2},{d:'Carolina Creative 4800 bandana · 2-color',q:100,p:6.75},{d:'Screens / setup',q:3,p:25}],
+  tax:0.0765,shipping:38};
+const TERMS=[
+  {h:'Proof revisions',t:'If more than two rounds of proof revisions are required, the client will be charged an additional $50 per revision.'},
+  {h:'Changes after signing',t:'Any changes requested after the client has signed a proof will be subject to an additional $100 per change.'},
+  {h:'Print size',t:'We recommend measuring the print dimensions on yourself to ensure they meet your expectations. For context, the average smartphone is roughly 6″ × 3″.'},
+  {h:'Payment & turnaround',t:'Turnaround is calculated from payment date. We will not begin production until we’ve received payment in full. Orders on an ASAP basis will ship within 14 business days of payment (orders involving patches & labels excluded). Orders with a Hard Deadline must be paid 10 business days before your deadline for us to guarantee on-time delivery.'},
+  {h:'Damages & spoilage',t:'Spoilage is an unfortunate inevitability of our manufacturing process. We purchase extra garments to accommodate for spoilage and will include any overages in your order, so the quantities you receive may vary slightly from your invoice. If we deliver less than a line item’s total quantity, you will be refunded for the spoilage. Our re-print threshold is 5% of a line item: under 5% we refund, over 5% we re-print or re-sew. Bandana quantities are always guaranteed. If you need the exact quantity on your invoice, tell your sales rep (additional charges may apply).'}];
+const TERMS_INTRO='Please take the time to look over your proofs closely. We will not offer re-prints, refunds, or recourse of any kind for misspellings or discrepancies that exist on an approved proof. Reviewing your proofs for accuracy is your responsibility.';
+
+/* ===== state ===== */
+const O=DEMO, $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ST={who:null,ini:null,sigImg:null,done:{},chg:{},started:false};   // done[fieldKey]=Date.now()
+const money=n=>'$'+(+n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function proofSvg(kind){
+  const tee=(fill,print)=>`<svg viewBox="0 0 400 420" role="img" aria-label="Proof mockup"><path d="M120 30 L160 18 Q200 48 240 18 L280 30 L360 80 L330 140 L300 120 L300 400 L100 400 L100 120 L70 140 L40 80 Z" fill="${fill}" stroke="#2a2a28" stroke-width="2"/>${print}</svg>`;
+  if(kind==='front') return tee('#55524d',`<rect x="128" y="96" width="144" height="122" fill="none" stroke="#FBE122" stroke-dasharray="5 4"/><text x="200" y="150" text-anchor="middle" font-family="Poppins,Helvetica" font-weight="900" font-size="34" fill="#fff">SAMPLE</text><text x="200" y="190" text-anchor="middle" font-family="Poppins,Helvetica" font-weight="900" font-size="28" fill="#ff6a13">CO. ★</text><text x="200" y="236" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#FBE122">11″ × 9.4″</text>`);
+  if(kind==='back') return tee('#55524d',`<rect x="175" y="58" width="50" height="20" fill="none" stroke="#FBE122" stroke-dasharray="4 3"/><text x="200" y="73" text-anchor="middle" font-family="Poppins,Helvetica" font-weight="900" font-size="12" fill="#fff">SAMPLE</text><text x="200" y="96" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#FBE122">3″ × 1.2″</text>`);
+  return `<svg viewBox="0 0 400 400" role="img" aria-label="Bandana mockup"><rect x="20" y="20" width="360" height="360" fill="#efe6d2" stroke="#2a2a28" stroke-width="2"/><rect x="40" y="40" width="320" height="320" fill="none" stroke="#141412" stroke-width="6" stroke-dasharray="2 10"/><circle cx="200" cy="200" r="70" fill="none" stroke="#ff6a13" stroke-width="10"/><text x="200" y="212" text-anchor="middle" font-family="Poppins,Helvetica" font-weight="900" font-size="34" fill="#141412">SAMPLE</text></svg>`;
+}
+
+/* ===== the fields, in the order Next walks them ===== */
+const chgOpen=p=>ST.chg[p.id]!=null;   // a change box is open (empty or written)
+function fieldOrder(){ const f=[]; TERMS.forEach((t,i)=>f.push('t'+i)); O.proofs.forEach(p=>{ if(!chgOpen(p)) f.push('p:'+p.id); });
+  if(!anyChg()) f.push('sig','name','date'); return f; }
+const anyChg=()=>O.proofs.some(chgOpen);
+function isDone(k){ if(k==='name') return $('fName').value.trim().length>=3; if(k==='date') return !!$('fDate').value; return !!ST.done[k]; }
+function elOf(k){ if(k==='name') return $('fName'); if(k==='date') return $('fDate'); if(k==='sig') return $('fSig'); return document.querySelector(`[data-k="${k}"]`); }
+
+function render(){
+  $('hTitle').textContent='Order #'+O.order+' · '+O.customer;
+  $('hLead').textContent='Hi '+O.contact.name.split(' ')[0]+' — please review everything below. Every box is required: tap Start and we’ll take you to each one.';
+  $('hMeta').innerHTML=`<span>Due <b>${esc(O.due)}</b></span><span><b>${esc(O.ship)}</b></span><span>${O.proofs.length} proofs</span><span>Questions? Reply to the email from <b>${esc(O.rep)}</b></span>`;
+  $('terms').innerHTML=`<p style="font:15px/1.5 Helvetica,Arial,sans-serif;margin:0 0 12px">${esc(TERMS_INTRO)}</p>`+TERMS.map((t,i)=>`<div class="ap-term"><p><b>${esc(t.h)}</b>${esc(t.t)}</p>${fieldBtn('t'+i,'Initial here')}</div>`).join('');
+  $('proofs').innerHTML=O.proofs.map((p,i)=>`<div class="ap-proof" id="pr-${p.id}"><div class="ap-proof-h"><b>Proof ${i+1} of ${O.proofs.length} · ${esc(p.loc)}</b><span>${esc(p.line)}</span></div>
+    <div class="ap-proof-img">${proofSvg(p.art)}</div>
+    <div class="ap-specs"><div><span>Print size</span>${esc(p.size)}</div><div><span>Placement</span>${esc(p.placement)}</div><div><span>Colors</span>${p.inks.map(esc).join(', ')}</div><div><span>Quantities</span>${esc(p.qty)}</div></div>
+    <div class="ap-act">${fieldBtn('p:'+p.id,'Approve — initial here')}<span class="ap-chgtag">Change requested</span><button type="button" class="ap-chg" data-chg="${p.id}">Request a change</button></div>
+    <div class="ap-chgbox" id="chg-${p.id}" hidden><label class="p-label" for="chgt-${p.id}">What should change on this proof?</label><textarea id="chgt-${p.id}" placeholder="e.g. Make the logo 1″ smaller and move it up"></textarea><p class="p-hint">Your sales rep gets this right away. You’ll get a new proof to approve.</p></div></div>`).join('');
+  const sub=O.invoice.reduce((a,l)=>a+l.q*l.p,0), tax=Math.round(sub*O.tax*100)/100, tot=sub+tax+O.shipping;
+  $('inv').innerHTML=`<table class="ap-inv"><thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Each</th><th class="r">Total</th></tr></thead><tbody>${O.invoice.map(l=>`<tr><td>${esc(l.d)}</td><td class="r">${l.q}</td><td class="r">${money(l.p)}</td><td class="r">${money(l.q*l.p)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td colspan="3" class="r">Subtotal</td><td class="r">${money(sub)}</td></tr><tr><td colspan="3" class="r">Sales tax</td><td class="r">${money(tax)}</td></tr><tr><td colspan="3" class="r">Shipping</td><td class="r">${money(O.shipping)}</td></tr><tr class="tot"><td colspan="3" class="r">Total</td><td class="r">${money(tot)}</td></tr></tfoot></table>`;
+  wire(); paint(); }
+function fieldBtn(k,label){ return `<button type="button" class="ap-f" data-k="${k}" aria-label="${esc(label)} (required)"><span class="lbl">${esc(label)}</span><span class="req">Required</span></button>`; }
+
+function wire(){
+  document.querySelectorAll('.ap-f').forEach(b=>b.onclick=()=>stamp(b.dataset.k));
+  document.querySelectorAll('[data-chg]').forEach(b=>b.onclick=()=>toggleChg(b.dataset.chg));
+  O.proofs.forEach(p=>{ const t=$('chgt-'+p.id); t.oninput=()=>{ if(chgOpen(p)) ST.chg[p.id]=t.value.trim(); paint(); }; });
+  $('fName').oninput=paint; $('fDate').oninput=paint; $('fDate').onchange=paint;
+  $('go').onclick=go; }
+
+function toggleChg(id){ const box=$('chg-'+id), open=box.hidden; box.hidden=!open; const pr=$('pr-'+id);
+  if(open){ ST.chg[id]=''; delete ST.done['p:'+id]; pr.classList.add('is-chg'); pr.querySelector('[data-chg]').textContent='Keep this proof — approve it instead'; setTimeout(()=>$('chgt-'+id).focus(),50); }
+  else { delete ST.chg[id]; pr.classList.remove('is-chg'); pr.querySelector('[data-chg]').textContent='Request a change'; }
+  paint(); }
+
+/* tap a box: first time asks who's signing (name + initials), then stamps */
+function stamp(k){ if(ST.done[k]) return;
+  if(!ST.who) return adopt(()=>stamp(k));
+  if(k==='sig') return signPad();
+  ST.done[k]=Date.now(); paint(); setTimeout(()=>focusNext(true),250); }
+
+function paint(){
+  const order=fieldOrder(), done=order.filter(isDone).length, next=order.find(k=>!isDone(k));
+  document.querySelectorAll('.ap-f').forEach(b=>{ const k=b.dataset.k, d=!!ST.done[k];
+    b.classList.toggle('is-done',d); b.classList.toggle('is-next',!d&&k===next&&ST.started);
+    if(k==='sig'){ b.querySelector('.lbl').innerHTML=d?(ST.sigImg?`<img src="${ST.sigImg}" alt="Your signature">`:`<span class="sig">${esc(ST.who.name)}</span>`):'Tap to sign'; }
+    else b.querySelector('.lbl').innerHTML=d?`<span class="ini">${esc(ST.ini)}</span> ✓`:(k.startsWith('p:')?'Approve — initial here':'Initial here'); });
+  ['fName','fDate'].forEach(id=>$(id).classList.toggle('is-next',ST.started&&next===(id==='fName'?'name':'date')));
+  const nt=TERMS.filter((t,i)=>ST.done['t'+i]).length, np=O.proofs.filter(p=>ST.done['p:'+p.id]||(ST.chg[p.id]&&ST.chg[p.id].length)).length;
+  $('cTerms').textContent=nt+' of '+TERMS.length+' initialed'; $('cTerms').className=nt===TERMS.length?'ok':'';
+  $('cProofs').textContent=np+' of '+O.proofs.length+' reviewed'; $('cProofs').className=np===O.proofs.length?'ok':'';
+  const si=['sig','name','date'].filter(isDone).length; $('cInv').textContent=anyChg()?'not needed while a change is requested':si+' of 3'; $('cInv').className=!anyChg()&&si===3?'ok':'';
+  $('secInv').style.opacity=anyChg()?.5:1;
+  const chgOpen=O.proofs.filter(p=>ST.chg[p.id]!=null), chgEmpty=chgOpen.some(p=>!ST.chg[p.id]);
+  $('progBar').style.width=Math.round(100*done/Math.max(1,order.length))+'%';
+  const g=$('go');
+  if(!ST.started){ $('progTxt').textContent=order.length+' required fields · about 3 minutes'; g.textContent='Start ▸'; g.disabled=false; return; }
+  if(anyChg()){ const ready=done===order.length&&!chgEmpty;
+    $('progTxt').textContent=chgEmpty?'Describe the change you want':ready?'Ready to send your change requests':(order.length-done)+' left to review';
+    g.textContent=ready?'Send changes':'Next ▸'; g.disabled=false; g.dataset.mode=ready?'send':'next'; return; }
+  $('progTxt').textContent=done===order.length?'All done — ready to finish':done+' of '+order.length+' done';
+  g.textContent=done===order.length?'Finish ✓':'Next ▸'; g.disabled=false; g.dataset.mode=done===order.length?'finish':'next'; }
+
+function focusNext(auto){ const next=fieldOrder().find(k=>!isDone(k));
+  if(!next){ if(anyChg()){ const e=O.proofs.find(p=>ST.chg[p.id]==='' ); if(e){ $('chgt-'+e.id).scrollIntoView({behavior:'smooth',block:'center'}); $('chgt-'+e.id).focus({preventScroll:true}); } } paint(); return; }
+  const el=elOf(next), small=matchMedia('(max-width:700px)').matches;
+  if(next.startsWith('p:')) $('pr-'+next.slice(2)).scrollIntoView({behavior:'smooth',block:'start'});   // v2: the proof, its specs and its box together
+  else el.scrollIntoView({behavior:'smooth',block:small&&!next.startsWith('t')?'end':'center'});   // v2: the signature lands above the bar, the total stays in view
+  el.focus({preventScroll:true});
+  if(next==='name'&&!$('fName').value&&ST.who){ $('fName').value=ST.who.name; paint(); }
+  if(next==='date'&&!$('fDate').value){ $('fDate').value=new Date().toLocaleDateString('en-CA'); paint(); setTimeout(()=>focusNext(true),300); }
+  paint(); }
+function go(){ const g=$('go');
+  if(!ST.started){ ST.started=true; if(!ST.who) return adopt(()=>focusNext()); return focusNext(); }
+  if(g.dataset.mode==='finish') return finish(false);
+  if(g.dataset.mode==='send') return finish(true);
+  focusNext(); }
+
+/* ===== adopt name + initials (once) ===== */
+function modal(html){ const s=document.createElement('div'); s.className='ap-scrim'; s.innerHTML=`<div class="ap-modal" role="dialog" aria-modal="true">${html}</div>`; document.body.appendChild(s); s.onclick=e=>{ if(e.target===s) s.remove(); }; return s; }
+function adopt(then){
+  const s=modal(`<h3>Who’s signing?</h3><p>Your name and initials go on each box you tap. You’ll draw or adopt your signature at the end.</p>
+    <label for="adN">Full name</label><input class="p-input" id="adN" autocomplete="name" value="${esc(O.contact.name)}">
+    <label for="adI">Initials</label><input class="p-input" id="adI" maxlength="4" style="max-width:140px">
+    <label for="adE">Email (your signed copy goes here)</label><input class="p-input" id="adE" type="email" autocomplete="email" value="${esc(O.contact.email)}">
+    <div class="ap-prev"><span class="sig" id="adPS"></span><span class="ini" id="adPI"></span></div>
+    <label class="ap-consent"><input type="checkbox" id="adC"><span>I agree to sign electronically. My typed or drawn signature and initials have the same effect as signing by hand.</span></label>
+    <div class="ap-mbtns"><button type="button" class="p-btn" id="adX">Cancel</button><button type="button" class="p-btn p-btn-main" id="adOk" disabled>Adopt &amp; continue</button></div>`);
+  const n=s.querySelector('#adN'), ini=s.querySelector('#adI'), em=s.querySelector('#adE'), c=s.querySelector('#adC'), ok=s.querySelector('#adOk');
+  const auto=()=>n.value.trim().split(/\s+/).filter(Boolean).map(w=>w[0].toUpperCase()).join('').slice(0,3);
+  let iniTyped=false; ini.value=auto();
+  const upd=()=>{ if(!iniTyped) ini.value=auto(); s.querySelector('#adPS').textContent=n.value.trim()||'Your name'; s.querySelector('#adPI').textContent=ini.value.trim()||'AB';
+    ok.disabled=!(n.value.trim().length>=3&&ini.value.trim()&&/\S+@\S+\.\S+/.test(em.value)&&c.checked); };
+  n.oninput=upd; ini.oninput=()=>{ iniTyped=true; upd(); }; em.oninput=upd; c.onchange=upd; upd();
+  s.querySelector('#adX').onclick=()=>s.remove();
+  ok.onclick=()=>{ ST.who={name:n.value.trim(),email:em.value.trim(),at:Date.now()}; ST.ini=ini.value.trim().toUpperCase(); s.remove(); paint(); if(then) then(); };
+  setTimeout(()=>n.focus(),50); }
+
+/* ===== signature: adopt the typed style, or draw ===== */
+function signPad(){
+  const s=modal(`<h3>Sign</h3><p>Use your adopted signature, or draw one.</p>
+    <div class="ap-tabs" role="tablist"><button type="button" class="is-on" data-t="type" role="tab">Adopted</button><button type="button" data-t="draw" role="tab">Draw</button></div>
+    <div id="sgType"><div class="ap-prev"><span class="sig">${esc(ST.who.name)}</span></div></div>
+    <div id="sgDraw" hidden><canvas class="ap-pad" id="sgPad" aria-label="Draw your signature"></canvas><button type="button" class="ap-chg" id="sgClr">Clear</button></div>
+    <div class="ap-mbtns"><button type="button" class="p-btn" id="sgX">Cancel</button><button type="button" class="p-btn p-btn-main" id="sgOk">Sign</button></div>`);
+  let mode='type', drew=false; const pad=s.querySelector('#sgPad'), ok=s.querySelector('#sgOk');
+  s.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ mode=b.dataset.t; s.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('is-on',x===b)); s.querySelector('#sgType').hidden=mode!=='type'; s.querySelector('#sgDraw').hidden=mode!=='draw'; if(mode==='draw') setupPad(); ok.disabled=mode==='draw'&&!drew; });
+  function setupPad(){ const r=pad.getBoundingClientRect(), dpr=window.devicePixelRatio||1; if(pad._ok) return; pad._ok=1; pad.width=r.width*dpr; pad.height=r.height*dpr; const x=pad.getContext('2d'); x.scale(dpr,dpr); x.lineWidth=2.6; x.lineCap='round'; x.lineJoin='round'; x.strokeStyle='#0b2a6b';
+    let down=false; const P=e=>{ const b=pad.getBoundingClientRect(); return [e.clientX-b.left,e.clientY-b.top]; };
+    pad.onpointerdown=e=>{ down=true; pad.setPointerCapture(e.pointerId); const [a,b]=P(e); x.beginPath(); x.moveTo(a,b); };
+    pad.onpointermove=e=>{ if(!down) return; const [a,b]=P(e); x.lineTo(a,b); x.stroke(); drew=true; ok.disabled=false; };
+    pad.onpointerup=()=>{ down=false; };
+    s.querySelector('#sgClr').onclick=()=>{ x.clearRect(0,0,pad.width,pad.height); drew=false; ok.disabled=true; }; }
+  s.querySelector('#sgX').onclick=()=>s.remove();
+  ok.onclick=()=>{ ST.sigImg=mode==='draw'?pad.toDataURL('image/png'):null; ST.done.sig=Date.now(); s.remove(); paint(); setTimeout(()=>focusNext(true),250); }; }
+
+/* ===== finish (demo: shows what would be recorded; nothing is sent) ===== */
+function finish(changes){
+  const at=new Date(), rows=fieldOrder().map(k=>`${k==='sig'?'Signature':k==='name'?'Printed name':k==='date'?'Date':k.startsWith('t')?'Terms: '+TERMS[+k.slice(1)].h:'Proof '+(O.proofs.findIndex(p=>'p:'+p.id===k)+1)+' approved'} — ${k==='name'?esc($('fName').value):k==='date'?esc($('fDate').value):new Date(ST.done[k]).toLocaleTimeString()}`);
+  const ch=O.proofs.filter(p=>ST.chg[p.id]).map(p=>`Proof ${O.proofs.indexOf(p)+1} (${esc(p.loc)}): “${esc(ST.chg[p.id])}”`);
+  $('main').innerHTML=`<div class="ap-done"><h1>${changes?'Changes sent':'Signed — thank you!'}</h1>
+    <p>${changes?'Your sales rep has your notes and will send new proofs. Nothing was signed yet.':'Your order is approved. A signed copy is on its way to <b>'+esc(ST.who.email)+'</b>, and your invoice comes next.'}</p>
+    <div class="ap-audit"><b>Preview: what the live version records</b>${esc(ST.who.name)} &lt;${esc(ST.who.email)}&gt; · ${at.toLocaleString()} · agreed to sign electronically<br>${changes?ch.join('<br>'):rows.join('<br>')}<br><br>Saved to Airtable on the order + each line item, the signed PDF (with this audit page) in the order’s Drive folder, and a copy emailed to the signer. In this preview nothing is saved or sent.</div></div>`;
+  document.querySelector('.ap-bar').remove(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+render();
+</script>
+</body>
+</html>
