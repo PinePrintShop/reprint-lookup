@@ -131,7 +131,7 @@ Stephen: "can we work on the desktop version now!" · "also on mobile the next b
 
 ## 2026-11-06 — v10: real proofs, one initial per page
 Stephen tested with a real order ("Can we do a test with our actual proofs and invoices?"), then: "Fix away and initial per page like we currently do".
-- **Test with real order 11157 (Moots Cycles, already signed in PandaDoc)**
+- **Test with real order 11157 (already signed in PandaDoc)**
   - Sources:
     - the 3 proof PDFs from the order's Drive Proofs folder (Illustrator sheets: a proof sheet plus a close-up page per print)
     - the invoice lines from the PandaDoc packet
