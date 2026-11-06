@@ -15,8 +15,8 @@
 
 | App | Permanent link | Opens now |
 |---|---|---|
-| Operator | `pine-operator.html` | v134 |
-| Catching | `pine-catching.html` | v172 |
+| Operator | `pine-operator.html` | v135 |
+| Catching | `pine-catching.html` | v173 |
 | Damage Log | `damage-log.html` | v23 |
 | Ink Queue | `pine-ink-queue.html` | v105 |
 | Purchasing | `pine-purchasing.html` | v115 |

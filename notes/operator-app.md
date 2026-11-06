@@ -339,3 +339,20 @@ Stephen: "Do the 5 bugs first" (the last browser pop-ups in the apps).
 - **Now:** a red Pine box over run mode, "This run lost track of its job / The app may have reloaded. Nothing was saved. Open the job from the list and tap End Run again.", with one yellow button, **Back to job list** (closes run mode, same next step as before). Red because it's a real problem. It has `role=alertdialog`, so self-update waits while it's up (`pineBusy`).
 - Nothing is written in this path (as before). No other `alert/prompt/confirm` left in Operator.
 - **Tested** (Playwright, mocked Airtable, practice, iPad 1180): the run's job is removed, End Run shows the box (no native dialog; the test fails on any), the button closes run mode, 0 writes. The same test on v133 hits the browser alert.
+
+## 2026-11-06 · v135: QC approves and ends runs on the screen-print presses (with Catching v173)
+Stephen: "The idea was that operators hit start and then QC handle approved and end time". He picked: QC's Approve starts the run, QC taps End run, and the press keeps a small backup.
+- **Which presses:** ROQ NEXT and ROQ YOU, the machines with a Quality Control seat in the crew. Heat press, Tajima and Flatstock are unchanged.
+- **Setup:** the operator taps Start Setup and Stop Setup as before. The press then shows **"⏳ Waiting on QC"** instead of "Approved · Start Run". Fix Needed stays.
+- **QC approves on Catching:** the press iPad reads the imprint's event log every ~8 s (and when it comes back to the front).
+  - "SETUP COMPLETE + RUN START (Approved by QC)": the press switches to the run, opens run mode and says "QC approved — the run has started". The run time starts at QC's tap.
+  - "FIX START (QC)": the press goes to Fix needed with QC's reason. The operator restarts setup as usual.
+- **Running:** no End Run button. Pause and Flag Issue stay; run mode says "QC ends the run at the dryer". When QC ends it, the press shows the Done summary (setup, run, pieces) and "QC ended the run".
+- **Backup:** small underlined links, "QC not here? Approve & start run here" and "QC not here? End run here". The log line says "Approved at press (QC not here)" / "Ended at press (QC not here)", so it's clear who did it.
+- Times come from the same event log Operator already rebuilds timers from. A QC approval writes the same lines and boxes as the press did (Setup Finished, Run Started, Run Finished).
+- **Tested** with Catching v173 on one shared mocked imprint (two browsers, Denver time):
+  - Stop Setup → Waiting on QC.
+  - QC "Needs a fix · Burn new screen" → the press goes to Fix needed.
+  - Restart → QC Approve → the press runs and opens run mode (End Run hidden; backup link shown).
+  - QC End run → the press is Done. Run time and setup time match the log.
+  - All four boxes ticked. Heat press, Tajima and Flatstock aren't in QC mode. No page errors.
