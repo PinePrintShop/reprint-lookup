@@ -35,7 +35,7 @@
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v226 (stickers too) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v227 (stickers, Madeira threads) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v10 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |

@@ -2889,3 +2889,24 @@ Stephen (screenshot of a flat with the "+0.5″ collar above the shoulder" mark 
   - renamed: 7501 EZP on both lines (no OW added);
   - added "7502 sow": 7502 SOW chip on both;
   - × removes it.
+
+## 2026-11-06 · v227: Madeira threads + Straight on / Slanted switch for caps
+Stephen: "can we get all the Maderia pantones into our mockup builder...and for embroidery can it be a toggle for that guide if the hats are slanted". Then a camo cap screenshot: "this image is 4" wide and it going off the edges".
+- **Madeira threads:** `pine-madeira-v1.js` has all 412 Madeira Polyneon 40 threads (number, Madeira's name, colour).
+  - Source: Pine's "Embroidery Thread Colors.pdf" on Drive (Madeira's Polyneon chart, 9 pages).
+  - Numbers and names were paired by their position on the page. Colours were sampled from each swatch on a 144 dpi render. Checked by eye on pages 1, 6, 8 and 9.
+  - 1822 and 1938 are printed twice on the chart (Coconut Cream / Bone White, Doe Skin / Beige). The first is kept.
+- **Picker on embroidery imprints:** tapping a thread colour lists threads first, as "1756 MD" with the Madeira name.
+  - With no search: the 8 threads closest to the tapped colour.
+  - Search by number ("1756") or name ("pea green").
+  - Pantones follow under "Pantone". Screen-print imprints don't list threads.
+  - Picking one recolours the stitches and puts "1756 MD" on the proof's Thread Colors (the way Pine writes Madeira).
+- **Cap front panel switch:** "Hat photo: Straight on · Slanted, bill left · Slanted, bill right", under Bend round the hat.
+  - v183 guessed from the photo which panel to use. On Stephen's camo cap (a straight-on photo) it picked the slanted 3/4 panel, so the print skewed off the side. The guess is probably thrown off by the bill's shadow on one side of the box.
+  - A pick is kept per style + colour and replaces a fitted panel. Until then, it says "guessed from the photo".
+- **Tested** (Playwright, live S&S photos):
+  - VC300A Black is guessed Straight on and BA703 Black Slanted.
+  - Each button switches the panel and is saved.
+  - A 4″ print centred on VC300A sits inside the straight-on panel; with the slanted panel it skews, which reproduces the camo screenshot.
+  - Threads: closest 8 to a navy; "pea green" and "1756" both find 1756 MD; picking it gives the chip "1756 MD"; a screen-print imprint lists no threads.
+  - No new page errors.
