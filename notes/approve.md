@@ -83,3 +83,9 @@ Stephen: "looks like the description of the terms gets cut off during the flow"
 - **Cause:** on iPad and computer screens the black top bar stays pinned, and v5 scrolled each term to the very top of the window — under the bar. Only the last line of the term showed. (Phones were fine; the bar scrolls away there. The v5 test measured against the window top, so it missed this.)
 - **Fix:** the page measures the pinned bar and sets the scroll padding to its height, so terms and proofs stop just below it.
 - **Tested** (iPhone 13, iPhone 14 Pro Max, iPad portrait and landscape, 1440×900, 1280×720): every term lands fully between the top bar and the bottom bar. v5 cut every term on iPad and desktop. Full flow signs, no errors.
+
+## 2026-11-06 — v7
+Stephen: "still skips 1 - Terms section that says Please take the time...."
+- After adopting a signature, the first step used to jump straight to the first term, so the "1 · Terms" heading and the "Please take the time to look over your proofs…" intro scrolled away unread.
+- Now the first step lands on the "1 · Terms" heading, so the intro and the first term (with its box) show together. If a screen is too short for all of that, the whole first term is kept in view instead (`showFirstTerm`).
+- **Tested** (iPhone 13, 14 Pro Max, SE, iPad portrait and landscape, 1440×900, 1280×720): the heading and intro are visible, the first term is fully above the bottom bar, and the later terms are still whole. Full flow signs, no errors.
