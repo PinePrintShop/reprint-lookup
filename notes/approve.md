@@ -25,3 +25,18 @@ Stephen: "let's start building something so we can review it in real time. I thi
   - Sign path: adopt locked until consent; 11 fields walked with Next; name and date filled in; Finish → done screen.
   - Change path: one change → 10 fields + the note → Send changes.
   - No page errors.
+
+## 2026-11-06 — v2: what you're approving stays on screen
+Stephen (on his phone): "Looking good. Can we space it better so the proof invoice are viewable while you sign".
+- **Phone layout:**
+  - The top bar scrolls away instead of sticking.
+  - Proof image capped at about a third of the screen. Specs in two tight columns. The approve box sits beside "Request a change".
+  - Tighter invoice table. Shorter signature box. Name and date side by side. Slimmer bottom bar.
+- **Next scrolling:**
+  - On a proof, Next lands the whole proof card at the top: image, specs and its box together.
+  - On the signature, the box sits just above the bottom bar, so the invoice and total stay in view.
+- The date box no longer runs past the card edge on iPhone (`appearance:none`, `min-width:0`).
+- **Tested** (iPhone 13, measured where Next lands):
+  - v1: proof image cut off (−168..164), first invoice row off screen.
+  - v2: proof image, specs and box fully visible on proofs 1 and 3; signature view shows the first invoice row, the total and the sign box together; name and date both visible.
+  - No errors.
