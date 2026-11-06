@@ -89,3 +89,16 @@ Stephen: "still skips 1 - Terms section that says Please take the time...."
 - After adopting a signature, the first step used to jump straight to the first term, so the "1 · Terms" heading and the "Please take the time to look over your proofs…" intro scrolled away unread.
 - Now the first step lands on the "1 · Terms" heading, so the intro and the first term (with its box) show together. If a screen is too short for all of that, the whole first term is kept in view instead (`showFirstTerm`).
 - **Tested** (iPhone 13, 14 Pro Max, SE, iPad portrait and landscape, 1440×900, 1280×720): the heading and intro are visible, the first term is fully above the bottom bar, and the later terms are still whole. Full flow signs, no errors.
+
+## 2026-11-06 — v8
+Stephen: "let's do one more scan to see if things get cut off with the next bar on any text"
+- **Scan:** walked all 10 steps on 8 screens (iPhone 13, 14 Pro Max, SE, Pixel 7, iPad portrait and landscape, 1440×900, 1280×720). At each step it checks that everything the step needs sits between the top bar and the Next bar: the term and its box; the proof title, image, specs, box and "Request a change"; the total, the signing note and the sign box; the name and date.
+- **Found in v7:**
+  - On short wide screens (1280×720 laptop, iPad landscape), the proof image was too tall, which pushed the specs and the Approve box under the Next bar.
+  - The "By signing you approve…" line sat below the name and date, so it was cut, and it came after signing.
+  - Lines of the next item were sliced in half at the Next bar's edge.
+- **Fixed:**
+  - The proof image height is capped so the whole proof fits between the bars.
+  - The signing note now sits above the signature box, so it's read before signing.
+  - A 28px white fade above the Next bar, so text running under it reads as "more below" instead of chopped.
+- **v8 scan:** nothing a step needs is under either bar on any of the 8 screens. Full flow signs, no errors.
