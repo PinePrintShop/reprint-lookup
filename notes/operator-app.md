@@ -368,3 +368,11 @@ Stephen: "Let's not have to have the operator hit stop setup".
   - QC fix → the press goes to Fix needed.
   - Restart → QC Approve → the press runs. Setup time logged 8s: both setup stretches, fix time left out.
   - QC End run → the press is Done. All four boxes ticked. No errors.
+
+## 2026-11-06 · v137: head-settings reminder when QC approves
+Stephen: "when QC clicks done a did you set head settings pops up in the operated app". He also wants to keep the Start Setup prompt: "That way they can walk the press while setting it up to store settings".
+- On ROQ NEXT / ROQ YOU, when QC's approval reaches the press and the job still has **no head settings in Airtable**, the press asks "QC approved — save the head settings?".
+  - **⚙ Set heads now** leaves run mode for the heads screen; the run keeps timing.
+  - **Later** closes it.
+- The Start Setup prompt (v115) is unchanged. A job whose heads were saved during setup gets no second prompt.
+- **Tested** (two browsers, mocked Airtable): QC approve on a job with no heads → the prompt shows over run mode. Set heads now opens the heads screen with the run still running. QC End run still finishes it. No errors.
