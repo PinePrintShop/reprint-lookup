@@ -12,3 +12,7 @@ The site (`https://pineprintshop.github.io/reprint-lookup/`) is published by Git
 ## 2026-11-05 · GitHub 500s on deploy
 - PR 612 (Mockup Maker v207) and PR 613 (notes): the build passed, then "Deploy to GitHub Pages" failed with "Failed to create deployment (status: 500) … Server error, is githubstatus.com reporting a Pages outage?". The same minute, GitHub's API also returned 500 on a PR create.
 - A re-run of the failed job sat queued for over 10 minutes. As on Nov 4, a fresh merge to main publishes everything: this entry is that merge.
+
+## 2026-11-06 · "Deployment failed, try again later" (Topo Packing v11)
+- Run 2242 (PR 654, Topo Packing v11): the build passed; "Deploy to GitHub Pages" sat in `deployment_queued` for 40 s, then "Deployment failed, try again later." A GitHub-side failure; the code built fine.
+- Fix: a fresh merge to main (this note), which republishes the whole site.
