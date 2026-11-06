@@ -6,7 +6,10 @@
 <title>Approve your order — Pine Printshop</title>
 <!-- Pine Approve v4 (2026-11-06): the sample client is Garrett, and "Who's signing?" starts empty (Stephen: "Can we make the sample
      client Garrett and then can we not have the name and email part auto filled but just that greyed out text"). Name and email show
-     the contact on the order as grey placeholder text; the signer types their own. Initials still follow the typed name. -->
+     the contact on the order as grey placeholder text; the signer types their own. Initials still follow the typed name.
+     Also ("let's not have cursive for the initals and let's try a different one for the signature part"): initials are plain bold
+     print letters in blue ink; the typed signature uses a real signature-style font (Mrs Saint Delafield), with Homemade Apple and
+     Caveat to pick from when signing (or Draw). -->
 <!-- Pine Approve v3 (2026-11-06): a Pine welcome screen first (Stephen: "Can we make this first part a little more pine fun and not
      show the top of the terms"). The page opens on a black Pine card: the big logo, the order # badge, "Hey Jordan! Let's get your
      order on press.", the three steps with what each takes (5 initials · 3 proofs · sign $1,779.78), due date + shipping, and one
@@ -27,7 +30,7 @@
      be sent back with "Request a change" instead, which turns Finish into "Send change requests" (no signature). -->
 <link rel="icon" type="image/svg+xml" href="pine-favicon-black.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&family=Mrs+Saint+Delafield&family=Homemade+Apple&family=Caveat:wght@600&display=swap">
 <link rel="stylesheet" href="pine-style-v2.css">
 <style>
 :root{--ap-y:#FBE122;--ap-cream:#EFE2CD;--ap-ink:#141412;--ap-line:#d9d2c3;--ap-red:#c8102e;--ap-w:760px}
@@ -53,7 +56,7 @@ body{background:var(--ap-cream);margin:0}
 .ap-f:focus-visible{outline:4px solid var(--ap-ink);outline-offset:3px}
 .ap-f.is-next{background:var(--ap-y);border-style:solid;box-shadow:0 0 0 4px rgba(251,225,34,.45)}
 .ap-f.is-done{border:2px solid #1d7a46;background:#fff;color:#1d7a46;cursor:default}
-.ap-f .ini{font:italic 700 24px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b}
+.ap-f .ini{font:700 22px/1 Helvetica,Arial,sans-serif;letter-spacing:.04em;color:#0b2a6b}
 .ap-f .req{position:absolute;top:-9px;right:-6px;background:var(--ap-red);color:#fff;font:700 12px/1 Helvetica,Arial,sans-serif;border-radius:10px;padding:3px 6px}
 .ap-f.is-done .req{display:none}
 /* proofs */
@@ -84,7 +87,11 @@ body{background:var(--ap-cream);margin:0}
 .ap-sign{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
 .ap-sign label{font:700 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6b6457;display:block;margin-bottom:6px}
 .ap-sign .ap-f{width:100%;min-height:96px}
-.ap-sign .ap-f .sig{font:italic 400 38px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b}
+.ap-sign .ap-f .sig{font-size:42px;line-height:1.1;color:#0b2a6b}
+.sigf-a{font-family:"Mrs Saint Delafield",cursive}.sigf-b{font-family:"Homemade Apple",cursive;font-size:.74em!important}.sigf-c{font-family:Caveat,cursive;font-weight:600}
+.ap-sigopts{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.ap-sigopts button{min-height:64px;border:2px solid var(--ap-line);border-radius:6px;background:#fff;color:#0b2a6b;font-size:36px;line-height:1.1;cursor:pointer;text-align:left;padding:4px 14px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ap-sigopts button.is-on{border-color:var(--ap-ink);box-shadow:0 0 0 3px var(--ap-y)}
 .ap-sign .ap-f img{max-height:80px;max-width:100%}
 .ap-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ap-sign input.p-input{width:100%;box-sizing:border-box;min-height:56px;font-size:16px}
@@ -108,8 +115,8 @@ body{background:var(--ap-cream);margin:0}
 .ap-modal label{font:700 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6b6457;display:block;margin:10px 0 6px}
 .ap-modal input.p-input{width:100%;box-sizing:border-box;min-height:52px;font-size:16px}
 .ap-prev{display:flex;gap:16px;align-items:center;border:1px solid var(--ap-line);border-radius:6px;padding:12px;margin:12px 0}
-.ap-prev .sig{font:italic 400 34px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b;flex:1}
-.ap-prev .ini{font:italic 700 26px/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#0b2a6b}
+.ap-prev .sig{font-family:"Mrs Saint Delafield",cursive;font-size:40px;line-height:1.1;color:#0b2a6b;flex:1}
+.ap-prev .ini{font:700 24px/1 Helvetica,Arial,sans-serif;letter-spacing:.04em;color:#0b2a6b}
 .ap-tabs{display:flex;gap:6px;margin:8px 0}
 .ap-tabs button{flex:1;min-height:44px;border:2px solid var(--ap-ink);background:#fff;border-radius:6px;font:700 14px/1 Helvetica,Arial,sans-serif;cursor:pointer}
 .ap-tabs button.is-on{background:var(--ap-ink);color:#fff}
@@ -308,7 +315,7 @@ function paint(){
   const order=fieldOrder(), done=order.filter(isDone).length, next=order.find(k=>!isDone(k));
   document.querySelectorAll('.ap-f').forEach(b=>{ const k=b.dataset.k, d=!!ST.done[k];
     b.classList.toggle('is-done',d); b.classList.toggle('is-next',!d&&k===next&&ST.started);
-    if(k==='sig'){ b.querySelector('.lbl').innerHTML=d?(ST.sigImg?`<img src="${ST.sigImg}" alt="Your signature">`:`<span class="sig">${esc(ST.who.name)}</span>`):'Tap to sign'; }
+    if(k==='sig'){ b.querySelector('.lbl').innerHTML=d?(ST.sigImg?`<img src="${ST.sigImg}" alt="Your signature">`:`<span class="sig ${ST.sigFont||'sigf-a'}">${esc(ST.who.name)}</span>`):'Tap to sign'; }
     else b.querySelector('.lbl').innerHTML=d?`<span class="ini">${esc(ST.ini)}</span> ✓`:(k.startsWith('p:')?'Approve — initial here':'Initial here'); });
   ['fName','fDate'].forEach(id=>$(id).classList.toggle('is-next',ST.started&&next===(id==='fName'?'name':'date')));
   const nt=TERMS.filter((t,i)=>ST.done['t'+i]).length, np=O.proofs.filter(p=>ST.done['p:'+p.id]||(ST.chg[p.id]&&ST.chg[p.id].length)).length;
@@ -366,10 +373,11 @@ function adopt(then){
 function signPad(){
   const s=modal(`<h3>Sign</h3><p>Use your adopted signature, or draw one.</p>
     <div class="ap-tabs" role="tablist"><button type="button" class="is-on" data-t="type" role="tab">Adopted</button><button type="button" data-t="draw" role="tab">Draw</button></div>
-    <div id="sgType"><div class="ap-prev"><span class="sig">${esc(ST.who.name)}</span></div></div>
+    <div id="sgType"><p style="margin:0">Pick a style:</p><div class="ap-sigopts">${['sigf-a','sigf-b','sigf-c'].map((f,i)=>`<button type="button" class="${f}${i===0?' is-on':''}" data-f="${f}" aria-label="Signature style ${i+1}">${esc(ST.who.name)}</button>`).join('')}</div></div>
     <div id="sgDraw" hidden><canvas class="ap-pad" id="sgPad" aria-label="Draw your signature"></canvas><button type="button" class="ap-chg" id="sgClr">Clear</button></div>
     <div class="ap-mbtns"><button type="button" class="p-btn" id="sgX">Cancel</button><button type="button" class="p-btn p-btn-main" id="sgOk">Sign</button></div>`);
-  let mode='type', drew=false; const pad=s.querySelector('#sgPad'), ok=s.querySelector('#sgOk');
+  let mode='type', drew=false, font='sigf-a'; const pad=s.querySelector('#sgPad'), ok=s.querySelector('#sgOk');
+  s.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{ font=b.dataset.f; s.querySelectorAll('[data-f]').forEach(x=>x.classList.toggle('is-on',x===b)); });
   s.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ mode=b.dataset.t; s.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('is-on',x===b)); s.querySelector('#sgType').hidden=mode!=='type'; s.querySelector('#sgDraw').hidden=mode!=='draw'; if(mode==='draw') setupPad(); ok.disabled=mode==='draw'&&!drew; });
   function setupPad(){ const r=pad.getBoundingClientRect(), dpr=window.devicePixelRatio||1; if(pad._ok) return; pad._ok=1; pad.width=r.width*dpr; pad.height=r.height*dpr; const x=pad.getContext('2d'); x.scale(dpr,dpr); x.lineWidth=2.6; x.lineCap='round'; x.lineJoin='round'; x.strokeStyle='#0b2a6b';
     let down=false; const P=e=>{ const b=pad.getBoundingClientRect(); return [e.clientX-b.left,e.clientY-b.top]; };
@@ -378,7 +386,7 @@ function signPad(){
     pad.onpointerup=()=>{ down=false; };
     s.querySelector('#sgClr').onclick=()=>{ x.clearRect(0,0,pad.width,pad.height); drew=false; ok.disabled=true; }; }
   s.querySelector('#sgX').onclick=()=>s.remove();
-  ok.onclick=()=>{ ST.sigImg=mode==='draw'?pad.toDataURL('image/png'):null; ST.done.sig=Date.now(); s.remove(); paint(); setTimeout(()=>focusNext(true),250); }; }
+  ok.onclick=()=>{ ST.sigImg=mode==='draw'?pad.toDataURL('image/png'):null; ST.sigFont=font; ST.done.sig=Date.now(); s.remove(); paint(); setTimeout(()=>focusNext(true),250); }; }
 
 /* ===== finish (demo: shows what would be recorded; nothing is sent) ===== */
 function finish(changes){
