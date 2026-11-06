@@ -128,3 +128,28 @@ Stephen: "can we work on the desktop version now!" · "also on mobile the next b
   - Scan on 9 screens (including 1920×1080) with an iPhone-height bar: everything each step needs is visible. The only flag is iPhone SE + home bar on the last term, a combination that doesn't exist (the SE has a home button).
   - Desktop: Finish from the panel reaches the Thank-you screen.
   - Phones: full flow signs, no errors.
+
+## 2026-11-06 — v10: real proofs, one initial per page
+Stephen tested with a real order ("Can we do a test with our actual proofs and invoices?"), then: "Fix away and initial per page like we currently do".
+- **Test with real order 11157 (already signed in PandaDoc)**
+  - Sources:
+    - the 3 proof PDFs from the order's Drive Proofs folder (Illustrator sheets: a proof sheet plus a close-up page per print)
+    - the invoice lines from the PandaDoc packet
+    - sizes and ASAP from Airtable
+  - Built as a private file in the session scratchpad only. Customer data and art stay out of this public repo.
+- **One initial per proof page**, as in our PandaDoc packets.
+  - 11157 has 7 proof pages, so 5 terms + 7 pages + signature/name/date = 15 steps.
+  - Data: `proof.pages=[{img, label, appr, ar}]`, with keys `p:<proof>:<page>`.
+  - Request a change still covers the whole proof.
+  - The audit says "Proof 1 page 3 approved".
+- **The sheet's printed APPROVED box takes the initials.**
+  - `appr` is the white box as fractions of the page.
+  - For Illustrator PDFs it's found from the word APPROVED (pdftotext) and then the box edges in the pixels; Mockup Maker PDFs already store it (PINE-INKS "appr", v194).
+  - The box pulses yellow while it's the next one, can be tapped, and shows the initials once approved.
+- **Tall pages on phones:** the first Next shows the page; if the Approve box isn't on screen, the next Next brings it into view.
+- **Invoice:** each line shows its sizes (`l.sz`, e.g. S 5 · M 15 · L 17 · XL 13).
+- **Proofs counter:** "x of 7 pages initialed" when proofs have close-ups.
+- **Tap any page to see it full size.**
+- **Tested**
+  - 11157 on desktop and iPhone: every page's box reachable, the printed box tap works, Finish shows the per-page audit, no errors.
+  - Sample page: scan clean on 9 screens; signs and finishes.
