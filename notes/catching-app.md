@@ -484,3 +484,10 @@ Stephen: "operators hit start and then QC handle approved and end time" (QC's Ap
   - a split job: ending P2 leaves Run Finished off, ending P1 ticks it;
   - the strip follows the tab;
   - no page errors.
+
+## 2026-11-06 · v174: approve straight from setup
+Stephen: "Let's not have to have the operator hit stop setup".
+- The QC strip shows a press as soon as its setup starts: "Setting up 0:08 — check the print", with the live setup clock, ✓ Approve · start run and ✗ Needs a fix.
+- Approve during setup closes the setup at that moment (SETUP COMPLETE with the full setup time) and starts the run.
+- "Setup done" still shows the same buttons, for a press that used Stop Setup on an older Operator.
+- Tested with Operator v136 (see its notes).

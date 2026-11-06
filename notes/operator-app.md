@@ -356,3 +356,15 @@ Stephen: "The idea was that operators hit start and then QC handle approved and 
   - Restart → QC Approve → the press runs and opens run mode (End Run hidden; backup link shown).
   - QC End run → the press is Done. Run time and setup time match the log.
   - All four boxes ticked. Heat press, Tajima and Flatstock aren't in QC mode. No page errors.
+
+## 2026-11-06 · v136: no Stop Setup on the QC presses (with Catching v174)
+Stephen: "Let's not have to have the operator hit stop setup".
+- On ROQ NEXT / ROQ YOU the operator taps **Start Setup** only. The press shows "⚙ Setting up — when the print looks right, QC approves it on the Catching iPad". The setup clock keeps running.
+- QC's **Approve** on Catching ends the setup at that moment and starts the run. **Needs a fix** sends it to Fix needed. The press follows within ~8 s.
+- The backup link "QC not here? Approve & start run here" also shows during setup. It stops setup, approves and starts the run, logged as at the press.
+- Other machines unchanged.
+- **Tested** with Catching v174 (two browsers, one mocked imprint, Denver time):
+  - Start Setup → QC sees "Setting up 0:00:03 — check the print".
+  - QC fix → the press goes to Fix needed.
+  - Restart → QC Approve → the press runs. Setup time logged 8s: both setup stretches, fix time left out.
+  - QC End run → the press is Done. All four boxes ticked. No errors.
