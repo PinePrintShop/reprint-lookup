@@ -71,3 +71,9 @@ Stephen: "Can we make the sample client Garrett and then can we not have the nam
   - The adopt boxes start empty with the three placeholders.
   - Typing the name gives initials GS and unlocks Adopt.
   - The rest of the flow and the layout checks pass. No errors.
+
+## 2026-11-06 — v5
+Stephen: "let's just do Dancing Script....also some things still get cut off in teh terms part when you are scrolling through the initials so let's really clean that up to make it readable while signging"
+- **Signature:** Dancing Script only (PandaDoc's default look). The style picker is gone; the sign step is "Use this" or Draw.
+- **Terms while initialing:** each Next scrolls the whole term to the top of the screen (not just its box), and the term being initialed gets a cream highlight with a yellow edge. On phones the terms text is 15px with tighter spacing so long terms fit.
+- **Tested (iPhone 13 and iPhone SE):** all 5 terms land fully visible above the bottom bar and are highlighted. v4 cut off Payment and Damages. The signature renders in Dancing Script. No errors.
