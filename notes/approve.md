@@ -102,3 +102,29 @@ Stephen: "let's do one more scan to see if things get cut off with the next bar 
   - The signing note now sits above the signature box, so it's read before signing.
   - A 28px white fade above the Next bar, so text running under it reads as "more below" instead of chopped.
 - **v8 scan:** nothing a step needs is under either bar on any of the 8 screens. Full flow signs, no errors.
+
+## 2026-11-06 — v9: desktop version
+Stephen: "can we work on the desktop version now!" · "also on mobile the next bar sits on top the the name and date at the bottom after you sign" · "and on desktop let's really fill up the screen"
+- **Desktop (1100px and wider)**
+  - Fills the whole window.
+  - A sticky **order panel** on the right with:
+    - order #, customer, total, due date and ship method
+    - the 3 steps with live counts (click a step to jump to it; a green ✓ when it's done; yellow for the current step)
+    - the progress bar
+    - the one yellow Next/Finish button (the bottom bar is hidden on desktop)
+  - Proofs: the image on the left, and the specs, Approve box and "Request a change" on the right.
+  - The invoice and the signature sit side by side.
+  - The welcome screen is two columns at full height, with a bigger headline.
+  - At 1500px and wider, the terms are in two columns.
+- **Mobile Next bar over the name/date**
+  - Cause: real iPhones add the home-indicator space under the Next bar (about 34px). The page assumed a fixed 96px clearance and the phone emulator doesn't add that space, so it wasn't caught.
+  - Fix: the page now measures the bar and sets `scroll-padding-bottom` to its real height, and the bottom padding includes `env(safe-area-inset-bottom)`.
+  - Scan with a home-bar-height bar: v8 had the sign box and name/date under the bar on every iPhone; v9 is clear.
+- **Flow:** signing now fills in the printed name and today's date together, so the next tap is Finish.
+- **Fixes**
+  - The welcome card could reappear under the steps (`display:grid`/`flex` beat `[hidden]`).
+  - The v8 white fade drew a band over the cream gaps on wide screens, so it's now phones only.
+- **Tested**
+  - Scan on 9 screens (including 1920×1080) with an iPhone-height bar: everything each step needs is visible. The only flag is iPhone SE + home bar on the last term, a combination that doesn't exist (the SE has a home button).
+  - Desktop: Finish from the panel reaches the Thank-you screen.
+  - Phones: full flow signs, no errors.
