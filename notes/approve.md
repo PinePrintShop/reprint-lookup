@@ -55,3 +55,19 @@ Stephen: "Can we make this first part a little more pine fun and not show the to
   - Terms and progress bar hidden before Start.
   - The v2 layout checks still pass (proof image, specs and box all visible; invoice, total and signature together).
   - No errors.
+
+## 2026-11-06 — v4: sample client Garrett, "Who's signing?" starts empty
+Stephen: "Can we make the sample client Garrett and then can we not have the name and email part auto filled but just that greyed out text".
+- The sample contact is Garrett Sample <garrett@sample.co>, so the welcome says "Hey Garrett!".
+- In "Who's signing?" the full name, initials and email boxes start empty. The order's contact shows as grey placeholder text ("Garrett Sample", "GS", "garrett@sample.co"), so the signer types their own.
+  - Initials fill in as they type their name.
+  - The signature preview shows a faded "Your name" until then.
+  - "Adopt & continue" stays locked until name, initials, email and the consent box are all done.
+- Later on, the printed name next to the signature still fills in from the name they typed.
+- **Fonts** (Stephen: "let's not have cursive for the initals and let's try a different one for the signature part"):
+  - Initials are plain bold print (Helvetica, blue ink).
+  - The typed signature uses Google Fonts' **Mrs Saint Delafield**. The sign step offers three styles to pick from (Mrs Saint Delafield, Homemade Apple, Caveat), or Draw. The picked style is used on the signed box.
+- **Tested:**
+  - The adopt boxes start empty with the three placeholders.
+  - Typing the name gives initials GS and unlocks Adopt.
+  - The rest of the flow and the layout checks pass. No errors.
