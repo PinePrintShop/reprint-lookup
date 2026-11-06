@@ -2910,3 +2910,20 @@ Stephen: "can we get all the Maderia pantones into our mockup builder...and for 
   - A 4″ print centred on VC300A sits inside the straight-on panel; with the slanted panel it skews, which reproduces the camo screenshot.
   - Threads: closest 8 to a navy; "pea green" and "1756" both find 1756 MD; picking it gives the chip "1756 MD"; a screen-print imprint lists no threads.
   - No new page errors.
+
+## 2026-11-06 · v228: photos of stand-in garments are kept with the job
+Stephen (11122): "how do we store the photos for none API garments".
+- **How garment photos are stored:**
+  1. **Vendor garments (S&S, SanMar, AS Colour):** photos come from the vendor each time; nothing to store.
+  2. **A garment with its own Garments record** (not in a vendor API): "Save photo" puts it in the record's Front / Back photo fields (v54). Every later job with that garment opens with it.
+  3. **The shared stand-in (Customer Supplied 0000 - Any) and typed-in garments:** never saved to the Garments record, because the stand-in is shared by every customer-supplied order (v137). Until v228 their photos lived only until the page closed. That's what happened on 11122.
+- **v228:** for case 3 the photo goes in the line's setup:
+  - on this computer as you work (a few seconds after adding the photo);
+  - in "… Mockup Maker setup.json" in the order's Proofs folder (working files) when the proof is attached.
+  - "Pick up where you left off" brings the photo back with the art.
+  - The photo hint says where it's kept.
+- 11122's photos from before v228 are gone. They need adding once more, and then they stay.
+- **Tested** (Playwright, mocked Airtable, practice):
+  - A stand-in hoodie line: art plus a front photo; the setup holds the photo (22 KB).
+  - Closed and opened in a new page: no photo until Pick up; after it, the own photo is back.
+  - 0 Airtable writes, no page errors.
