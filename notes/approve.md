@@ -40,3 +40,18 @@ Stephen (on his phone): "Looking good. Can we space it better so the proof invoi
   - v1: proof image cut off (−168..164), first invoice row off screen.
   - v2: proof image, specs and box fully visible on proofs 1 and 3; signature view shows the first invoice row, the total and the sign box together; name and date both visible.
   - No errors.
+
+## 2026-11-06 — v3: a Pine welcome screen first
+Stephen: "Can we make this first part a little more pine fun and not show the top of the terms".
+- The page opens on a black Pine card:
+  - the order # badge in yellow;
+  - "Hey Jordan! Let's get **Sample Co.** on press." (Poppins Black, the customer in yellow);
+  - "Three quick steps and we start printing — about 3 minutes";
+  - the steps as yellow-numbered rows: Read the terms (5 quick initials) · Check your proofs (3 proofs to initial) · Sign & approve (your invoice · total);
+  - one big yellow **Let's go ▸**, "Every box is required…", then due date / shipping / rep chips.
+- Terms, proofs, invoice and the bottom progress bar stay hidden until Let's go. Then the adopt step opens and Next walks the boxes as before.
+- The welcome fits one phone screen: button bottom at 560 of 664 px on an iPhone 13. On an iPhone SE it's 18 px past the edge with the demo banner, which won't be on the live page.
+- **Tested:**
+  - Terms and progress bar hidden before Start.
+  - The v2 layout checks still pass (proof image, specs and box all visible; invoice, total and signature together).
+  - No errors.
