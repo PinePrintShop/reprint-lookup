@@ -153,3 +153,14 @@ Stephen tested with a real order ("Can we do a test with our actual proofs and i
 - **Tested**
   - 11157 on desktop and iPhone: every page's box reachable, the printed box tap works, Finish shows the per-page audit, no errors.
   - Sample page: scan clean on 9 screens; signs and finishes.
+
+## 2026-11-06 — v11
+Stephen: "I think we should move away from those boxes and do it like we had before with this new flow. It is netter"
+- Removed the v10 initials-in-the-printed-APPROVED-box overlay. Each page is initialed with our own yellow Approve button only.
+- Everything else from v10 stays:
+  - one initial per page
+  - Next shows a tall page, then its box
+  - sizes on the invoice
+  - the page counter
+  - tap to enlarge
+- Tested: the real-order private test on desktop and iPhone (all 7 pages, per-page audit, no errors); the sample-page scan on 9 screens; full flow.
