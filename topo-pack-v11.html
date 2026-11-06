@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!-- Topo Packing v10 (2026-11-05): the full ship-to address fills in when you pick up saved cartons too (Stephen: "shipping address
+     are not showing up" — v9 only filled it when starting fresh, and cartons saved before v9 have no address). -->
+<!-- Topo Packing v9 (2026-11-05): the packing list writes Topo's PO as their purchase order does (Stephen: "let's try and match the
+     pos they provided us that match this packing list"): Cust PO and "Packing Details of" read PO0003352 (their summary tab writes
+     "PO0002149"), not 3352. Manufacturer PO stays Pine's order #. Carton labels keep "PO#: 3352", as on past Topo labels. No weights
+     on the packing list (they're on the carton labels).
+     Also ("oh and full shipping address under to:"): a Ship-to address field, filled from the PO ("Baja Fulfillment, 6987 Calle de
+     Linea, Suite 109, San Diego CA 92154"), goes beside Ship To Address and after "To:"; the Destination column keeps the short name. -->
+<!-- Topo Packing v8 (2026-11-05): dropping a PO you've worked on asks first (Stephen: "I messed it up and trying to re upload the PO
+     but it picks up where I left off"): "Pick up where you left off?" — OK brings the cartons back, Cancel starts fresh (and forgets
+     the old ones). Start over now clears the label details too. -->
+<!-- Topo Packing v7 (2026-11-05): the packing list fills a Letter landscape page (Stephen: "it is working....can we make it fill an
+     8.5x11 landscape paper"): the carton rows grow (and their text with them) until the sheet has the page's shape, then it's fit
+     to exactly one 11 × 8.5 page, centred. -->
+<!-- Topo Packing v6 (2026-11-05): the packing list rebuilt from scratch (Stephen: "the xslx has never worked.....can we wipe the
+     slate clean on that and try to build it back up to work"). v1–v5's hand-written .xlsx (and v5's fill-their-workbook) are gone;
+     ExcelJS writes Topo's Packing Details (PKL) layout directly — no template to drop in. -->
+<!-- Topo Packing v5 (2026-11-05): the packing list is Topo's own workbook, filled (Stephen: "packing slip is still a little
+     wild.....are you able to match the XLSX they provided"). Drop Topo's packing list .xlsx once (saved on this computer only);
+     its PKL sheet gets the cartons — their fonts, borders, widths, merges and TOTAL — and the unused rows are hidden so it
+     prints on one page. Without it, the plain v3 layout. -->
+<!-- Topo Packing v4 (2026-11-05): box size from a menu (Stephen: "can we include the pine box sizes and then a vendor one to add a
+     custom size"): Pine S 12×12×6, Pine M 24×16×6, Pine L 24×16×14 (the sizes the Shipping app and Receiving's box labels use),
+     or Vendor box… with L × W × H in inches. For the default box size and for each carton. -->
+<!-- Topo Packing v3 (2026-11-05): the packing list .xlsx tidied (Stephen: "also this is funky" — it printed across 3 portrait
+     pages, labels ran into their values, an empty Order column, a tall TOTAL row): one landscape page wide, labels and values in
+     merged cells, no Order column, title across the table, the header row wraps, TOTAL plain. -->
+<!-- Topo Packing v2 (2026-11-05): Stephen: "would it be best to add a box field so I can add each boxes dimensions and maybe and a
+     copy and paste for simliar ones and then I can add the correct contents per box" (then: "oh I just needed to click carton
+     size!"). Each carton gets a Duplicate button (a new carton with the same box size and weight, the next SKU still to pack in
+     it); the empty cartons area says what to do first; "Empty box weight" says what it is (net = gross − that). -->
+<!-- Topo Packing v1 (2026-11-05). Stephen: "alright ready to start working on the Topo Packing Slips / Carton Labels", with
+     Topo's PO0003352 (Topo x Toyota Pine Restock → Baja Fulfillment, 250 SS Beige + 250 LS Vintage Black) and the SS
+     cartons: "10/10 - SS - 18 Smalls · 9/10 - SS - 75 Mediums · 7/10 - SS - 43 XL · 8/10 - SS - 76 Large · ?/10 - SS - 38 XXL".
+     Drop Topo's PO PDF (read in this browser; nothing is uploaded or stored outside this computer): its SKUs, sizes and
+     quantities fill the list. List the cartons (one size per carton, or mixed), with the box size and weight. Out:
+     - Carton labels PDF — Topo's V2 carton label template (A4 landscape, a LONG SIDE and a SHORT SIDE page per carton:
+       customer, COO, carton x of y, gross / net weight, dimensions, PO#, season · product, gender, colour, SKU / size / qty,
+       the two SKU STICKER boxes), measured off TOPO-CARTON-LABEL-10695.pdf.
+     - Packing list (.xlsx) — Topo's "Packing Details" sheet: CTN#, Manufacturer PO, Cust PO, SKU#, Color, Destination,
+       Description, Size, QTY CTN, PCS/CTN, Total QTY.
+     The cartons are kept on this computer per PO (no Airtable changes). -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Topo Packing</title>
+<!-- v11 (2026-11-06): POs with no SKUs (Stephen, PO0003354 Topo × New Belgium reorder: "I don't have skus for this batch....we are
+     just dropping it off at New Belgium so need to just make a nice packing list in the same style as the other topo one").
+     That PO lists only "<product> (<colour>, <size>)", quantity and rate, in columns. If no SKU lines are found the PO is read
+     that way: one line per colour + size, keyed internally, with the SKU left blank on the labels and the packing list.
+     Ship-to addresses ending in a street name ("3620 Weicker Drive Fort Collins CO") get their comma after the street. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pine-style-v2.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+.tp{display:grid;grid-template-columns:minmax(320px,420px) 1fr;gap:20px;padding:20px;align-items:start}
+@media (max-width:1000px){.tp{grid-template-columns:1fr;padding:16px}}
+.tp-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.tp .p-card{display:flex;flex-direction:column;gap:10px}
+.tp-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}.tp-row .p-field{flex:1;min-width:100px}
+.tp-drop{display:block;border:2px dashed rgba(0,0,0,.25);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#fff;font-size:14px}
+.tp-drop.is-over{border-color:#000;background:#FBE122}
+table.tp-t{width:100%;border-collapse:collapse;font-size:14px}
+.tp-t th{text-align:left;font:700 12px Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:#555;padding:6px 6px;border-bottom:2px solid #000}
+.tp-t td{padding:6px;line-height:36px;border-bottom:1px solid rgba(0,0,0,.12);vertical-align:top}
+.tp-t .num{text-align:right;font-variant-numeric:tabular-nums}
+.tp-t input,.tp-t select{min-height:36px;padding:4px 8px;border:1.5px solid rgba(0,0,0,.25);border-radius:6px;font:400 14px Helvetica,Arial,sans-serif;background:#fff;width:100%}
+.tp-t input.n{width:70px;text-align:right}.tp-t input.ctn{width:56px;text-align:right}
+.tp-items{display:flex;flex-direction:column;gap:4px}.tp-item{display:flex;gap:4px;align-items:center}.tp-item select{flex:1;min-width:150px}
+.tp-x{border:0;background:none;font-size:18px;cursor:pointer;padding:0 6px;color:#555}.tp-x:hover{color:#000}
+.tp-link{border:0;background:none;padding:0;font:700 13px Helvetica,Arial,sans-serif;text-decoration:underline;cursor:pointer;color:#000}
+.ok{font-weight:700}.bad{color:#c8102e;font-weight:700}
+.tp-dims{display:flex;gap:4px;align-items:center;flex-wrap:wrap}.tp-dims select,.tp-dims input.v{min-height:36px;padding:4px 8px;border:1.5px solid rgba(0,0,0,.25);border-radius:6px;font:400 14px Helvetica,Arial,sans-serif;background:#fff}.tp-dims select{min-width:170px}.tp-dims input.v{width:56px;text-align:right}
+.tp-t td:first-child{white-space:nowrap}
+.tp-out{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+</style></head>
+<body class="p-app">
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Topo Packing</span><span class="p-bar-ver" id="ver">v1</span>
+  <div class="p-bar-sp"><button class="p-barbtn" id="refresh" type="button">↻ <span class="p-barbtn-word">Refresh</span></button></div></header>
+<main class="tp">
+  <section class="tp-col">
+    <div class="p-card"><span class="p-label">1 · Topo's PO</span>
+      <label class="tp-drop" id="drop">Drop Topo's PO PDF here, or click to pick it<br><small>Read on this computer only</small><input type="file" id="file" accept=".pdf,application/pdf" hidden></label>
+      <div class="p-hint" id="poMsg"></div></div>
+    <div class="p-card"><span class="p-label">2 · Label details</span>
+      <div class="tp-row"><label class="p-field"><span class="p-label">PO#</span><input class="p-input" id="po"></label><label class="p-field"><span class="p-label">Season</span><input class="p-input" id="season" placeholder="FALL 2026"></label></div>
+      <div class="tp-row"><label class="p-field"><span class="p-label">Pine order #</span><input class="p-input" id="ord" inputmode="numeric"></label><label class="p-field"><span class="p-label">COO</span><input class="p-input" id="coo" value="USA"></label></div>
+      <label class="p-field"><span class="p-label">Ship-to address (full)</span><input class="p-input" id="shipAddr" placeholder="Name, street, suite, city ST ZIP"></label>
+      <div class="tp-row"><label class="p-field"><span class="p-label">Ship to (short)</span><input class="p-input" id="shipTo"></label><label class="p-field"><span class="p-label">Ship date</span><input class="p-input" id="date" type="date"></label></div>
+      <div class="tp-row"><label class="p-field"><span class="p-label">Empty box weight (lbs)</span><input class="p-input" id="tare" inputmode="decimal" value="2"></label><div class="p-field"><span class="p-label">Box size</span><input type="hidden" id="dimsDef" value="24 x 16 x 14"><span id="dimsDefPick"></span></div></div>
+      <div class="p-hint">Gross is what the packed carton weighs; net is gross less the empty box (about 2 lbs). Box size fills new cartons.</div></div>
+    <div class="p-card"><span class="p-label">On the PO</span><div id="skus" class="p-hint">Drop the PO to list its SKUs.</div></div>
+  </section>
+  <section class="tp-col">
+    <div class="p-card"><div class="tp-row" style="justify-content:space-between;align-items:center"><span class="p-label">3 · Cartons <span id="ctnN"></span></span>
+        <span class="tp-row"><button class="p-btn" id="autoBtn" type="button" title="One carton per SKU, the whole ordered quantity in it">One carton per size</button><button class="p-btn" id="addBtn" type="button">＋ Carton</button></span></div>
+      <table class="tp-t"><thead><tr><th>Carton</th><th>SKU · size · qty</th><th>Box size (in)</th><th class="num">Gross lbs</th><th class="num">Net</th><th></th></tr></thead><tbody id="ctns"></tbody></table>
+      <div class="p-hint">Carton numbers can be any order (10 of 10 = Smalls). Labels and the packing list go by carton number.</div></div>
+    <div class="p-card"><div class="p-note" id="check">Nothing to check yet.</div>
+      <div class="tp-out"><button class="p-btn p-btn-main" id="pdfBtn" type="button" disabled>Carton labels PDF</button><button class="p-btn" id="xlsBtn" type="button" disabled>Packing list (.xlsx)</button><button class="tp-link" id="clearBtn" type="button">Start over</button></div></div>
+  </section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const lsx={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
+const toast=m=>{ document.querySelectorAll('.p-toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='p-toast'; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),4200); };
+const S={skus:[],ctns:[],po:'',memo:''};   // skus: {sku,upc,desc,product,gender,color,size,qty,price}
+let SAVE_KEY='pine_topo_pack';
+window.pineBusy=()=>S.ctns.length>0;
+
+/* ================= the PO ================= */
+const SIZE_WORD=s=>{ const t=String(s).trim().toUpperCase().replace(/\s*-\s*/g,'-'); return ({S:'SMALL',M:'MEDIUM',L:'LARGE',XL:'X-LARGE','2XL':'XX-LARGE',XXL:'XX-LARGE','3XL':'XXX-LARGE'})[t]||t; };
+const SIZE_ORDER=['XS','X-SMALL','SMALL','MEDIUM','LARGE','X-LARGE','XX-LARGE','XXX-LARGE','OSFA','ONE SIZE'];
+const sizeRank=s=>{ const i=SIZE_ORDER.indexOf(SIZE_WORD(s)); return i<0?99:i; };
+async function readPO(file){ $('poMsg').textContent='Reading '+file.name+'…';
+  try{ const doc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise; let txt='';
+    for(let p=1;p<=doc.numPages;p++){ const pg=await doc.getPage(p), tc=await pg.getTextContent(); txt+=tc.items.map(i=>i.str).join(' ')+' \n '; }
+    const t=txt.replace(/\s+/g,' ').replace(/(\w)- (?=[A-Z][a-z])/g,'$1-');   // "XX- Large" (wrapped) → "XX-Large"
+    const po=(t.match(/\bPO0*(\d{3,})\b/)||[])[1]||'', poFull=(t.match(/\bPO\d{4,}\b/)||[])[0]||(po?'PO'+po.padStart(7,'0'):''), skus=[];
+    // each line: item SKU (12 digits), UPC (12 digits), "<product> (<colour>, <size>)", Style Code, Schedule B, qty, $price
+    const re=/\b(\d{12})\b(?:(?!\b\d{12}\b).){0,200}?\b(\d{12})\b\s+(.+?)\s*\(([^,()]+),\s*([^()]+?)\)\s*Style Code:?\s*\d*\s+(?:\d{10}\s+)?(\d+)\s+\$\s*([\d,.]+)/g; let m;
+    while((m=re.exec(t))){ let prod=m[3].trim(), gender='N/A'; const g=prod.match(/\s(M|W|U|Y)$/); if(g){ gender={M:'MENS',W:'WOMENS',U:'UNISEX',Y:'YOUTH'}[g[1]]; prod=prod.slice(0,-2).trim(); }
+      if(!skus.some(s=>s.sku===m[1])) skus.push({sku:m[1],upc:m[2],desc:`${m[3].trim()} (${m[4].trim()}, ${m[5].trim()})`,product:prod,gender,color:m[4].trim(),size:SIZE_WORD(m[5]),qty:+m[6],price:m[7]}); }
+    if(!skus.length){   // v11: a PO with no SKUs — the items, quantities and rates come as three columns
+      const items=[...((t.match(/\bItem\s+(.+?)\s+Quantity\s/)||[])[1]||'').matchAll(/(.+?)\s*\(([^,()]+),\s*([^()]+?)\)/g)],
+        qtys=((t.match(/\bQuantity\s+((?:\d[\d,]*\s+)+)Units\b/)||[])[1]||'').trim().split(/\s+/).map(x=>+x.replace(/,/g,'')),
+        rates=((t.match(/\bRate\s+((?:[\d,.]+\s+)+)Amount\b/)||[])[1]||'').trim().split(/\s+/);
+      items.forEach((m,i)=>{ let prod=m[1].trim(), gender='N/A'; const g=prod.match(/\s(M|W|U|Y)$/); if(g){ gender={M:'MENS',W:'WOMENS',U:'UNISEX',Y:'YOUTH'}[g[1]]; prod=prod.slice(0,-2).trim(); }
+        if(qtys[i]>0) skus.push({sku:'~'+(i+1),upc:'',desc:`${m[1].trim()} (${m[2].trim()}, ${m[3].trim()})`,product:prod,gender,color:m[2].trim(),size:SIZE_WORD(m[3]),qty:qtys[i],price:rates[i]||'',noSku:true}); });
+    }
+    if(!skus.length) throw new Error('no items found — is this a Topo PO?');
+    const ship=(t.match(/Ship To\s+Bill to\s+[\s\S]*?United States\s+(.+?)\s+United States/)||[])[1]||(t.match(/Ship To\s+(.+?)\s+United States/)||[])[1]||'';   // v11: + a PO with no Bill to
+    const memo=(t.match(/Memo\s+Receive By\s+Total Quantity on PO\s+(.+?)\s+\d+\s+Item\b/)||[])[1]||'';
+    SAVE_KEY='pine_topo_pack_'+po; let was=JSON.parse(lsx.get(SAVE_KEY,'null')||'null');
+    if(was&&was.ctns&&was.ctns.length&&!confirm(`You have ${was.ctns.length} carton${was.ctns.length===1?'':'s'} saved for PO ${po}.\n\nOK — pick up where you left off\nCancel — start fresh (the saved cartons are cleared)`)){ lsx.del(SAVE_KEY); was=null; }
+    S.skus=skus; S.po=po; S.poFull=poFull; S.memo=memo;
+    if(was&&was.ctns){ S.ctns=was.ctns; ['season','ord','coo','shipTo','shipAddr','date','tare','dimsDef'].forEach(k=>{ if(was[k]!=null) $(k).value=was[k]; }); }
+    else { S.ctns=[]; if(ship){ $('shipTo').value=shipShort(ship); $('shipAddr').value=shipFull(ship); } }
+    if(ship&&!$('shipAddr').value.trim()) $('shipAddr').value=shipFull(ship);   // v10: picked-up cartons saved before the address existed
+    if(ship&&!$('shipTo').value.trim()) $('shipTo').value=shipShort(ship);
+    dimsDefPick(); $('po').value=po; $('poMsg').textContent=`PO ${po}${memo?' · '+memo:''} · ${skus.length} ${skus[0].noSku?'lines (no SKUs on this PO)':'SKUs'} · ${skus.reduce((a,s)=>a+s.qty,0)} pcs${was&&was.ctns?' · your cartons for this PO are back':''}`;
+    render(); }
+  catch(e){ $('poMsg').textContent='Could not read it: '+e.message; } }
+// v9: the whole address with commas: "Baja Fulfillment, 6987 Calle de Linea, Suite 109, San Diego CA 92154"
+const STREET=/\b(Drive|Dr|Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Way|Lane|Ln|Court|Ct|Parkway|Pkwy|Place|Pl|Circle|Cir|Highway|Hwy)\.?\s+(?=[A-Z][a-z])/;   // v11
+function shipFull(s){ s=String(s||'').trim(); if(STREET.test(s)) return s.replace(/\s+(\d)/,', $1').replace(STREET,'$1, ').replace(/\s+([A-Z]{2} \d{5}(?:-\d{4})?)$/,' $1').replace(/,\s*,/g,',');
+  return String(s||'').trim().replace(/\s+(\d)/,', $1').replace(/\s+((?:Suite|Ste\.?|Unit|Bldg|Building|Apt|#)\s*\S+)/i,', $1').replace(/\s+([A-Z][A-Za-z.]*(?: [A-Z][A-Za-z.]*)* [A-Z]{2} \d{5}(?:-\d{4})?)$/,', $1').replace(/,\s*,/g,','); }
+// "Baja Fulfillment 6987 Calle de Linea Suite 109 San Diego CA 92154" → name + city
+function shipShort(s){ const m=s.match(/^(.+?)\s+\d/); const c=s.match(/([A-Za-z .]+?)\s+([A-Z]{2})\s+\d{5}/); return [m?m[1]:s,c?c[1].trim().split(' ').slice(-2).join(' ')+' '+c[2]:''].filter(Boolean).join(', '); }
+
+/* ================= cartons ================= */
+const skuOf=k=>S.skus.find(s=>s.sku===k);
+const skuTxt=k=>String(k||'').startsWith('~')?'':String(k||'');   // v11: a PO line with no SKU
+const packed=k=>S.ctns.reduce((a,c)=>a+c.items.filter(i=>i.sku===k).reduce((b,i)=>b+(+i.qty||0),0),0);
+const nextNo=()=>S.ctns.reduce((a,c)=>Math.max(a,+c.no||0),0)+1;
+function autoFill(){ if(!S.skus.length) return toast('Drop the PO first');
+  if(S.ctns.length&&!confirm('Replace the cartons listed with one carton per size?')) return;
+  const dims=$('dimsDef').value.trim(); S.ctns=S.skus.map((s,i)=>({no:i+1,items:[{sku:s.sku,qty:s.qty}],dims,gross:''})); render(); }
+function addCtn(){ const left=S.skus.find(s=>packed(s.sku)<s.qty); S.ctns.push({no:nextNo(),items:[{sku:left?left.sku:(S.skus[0]||{}).sku||'',qty:left?left.qty-packed(left.sku):0}],dims:$('dimsDef').value.trim(),gross:''}); render(); }
+const tare=()=>parseFloat($('tare').value)||0;
+// v4: Pine's three box sizes (as in Shipping / Receiving), or a vendor box typed L × W × H
+const PINE_BOX=[['Pine S','12 x 12 x 6'],['Pine M','24 x 16 x 6'],['Pine L','24 x 16 x 14']];
+const normDims=v=>{ const n=String(v||'').match(/\d+(?:\.\d+)?/g); return n&&n.length===3?n.join(' x '):String(v||'').trim(); };
+function dimsPick(v,onSet){ const box=document.createElement('span'); box.className='tp-dims'; const d=normDims(v), pine=PINE_BOX.find(b=>b[1]===d), n=(d.match(/\d+(?:\.\d+)?/g)||[]);
+  box.innerHTML=`<select aria-label="Box size">${PINE_BOX.map(([nm,dd])=>`<option value="${dd}" ${pine&&pine[1]===dd?'selected':''}>${nm} · ${dd.replace(/ x /g,'×')}</option>`).join('')}<option value="vendor" ${!pine?'selected':''}>Vendor box…</option></select>`
+    +`<span class="tp-v" ${pine?'hidden':''}>${['L','W','H'].map((k,i)=>`<input class="v" data-i="${i}" inputmode="decimal" placeholder="${k}" value="${esc(!pine&&n[i]||'')}" aria-label="${k} inches">`).join('×')} in</span>`;
+  const sel=box.querySelector('select'), vend=box.querySelector('.tp-v'), ins=[...box.querySelectorAll('input.v')];
+  const fromV=()=>{ const v=ins.map(i=>parseFloat(i.value)); return v.every(x=>x>0)?v.join(' x '):''; };
+  sel.onchange=()=>{ if(sel.value==='vendor'){ vend.hidden=false; ins[0].focus(); onSet(fromV()); } else { vend.hidden=true; onSet(sel.value); } };
+  ins.forEach(i=>i.onchange=()=>onSet(fromV()));
+  return box; }
+function dimsDefPick(){ const h=$('dimsDefPick'); h.innerHTML=''; h.appendChild(dimsPick($('dimsDef').value,v=>{ $('dimsDef').value=v; save(); })); }
+const netOf=c=>{ const g=parseFloat(c.gross); return g>0?Math.max(0,Math.round((g-tare())*100)/100):''; };
+const fmtLb=v=>v===''||v==null?'':String(Math.round(v*100)/100);
+function render(){
+  $('skus').innerHTML=S.skus.length?`<table class="tp-t"><thead><tr><th>SKU</th><th>Colour · size</th><th class="num">PO</th><th class="num">Packed</th></tr></thead><tbody>${S.skus.map(s=>{ const p=packed(s.sku); return `<tr><td>${esc(skuTxt(s.sku))||'—'}</td><td>${esc(s.color)} · ${esc(s.size)}</td><td class="num">${s.qty}</td><td class="num ${p===s.qty?'ok':p?'bad':''}">${p}</td></tr>`; }).join('')}</tbody></table>`:'Drop the PO to list its SKUs.';
+  const opt=k=>S.skus.map(s=>`<option value="${s.sku}" ${s.sku===k?'selected':''}>${esc(s.color)} · ${esc(s.size)}${skuTxt(s.sku)?' · '+s.sku:''}</option>`).join('');
+  const sorted=S.ctns.map((c,i)=>[c,i]).sort((a,b)=>(+a[0].no||0)-(+b[0].no||0));
+  $('ctns').innerHTML=sorted.map(([c,i])=>`<tr data-i="${i}"><td><input class="ctn" data-k="no" value="${esc(c.no)}" inputmode="numeric" aria-label="Carton number"> <span class="p-hint">of ${S.ctns.length}</span></td>
+    <td><div class="tp-items">${c.items.map((it,j)=>`<div class="tp-item"><select data-j="${j}" data-k="sku">${opt(it.sku)}</select><input class="n" data-j="${j}" data-k="qty" value="${esc(it.qty)}" inputmode="numeric" aria-label="Quantity">${c.items.length>1?`<button class="tp-x" data-j="${j}" data-k="rm" type="button" aria-label="Take this SKU out">×</button>`:''}</div>`).join('')}<button class="tp-link" data-k="mix" type="button">＋ another SKU in this carton</button></div></td>
+    <td data-dims="1"></td><td class="num"><input class="n" data-k="gross" value="${esc(c.gross)}" inputmode="decimal" placeholder="lbs"></td><td class="num">${fmtLb(netOf(c))}</td>
+    <td style="white-space:nowrap"><button class="tp-link" data-k="dup" type="button" title="A new carton with the same box size and weight">Duplicate</button> <button class="tp-x" data-k="del" type="button" aria-label="Remove carton">×</button></td></tr>`).join('')
+    ||`<tr><td colspan="6" class="p-hint" style="padding:14px 6px">${S.skus.length?'Click <b>One carton per size</b> to start with a carton for each SKU, or <b>＋ Carton</b> to add them one at a time.':'Drop Topo’s PO first (left).'}</td></tr>`;
+  $('ctnN').textContent=S.ctns.length?`· ${S.ctns.length}`:'';
+  $('ctns').querySelectorAll('tr[data-i]').forEach(tr=>{ const c=S.ctns[+tr.dataset.i];
+    const dc=tr.querySelector('[data-dims]'); if(dc) dc.appendChild(dimsPick(c.dims,v=>{ c.dims=v; save(); check(); }));
+    tr.querySelectorAll('[data-k]').forEach(el=>{ const k=el.dataset.k, j=+el.dataset.j;
+      if(k==='del') el.onclick=()=>{ S.ctns.splice(S.ctns.indexOf(c),1); render(); };
+      else if(k==='dup') el.onclick=()=>{ const left=S.skus.find(s=>packed(s.sku)<s.qty); S.ctns.push({no:nextNo(),items:[{sku:left?left.sku:c.items[0].sku,qty:left?left.qty-packed(left.sku):0}],dims:c.dims,gross:c.gross}); render(); };
+      else if(k==='mix') el.onclick=()=>{ const left=S.skus.find(s=>packed(s.sku)<s.qty)||S.skus[0]; c.items.push({sku:left?left.sku:'',qty:left?Math.max(0,left.qty-packed(left.sku)):0}); render(); };
+      else if(k==='rm') el.onclick=()=>{ c.items.splice(j,1); render(); };
+      else if(k==='sku') el.onchange=()=>{ c.items[j].sku=el.value; render(); };
+      else if(k==='qty') el.onchange=()=>{ c.items[j].qty=parseInt(el.value)||0; render(); };
+      else if(k==='no') el.onchange=()=>{ c.no=parseInt(el.value)||''; render(); };
+      else if(k==='gross') el.onchange=()=>{ c.gross=el.value.replace(/[^\d.]/g,''); render(); };
+    }); });
+  check(); save(); }
+function check(){ const P=[];
+  S.skus.forEach(s=>{ const p=packed(s.sku); if(p!==s.qty) P.push(`${s.color} ${s.size}: ${p} packed, PO says ${s.qty}`); });
+  const nos=S.ctns.map(c=>+c.no), dup=nos.filter((n,i)=>nos.indexOf(n)!==i), miss=[]; for(let n=1;n<=S.ctns.length;n++) if(!nos.includes(n)) miss.push(n);
+  if(dup.length) P.push('Carton number used twice: '+[...new Set(dup)].join(', ')); if(miss.length) P.push(`Carton number${miss.length>1?'s':''} missing: ${miss.join(', ')} (of ${S.ctns.length})`);
+  const noW=S.ctns.filter(c=>!(parseFloat(c.gross)>0)).map(c=>c.no), noD=S.ctns.filter(c=>!c.dims).map(c=>c.no);
+  if(noW.length) P.push('No weight yet: carton '+noW.sort((a,b)=>a-b).join(', ')); if(noD.length) P.push('No box size yet: carton '+noD.sort((a,b)=>a-b).join(', '));
+  if(!$('season').value.trim()) P.push('Season is empty');
+  const el=$('check'); el.className='p-note'+(S.ctns.length?(P.length?' p-note-wait':' p-note-done'):'');
+  el.innerHTML=!S.ctns.length?'List the cartons — or One carton per size.':P.length?'<b>Before printing:</b><br>'+P.map(esc).join('<br>'):`<b>All ${S.skus.reduce((a,s)=>a+s.qty,0)} pieces are in ${S.ctns.length} cartons.</b> Every carton has a size and a weight.`;
+  $('pdfBtn').disabled=$('xlsBtn').disabled=!S.ctns.length; }
+function save(){ if(!S.po) return; const o={ctns:S.ctns}; ['season','ord','coo','shipTo','shipAddr','date','tare','dimsDef'].forEach(k=>o[k]=$(k).value); lsx.set(SAVE_KEY,JSON.stringify(o)); }
+const ordered=()=>S.ctns.slice().sort((a,b)=>(+a.no||0)-(+b.no||0));
+
+/* ================= carton labels: Topo's V2 template (A4 landscape 841.89 × 595.28 pt, Myriad Pro set in Helvetica at
+   Myriad's widths — each block's scale comes from a word measured on TOPO-CARTON-LABEL-10695.pdf) ================= */
+function labelsPdf(){ const {jsPDF}=window.jspdf, d=new jsPDF({orientation:'landscape',unit:'pt',format:'a4',compress:true}), INK=[35,31,32], RED=[222,36,37];
+  const fit=(ref,pt,w)=>{ d.setFontSize(pt); return w/d.getTextWidth(ref); };   // Helvetica → Myriad's width
+  d.setFont('helvetica','normal');
+  const k1=fit('CUSTOMER: TOPO DESIGNS',47.1,534.4), k2=fit('PRODUCT:',36.06,157.0), kT=fit('411618454965',31.9,196.0), kR=fit('SKU STICKER',22.4,117.8), kS=fit('LONG SIDE',31.1,140.7);
+  const T=(s,x,y,pt,k,col)=>{ d.setFontSize(pt); d.setTextColor(...(col||INK)); d.text(String(s),x,y,{horizontalScale:k}); };
+  const W=(s,pt,k)=>{ d.setFontSize(pt); return d.getTextWidth(String(s))*k; };
+  const all=ordered(), n=all.length, po=$('po').value.trim(), season=$('season').value.trim().toUpperCase(), coo=$('coo').value.trim()||'USA';
+  all.forEach((c,ci)=>{ if(ci) d.addPage();
+    // LONG SIDE
+    T('LONG SIDE',686.9,33.1,31.1,kS,RED);
+    const g=parseFloat(c.gross), net=netOf(c);
+    [`CUSTOMER: TOPO DESIGNS`,`COO: ${coo}`,`CARTON #: ${c.no} of ${n}`,`GROSS WEIGHT: ${g>0?fmtLb(g)+' lbs':''}`,`NET WEIGHT: ${net!==''?fmtLb(net)+' lbs':''}`,`DIMENSIONS: ${c.dims||''}`,`PO#: ${po}`,`SEASON: ${season}`]
+      .forEach((s,i)=>T(s,40.97,64.2+69.98*i,47.1,k1));
+    // SHORT SIDE
+    d.addPage(); T('SHORT SIDE',669.8,33.4,31.1,kS,RED);
+    const sk=c.items.map(i=>skuOf(i.sku)).filter(Boolean), uniq=a=>[...new Set(a)];
+    const prod=uniq(sk.map(s=>s.product)).join(' / '), gen=uniq(sk.map(s=>s.gender)).join(' / '), col=uniq(sk.map(s=>s.color)).join(' / ');
+    // PRODUCT wraps: the first line runs to the page edge, the rest stop short of the sticker boxes
+    const words=('PRODUCT: '+prod).split(' '), lines=[]; let cur='';
+    words.forEach(w=>{ const t=cur?cur+' '+w:w, max=lines.length?600:770; if(W(t,36.06,k2)>max&&cur){ lines.push(cur); cur=w; } else cur=t; }); if(cur) lines.push(cur);
+    lines.concat([`GENDER: ${gen}`,`COLOR: ${col}`]).forEach((s,i)=>T(s,45.34,68.1+47.0*i,36.06,k2));
+    // the two SKU sticker boxes
+    d.setDrawColor(...RED); d.setLineWidth(0.72); d.rect(652.0,118.8,154.5,80.3); d.rect(651.8,205.3,154.5,80.3);
+    [[146.6],[233.3]].forEach(([y])=>{ T('SKU STICKER',670.5,y,22.4,kR,RED); T('PLACE HERE',670.5,y+33.3,22.4,kR,RED); });
+    // SKU / SIZE / QTY table (header + 5 rows; more SKUs add rows)
+    const rows=Math.max(5,c.items.length), top=245.2, hh=38.6, rh=Math.min(50.8,(536.0-top-hh)/rows), bot=top+hh+rh*rows;
+    d.setDrawColor(...INK); d.setLineWidth(1.24); d.rect(46.7,top,532.4,bot-top); d.setLineWidth(1.12); d.line(289.5,top,289.5,bot); d.line(466.8,top,466.8,bot);
+    d.setLineWidth(1.0); for(let r=0;r<rows;r++) d.line(46.4,top+hh+rh*r,579.1,top+hh+rh*r);
+    const ts=Math.min(31.9,rh*0.68); T('SKU',58.6,276.1,31.9,kT); T('SIZE',306.7,276.1,31.9,kT); T('QTY',484.5,276.1,31.9,kT);
+    c.items.forEach((it,r)=>{ const s=skuOf(it.sku)||{}, y=top+hh+rh*(r+1)-14.7*(rh/50.8); T(skuTxt(it.sku),63.0,y,ts,kT); T(s.size||'',302.0,y,ts,kT); T(String(it.qty),483.1,y,ts,kT); }); });
+  d.setProperties({title:`Topo carton labels PO ${po}`,creator:'Pine Topo Packing'}); return d; }
+
+
+/* ================= v6: the packing list, rebuilt (Stephen: "the xslx has never worked.....can we wipe the slate clean on that and
+   try to build it back up to work"). Written with ExcelJS (a standard .xlsx library) as Topo's "Packing Details" PKL sheet: their
+   fonts (Calibri 20 bold title, Arial / Tahoma / Calibri 10), row heights, merges, thin borders, the QTY group header, the shaded
+   TOTAL row with SUBTOTALs; Destination and Description wider than theirs so the text isn't cut off. One landscape page wide. ===== */
+// v9: Topo's PO as written on their purchase order (PO0003352); typed in by hand → PO + 7 digits
+const poLong=()=>{ const v=$('po').value.trim(); if(/^PO/i.test(v)) return v.toUpperCase(); if(S.poFull&&S.poFull.replace(/\D/g,'').replace(/^0+/,'')===v.replace(/^0+/,'')) return S.poFull; return v?'PO'+v.padStart(7,'0'):''; };
+async function packingXlsx(){ if(!window.ExcelJS) throw new Error('the spreadsheet library did not load — check the connection and Refresh');
+  const po=$('po').value.trim(), ord=$('ord').value.trim(), dt=$('date').value, ship=$('shipTo').value.trim();
+  const wb=new ExcelJS.Workbook(); wb.creator='Pine Printshop'; wb.created=new Date();
+  const ws=wb.addWorksheet('PKL',{pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:1,paperSize:1,horizontalCentered:true,verticalCentered:true,margins:{left:0.4,right:0.4,top:0.5,bottom:0.5,header:0.3,footer:0.3}},views:[{showGridLines:false}]});
+  // A (blank, narrow) · B–D CTN# · E Manufacturer PO · F Cust PO · G SKU# · H Color · I Destination · J Description · K Size · L QTY CTN · M PCS/CTN · N Total QTY
+  ws.columns=[2,5.43,3.43,6.43,14.57,13.5,18,18,30,40,12,10,10.86,12].map(w=>({width:w}));
+  const thin={style:'thin',color:{argb:'FF000000'}}, box={top:thin,left:thin,bottom:thin,right:thin};
+  const F=(name,sz,b)=>({name,size:sz,bold:!!b});
+  const put=(ref,v,o)=>{ const c=ws.getCell(ref); c.value=v; if(o.font) c.font=o.font; if(o.al) c.alignment=o.al; if(o.border) c.border=o.border; if(o.fill) c.fill=o.fill; if(o.fmt) c.numFmt=o.fmt; return c; };
+  // title + header block
+  ws.mergeCells('B1:N1'); put('B1','Packing Details',{font:F('Calibri',20,true),al:{horizontal:'center',vertical:'middle'}}); ws.getRow(1).height=24;
+  const lab={font:F('Arial',10,true),al:{vertical:'top'}}, val={font:F('Tahoma',10),al:{vertical:'top',horizontal:'left'}};
+  [['VENDOR NAME:','Pine Printshop',22.5,true],['Ship To Address:',$('shipAddr').value.trim()||ship,18],['Invoice Number:',ord,18],['Date:',dt?new Date(dt+'T12:00').toLocaleDateString('en-US'):'',18],['Packing Details of:',`${poLong()}${S.memo?' · '+S.memo:''}`,18]]
+    .forEach(([a,b,h,bold],i)=>{ const r=2+i; ws.mergeCells(`B${r}:E${r}`); ws.mergeCells(`F${r}:J${r}`); put('B'+r,a,lab); put('F'+r,b,bold?lab:Object.assign({},val,b instanceof Date?{fmt:'m/d/yyyy'}:{})); ws.getRow(r).height=h; });
+  put('K5','Container No.:',{font:F('Calibri',10,true),al:{vertical:'top'}});
+  ws.mergeCells('B7:E7'); ws.mergeCells('F7:G7'); ws.mergeCells('H7:L7'); ws.getRow(7).height=27.75;
+  put('B7','For account and risk of Messrs/Consignee:',{font:F('Arial',10),al:{vertical:'top',wrapText:true}});
+  put('F7','TOPO DESIGNS',{font:F('Arial',10),al:{vertical:'top',horizontal:'left'}});
+  put('H7',`From:   Pine Printshop     To: ${$('shipAddr').value.trim()||ship}`,{font:F('Tahoma',10),al:{vertical:'top',horizontal:'center',wrapText:true}});
+  // QTY group header over PCS/CTN + Total QTY, then the column headers
+  ws.mergeCells('M8:N8'); put('M8','QTY',{font:F('Calibri',10,true),al:{horizontal:'center',vertical:'middle'},border:box}); ws.getRow(8).height=12.75;
+  ws.mergeCells('B9:D9'); ws.getRow(9).height=25.5;
+  const hd={font:F('Calibri',10,true),al:{horizontal:'center',vertical:'middle',wrapText:true},border:box};
+  put('B9','CTN#',Object.assign({},hd,{font:F('Tahoma',10)}));
+  [['E','Manufacturer PO'],['F','Cust PO'],['G','SKU#'],['H','Color'],['I','Destination'],['J','Description'],['K','Size'],['L','QTY CTN'],['M','PCS/ CTN'],['N','Total QTY']].forEach(([c,t])=>put(c+'9',t,c==='E'?Object.assign({},hd,{font:F('Tahoma',10)}):hd));
+  // the cartons: a run of one-SKU cartons with the same SKU and pieces → one row "6 - 8" (QTY CTN 3); a mixed carton → a row per SKU, B–D merged
+  const runs=[]; ordered().forEach(c=>{ const last=runs[runs.length-1], one=c.items.length===1&&c.items[0];
+    if(one&&last&&last.items.length===1&&last.items[0].sku===one.sku&&+last.items[0].qty===+one.qty&&+c.no===+last.to+1){ last.to=c.no; last.n++; }
+    else runs.push({from:c.no,to:c.no,n:1,items:c.items}); });
+  const ctn={font:F('Calibri',11),al:{horizontal:'center',vertical:'middle'},border:box}, cell={font:F('Calibri',10),al:{horizontal:'center',vertical:'middle',wrapText:true},border:box}, txt=Object.assign({},cell,{fmt:'@'});
+  // v7: fill the page — the sheet's width in inches (Excel: a character ≈ 7 px + 5 px padding at 96 dpi), the page's shape
+  // (11 × 8.5 less margins = 10.2 × 7.5), so the rows' height that makes the sheet the same shape; text grows with the rows
+  const nRows=runs.reduce((a,g)=>a+g.items.length,0), widthIn=ws.columns.reduce((a,c)=>a+(c.width*7+5),0)/96, wantPt=widthIn/(10.2/7.5)*72;
+  const fixedPt=24+22.5+18*4+27.75+12.75+25.5, rowH=Math.max(15,Math.min(48,(wantPt-fixedPt)/(nRows+1))), fs=Math.max(10,Math.min(12,Math.round(rowH*0.42)));
+  ctn.font=F('Calibri',fs+1); cell.font=F('Calibri',fs); txt.font=F('Calibri',fs);
+  let r=10; const first=r;
+  for(const g of runs){ const r0=r;
+    g.items.forEach((it,i)=>{ const s=skuOf(it.sku)||{}; ws.getRow(r).height=rowH;
+      if(i===0){ put('B'+r,+g.from,ctn); put('C'+r,'-',ctn); put('D'+r,+g.to,ctn); put('L'+r,g.n,cell); } else { ['B','C','D'].forEach(c=>put(c+r,null,ctn)); put('L'+r,null,cell); }
+      put('E'+r,ord,Object.assign({},txt,{font:F('Tahoma',fs),al:{horizontal:'center',vertical:'middle'}})); put('F'+r,poLong(),txt); put('G'+r,skuTxt(it.sku),txt); put('H'+r,s.color||'',cell);
+      put('I'+r,ship,cell); put('J'+r,s.product||'',cell); put('K'+r,s.size||'',cell); put('M'+r,+it.qty||0,cell); put('N'+r,(+it.qty||0)*g.n,cell); r++; });
+    if(g.items.length>1) ['B','C','D'].forEach(c=>ws.mergeCells(`${c}${r0}:${c}${r-1}`)); }
+  const last=r-1, shade={type:'pattern',pattern:'solid',fgColor:{argb:'FFDBDBDB'}}, tot={font:F('Calibri',10,true),al:{horizontal:'center',vertical:'middle'},border:box,fill:shade};
+  tot.font=F('Calibri',fs,true); ws.mergeCells(`B${r}:K${r}`); put('B'+r,'TOTAL',tot); ws.getRow(r).height=rowH;
+  const sum=k=>runs.reduce((a,g)=>a+g.items.reduce((b,it,i)=>b+(k==='L'?(i?0:g.n):(+it.qty||0)*g.n),0),0);
+  put('L'+r,{formula:`SUBTOTAL(9,L${first}:L${last})`,result:sum('L')},tot); put('M'+r,null,tot); put('N'+r,{formula:`SUBTOTAL(9,N${first}:N${last})`,result:sum('N')},tot);
+  ws.pageSetup.printArea=`A1:N${r}`;
+  const buf=await wb.xlsx.writeBuffer(); return new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); }
+
+function download(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+const base=()=>`${$('ord').value.trim()?$('ord').value.trim()+' ':''}TOPO PO${$('po').value.trim()}`;
+
+
+/* ================= wiring ================= */
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+$('file').onchange=e=>{ if(e.target.files[0]) readPO(e.target.files[0]); e.target.value=''; };
+const dz=$('drop'); ['dragenter','dragover'].forEach(t=>dz.addEventListener(t,e=>{ e.preventDefault(); dz.classList.add('is-over'); })); ['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{ e.preventDefault(); dz.classList.remove('is-over'); }));
+dz.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) readPO(f); });
+['season','ord','coo','shipTo','shipAddr','date','dimsDef','po'].forEach(k=>$(k).addEventListener('change',()=>{ save(); check(); }));
+$('tare').addEventListener('change',render);
+$('autoBtn').onclick=autoFill; $('addBtn').onclick=addCtn;
+$('pdfBtn').onclick=()=>{ try{ download(labelsPdf().output('blob'),`${base()} CARTON LABELS.pdf`); }catch(e){ toast('Could not make the labels: '+e.message); } };
+$('xlsBtn').onclick=async()=>{ const b=$('xlsBtn'); b.disabled=true; try{ download(await packingXlsx(),`${base()} PACKING LIST.xlsx`); }catch(e){ console.error(e); toast('Could not make the packing list: '+e.message); } b.disabled=false; };
+$('clearBtn').onclick=()=>{ if(!confirm('Start over? This clears the cartons and label details for this PO.')) return; S.ctns=[]; lsx.del(SAVE_KEY); ['season','ord','date'].forEach(k=>$(k).value=''); $('tare').value='2'; render(); };
+$('refresh').onclick=()=>{ if(window.PineUpdate) PineUpdate.check().then(f=>{ if(!f) toast('You have the newest version'); }); };
+dimsDefPick(); render();
+</script>
+<script src="pine-update.js" data-link="topo-pack.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver) document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body></html>
