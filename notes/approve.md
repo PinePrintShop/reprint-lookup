@@ -164,3 +164,23 @@ Stephen: "I think we should move away from those boxes and do it like we had bef
   - the page counter
   - tap to enlarge
 - Tested: the real-order private test on desktop and iPhone (all 7 pages, per-page audit, no errors); the sample-page scan on 9 screens; full flow.
+
+## 2026-11-08 — v12: questions go back to the email
+Stephen: "Since they will click this from an email. Can the have questions take them back to that email?" → "Let's build"
+- **A Question? button on every screen:**
+  - the top bar (desktop and iPad)
+  - next to the progress count in the phone's Next bar
+  - the desktop order panel
+  - the welcome screen
+- **It opens a panel with three things:**
+  - **Email <rep>** starts a reply to the approval email: `mailto:` to `O.repEmail` with the subject "Re: " + `O.subject`, so it usually files into the same thread, and a body with the order # and the step they're on (e.g. "question about Proof 2, page 3 — AS Colour 5026 · Cypress").
+  - The address is shown as text with Copy, since mail links can do nothing on some phones.
+  - Back to my order.
+- **Progress is kept in this tab (sessionStorage).** A trip to the email app and back, or a reload, resumes where they left off. It's cleared on Finish.
+- The live version needs `repEmail` and `subject` (the approval email's subject) from the order.
+- **Tested** (iPhone and desktop):
+  - the link's subject and body
+  - Copy, and its fallback of selecting the address
+  - reloading mid-flow resumes at the same step
+  - Finish clears the saved progress
+  - the scan on 9 screens and the full flow pass with no errors
