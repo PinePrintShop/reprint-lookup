@@ -3003,3 +3003,12 @@ Stephen (11122): "how do we store the photos for none API garments".
   - A picked piece drawn on a solid colour gets "Drop the background colour (crops to the print)", ticked to start. It opens as just the print.
   - Other files are unchanged: the extra piece only appears when its four corners share one solid colour.
 - **Tested (practice):** both pages open to the design alone (5.2″ and 5.5″ as drawn; a bandana line still opens at 20″). The fabric colour is dropped (52% of the art see-through). No errors, no writes.
+
+## 2026-11-09 — v235: PSDs coloured with fill layers
+- Stephen, with NORMAL GIRL.psd: "since the layers are .psd and they are using a color fill it is just grabbing all the black ink instead of the color filled green and pink". He had also stacked the file twice to try to give each part its own colour.
+- The PSD's art is black, in two groups. Each group is coloured by a colour fill clipped onto it: "2286 C" over Group 2, "232 C" over Group 1. A black "Color Fill 1" over the whole canvas stands in for the shirt.
+- **Fixes (layer picker / compositing):**
+  - A clipped layer now colours the group under it, as in Photoshop. Before, clipped layers only worked over a plain layer, so the fills were skipped and everything came out black.
+  - A solid colour over the whole canvas at the bottom (above or instead of Background) is left out like the Background, marked "solid background". Untick or tick as needed.
+  - When the fills are named as inks, those are the art's inks (232 C, 2286 C), with the fill colours. The art doesn't need stacking twice to get two colours.
+- **Tested (practice):** a PSD built the same way opens green and pink. Color Fill 1 and Background are unticked. Inks read 232 and 2286 from the file. No errors, no writes.
