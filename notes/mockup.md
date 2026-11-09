@@ -3233,3 +3233,11 @@ Stephen: "getting this funky thing when trying to place this garment with size s
   - Tests: people with dark, light and medium skin and an arm out → person. Flat black, tan, peach and pink tees, and black and tan hoodies → flat. Real vendor flats (AS Colour 5029, S&S SS4500) → still flat.
 - **The body-length bar on a person photo** runs up from the hem you marked (the yellow line across the hem). With no hem marked it isn't drawn, rather than measuring the whole person.
 - **Tests:** 26/26 tabs checks, with mocked Airtable in practice mode. No page errors.
+
+## 2026-11-09 — v254: links in notes and comments open
+Stephen: "can you add a hyperlink from the print notes? Airtable does". 11180's proofing note had the garment's page on the vendor's site as plain text.
+
+- Any `http(s)://` or `www.` address in the brief's Proofing / Sales notes and in comments is a link that opens in a new tab (`linkUrls()`).
+- A trailing `. , ; : ! ? ) ]` stays outside the link, unless a `)` closes a `(` inside the address.
+- The full address keeps its `&…` parts.
+- **Tests:** Stephen's note, a link ending in a full stop, a link in brackets, a `www.` address, and text that isn't a link. Plus 26/26 tabs checks with mocked Airtable in practice mode. No page errors.
