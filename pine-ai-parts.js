@@ -67,7 +67,9 @@
   // 2026-10-30 (Stephen, BANDANA.pdf — a slide saved from Preview: one flat picture of three bandanas on a light card):
   // on a flattened page, colours close to its paper colour aren't ink (the slide's light grey card), so the designs come out
   // as separate pieces
-  function pieces(c,s){ const W=c.width,H=c.height, d=c.getContext('2d').getImageData(0,0,W,H).data;
+  // 2026-11-09 (Stephen, a customer's bandana spec sheet: header bar, order box and the design on its fabric-colour square,
+  // each ~0.28″ apart, came out as one piece): tight=true joins nothing, so a square that close to the rest is found on its own
+  function pieces(c,s,tight){ const W=c.width,H=c.height, d=c.getContext('2d').getImageData(0,0,W,H).data;
     let paper=null; const pc=new Map();
     { // the paper: when much of the page is solid (a flattened picture, not a vector sheet), its commonest light, grey-ish colour
       const hist=new Map(); let op=0, tot=0; for(let i=0;i<d.length;i+=32){ tot++; if(d[i+3]<250) continue; op++; const k=((d[i]>>3)<<10)|((d[i+1]>>3)<<5)|(d[i+2]>>3); hist.set(k,(hist.get(k)||0)+1); }
@@ -77,7 +79,7 @@
     const cell=Math.max(2,Math.round((paper?0.06:0.12)*72*s)), gw=Math.ceil(W/cell), gh=Math.ceil(H/cell), G=new Uint8Array(gw*gh);
     const isPaper=i=>{ if(!paper) return false; const k=(d[i]<<16)|(d[i+1]<<8)|d[i+2]; let v=pc.get(k); if(v===undefined){ v=de(lab(d[i],d[i+1],d[i+2]),paper)<10; pc.set(k,v); } return v; };
     for(let y=0;y<H;y+=2) for(let x=0;x<W;x+=2){ const i=(y*W+x)*4; if(d[i+3]>24&&!isPaper(i)) G[((y/cell)|0)*gw+((x/cell)|0)]=1; }
-    const D=new Uint8Array(gw*gh); for(let y=0;y<gh;y++) for(let x=0;x<gw;x++) if(G[y*gw+x]) for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx,yy=y+dy; if(xx>=0&&yy>=0&&xx<gw&&yy<gh) D[yy*gw+xx]=1; }
+    const D=tight?G:new Uint8Array(gw*gh); if(!tight) for(let y=0;y<gh;y++) for(let x=0;x<gw;x++) if(G[y*gw+x]) for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx,yy=y+dy; if(xx>=0&&yy>=0&&xx<gw&&yy<gh) D[yy*gw+xx]=1; }
     const seen=new Uint8Array(gw*gh), out=[];
     for(let i=0;i<gw*gh;i++){ if(!D[i]||seen[i]) continue; let x0=1e9,y0=1e9,x1=-1,y1=-1,n=0; const st=[i]; seen[i]=1;
       while(st.length){ const p=st.pop(), px=p%gw, py=(p/gw)|0; if(G[p]){ n++; if(px<x0)x0=px; if(px>x1)x1=px; if(py<y0)y0=py; if(py>y1)y1=py; }
@@ -152,8 +154,16 @@
     document.body.appendChild(sc);
     const $=s=>sc.querySelector(s), occOf=()=>{ if(!L.occ) return null; for(const l of L.list) L.occ.setVisibility(l.id,!!st.on[l.id]); return L.occ; };
     let tok=0, PV=null;
-    const sizeText=()=>{ if(!PV) return ''; const b=st.crop?{w:st.crop.w*PV.s,h:st.crop.h*PV.s}:PV.b; return `${st.crop?'Piece':st.knock?'Print':'Art'} ${fmt(b.w/PV.s*PX)} × ${fmt(b.h/PV.s*PX)}″${n>1?` · artboard ${st.page} of ${n}`:''}`; };
-    function syncPick(){ if(!PV||!PV.stage) return; PV.stage.querySelectorAll('.pap-box').forEach(e=>e.classList.toggle('is-on',+e.dataset.i===st.pick)); const all=$('[data-all]'); if(all) all.hidden=!st.crop; $('[data-sz]').textContent=sizeText(); }
+    const sizeText=()=>{ if(!PV) return ''; const pc=st.pbox||st.crop, b=pc?{w:pc.w*PV.s,h:pc.h*PV.s}:PV.b; return `${st.pbox?'Print':st.crop?'Piece':st.knock?'Print':'Art'} ${fmt(b.w/PV.s*PX)} × ${fmt(b.h/PV.s*PX)}″${n>1?` · artboard ${st.page} of ${n}`:''}`; };
+    // 2026-11-09: a picked piece drawn on a solid colour (the bandana's fabric) can drop it too — ticked to start; it then
+    // opens cropped to what's left (st.pbox, PDF points)
+    function pieceBg(){ if(!opt.knock) return; const kn=$('[data-kn]'); st.pbg=null; st.pbox=null;
+      if(!st.crop){ kn.hidden=!st.bg; if(st.bg){ $('[data-ksw]').style.background=hex(st.bg); $('[data-knc]').checked=!!st.knock; } return; }
+      const s=PV.s, r={x:Math.round(st.crop.x*s),y:Math.round(st.crop.y*s),w:Math.round(st.crop.w*s),h:Math.round(st.crop.h*s)}, bg=PV.c?bgOf(PV.c,r):null;
+      kn.hidden=!bg; if(!bg) return; st.pbg=bg; if(st.pknock===undefined) st.pknock=true;
+      $('[data-ksw]').style.background=hex(bg); $('[data-knc]').checked=!!st.pknock; if(!st.pknock) return;
+      const k=crop(PV.c,r,0); if(knock(k,bg)){ const kb=inkBox(k); if(kb) st.pbox={x:(r.x+kb.x)/s,y:(r.y+kb.y)/s,w:kb.w/s,h:kb.h/s}; } }
+    function syncPick(){ if(!PV||!PV.stage) return; PV.stage.querySelectorAll('.pap-box').forEach(e=>e.classList.toggle('is-on',+e.dataset.i===st.pick)); const all=$('[data-all]'); if(all) all.hidden=!st.crop; pieceBg(); $('[data-sz]').textContent=sizeText(); }
     async function preview(){ const me=++tok, page=await doc.getPage(st.page), v=page.getViewport({scale:1}), s=Math.min(3,1100/Math.max(v.width,v.height));
       st.crop=null; st.pick=-1;
       let c=await draw(page,s,occOf()); if(me!==tok) return; let b=inkBox(c); const pv=$('[data-pv]'); pv.innerHTML='';
@@ -172,12 +182,21 @@
       const view=crop(c,b,4), ox=Math.max(0,b.x-4), oy=Math.max(0,b.y-4), stage=document.createElement('div'); stage.className='pap-stage'; stage.appendChild(view); pv.appendChild(stage);
       PV={s,b,ox,oy,stage,view};
       const ps=(opt.crop&&!st.box?pieces(c,s):[]).filter(p=>!(p.w>=b.w*0.97&&p.h>=b.h*0.97)), sp=await specOf(page); if(me!==tok) return;
+      // 2026-11-09: a design on its own solid square (a spec sheet's garment-colour panel) right next to other things is
+      // offered on its own too, and picked to start
+      let auto=-1; if(opt.crop&&!st.box){ const big=q=>q.w/s*PX>=2&&q.h/s*PX>=2;
+        const exact=q=>{ const k=inkBox(crop(c,q,0)); return k?{x:q.x+k.x,y:q.y+k.y,w:k.w,h:k.h,n:q.n}:q; };   // the grid's box, trimmed to the ink
+        pieces(c,s,true).map(exact).filter(q=>big(q)&&q.w<b.w*0.9&&bgOf(c,q)&&!ps.some(o=>Math.abs(o.x-q.x)<6&&Math.abs(o.y-q.y)<6&&Math.abs(o.w-q.w)<12&&Math.abs(o.h-q.h)<12))
+          .forEach(q=>{ q.solid=true; ps.push(q); });
+        ps.sort((a,b2)=>b2.w*b2.h-a.w*a.h); ps.forEach((q,i)=>{ if(q.solid&&auto<0) auto=i; }); }
+      PV.c=c;
       st.spec=sp; const sv=$('[data-spec]'); sv.hidden=!sp; if(sp) sv.textContent='From the tech pack: '+sp.text; $('[data-nm]').hidden=!sp;
       const pct=(v0,t)=>(v0/t*100)+'%';
       if(ps.length>1) ps.forEach((p,i)=>{ const e=document.createElement('div'); e.className='pap-box'; e.dataset.i=i;
         Object.assign(e.style,{left:pct(p.x-ox,view.width),top:pct(p.y-oy,view.height),width:pct(p.w,view.width),height:pct(p.h,view.height)}); e.innerHTML=`<span>${i+1}</span>`;
         e._pick=()=>{ if(st.pick===i){ st.pick=-1; st.crop=null; } else { st.pick=i; st.crop={x:p.x/s,y:p.y/s,w:p.w/s,h:p.h/s}; } syncPick(); };
         stage.appendChild(e); });
+      if(auto>=0&&ps.length>1){ const e=stage.querySelector(`.pap-box[data-i="${auto}"]`); if(e&&e._pick) e._pick(); }
       // drag a box round any part (a tap on a numbered piece picks it; a drag works anywhere, pieces too)
       let d0=null, sel=null, tapOn=null; const at=ev=>{ const r=view.getBoundingClientRect(); return {x:Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(ev.clientY-r.top)/r.height))}; };
       stage.onpointerdown=ev=>{ d0=at(ev); tapOn=ev.target.closest&&ev.target.closest('.pap-box[data-i]:not([data-i="-2"])'); try{ stage.setPointerCapture(ev.pointerId); }catch(e){} };
@@ -196,7 +215,7 @@
       (async()=>{ for(let p=1;p<=n;p++){ try{ const page=await doc.getPage(p), v=page.getViewport({scale:1}), s=Math.min(1,260/Math.max(v.width,v.height)), c=await draw(page,s,null), b=inkBox(c), t=box.querySelector(`[data-p="${p}"]`);
           if(!t) return; t.querySelector('.pap-th').appendChild(crop(c,b,2)); t.querySelector('[data-s]').textContent=b?`${fmt(b.w/s*PX)} × ${fmt(b.h/s*PX)}″ of art`:'Empty'; }catch(e){} } })(); }
     sc.querySelectorAll('[data-l]').forEach(i=>i.onchange=()=>{ st.on[i.dataset.l]=i.checked; preview(); });
-    $('[data-knc]').onchange=e=>{ st.knock=e.target.checked; preview(); };
+    $('[data-knc]').onchange=e=>{ if(st.crop&&st.pbg!=null){ st.pknock=e.target.checked; syncPick(); return; } st.knock=e.target.checked; preview(); };
     const all=$('[data-all]'); if(all) all.onclick=()=>{ st.crop=null; st.pick=-1; const s2=PV&&PV.stage&&PV.stage.querySelector('.pap-box[data-i="-2"]'); if(s2) s2.remove(); syncPick(); };
     preview();
     return new Promise(res=>{
@@ -206,10 +225,10 @@
       sc.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>done(null));
       $('[data-go]').onclick=()=>{ const off=L.list.filter(l=>!st.on[l.id]).map(l=>l.name);
         const nm=$('[data-nm]'), noMarks=!!(nm&&!nm.hidden&&st.crop&&$('[data-nmc]').checked);
-        const kn=!!(st.bg&&st.knock&&st.box);
+        const pk=!!(st.crop&&st.pbg&&st.pknock&&st.pbox), kn=!pk&&!st.crop&&!!(st.bg&&st.knock&&st.box);
         const changed=L.list.some(l=>!!st.on[l.id]!==!!l.on);   // 2026-10-30: a hidden layer ticked back on needs the occ too
-        done({page:st.page,occ:off.length||changed?occOf():null,crop:st.crop||(kn?st.box:null),spec:st.spec,noMarks,knock:kn?st.bg:null,
-          label:[n>1?'artboard '+st.page:'',st.crop?(st.pick>=0?'piece '+(st.pick+1):'the part you boxed'):'',off.length?'without '+off.join(', '):'',kn?'background dropped':''].filter(Boolean).join(' · ')}); };
+        done({page:st.page,occ:off.length||changed?occOf():null,crop:pk?st.pbox:st.crop||(kn?st.box:null),spec:st.spec,noMarks,knock:pk?st.pbg:kn?st.bg:null,
+          label:[n>1?'artboard '+st.page:'',st.crop?(st.pick>=0?'piece '+(st.pick+1):'the part you boxed'):'',off.length?'without '+off.join(', '):'',kn||pk?'background dropped':''].filter(Boolean).join(' · ')}); };
       setTimeout(()=>$('[data-go]').focus(),0);
     });
   }
