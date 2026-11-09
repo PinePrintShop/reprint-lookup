@@ -3096,3 +3096,23 @@ Stephen (11122): "how do we store the photos for none API garments".
 - On page 1's info block, a transfer's Supacolour logo is now drawn as wide as the rule above Colors (1.32″, 0.30″ tall). On the embroidery-style block it matches that block's 1.78″ rule.
 - Ink chips and the tag section are unchanged.
 - **Tested (practice):** a Supacolour sleeve print's logo spans the rule. No errors.
+
+## 2026-11-09 — v243: less scrolling in the left panel; .svg art
+- **Audit** (1440×900, an order with art open): the panel was 2,729 px in an 836 px window. One imprint's work went files (y≈2,060) → size (1,210) → colours (2,190) → placement (1,610) → garment (2,490) → back up to the chips (284): about 7,200 px of scrolling and four changes of direction.
+- Stephen: "Let's reduce the scrolling and maybe have an agent work on a tab version for us to review here". The tab version is being built separately as a preview.
+- **v243 (reorder, nothing removed):**
+  - The imprint chips stay pinned at the top of the panel. Picking another imprint brings its art section up under them.
+  - The order collapses to one line, "#11095 · Customer · Change order", above the Line picker.
+  - The "different inks" warning shows two lines; tap for the rest.
+  - **2 · Art** now runs in the order of the work: method → open art → Customer's files → size and low-res box → Colours (recolour, add ink) → placement → **More print options**.
+  - Customer's files folds to a "Show" button once the imprint has art.
+  - More print options holds ink opacity, fabric look, underbase, proof notes and the background tick boxes. It's folded, shows a one-line summary of what's set, and remembers if it was left open.
+  - The method hint is two lines (full text on hover).
+  - Result: the panel is 2,148 px, and one imprint is ~1,800 px of scrolling, all downward.
+- **.svg art** (Stephen: "can we make it that we can also place .svg files...right now it is just taking me to the google drive"):
+  - .svg opens from the order's Drive files and the file picker. Before, Drive sent it off to Drive.
+  - It's drawn sharp at up to 4,000 px. Its size comes from the file's width when it gives units (in, pt, mm, cm), otherwise Illustrator's 72 units an inch.
+- **Tested (practice / mocked Airtable):**
+  - The new panel was measured again. The pinned chips work while scrolling.
+  - A 4 in SVG opens at its real size.
+  - Saved colours, the size per line, the grouped line list and recolour still pass. No errors.
