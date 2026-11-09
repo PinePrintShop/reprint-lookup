@@ -3222,3 +3222,14 @@ Stephen on v251: "not working for me....can you walk me through this". His scree
   - **Another file**: then click that size's file in Customer's files, or click the art card to pick a file on the computer. The next art opened goes to this garment only.
   - **Same as the others**: undoes it.
 - **Tested** (mocked Airtable, practice): an "M" file on Navy, then Another file → an "XS" file on Khaki. Each proof shows its own tag, and Same as the others returns Khaki to M. No page errors.
+
+## 2026-11-09 — v253: a model with an arm out is a person, not a flat shirt
+Stephen: "getting this funky thing when trying to place this garment with size specs". The photo was a model in a black long-sleeve, one hand at his ear. The yellow "29″ body length · shoulder to hem" bar ran from the top of his head to his trousers.
+
+- **Cause:** a photo counted as a person only when it's 1.65× taller than wide. The raised arm made this one too wide, so it was read as a flat-laid garment: the whole picture was taken as the shirt, and the body length and the print's scale were measured over the whole person.
+- **Now** a photo is also a person when its top 12% is mostly skin, in a narrow shape (under 45% of the width: a head, not shoulders), over a body that isn't skin-coloured (rows 30–50% down are under 20% skin).
+  - Skin is tested in YCbCr (Cb 77–127, Cr 137–173), which works across skin tones.
+  - The body check keeps a tan hood on a tan hoodie from looking like a face.
+  - Tests: people with dark, light and medium skin and an arm out → person. Flat black, tan, peach and pink tees, and black and tan hoodies → flat. Real vendor flats (AS Colour 5029, S&S SS4500) → still flat.
+- **The body-length bar on a person photo** runs up from the hem you marked (the yellow line across the hem). With no hem marked it isn't drawn, rather than measuring the whole person.
+- **Tests:** 26/26 tabs checks, with mocked Airtable in practice mode. No page errors.
