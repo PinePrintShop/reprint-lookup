@@ -3048,3 +3048,8 @@ Stephen (11122): "how do we store the photos for none API garments".
   - Overlaid on the PDF at 150 dpi: rules, logo, panel and text line up to within font smoothing.
   - The garment and its info block are unchanged.
   - Proof pages have no tag close-up. No errors.
+
+## 2026-11-09 — v238: the inside tag stays off the garment
+- Stephen, with the tag drawn over the front print: "also the inside tag shows up on the garment as well".
+- v237 drew the tag on the mockup while you were on it, so it could be placed. It's now never on the garment picture, only in the proof's tag section.
+- **Tested (practice):** a tag imprint, while selected, doesn't appear on the shirt. The tag section and its recolour (including #hex) still work. No errors.
