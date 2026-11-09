@@ -3161,3 +3161,16 @@ Stephen: "also looks like it isn't pulling in a sweatpants we get from ITC" (Ind
 
 - S&S had the style and photos all along. A pair of pants laid flat is tall and narrow (425×1140 px), so the photo check took it for a photo of a person and the app fell back to the plain tee.
 - Pants are now their own kind, like caps and totes. A name or vendor title with pants / sweatpants / joggers / shorts / leggings / trousers picks it, or Kind › "Pants / shorts". The vendor photo is used as is, sized by ~24" across both legs at the hip. The print starts on the wearer's left thigh (the photo's right).
+
+## 2026-11-09 — v248 + tabs preview rebuilt
+Stephen: "the color pop up is still pretty big and you still have to scroll on a laptop....can we maybe not show all those colors and just use the search function" · "make the search function just a color search as well....so you type in red and it is also all the pantones that are red" · "looks like some undo buttons are missing" · "when you open colors it makes the side panel bigger" · tabs: "let's also make Notes first" · "the ink change isn't in the tab practice".
+
+- **Colour pop-up:** it opens with only the search box (focused on a computer) and a one-line hint. No colours show until you type.
+- **Colour words:** red, pink, orange, yellow, gold, green, lime, olive, teal, turquoise, mint, blue, navy, royal, sky, purple, lavender, maroon, burgundy, brown, tan, beige, cream, khaki, magenta, coral, peach, forest, sage, mustard, rust and aqua, plus gray / charcoal / silver / black / white. Each word finds inks by their colour: Lab distance ≤ 22 to a few reference colours, nearest first. Light / pale, dark / deep and bright / neon narrow the results ("light blue", "dark green"). Names that match still come first, and the results stay under the Saved / Pine's inks / Pantone headings.
+- **Panel size:** the side column no longer widens while the pop-up is open (v98's wider column is gone), and the before/after preview is shorter (84px).
+- **Undo** next to Crop to art / Combine now also shows after a recolour or an erase. Before, it only showed for list edits. It takes the colours back to the scan, with an Undo on its message.
+- **Tabs preview** (`pine-mockup-tabs-preview.html`): rebuilt by an agent on v247 and given the v248 search. The tabs are Notes · Art · Colours · Placement · Garment.
+  - Pinned at the top: the job, the imprint chips, and the clash note with "Just an ink change" always visible.
+  - The colour pop-up floats beside the panel on a computer and is a bottom sheet on narrower screens. The panel's height doesn't change when it opens.
+  - The remembered tab is stored under `pine_mk_tab_v2`.
+  - Tests: 26/26 checks at 1440×900 and 768×1024, with mocked Airtable in practice mode.
