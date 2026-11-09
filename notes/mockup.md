@@ -3053,3 +3053,19 @@ Stephen (11122): "how do we store the photos for none API garments".
 - Stephen, with the tag drawn over the front print: "also the inside tag shows up on the garment as well".
 - v237 drew the tag on the mockup while you were on it, so it could be placed. It's now never on the garment picture, only in the proof's tag section.
 - **Tested (practice):** a tag imprint, while selected, doesn't appear on the shirt. The tag section and its recolour (including #hex) still work. No errors.
+
+## 2026-11-09 — v239: saved colours; a size per line; line list by imprint ID
+- **Saved colours** (Stephen: "when we have a color added can we also get access to that for later as well". He picked named #hex colours and added inks, shared by every computer).
+  - New Airtable table **Mockup Colours** (`tblMzOnFQvpU6tYm4`): Name, Hex, Kind (Named colour / Added ink). No automations watch it. Rows can be edited or deleted there.
+  - A #hex colour given a name (Just rename it) is added as a Named colour. An ink typed into Add an ink is added as an Added ink.
+  - The recolour search lists matching saved colours first, marked "saved", and typing their hex finds them too. The Add an ink box suggests saved names.
+  - Loaded at start and cached on the computer. Practice mode writes nothing.
+- **A size per line** (Stephen: "when you change a garment size it changes it for the other garment vs just that one you have selected").
+  - "Show at size" is now kept per line (M to start). Each line's proof page and body sizes use its own size, and it's saved with the job.
+- **Line drop-down by imprint ID** (Stephen: "organize them by the Imprint Id that is assigned as well as the garment").
+  - Lines are grouped under their imprint IDs (e.g. "11172-A + 11172-B"), with garments A–Z inside each group.
+- **Not changed:** the heat-press tag's hex search worked in testing (the colours list appears and #hex recolours it). Stephen sees no colours to pick; waiting on his tag file to find why.
+- **Tested (mocked Airtable):**
+  - The saved colour loads and shows first in search. Naming #ff3366 "Hot Pink" and adding "7501 EZP" each POST one row.
+  - Navy at L, Khaki stays M, and Khaki's proof uses M.
+  - The drop-down groups by imprint ID. No errors.
