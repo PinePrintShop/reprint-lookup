@@ -1,12 +1,44 @@
 <!DOCTYPE html>
-<!-- Mockup Maker TABS PREVIEW (2026-11-09), based on v242 — not a release, not linked from mockup.html. Stephen: "maybe have
-     an agent work on a tab version for us to review here". The left panel was one 2,700px column (one imprint's work meant
-     ~7,000px of scrolling: files, size, colours, placement, garment, back to the chips). Here the job (order, line, imprint
-     chips) stays pinned at the top and the rest is in tabs: Art (method, open art, file buttons, size, low-res box, files in
-     the print, reference, customer's files) · Colours (colours + add ink + separations tick, background ticks, layers, then
-     the look on the mockup: ink opacity, fabric look, underbase) · Placement (placement rows, own-art / own-imprint, proof
-     notes) · Garment · Notes (the order brief and comments; the tab shows a count). Same ids and handlers: the boxes were
-     moved in the HTML, not rebuilt. The open tab is remembered on this computer (pine_mk_tab_v1).
+<!-- Mockup Maker TABS PREVIEW (2026-11-09), based on v248 — not a release, not linked from mockup.html. A review copy of
+     the left panel in tabs (rebuilt on v247 after Stephen's review of the first preview, which was on v242). The job (order,
+     line, imprint chips and the "different inks" warning with v244's "Just an ink change") stays pinned at the top; the rest
+     is in tabs: Notes (first: the order brief and comments, then the notes on the proof) · Art (method, open art, file
+     buttons, customer's files, size, low-res / thin lines, sew-out, files in the print, reference) · Colours (colours with
+     Crop to art / Combine / Undo, add an ink, separations tick, layers, the background ticks, then "How it looks on the
+     mockup": ink opacity, fabric look, underbase — v243's #moreOpts, folded) · Placement (placement rows, v246's design scan,
+     own art / own imprint ID) · Garment. The colour pop-up (#rcBox) floats over the mockup next to the panel (a bottom sheet
+     on a phone or iPad portrait) instead of opening inside the panel. Same ids and handlers: the boxes were moved in the
+     HTML, not rebuilt. The open tab is remembered on this computer (pine_mk_tab_v2); Notes when there's none. -->
+<!-- Mockup Maker v247 (2026-11-09): pants (Stephen: "it isn't pulling in a sweatpants we get from ITC" — Independent
+     PRM50PTPD). S&S had the photo, but a flat pair of pants is tall and narrow, so it was taken for a photo of a person and
+     dropped for the plain tee. Pants / joggers / shorts / leggings (from the name or the vendor's title, or Kind › Pants)
+     are now their own kind like caps and totes: the vendor photo is used as is, sized by the pants' width, and the print
+     starts on the wearer's left leg, high on the thigh. -->
+<!-- Mockup Maker v246 (2026-11-09): (1) a pixel scan for design changes (Stephen: "we need new imprints when the design
+     changes.....so we need a way to scan pixals and find oddities when sales thinks it can be shared but it isn't"). When a
+     garment has its own art, its SHAPES are compared with the imprint's art (colours ignored): "Same design … just different
+     inks — it can stay 11095-A" or "Different design (only 61% match) — needs its own imprint ID". A different design can't be
+     marked "Just an ink change", the different-inks warning says so, and attaching asks first. (2) the left panel's detail
+     pass (Stephen: "let's really do a nitty gritty audit of how this side panel works"): on a desktop with a mouse the panel's
+     buttons, boxes and gaps are compact (iPad/phone keep full taps); one yellow button (Thicken is plain); the Colours header's
+     actions are small on one row (Crop to art · Combine · Undo); "Colours to be set by separations" is one short line; the
+     standing "Tap a colour…" and "art is balanced" lines are gone; shorter size and same-spot hints.
+     Mockup Maker v245 (2026-11-09): the colour picker cleaned up (Stephen, with the picker open: "can we also clean this
+     up"). The choices are grouped under one heading each — Saved colours · Pine's inks · Madeira threads · Pantone — instead of a
+     "saved" tag squeezed into each tile (it wrapped to "save d"); the list is a little taller and fades at the bottom only when
+     there's more to scroll, rather than cutting a row in half; Effect (metallic / glitter / puff) moved under More.
+     Mockup Maker v244 (2026-11-09): an ink change isn't always a new design (Stephen: "also an ink change is not a different
+     design always...sometimes it is just an ink change"). The "prints in different inks" warning has "Just an ink change"
+     for each imprint: it stays one imprint ID with different inks per garment — the warning and the question when attaching
+     go, a small "just an ink change ✓ · Undo" line stays, and it's kept with the job. A different design still points to
+     "Make it its own imprint ID".
+     Mockup Maker v243 (2026-11-09): less scrolling in the left panel (Stephen: "Let's reduce the scrolling", after an audit:
+     2,729 px of panel, ~7,200 px of scrolling per imprint). The panel now runs in the order of the work: the imprint chips stay
+     pinned at the top; the order is one line once picked (Change order opens the pickers); the "different inks" warning is
+     two lines (tap for all). In 2 · Art: method → open art → Customer's files (folds to a "Show" once the imprint has art) →
+     size → Colours → placement → "More print options" (ink opacity, fabric look, underbase, proof notes and the background
+     tick boxes, folded with a summary; remembered). And .svg art opens (Stephen: "can we make it that we can also place .svg
+     files...right now it is just taking me to the google drive"): from Drive and from the file picker, drawn sharp at its size.
      Mockup Maker v242 (2026-11-09): the Supacolour logo under Colors is as wide as the rule above it (Stephen: "can we make
      the supacolor logo the same size as the line above it") — 1.32" on page 1's info block, 1.78" on the embroidery block.
      Mockup Maker v241 (2026-11-09): placement text on more than one line (Stephen: "When adding specific location
@@ -1516,6 +1548,21 @@ button{color:var(--p-black)}
 .mk-q{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--p-r);background:var(--p-cream-lt,#f8f1e6);font-size:13px;line-height:1.35}
 .mk-q.bad{border-left:4px solid var(--p-red,#c8102e)}.mk-q.low{border-left:4px solid var(--p-black)}
 .mk-q>span{flex:1 1 180px}
+/* v246 audit: a desktop with a mouse gets compact controls in the left panel (the iPad and phone keep full-size taps) */
+@media (min-width:901px) and (pointer:fine){
+  .mk-side .p-btn:not(.p-btn-main){min-height:34px;padding:0 12px;font-size:14px}
+  .mk-side .p-input,.mk-side .p-select{min-height:38px;font-size:15px}
+  .mk-side textarea.p-input{min-height:52px}
+  .mk-side .mk-seg button{min-height:34px;font-size:13px}
+  .mk-side .mk-drop{padding:8px 10px}
+  .mk-side .mk-q{padding:6px 10px;gap:6px}
+  .mk-side .mk-q .p-btn{min-height:30px;padding:0 10px;font-size:13px}
+  .mk-side .mk-blk{gap:10px}
+  .mk-side{gap:14px}
+}
+.mk-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mk-acts .p-btn{min-height:30px!important;padding:0 10px!important;font-size:13px!important}
+#scanSw button{cursor:pointer}
 .mk-qtag{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:var(--p-pill);font:800 12px/1.3 var(--p-sans);background:var(--p-white);color:var(--p-black);border:1px solid currentColor}
 .mk-qtag.bad{color:var(--p-red,#c8102e)}
 .mk-addnote{background:var(--p-yellow);padding:8px 10px;border-radius:var(--p-r);display:flex;align-items:center;gap:8px;font:700 var(--p-fs-xs)/1.3 var(--p-sans)}
@@ -1608,6 +1655,19 @@ button{color:var(--p-black)}
 input[type=range]{accent-color:var(--p-black)}
 .mk-sw small{font-size:12px}
 .mk-side{position:relative}
+/* v243: the imprint chips stay at the top of the panel while it scrolls */
+.mk-impbar{position:sticky;top:-16px;z-index:6;background:var(--p-white);margin:-8px -16px;padding:8px 16px;border-bottom:1px solid transparent}
+.mk-impbar.is-stuck{border-bottom-color:var(--p-line);box-shadow:0 4px 10px rgba(0,0,0,.06)}
+.mk-impbar:empty,.mk-impbar #imps:empty{display:none}
+.mk-blk-tight:not(:has(> :not([hidden]):not(.mk-hint:empty))){display:none}
+#impClash .cl-txt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+#impClash.is-open .cl-txt{display:block}   /* v244: only the ink list folds (tap it); the buttons always show */
+#driveBox.is-fold > :not(.mk-dhead){display:none}
+.mk-more{border-top:1px solid var(--p-line);padding-top:8px}
+.mk-more > summary{cursor:pointer;min-height:40px;display:flex;align-items:center;gap:8px;list-style:none}
+.mk-more > summary::before{content:"▸";font-size:14px} .mk-more[open] > summary::before{content:"▾"}
+.mk-more[open]{display:flex;flex-direction:column;gap:10px}
+#methHint{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #imps .p-tab{flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:6px 14px;border-radius:14px;max-width:100%;min-width:0;text-align:left}
 #imps .p-tab .t1{display:flex;gap:6px;align-items:baseline;white-space:nowrap}
 #imps .p-tab .t2{font:400 12px/1.2 var(--p-sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;opacity:.9}
@@ -1694,15 +1754,17 @@ body.mk-rcopen #attachBtn.p-btn-main{background:var(--p-white)}
   body.mk-rcwide .mk{grid-template-columns:clamp(460px,44vw,640px) minmax(0,1fr)}
   .mk-pop{padding:12px 14px;gap:8px}
   .mk-pop #rcTitle{font-size:14px}
-  .mk-pop .mk-cmp #scanCv{max-height:min(110px,13vh)}
+  .mk-pop .mk-cmp #scanCv{max-height:min(84px,10vh)}   /* v248 */
   .mk-pop .mk-seg button{min-height:34px;font-size:13px}
   .mk-pop .mk-rchead .p-btn{min-height:34px}
   .mk-pop .mk-rcsegs{flex-direction:row;flex-wrap:wrap} .mk-pop .mk-rcsegs>.mk-seg{flex:1 1 220px}
-  .mk-rc .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px;align-content:start;max-height:min(260px,32vh);padding:2px}
+  .mk-rc .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px;align-content:start;max-height:min(318px,40vh);padding:2px;
+    -webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent);padding-bottom:20px}
+  .mk-rc .opts:not(.is-more){-webkit-mask-image:none;mask-image:none;padding-bottom:2px}   /* v245: the fade only when there's more below */
   #cwPick .opts{max-height:min(380px,46vh)}
   .mk-rc .opts button{min-height:38px;padding:3px 8px 3px 3px;gap:8px;font:700 13px/1.2 var(--p-sans);text-align:left;overflow-wrap:anywhere}
   .mk-rc .opts i{width:28px;height:28px;flex:none;border-radius:5px}
-  .mk-rc .opts .mk-optsep{grid-column:1/-1;margin-top:6px}
+  .mk-rc .opts .mk-optsep{grid-column:1/-1;margin-top:6px} .mk-rc .opts .mk-optsep:first-child{margin-top:0}
   .mk-rc .opts .mk-hint{grid-column:1/-1}
   .mk-rc .mk-rcbtns .p-btn{min-height:36px;font-size:13px}
   .mk-rc .mk-rcmerge .p-select{min-height:36px}
@@ -1712,8 +1774,45 @@ body.mk-rcopen #attachBtn.p-btn-main{background:var(--p-white)}
   #gColor[size] option{padding:6px 8px}
 }
 /* v221: stickers */
-body.is-stk .mk-side>section:not(#stkSide),body.is-stk #sideTabs,body.is-stk #imps,body.is-stk #brief,body.is-stk #cmtBox,body.is-stk .mk-views .sp,body.is-stk #views .p-tab:not([data-v=todo]),body.is-stk #stage{display:none!important}
+body.is-stk .mk-side>section:not(#stkSide),body.is-stk #sideTabs,body.is-stk #clashBlk,body.is-stk #pickup,body.is-stk #sepPick,body.is-stk #imps,body.is-stk #brief,body.is-stk #cmtBox,body.is-stk .mk-views .sp,body.is-stk #views .p-tab:not([data-v=todo]),body.is-stk #stage{display:none!important}
 body:not(.is-stk) .stk-only{display:none!important}
+/* ===== tabs preview (on v247): the job pinned at the top, the rest in tabs ===== */
+.mk-shead{position:sticky;top:-16px;z-index:40;background:var(--p-white);margin:-16px -16px 0;padding:16px 16px 0;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--p-line)}
+.mk-shead .mk-pickup{margin-bottom:0}
+.mk-shead .mk-impbar{position:static;margin:0;padding:0;border:0;box-shadow:none}   /* v243's sticky chips: the whole head is pinned now */
+.mk-job{gap:8px}
+.mk-stabs{display:flex;gap:0;margin:0 -16px;padding:0 10px}
+.mk-stabs button{flex:1 1 auto;min-height:44px;border:0;border-bottom:4px solid transparent;background:none;cursor:pointer;font:700 13px/1.1 var(--p-sans);color:var(--p-ink-2,#4a453c);padding:0 4px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.mk-stabs button:hover{color:var(--p-black)}
+.mk-stabs button[aria-selected=true]{color:var(--p-black);border-bottom-color:var(--p-yellow,#FBE122)}
+.mk-stabs button:focus-visible{outline:3px solid var(--p-black);outline-offset:-3px}
+.mk-tb{font:700 12px/1 var(--p-sans);background:var(--p-cream,#EFE2CD);color:var(--p-black);border-radius:9px;padding:3px 6px}
+.mk-tb:empty{display:none}
+.mk-tb.is-new{background:var(--p-black);color:var(--p-white)}
+.mk-tb.is-ok{background:none;padding:0 0 0 2px}
+.mk-tp:not(.is-on){display:none!important}
+.mk-tpempty{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:10px;background:var(--p-cream-lt);border-radius:var(--p-r);padding:14px;font:400 var(--p-fs-s)/1.4 var(--p-sans);color:var(--p-ink-2,#4a453c)}
+.mk-pnotes{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--p-line);padding-top:12px}
+.mk-pnotes:has(> #noteRow[hidden]){display:none}
+#noteBlk #cmtBox[open]{min-height:0}
+#colWrap{gap:8px}
+/* v244's clash note in the pinned head: the ink list folds to two lines (tap it) and its explaining lines show only when
+   it's open; the buttons ("Just an ink change", its Undo) always show */
+#sideHead #impClash:not(.is-open) .mk-hint:not(:has(button)){display:none}
+.mk-shead.is-tall{position:static}   /* a head taller than ~half the panel scrolls away instead of pinning */
+@media (max-width:900px){ .mk-shead{position:static;margin:0;padding:0;border-bottom:0} .mk-stabs{margin:0;padding:0;overflow-x:auto} }
+/* the colour pop-up floats: beside the panel, over the mockup (placed by rcPlace); the panel never grows */
+#rcBox.mk-pop{overflow:auto;overscroll-behavior:contain}
+#rcBox .mk-rchead{position:sticky;top:-12px;z-index:2;background:var(--p-white);margin:-12px -14px 0;padding:12px 14px 8px}
+@media (min-width:901px){
+  #rcBox.mk-pop{position:fixed;z-index:70;right:auto;width:600px;max-height:calc(100vh - 90px)}
+  body.mk-rcwide .mk{grid-template-columns:clamp(380px,32vw,470px) minmax(0,1fr)}   /* v98's wider column isn't needed: the pop-up isn't in it */
+}
+@media (max-width:900px){
+  #rcBox.mk-pop{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:auto!important;max-height:72vh;max-height:72dvh;border-radius:14px 14px 0 0;border-width:2px 0 0;z-index:60;padding-bottom:20px}
+  #rcBox .mk-rchead{margin:-12px -12px 0;padding:12px 12px 8px;box-shadow:0 8px 8px -8px rgba(20,20,18,.2)}
+}
+@media (min-width:601px) and (max-width:900px){ #rcBox.mk-pop{max-height:58vh;max-height:58dvh} #rcBox .mk-cmp #scanCv{max-height:110px} #rcBox .opts{max-height:170px} }   /* iPad portrait: the pinned mockup stays in view above it */
 .stk-main{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
 .stk-main canvas{width:100%;max-width:1100px;height:auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);border-radius:6px;align-self:center}
 .stk-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
@@ -1722,38 +1821,6 @@ body:not(.is-stk) .stk-only{display:none!important}
 .stk-seg{display:flex;flex-wrap:wrap;gap:6px}.stk-seg button{min-height:34px;padding:0 10px;border:1.5px solid rgba(0,0,0,.2);border-radius:8px;background:#fff;font:600 13px Helvetica,Arial,sans-serif;cursor:pointer}
 .stk-seg button.is-on{background:#000;color:#fff;border-color:#000}
 #stkSide{display:flex;flex-direction:column;gap:12px}#stkSide .mk-row{display:flex;gap:8px;align-items:flex-end}#stkSide .mk-row .p-field{flex:1}
-/* ===== tabs preview: pinned job + tabs ===== */
-.mk-side{gap:14px;scroll-padding-top:var(--shead,200px)}
-.mk-shead{position:sticky;top:-16px;z-index:40;background:var(--p-white);margin:-16px -16px 0;padding:16px 16px 0;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--p-line)}
-.mk-job{gap:8px}
-.mk-job .p-select,.mk-job .p-input{min-height:40px;height:40px;padding-top:6px;padding-bottom:6px}
-.mk-ordrow{flex-wrap:nowrap;align-items:flex-end}
-.mk-ordrow>.p-field{flex:1 1 auto;min-width:0}
-.mk-ordrow #ordFindRow{flex:0 0 auto;flex-wrap:nowrap;gap:6px}
-.mk-ordrow #ordFindRow .p-field{width:104px}
-.mk-ordrow #ordFindGo{min-height:40px;height:40px;padding:0 12px}
-.mk-linerow{flex-direction:row;align-items:center;gap:8px}.mk-linerow .mk-lbl{flex:0 0 auto}.mk-linerow .p-select{flex:1;min-width:0}
-#impClash{line-height:1.35;max-height:calc(2.7em + 6px);overflow:hidden;cursor:pointer;position:relative;padding-top:6px;padding-bottom:0;padding-right:64px}
-#impClash.is-open{max-height:none;padding-right:14px;padding-bottom:6px}
-#impClash:not(.is-open)::after{content:'More ▾';position:absolute;right:8px;top:6px;font-weight:700;text-decoration:underline}
-#scanBox>.mk-row:first-child{gap:6px}
-#scanBox>.mk-row:first-child>.mk-lbl{flex:1 1 100%!important}
-#scanBox>.mk-row:first-child .p-btn{min-height:32px!important;padding:0 10px!important;font-size:13px}
-.mk-stabs{display:flex;gap:0;margin:0 -16px;padding:0 10px}
-.mk-stabs button{flex:1 1 auto;min-height:42px;border:0;border-bottom:4px solid transparent;background:none;cursor:pointer;font:700 13px/1.1 var(--p-sans);color:var(--p-ink-2);padding:0 4px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
-.mk-stabs button:hover{color:var(--p-black)}
-.mk-stabs button[aria-selected=true]{color:var(--p-black);border-bottom-color:var(--p-yellow,#FBE122)}
-.mk-stabs button:focus-visible{outline:3px solid var(--p-black);outline-offset:-3px}
-.mk-tb{font:700 12px/1 var(--p-sans);background:var(--p-cream,#EFE2CD);color:var(--p-black);border-radius:9px;padding:3px 6px}
-.mk-tb:empty{display:none}
-.mk-tb.is-new{background:var(--p-black);color:var(--p-white)}
-.mk-tb.is-ok{background:none;padding:0 0 0 2px}
-.mk-tp:not(.is-on){display:none}
-.mk-tpempty{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:10px;background:var(--p-cream-lt);border-radius:var(--p-r);padding:14px;font:400 var(--p-fs-s)/1.4 var(--p-sans);color:var(--p-ink-2)}
-.mk-sub{display:block;border-top:1px solid var(--p-line);padding-top:12px}
-.mk-ticks{gap:6px}
-#noteBlk #cmtBox[open]{min-height:0}
-@media (max-width:900px){ .mk-shead{position:static;margin:0;padding:0;border-bottom:0} .mk-stabs{margin:0;padding:0;overflow-x:auto} }
 </style>
 </head>
 <body class="p-app">
@@ -1768,35 +1835,36 @@ body:not(.is-stk) .stk-only{display:none!important}
 
 <div class="mk">
   <aside class="mk-side">
-    <!-- tabs preview: the job (order, line, imprints) stays at the top; the rest is in tabs below it -->
+    <!-- tabs preview: the job (order, line, imprint chips, the different-inks warning) stays pinned at the top; the rest is in tabs -->
     <div class="mk-shead" id="sideHead">
     <section class="mk-blk mk-job" id="jobBlk">
       <div class="mk-row" id="tokRow" hidden>
         <label class="p-field"><span class="mk-lbl">Airtable key</span><input class="p-input" id="tok" type="password" placeholder="pat…" autocomplete="off"></label>
         <button class="p-btn" id="tokSave" type="button">Save</button>
       </div>
-      <div class="mk-row mk-ordrow">
-        <label class="p-field" title="Orders awaiting proof"><select class="p-select" id="ordSel" aria-label="Order awaiting proof"><option value="">No order — just a garment</option></select></label>
-        <div class="mk-row" id="ordFindRow"><label class="p-field" title="Open any order, whatever its status"><input class="p-input" id="ordFind" inputmode="numeric" placeholder="Order #" aria-label="Open any order number, whatever its status" autocomplete="off"></label><button class="p-btn" id="ordFindGo" type="button">Open</button></div>
-      </div>
-      <label class="p-field mk-linerow" id="lineRow" hidden><span class="mk-lbl">Line</span><select class="p-select" id="lineSel"></select></label>
+      <label class="p-field"><span class="mk-lbl">Order awaiting proof</span><select class="p-select" id="ordSel"><option value="">No order — just a garment</option></select></label>
+      <div class="mk-row" id="ordFindRow"><label class="p-field"><span class="mk-lbl">Open order # · any status</span><input class="p-input" id="ordFind" inputmode="numeric" placeholder="e.g. 11138" autocomplete="off"></label><button class="p-btn" id="ordFindGo" type="button">Open</button></div>
+      <div class="mk-row" id="ordSum" hidden style="align-items:center;gap:8px"><span id="ordSumTxt" style="flex:1;min-width:0;font-weight:700"></span><button class="p-btn" id="ordSumBtn" type="button" style="min-height:36px;padding:0 12px">Change order</button></div>
+      <label class="p-field" id="lineRow" hidden><span class="mk-lbl">Line</span><select class="p-select" id="lineSel"></select></label>
       <div class="mk-row" id="quickRow" hidden>
         <label class="p-field"><span class="mk-lbl">Style</span><input class="p-input" id="qStyle" placeholder="e.g. 1717 or 3001" autocomplete="off"></label>
         <label class="p-field"><span class="mk-lbl">Colour</span><input class="p-input" id="qColor" placeholder="e.g. Hydrangea" autocomplete="off"></label>
         <button class="p-btn" id="qGo" type="button">Load</button>
       </div>
-      <div class="p-tabs" id="imps"></div>
-      <div class="p-note p-note-alert" id="impClash" hidden></div>
+    </section>
+    <div class="mk-impbar" id="impBar"><div class="p-tabs" id="imps"></div></div>
+    <section class="mk-blk mk-blk-tight" id="clashBlk">
+      <div class="p-note p-note-alert" id="impClash" hidden title="Tap to see it all"></div>
       <span class="mk-hint" id="jobHint"></span>
     </section>
       <div class="mk-pickup" id="pickup" hidden><span id="pickupTxt"></span><button class="p-btn p-btn-dark" id="pickupBtn" type="button">Pick up</button><button class="p-btn" id="pickupX" type="button" aria-label="Start fresh instead">Start fresh</button></div>
       <div class="mk-pickup" id="sepPick" hidden><span id="sepPickTxt"></span><button class="p-btn p-btn-dark" id="sepPickBtn" type="button">Use the seps</button><button class="p-btn" id="sepPickX" type="button">Not now</button></div>
     <div class="mk-stabs" id="sideTabs" role="tablist" aria-label="Mockup settings">
-      <button type="button" role="tab" data-t="art" id="tabArt">Art<span class="mk-tb" id="tbArt"></span></button>
-      <button type="button" role="tab" data-t="col" id="tabCol">Colours<span class="mk-tb" id="tbCol"></span></button>
-      <button type="button" role="tab" data-t="place" id="tabPlace">Placement<span class="mk-tb" id="tbPlace"></span></button>
-      <button type="button" role="tab" data-t="garment" id="tabGarment">Garment<span class="mk-tb" id="tbGarment"></span></button>
-      <button type="button" role="tab" data-t="notes" id="tabNotes">Notes<span class="mk-tb" id="tbNotes"></span></button>
+      <button type="button" role="tab" data-t="notes" id="tabNotes" aria-controls="noteBlk">Notes<span class="mk-tb" id="tbNotes"></span></button>
+      <button type="button" role="tab" data-t="art" id="tabArt" aria-controls="artBlk">Art<span class="mk-tb" id="tbArt"></span></button>
+      <button type="button" role="tab" data-t="col" id="tabCol" aria-controls="colBlk">Colours<span class="mk-tb" id="tbCol"></span></button>
+      <button type="button" role="tab" data-t="place" id="tabPlace" aria-controls="placeBlk">Placement<span class="mk-tb" id="tbPlace"></span></button>
+      <button type="button" role="tab" data-t="garment" id="tabGarment" aria-controls="gBlk">Garment<span class="mk-tb" id="tbGarment"></span></button>
     </div>
     </div>
 
@@ -1815,16 +1883,33 @@ body:not(.is-stk) .stk-only{display:none!important}
       <datalist id="stkFinishes"><option>Semi-Gloss</option><option>Gloss</option><option>Matte</option><option>Metallic</option><option>Holographic</option><option>Clear</option></datalist>
     </section>
 
-    <section class="mk-blk mk-tp" id="artBlk" data-tp="art" role="tabpanel" aria-label="Art">
+    <section class="mk-blk mk-tp" id="noteBlk" data-tp="notes" role="tabpanel" aria-labelledby="tabNotes">
+      <p class="mk-tpempty" id="notesEmpty">No order picked: the order's notes and comments show here.</p>
+      <div class="mk-brief" id="brief" hidden></div>
+      <details class="mk-cmts" id="cmtBox" hidden>
+        <summary><span class="mk-lbl">Comments</span> <span class="p-count" id="cmtN"></span><span class="mk-new" id="cmtNew" hidden>new</span></summary>
+        <div class="mk-row" style="align-items:center" id="cmtMoreRow"><span style="flex:1"></span><button class="p-btn" id="cmtMore" type="button" hidden style="min-height:30px;padding:0 10px">Show all</button></div>
+        <div id="cmtList"></div>
+        <textarea class="p-input" id="cmtText" rows="2" placeholder="Comment…"></textarea>
+        <div class="mk-ment" id="cmtMent"></div>
+        <div class="mk-row" style="align-items:center;gap:8px"><label class="mk-hint" style="flex:1">as <select id="cmtMe" class="p-select" style="min-height:30px;width:auto;padding:0 6px"></select> · shows in Airtable too</label><button class="p-btn p-btn-dark" id="cmtPost" type="button" disabled style="min-height:34px">Post</button></div>
+      </details>
+      <div class="mk-pnotes" id="pnoteBlk"><span class="mk-lbl">Notes on the proof <span class="p-count" id="pnoteFor"></span></span>
+        <div class="mk-notes" id="noteRow"><select class="p-select" id="noteSel" aria-label="Add a note to the proof"></select><div class="mk-notechips" id="noteChips"></div>
+          <div class="mk-row" id="noteOwnRow" hidden style="align-items:center"><input class="p-input" id="noteOwn" placeholder="Your note, as it should read on the proof" style="flex:1"><button class="p-btn" id="noteOwnAdd" type="button">Add</button></div></div>
+      </div>
+    </section>
+
+    <section class="mk-blk mk-tp" id="artBlk" data-tp="art" role="tabpanel" aria-labelledby="tabArt">
       <span id="artFor" hidden></span>
       <div class="mk-seg" id="methSeg" role="group" aria-label="Method"><button type="button" data-m="print">Screen print</button><button type="button" data-m="emb">Embroidery</button><button type="button" data-m="patch">Patch</button><button type="button" data-m="transfer">Heat transfer</button></div>
       <span class="mk-hint" id="methHint" hidden></span>
       <!-- v143: how the embroidery is stitched on the mockup -->
       <div class="mk-row mk-shade" id="embRow" hidden><span class="mk-lbl" title="Auto: narrow parts satin, wide parts tatami fill. Satin: all satin columns. Fill: tatami fill with a satin border. 3D puff: satin over foam, raised">Stitches</span><div class="mk-seg" id="embSeg" role="group" aria-label="Stitches"><button type="button" data-e="auto">Auto</button><button type="button" data-e="satin">Satin</button><button type="button" data-e="fill">Fill + satin edge</button><button type="button" data-e="puff">3D puff</button></div><label class="mk-check" style="flex-basis:100%" title="A digitizer's render or a sew-out photo is shown as it is; flat art gets the stitch look"><input type="checkbox" id="embPic"><span>Already a stitch picture (digitizer render or sew-out photo) — show it as it is</span></label></div>
-      <label class="mk-drop" id="drop">
+                        <label class="mk-drop" id="drop">
         <canvas id="thumb" width="56" height="56" hidden></canvas>
         <span><b id="dropTitle">Open art</b><span class="mk-hint" id="dropSub">PNG, JPG, PDF, .AI or .PSD. Drop, paste or click.</span></span>
-        <input type="file" id="file" accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.ai,.psd,.eps,image/*,application/pdf,application/postscript" hidden>
+        <input type="file" id="file" accept=".png,.jpg,.jpeg,.webp,.gif,.svg,.pdf,.ai,.psd,.eps,image/*,image/svg+xml,application/pdf,application/postscript" hidden>
       </label>
       <div class="mk-filebar" id="addRow" hidden>
         <button class="p-btn" id="addPiece" type="button" title="Add a file to this print" aria-label="Add a file to this print">+ Add file</button>
@@ -1841,13 +1926,22 @@ body:not(.is-stk) .stk-only{display:none!important}
         <button class="p-btn" id="rotReset" type="button">Straight</button>
       </div>
       <div class="mk-addnote" id="addNote" hidden><span id="addNoteTxt"></span> <button class="p-btn" id="addCancel" type="button" style="min-height:32px;padding:0 10px">Cancel</button></div>
+      <div id="driveBox" hidden>
+        <div class="mk-dhead"><span class="mk-lbl">Customer's files</span><button class="p-btn" id="driveFold" type="button" style="min-height:32px;padding:0 10px" aria-expanded="true">Hide</button><button class="p-btn" id="driveUp" type="button" title="Put files in the folder that's open (or drop them here)">⬆ Upload</button><a class="mk-dopen" id="driveOpen" target="_blank" rel="noopener">Open in Drive ↗</a></div>
+        <div class="mk-seg mk-dsrc" id="driveSrc" hidden role="group" aria-label="Which files"></div>
+        <span class="mk-hint" id="driveNote"></span>
+        <div class="mk-dnav" id="driveNav"><span class="mk-crumb" id="driveCrumb"></span><button class="p-dwstamp" id="driveLive" type="button" title="Check Drive now" hidden></button></div>
+        <input type="file" id="driveUpFile" multiple hidden>
+        <span class="mk-hint" id="driveUpMsg"></span>
+        <div class="mk-dgrid" id="driveFiles"></div>
+      </div>
       <div class="mk-blk" id="sizeBlk" hidden>
         <div class="mk-row">
           <label class="p-field"><span class="mk-lbl">Print width (in)</span><input class="p-input" id="widthIn" type="number" inputmode="decimal" min="0.5" max="24" step="0.25" value="11"></label>
           <label class="p-field"><span class="mk-lbl">Height (in)</span><input class="p-input" id="heightIn" type="number" inputmode="decimal" min="0.25" max="30" step="0.25" value=""></label>
         </div>
         <span class="mk-hint" id="widthFrom" hidden></span>
-        <div class="mk-q" id="artQ" hidden><span id="artQTxt"></span><button class="p-btn" id="vecBtn" type="button" hidden>Flag for vectorizing ($40)</button><button class="p-btn" id="upBtn" type="button" hidden title="Enlarge to 300 dpi and redraw the edges crisp (flat spot-colour art) — still check it before seps">Try a 300 dpi upscale</button><button class="p-btn" id="trBtn" type="button" hidden title="Trace each ink into smooth vector curves, drawn at 300 dpi (flat spot-colour art) — the tightest edges">Trace to vector</button><button class="p-btn" id="svgBtn" type="button" hidden title="The traced art as an .svg for Illustrator">Download .svg</button><button class="p-btn" id="rtBtn" type="button" hidden title="Read the text in the art, fix the spelling, and type it back in the closest matching font">Retype the text…</button></div><div class="mk-q low" id="thinTxt" hidden><span id="thinMsg"></span> <button class="p-btn" id="thinShow" type="button">Show where</button> <button class="p-btn p-btn-main" id="thinFix" type="button" title="Grow only the lines (and cuts) under 1 pt, about half a point on each side, in their own ink">Thicken to 1 pt</button> <button class="p-btn" id="thinNote" type="button" title="Adds “ANY THIN LINE DETAILS &lt;1 POINT MAY NOT PRINT” to this print's notes on the proof">Add the note to the proof</button><img id="thinImg" hidden alt="Thin lines marked in red" style="display:block;max-width:100%;margin-top:6px;border-radius:4px"></div>
+                <div class="mk-q" id="artQ" hidden><span id="artQTxt"></span><button class="p-btn" id="vecBtn" type="button" hidden>Flag for vectorizing ($40)</button><button class="p-btn" id="upBtn" type="button" hidden title="Enlarge to 300 dpi and redraw the edges crisp (flat spot-colour art) — still check it before seps">Try a 300 dpi upscale</button><button class="p-btn" id="trBtn" type="button" hidden title="Trace each ink into smooth vector curves, drawn at 300 dpi (flat spot-colour art) — the tightest edges">Trace to vector</button><button class="p-btn" id="svgBtn" type="button" hidden title="The traced art as an .svg for Illustrator">Download .svg</button><button class="p-btn" id="rtBtn" type="button" hidden title="Read the text in the art, fix the spelling, and type it back in the closest matching font">Retype the text…</button></div><div class="mk-q low" id="thinTxt" hidden><span id="thinMsg"></span> <button class="p-btn" id="thinShow" type="button">Show where</button> <button class="p-btn" id="thinFix" type="button" title="Grow only the lines (and cuts) under 1 pt, about half a point on each side, in their own ink">Thicken to 1 pt</button> <button class="p-btn" id="thinNote" type="button" title="Adds “ANY THIN LINE DETAILS &lt;1 POINT MAY NOT PRINT” to this print's notes on the proof">Add the note to the proof</button><img id="thinImg" hidden alt="Thin lines marked in red" style="display:block;max-width:100%;margin-top:6px;border-radius:4px"></div>
         <div class="mk-sew" id="sewRow" hidden>
           <div class="mk-row" style="align-items:center;gap:8px"><span class="mk-lbl" style="flex:1">Sew-out</span><button class="p-btn" id="sewAdd" type="button">Add sew-out</button><button class="p-btn" id="sewX" type="button" hidden aria-label="Remove the sew-out photo">✕ Remove sew-out</button></div>
           <div id="sewEd" hidden><canvas id="sewCv" width="461" height="198" aria-label="Sew-out photo: drag to position it in the box"></canvas>
@@ -1865,134 +1959,6 @@ body:not(.is-stk) .stk-only{display:none!important}
         <div class="mk-row" style="align-items:center"><span class="mk-lbl" style="flex:1">Reference <span class="mk-hint" id="refName"></span></span><button class="p-btn" id="refX" type="button" style="min-height:32px;padding:0 10px">Remove</button></div>
         <img id="refImg" alt="The customer's layout reference" title="Tap to see it big">
       </div>
-      <div id="driveBox" hidden>
-        <div class="mk-dhead"><span class="mk-lbl">Customer's files</span><button class="p-btn" id="driveUp" type="button" title="Put files in the folder that's open (or drop them here)">⬆ Upload</button><a class="mk-dopen" id="driveOpen" target="_blank" rel="noopener">Open in Drive ↗</a></div>
-        <div class="mk-seg mk-dsrc" id="driveSrc" hidden role="group" aria-label="Which files"></div>
-        <span class="mk-hint" id="driveNote"></span>
-        <div class="mk-dnav" id="driveNav"><span class="mk-crumb" id="driveCrumb"></span><button class="p-dwstamp" id="driveLive" type="button" title="Check Drive now" hidden></button></div>
-        <input type="file" id="driveUpFile" multiple hidden>
-        <span class="mk-hint" id="driveUpMsg"></span>
-        <div class="mk-dgrid" id="driveFiles"></div>
-      </div>
-    </section>
-
-    <section class="mk-blk mk-tp" id="colBlk" data-tp="col" role="tabpanel" aria-label="Colours">
-      <p class="mk-tpempty" id="colEmpty">Open the art first: its colours show here. <button class="p-btn" type="button" data-tgo="art">Go to Art</button></p>
-      <div class="mk-scan" id="scanBox" hidden>
-        <div class="mk-row" style="align-items:center"><span class="mk-lbl" style="flex:1"><span id="scanWhat">Colours</span> <span id="scanCount"></span></span><button class="p-btn" id="scanCrop" type="button" title="Trim the print box to the art you can see (after erasing a background colour) — same scale">Crop to the art</button><button class="p-btn" id="scanCombine" type="button" style="min-height:34px;padding:0 10px">Combine similar</button><button class="p-btn" id="scanUndo" type="button" style="min-height:34px;padding:0 10px" hidden>Undo edits</button></div>
-        <div class="mk-sw" id="scanSw"></div>
-        <div class="mk-hint" id="rcGone"></div>
-        <label class="mk-check" id="sepDetRow" style="margin-top:6px"><input type="checkbox" id="sepDet"><span>INK COLORS TO BE DETERMINED BY SEPARATIONS <small class="mk-hint">— the proof says so instead of showing the chips</small></span></label>
-        <div class="mk-row" id="xInkRow" style="align-items:flex-end;gap:6px;margin-top:6px"><label class="p-field" style="flex:1"><span class="mk-lbl">Add an ink to the proof</span><input class="p-input" id="xInk" placeholder="e.g. 7501 EZP" autocomplete="off" list="myColList"><datalist id="myColList"></datalist></label><button class="p-btn" id="xInkAdd" type="button">Add</button></div>
-        <div class="mk-xinks" id="xInkList"></div>
-        <div id="scanFlags"></div>
-      </div>
-      <div class="mk-blk mk-ticks" id="tickBlk" hidden>
-        <label class="mk-check"><input type="checkbox" id="dropBg"><span>Art has a solid background — drop it</span></label>
-        <label class="mk-check" title="The open space inside the drawing's outline becomes solid white — then tap White in the colours to make it the thread or ink the customer asked for"><input type="checkbox" id="fillIn"><span>Fill the open space inside the outline</span></label>
-        <label class="mk-check" id="dropAllRow" hidden style="margin-left:30px"><input type="checkbox" id="dropAll"><span>Everywhere, not just at the edges</span></label>
-      </div>
-      <div id="layerBox" hidden>
-        <span class="mk-lbl">Photoshop layers</span>
-        <div class="mk-layers" id="layers"></div>
-      </div>
-    </section>
-
-    <section class="mk-blk mk-tp" id="placeBlk" data-tp="place" role="tabpanel" aria-label="Placement">
-      <p class="mk-tpempty" id="placeEmpty">Open the art first, then set where it goes here. <button class="p-btn" type="button" data-tgo="art">Go to Art</button></p>
-      <div class="mk-blk" id="placeWrap" hidden>
-        <div class="mk-place" id="placeRows" hidden></div>
-        <label class="mk-check" id="ownArtRow" hidden><input type="checkbox" id="ownArt"><span id="ownArtTxt">Different art on this garment</span></label>
-        <div class="mk-row" id="splitRow" hidden style="gap:8px;align-items:center;flex-wrap:wrap"><button class="p-btn" id="splitBtn" type="button">Make it its own imprint ID</button><span class="mk-hint" id="splitHint"></span></div>
-      </div>
-        <div class="mk-notes" id="noteRow"><select class="p-select" id="noteSel" aria-label="Add a note to the proof"></select><div class="mk-notechips" id="noteChips"></div>
-          <div class="mk-row" id="noteOwnRow" hidden style="align-items:center"><input class="p-input" id="noteOwn" placeholder="Your note, as it should read on the proof" style="flex:1"><button class="p-btn" id="noteOwnAdd" type="button">Add</button></div></div>
-    </section>
-
-    <section class="mk-blk mk-tp" id="gBlk" data-tp="garment" role="tabpanel" aria-label="Garment">
-      <div class="mk-row mk-person" id="personRow" hidden><label class="p-field"><span class="mk-lbl" id="personLbl">Height of the person in the photo</span><input class="p-input" id="personIn" type="text" inputmode="text" placeholder="5'10&quot;" autocomplete="off"></label><button class="p-btn" type="button" id="personCrop" hidden style="align-self:flex-end">Crop the photo</button><label class="p-field"><span class="mk-lbl">Or: chest / hem width (in)</span><input class="p-input" id="hemIn" type="text" inputmode="decimal" placeholder="e.g. 22" autocomplete="off"></label><span class="mk-hint" id="personHint">Head to shoes in the photo = this height (cut off at the knees? it goes by the head). The hem width from the garment's spec is more exact: a yellow bar shows on the hem — drag its ends to the hem's edges. Then drag the yellow line onto the collar seam — sideways too, to the middle of the garment (the print stays “true center”).</span></div>
-      <div class="mk-gsum" id="gSum" hidden><span id="gSumTxt"></span><button class="p-btn" id="gPhoto" type="button" hidden title="Add a photo of this garment (front)">Add photo</button><button class="p-btn" id="gSave" type="button" hidden title="Save your photo to Airtable so this style and colour opens with it next time">Save photo</button><button class="p-btn" id="gChange" type="button" aria-expanded="false" aria-controls="gBody">Change</button></div>
-      <div class="mk-vchk" id="vChk" hidden></div>
-      <div class="p-field" id="gColorRow" hidden><button class="mk-cwT" id="gColT" type="button" aria-expanded="false" aria-controls="gColor"><span class="mk-lbl" style="margin:0">Colour<span id="gColN"></span></span><span class="mk-cwC" aria-hidden="true"></span></button><select class="p-select" id="gColor" aria-label="Colour" hidden></select></div>
-      <div class="mk-blk" id="gNow" hidden style="gap:6px"><span class="mk-hint" id="gNowTxt"></span><button class="p-btn" id="gReset" type="button">Use the line's garment</button></div>
-      <div class="mk-blk" id="gBody">
-        <label class="p-field"><span class="mk-lbl">Garment</span><input class="p-input" id="gSearch" type="search" placeholder="Search Pine + S&S + AS Colour — e.g. 1717, bella 3001 black" autocomplete="off"></label>
-        <div class="mk-files" id="gResults" hidden></div>
-        <button class="p-btn mk-cgbtn" id="gCustomBtn" type="button" hidden aria-expanded="false" aria-controls="gCustom">Type in the garment</button>
-        <div class="mk-cg" id="gCustom" hidden>
-          <span class="mk-hint">Customer supplied, or not in the system yet: what you type here goes on the mockup and the proof (nothing changes in Airtable).</span>
-          <div class="mk-row"><label class="p-field"><span class="mk-lbl">Brand</span><input class="p-input" id="cgBrand" autocomplete="off" placeholder="Etwood"></label>
-            <label class="p-field"><span class="mk-lbl">Style</span><input class="p-input" id="cgStyle" autocomplete="off" placeholder="H100 Heavyweight Hoodie"></label></div>
-          <div class="mk-row"><label class="p-field"><span class="mk-lbl">Colour</span><input class="p-input" id="cgColor" autocomplete="off" placeholder="Brown"></label>
-            <label class="p-field mk-cghex"><span class="mk-lbl">Swatch</span><input class="p-input" id="cgHex" type="color" value="#9aa0a6"></label></div>
-          <div class="mk-row"><label class="p-field"><span class="mk-lbl">Fabric content</span><input class="p-input" id="cgFabric" autocomplete="off" placeholder="100% Cotton, 14 oz"></label>
-            <label class="p-field"><span class="mk-lbl">Kind</span><select class="p-select" id="cgType"><option value="SS Tee">Tee</option><option value="LS Tee">Long sleeve tee</option><option value="Tank Top">Tank</option><option value="Youth Tee">Youth tee</option><option value="Sweatshirt">Crew sweatshirt</option><option value="Pullover Hoodie">Hoodie</option><option value="Zip Up Hoodie">Zip hoodie</option><option value="Youth Fleece">Youth fleece</option><option value="Onesie">Onesie</option><option value="Other">Other</option></select></label></div>
-          <div class="mk-row" style="gap:8px"><button class="p-btn p-btn-dark" id="cgUse" type="button">Use this garment</button><button class="p-btn" id="cgClear" type="button" hidden>Back to the order's garment</button></div>
-        </div>
-        <div class="mk-row mk-sizes">
-          <label class="p-field"><span class="mk-lbl">Show at size</span><select class="p-select" id="size"><option>XS</option><option>S</option><option selected>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></label>
-          <label class="p-field" title="Measured like a spec sheet: from the high point of the shoulder (where the shoulder seam meets the collar) straight down to the bottom hem — not the sleeve, not the hood"><span class="mk-lbl">Body length (in) · shoulder to hem</span><input class="p-input" id="bodyW" type="number" inputmode="decimal" min="8" max="45" step="0.25"></label>
-          <label class="p-field" id="hemWrap" title="The garment's width from its spec sheet — chest or hem, laid flat, side seam to side seam (not the sleeves); a chest given all the way round, like 52½, is halved. Set it and each photo is sized from it: a yellow bar sits across the body — drag its ends to the side seams. Vendor flat-lay photos often fold the sides under, so the body looks narrower than it is: then Body length (shoulder to hem) is the better number"><span class="mk-lbl">Width (in) · chest or hem, optional</span><input class="p-input" id="hemW" type="text" inputmode="decimal" placeholder="e.g. 26 · empty = off" autocomplete="off"></label>
-          <div class="mk-row" id="dimRow" hidden style="flex-basis:100%;align-items:center;gap:8px"><button class="p-btn" type="button" id="dimSave">Save sizes to Airtable</button><span class="mk-hint" id="dimHint"></span></div>
-          <div class="mk-chk" id="widenWrap" hidden title="For vendor flat lays with the sides folded under: the body (between the yellow bar's ends) is stretched sideways toward this width at the garment's true length — 100% is the spec, 0% the photo as it is"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="widenChk"> Widen the photo</label><input type="range" id="widenAmt" min="0" max="100" step="5" value="100" style="flex:1;min-width:120px" aria-label="How far to widen (100% = the spec width)"><b id="widenV" style="min-width:44px;text-align:right">100%</b></div>
-        </div>
-        <div class="mk-row" id="accRow" hidden>
-          <label class="p-field"><span class="mk-lbl">Width across (in)</span><input class="p-input" id="accW" type="number" inputmode="decimal" min="2" max="60" step="0.25"></label>
-        </div>
-        <div class="mk-row" id="kindRow" hidden>
-          <label class="p-field"><span class="mk-lbl">Kind</span><select class="p-input" id="gKind"><option value="">Shirt / top</option><option value="Cap">Hat / cap</option><option value="Beanie">Beanie</option><option value="Tote Bag">Tote / bag</option><option value="Other">Other flat item</option></select></label>
-        </div>
-        <div class="mk-row" id="bandRow" hidden>
-          <label class="p-field"><span class="mk-lbl">Bandana size (in)</span><input class="p-input" id="bandSize" type="number" inputmode="decimal" min="10" max="40" step="0.5" value="22"></label>
-          <button class="p-btn" type="button" id="bandCustom" style="align-self:flex-end">Custom colour</button>
-          <label class="p-field" id="bandColorF" hidden><span class="mk-lbl">Custom colour</span><input class="p-input" id="bandColor" type="color" value="#cc2233" style="padding:4px;height:44px"></label>
-        </div>
-        <span class="mk-hint" id="garmentHint">Pick a job to load the garment photo.</span>
-        <div class="mk-own" id="ownRow" hidden>
-          <span class="mk-lbl">Your photo</span>
-          <div class="mk-row"><button class="p-btn" type="button" id="ownF" data-side="front">Front photo</button><button class="p-btn" type="button" id="ownB" data-side="back">Back photo</button><button class="p-btn" type="button" id="ownX" hidden>Use the vendor photo</button><button class="p-btn" type="button" id="ownSave" hidden>Save to Airtable for next time</button></div>
-          <span class="mk-hint" id="ownHint">Flat, straight-on photo — or the vendor's PDF line sheet: pick the colour and the front / back.</span>
-          <div class="mk-row" id="pcropRow" hidden style="align-items:center;gap:8px;margin-top:6px"><span class="mk-lbl" style="margin:0">Crop the photo</span><button class="p-btn" type="button" id="pcropF">Front</button><button class="p-btn" type="button" id="pcropB">Back</button></div>
-          <input type="file" id="ownFile" accept="image/*,application/pdf,.pdf" hidden>
-        </div>
-      </div>
-      <div class="mk-rc" id="cwPick" hidden>
-        <button class="mk-cwT" id="cwT" type="button" aria-expanded="false" aria-controls="cwBody"><span class="mk-lbl" style="margin:0">Also show on <span class="p-count" id="cwN"></span></span><span class="mk-cwC" aria-hidden="true"></span></button>
-        <div id="cwBody" hidden>   <!-- v102: folds away (Stephen: "can we also make the garment colors collapsible") -->
-        <span class="mk-hint" id="cwHint">Other colours to show.</span>
-        <input class="p-input" id="cwFilter" placeholder="Filter colours" autocomplete="off">
-        <div class="opts" id="cwOpts"></div>
-        <button class="p-btn" id="cwLoad" type="button" style="white-space:normal;height:auto;min-height:44px;padding:8px 14px;text-align:center" hidden>Show this style's colours</button>
-        </div>
-      </div>
-      <div class="mk-blk mk-look" id="lookBlk"><span class="mk-lbl mk-sub">How the print looks on it</span>
-      <div class="mk-row" id="opRow" hidden style="align-items:center;gap:10px">
-        <span class="mk-lbl">Ink opacity</span><input type="range" id="opR" min="20" max="100" step="5" value="100" style="flex:1" aria-label="Ink opacity"><b id="opV" style="min-width:44px;text-align:right">100%</b>
-      </div>
-      <!-- v141 (Stephen: "did we lose the fabric adjustments for how a print looks like on a shirt..>I can't seem to find it"): moved
-           here from the garment's Change panel, where it had been folded away since v53 -->
-      <div class="mk-row mk-shade"><span class="mk-lbl" title="How much of the garment's folds, light and texture show through the print on the mockup">Fabric look on the print</span><div class="mk-seg" id="shadeSeg" role="group" aria-label="Fabric look"><button type="button" data-s="off">Off</button><button type="button" data-s="light">Light</button><button type="button" data-s="medium" class="is-on">Medium</button><button type="button" data-s="strong">Strong</button></div></div>
-      <div id="baseRow" hidden>
-        <span class="mk-lbl">Underbase</span>
-        <div class="mk-seg" id="baseSeg" role="group" aria-label="Underbase"><button type="button" data-b="auto">Auto</button><button type="button" data-b="off">Off</button><button type="button" data-b="white">White</button><button type="button" data-b="cream">Cream</button><button type="button" data-b="discharge">Discharge</button></div>
-        <div class="mk-row" style="align-items:center;gap:8px;margin-top:6px"><span class="mk-hint" id="baseHint" style="flex:1"></span><button class="p-btn" id="basePeek" type="button" style="min-height:36px;padding:0 10px" aria-pressed="false">Show the base</button></div>
-      </div>
-      </div>
-    </section>
-
-    <section class="mk-blk mk-tp" id="noteBlk" data-tp="notes" role="tabpanel" aria-label="Notes">
-      <p class="mk-tpempty" id="notesEmpty">Pick an order: its notes and comments show here.</p>
-      <div class="mk-brief" id="brief" hidden></div>
-      <details class="mk-cmts" id="cmtBox" hidden>
-        <summary><span class="mk-lbl">Comments</span> <span class="p-count" id="cmtN"></span><span class="mk-new" id="cmtNew" hidden>new</span></summary>
-        <div class="mk-row" style="align-items:center" id="cmtMoreRow"><span style="flex:1"></span><button class="p-btn" id="cmtMore" type="button" hidden style="min-height:30px;padding:0 10px">Show all</button></div>
-        <div id="cmtList"></div>
-        <textarea class="p-input" id="cmtText" rows="2" placeholder="Comment…"></textarea>
-        <div class="mk-ment" id="cmtMent"></div>
-        <div class="mk-row" style="align-items:center;gap:8px"><label class="mk-hint" style="flex:1">as <select id="cmtMe" class="p-select" style="min-height:30px;width:auto;padding:0 6px"></select> · shows in Airtable too</label><button class="p-btn p-btn-dark" id="cmtPost" type="button" disabled style="min-height:34px">Post</button></div>
-      </details>
-    </section>
-
       <!-- v149: a vendor's PDF of garment photos (a line sheet: one colour a page, front and back) -->
       <dialog id="gpDlg" class="mk-dlg mk-gp" aria-labelledby="gpT"><div class="mk-row" style="align-items:center;gap:8px;margin-bottom:8px"><b id="gpT" style="flex:1">Pick the garment photos</b><button class="p-modal-x" id="gpX" type="button" aria-label="Close">✕</button></div>
         <p class="mk-hint" id="gpHint" style="margin:0 0 8px"></p><div id="gpList" class="mk-gplist"></div></dialog>
@@ -2035,6 +2001,110 @@ body:not(.is-stk) .stk-only{display:none!important}
         <div class="mk-row" style="gap:8px;margin-top:12px;justify-content:flex-end"><button class="p-btn" id="rtCancel" type="button">Cancel</button><button class="p-btn p-btn-main" id="rtGo" type="button" disabled>Retype ticked lines</button></div></dialog>
       <dialog id="splitDlg" class="mk-dlg" aria-labelledby="splitT"><b id="splitT" class="mk-lbl" style="display:block;font-size:15px;margin-bottom:8px">New imprint ID</b><p id="splitTxt" style="margin:0 0 12px;max-width:520px;line-height:1.45"></p><div class="mk-row" style="gap:8px;justify-content:flex-end"><button class="p-btn" id="splitX" type="button">Cancel</button><button class="p-btn p-btn-main" id="splitGo" type="button">Create imprint</button></div></dialog>
       <dialog id="refDlg" class="mk-dlg"><img id="refBig" alt="Reference"><form method="dialog"><button class="p-btn" type="submit">Close</button></form></dialog>
+    </section>
+
+    <section class="mk-blk mk-tp" id="colBlk" data-tp="col" role="tabpanel" aria-labelledby="tabCol">
+      <p class="mk-tpempty" id="colEmpty">Open the art first: its colours show here. <button class="p-btn" type="button" data-tgo="art">Go to Art</button></p>
+        <div class="mk-scan" id="scanBox" hidden>
+        <div class="mk-row" style="align-items:center"><span class="mk-lbl" style="flex:1"><span id="scanWhat">Colours</span> <span id="scanCount"></span></span><span class="mk-acts"><button class="p-btn" id="scanCrop" type="button" title="Trim the print box to the art you can see (after erasing a background colour) — same scale">Crop to art</button><button class="p-btn" id="scanCombine" type="button" title="Merge colours that are nearly the same">Combine</button><button class="p-btn" id="scanUndo" type="button" hidden title="Undo the colour changes: back to the colours the scan found">Undo</button></span></div>
+        <div class="mk-sw" id="scanSw"></div>
+        <div class="mk-hint" id="rcGone"></div>
+        <label class="mk-check" id="sepDetRow" style="margin-top:6px"><input type="checkbox" id="sepDet"><span title="The proof says INK COLORS TO BE DETERMINED BY SEPARATIONS instead of showing the colour chips">Colours to be set by separations</span></label>
+        <div class="mk-row" id="xInkRow" style="align-items:flex-end;gap:6px;margin-top:6px"><label class="p-field" style="flex:1"><span class="mk-lbl">Add an ink to the proof</span><input class="p-input" id="xInk" placeholder="e.g. 7501 EZP" autocomplete="off" list="myColList"><datalist id="myColList"></datalist></label><button class="p-btn" id="xInkAdd" type="button">Add</button></div>
+        <div class="mk-xinks" id="xInkList"></div>
+        <div id="scanFlags"></div>
+      </div>
+        <div id="layerBox" hidden>
+        <span class="mk-lbl">Photoshop layers</span>
+        <div class="mk-layers" id="layers"></div>
+      </div>
+      <div class="mk-blk" id="colWrap" hidden>
+        <label class="mk-check"><input type="checkbox" id="dropBg"><span>Art has a solid background — drop it</span></label>
+        <label class="mk-check" title="The open space inside the drawing's outline becomes solid white — then tap White in the colours to make it the thread or ink the customer asked for"><input type="checkbox" id="fillIn"><span>Fill the open space inside the outline</span></label>
+        <label class="mk-check" id="dropAllRow" hidden style="margin-left:30px"><input type="checkbox" id="dropAll"><span>Everywhere, not just at the edges</span></label>
+        <details class="mk-more" id="moreOpts"><summary><span class="mk-lbl">How it looks on the mockup</span> <span class="mk-hint" id="moreSum"></span></summary>
+        <div class="mk-row" id="opRow" hidden style="align-items:center;gap:10px">
+        <span class="mk-lbl">Ink opacity</span><input type="range" id="opR" min="20" max="100" step="5" value="100" style="flex:1" aria-label="Ink opacity"><b id="opV" style="min-width:44px;text-align:right">100%</b>
+      </div>
+        <!-- v141 (Stephen: "did we lose the fabric adjustments for how a print looks like on a shirt..>I can't seem to find it"): moved
+           here from the garment's Change panel, where it had been folded away since v53 -->
+      <div class="mk-row mk-shade"><span class="mk-lbl" title="How much of the garment's folds, light and texture show through the print on the mockup">Fabric look on the print</span><div class="mk-seg" id="shadeSeg" role="group" aria-label="Fabric look"><button type="button" data-s="off">Off</button><button type="button" data-s="light">Light</button><button type="button" data-s="medium" class="is-on">Medium</button><button type="button" data-s="strong">Strong</button></div></div>
+        <div id="baseRow" hidden>
+        <span class="mk-lbl">Underbase</span>
+        <div class="mk-seg" id="baseSeg" role="group" aria-label="Underbase"><button type="button" data-b="auto">Auto</button><button type="button" data-b="off">Off</button><button type="button" data-b="white">White</button><button type="button" data-b="cream">Cream</button><button type="button" data-b="discharge">Discharge</button></div>
+        <div class="mk-row" style="align-items:center;gap:8px;margin-top:6px"><span class="mk-hint" id="baseHint" style="flex:1"></span><button class="p-btn" id="basePeek" type="button" style="min-height:36px;padding:0 10px" aria-pressed="false">Show the base</button></div>
+      </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="mk-blk mk-tp" id="placeBlk" data-tp="place" role="tabpanel" aria-labelledby="tabPlace">
+      <p class="mk-tpempty" id="placeEmpty">Open the art first, then set where it goes here. <button class="p-btn" type="button" data-tgo="art">Go to Art</button></p>
+      <div class="mk-blk" id="placeWrap" hidden>
+        <div class="mk-place" id="placeRows" hidden></div>
+        <div class="mk-q" id="dsgHint" hidden></div>
+        <label class="mk-check" id="ownArtRow" hidden><input type="checkbox" id="ownArt"><span id="ownArtTxt">Different art on this garment</span></label>
+        <div class="mk-row" id="splitRow" hidden style="gap:8px;align-items:center;flex-wrap:wrap"><button class="p-btn" id="splitBtn" type="button">Make it its own imprint ID</button><span class="mk-hint" id="splitHint"></span></div>
+      </div>
+    </section>
+
+    <section class="mk-blk mk-tp" id="gBlk" data-tp="garment" role="tabpanel" aria-labelledby="tabGarment">
+      <div class="mk-row mk-person" id="personRow" hidden><label class="p-field"><span class="mk-lbl" id="personLbl">Height of the person in the photo</span><input class="p-input" id="personIn" type="text" inputmode="text" placeholder="5'10&quot;" autocomplete="off"></label><button class="p-btn" type="button" id="personCrop" hidden style="align-self:flex-end">Crop the photo</button><label class="p-field"><span class="mk-lbl">Or: chest / hem width (in)</span><input class="p-input" id="hemIn" type="text" inputmode="decimal" placeholder="e.g. 22" autocomplete="off"></label><span class="mk-hint" id="personHint">Head to shoes in the photo = this height (cut off at the knees? it goes by the head). The hem width from the garment's spec is more exact: a yellow bar shows on the hem — drag its ends to the hem's edges. Then drag the yellow line onto the collar seam — sideways too, to the middle of the garment (the print stays “true center”).</span></div>
+      <div class="mk-gsum" id="gSum" hidden><span id="gSumTxt"></span><button class="p-btn" id="gPhoto" type="button" hidden title="Add a photo of this garment (front)">Add photo</button><button class="p-btn" id="gSave" type="button" hidden title="Save your photo to Airtable so this style and colour opens with it next time">Save photo</button><button class="p-btn" id="gChange" type="button" aria-expanded="false" aria-controls="gBody">Change</button></div>
+      <div class="mk-vchk" id="vChk" hidden></div>
+      <div class="p-field" id="gColorRow" hidden><button class="mk-cwT" id="gColT" type="button" aria-expanded="false" aria-controls="gColor"><span class="mk-lbl" style="margin:0">Colour<span id="gColN"></span></span><span class="mk-cwC" aria-hidden="true"></span></button><select class="p-select" id="gColor" aria-label="Colour" hidden></select></div>
+      <div class="mk-blk" id="gNow" hidden style="gap:6px"><span class="mk-hint" id="gNowTxt"></span><button class="p-btn" id="gReset" type="button">Use the line's garment</button></div>
+      <div class="mk-blk" id="gBody">
+        <label class="p-field"><span class="mk-lbl">Garment</span><input class="p-input" id="gSearch" type="search" placeholder="Search Pine + S&S + AS Colour — e.g. 1717, bella 3001 black" autocomplete="off"></label>
+        <div class="mk-files" id="gResults" hidden></div>
+        <button class="p-btn mk-cgbtn" id="gCustomBtn" type="button" hidden aria-expanded="false" aria-controls="gCustom">Type in the garment</button>
+        <div class="mk-cg" id="gCustom" hidden>
+          <span class="mk-hint">Customer supplied, or not in the system yet: what you type here goes on the mockup and the proof (nothing changes in Airtable).</span>
+          <div class="mk-row"><label class="p-field"><span class="mk-lbl">Brand</span><input class="p-input" id="cgBrand" autocomplete="off" placeholder="Etwood"></label>
+            <label class="p-field"><span class="mk-lbl">Style</span><input class="p-input" id="cgStyle" autocomplete="off" placeholder="H100 Heavyweight Hoodie"></label></div>
+          <div class="mk-row"><label class="p-field"><span class="mk-lbl">Colour</span><input class="p-input" id="cgColor" autocomplete="off" placeholder="Brown"></label>
+            <label class="p-field mk-cghex"><span class="mk-lbl">Swatch</span><input class="p-input" id="cgHex" type="color" value="#9aa0a6"></label></div>
+          <div class="mk-row"><label class="p-field"><span class="mk-lbl">Fabric content</span><input class="p-input" id="cgFabric" autocomplete="off" placeholder="100% Cotton, 14 oz"></label>
+            <label class="p-field"><span class="mk-lbl">Kind</span><select class="p-select" id="cgType"><option value="SS Tee">Tee</option><option value="LS Tee">Long sleeve tee</option><option value="Tank Top">Tank</option><option value="Youth Tee">Youth tee</option><option value="Sweatshirt">Crew sweatshirt</option><option value="Pullover Hoodie">Hoodie</option><option value="Zip Up Hoodie">Zip hoodie</option><option value="Youth Fleece">Youth fleece</option><option value="Onesie">Onesie</option><option value="Other">Other</option></select></label></div>
+          <div class="mk-row" style="gap:8px"><button class="p-btn p-btn-dark" id="cgUse" type="button">Use this garment</button><button class="p-btn" id="cgClear" type="button" hidden>Back to the order's garment</button></div>
+        </div>
+        <div class="mk-row mk-sizes">
+          <label class="p-field"><span class="mk-lbl">Show at size</span><select class="p-select" id="size"><option>XS</option><option>S</option><option selected>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></label>
+          <label class="p-field" title="Measured like a spec sheet: from the high point of the shoulder (where the shoulder seam meets the collar) straight down to the bottom hem — not the sleeve, not the hood"><span class="mk-lbl">Body length (in) · shoulder to hem</span><input class="p-input" id="bodyW" type="number" inputmode="decimal" min="8" max="45" step="0.25"></label>
+          <label class="p-field" id="hemWrap" title="The garment's width from its spec sheet — chest or hem, laid flat, side seam to side seam (not the sleeves); a chest given all the way round, like 52½, is halved. Set it and each photo is sized from it: a yellow bar sits across the body — drag its ends to the side seams. Vendor flat-lay photos often fold the sides under, so the body looks narrower than it is: then Body length (shoulder to hem) is the better number"><span class="mk-lbl">Width (in) · chest or hem, optional</span><input class="p-input" id="hemW" type="text" inputmode="decimal" placeholder="e.g. 26 · empty = off" autocomplete="off"></label>
+          <div class="mk-row" id="dimRow" hidden style="flex-basis:100%;align-items:center;gap:8px"><button class="p-btn" type="button" id="dimSave">Save sizes to Airtable</button><span class="mk-hint" id="dimHint"></span></div>
+          <div class="mk-chk" id="widenWrap" hidden title="For vendor flat lays with the sides folded under: the body (between the yellow bar's ends) is stretched sideways toward this width at the garment's true length — 100% is the spec, 0% the photo as it is"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="widenChk"> Widen the photo</label><input type="range" id="widenAmt" min="0" max="100" step="5" value="100" style="flex:1;min-width:120px" aria-label="How far to widen (100% = the spec width)"><b id="widenV" style="min-width:44px;text-align:right">100%</b></div>
+        </div>
+        <div class="mk-row" id="accRow" hidden>
+          <label class="p-field"><span class="mk-lbl">Width across (in)</span><input class="p-input" id="accW" type="number" inputmode="decimal" min="2" max="60" step="0.25"></label>
+        </div>
+        <div class="mk-row" id="kindRow" hidden>
+          <label class="p-field"><span class="mk-lbl">Kind</span><select class="p-input" id="gKind"><option value="">Shirt / top</option><option value="Cap">Hat / cap</option><option value="Beanie">Beanie</option><option value="Tote Bag">Tote / bag</option><option value="Pants">Pants / shorts</option><option value="Other">Other flat item</option></select></label>
+        </div>
+        <div class="mk-row" id="bandRow" hidden>
+          <label class="p-field"><span class="mk-lbl">Bandana size (in)</span><input class="p-input" id="bandSize" type="number" inputmode="decimal" min="10" max="40" step="0.5" value="22"></label>
+          <button class="p-btn" type="button" id="bandCustom" style="align-self:flex-end">Custom colour</button>
+          <label class="p-field" id="bandColorF" hidden><span class="mk-lbl">Custom colour</span><input class="p-input" id="bandColor" type="color" value="#cc2233" style="padding:4px;height:44px"></label>
+        </div>
+        <span class="mk-hint" id="garmentHint">Pick a job to load the garment photo.</span>
+        <div class="mk-own" id="ownRow" hidden>
+          <span class="mk-lbl">Your photo</span>
+          <div class="mk-row"><button class="p-btn" type="button" id="ownF" data-side="front">Front photo</button><button class="p-btn" type="button" id="ownB" data-side="back">Back photo</button><button class="p-btn" type="button" id="ownX" hidden>Use the vendor photo</button><button class="p-btn" type="button" id="ownSave" hidden>Save to Airtable for next time</button></div>
+          <span class="mk-hint" id="ownHint">Flat, straight-on photo — or the vendor's PDF line sheet: pick the colour and the front / back.</span>
+          <div class="mk-row" id="pcropRow" hidden style="align-items:center;gap:8px;margin-top:6px"><span class="mk-lbl" style="margin:0">Crop the photo</span><button class="p-btn" type="button" id="pcropF">Front</button><button class="p-btn" type="button" id="pcropB">Back</button></div>
+          <input type="file" id="ownFile" accept="image/*,application/pdf,.pdf" hidden>
+        </div>
+      </div>
+      <div class="mk-rc" id="cwPick" hidden>
+        <button class="mk-cwT" id="cwT" type="button" aria-expanded="false" aria-controls="cwBody"><span class="mk-lbl" style="margin:0">Also show on <span class="p-count" id="cwN"></span></span><span class="mk-cwC" aria-hidden="true"></span></button>
+        <div id="cwBody" hidden>   <!-- v102: folds away (Stephen: "can we also make the garment colors collapsible") -->
+        <span class="mk-hint" id="cwHint">Other colours to show.</span>
+        <input class="p-input" id="cwFilter" placeholder="Filter colours" autocomplete="off">
+        <div class="opts" id="cwOpts"></div>
+        <button class="p-btn" id="cwLoad" type="button" style="white-space:normal;height:auto;min-height:44px;padding:8px 14px;text-align:center" hidden>Show this style's colours</button>
+        </div>
+      </div>
+    </section>
 
     <!-- v53: "Change this ink" — a popover by the swatch tapped (a bottom sheet on a phone) -->
     <div class="mk-rc mk-pop" id="rcBox" hidden role="dialog" aria-labelledby="rcTitle">
@@ -2047,8 +2117,8 @@ body:not(.is-stk) .stk-only{display:none!important}
       <input class="p-input" id="rcSearch" placeholder="Pantone or ink, e.g. 286, Black, Cool Gray 7, #1a2b3c" autocomplete="off">
       <div class="opts" id="rcOpts"></div>
       <div class="mk-rccol" id="rcCol" hidden><span id="rcColTxt"></span><input type="color" id="rcColIn" aria-label="This ink's colour"><button class="p-btn" type="button" id="rcColSave">Save colour</button></div>
+      <details class="mk-rcmore" id="rcMore"><summary>More: effect, merge, remove, erase, reset</summary>
       <div class="mk-row mk-shade" id="rcFxRow" hidden><span class="mk-lbl" title="How this ink looks on the mockup">Effect</span><div class="mk-seg" id="rcFx" role="group" aria-label="Effect"><button type="button" data-f="none">None</button><button type="button" data-f="metallic">Metallic</button><button type="button" data-f="glitter">Glitter</button><button type="button" data-f="puff">Puff</button></div><span class="mk-hint" id="rcFxHint"></span></div>
-      <details class="mk-rcmore" id="rcMore"><summary>More: merge, remove, erase, reset</summary>
       <label class="mk-rcmerge"><span class="mk-lbl">Merge into</span><select class="p-select" id="rcMerge"></select></label>
       <div class="mk-rcbtns"><button class="p-btn" id="rcRemove" type="button" title="Leave the art as it is; don't count it as an ink">Remove from the list</button><button class="p-btn" id="rcErase" type="button" title="Take this colour out of the art">Erase from the art</button><button class="p-btn" id="rcReset" type="button">Back to the original</button><button class="p-btn" id="rcResetAll" type="button">Reset all inks</button></div></details>
     </div>
@@ -2519,7 +2589,7 @@ async function checkLines(){ const o=J.order; if(!o||o.id==='quick'||!TOKEN||J.b
 let CHK_RUN=false;
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&Date.now()-LINES_AT>60000) checkLines(); });
 setInterval(()=>{ if(!document.hidden&&Date.now()-LINES_AT>85000) checkLines(); },30000);   // v93: and every 1½ minutes while the page is open
-async function pickOrder(id,wantLine){
+async function pickOrder(id,wantLine){ ORD_OPEN=false;   // v243
   stkOff(); STK.lines=[];   // v221
   J.order=J.orders.find(o=>o.id===id)||null; J.line=null; J.lines=[]; J.quick=false; J.batch=null; S.cwPage=null;
   $('lineRow').hidden=!J.order;
@@ -2805,13 +2875,13 @@ function renderImps(){
   const box=$('imps'); box.innerHTML='';
   J.imps.forEach(im=>{ const b=document.createElement('button'); b.type='button'; b.className='p-tab'+(im.id===J.cur?' is-on':'');
     const sub=tabSub(im); b.innerHTML=`<span class="t1">${esc(im.code)} <span class="mk-hint" style="color:inherit">${esc(im.code===im.locName?'':im.locName)}</span>${ART[im.id]?' ✓':''}${qTag(im)}</span>${sub?`<span class="t2">${esc(sub)}</span>`:''}`; if(sub) b.title=im.code+' · '+sub;
-    b.onclick=()=>{ J.cur=im.id; renderImps(); syncArt(); render(); }; box.appendChild(b); });
+    b.onclick=()=>{ J.cur=im.id; renderImps(); syncArt(); render(); impToTop(); }; box.appendChild(b); });
   const im=curImp(); if(J.imps.some(i=>ART[i.id])) $('pickup').hidden=true;   // v55: art opened → the offer goes
   syncSepPick();   // v99
   $('artFor').textContent=im?im.code:'';
   const me=methOf(im); $('methSeg').hidden=!im; $('methSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('is-on',b.dataset.m===me));
   syncBase(); syncOpac(); syncEmb();
-  $('methHint').hidden=!im||!(im.method0||im.stitches||me==='transfer'); if(im) $('methHint').textContent=((im.method0&&!im.meth?'From the order. ':'')+(im.stitches?`${im.stitches.toLocaleString()} stitches.`:'')+(me==='transfer'?' Full colour (Supacolor): the proof shows the Supacolour logo under Colors, not ink colours. White inside the design stays (tick \'Everywhere\' to drop it too). Tap a colour below to recolour it.':'')).trim();
+  $('methHint').hidden=!im||!(im.method0||im.stitches||me==='transfer'); if(im) $('methHint').title=$('methHint').textContent=((im.method0&&!im.meth?'From the order. ':'')+(im.stitches?`${im.stitches.toLocaleString()} stitches.`:'')+(me==='transfer'?' Full colour (Supacolor): the proof shows the Supacolour logo under Colors, not ink colours. White inside the design stays (tick \'Everywhere\' to drop it too). Tap a colour below to recolour it.':'')).trim();
   $('jobHint').innerHTML=J.line?`${esc(J.line.g.name)}${im&&im.pantone?` · Pantones: <b>${esc(im.pantone)}</b>`:''}${im&&im.notes?` · ${esc(im.notes)}`:''}`:$('jobHint').innerHTML;
   syncArt();
 }
@@ -2931,6 +3001,18 @@ async function readArtFile(blob,name,im,opt){
       ppi=sc*72;   // the artboard is in points, so the art comes in at its real size
       var vecInfo={bytes:vecBytes,page:pick.page,crop:cr||null,sc,view:page.view.slice(),rotate:page.rotate||0,plain:!pick.occ&&!pick.knock&&!pick.noMarks};
       var pdfPageIn=canvas.width/ppi;
+    } else if(ext==='svg'){   // v243 (Stephen: "can we make it that we can also place .svg files"): drawn sharp at up to 4000 px
+      const doc=new DOMParser().parseFromString(await blob.text(),'image/svg+xml'), el=doc.documentElement;
+      if(!el||el.nodeName.toLowerCase()!=='svg'||doc.getElementsByTagName('parsererror').length) throw new Error('Could not read this SVG.');
+      const vb=(el.getAttribute('viewBox')||'').trim().split(/[\s,]+/).map(Number), U={in:1,pt:1/72,pc:1/6,mm:1/25.4,cm:1/2.54,px:1/96};
+      const dim=a=>{ const m=String(el.getAttribute(a)||'').match(/^([\d.]+)\s*(in|pt|pc|mm|cm|px)?$/i); return m?{v:+m[1],u:(m[2]||'').toLowerCase()}:null; };
+      const dw=dim('width'), dh=dim('height'), w0=vb.length===4&&vb[2]>0?vb[2]:(dw&&dw.v)||1000, h0=vb.length===4&&vb[3]>0?vb[3]:(dh&&dh.v)||1000;
+      // its size: from width in real units, else Illustrator's 72 units an inch
+      const inW=dw&&dw.u&&dw.u!=='px'?dw.v*U[dw.u]:w0/72;
+      const k=4000/Math.max(w0,h0); el.setAttribute('width',Math.round(w0*k)); el.setAttribute('height',Math.round(h0*k)); if(!(vb.length===4)) el.setAttribute('viewBox',`0 0 ${w0} ${h0}`);
+      const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(el)],{type:'image/svg+xml'})), img=new Image(); img.src=url; await img.decode();
+      canvas=document.createElement('canvas'); canvas.width=Math.round(w0*k); canvas.height=Math.round(h0*k); canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height); URL.revokeObjectURL(url);
+      solid=!hasTransparency(canvas); ppi=canvas.width/inW;
     } else {
       const url=URL.createObjectURL(blob), img=new Image(); img.src=url; await img.decode();
       canvas=document.createElement('canvas'); canvas.width=img.naturalWidth; canvas.height=img.naturalHeight; canvas.getContext('2d').drawImage(img,0,0);
@@ -2953,7 +3035,7 @@ async function readArtFile(blob,name,im,opt){
     if(typeof techSpec!=='undefined'&&techSpec&&techSpec.w>0.3&&techSpec.w<=24){ const r1=a.canvas.width/a.canvas.height, r2=techSpec.w/techSpec.h;
       if(Math.abs(r1/r2-1)<0.18){ a.widthIn=Math.round(techSpec.w*4)/4||techSpec.w; a.widthFrom=`From the tech pack: ${esc(techSpec.text)}.`; } }
     if(a.widthIn) a.sized=true;
-    if(!a.widthIn){ a.widthIn=(accOf(J.line)||{}).pw||(isTag(im)?3:LOC_WIDTH[im.loc])||11; a.widthFrom=`<b>The file doesn’t say its size</b> — this is the usual ${esc(acc0?acc0.name:(im.locName||'print').toLowerCase())} width. Type the real width.`;
+    if(!a.widthIn){ a.widthIn=(accOf(J.line)||{}).pw||(isTag(im)?3:LOC_WIDTH[im.loc])||11; a.widthFrom=`<b>No size in the file</b> — the usual ${esc(acc0?acc0.name:(im.locName||'print').toLowerCase())} width. Type the real one.`;
       if(ppi>=72) a.widthFrom=`<b>The file’s size (${fmtIn(a.canvas.width/ppi)}″ at ${Math.round(ppi)} ppi) doesn’t fit a ${esc(acc0?acc0.name:(im.locName||'print').toLowerCase())}</b>, so this is the usual width. Type the real width.`; }
     return a;
   }
@@ -3741,7 +3823,41 @@ function inkScore(name,q){ const nw=inkWords(name), qw=inkWords(q); if(!qw.lengt
 function hexIn(q){ let t=String(q||'').trim().replace(/^#/,'').replace(/\s+/g,''); if(!t||!/^[0-9a-fo]+$/i.test(t)||!/\d/.test(t)) return null;
   t=t.replace(/o/gi,'0').toLowerCase(); if(t.length===3&&/^\s*#/.test(q)) t=t.split('').map(c=>c+c).join(''); return t.length===6?'#'+t:null; }   // the short form only with a # (186 is a Pantone)
 const hexShort=q=>{ const t=String(q||'').trim().replace(/^#/,'').replace(/\s+/g,''); return /^[0-9a-fo]{4,5}$/i.test(t)&&/\d/.test(t)?t:null; };
-function inkSearch(q){ const T=inkTable(); q=q.trim(); const HX=hexIn(q); if(HX){ const h=HX; return MYCOL.filter(c=>c.hex===h).map(c=>({k:c.name+' '+c.hex,hex:c.hex,saved:1})).concat([{k:h,hex:h}]); }
+// v248: colour words find inks by their colour (CIE Lab distance to a few reference colours), not only by name
+const CWORD={red:['#D22630','#C8102E','#E4002B','#A6192E','#BA0C2F'],pink:['#F5B6CD','#E10098','#F395C7','#EF95CF','#F4A6D7'],
+  orange:['#FF6A13','#FE5000','#E87722','#FF8200'],yellow:['#FFD100','#FBE122','#F6EB61','#FFCD00'],gold:['#FFB81C','#B9975B','#F1BE48','#C69214'],
+  green:['#009A44','#00843D','#78BE20','#2E5E2B','#43B02A'],lime:['#97D700','#C4D600','#A4D65E'],olive:['#5E6738','#8A8D4A','#594A25'],
+  teal:['#008C95','#00797D','#00A3AD'],turquoise:['#00B2A9','#40C1AC','#2DCCD3'],mint:['#A0DAB3','#9BE3BF','#88DBDF'],
+  blue:['#0057B8','#0085CA','#003DA5','#6CACE4','#0072CE'],navy:['#1B365D','#13294B','#0C2340','#002855'],royal:['#003DA5','#0033A0','#1E22AA'],
+  sky:['#9BCBEB','#71C5E8','#8DC8E8'],purple:['#5F259F','#753BBD','#8031A7','#330072'],lavender:['#C5B4E3','#B4B5DF','#D7C6E6'],
+  maroon:['#6F263D','#76232F','#5D2A2C'],burgundy:['#6F263D','#651D32','#7A2637'],brown:['#6E4C1E','#4E3629','#7B4931','#5C462B'],
+  tan:['#CDA077','#C4A484','#B58150'],beige:['#D7C4A3','#E0D3B8','#D3BC8D'],cream:['#EFE2CD','#F1E6B2','#F3E9C6'],khaki:['#B5A47A','#A39461','#C2B280'],
+  magenta:['#CE0F69','#E10098','#C6007E'],coral:['#FF8674','#FA7268','#FF6D6A'],peach:['#FFBE9F','#F8B59D','#FCC89B'],forest:['#154734','#2C5234','#205C40'],
+  sage:['#9CAF88','#A7B39E','#B5BD89'],mustard:['#C99700','#D29F13','#B58500'],rust:['#B7472A','#A4493D','#9D4815'],aqua:['#00B5E2','#4EC3E0','#00C1D5']};
+const CW_ALIAS={grey:'gray',violet:'purple',plum:'purple',wine:'burgundy',scarlet:'red',crimson:'red',cyan:'aqua',kelly:'green',army:'olive',hunter:'forest',chocolate:'brown',royalblue:'royal',skyblue:'sky',lightblue:'sky',babyblue:'sky'};
+const CW_NEUTRAL={gray:1,charcoal:1,silver:1,black:1,white:1};
+const hxLab=h=>{ const t=String(h||'').replace('#',''); if(!/^[0-9a-f]{6}$/i.test(t)) return null; const n=parseInt(t,16); return labOf(n>>16&255,n>>8&255,n&255); };
+function colourQuery(q){ const w=String(q||'').toLowerCase().split(/[\s,/]+/).filter(Boolean); if(!w.length||w.length>3) return null; let mod=null; const hues=[];
+  for(let x of w){ if(/^(light|pale|pastel|baby)$/.test(x)){ mod='light'; continue; } if(/^(dark|deep)$/.test(x)){ mod='dark'; continue; } if(/^(bright|neon|vivid)$/.test(x)){ mod='bright'; continue; }
+    x=CW_ALIAS[x]||x; if(!CWORD[x]&&!CW_NEUTRAL[x]&&x.endsWith('s')) x=CW_ALIAS[x.slice(0,-1)]||x.slice(0,-1); if(CWORD[x]||CW_NEUTRAL[x]) hues.push(x); else return null; }
+  return hues.length?{hues,mod}:null; }
+function colourHits(cq,T){
+  const cand=[]; const add=(o,hex)=>{ const lab=hxLab(hex); if(lab) cand.push(Object.assign(o,{lab})); };
+  MYCOL.forEach(c=>c.hex&&add({k:c.name+' '+c.hex,hex:c.hex,saved:1},c.hex));
+  PINE.filter(e=>!e.base&&e.hex).forEach(e=>add({k:e.k,hex:e.hex,pine:e},e.hex));
+  Object.keys(T).filter(k=>!PINE_BY[k.toUpperCase()]&&!/ MD$|BB|EZ|^CRM$|^CREAM$|^WHT$|^BLK$|^BLACK$|^WHITE$|FULL/.test(k)).forEach(k=>add({k,hex:T[k]},T[k]));
+  const refs=cq.hues.filter(h=>CWORD[h]).flatMap(h=>CWORD[h]).map(hxLab).filter(Boolean), out=[];
+  for(const o of cand){ const [L,A,B]=o.lab, C=Math.hypot(A,B);
+    if(cq.mod==='light'&&L<62) continue; if(cq.mod==='dark'&&L>45) continue; if(cq.mod==='bright'&&C<55) continue;
+    let d=Infinity;
+    for(const h of cq.hues){ if(h==='black'&&L<=24&&C<=16) d=Math.min(d,L); else if(h==='white'&&L>=90&&C<=10) d=Math.min(d,100-L); else if((h==='gray'||h==='silver'||h==='charcoal')&&C<=12&&L>18&&L<88){ const tL=h==='charcoal'?30:h==='silver'?70:L; d=Math.min(d,Math.abs(L-tL)+C); } }
+    for(const r of refs){ const x=Math.sqrt(dist2(o.lab,r)); if(x<=22) d=Math.min(d,x); }
+    if(d<Infinity) out.push(Object.assign(o,{d})); }
+  return out.sort((a,b)=>a.d-b.d).slice(0,48).map(({lab,d,...o})=>o); }
+function inkSearch(q){ const T=inkTable(); q=q.trim(); const base=inkSearch1(q,T), cq=colourQuery(q); if(!cq||hexIn(q)) return base;   // v248
+  const seen=new Set(), all=[]; base.concat(colourHits(cq,T)).forEach(o=>{ const u=o.k.toUpperCase(); if(!seen.has(u)){ seen.add(u); all.push(o); } });
+  const rk=o=>o.saved?0:o.pine?1:2; return all.map((o,i)=>({o,i})).sort((a,b)=>rk(a.o)-rk(b.o)||a.i-b.i).map(x=>x.o).slice(0,60); }
+function inkSearch1(q,T){ const HX=hexIn(q); if(HX){ const h=HX; return MYCOL.filter(c=>c.hex===h).map(c=>({k:c.name+' '+c.hex,hex:c.hex,saved:1})).concat([{k:h,hex:h}]); }
   const sv=MYCOL.filter(c=>c.hex&&(!q||inkScore(c.name,q)||c.name.toUpperCase().includes(q.toUpperCase()))).slice(-(q?8:6)).reverse().map(c=>({k:c.name+' '+c.hex,hex:c.hex,saved:1}));   // v239: saved colours first
   if(sv.length) return sv.concat(inkSearch0(q,T)); return inkSearch0(q,T); }
 function inkSearch0(q,T){
@@ -3781,8 +3897,8 @@ function syncRecol(a){
   rcWide(true);   // v98: before placing it — the column widens first
   // v53: a popover just under the swatch that was tapped (a bottom sheet on a phone, by CSS)
   const sw=$('scanSw').querySelector(`[data-j="${RC.j}"]`), side=document.querySelector('.mk-side');
-  if(sw){ const sr=side.getBoundingClientRect(), br=$('scanSw').getBoundingClientRect(); box.style.top=Math.round(br.bottom-sr.top+side.scrollTop+6)+'px'; }   // v113: under the whole list, so no colour is covered
-  if(!was&&!matchMedia('(max-width:600px)').matches) requestAnimationFrame(()=>box.scrollIntoView({block:'nearest'}));
+  rcPlace(sw);
+  if(!was&&matchMedia('(pointer:fine)').matches) setTimeout(()=>{ const i=$('rcSearch'); if(i&&!i.hidden) i.focus({preventScroll:true}); },0);   // v248: ready to type   // tabs preview: floats over the mockup beside the panel (a bottom sheet on narrow screens) — the panel doesn't grow
   const G=groupOf(a,RC.j)||{j:RC.j,members:[RC.j],key:'',named:false}, cur=recolMap(im,RC.scope==='line'?J.line:null)||{}, ren=RC.mode==='rename';
   const rto=cur[RC.j]&&cur[RC.j]!=='none'?cur[RC.j]:null;   // v231: already recoloured — rename names the new colour
   $('rcTitle').innerHTML=ren?`Call <b>${esc(rto?inkLabel(rto,''):(G.named?G.key:'≈ '+G.key))}</b>`:`Change <b>${esc(G.named?G.key:'≈ '+G.key)}</b> to`;
@@ -3799,9 +3915,13 @@ function syncRecol(a){
   $('rcScope').querySelectorAll('button').forEach(b=>b.classList.toggle('is-on',b.dataset.s===RC.scope));
   const q=$('rcSearch').value.trim(), free=ren&&q&&!hexIn(q)?[{k:q.toUpperCase(),hex:G.hex,free:1}]:[];   // a thread ("1756 MD") or any name: use the text as typed
   const md=isEmb(im)?mdSearch(q,G.lab).map(t=>({k:t.k,hex:t.hex,md:t})):[];   // v227: Madeira threads first on embroidery
-  const opts=free.concat(md,inkSearch(q).filter(o=>!/ MD$/.test(o.k))); let lastPine=false, lastMd=false;
-  $('rcOpts').innerHTML=(md.length?`<span class="mk-optsep">${q?'Madeira threads':'Closest Madeira threads'}</span>`:'')+(opts.length?'':hexShort(q)?`<span class="mk-hint">A #hex has 6 characters (0–9 and a–f) — “${esc(q)}” has ${hexShort(q).length}. Add the missing ${6-hexShort(q).length===1?'one':'ones'}.</span>`:`<span class="mk-hint">Nothing like “${esc(q)}” — try fewer letters, a Pantone number or a #hex.</span>`)+opts.map(o=>{ const sep=(lastPine||lastMd)&&!o.pine&&!o.free&&!o.md?'<span class="mk-optsep">Pantone</span>':''; if(sep){ lastPine=lastMd=false; } if(o.pine) lastPine=true; if(o.md) lastMd=true;
-    return `${sep}<button type="button" data-k="${esc(o.k)}" class="${o.pine?'is-pine':''}" ${cur[RC.j]===o.k?'style="outline:3px solid var(--p-black)"':''} title="${o.pine?`Pine's ink${o.pine.n?` · printed ${o.pine.n}× in 2025`:''}${o.pine.src==='guess'?' · colour is a guess':''}${!o.hex?' · no colour yet':''}`:''}"><i style="background:${o.hex||'repeating-linear-gradient(45deg,#fff 0 4px,#bbb 4px 8px)'}"></i>${o.free?'Use “'+esc(o.k)+'”':o.saved?esc(o.k.replace(/\s+#[0-9a-f]{6}$/i,''))+' <small class="mk-mdn">saved</small>':esc(o.k)}${o.md?` <small class="mk-mdn">${esc(o.md.name)}</small>`:''}</button>`; }).join('');
+  const opts=!q&&!ren?[]:free.concat(md,inkSearch(q).filter(o=>!/ MD$/.test(o.k)));   // v248: nothing until you type let lastPine=false, lastMd=false;
+  // v245 (Stephen: "can we also clean this up"): one heading per group — Saved · Pine inks · Madeira · Pantone — instead of a
+  // "saved" tag squeezed into each tile
+  let lastK=''; const kindOf=o=>o.free?'free':o.saved?'saved':o.md?'md':o.pine?'pine':'pms', KH={saved:'Saved colours',pine:"Pine's inks",md:q?'Madeira threads':'Closest Madeira threads',pms:'Pantone'};
+  $('rcOpts').innerHTML=(opts.length?'':!q?`<span class="mk-hint">Type a Pantone, an ink, a #hex — or a colour: red, navy, mint, light blue, dark green…</span>`:hexShort(q)?`<span class="mk-hint">A #hex has 6 characters (0–9 and a–f) — “${esc(q)}” has ${hexShort(q).length}. Add the missing ${6-hexShort(q).length===1?'one':'ones'}.</span>`:`<span class="mk-hint">Nothing like “${esc(q)}” — try fewer letters, a Pantone number or a #hex.</span>`)+opts.map(o=>{ const kd=kindOf(o), sep=kd!=='free'&&kd!==lastK?`<span class="mk-optsep">${KH[kd]}</span>`:''; if(kd!=='free') lastK=kd;
+    return `${sep}<button type="button" data-k="${esc(o.k)}" class="${o.pine?'is-pine':''}" ${cur[RC.j]===o.k?'style="outline:3px solid var(--p-black)"':''} title="${o.pine?`Pine's ink${o.pine.n?` · printed ${o.pine.n}× in 2025`:''}${o.pine.src==='guess'?' · colour is a guess':''}${!o.hex?' · no colour yet':''}`:''}"><i style="background:${o.hex||'repeating-linear-gradient(45deg,#fff 0 4px,#bbb 4px 8px)'}"></i>${o.free?'Use “'+esc(o.k)+'”':o.saved?esc(o.k.replace(/\s+#[0-9a-f]{6}$/i,'')):esc(o.k)}${o.md?` <small class="mk-mdn">${esc(o.md.name)}</small>`:''}</button>`; }).join('');
+  { const o=$('rcOpts'), f=()=>o.classList.toggle('is-more',o.scrollHeight-o.scrollTop-o.clientHeight>4); f(); o.onscroll=f; }   // v245
   syncInkColour(cur[RC.j]);
   $('rcOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{
     if(ren){ if(rto){ const nm=b.dataset.k.replace(/\s+#[0-9a-f]{6}$/i,''), r=RECOL[im.id]||{};   // v231: keep the colour, give it the name
@@ -3826,11 +3946,12 @@ function syncScan(a){
   $('scanWhat').textContent=isEmb(curImp())?'Threads':methOf(curImp())==='transfer'?'Recolour':'Colours';
   const im=curImp(), want=impInkKeys(im), GS=inkGroups(a), live=GS.filter(G=>!G.gone), found=live.map(G=>G.key);
   if(SCAN_SEL>=0){ const sg=groupOf(a,SCAN_SEL); if(sg&&sg.j!==SCAN_SEL) SCAN_SEL=sg.j; }
-  const ed=edOf(a); $('scanUndo').hidden=!(Object.keys(ed.merge).length||Object.keys(ed.name).length||Object.keys(ed.gone).length);
-  $('scanCount').textContent=`· ${GS.length!==sc.inks.length||$('scanUndo').hidden===false||sc.fromFile?'':'about '}${live.length}`;
+  const ed=edOf(a), edN=!!(Object.keys(ed.merge).length||Object.keys(ed.name).length||Object.keys(ed.gone).length), rcN=!!(im&&RECOL[im.id]&&Object.values(RECOL[im.id]).some(m=>m&&Object.keys(m).length));
+  $('scanUndo').hidden=!(edN||rcN);   // tabs preview: a recolour or an erase shows Undo too
+  $('scanCount').textContent=`· ${GS.length!==sc.inks.length||edN||sc.fromFile?'':'about '}${live.length}`;
   const mp=recolMap(im,J.line)||{}, suf=inkSuffix(im,J.line);
   $('scanSw').innerHTML=live.map(G=>{ const j=G.j, to=mp[j], th=to==='none'?'transparent':to&&inkHex(to);
-    return `<button type="button" data-j="${j}" class="${j===SCAN_SEL?'is-on':''}" title="Tap to see where it is and edit it"><i style="background:${th?`linear-gradient(135deg,${G.hex} 50%,${th} 50%)`:G.hex}"></i><span>${esc((G.named?'':'≈ ')+inkLabel(G.key,suf,!im||methOf(im)==='print'))}${im&&!isEmb(im)&&fxOfInk(im,a,G.j)?' ✦ '+FX_NAMES[fxOfInk(im,a,G.j)]:''}${to?' → '+esc(to==='none'?'erased':inkLabel(to,suf)):''}${!to&&want.length&&want.includes(G.key)?' ✓':''}<small>${G.pct<1?'<1':Math.round(G.pct)}% of the print${G.members.length>1?` · ${G.members.length} merged`:''}${INK_STOCK[normInkName(to&&to!=='none'?to:G.key)+'|'+suf]?' · in stock':''}</small></span></button>`; }).join('');
+    return `<button type="button" data-j="${j}" class="${j===SCAN_SEL?'is-on':''}" title="Tap to see where it is and change it"><i style="background:${th?`linear-gradient(135deg,${G.hex} 50%,${th} 50%)`:G.hex}"></i><span>${esc((G.named?'':'≈ ')+inkLabel(G.key,suf,!im||methOf(im)==='print'))}${im&&!isEmb(im)&&fxOfInk(im,a,G.j)?' ✦ '+FX_NAMES[fxOfInk(im,a,G.j)]:''}${to?' → '+esc(to==='none'?'erased':inkLabel(to,suf)):''}${!to&&want.length&&want.includes(G.key)?' ✓':''}<small>${G.pct<1?'<1':Math.round(G.pct)}% of the print${G.members.length>1?` · ${G.members.length} merged`:''}${INK_STOCK[normInkName(to&&to!=='none'?to:G.key)+'|'+suf]?' · in stock':''}</small></span></button>`; }).join('');
   $('scanSw').querySelectorAll('button').forEach(b=>b.onclick=()=>{ SCAN_SEL=SCAN_SEL===+b.dataset.j?-1:+b.dataset.j; RC.j=SCAN_SEL; $('rcSearch').value=''; syncScan(a); });
   const gone=GS.filter(o=>o.gone); $('rcGone').innerHTML=gone.length?'Removed from the list: '+gone.map(o=>`<a href="#" data-r="${o.j}">${esc(o.key)} (put back)</a>`).join(', '):'';
   $('rcGone').querySelectorAll('[data-r]').forEach(el=>el.onclick=e=>{ e.preventDefault(); delete edOf(a).gone[+el.dataset.r]; syncScan(a); render(); });
@@ -3851,10 +3972,10 @@ function syncScan(a){
     if(!extra.length&&!miss.length) f.push('✓ Matches the imprint\'s Pantones.');
     if(extra.length) f.push(`In the art but not on the imprint: <b>${[...new Set(extra)].map(esc).join(', ')}</b>`);
     if(miss.length) f.push(`On the imprint but not found in the art: <b>${miss.map(esc).join(', ')}</b> (could be a close shade).`); }
-  else if(im) f.push('No Pantones on the imprint yet — the proof uses these.');
+  else if(im) f.push('No Pantones on the imprint yet.');
   if(a._pfNote) f.push(esc(a._pfNote));   // v107
   if(sc.blended) f.push('<span style="color:var(--p-alert)">Lots of blended tones — likely a sim process / halftone print, so the colour count is rough and a recolour will only be approximate.</span>');
-  else f.push('Tap a colour to see where it is and to change it.');
+  /* v246: 'Tap a colour…' is the swatches' tooltip now */
   const wh=sc.inks.find(i=>i.lab[0]>92&&Math.abs(i.lab[1])<6&&Math.abs(i.lab[2])<8);
   if(wh&&wh.pct>55&&!a.dropBg&&a.opaque!==false) f.push('<b>Mostly white</b> — if that\'s the paper, not ink, tick "Art has a solid background — drop it".');
   else if(sc.white) f.push('Has white ink.');
@@ -3888,12 +4009,38 @@ $('cmpPos').oninput=drawCmp;
   box.addEventListener('pointerdown',e=>{ if($('cmpPos').hidden) return; on=true; box.setPointerCapture(e.pointerId); go(e); });
   box.addEventListener('pointermove',e=>{ if(on) go(e); }); box.addEventListener('pointerup',()=>{ on=false; }); box.addEventListener('pointercancel',()=>{ on=false; }); })();
 // v68: "Different art on this garment" — shown when the print is on more than one garment
-function syncOwnArt(){ const im=curImp(), l=J.line, row=$('ownArtRow'); if(!row) return; $('splitRow').hidden=true;   // v230
+/* v246 (Stephen: "we need new imprints when the design changes.....so we need a way to scan pixels and find oddities when sales
+   thinks it can be shared but it isn't"): compare the SHAPES of two arts, not their colours. Each art's ink (alpha) is laid
+   into the same 96-wide grid (trimmed, aspect kept); the overlap of the two masks (intersection over union) and the aspect
+   ratio say whether it's the same design (an ink change: one imprint ID is fine) or a different one (it needs its own). */
+const DSG={};
+function inkMask(a){ if(!a||!a.canvas) return null; if(a._mask&&a._mask.c===a.canvas) return a._mask.m;
+  const c=a.canvas, N=96, k=Math.min(1,600/Math.max(c.width,c.height)), w=Math.max(1,Math.round(c.width*k)), h=Math.max(1,Math.round(c.height*k));
+  const t=document.createElement('canvas'); t.width=w; t.height=h; const x=t.getContext('2d',{willReadFrequently:true}); x.drawImage(c,0,0,w,h); const d=x.getImageData(0,0,w,h).data;
+  let x0=w,y0=h,x1=-1,y1=-1; for(let y=0;y<h;y++) for(let xx=0;xx<w;xx++) if(d[(y*w+xx)*4+3]>40){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(y<y0)y0=y; if(y>y1)y1=y; }
+  if(x1<0) return null; const bw=x1-x0+1, bh=y1-y0+1, s2=N/Math.max(bw,bh), m=new Uint8Array(N*N);
+  for(let y=y0;y<=y1;y++) for(let xx=x0;xx<=x1;xx++) if(d[(y*w+xx)*4+3]>40){ const gx=Math.min(N-1,Math.floor((xx-x0)*s2)), gy=Math.min(N-1,Math.floor((y-y0)*s2)); m[gy*N+gx]=1; }
+  const out={m,asp:bw/bh}; a._mask={c:a.canvas,m:out}; return out; }
+function designMatch(a,b){ const A=inkMask(a), B=inkMask(b); if(!A||!B) return null;
+  let i=0,u=0; for(let p=0;p<A.m.length;p++){ const x=A.m[p], y=B.m[p]; if(x&&y) i++; if(x||y) u++; }
+  const iou=u?i/u:1, asp=Math.abs(Math.log(A.asp/B.asp));
+  return {score:Math.round(iou*100), same:iou>=0.8&&asp<0.08}; }
+// the garments of this imprint whose own art is a different design from the imprint's art
+function designDiffs(im){ const base=im&&ART0[im.id]; if(!base) return []; const out=[];
+  J.lines.filter(l=>(l.f[LF.imps]||[]).includes(im.id)).forEach(l=>{ const kk=im.id+'|'+l.id, la=OWNART[kk]&&LART[kk]; if(!la) return;
+    const r=designMatch(base,la); if(r&&!r.same) out.push({l,score:r.score}); });
+  return out; }
+function syncOwnArt(){ const im=curImp(), l=J.line, row=$('ownArtRow'); if(!row) return; $('splitRow').hidden=true; const dh=$('dsgHint'); if(dh) dh.hidden=true;   // v230
   const n=im&&l?J.lines.filter(x=>(x.f[LF.imps]||[]).includes(im.id)||x===l).length:0; row.hidden=!im||!l||n<2; if(row.hidden) return;
   const kk=im.id+'|'+l.id, own=!!OWNART[kk], nm=l.g.color||l.g.name||'this garment'; $('ownArt').checked=own;
   $('ownArtTxt').innerHTML=own?`<b>${esc(nm)}</b> has its own art${LART[kk]?'':' — open its file now'}`:`Different art on ${esc(nm)}`;
   const sr=$('splitRow'), can=own&&!!LART[kk]&&/^rec/.test(im.id)&&/^rec/.test(l.id); sr.hidden=!can;   // v230
-  if(can) $('splitHint').textContent=`Gives ${nm} a new imprint on the order; the others keep ${im.code||'this one'}`; }
+  if(can) $('splitHint').textContent=`Gives ${nm} a new imprint on the order; the others keep ${im.code||'this one'}`;
+  // v246: the scan's answer, right where the decision is made
+  if(own&&LART[kk]&&ART0[im.id]&&dh){ const r=designMatch(ART0[im.id],LART[kk]); if(r){ dh.hidden=false;
+      dh.className='mk-q '+(r.same?'low':'bad');
+      dh.innerHTML=r.same?`<span><b>Same design</b> as the other garments (${r.score}% match) — just different inks. It can stay ${esc(im.code)}: untick “${esc(nm)} has its own art” and recolour instead.</span>`
+        :`<span><b>Different design</b> from the other garments (only ${r.score}% match) — ${esc(nm)} needs its own imprint ID.</span>`; } } }
 /* v230: different art → its own imprint ID (a new Imprints record; Airtable's automation gives it the next free letter) */
 $('splitBtn').onclick=()=>{ const im=curImp(), l=J.line; if(!im||!l) return; const nm=l.g.color||l.g.name||'this garment';
   $('splitTxt').innerHTML=`Give <b>${esc(nm)}</b> its own imprint ID? This adds a new imprint to #${esc(J.order.num)} with the next free letter, set up like <b>${esc(im.code)}</b> (location, print type, screens, inks), named “… – ${esc(nm)}”. The ${esc(nm)} line moves to it and the art you opened goes with it. The other garments keep ${esc(im.code)}.`;
@@ -3931,8 +4078,24 @@ $('ownArt').onchange=e=>{ const im=curImp(), l=J.line; if(!im||!l) return; const
 const SEPDET={};
 function syncSepDet(){ const im=curImp(), r=$('sepDetRow'); if(!r) return; r.hidden=!im||supaChip(im); if(im) $('sepDet').checked=!!SEPDET[im.id]; }
 $('sepDet').onchange=e=>{ const im=curImp(); if(!im) return; if(e.target.checked) SEPDET[im.id]=1; else delete SEPDET[im.id]; render(); try{ saveSoon(); }catch(x){} };
-function syncArt(){ syncSepDet(); syncOpac(); syncOwnArt(); syncRot(); syncEmb();
-  const im=curImp(), a=im&&ART[im.id]; syncPieces(); $('sizeBlk').hidden=$('placeWrap').hidden=$('tickBlk').hidden=!a;   // tabs preview: the placement and the background ticks left #sizeBlk for their tabs   // v53: width + placement right under the art, once there is art
+// v243 (Stephen: "Let's reduce the scrolling"): Customer's files folds once the imprint has art (Show brings it back; a new
+// imprint starts from the default again); More print options remembers if it was left open; the order line is one line once picked
+let DFOLD=null, DFOLD_IMP=null;
+function syncDriveFold(){ const box=$('driveBox'), b=$('driveFold'); if(!box||!b) return; const im=curImp();
+  if((im&&im.id)!==DFOLD_IMP){ DFOLD_IMP=im&&im.id; DFOLD=null; }
+  const fold=!STK.on&&(DFOLD!==null?DFOLD:!!(im&&ART[im.id])); box.classList.toggle('is-fold',fold); b.textContent=fold?'Show':'Hide'; b.setAttribute('aria-expanded',fold?'false':'true'); b.hidden=!!STK.on; }
+function syncMoreSum(){ const el=$('moreSum'); if(!el) return; const t=[]; const on=id=>{ const e=document.querySelector('#'+id+' .is-on'); return e?e.textContent.trim():''; };
+  const ub=$('baseRow')&&!$('baseRow').hidden?on('baseSeg'):''; if(ub) t.push('Underbase '+ub); const fl=on('shadeSeg'); if(fl) t.push('Fabric '+fl);
+  if($('opRow')&&!$('opRow').hidden&&$('opV')) t.push('Opacity '+$('opV').textContent); if($('dropBg')&&$('dropBg').checked) t.push('background dropped');
+  el.textContent=t.length?'· '+t.join(' · '):''; }
+function syncOrdSum(){ const sm=$('ordSum'); if(!sm) return; const on=!!(J.order&&!ORD_OPEN); sm.hidden=!on;
+  const lab=$('ordSel').closest('label'); if(lab) lab.hidden=on; $('ordFindRow').hidden=on;
+  if(on) $('ordSumTxt').textContent='#'+J.order.num+(J.order.cust?' · '+J.order.cust:''); }
+let ORD_OPEN=false;
+// v243: a new imprint picked while scrolled down → its art section comes up under the pinned chips
+function impToTop(){ const side=document.querySelector('.mk-side'); if(side&&side.scrollTop>0) side.scrollTo({top:0,behavior:'smooth'}); }   // tabs preview: the chips are pinned; the open tab from its top
+function syncArt(){ syncSepDet(); syncOpac(); syncOwnArt(); syncRot(); syncEmb(); try{ syncDriveFold(); syncMoreSum(); syncOrdSum(); }catch(e){ console.warn(e); }
+  const im=curImp(), a=im&&ART[im.id]; syncPieces(); $('sizeBlk').hidden=$('placeWrap').hidden=$('colWrap').hidden=!a;   // tabs preview: placement and the background ticks / look left #sizeBlk for their tabs   // v53: width + placement right under the art, once there is art
   $('artBlk').style.opacity=im?1:.5;
   if(!a){ $('scanBox').hidden=true; $('rcBox').hidden=true; SCAN_SEL=-1; }
   else if(a!==syncArt._a){ SCAN_SEL=-1; } syncArt._a=a;
@@ -4094,7 +4257,7 @@ $('pvX').onclick=$('pvClose').onclick=()=>$('pvDlg').close();
 $('pvUse').onclick=()=>{ const x=PV.list[PV.i]; $('pvDlg').close(); if(x&&x.b&&x.b._open) x.b._open(); };
 $('pvDlg').addEventListener('keydown',e=>{ if(e.key==='ArrowLeft') $('pvPrev').click(); if(e.key==='ArrowRight') $('pvNext').click(); });
 // one Drive tile: folders open in place, art opens in the mockup (⬇ downloads), anything else opens in Drive
-function driveTile(f,sub){ const art=f=>/\.(png|jpe?g|webp|gif|pdf|ai|psd|eps)$/i.test(f.name||''); const isDir=/folder$/.test(f.mimeType||''), ok=isDir||art(f);
+function driveTile(f,sub){ const art=f=>/\.(png|jpe?g|webp|gif|svg|pdf|ai|psd|eps)$/i.test(f.name||'');   /* v243: + .svg */ const isDir=/folder$/.test(f.mimeType||''), ok=isDir||art(f);
 
     const b=document.createElement(ok?'button':'a'); if(ok) b.type='button'; else { b.href=f.webViewLink||'#'; b.target='_blank'; b.rel='noopener'; }
     const tg=sub||DRV.find?'':DW.tag(f.id), nIn=isDir&&!sub?DW.newIn([f.id]):0;   // v63: New / Updated, "2 new" inside a folder
@@ -4181,7 +4344,7 @@ async function serArt(a){
 async function buildSetup(l){ const imps={}, sew={}; let n=0;
   for(const im of J.allImps.filter(i=>(l.f[LF.imps]||[]).includes(i.id))){ const sw=SEW[im.id+'|'+l.id]; if(sw) sew[im.id]={png:sw.blob,name:sw.name,z:sw.z,cx:sw.cx,cy:sw.cy};   // v97: the sew-out photo and its crop
     const a=ART[im.id]; if(!a) continue; n++;
-    imps[im.id]={sepDet:!!SEPDET[im.id],extra:EXTRA_INK[im.id]||null,code:im.code,own:!!OWNART[im.id+'|'+l.id],notes:DISC[im.id]||null,art:await serArt(a),place:PLACE[im.id]||null,ptext:PTEXT[im.id]||null,ptextL:PTEXT_L[im.id]||null,placeL:PLACE_L[im.id]||null,opac:OPAC[im.id]==null?null:OPAC[im.id],curve:CURVE[im.id]||null,ubase:UBASE[im.id]||null,meth:im.meth||null,embs:im.embStyle||null,fx:FX[im.id]||null,
+    imps[im.id]={inkSwap:!!INKSWAP[im.id],sepDet:!!SEPDET[im.id],extra:EXTRA_INK[im.id]||null,code:im.code,own:!!OWNART[im.id+'|'+l.id],notes:DISC[im.id]||null,art:await serArt(a),place:PLACE[im.id]||null,ptext:PTEXT[im.id]||null,ptextL:PTEXT_L[im.id]||null,placeL:PLACE_L[im.id]||null,opac:OPAC[im.id]==null?null:OPAC[im.id],curve:CURVE[im.id]||null,ubase:UBASE[im.id]||null,meth:im.meth||null,embs:im.embStyle||null,fx:FX[im.id]||null,
       recol:RECOL[im.id]||null,ed:a.ed||null,labs:a.scan&&a.scan.inks?a.scan.inks.map(k=>k.lab):null}; }
   const op=ownPhotosOf(l);   // v228
   return n?Object.assign({v:1,t:Date.now(),order:J.order&&J.order.num,line:l.id,lineName:lineShort(l),size:S.size,imps},Object.keys(sew).length?{sew}:{},CUSTOM_G[l.id]?{customG:CUSTOM_G[l.id]}:{},op?{ownPh:op}:{},l._bodyL?{bodyL:l._bodyL}:{}):null; }   // v138: + the typed-in garment
@@ -4370,7 +4533,7 @@ async function pickUp(){ const l=PICK.l, best=PICK.best; if(!best||l!==J.line) r
     if(st.customG&&!CUSTOM_G[J.line.id]){ CUSTOM_G[J.line.id]=st.customG; saveCustomG(); applyCustomG(J.line,st.customG); }   // v138
     if(st.ownPh) await restoreOwnPhotos(J.line,st.ownPh);   // v228
     if(st.bodyL&&!J.line._bodyL){ J.line._bodyL=Object.assign({},st.bodyL); Object.keys(S.bodyW).filter(k=>k.startsWith(J.line.id+'|')).forEach(k=>delete S.bodyW[k]); bodyWidthFor(J.line).then(()=>render()); }   // v236
-    for(const [id,x] of Object.entries(st.imps||{})){ const im=J.allImps.find(i=>i.id===id), kk=id+'|'+J.line.id; if(x.extra&&x.extra.length) EXTRA_INK[id]=x.extra.slice(); if(x.sepDet) SEPDET[id]=1; else delete SEPDET[id]; if(x.own) OWNART[kk]=1; if(!im||(x.own?LART[kk]:ART[id])) continue;   // v68: a garment's own art comes back as its own
+    for(const [id,x] of Object.entries(st.imps||{})){ const im=J.allImps.find(i=>i.id===id), kk=id+'|'+J.line.id; if(x.extra&&x.extra.length) EXTRA_INK[id]=x.extra.slice(); if(x.sepDet) SEPDET[id]=1; else delete SEPDET[id]; if(x.inkSwap) INKSWAP[id]=1; else delete INKSWAP[id]; if(x.own) OWNART[kk]=1; if(!im||(x.own?LART[kk]:ART[id])) continue;   // v68: a garment's own art comes back as its own
       const a=await deArt(x.art);
       if(a.pieces){ composeParts(im,a); } else a.widthIn=x.widthIn||x.art.widthIn;
       if(x.labs) a._keep={ed:x.ed,rc:x.recol,labs:x.labs,id};   // the same pixels scan to the same inks → the ink changes come back
@@ -5536,9 +5699,10 @@ const sideOf=im=>(im.loc==='B'||im.loc==='Nape')?'back':im.loc==='LS'?'lsleeve':
 const SIDE_NAME={front:'FRONT',back:'BACK',lsleeve:'LEFT SLEEVE',rsleeve:'RIGHT SLEEVE'};
 const isHood=line=>line&&/hood/i.test(line.g.type);
 // not a shirt: sized by how wide the item is across in the photo, print centered on its print spot (ay = share of the height)
-const ACC={'Cap':{w:8.25,ay:0.36,pw:4,spot:'the front panel',name:'cap'},'Beanie':{w:9,ay:0.74,pw:3,spot:'the cuff',name:'beanie'},'Tote Bag':{w:15,ay:0.62,pw:10,spot:'the bag',name:'tote'},'Other':{w:20,ay:0.5,pw:8,spot:'',name:'item'},'Paper':{w:12,ay:0.5,pw:8,spot:'',name:'item'}};
+const ACC={'Cap':{w:8.25,ay:0.36,pw:4,spot:'the front panel',name:'cap'},'Beanie':{w:9,ay:0.74,pw:3,spot:'the cuff',name:'beanie'},'Tote Bag':{w:15,ay:0.62,pw:10,spot:'the bag',name:'tote'},'Other':{w:20,ay:0.5,pw:8,spot:'',name:'item'},'Paper':{w:12,ay:0.5,pw:8,spot:'',name:'item'},'Pants':{w:24,ay:0.24,ax:0.73,pw:4,spot:'the leg',name:'pants'}};   // v247: flat pants — about 24" across both legs at the hip; the print on the wearer's left thigh (the photo's right)
 function accOf(line){ if(!line||isBandLine(line)) return null; if(line.kind!==undefined) return line.kind?ACC[line.kind]:null; const t=line.g.type||''; if(ACC[t]&&t!=='Other'&&t!=='Paper') return ACC[t];   // Airtable's "Other" covers polos and more: only the Kind picker makes those flat items (Stephen's polo couldn't move up)
-  const col=String(line.g.color||'').toLowerCase(), n=`${line.g.name||''} ${line.g.title||''}`.toLowerCase().split(col).join(' ');   // v43: not the colour ("White Cap Off White")
+  const col=String(line.g.color||'').toLowerCase(), vt=(VDONE[vKey(line.g)]||{}).title||'', n=`${line.g.name||''} ${line.g.title||''} ${vt}`.toLowerCase().split(col).join(' ');   // v247: the vendor's title too (S&S: "Unisex Pigment-Dyed Fleece Sweatpants")
+  if(/\b(pants?|sweatpants?|joggers?|shorts|leggings?|trousers)\b/.test(n)) return ACC.Pants;   // v43: not the colour ("White Cap Off White")
   if(/\b(tee|t-shirt|tshirt|shirt|hoodie|hooded|crew|crewneck|sweatshirt|polo|tank|sleeve|jersey|raglan)\b/.test(n)) return null;
   if(/\b(cap|hat|trucker|snapback|visor|dad hat|bucket)\b/.test(n)) return ACC.Cap; if(/beanie|knit/.test(n)) return ACC.Beanie; if(/\btote\b|\bbag\b/.test(n)) return ACC['Tote Bag']; return null; }
 const accW=line=>(line&&(line.refW||line.specW))||(accOf(line)||{w:20}).w;
@@ -5849,7 +6013,7 @@ function drawGarment(x,line,side,X,Y,w,h,opts){
     // v135: on a person, the garment's middle (its shoulders / chest), plus any sideways nudge of the collar line
     const cx0=(pH||hm&&ph.onModel)&&ph.cxT!=null?ox+ph.cxT*s:ox+mapX(b.x+b.w/2)*s, nx=pH||hm&&ph.onModel?(NECKX[neckKey(line,side)]||0)*b.h*s:0;
     geo={hemBad:hBad, widened:fx!==1?fx:0, ppi, cx:cx0+nx, top:oy+b.y*s, bot:oy+(b.y+b.h)*s, ph, ox, oy, s, sx, X:xp=>ox+mapX(xp)*s, UX:cx=>{ const q=(cx-ox)/s; return !ext||q<=wx0?q:q>=wx0+(wx1-wx0)*fx?q-ext:wx0+(q-wx0)/fx; }, wide:{wx0,wx1,fx}, bpx:pH||(hm&&ph.onModel)?b.h*s:ph.bodyPx*s, person:pH||(hm&&ph.onModel?1:0), hem:hx&&hx.x1>hx.x0?hx:null};
-    if(acc){ geo.acc=acc; geo.cy=oy+(b.y+b.h*acc.ay)*s;
+    if(acc){ geo.acc=acc; geo.cy=oy+(b.y+b.h*acc.ay)*s; if(acc.ax!=null) geo.cx=ox+mapX(b.x+b.w*acc.ax)*s;   // v247: off to one side (a pants leg)
       // v178: a cap — the front panel's middle sits half a crown height above the brim seam
       if(acc===ACC.Cap&&HAT[line.id]){ geo.seam=oy+(b.y+hatSeam(line,ph)*b.h)*s; geo.cy=geo.seam-HAT[line.id].crown*geo.ppi*0.5; geo.hatH=b.h*s; }
       // v183: the front panel — its middle is the print's 0,0, its height (2″) the scale
@@ -5857,7 +6021,7 @@ function drawGarment(x,line,side,X,Y,w,h,opts){
         const c=P(0.5,0.5), t0=P(0.5,0), t1=P(0.5,1); geo.panel={G,P,b,oy,s,line}; geo.ppi=Math.hypot(t1[0]-t0[0],t1[1]-t0[1])/PANEL_H; geo.cx=c[0]; geo.cy=c[1]; geo.seam=null; } }
   } else if(acc){   // no photo: a plain stand-in at the item's size
     const rw=Math.min(w,h)*0.8, ox=X+(w-rw)/2, oy=Y+(h-rw*0.8)/2; x.save(); x.fillStyle=shirt; x.strokeStyle='rgba(0,0,0,.25)'; x.beginPath(); x.roundRect?x.roundRect(ox,oy,rw,rw*0.8,rw*0.08):x.rect(ox,oy,rw,rw*0.8); x.fill(); x.stroke(); x.restore();
-    geo={ppi:rw/accW(line),cx:ox+rw/2,top:oy,bpx:rw,acc,cy:oy+rw*0.8*acc.ay};
+    geo={ppi:rw/accW(line),cx:ox+rw*(acc.ax!=null?acc.ax:0.5),top:oy,bpx:rw,acc,cy:oy+rw*0.8*acc.ay};
     if(opts.labels!==false){ x.fillStyle='#7a7363'; x.font=`700 ${Math.max(12,Math.round(w*0.03))}px Helvetica,Arial,sans-serif`; x.textAlign='center'; x.fillText((PH[line.id]&&PH[line.id].state==='loading')?'Finding the photo…':'Photo not found — plain stand-in',X+w/2,Y+h-6); x.textAlign='left'; }
   } else {
     const sw=Math.min(w,h*100/110), sh=sw*1.1, ox=X+(w-sw)/2, oy=Y+(h-sh)/2;
@@ -6348,7 +6512,7 @@ function kbFit(){ const el=document.activeElement; if(!kbField(el)||!document.bo
 document.addEventListener('focusin',()=>setTimeout(()=>kbSync(true),0));
 document.addEventListener('focusout',()=>setTimeout(()=>kbSync(false),150));   // a moment, so moving to the next field doesn't flicker the strip
 if(window.visualViewport){ let t=0; visualViewport.addEventListener('resize',()=>{ if(t) return; t=requestAnimationFrame(()=>{ t=0; kbSync(true); }); }); }   // the keyboard opening / closing
-function render(){ saveSoon(); try{ syncXInk(); }catch(e){}
+function render(){ saveSoon(); try{ syncXInk(); syncMoreSum(); syncOrdSum(); }catch(e){}
   const has=!!(J.line), anyArt=J.imps.some(i=>ART[i.id]);
   // v33: Art to do — the queue fills the stage
   const todo=S.view==='todo'; $('todoBox').hidden=!todo; $('stage').classList.toggle('is-todo',todo);
@@ -6467,7 +6631,7 @@ function renderPlaceRows(){
     d.querySelector('[data-k="dx"]').onchange=e=>{ const v=num(e,'dx'); pl.dx=edgeMode(im)?edgeToDx(im,v):v; if(!pl.dx) dropVisNote(im); render(); };
     { const bt=d.querySelector('[data-c="true"]'), bv=d.querySelector('[data-c="vis"]'), a=ART[im.id], sz=sizeOf(im);   // v86
       if(bt&&a&&sz){ const vo=visualOff(a)*sz.w, gap=Math.round(Math.abs(vo)*100)/100; d._vo=vo;
-        d.querySelector('[data-c="hint"]').textContent=gap<0.06?'This art is balanced: true and visual center are the same.':`The ink's balance point is ${fmtIn(gap)}″ ${vo<0?'left':'right'} of the art's middle (as you look at it).`;
+        d.querySelector('[data-c="hint"]').textContent=gap<0.06?'':`The ink's balance point is ${fmtIn(gap)}″ ${vo<0?'left':'right'} of the art's middle (as you look at it).`;
         bt.onclick=()=>{ pl.dx=0; dropVisNote(im); render(); };
         bv.onclick=()=>{ pl.dx=Math.round(-vo*16)/16; if(!pl.dx){ dropVisNote(im); render(); toast('This art is balanced: its visual center is the true center'); return; } addNote(im,NOTES.find(n=>n.k==='visual')); render(); toast('Visual center: the art\'s balance point is on the center line. The note is on the proof (✕ to remove).'); }; }
       else if(bt){ bt.disabled=bv.disabled=true; } }
@@ -6482,7 +6646,7 @@ function renderPlaceRows(){
     // v27: same spot on every garment, or this garment's own
     if(J.line&&J.lines.filter(x=>(x.f[LF.imps]||[]).includes(im.id)).length>1){ const own=ownSpot(im,J.line), sw=document.createElement('div');   // v230: only when this print is on 2+ garments sw.style.flexBasis='100%';
       sw.innerHTML=`<div class="mk-seg" role="group" aria-label="Which garments move"><button type="button" data-o="all" class="${own?'':'is-on'}">Same spot on all garments</button><button type="button" data-o="own" class="${own?'is-on':''}">Own spot for ${esc(lineShort(J.line))}</button></div>
-        <span class="mk-hint">${own?`Moving the print and its placement text change ${esc(lineShort(J.line))} only.`:'Moving the print or its placement text changes every garment. For a different spot or text on one garment, pick its own spot.'}</span>`;
+        <span class="mk-hint">${own?`Spot and placement text for ${esc(lineShort(J.line))} only.`:'Spot and placement text are shared by every garment.'}</span>`;
       sw.querySelector('[data-o="own"]').onclick=()=>{ if(own) return; (PLACE_L[im.id]=PLACE_L[im.id]||{})[J.line.id]=Object.assign({},placeOf(im)); render(); };
       sw.querySelector('[data-o="all"]').onclick=()=>{ if(!own) return; delete PLACE_L[im.id][J.line.id]; if(PTEXT_L[im.id]) delete PTEXT_L[im.id][J.line.id]; render(); };
       d.appendChild(sw); }
@@ -7064,15 +7228,25 @@ const attachLines=()=>J.order&&J.line&&J.line.id!=='quick'&&!J.line.extra?design
 const batchToSend=()=>{ const b=J.batch; if(!b||!b.includes(J.line)) return null; const r=b.filter(l=>!l.f[LF.ready]&&!l._sent); return r.length>1&&r.includes(J.line)?r:null; };
 // v225: one imprint ID on several lines must print the same inks — a different colourway is different screens and needs its
 // own imprint ID. Each line's inks as the proof writes them (recolour, OW / DC); grouped when they differ.
+// v244 (Stephen: "an ink change is not a different design always...sometimes it is just an ink change"): an imprint marked
+// "Just an ink change" keeps one imprint ID with different inks per garment — no warning, no question when attaching
+const INKSWAP={};
 function inkClashes(lines){ const out=[]; const ims=[...new Set((lines||[]).flatMap(l=>l.f[LF.imps]||[]))];
-  ims.forEach(id=>{ const im=J.allImps.find(i=>i.id===id); if(!im||!ART[im.id]||supaChip(im)) return;
+  ims.forEach(id=>{ const im=J.allImps.find(i=>i.id===id); if(!im||!ART[im.id]||supaChip(im)||(INKSWAP[id]&&!designDiffs(im).length)) return;
     const ls=J.lines.filter(l=>!l.extra&&(l.f[LF.imps]||[]).includes(id)); if(ls.length<2) return; const g={};
     ls.forEach(l=>{ let k=''; try{ k=inkChips(im,l).filter(c=>!c.supa&&!isBaseName(c.t)).map(c=>c.t).join(' · '); }catch(e){} (g[k]=g[k]||[]).push(l); });
     if(Object.keys(g).length>1) out.push({im,groups:Object.entries(g).map(([k,ls])=>({inks:k||'no inks',lines:ls}))}); });
   return out; }
 const clashText=c=>`${c.im.code} prints in different inks — ${c.groups.map(g=>`${g.lines.map(lineShort).join(', ')}: ${g.inks}`).join(' · ')}.`;
 function syncClash(){ const el=$('impClash'); if(!el) return; let cs=[]; try{ cs=J.line&&J.order?inkClashes([J.line]):[]; }catch(e){}
-  el.hidden=!cs.length; if(cs.length) el.innerHTML=cs.map(c=>esc(clashText(c))).join('<br>')+'<br><b>Different inks are different screens: each colourway needs its own imprint ID.</b> Add one in Airtable (Imprints), link it to the line instead of '+esc(cs.map(c=>c.im.code).join(', '))+', then Refresh.'; }
+  const sw=(J.line&&J.line.f[LF.imps]||[]).filter(id=>INKSWAP[id]).map(id=>J.allImps.find(i=>i.id===id)).filter(Boolean);
+  el.hidden=!cs.length&&!sw.length; el.classList.toggle('p-note-alert',!!cs.length);
+  el.innerHTML=cs.map(c=>{ const dd=designDiffs(c.im);   // v246: the pixel scan decides when it can
+      if(dd.length) return `<span class="cl-txt" title="Tap to see it all">${esc(clashText(c))}</span><div style="margin:6px 0 4px"><b>Different design</b> on ${dd.map(x=>esc(lineShort(x.l))+' ('+x.score+'% match)').join(', ')} — not an ink change. It needs its own imprint ID: <b>Make it its own imprint ID</b> under placement, on that garment.</div>`;
+      return `<span class="cl-txt" title="Tap to see it all">${esc(clashText(c))}</span><div class="mk-row" style="gap:8px;margin:6px 0 4px;flex-wrap:wrap"><button class="p-btn" type="button" data-swap="${c.im.id}">Just an ink change</button><span class="mk-hint" style="align-self:center">Same art, same imprint ID — the inks change per garment.</span></div>`; }).join('')
+    +(cs.length&&!cs.some(c=>designDiffs(c.im).length)?'<span class="mk-hint">A different design needs its own imprint ID: <b>Make it its own imprint ID</b> under placement.</span>':'')
+    +sw.map(im=>`<div class="mk-hint" style="margin-top:${cs.length?6:0}px">${esc(im.code)}: just an ink change per garment ✓ <button class="p-btn" type="button" data-unswap="${im.id}" style="min-height:30px;padding:0 10px;margin-left:6px">Undo</button></div>`).join('');
+  el.querySelectorAll('[data-swap],[data-unswap]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); const id=b.dataset.swap||b.dataset.unswap; if(b.dataset.swap) INKSWAP[id]=1; else delete INKSWAP[id]; syncClash(); render(); saveSoon(); }); }
 function syncProofButtons(){
   syncClash();
   const ready=proofReady(), real=J.line&&J.line.id!=='quick'&&!J.line.extra&&J.order, off=!ready||!real||J.busy||(!TOKEN&&!PRACTICE);
@@ -7086,7 +7260,9 @@ function syncProofButtons(){
   $('doneBtn').disabled=!pend&&(!real||!has||sent||J.busy||!!inRev); $('doneBtn').textContent=pend?`Undo · ${SEND.left}`:sent?'Sent to Review ✓':inRev?'In Review ✓':bt?`Proof done → Review (${bt.length})`:'Proof done → Review';
 }
 const lirUrl=(o,l)=>'pine-line-item-review.html?'+[o&&o.num?'order='+encodeURIComponent(o.num):'',l?'line='+encodeURIComponent(l.id):'',PRACTICE?'practice=1':''].filter(Boolean).join('&');
-function clashOk(lines){ const cs=inkClashes(lines); if(!cs.length) return true;   // v225
+function clashOk(lines){ const dd=[...new Set(lines.flatMap(l=>l.f[LF.imps]||[]))].map(id=>J.allImps.find(i=>i.id===id)).filter(Boolean).flatMap(im=>designDiffs(im).map(x=>im.code+' on '+lineShort(x.l)+' ('+x.score+'% match)'));
+  if(dd.length&&!confirm('Different design under one imprint ID: '+dd.join(', ')+'.\n\nA different design needs its own imprint ID (Make it its own imprint ID). Attach anyway?')) return false;   // v246
+  const cs=inkClashes(lines); if(!cs.length) return true;   // v225
   return confirm(cs.map(clashText).join('\n')+'\n\nDifferent inks are different screens — each colourway needs its own imprint ID in Airtable. Attach anyway?'); }
 async function attachProof(){
   if(!proofReady()||!clashOk([J.line])) return; J.busy=true; syncProofButtons();
@@ -7274,7 +7450,12 @@ document.addEventListener('dragover',e=>{ $('driveBox').classList.toggle('is-up'
 $('driveUp').onclick=()=>$('driveUpFile').click();
 $('driveUpFile').onchange=e=>{ driveUpload(e.target.files,curFolder()); e.target.value=''; };
 document.addEventListener('paste',e=>{ const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/')); if(it){ const f=it.getAsFile(); if(f) openArtFile(f,'pasted.png'); } });
-$('ordSel').onchange=e=>pickOrder(e.target.value);
+$('ordSel').onchange=e=>{ ORD_OPEN=false; pickOrder(e.target.value); };
+$('ordSumBtn').onclick=()=>{ ORD_OPEN=true; syncOrdSum(); $('ordSel').focus(); };   // v243
+$('driveFold').onclick=()=>{ DFOLD=!$('driveBox').classList.contains('is-fold'); syncDriveFold(); };
+$('impClash').onclick=e=>{ if(e.target.closest('.cl-txt')) $('impClash').classList.toggle('is-open'); };
+{ const mo=$('moreOpts'); try{ if(lsx.get('pine_mk_more','')==='1') mo.open=true; }catch(e){} mo.addEventListener('toggle',()=>{ lsx.set('pine_mk_more',mo.open?'1':''); }); }
+{ const side=document.querySelector('.mk-side'), bar=$('impBar'); if(side&&bar) side.addEventListener('scroll',()=>bar.classList.toggle('is-stuck',bar.getBoundingClientRect().top-side.getBoundingClientRect().top<=1&&side.scrollTop>0),{passive:true}); }
 // v225: open any order by number, whatever its status (the menu lists orders still awaiting proof)
 async function openOrderNum(){ const n=$('ordFind').value.replace(/\D/g,''); if(!n) return; if(!TOKEN){ toast('Add the Airtable key first'); return; }
   let o=(J.orders||[]).find(x=>String(x.num)===n);
@@ -7380,7 +7561,9 @@ function autoCropAfterErase(im,any){ const a=ART[im.id]; if(!a||a.pieces||a.rot|
     a._remap={id:im.id,exact:prev.recol}; a.crop=prev.crop; buildArt(a); a.widthIn=prev.widthIn; a.widthFrom=prev.widthFrom; syncArt(); render(); toast('Back to the whole picture'); }); return {n:1}; }
 $('scanCrop').onclick=()=>{ const im=curImp(); if(!im) return; const r=autoCropAfterErase(im,true)||{}; if(!r.n) toast(r.msg||'Already cropped to the art'); };   // v200
 $('scanCombine').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a||!a.scan) return; const n=combineSimilar(a); syncScan(a); render(); toast(n?`Combined ${n} similar colour${n===1?'':'s'}`:'No colours close enough to combine'); };
-$('scanUndo').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a) return; a.ed=null; SCAN_SEL=RC.j=-1; syncScan(a); render(); toast('Colour list back to the scan'); };
+$('scanUndo').onclick=()=>{ const im=curImp(), a=im&&ART[im.id]; if(!a) return; const keep={ed:a.ed,rc:RECOL[im.id]?JSON.parse(JSON.stringify(RECOL[im.id])):null};   // tabs preview: recolours / erases too, with Undo
+  a.ed=null; resetRecol(im); SCAN_SEL=RC.j=-1; syncScan(a); render();
+  toastUndo('Colours back to the scan',()=>{ a.ed=keep.ed; if(keep.rc) RECOL[im.id]=keep.rc; a._rc=null; syncScan(a); render(); }); };
 ['ownF','ownB'].forEach(id=>{ const b=$(id);
   b.onclick=()=>{ OWN_SIDE=b.dataset.side; $('ownFile').value=''; $('ownFile').click(); };
   b.ondragover=e=>{ e.preventDefault(); e.stopPropagation(); b.classList.add('is-drag'); }; b.ondragleave=()=>b.classList.remove('is-drag');
@@ -8133,7 +8316,7 @@ async function refreshInPlace(){ const btn=$('refreshBtn'); if(btn.classList.con
   try{ await loadOrders(); await J.qp; await checkLines(); }catch(e){}   // v80: and the open order's lines
   sc.forEach(([e,t])=>{ if(e) e.scrollTop=t; }); if(window.scrollY!==wy) window.scrollTo(0,wy);
   btn.classList.remove('is-busy'); }
-$('refreshBtn').onclick=()=>{ refreshInPlace(); if(window.PineUpdate) PineUpdate.check().then(f=>{ if(!f) toast('You have the newest version'); }); };
+$('refreshBtn').onclick=()=>{ refreshInPlace(); if(window.PineUpdate&&PineUpdate.ver) PineUpdate.check().then(f=>{ if(!f) toast('You have the newest version'); }); };
 loadOrders(); render();
 </script>
 <script>
@@ -8293,21 +8476,30 @@ async function stkDone(){ const l=STK.line; if(!l) return; STK.busy=true; stkSyn
 
 </script>
 <script>
-/* ===== tabs preview: the left panel's tabs (Art · Colours · Placement · Garment · Notes) =====
-   The boxes are the same ones as v242 (same ids, same handlers), moved into tab panels in the HTML above.
-   The open tab is remembered on this computer; each tab keeps its own scroll position. */
+/* ===== tabs preview: the left panel's tabs (Notes · Art · Colours · Placement · Garment) =====
+   The boxes are v247's (same ids, same handlers), moved into tab panels in the HTML above. The open tab is remembered on
+   this computer (Notes when there's none); each tab keeps its own scroll position. */
+// the colour pop-up (#rcBox): on a desktop / iPad landscape it floats over the mockup, beside the panel, level with the
+// colour list and inside the window (its own scroll); narrower, CSS makes it a bottom sheet. syncRecol calls this.
+function rcPlace(){ const box=$('rcBox'), side=document.querySelector('.mk-side'); if(!box||box.hidden||!side) return;
+  const st=box.style; if(window.innerWidth<=900){ st.left=st.top=st.width=st.maxHeight=''; return; }
+  const sr=side.getBoundingClientRect(), vw=window.innerWidth, vh=window.innerHeight, top0=Math.max(sr.top,0)+8;
+  const left=Math.round(sr.right+12), w=Math.max(340,Math.min(600,vw-left-16));
+  st.left=left+'px'; st.width=w+'px'; st.maxHeight=Math.round(vh-top0-12)+'px';
+  const sw=$('scanSw'), lr=sw&&sw.offsetParent?sw.getBoundingClientRect():null, h=box.offsetHeight;
+  let top=lr?lr.top-8:top0; top=Math.min(top,vh-h-12); top=Math.max(top,top0); st.top=Math.round(top)+'px'; }
 (()=>{
-  const KEY='pine_mk_tab_v1', TABS=['art','col','place','garment','notes'];
+  const KEY='pine_mk_tab_v2', TABS=['notes','art','col','place','garment'];
   const side=document.querySelector('.mk-side'), bar=$('sideTabs'), head=$('sideHead');
   if(!side||!bar) return;
   let cur=null; const scr={};
   function sideTab(t){
-    if(!TABS.includes(t)) t='art'; if(t===cur) return;
+    if(!TABS.includes(t)) t='notes'; if(t===cur) return;
     if(cur) scr[cur]=side.scrollTop;
-    if(cur==='col'&&!$('rcBox').hidden){ try{ closeRc(); }catch(e){ $('rcBox').hidden=true; } }   // the "Change this ink" popover belongs to Colours
+    if(cur==='col'&&!$('rcBox').hidden){ try{ closeRc(); }catch(e){ $('rcBox').hidden=true; } }   // the colour pop-up belongs to Colours
     cur=t;
     bar.querySelectorAll('[data-t]').forEach(b=>{ const on=b.dataset.t===t; b.setAttribute('aria-selected',on?'true':'false'); b.tabIndex=on?0:-1; });
-    document.querySelectorAll('.mk-side>.mk-tp').forEach(p=>p.classList.toggle('is-on',p.dataset.tp===t));
+    side.querySelectorAll(':scope>.mk-tp').forEach(p=>p.classList.toggle('is-on',p.dataset.tp===t));
     try{ localStorage.setItem(KEY,t); }catch(e){}
     side.scrollTop=scr[t]||0;
     upd();
@@ -8318,10 +8510,8 @@ async function stkDone(){ const l=STK.line; if(!l) return; STK.busy=true; stkSyn
     let i=TABS.indexOf(cur); i=e.key==='Home'?0:e.key==='End'?TABS.length-1:(i+(e.key==='ArrowRight'?1:-1)+TABS.length)%TABS.length;
     sideTab(TABS[i]); bar.querySelector(`[data-t="${TABS[i]}"]`).focus(); });
   side.addEventListener('click',e=>{ const b=e.target.closest('[data-tgo]'); if(b) sideTab(b.dataset.tgo); });
-  // the long "different inks" warning: three lines, click for all of it
-  $('impClash').addEventListener('click',e=>{ if(e.target.closest('a,button')) return; e.currentTarget.classList.toggle('is-open'); });
 
-  // badges, empty states — read from the boxes the app already shows / hides
+  // badges and empty states: read from the boxes the app already shows / hides
   const vis=id=>{ const e=$(id); return !!e&&!e.hidden; };
   const put=(id,txt,cls)=>{ const e=$(id); if(!e) return; if(e.textContent!==txt) e.textContent=txt; ['is-new','is-ok'].forEach(c=>{ const on=c===cls; if(e.classList.contains(c)!==on) e.classList.toggle(c,on); }); };
   const hide=(id,h)=>{ const e=$(id); if(e&&e.hidden!==h) e.hidden=h; };
@@ -8329,20 +8519,23 @@ async function stkDone(){ const l=STK.line; if(!l) return; STK.busy=true; stkSyn
     const art=vis('sizeBlk');
     put('tbArt',art?'✓':'',art?'is-ok':'');
     const n=vis('scanBox')?$('scanSw').querySelectorAll('[data-j]').length:0; put('tbCol',n?String(n):'');
+    put('tbPlace',vis('dsgHint')&&/Different design/i.test($('dsgHint').textContent)?'!':'');
     const nNotes=vis('brief')?$('brief').querySelectorAll('.nt').length:0, nC=vis('cmtBox')?(+$('cmtN').textContent||0):0, isNew=vis('cmtBox')&&vis('cmtNew');
     put('tbNotes',isNew?'new':(nNotes+nC)?String(nNotes+nC):'',isNew?'is-new':'');
     hide('colEmpty',art); hide('placeEmpty',art);
-    hide('notesEmpty',vis('brief')||vis('cmtBox'));
+    hide('notesEmpty',vis('brief')||vis('cmtBox')||vis('noteRow'));
+    const im=typeof curImp==='function'?curImp():null, pf=$('pnoteFor'), code=im&&im.code?im.code:''; if(pf&&pf.textContent!==code) pf.textContent=code;
     if(!$('rcBox').hidden&&cur!=='col') sideTab('col');
-    const h=head.offsetHeight; if(h&&upd._h!==h){ upd._h=h; side.style.setProperty('--shead',(h+8)+'px'); }
+    if(head){ const tall=window.innerWidth>900&&head.offsetHeight>side.clientHeight*.5; if(head.classList.contains('is-tall')!==tall) head.classList.toggle('is-tall',tall); }
   }
   let q=0; const soon=()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; upd(); }); };
   try{ new MutationObserver(soon).observe(side,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden','open']}); }catch(e){}
-  window.addEventListener('resize',soon);
-  let first='art'; try{ first=localStorage.getItem(KEY)||'art'; }catch(e){}
+  // the pop-up follows its own size (More opened, a longer list) and the window
+  try{ new ResizeObserver(()=>rcPlace()).observe($('rcBox')); }catch(e){}
+  window.addEventListener('resize',()=>{ soon(); rcPlace(); });
+  let first='notes'; try{ first=localStorage.getItem(KEY)||'notes'; }catch(e){}
   sideTab(first);
 })();
-
 </script>
 <script src="pine-update.js" data-link="mockup.html"></script>
 <script>if(window.PineUpdate&&PineUpdate.ver) document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
