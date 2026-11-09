@@ -3205,3 +3205,11 @@ Stephen: "we can not go over PMS 7771. it is the highest number we can go....can
   - Short sleeves are unchanged.
   - Tested with S&S's Independent SS4500 photo: the print now sits on the left sleeve.
 - **Tests:** 26/26 tabs checks with mocked Airtable in practice mode. No page errors.
+
+## 2026-11-09 — v251: a size per garment on the inside size tag
+Stephen: "I want to have the size tag reference be unique per garment....meaning if I am showing a Medium I select medium...if I am showing an XS I can show XS". Each size is its own art in the tag file (separate artboards, pages or layers).
+
+- On a Size Tag imprint, Placement › **Another size on <garment>** opens the same tag file again (kept as `a.srcFile` when the art is opened) with its artboard / layer picker. Pick that garment's size and its proof's Supacolor tag section shows it. **Pick another size** changes it later.
+- It stays the same imprint: the design scan doesn't call a different size a different design, and the "same design / different design" hint and "Make it its own imprint ID" don't show for tags.
+- **Tested** (mocked Airtable, practice): a 2-page tag PDF. Navy kept page 1 and Khaki got page 2, each on its own proof. No page errors.
+- **Fixed before shipping:** a `//` comment had swallowed the start of `designDiffs` (`const out=[]`).
