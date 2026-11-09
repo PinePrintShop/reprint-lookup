@@ -2962,3 +2962,17 @@ Stephen (11122): "how do we store the photos for none API garments".
   - Live: exactly 2 writes — POST imprint (fields as above, "Ink logo – Khaki") and PATCH the Khaki line's Imprints to the new record. It comes back as 11095-B with the Khaki art; Navy keeps 11095-A and its art. The button and switch hide afterwards.
   - Practice: no writes.
   - The v229 sticker Drive test still passes. No errors.
+
+## 2026-11-09 — v231: name a colour made from a #hex
+- Stephen: "having a hard time just changing the name of a color I put in the hex code and now want to name it"
+- **Cause:** a recolour to a hex was stored as the bare hex (`RECOL[imp][scope][j]="#1a7a4c"`). "Just rename it" renamed the scanned colour underneath (`ed.name`), but the chip and the proof show the recolour, so the hex never went away.
+- **Fix:**
+  - On an ink that has been recoloured, Just rename it names the new colour. It's stored as "<NAME> #hex" (e.g. "PINE GREEN #1a7a4c").
+  - `inkHex` and `pantoneHexOf` read the trailing hex as the colour. `inkLabel` and the proof chip labels drop it, so only the name shows.
+  - The panel title shows what you're naming ("Call #1a7a4c").
+  - An ink that wasn't recoloured renames as before.
+- **Tested (practice):**
+  - White recoloured to #1a7a4c, then renamed "Pine Green": swatch "EZP WHT → PINE GREEN", proof chip PINE GREEN in #1a7a4c.
+  - Renamed again to "Pine Forest": same colour.
+  - A plain rename to "7501 EZP" still works.
+  - No errors.
