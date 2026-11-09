@@ -3174,3 +3174,19 @@ Stephen: "the color pop up is still pretty big and you still have to scroll on a
   - The colour pop-up floats beside the panel on a computer and is a bottom sheet on narrower screens. The panel's height doesn't change when it opens.
   - The remembered tab is stored under `pine_mk_tab_v2`.
   - Tests: 26/26 checks at 1440×900 and 768×1024, with mocked Airtable in practice mode.
+
+## 2026-11-09 — v249: tabs become the main version; colours the scan missed
+Stephen: "let's roll the tabs into the main version....it is the winner for flow" · "can we have a feature to add colors....looks like this dropped 2 colors out of the grab" (a badge with a blue-grey river and a peach flame centre).
+
+- **Tabs:** v249 is the tabs preview (Notes · Art · Colours · Placement · Garment, with the job pinned at the top) with "preview" taken off the title and version pill. `mockup.html` now opens it. `pine-mockup-tabs-preview.html` stays as it was, unlinked.
+- **Why the colours were dropped:** the scan drops a small colour that sits between two big ones, because the soft edge where cream meets dark green makes exactly such a colour. The river (blue-grey, between cream and green) and the peach (between cream and brown) fit that test.
+- **Scan fix:** it now also looks at the shape. For each colour it measures the share of its pixels whose four neighbours are the same colour. An edge is a thin line (low share); an ink fills an area (high share).
+  - A "between" colour is dropped only if under 35% of its pixels are inside its own area.
+  - A colour from 0.4% of the print (was 1%) is kept when at least half of its pixels are inside its area.
+  - Test badge: the river at 2.5% and the peach at 0.5% are now found. v248 found neither.
+- **+ Add colour** (next to Crop to art / Combine): opens the art; click a spot and its colour (a 5×5 average) is offered with its closest ink, then **Add**.
+  - A colour already in the list says so.
+  - Picked colours go at the end of the list, so ink changes keep their place, and every colour's share is counted again.
+  - Picked colours are kept on rescans and crops (stored in `a.picked`).
+- **Dialogs fix:** dialogs inside a hidden tab can't show (the crop, PDF edit and garment-photo dialogs had moved into the Art tab). At load, every side-panel dialog now moves to the end of the page.
+- **Tests:** 26/26 tabs checks at 1440×900 and 768×1024, plus the badge scan and the picker, with mocked Airtable in practice mode. No page errors.
