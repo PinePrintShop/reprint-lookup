@@ -3132,3 +3132,19 @@ Stephen (11122): "how do we store the photos for none API garments".
 - The list is a little taller and fades at the bottom only when there's more to scroll. Before, it cut a row in half.
 - Effect (metallic / glitter / puff) moved under "More: effect, merge, remove, erase, reset".
 - **Tested (practice):** the groups and headings show (with a search too); no fade when everything fits. No errors.
+
+## 2026-11-09 — Tabs preview (for review, not the live app)
+- Stephen: "maybe have an agent work on a tab version for us to review here".
+- `pine-mockup-tabs-preview.html` is built from v242, so it doesn't have v243–v245. It's for comparing layouts only; `mockup.html` still opens the scrolling panel. Share the practice link: without `?practice=1` it writes to Airtable like the real app.
+- **Layout:** the job area is pinned at the top (order on one row, line, imprint chips, "different inks" warning cut to two lines). Under it are tabs: **Art · Colours · Placement · Garment · Notes**, with badges (Art ✓, ink count, notes/comments count).
+  - **Art:** method, open art, file buttons, size, low-res box, customer's files.
+  - **Colours:** swatches, recolour, separations tick, add an ink, background tick boxes, layers.
+  - **Placement:** placement, own spot, own imprint ID, proof notes.
+  - **Garment:** the garment, plus ink opacity, fabric look and underbase.
+  - **Notes:** the order's notes and comments.
+- Each tab remembers its scroll position, and the open tab is remembered per computer.
+- Measured at 1440×900, nearly every tab fits on one screen. Colours scrolls ~180 px with 10 inks.
+- **Open questions:**
+  - Should notes stay in front instead of behind a tab?
+  - Underbase and opacity are on Garment, not Colours.
+  - The order row has no labels.
