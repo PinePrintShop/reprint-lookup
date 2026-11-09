@@ -3090,3 +3090,9 @@ Stephen (11122): "how do we store the photos for none API garments".
   - The small labels (the stage's size tag, colourway headers, bandana close-up) put the lines on one line with " · ".
 - Works with each garment's own placement text (v236).
 - **Tested (practice):** 3 lines on the front and 2 on the tag render cleanly on page 1 and the close-up. No errors.
+
+## 2026-11-09 — v242: Supacolour logo as wide as the rule above it
+- Stephen, with a proof where the Supacolour logo under a sleeve print's Colors was much narrower than the hairline above: "can we make the supacolor logo the same size as the line above it".
+- On page 1's info block, a transfer's Supacolour logo is now drawn as wide as the rule above Colors (1.32″, 0.30″ tall). On the embroidery-style block it matches that block's 1.78″ rule.
+- Ink chips and the tag section are unchanged.
+- **Tested (practice):** a Supacolour sleeve print's logo spans the rule. No errors.
