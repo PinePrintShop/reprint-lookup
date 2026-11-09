@@ -16,3 +16,7 @@ The site (`https://pineprintshop.github.io/reprint-lookup/`) is published by Git
 ## 2026-11-06 · "Deployment failed, try again later" (Topo Packing v11)
 - Run 2242 (PR 654, Topo Packing v11): the build passed; "Deploy to GitHub Pages" sat in `deployment_queued` for 40 s, then "Deployment failed, try again later." A GitHub-side failure; the code built fine.
 - Fix: a fresh merge to main (this note), which republishes the whole site.
+
+## 2026-11-09 · deploy stuck after Mockup Maker v248
+- Run 2278 (PR 690, Mockup Maker v248 + tabs preview): the build passed in 40 s, then "Deploy to GitHub Pages" hung for over 5 minutes. Stephen: "they still haven't loaded".
+- Fix: cancelled the run through the API (this time it accepted), then merged this note to main, which republishes the whole site.
