@@ -522,3 +522,12 @@ Stephen (phone): "in mobile when I am in order and from clicking back from revie
 - **Unsaved work:** if you have unsaved lines, Back asks "Leave this order?" first, the same as the link; Cancel keeps you in the order.
 - **Link renamed:** "Change order" now reads **‹ All orders**.
 - **Tests:** 12/12 on an iPhone 13 screen with mocked Airtable in practice mode (`scratchpad/co25/t25.js`), 0 writes.
+
+## 2026-11-09 — v26: size tags priced as a gang sheet
+Stephen: "Let's fix the size tag" (from the 11172 pricing check: Airtable priced each Supacolor size tag as a single 2.5×2.5 transfer, while Price-O-Matic prices it as 1/12 of an A4 gang sheet).
+
+- **Supacolor + Size Tag:** the Transfer Size now defaults to **A4 - 8.3 X 11.7 GANG**. Saving also writes **[PRICE] Impressions / Gang Sheet = 12**, so Airtable's transfer cost is the sheet price ÷ 12. A 1.5" or 2.5" size picked for a tag moves to the gang size. Any other size stays as chosen, with a hint and a "Use that" link.
+- **From a Price-O-Matic quote:** "Size Tags 1C" used to come over as a 1-screen No Base W/B screen print. It now becomes Supacolor - 1C Wearable · Size Tag · A4 gang.
+- **11172:** the five size-tag imprints (B, D, F, H, J) were moved to the A4 gang size with 12 per sheet, as Stephen asked. Their price per impression went from $1.88–$2.78 to $1.61–$1.93, and the transfer cost from $0.47–$0.98 to $0.26–$0.31.
+- **Still different from Price-O-Matic** (for the December pricing pass): Airtable's size-tag price is cost × 1.25 + $15 ÷ qty + $1.25, while Price-O-Matic's is sheet ÷ 12 + $1.25. The two 1C A4 gang grids also differ by about 3% (Airtable $3.68 vs Price-O-Matic $3.79 at tier 1).
+- **Tests:** mocked Airtable in practice mode. Tag defaults, quote mapping and the fields sent on save were checked. No page errors.
