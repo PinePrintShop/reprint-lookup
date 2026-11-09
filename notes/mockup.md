@@ -2941,3 +2941,24 @@ Stephen (11122): "how do we store the photos for none API garments".
   - Attach and Proof done still work (practice). The promo sticker line still works.
   - Switching to the garment line puts the browser back in the Art panel.
   - No writes, no errors.
+
+## 2026-11-09 — v230: different art → its own imprint ID
+- Stephen: "when we do need to create a new imprint-id if the mockup creator finds the artwork is different can we automate that and have a quick add imprint id to the order"
+- **Flow:**
+  1. On a print shared by 2+ garments, tick **Different art on <colour>** and open that garment's file.
+  2. **Make it its own imprint ID** appears. Its dialog says what will happen.
+  3. **Create imprint** then does four things:
+     - **Imprints record:** creates a new one linked to the order. It copies the shared imprint's print type, location, screens, ink changes, stitches, Supacolor size, Pantone text, ink notes and inks. The nickname is "<nickname> – <colour>". It doesn't copy previous imprint/repeat, proof images or seps.
+     - **The ID:** Airtable's "Imprint Created" automation gives it the next free letter (e.g. 11095-B). The app waits up to ~20 s to show it.
+     - **The line:** that garment's line item moves from the shared imprint to the new one (only `Imprints` on that line changes). The other garments keep the shared ID.
+     - **The art:** the garment's own art, spot and print settings (placement text, opacity, curve, base, effects, extra inks, notes) become the new imprint's. The order reloads on the new imprint.
+- **Practice:** nothing is written; a toast says what would happen.
+- **Automations checked before building:**
+  - Creating an imprint fires only the ID automation.
+  - Changing a line's imprints can fire "SLACK: Scheduled Imprint Changed" (it watches the order); that's meant for scheduled orders, and proofs come before scheduling.
+- **Also:** the "Same spot on all garments / Own spot" switch now shows only when the print is on 2+ garments (it showed whenever the order had 2+ lines).
+- **Tested (mocked Airtable, order 11095 with 11095-A on Navy and Khaki):**
+  - The button shows only after the tick plus the file.
+  - Live: exactly 2 writes — POST imprint (fields as above, "Ink logo – Khaki") and PATCH the Khaki line's Imprints to the new record. It comes back as 11095-B with the Khaki art; Navy keeps 11095-A and its art. The button and switch hide afterwards.
+  - Practice: no writes.
+  - The v229 sticker Drive test still passes. No errors.
