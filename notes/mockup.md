@@ -3069,3 +3069,13 @@ Stephen (11122): "how do we store the photos for none API garments".
   - The saved colour loads and shows first in search. Naming #ff3366 "Hot Pink" and adding "7501 EZP" each POST one row.
   - Navy at L, Khaki stays M, and Khaki's proof uses M.
   - The drop-down groups by imprint ID. No errors.
+
+## 2026-11-09 — v240: the #hex search forgives typing
+- Stephen, recolouring a heat-press tag, typed "7acoo" and got "Nothing like". It was 5 characters, and the O's were letters, not zeros. The search only took an exact 6-character hex, so this wasn't specific to tags.
+- Now the search:
+  - reads the letter O as zero (7aCOOO → #7ac000);
+  - ignores spaces and a missing #;
+  - takes the 3-character short form when typed with # (#7a0 → #77aa00).
+- A code that's 4–5 characters says "A #hex has 6 characters — “7acoo” has 5".
+- Pantone numbers (186, 7501) and words still search as before.
+- Earlier note: v239 waited on Stephen's tag file for the "no colours" report. His screenshot showed this was the cause.
