@@ -2994,3 +2994,12 @@ Stephen (11122): "how do we store the photos for none API garments".
 - Stephen: "let's make it say this INK COLORS TO BE DETERMINED BY SEPARATIONS".
 - The tick and the proof now read **INK COLORS TO BE DETERMINED BY SEPARATIONS** (was "Colors will be determined by Separation"). It wraps to the Colors box width as before. Nothing else changed.
 - **Tested (practice):** proof render with the tick on; no errors.
+
+## 2026-11-09 — v234: art from a customer's spec-sheet PDF
+- Stephen, with a customer's bandana spec sheet: "This is having a hard time pulling out the artwork... is this pdf have the artwork on a specific layer?"
+- The file has no layers (saved as PDF/X-1a, which flattens them). Each page is a spec sheet: a header bar, an order box, Pantone swatches and the design drawn on a fabric-colour square. These sit about 0.28″ apart, so the picker joined the header, the order box and the square into one piece. The navy/royal square also wasn't offered as a background to drop.
+- **Fix (shared `pine-ai-parts.js`, loaded as `?v=234`):**
+  - The picker also looks for pieces without joining across gaps. A solid square at least 2″ a side is offered as its own piece and picked to start.
+  - A picked piece drawn on a solid colour gets "Drop the background colour (crops to the print)", ticked to start. It opens as just the print.
+  - Other files are unchanged: the extra piece only appears when its four corners share one solid colour.
+- **Tested (practice):** both pages open to the design alone (5.2″ and 5.5″ as drawn; a bandana line still opens at 20″). The fabric colour is dropped (52% of the art see-through). No errors, no writes.
