@@ -3155,3 +3155,9 @@ Stephen: "let's really do a nitty gritty audit of how this side panel works" · 
 - **Design scan:** when a garment has its own art under a shared imprint ID, the app compares the two prints' shapes (ink coverage on a 96×96 grid, plus the proportions), ignoring the colours. 80%+ overlap with the same proportions = same design ("just different inks, it can stay"). Anything less = different design, which needs its own imprint ID.
 - In the clash warning, "Just an ink change" only shows for the same design. A different design says so with the match % and points to "Make it its own imprint ID". Attaching the proof anyway asks to confirm first.
 - **Side panel tidy:** the thin-lines box is no longer yellow (yellow = the main button). The Colours actions (Crop to art · Combine · Undo) sit in the header. The separations tick now reads "Colours to be set by separations". Dropped the "Tap a colour…" and "art is balanced" lines. Shorter size and same-spot hints. On desktop (mouse), buttons and inputs are more compact, so less scrolling.
+
+## 2026-11-09 — v247
+Stephen: "also looks like it isn't pulling in a sweatpants we get from ITC" (Independent PRM50PTPD).
+
+- S&S had the style and photos all along. A pair of pants laid flat is tall and narrow (425×1140 px), so the photo check took it for a photo of a person and the app fell back to the plain tee.
+- Pants are now their own kind, like caps and totes. A name or vendor title with pants / sweatpants / joggers / shorts / leggings / trousers picks it, or Kind › "Pants / shorts". The vendor photo is used as is, sized by ~24" across both legs at the hip. The print starts on the wearer's left thigh (the photo's right).
