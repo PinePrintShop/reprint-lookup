@@ -3012,3 +3012,22 @@ Stephen (11122): "how do we store the photos for none API garments".
   - A solid colour over the whole canvas at the bottom (above or instead of Background) is left out like the Background, marked "solid background". Untick or tick as needed.
   - When the fills are named as inks, those are the art's inks (232 C, 2286 C), with the fill colours. The art doesn't need stacking twice to get two colours.
 - **Tested (practice):** a PSD built the same way opens green and pink. Color Fill 1 and Background are unticked. Inks read 232 and 2286 from the file. No errors, no writes.
+
+## 2026-11-09 — v236: garment sizes in Airtable; placement text per garment
+- **Garment sizes** (Stephen: "when I save a garment to Airtable does it also save the update dimensions I used from the vendor site?" It didn't. Then: "add away").
+  - New Garments fields (agreed with Stephen; no automations watch Garments): **Body Length M (in)** `fldw2NQoALou3UAGy` and **Body Width M (in)** `fldhbaBGwSvfC3vCM`.
+  - Save photo also saves the sizes you set. "Save sizes to Airtable" (under the size boxes) shows when your sizes differ from Airtable's, with or without a new photo.
+  - A typed body length is stored as its size-M equivalent (the shown size's step taken off).
+  - A garment opens at: the body length typed for this job, then Airtable's (stepped for the size shown), then the vendor's spec sheet, then typical. The width uses this computer's, then Airtable's. Emptying the width box turns Airtable's off on this computer.
+  - A typed body length is now also kept with the job's saved work (before, Refresh lost it).
+  - The stand-in and typed-in garments are never written to, same as photos.
+- **Placement text per garment** (Stephen: "why the location for the print can't be unique text per line item... I want it here on XS and then for Mens I want it here").
+  - The print's spot could already be per garment ("Own spot for …"), but the typed placement text was one per imprint, so it showed on every garment.
+  - With "Own spot for …" picked, the placement text box is that garment's own (labelled "Placement text on 1717 Navy's proof"). With nothing typed, it reads that garment's own spot.
+  - The switch names the garment by style and colour, and says the text follows it.
+  - The text is kept with the job and copied when a print is split into its own imprint ID.
+- **Tested (mocked Airtable):**
+  - Navy (own spot) and Khaki show different placement text on their proofs.
+  - Khaki with 28.5″ in Airtable opens at 28.5″.
+  - Typing 30″ and 21″ shows the save button. Saving writes one PATCH to that garment with both fields. Size L then reads 31″.
+  - No errors.
