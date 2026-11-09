@@ -3116,3 +3116,12 @@ Stephen (11122): "how do we store the photos for none API garments".
   - The new panel was measured again. The pinned chips work while scrolling.
   - A 4 in SVG opens at its real size.
   - Saved colours, the size per line, the grouped line list and recolour still pass. No errors.
+
+## 2026-11-09 — v244: "Just an ink change"
+- Stephen: "also an ink change is not a different design always...sometimes it is just an ink change".
+- Since v225, the same imprint printing different inks on different garments raised a red warning ("each colourway needs its own imprint ID"). Attaching asked to confirm.
+- Now the warning has **Just an ink change** for each imprint. That imprint keeps one imprint ID with different inks per garment. The warning and the attach question go, and a small "just an ink change per garment ✓ · Undo" line stays.
+- It's kept with the job's saved work.
+- A different design is still pointed to "Make it its own imprint ID" (under placement).
+- Only the long ink list in the warning folds to two lines (tap it). The button always shows.
+- **Tested (practice):** the warning shows on the sample order; Just an ink change clears it and attaching no longer asks; it's saved with the job; Undo brings it back. No errors.
