@@ -35,7 +35,7 @@
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v242 (Supacolour logo as wide as the rule above it) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v243 (less scrolling: panel in work order, pinned imprint chips; .svg art) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v12 |
