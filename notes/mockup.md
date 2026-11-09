@@ -3190,3 +3190,18 @@ Stephen: "let's roll the tabs into the main version....it is the winner for flow
   - Picked colours are kept on rescans and crops (stored in `a.picked`).
 - **Dialogs fix:** dialogs inside a hidden tab can't show (the crop, PDF edit and garment-photo dialogs had moved into the Art tab). At load, every side-panel dialog now moves to the end of the page.
 - **Tests:** 26/26 tabs checks at 1440×900 and 768×1024, plus the badge scan and the picker, with mocked Airtable in practice mode. No page errors.
+
+## 2026-11-09 — v250: Pantones up to 7771 only; sleeve prints on hoodies
+Stephen: "we can not go over PMS 7771. it is the highest number we can go....can we make sure we have the whole pantone libarary up to that number" · "working on adding a sleeve print … it is shared on a hoodie and it shows up in the close up view but not on the actual hoodie sleeve".
+
+- **pine-pantone-v2.js** (new shared file; v1 is unchanged, per the versioning rule): v1 plus the 515 Pantone Solid Coated numbers v1 was missing. That's 459 in the 2000s (2001–2775, e.g. 2132 and 2286) and 56 in the 3000s (3500s). It now has 1,825 numbered Pantones, the highest being 7771.
+  - The colours come from X-Rite's PANTONE+ Solid Coated V3 colour book (Lab, D50, from the `color-books` npm package), converted to sRGB with Bradford adaptation to D65.
+  - On the 1,285 colours both files have, the conversion averages 4.8/255 from v1's values.
+  - Not covered: colours Pantone added after that book (newer than 2016) aren't in any free dataset I found.
+- **The 7771 limit:** `pmsOk()` refuses any Pantone number above 7771 (with or without OW / DC / C / U). It applies to the scan's ≈ names (`inkList`), the colour search, colour words, and Pine's own ink list from Airtable. Tested with a made-up Pine ink "8003": it never comes up.
+- **Sleeve prints on long sleeves:** the front view placed a sleeve print at fixed points of the garment box (a tee's sleeve positions), then clipped it to the garment. On a hoodie photo the sleeves hang beside the body, so the print landed on the body's edge and was mostly cut away. The close-up doesn't use the photo, so it still showed there.
+  - `sleeveFromPhoto()` now finds the sleeve in the photo's garment mask: its outer edge on that side, and the shoulder (where that edge stops sloping).
+  - The sleeve's middle is half the gap to the body in from the edge, or 3.6" in when the sleeve touches the body.
+  - Short sleeves are unchanged.
+  - Tested with S&S's Independent SS4500 photo: the print now sits on the left sleeve.
+- **Tests:** 26/26 tabs checks with mocked Airtable in practice mode. No page errors.
