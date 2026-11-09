@@ -3213,3 +3213,12 @@ Stephen: "I want to have the size tag reference be unique per garment....meaning
 - It stays the same imprint: the design scan doesn't call a different size a different design, and the "same design / different design" hint and "Make it its own imprint ID" don't show for tags.
 - **Tested** (mocked Airtable, practice): a 2-page tag PDF. Navy kept page 1 and Khaki got page 2, each on its own proof. No page errors.
 - **Fixed before shipping:** a `//` comment had swallowed the start of `designDiffs` (`const out=[]`).
+
+## 2026-11-09 — v252: tag size per garment, in the Art tab
+Stephen on v251: "not working for me....can you walk me through this". His screenshot (11172, Navy, 11172-D Size Tag) was on the Art tab, and his tag sizes are separate .ai files in Drive (IMPRINT-B.ai, IMPRINT-F.ai). v251 only offered it on the Placement tab, and it only reopened the same file.
+
+- On a Size Tag imprint shared by 2+ garments, the Art tab now has a **Tag size on <garment>** row under the file buttons:
+  - **From <file>** (for .ai / PDF / .psd): another artboard or layer of the same file.
+  - **Another file**: then click that size's file in Customer's files, or click the art card to pick a file on the computer. The next art opened goes to this garment only.
+  - **Same as the others**: undoes it.
+- **Tested** (mocked Airtable, practice): an "M" file on Navy, then Another file → an "XS" file on Khaki. Each proof shows its own tag, and Same as the others returns Khaki to M. No page errors.
