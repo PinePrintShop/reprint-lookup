@@ -3031,3 +3031,20 @@ Stephen (11122): "how do we store the photos for none API garments".
   - Khaki with 28.5″ in Airtable opens at 28.5″.
   - Typing 30″ and 21″ shows the save button. Saving writes one PATCH to that garment with both fields. Size L then reads 31″.
   - No errors.
+
+## 2026-11-09 — v237: inside size-tag section on the proof
+- Stephen, with an art department proof: "can we get a similar supacolor tag section when we need to add inside tags? Please match pixel to pixel for this".
+- A print whose Airtable location is **Size Tag** is drawn in page 1's left column, under Fabric Content, at that proof's own positions (measured from the PDF in points):
+  - a 0.5 pt rule at 312.8 pt;
+  - "SIZE TAG -<imprint ID>" in 12.57 pt bold;
+  - Width / Height and "Placement: 0.5" below tape" in 10.06 pt;
+  - a second rule at 379 pt;
+  - the Supacolour logo at 117.24 × 26.03 pt (ink chips instead when the tag is screen printed);
+  - the tag on the garment's colour in a 196.6 × 114.6 pt panel, the art filling 79% × 87% of it.
+- With a tag, the blue size note moves to the right of APPROVED, as on that proof.
+- The tag isn't drawn on the garment picture (only while you're editing it, so you can place it) and gets no close-up page.
+- A tag opens 3″ wide, placed 0.5″ below the tape; its placement text reads "below tape".
+- **Tested (practice):**
+  - Overlaid on the PDF at 150 dpi: rules, logo, panel and text line up to within font smoothing.
+  - The garment and its info block are unchanged.
+  - Proof pages have no tag close-up. No errors.
