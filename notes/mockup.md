@@ -3079,3 +3079,14 @@ Stephen (11122): "how do we store the photos for none API garments".
 - A code that's 4–5 characters says "A #hex has 6 characters — “7acoo” has 5".
 - Pantone numbers (186, 7501) and words still search as before.
 - Earlier note: v239 waited on Stephen's tag file for the "no colours" report. His screenshot showed this was the cause.
+
+## 2026-11-09 — v241: placement text on several lines
+- Stephen: "When adding specific location information can we be able to do multiple lines".
+- The placement text box is now a text area: Enter starts a new line, up to 3 lines.
+- Where the lines go:
+  - **Page 1's info block** and the **embroidery block** stack the lines and move the rule and colours down.
+  - The **close-up header** shows line 1 at 18 pt and the rest under it at 13 pt; the Garment line makes room.
+  - The **tag section** fits two lines above its rule (8.6 pt); a third joins the second.
+  - The small labels (the stage's size tag, colourway headers, bandana close-up) put the lines on one line with " · ".
+- Works with each garment's own placement text (v236).
+- **Tested (practice):** 3 lines on the front and 2 on the tag render cleanly on page 1 and the close-up. No errors.
