@@ -35,7 +35,7 @@
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v6 |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v244 ("Just an ink change" keeps one imprint ID; less scrolling; .svg) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v245 (colour picker cleaned up; ink change; less scrolling; .svg) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v12 |

@@ -3125,3 +3125,10 @@ Stephen (11122): "how do we store the photos for none API garments".
 - A different design is still pointed to "Make it its own imprint ID" (under placement).
 - Only the long ink list in the warning folds to two lines (tap it). The button always shows.
 - **Tested (practice):** the warning shows on the sample order; Just an ink change clears it and attaching no longer asks; it's saved with the job; Undo brings it back. No errors.
+
+## 2026-11-09 — v245: colour picker cleaned up
+- Stephen, with the picker open: "can we also clean this up".
+- The picker's choices now sit under one heading per group: Saved colours, Pine's inks, Madeira threads, Pantone. Before, each saved tile carried a "saved" tag, which wrapped to "save d".
+- The list is a little taller and fades at the bottom only when there's more to scroll. Before, it cut a row in half.
+- Effect (metallic / glitter / puff) moved under "More: effect, merge, remove, erase, reset".
+- **Tested (practice):** the groups and headings show (with a search too); no fade when everything fits. No errors.
