@@ -2927,3 +2927,17 @@ Stephen (11122): "how do we store the photos for none API garments".
   - A stand-in hoodie line: art plus a front photo; the setup holds the photo (22 KB).
   - Closed and opened in a new page: no photo until Pick up; after it, the own photo is back.
   - 0 Airtable writes, no page errors.
+
+## 2026-11-09 — v229: Drive files in the Sticker panel
+- Stephen: "in mockup creator can the sticker portion still have access to the google drive folder"
+- **Cause:** sticker mode hides the Art panel, and the Customer's files browser (`#driveBox`) lives in it, so sticker lines had no Drive access.
+- **Fix:**
+  - While a sticker line is open, the same browser moves into the Sticker panel, under the drop box (`stkDrive(true)` in `stkOpen`). It goes back to the Art panel when a garment line opens (`stkOff`).
+  - Tapping an art file, or "Use this art" in its preview, downloads it and loads it as the sticker art (`stkLoad`) instead of opening it on a garment.
+  - Upload, Find the art, folders, New tags and Open in Drive work as before.
+  - The drop box now says "…or tap it in the customer's files below".
+- **Tested (practice, mocked Drive for 11156 → Client Provided → oddity-sticker.png):**
+  - The files show in the Sticker panel; tapping the PNG loads it (3″ × 4″ die cut).
+  - Attach and Proof done still work (practice). The promo sticker line still works.
+  - Switching to the garment line puts the browser back in the Art panel.
+  - No writes, no errors.
