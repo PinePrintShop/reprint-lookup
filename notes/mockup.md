@@ -2989,3 +2989,8 @@ Stephen (11122): "how do we store the photos for none API garments".
   - Chip render, v231 vs v232 side by side.
   - Proof page 1 with the tick on shows the sentence; untick and the chips return.
   - The v229 sticker Drive test passes. No errors.
+
+## 2026-11-09 — v233: separation note wording
+- Stephen: "let's make it say this INK COLORS TO BE DETERMINED BY SEPARATIONS".
+- The tick and the proof now read **INK COLORS TO BE DETERMINED BY SEPARATIONS** (was "Colors will be determined by Separation"). It wraps to the Colors box width as before. Nothing else changed.
+- **Tested (practice):** proof render with the tick on; no errors.
