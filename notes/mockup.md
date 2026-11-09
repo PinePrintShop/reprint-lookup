@@ -2976,3 +2976,16 @@ Stephen (11122): "how do we store the photos for none API garments".
   - Renamed again to "Pine Forest": same colour.
   - A plain rename to "7501 EZP" still works.
   - No errors.
+
+## 2026-11-09 — v232: readable EZP chips; "Colors will be determined by Separation"
+- **EZP chips.** Stephen, with a chip reading "EZP OFF WHT OW" in tiny type: "when we have EZP Off WHT can we make it more readable?"
+  - **Cause:** over a base every top ink got " OW" added, EZP inks included, so four words were squeezed into the 0.29″ square at ~3–4 pt.
+  - **Fix:** an EZP or SOW ink is already its type, so no OW is added (same reason as "7501 EZP" in v226). A three-word EZP or SOW name goes a word a line (EZP / OFF / WHT) at the size past proofs used.
+  - Unchanged: EZP CRM → "EZP / CRM", SOW 186 → "SOW / 186"; 7501 OW, CG 7 OW and BASE stay as before.
+- **Separation text.** Stephen: "can we also have a Colors will be determined by Separation".
+  - A tick under "Add an ink to the proof": **Colors will be determined by Separation**.
+  - When it's on, every proof page that shows the imprint prints that sentence under Colors instead of the chips. It's per imprint (`SEPDET`), kept with the job's saved work (`imps[id].sepDet`), and hidden for Supacolor.
+- **Tested (practice):**
+  - Chip render, v231 vs v232 side by side.
+  - Proof page 1 with the tick on shows the sentence; untick and the chips return.
+  - The v229 sticker Drive test passes. No errors.
