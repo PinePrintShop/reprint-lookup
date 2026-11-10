@@ -29,11 +29,11 @@
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v118 |
-| Line Item Review | `pine-line-item-review.html` | v55 (comments fixed) |
-| Create order | `create-order.html` | v29 (keyboard flow) |
+| Line Item Review | `pine-line-item-review.html` | v56 (side panel standard) |
+| Create order | `create-order.html` | v30 (side panel standard) |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
-| Reprints (desktop office app) | `reprints.html` | v9 |
+| Reprints (desktop office app) | `reprints.html` | v10 (side panel standard) |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
 | Mockup Maker (desktop, art dept) | `mockup.html` | v262 (new order starts blank; tabs; patches; fabric close-ups; ink type by hand; notes on close-ups only) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
