@@ -232,3 +232,25 @@ Stephen: "Let's do the Worker route since I am an admin"; "all invoice go to pur
     - order confirmations only: AS Colour "Order Confirmation (#…)", LA Apparel "OrderConf_L…_110626.pdf", SLC "order confirmation";
     - shipment notices: SanMar "Shipment Acknowledgement … PO# 110526".
   - The worker isn't changed.
+
+## 2026-11-10 · v43: read an invoice into bill fields (read-only)
+Stephen:
+- "ASColour has there own payment portal so the order confirmation is the invoice for those two vendors" (AS Colour, LA Apparel).
+- "SAMPLES is what purchasing types for sample orders".
+- "it is best to find SLC invoices that match our PO".
+
+**The route:** `GET /proxy/invoices/read?id=<message>[&att=]`.
+- It sends the email's PDF to Claude (or the email text when there's no PDF, e.g. AS Colour confirmations). It uses the existing `ANTHROPIC_API_KEY` and `AI_MODEL`, with a fixed JSON schema.
+- **Fields returned:** kind (invoice / order_confirmation / shipment_notice / credit_memo / other), vendor_name, document_number, document_date, due_date, terms, po_as_printed, **pine_po**, ship_from_warehouse, subtotal, freight, tax, other_charges, total, line_count, lines, notes.
+- **pine_po** is Pine's MMDDYY[-n] or SAMPLES, found inside the printed PO. SLC prints its own prefix, e.g. 6041-110526.
+- **Rules:** the same as /list (Airtable token, GET only, invoice labels only). Nothing is saved. About 1–3 cents a read.
+
+**Tested** (faked Gmail and Claude):
+- The PDF goes as a document block plus a text block, with the schema and model.
+- "6041-110526" → pine_po 110526, total read back.
+- A non-invoice label → 403, and version → 43.
+
+**invoice-check.html v3:** a **Read** button on each email shows the fields and lines. The decisions above go into matching:
+- AS Colour and LA Apparel confirmations count as the bill.
+- SAMPLES → Pine MFG COGS:Samples.
+- SLC is matched on Pine's PO inside its printed PO.

@@ -58,6 +58,7 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
+  43:{what:'Reads each vendor invoice into bill fields (number, dates, terms, your PO, warehouse, subtotal, freight, tax, total, lines) with the Anthropic key the worker already has — read-only, nothing saved; try it with Read on invoice-check.html. Also still: reading the purchasing@ invoice labels (v42).'},
   42:{what:'Reads vendor invoice emails in purchasing@ (the "2. Invoices" labels) — read-only, nothing is sent or changed; check it with invoice-check.html. Needs the Gmail API on and domain-wide delegation (gmail.readonly) for the Pine Apps service account. Also still: every new order\'s Drive folder (v41).'},
   41:{what:'Every new order gets its Google Drive folder on its own ("11185 - Customer Name" in Proofs & Artwork, with Client Provided, Proofs, Seps, Embroidery and Sales inside), and the link is saved on the order. A folder sales already made is linked instead. Orders before Nov 10 are never touched. Keep the 15-minute Cron Trigger; it also makes any folder the instant step missed. Also still: the reps\' signed PandaDocs folders (v40).'},
   40:{what:'Reads the sales reps\' Pipedrive Drive folders (Chris and Patrick), where every signed PandaDoc lands — read-only; check it with signed-check.html. Also still: SanMar spec sheets (v39), the order\'s own Drive folder first (v38).'},
