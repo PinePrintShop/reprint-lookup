@@ -33,7 +33,7 @@
 | Create order | `create-order.html` | v28 (☰ Orders button) |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
-| Reprints (desktop office app) | `reprints.html` | v8 |
+| Reprints (desktop office app) | `reprints.html` | v9 |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
 | Mockup Maker (desktop, art dept) | `mockup.html` | v259 (tabs; patches; close-ups on the garment's own fabric) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
