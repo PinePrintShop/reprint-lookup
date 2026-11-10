@@ -557,3 +557,34 @@ Stephen: "once you are in a card in order creator you can't go back to the main 
 - **Order #N in the top bar** goes back to the list too.
 - The old "Show list" link and the duplicate "Hide list" button in the filter row are gone; "‹ All orders" stays for closing the order.
 - Tested at 1440 and 1024 with mocked Airtable: no errors, 0 writes.
+
+## 2026-11-10 · v29: building an order from the keyboard
+Stephen: "can we have an agent run through the create order and see if tabbing through building out an order flows nicer vs scrolling".
+
+**Before (v28):** an agent built the same test order both ways (practice, mocked Airtable). The order had 2 imprints (Front with 2 screens; Back with 1) and 2 lines (1717 Pepper and Black, with sizes).
+- **Mouse:** 30 clicks and about 900px of scrolling.
+- **Keyboard:** about 340 key presses, and focus fell off the page 13 times. Every button redraws the form, and only text boxes got their focus back, so each pick sent the next Tab back to the top of the order. About 31 option buttons were separate Tab stops, and nothing moved forward after Add.
+
+**Changes:**
+- **Focus stays on the button you pressed** after the screen redraws.
+- **A pick made from the keyboard moves on** to the next field: Repeat → type → sub-type → location → screens → ink changes → nickname. Product type goes to the garment search; transfer, patch and sticker sizes also move on. A mouse pick doesn't move focus.
+- **Each row of options is one Tab stop** (the picked one, or the first). ← → move along the row, Enter or Space picks. The buttons now say whether they're picked (`aria-pressed`) for screen readers. The same goes for the imprint ticks on a line and the colour chips.
+- **After Add imprint,** focus goes to "＋ Back print" (or "＋ Another imprint"). After Add line, it goes to "＋ Same garment, next color" (or "＋ Add a line item").
+- **Opening an order** puts focus in the form: Imprint Type, or the first button on the past-orders screen.
+- **A new line starts with its imprints ticked:**
+  - the last line's imprints, or all of them while there are no lines yet;
+  - a back print made for the same garments gets ticked too.
+  - Imprints ticked this way don't count as "filling in a line", so leaving the form doesn't ask.
+- **The Line Item Creator waits until there's an imprint.** It shows "Add the imprints first" with a "＋ Add a line item now" button.
+- **Shortcuts and keyboard access:**
+  - Ctrl/⌘+Enter = Create order.
+  - Email sentences can be picked with Enter or Space.
+  - Order-list rows open with Space too.
+
+**Tested** (mocked Airtable, practice, Chromium 1440×900):
+- **Keyboard:** the same order took **89 key presses including about 50 typed characters**, with focus never lost.
+  - Imprint A took 22, imprint B 15, line 1 34 and line 2 11. Ctrl+Enter created it with 0 writes.
+  - Both lines came out with A and B ticked: Pepper 48, Black 24.
+- **Mouse:** still 30 clicks and 700px of scrolling.
+  - Watch out: a rep who clicks an imprint tick out of habit now *un*ticks it, because it starts ticked. The ✓ shows on the tick.
+- No page errors.
