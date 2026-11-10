@@ -299,3 +299,10 @@ Stephen: "can we just send bills directly to quickbooks since we can connect it 
 - A second bill on the same PO → -2.
 - An expired grant → reconnect, and the bill marked Error.
 - Disconnect, and version 44.
+
+## 2026-11-10: v45, vendor bills saved with the clicker's Airtable sign-in
+Stephen's first **Save as a bill** got an Airtable 403 from the worker's own token, and still did after he added `AIRTABLE_WRITE_TOKEN`. The same record saved fine with editor access, and the base has no permission sets, so the worker's token was the problem.
+- `/invoices/save` and `/qbo/bill` now read and write Vendor Bills with the caller's Airtable token, the one the apps already write with (already checked by pdCallerOk). The worker's tokens are only a fallback.
+- Once a bill is in QuickBooks, a failed Airtable write-back no longer reports the send as failed. The answer says `airtableSaved:false`, and invoice-check v5 writes the bill ID and status itself.
+- The callback page says "vendor bills" (Stephen asked whether "bills" meant Intuit charging Pine).
+- **Tested:** the v44 suite passes on v45. The caller's token is used rather than the worker's, and a failed write-back after the bill → 200 with airtableSaved:false.

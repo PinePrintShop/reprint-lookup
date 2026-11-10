@@ -58,6 +58,7 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
+  45:{what:'Save as a bill and Send to QuickBooks now use the Airtable sign-in of the person clicking (fixes the Airtable 403 on Save). Everything from v44 (QuickBooks connect, send a checked vendor bill with its PDF) stays the same.'},
   44:{what:'QuickBooks, direct: Connect QuickBooks on invoice-check.html, then Send to QuickBooks on a checked Vendor Bills record (bill no. = your PO, Pine MFG COGS, PDF attached). Also Save as a bill from a read invoice. Needs the QBO_CLIENT_ID / QBO_CLIENT_SECRET secrets and the PINE_KV storage binding; starts on Intuit\'s test company until QBO_ENV is set to production.'},
   43:{what:'Reads each vendor invoice into bill fields (number, dates, terms, your PO, warehouse, subtotal, freight, tax, total, lines) with the Anthropic key the worker already has — read-only, nothing saved; try it with Read on invoice-check.html. Also still: reading the purchasing@ invoice labels (v42).'},
   42:{what:'Reads vendor invoice emails in purchasing@ (the "2. Invoices" labels) — read-only, nothing is sent or changed; check it with invoice-check.html. Needs the Gmail API on and domain-wide delegation (gmail.readonly) for the Pine Apps service account. Also still: every new order\'s Drive folder (v41).'},
