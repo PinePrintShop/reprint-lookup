@@ -528,3 +528,42 @@ Stephen: "why is the PO in the purchasing app not updating when I click refresh"
   - v115: opened Nov 5 → Refresh on Nov 6 → still 110526.
   - v116: 110526 → Refresh on Nov 6 → 110626 (notes say 11/6) → Nov 7 with no click → 110726.
   - No errors.
+
+## 2026-11-10 · v117: the Ordering tab in Pine style v2 (looks only)
+Stephen: "can you have an agent scan purchasing and make sure it is using all of the new design parameters", then "feel free to update Ordering app as well to the new design way...but please please make sure it doesn't break any code".
+- **The audit (v116):** the top bar, self-update, practice mode, Invoice check, Past orders and Reprints already followed the kit. Ordering was still the v91 layout:
+  - it looked on-brand only through a token remap;
+  - olive "in cart" tags, a grey Carts column, an amber stock label and other stray colours;
+  - Poppins on the 12px column labels;
+  - an 11.7px size count in the OOS pop-up;
+  - 14–28px buttons;
+  - no search, raw worker errors on the price pill, and the version shown as v114.
+- **v117 changes only the look:**
+  - **Order list:** the order list is kit list cards with the black/yellow order # badge and full customer names, plus a search (order # / customer; the Garment view also matches style and colour; filters the screen only).
+  - **Buttons and tags:**
+    - Kit buttons everywhere. "✓ Order all" is the one yellow button and each cart's "✓ Ordered" is black.
+    - Tags: In cart = yellow, Ordered = black, print date and facts = cream, Hard Deadline / OOS / price up = red.
+    - "⛔ Out of stock" is a plain button until an OOS is sent.
+  - **Pop-ups:** Out of stock and Garment issue use the kit pop-up look.
+  - **Colours and type:**
+    - The old tokens, the remap and the heading Poppins override are gone, along with ~60 dead CSS rules.
+    - Only kit colours. Column labels are Helvetica. Nothing under 12px.
+  - **Sizes and layout:**
+    - Controls are 40px or taller (extras +, Adjust sizes, Garment issue, Out of stock, cart ✕, inputs).
+    - Columns are 310 · order · 360 from 1400px wide (wider on bigger screens). Lines stack sizes over warehouse/cost when the order column is narrow.
+    - On a phone the size grid scrolls inside its step (v116 overflowed).
+  - **Text:**
+    - The extras plan says "Old way" once. One hint line per cart.
+    - A broken live price reads "price check failed" (details in the tooltip).
+    - Version v117. The permanent link page's yellow is now #FBE122.
+- **Not changed:** every JS behaviour, Airtable field, write payload, worker URL, element id and onclick.
+- **Regression test** (Playwright, stateful mock of Airtable and the worker):
+  - 29 steps:
+    - open an order, warehouse, extras, add to cart, adjust sizes + Undo, extras plan;
+    - garment issue, OOS send + Sorted, cart remove / re-add, freight, note, split;
+    - mark one cart ordered, Order all with a cost raise, Group by garment;
+    - Invoice check, Past orders reviewed, Reprints replacement;
+    - Refresh, a failed live price.
+  - **Results:** v116 and v117 made **identical** requests (54) and writes (13, same order, same bodies), with the same app state after every step and 0 errors. Practice: 0 writes. Re-run independently before shipping: identical.
+- **Still under 40px:** the @mention chip ×, its search field, and the order # badges in the Garment view's To-buy table.
+- **Two yellow buttons:** while a pop-up is open its main button is yellow too (kit pop-up rule).
