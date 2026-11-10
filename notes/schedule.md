@@ -611,3 +611,12 @@ Stephen (screenshot of a Ping Pong day: 1 job on Press 1, then 7 in a row on Pre
 - **Tested** (mocked Airtable, a day like the screenshot: 11107-A on Press 1, 11087 A–E and 10985 C/H on Press 2, 10985-D on Press 1):
   - Crew waits went from 3h 26m to 39m, and printing is done at 4:01p instead of 7:17p.
   - 5 jobs moved. 1 PATCH with 8 records (Equipment + start + Allocated for the moved ones). There was no same-press overlap afterwards and no errors.
+
+## 2026-11-10 · v32: Ping Pong re-plans Locked and Hard Deadline jobs within their day
+Stephen, on Mon 11/16 (screenshot: Press 1 four times in a row, then Press 2 three times): "why is it still stacking a press with multiple jobs?"
+- **Cause:** 7 of the day's 9 jobs were Locked (Scheduled ticked) and the other 2 (11160-A/B) Hard Deadline. v31 kept those in place, so Plan for Ping Pong had nothing it could move. The panel shows the calendar as it is; the pink note was already the plan's.
+- **Fix:** Locking and Hard Deadline are about the *day*. Ping Pong only changes the press and the time within that day, so those jobs now join the plan.
+  - Only running and finished jobs never move.
+  - The Locked checkbox is never written: the jobs stay locked.
+  - The confirm box says "Jobs stay on this day; Locked jobs stay locked."
+- **Tested:** the v31 test day with every job Locked. 5 jobs moved and crew waits went from 3h 26m to 39m. The writes were Equipment, start and Allocated only (no Scheduled checkbox). No overlap, no errors.
