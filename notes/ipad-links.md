@@ -38,7 +38,7 @@
 | Mockup Maker (desktop, art dept) | `mockup.html` | v258 (tabs; patch & clip-label picker, die-cut, felt, sew-on thread; Drive files dated) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
-| Approve (customer page: order approval + signing, prototype) | `approve.html` | v12 |
+| Approve (customer page: order approval + signing, prototype) | `approve.html` | v13 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`

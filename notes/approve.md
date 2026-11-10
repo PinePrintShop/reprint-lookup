@@ -184,3 +184,9 @@ Stephen: "Since they will click this from an email. Can the have questions take 
   - reloading mid-flow resumes at the same step
   - Finish clears the saved progress
   - the scan on 9 screens and the full flow pass with no errors
+
+## 2026-11-10 — v13: name and email fill in again
+Stephen: "can we put back the name email auto fill in the approval app."
+- "Who's signing?" starts with the order's contact name and email filled in (v4 had made them grey hints only). The signer can change either; the initials follow the name unless typed.
+- If the signer already adopted a name in this tab, theirs is shown instead.
+- Tested: prefill Garrett Sample / garrett@sample.co → GS; typing a new name updates the initials; no errors.
