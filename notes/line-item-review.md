@@ -860,3 +860,9 @@ Stephen: "yes do the same for both", as Mockup Maker v110.
 - **Same Airtable writes as v53;** practice still writes nothing.
 - **Tested:** mocked Airtable at 1440 / 1920 / 1280 and a 390 phone. No page errors, 0 writes, node --check OK.
 - **Not yet:** order-level discount / invoice on every tab, and adding or removing imprints (waiting on Stephen).
+
+## 2026-11-10 — v55: comments fixed
+Stephen: "comments are weird in line item review" (screenshot: a change request's comments running out of the card, the comment box floating below it).
+- v54 pinned the comment box to the bottom of the right column. On shorter screens it floated over the COMMENTS heading and the list, and with a change request the comments ran out of their card.
+- Now the comments card grows with what's in it again: a long list scrolls inside the card (up to about half the screen) and the comment box sits under it, inside the card. The right column scrolls when it all doesn't fit.
+- Tested at 1280 / 1440 / 1920 with and without a change request (mocked Airtable): the list never overlaps the box; no errors, 0 writes.
