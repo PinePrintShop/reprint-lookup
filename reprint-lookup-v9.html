@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<!-- Reprints v9 (2026-11-10): ↓ / ↑ work right after clicking a card (Stephen: "v8 doesn't seem to be working the up and down keys through the cards"). Clicking a card puts the cursor in the New imprint ID box, and v8 ignored the arrows in any box. Now they step through the cards from the search box and from the New imprint ID box while it's empty; only an ID being typed keeps them. -->
+<!-- Reprints v8 (2026-11-10): ↓ / ↑ go through the cards (Stephen: "can we also make it so the down key when you are on a card goes through the stack"). On the results (not while typing in a box), ↓ opens the next card and ↑ the one before; the card stays in view and keeps the focus, so holding ↓ walks the stack. Enter on the search still searches. -->
+<!-- Reprints v7 (2026-11-10): the new office format and a mockup viewer (Stephen: "get it in the new format and increase the
+     reference mockups that pops up to be bigger and then be able to scroll through all the mockups for a client vs closing and opening").
+     - Office look (pine-office-v1.css, like Line Item Review / Create order): the same bar, the results and the picked imprint in two
+       panes that scroll on their own, full width.
+     - The picked imprint's mockup fills its pane (was ~60% of the height). An imprint with several proofs shows them all as
+       small tiles under it.
+     - Mockup viewer: click a mockup (or "View all mockups") and it opens full screen. ‹ › (or ← → keys, or a swipe) steps through
+       every mockup in the results — every proof of every imprint, newest first — with a strip of thumbnails along the bottom to
+       jump anywhere, and the imprint ID, nickname, place and date on top. "Open this imprint" picks it (to link a reorder) and
+       closes the viewer. Esc closes. The filters apply: Screen print / Front etc. narrow what the viewer steps through.
+     Linking is unchanged (Previous Imprint ID + Repeat?), as is practice mode. -->
+<!-- Reprints v6 (2026-10-20): top bar and the band under it match the Pine standard (Seps / Screens / Line Item Review).
+     The practice marker is the kit's square-cornered yellow tag (p-tag p-tag-wait), not the old round pill. The search
+     and the filter chips are one white .p-filters row under the bar (search · Search · chips on the same line, chips
+     scroll sideways), instead of a padded search band plus a separate cream chips band. Nothing else changed.
+     Reprints v5 (2026-10-19): the "Link … as a reorder of …?" question uses the Pine confirm box (pine-confirm.js)
+     instead of the browser's grey pop-up. Nothing else changed. -->
+<!-- Reprints v4 (2026-10-17): "Remaining apps" round (Stephen: "Let's go! Onto the next").
+     What it does (same as v3): find a customer's past imprints, open one, and link a NEW imprint (a reorder) back to it:
+     the new imprint's Previous Imprint ID = the past imprint, and Repeat? ticked (the reorder flag; the shop apps label it
+     "Reorder"). The past imprint itself is never changed.
+     v4 changes:
+       - Pine style v2, the same top bar as every app, self-update (pine-update.js, permanent link reprints.html), version
+         on screen, practice mode (?practice=1: the link is faked, nothing is saved).
+       - Desktop two panes: results on the left, the picked imprint on the right (big proof, inks, the imprint it came from)
+         with the link box under it. Phones and narrow windows: one column, the detail opens over the list.
+       - Search by customer, imprint ID (10612-A) or order # (10612); every page is loaded (v3 stopped at 500).
+       - One "New imprint ID" box (v3 had two). As you type it looks the new imprint up and shows its customer, nickname
+         and what it's linked to now; a different customer or an existing link is flagged before you press Link.
+       - After linking: ↩ Undo puts back what was there before.
+       - Filters: Screen print (the four screen-print types) / Embroidery & apps / Other, and location. v3's "Screen Print"
+         was everything that wasn't embroidery.
+     Airtable: writes only the new imprint's Previous Imprint ID (fldAEQvMAAZX9gnhl) and Repeat? (flda9L7041ahNZT0b).
+     No automation watches those two fields (checked Oct 17). -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reprints v9 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<link rel="stylesheet" href="pine-office-v1.css">
+<script src="pine-update.js" data-link="reprints.html"></script>
+<script src="pine-confirm.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+/* v6: one kit filter row under the bar (search · Search · chips), 24px gutters like the page panes on desktop */
+@media (min-width:701px){ .p-filters{padding-left:24px;padding-right:24px} }
+/* v6: desktop: the chips never hide off the side. They share line 1 with the search (and the range); when they
+   don't all fit they wrap to a second row inside the band, and the search and right-hand controls stay on line 1. */
+@media (min-width:701px){ .p-filters{align-items:flex-start} .p-chips-inline{flex-wrap:wrap;overflow:visible;row-gap:8px} }
+.p-filters .p-btn{flex:none}
+.p-chips>span{flex:none}   /* the gap between the kind chips and the place chips */
+/* v7: office panes (pine-office-v1.css); the app sets --p-off-top. Two panes from 901px (the kit stacks them under 1200px) */
+.list{display:grid;gap:8px;align-content:start}
+@media (min-width:901px){ .p-off-split{display:grid} .p-off-pane{height:calc(100vh - var(--p-off-top,128px));height:calc(100dvh - var(--p-off-top,128px));overflow-y:auto;padding:16px 2px 32px} }
+.cnt{font-size:14px;color:var(--p-ink-2);padding:2px 2px 4px}
+.row{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:center;background:#fff;border:1px solid var(--p-line);border-radius:10px;padding:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.row:hover{border-color:var(--p-line-strong)}
+.row.on{border:2px solid var(--p-black);padding:7px}
+.th{width:72px;height:72px;border-radius:6px;background:var(--p-cream);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:12px;color:var(--p-ink-2)}
+.th img{width:100%;height:100%;object-fit:contain;background:#fff}
+.rt{min-width:0;display:grid;gap:4px}
+.rt1{display:flex;gap:8px;align-items:baseline;min-width:0}
+.rt1 b{font:700 16px/1.2 var(--p-sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt2{font-size:14px;color:var(--p-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt .p-tags{gap:6px}
+.det{padding-left:8px}
+.det-empty{color:var(--p-ink-2);font-size:16px;padding:40px 8px}
+.dh{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.dh h2{font:900 26px/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.01em}
+.dsub{font-size:15px;color:var(--p-ink-2);margin-bottom:14px}
+.dgrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:20px;align-items:start}
+/* v7: the mockup fills the pane's height */
+.proof{position:relative;background:#fff;border:1px solid var(--p-line);border-radius:12px;min-height:320px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:zoom-in}
+.proof img{max-width:100%;max-height:calc(100dvh - var(--p-off-top,128px) - 190px);min-height:280px;object-fit:contain;display:block}
+.proof-all{position:absolute;right:10px;bottom:10px;background:var(--p-black);color:#fff;border:0;border-radius:999px;padding:8px 14px;font:700 14px var(--p-sans);cursor:pointer}
+.pthumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pthumbs button{width:72px;height:72px;border:2px solid var(--p-line);border-radius:8px;background:#fff;padding:0;overflow:hidden;cursor:pointer}
+.pthumbs button:hover{border-color:var(--p-black)}
+.pthumbs img{width:100%;height:100%;object-fit:contain}
+.proof .none{color:var(--p-ink-2);font-size:15px;padding:40px}
+.facts{background:#fff;border:1px solid var(--p-line);border-radius:12px;padding:14px 16px;display:grid;gap:10px}
+.fact{display:grid;gap:2px}
+.fact .k{font:700 12px/1.2 var(--p-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--p-ink-2)}
+.fact .v{font-size:16px;line-height:1.35;word-break:break-word}
+.fact .v a{color:inherit}
+.linkbox{margin-top:16px;background:#fff;border:2px solid var(--p-black);border-radius:12px;padding:16px;display:grid;gap:10px}
+.linkbox h3{font:900 16px/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.02em}
+.linkbox .line{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.linkbox .p-input{flex:1 1 180px;min-height:48px;font-size:18px;font-weight:700}
+.linkbox .p-btn-main{min-height:48px}
+.target{font-size:15px;line-height:1.4;color:var(--p-ink-2)}
+.target b{color:var(--p-black)}
+.warn{background:var(--p-yellow-lt);border-radius:8px;padding:8px 10px;font-size:15px;color:var(--p-black)}
+.bad{color:var(--p-alert);font-weight:700}
+.okmsg{background:var(--p-black);color:#fff;border-radius:8px;padding:10px 12px;font-size:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.okmsg .p-btn{background:transparent;color:#fff;border-color:#fff;min-height:40px}
+.msg{padding:40px 8px;font-size:16px;color:var(--p-ink-2)}
+.msg b{display:block;color:var(--p-black);font-size:18px;margin-bottom:4px}
+/* v7: the mockup viewer */
+.gal{position:fixed;inset:0;z-index:80;background:#141412;display:grid;grid-template-rows:auto minmax(0,1fr) auto;color:#fff}
+body.gal-open{overflow:hidden}
+.gal-top{display:flex;gap:12px;align-items:center;padding:12px 16px;flex-wrap:wrap}
+.gal-cap{flex:1 1 300px;min-width:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.gal-cap b{font:800 20px/1.2 var(--p-sans)}
+.gal-cap .sub{font-size:15px;color:#d9d4c8}
+.gal-cap .n{font:700 15px var(--p-sans);color:var(--p-yellow)}
+.gal-x{background:transparent;color:#fff;border-color:#fff}
+.gal-main{position:relative;display:flex;align-items:center;justify-content:center;min-height:0;padding:0 84px}
+.gal-main img{max-width:100%;max-height:100%;object-fit:contain;background:#fff;border-radius:6px;transition:opacity .15s}
+.gal-main img.is-loading{opacity:.35}
+.gal-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:15px;color:#fff;pointer-events:none}
+.gal-nav{position:absolute;top:50%;transform:translateY(-50%);width:60px;height:60px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.5);color:#fff;font:400 34px/1 var(--p-sans);cursor:pointer;display:flex;align-items:center;justify-content:center;padding-bottom:4px}
+.gal-nav:hover:not(:disabled){background:var(--p-yellow);color:var(--p-black);border-color:var(--p-yellow)}
+.gal-prev{left:12px} .gal-next{right:12px}
+.gal-nav:disabled{opacity:.2;cursor:default}
+.gal-strip{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 14px;scrollbar-width:thin}
+.gal-strip button{flex:none;width:80px;height:80px;border-radius:6px;border:3px solid transparent;background:#fff;padding:0;cursor:pointer;overflow:hidden;opacity:.75}
+.gal-strip button:hover{opacity:1}
+.gal-strip button.on{border-color:var(--p-yellow);opacity:1}
+.gal-strip button.gap{margin-left:10px}   /* a new imprint starts */
+.gal-strip img{width:100%;height:100%;object-fit:contain}
+@media (max-width:700px){ .gal-main{padding:0 8px} .gal-nav{width:44px;height:44px;font-size:26px} .gal-prev{left:4px} .gal-next{right:4px} .gal-strip button{width:60px;height:60px} .gal-cap b{font-size:17px} }
+.back{display:none}
+@media (max-width:900px){
+  .det{display:none;padding:0}
+  body.det-open .list,body.det-open #chips{display:none}
+  body.det-open .det{display:block}
+  .back{display:inline-flex}
+  .dgrid{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  .p-bar{gap:8px}   /* as Seps / Screens / Damage Log: the practice tag fits beside Refresh and ⚙ on a phone */
+  .p-filters .p-search{flex:1 1 0;max-width:none}   /* phone: search + Search on one line, chips on the next */
+  .p-chips{margin:0 -16px;padding:0 16px 2px}
+  .p-chips-inline{flex:1 1 100%;order:3}
+}
+</style>
+</head>
+<body class="p-app p-off">
+<header class="p-bar p-off-bar" data-pin>
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Reprints</span><span class="p-bar-ver" id="ver">v9</span>
+  <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Search again and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="p-menu" id="gear" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row"><div class="p-menu-label">Airtable token</div>
+      <div class="p-menu-line"><input id="tokIn" class="p-input" type="password" placeholder="pat…" autocomplete="off" aria-label="Airtable token"><button class="p-btn p-btn-dark" id="tokSave" type="button">Save</button></div>
+      <p id="tokHint"></p></div>
+    <div class="p-menu-row"><div class="p-menu-label">Practice</div><p id="pracHint"></p></div>
+  </div>
+</header>
+<form class="p-filters" id="findForm" role="search">
+  <input id="q" class="p-input p-search" type="search" placeholder="Customer, imprint ID (10612-A) or order # (10612)" autocomplete="off" aria-label="Search past imprints">
+  <button class="p-btn p-btn-dark" type="submit">Search</button>
+  <div class="p-chips p-chips-inline" id="chips" role="tablist" aria-label="Filter" hidden></div>
+</form>
+<div class="p-off-split" id="split" style="--p-off-list:clamp(340px,26vw,480px)">
+  <div class="p-off-pane p-off-list list" id="list"><div class="msg"><b>Find a customer's past imprints</b>Search above, open the past imprint, then link the new reorder imprint to it.</div></div>
+  <div class="p-off-pane p-off-work det" id="det"><div class="det-empty">Pick an imprint on the left to see its proof and link a reorder to it.</div></div>
+</div>
+<div class="gal" id="gal" hidden role="dialog" aria-modal="true" aria-label="Mockups">
+  <div class="gal-top"><div class="gal-cap" id="galCap"></div>
+    <button class="p-btn p-btn-main" type="button" id="galOpen">Open this imprint</button>
+    <button class="p-btn gal-x" type="button" id="galX" aria-label="Close">✕ Close</button></div>
+  <div class="gal-main" id="galMain"><button class="gal-nav gal-prev" type="button" id="galPrev" aria-label="Previous mockup">‹</button>
+    <img id="galImg" alt=""><span class="gal-load" id="galLoad">Loading…</span>
+    <button class="gal-nav gal-next" type="button" id="galNext" aria-label="Next mockup">›</button></div>
+  <div class="gal-strip" id="galStrip"></div>
+</div>
+<script>
+var BASE='appJkaLk8DykjsgHR',TBL='tbln9oAGvz2PNBZLV';
+var F={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',cust:'fldeLMIAC0ABQAjYJ',
+  repeat:'flda9L7041ahNZT0b',inksTxt:'fldMM5hp8kEpo3KKT',prev:'fldAEQvMAAZX9gnhl',created:'fldc7aezBfzoVPeAY',proofs:'fldUOIfCd22MxevRm'};
+var SP_TYPES=['Discharge','No Base W/B','Bleed Blocker + W/B','EZP Base + W/B'];
+var EMB_TYPES=['Embroidery','Patch Application','Hem Label Application','Woven Label Application','Decopress - Leather','Decopress - Woven / Twill'];
+var PRACTICE=/[?&]practice=1/.test(location.search);
+var S={recs:[],q:'',kind:'all',loc:'all',sel:null,busy:false,target:null,tq:'',done:null,cache:{}};
+
+function $(id){return document.getElementById(id);}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+function token(){return store('pine_at_key')||store('pine_tok')||'';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function str(v){ if(v==null) return ''; if(Array.isArray(v)) return v.map(str).filter(Boolean).join(', '); if(typeof v==='object') return v.name||''; return String(v); }
+function fq(s){return String(s).replace(/\\/g,'').replace(/"/g,'');}
+function toast(t,bad){document.querySelectorAll('.p-toast').forEach(function(x){x.remove();});var e=document.createElement('div');e.className='p-toast'+(bad?' is-alert':'');e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(function(){e.remove();},3200);}
+function thumb(p,big){ p=Array.isArray(p)?p:[]; for(var i=0;i<p.length;i++){var a=p[i];if(a&&a.thumbnails){var t=big?(a.thumbnails.full||a.thumbnails.large):(a.thumbnails.large||a.thumbnails.small);if(t&&t.url)return t.url;}if(a&&a.url&&/image/.test(a.type||''))return a.url;} return ''; }
+function when(d){ if(!d) return ''; var x=new Date(d); return isNaN(x)?'':x.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function kind(r){ var t=str(r.fields[F.type]); return SP_TYPES.indexOf(t)>-1?'sp':EMB_TYPES.indexOf(t)>-1?'emb':'other'; }
+
+async function api(path,opt){
+  var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+path,Object.assign({headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'}},opt||{}));
+  var d={}; try{d=await r.json();}catch(e){}
+  if(!r.ok) throw new Error((d.error&&(d.error.message||d.error.type))||('Airtable '+r.status));
+  return d;
+}
+async function pullAll(formula){
+  var out=[],off=null,n=0;
+  var flds=[F.id,F.nick,F.type,F.loc,F.screens,F.cust,F.repeat,F.inksTxt,F.prev,F.created,F.proofs].map(function(f){return 'fields%5B%5D='+f;}).join('&');
+  do{ var d=await api(TBL+'?returnFieldsByFieldId=true&pageSize=100&'+flds+'&filterByFormula='+encodeURIComponent(formula)+'&sort%5B0%5D%5Bfield%5D='+F.created+'&sort%5B0%5D%5Bdirection%5D=desc'+(off?'&offset='+encodeURIComponent(off):''));
+    out=out.concat(d.records||[]); off=d.offset; n++; }while(off&&n<50);
+  return out;
+}
+async function search(){
+  var q=$('q').value.trim(); S.q=q; if(!q) return;
+  if(!token()){ showMenu(true); return; }
+  S.busy=true; S.sel=null; S.done=null; S.target=null; document.body.classList.remove('det-open');
+  $('list').innerHTML='<div class="msg"><b>Searching…</b>'+esc(q)+'</div>'; renderDet();
+  try{
+    var v=fq(q), f;
+    if(/^\d{3,6}(-[A-Za-z]{1,2})?$/.test(q)){ f=/-/.test(q)?'UPPER({'+F.id+'})="'+v.toUpperCase()+'"':'OR(LEFT({'+F.id+'},'+(v.length+1)+')="'+v+'-",{'+F.id+'}="'+v+'")'; }
+    else f='SEARCH(LOWER("'+v+'"),LOWER({'+F.cust+'}&""))';
+    S.recs=await pullAll(f); S.kind='all'; S.loc='all';
+    // the imprints these came from, so "Came from" shows an ID, not a record number
+    var need=[];S.recs.forEach(function(r){[].concat(r.fields[F.prev]||[]).forEach(function(p){var id=typeof p==='object'?p.id:p;if(id&&!S.cache[id]&&need.indexOf(id)<0)need.push(id);});});
+    S.recs.forEach(function(r){S.cache[r.id]=r.fields[F.id]||'';});
+    need=need.filter(function(id){return !S.cache[id];});
+    for(var i=0;i<need.length;i+=50){ var part=need.slice(i,i+50); var d=await api(TBL+'?returnFieldsByFieldId=true&fields%5B%5D='+F.id+'&filterByFormula='+encodeURIComponent('OR('+part.map(function(id){return 'RECORD_ID()="'+id+'"';}).join(',')+')')); (d.records||[]).forEach(function(x){S.cache[x.id]=x.fields[F.id]||'';}); }
+  }catch(e){ S.recs=[]; $('list').innerHTML='<div class="msg"><b class="bad">Couldn\'t search</b>'+esc(e.message)+'</div>'; S.busy=false; return; }
+  S.busy=false; renderList();
+}
+function visible(){ return S.recs.filter(function(r){ var l=str(r.fields[F.loc]); return (S.kind==='all'||kind(r)===S.kind)&&(S.loc==='all'||l===S.loc||(S.loc==='Sleeve'&&/Sleeve/.test(l))); }); }
+function renderChips(){
+  var c=$('chips'); if(!S.recs.length){c.hidden=true;return;} c.hidden=false;
+  function n(k){return S.recs.filter(function(r){return k==='all'||kind(r)===k;}).length;}
+  var kinds=[['all','All'],['sp','Screen print'],['emb','Embroidery & apps'],['other','Other']].filter(function(k){return k[0]==='all'||n(k[0]);});
+  var locs={};S.recs.forEach(function(r){var l=str(r.fields[F.loc]);if(/Sleeve/.test(l))l='Sleeve';if(l)locs[l]=(locs[l]||0)+1;});
+  c.innerHTML=kinds.map(function(k){return '<button class="p-tab'+(S.kind===k[0]?' is-on':'')+'" type="button" onclick="S.kind=\''+k[0]+'\';renderList()">'+k[1]+' <span class="p-count">'+n(k[0])+'</span></button>';}).join('')+
+    (Object.keys(locs).length>1?'<span style="width:12px"></span><button class="p-tab'+(S.loc==='all'?' is-on':'')+'" type="button" onclick="S.loc=\'all\';renderList()">Any place</button>'+Object.keys(locs).sort(function(a,b){return locs[b]-locs[a];}).map(function(l){return '<button class="p-tab'+(S.loc===l?' is-on':'')+'" type="button" onclick="S.loc=\''+esc(l)+'\';renderList()">'+esc(l)+' <span class="p-count">'+locs[l]+'</span></button>';}).join(''):'');
+}
+function renderList(){
+  renderChips();
+  var v=visible();
+  if(!S.recs.length){ $('list').innerHTML='<div class="msg"><b>No imprints found</b>Nothing matches “'+esc(S.q)+'”. Try part of the customer name.</div>'; return; }
+  var custs={};S.recs.forEach(function(r){custs[str(r.fields[F.cust])]=1;});
+  $('list').innerHTML='<div class="cnt">'+v.length+' imprint'+(v.length===1?'':'s')+(Object.keys(custs).length>1?' · '+Object.keys(custs).length+' customers':'')+' · newest first</div>'+v.map(function(r){var f=r.fields,t=thumb(f[F.proofs]);
+    return '<button class="row'+(S.sel===r.id?' on':'')+'" type="button" onclick="pick(\''+r.id+'\')"><span class="th">'+(t?'<img src="'+esc(t)+'" alt="" loading="lazy">':'no proof')+'</span>'+
+      '<span class="rt"><span class="rt1"><span class="p-id">'+esc(f[F.id]||'—')+'</span><b>'+esc(f[F.nick]||'(no nickname)')+'</b></span>'+
+      '<span class="rt2">'+esc([str(f[F.loc]),str(f[F.type]),f[F.screens]?f[F.screens]+' scr':'',when(f[F.created])].filter(Boolean).join(' · '))+'</span>'+
+      '<span class="rt2">'+esc(str(f[F.cust]))+(f[F.repeat]?' · <b>Reorder</b>':'')+'</span></span></button>';}).join('');
+}
+function pick(id,byKey){ S.sel=id; S.done=null; S.tq=''; S.target=null; renderList(); renderDet(); document.body.classList.add('det-open');
+  if(byKey){ var row=document.querySelector('.row.on'); if(row){ row.focus({preventScroll:true}); row.scrollIntoView({block:'nearest'}); } $('det').scrollTop=0; return; }   // v8: ↓ / ↑ keep the focus on the cards
+  window.scrollTo({top:0}); setTimeout(function(){var i=$('newId');if(i&&window.matchMedia('(min-width:901px)').matches)i.focus();},0); }
+// v8: ↓ / ↑ step through the cards
+function stepCard(d){ var v=visible(); if(!v.length) return; var i=v.findIndex(function(r){return r.id===S.sel;}), n=i<0?(d>0?0:v.length-1):Math.max(0,Math.min(v.length-1,i+d)); if(v[n].id!==S.sel) pick(v[n].id,true); }
+function prevIds(f){ return [].concat(f[F.prev]||[]).map(function(p){var id=typeof p==='object'?p.id:p;return S.cache[id]||'(unknown)';}).join(', '); }
+function renderDet(){
+  var r=S.recs.find(function(x){return x.id===S.sel;});
+  if(!r){ $('det').innerHTML='<div class="det-empty">'+(S.recs.length?'Pick an imprint on the left to see its proof and link a reorder to it.':'')+'</div>'; return; }
+  var f=r.fields,big=thumb(f[F.proofs],true),pv=prevIds(f);
+  var h='<button class="p-btn back" type="button" onclick="document.body.classList.remove(\'det-open\')">‹ Results</button>'+
+    '<div class="dh"><span class="p-id p-id-lg">'+esc(f[F.id]||'—')+'</span><h2>'+esc(f[F.nick]||'(no nickname)')+'</h2>'+(f[F.repeat]?'<span class="p-tag">Reorder</span>':'')+'</div>'+
+    '<div class="dsub">'+esc(str(f[F.cust]))+' · '+esc(when(f[F.created]))+'</div>'+
+    '<div class="dgrid"><div><div class="proof" '+(big?'onclick="openGal(\''+r.id+'\',0)" title="Open the mockup viewer"':'')+'>'+(big?'<img src="'+esc(big)+'" alt="Proof for '+esc(f[F.id]||'')+'"><button class="proof-all" type="button" onclick="event.stopPropagation();openGal(\''+r.id+'\',0)">⤢ View all '+galCount()+' mockups</button>':'<div class="none">No proof on this imprint</div>')+'</div>'+pTiles(r)+'</div>'+
+    '<div><div class="facts">'+
+      fact('Location',str(f[F.loc]))+fact('Type',str(f[F.type]))+fact('Screens',f[F.screens]!=null?String(f[F.screens]):'')+fact('Inks',str(f[F.inksTxt]))+fact('Came from',pv?pv+' (an earlier run)':'')+
+      '<div class="fact"><span class="k">Airtable</span><span class="v"><a href="https://airtable.com/'+BASE+'/'+TBL+'/'+r.id+'" target="_blank" rel="noopener">Open this imprint ↗</a></span></div>'+
+    '</div>'+linkBox(r)+'</div></div>';
+  $('det').innerHTML=h;
+}
+function fact(k,v){ return v?'<div class="fact"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>':''; }
+function linkBox(r){
+  var past=r.fields[F.id]||'this imprint';
+  if(S.done&&S.done.from===r.id){ var d=S.done;
+    return '<div class="linkbox"><h3>Linked</h3><div class="okmsg"><span>'+esc(d.newId)+' now comes from '+esc(past)+' and is marked Reorder.'+(PRACTICE?' (Practice: nothing was saved.)':'')+'</span>'+(d.undone?'':'<button class="p-btn" type="button" onclick="undo()" '+(S.busy?'disabled':'')+'>↩ Undo</button>')+'</div>'+(d.undone?'<div class="target">Undone: '+esc(d.newId)+' is back to how it was.</div>':'')+'</div>'; }
+  var t=S.target, info='';
+  if(S.tq&&t===undefined) info='<div class="target">Looking up '+esc(S.tq)+'…</div>';
+  else if(S.tq&&t===null) info='<div class="target bad">No imprint called '+esc(S.tq)+'. Check the ID (like 11042-A).</div>';
+  else if(t){ var tf=t.fields, cur=prevIds(tf), sameCust=str(tf[F.cust]).toLowerCase()===str(r.fields[F.cust]).toLowerCase(), self=t.id===r.id;
+    info='<div class="target"><b>'+esc(tf[F.id])+'</b> · '+esc(tf[F.nick]||'(no nickname)')+' · '+esc(str(tf[F.cust]))+' · '+esc(str(tf[F.loc]))+'</div>'+
+      (self?'<div class="warn">That\'s the same imprint. Pick the new one.</div>':'')+
+      (!self&&!sameCust?'<div class="warn">Different customer than '+esc(past)+'. Link only if that\'s right.</div>':'')+
+      (cur?'<div class="warn">'+esc(tf[F.id])+' already comes from '+esc(cur)+'. Linking replaces that.</div>':''); }
+  var can=!!t&&t.id!==r.id&&!S.busy;
+  return '<div class="linkbox"><h3>Link a reorder to '+esc(past)+'</h3>'+
+    '<div class="line"><input id="newId" class="p-input" placeholder="New imprint ID, e.g. 11042-A" value="'+esc(S.tq)+'" autocomplete="off" aria-label="New imprint ID" oninput="typeTarget(this.value)" onkeydown="if(event.key===\'Enter\')doLink()">'+
+    '<button class="p-btn p-btn-main" type="button" onclick="doLink()" '+(can?'':'disabled')+'>Link as reorder</button></div>'+info+
+    '<div class="target">Sets the new imprint\'s Previous Imprint ID to '+esc(past)+' and ticks Repeat? (Reorder). '+esc(past)+' itself isn\'t changed.</div></div>';
+}
+var tTimer=null, tSeq=0;
+function typeTarget(v){ S.tq=v.trim().toUpperCase(); S.target=S.tq?undefined:null; clearTimeout(tTimer); var keep=$('newId'),pos=keep&&keep.selectionStart;
+  refreshLinkBox(pos); if(!S.tq) return; var my=++tSeq;
+  tTimer=setTimeout(async function(){ try{ var d=await api(TBL+'?returnFieldsByFieldId=true&maxRecords=1&fields%5B%5D='+[F.id,F.nick,F.cust,F.loc,F.prev,F.repeat].join('&fields%5B%5D=')+'&filterByFormula='+encodeURIComponent('UPPER({'+F.id+'})="'+fq(S.tq)+'"'));
+    if(my!==tSeq) return; var t=(d.records||[])[0]||null;
+    if(t){ var ids=[].concat(t.fields[F.prev]||[]).map(function(p){return typeof p==='object'?p.id:p;}).filter(function(id){return !S.cache[id];});
+      if(ids.length){ var dd=await api(TBL+'?returnFieldsByFieldId=true&fields%5B%5D='+F.id+'&filterByFormula='+encodeURIComponent('OR('+ids.map(function(id){return 'RECORD_ID()="'+id+'"';}).join(',')+')')); (dd.records||[]).forEach(function(x){S.cache[x.id]=x.fields[F.id]||'';}); } }
+    if(my!==tSeq) return; S.target=t; refreshLinkBox(); }catch(e){ if(my===tSeq){ S.target=null; refreshLinkBox(); } } },350);
+}
+function refreshLinkBox(pos){ var r=S.recs.find(function(x){return x.id===S.sel;}); if(!r) return; var box=document.querySelector('.linkbox'); if(!box) return;
+  var had=document.activeElement&&document.activeElement.id==='newId', p=pos!=null?pos:(had?$('newId').selectionStart:null);
+  box.outerHTML=linkBox(r); if(had){ var i=$('newId'); i.focus(); try{i.setSelectionRange(p,p);}catch(e){} } }
+async function doLink(){
+  var r=S.recs.find(function(x){return x.id===S.sel;}), t=S.target; if(!r||!t||t.id===r.id||S.busy) return;
+  var cur=prevIds(t.fields), sameCust=str(t.fields[F.cust]).toLowerCase()===str(r.fields[F.cust]).toLowerCase();
+  if((cur||!sameCust)&&!await PineConfirm.ask({title:'Link '+t.fields[F.id]+' as a reorder of '+r.fields[F.id]+'?',body:[cur?'It currently comes from '+cur+'; that link is replaced.':'',!sameCust?'The customers are different.':''].filter(Boolean).join('\n'),ok:'Link'})) return;
+  if(S.target!==t||S.sel!==r.id||S.busy) return;
+  var before={prev:[].concat(t.fields[F.prev]||[]).map(function(p){return typeof p==='object'?p.id:p;}),repeat:!!t.fields[F.repeat]};
+  S.busy=true; refreshLinkBox();
+  try{
+    var body={fields:{}}; body.fields[F.prev]=[r.id]; body.fields[F.repeat]=true;
+    if(!PRACTICE) await api(TBL+'/'+t.id,{method:'PATCH',body:JSON.stringify(body)});
+    S.done={from:r.id,target:t.id,newId:t.fields[F.id],before:before}; S.tq=''; S.target=null;
+    toast(t.fields[F.id]+' linked to '+r.fields[F.id]+(PRACTICE?' (practice)':''));
+  }catch(e){ toast('Didn\'t save: '+e.message,true); }
+  S.busy=false; renderDet();
+}
+async function undo(){
+  var d=S.done; if(!d||d.undone||S.busy) return; S.busy=true; renderDet();
+  try{ var body={fields:{}}; body.fields[F.prev]=d.before.prev; body.fields[F.repeat]=d.before.repeat;
+    if(!PRACTICE) await api(TBL+'/'+d.target,{method:'PATCH',body:JSON.stringify(body)});
+    d.undone=true; toast('Undone: '+d.newId+' is back to how it was'+(PRACTICE?' (practice)':''));
+  }catch(e){ toast('Undo didn\'t save: '+e.message,true); }
+  S.busy=false; renderDet();
+}
+/* v7: the mockup viewer — every proof of every imprint in the results (filters apply), newest first */
+function imgs(p){ return [].concat(p||[]).map(function(a,k){ if(!a) return null; var t=a.thumbnails||{}, full=(t.full||t.large||{}).url, isImg=/image/.test(a.type||'');
+  var u=full||(isImg?a.url:''); if(!u) return null; return {u:u,th:((t.large||t.small||{}).url)||u,k:k}; }).filter(Boolean); }
+function galItems(){ var out=[]; visible().forEach(function(r){ imgs(r.fields[F.proofs]).forEach(function(x,j,all){ out.push({r:r,u:x.u,th:x.th,k:x.k,j:j,n:all.length}); }); }); return out; }
+function galCount(){ return galItems().length; }
+function pTiles(r){ var a=imgs(r.fields[F.proofs]); if(a.length<2) return '';
+  return '<div class="pthumbs">'+a.map(function(x,j){ return '<button type="button" title="Proof '+(j+1)+' of '+a.length+'" onclick="openGal(\''+r.id+'\','+j+')"><img src="'+esc(x.th)+'" alt="" loading="lazy"></button>'; }).join('')+'</div>'; }
+var G={items:[],i:0};
+function openGal(recId,j){ G.items=galItems(); if(!G.items.length) return; var i=G.items.findIndex(function(x){return x.r.id===recId&&x.j===(j||0);}); G.i=i<0?0:i;
+  $('galStrip').innerHTML=G.items.map(function(x,n){ return '<button type="button" data-n="'+n+'" class="'+(n&&x.j===0?'gap':'')+'" title="'+esc((x.r.fields[F.id]||'')+' · '+(x.r.fields[F.nick]||''))+'"><img src="'+esc(x.th)+'" alt="" loading="lazy"></button>'; }).join('');
+  $('gal').hidden=false; document.body.classList.add('gal-open'); paintGal(); setTimeout(function(){ $('galNext').focus(); },0); }
+function closeGal(){ $('gal').hidden=true; document.body.classList.remove('gal-open'); $('galImg').removeAttribute('src'); }
+function paintGal(){ var it=G.items[G.i]; if(!it) return; var f=it.r.fields, img=$('galImg');
+  img.classList.add('is-loading'); $('galLoad').hidden=false; img.onload=function(){ img.classList.remove('is-loading'); $('galLoad').hidden=true; }; img.onerror=function(){ $('galLoad').hidden=false; $('galLoad').textContent='This mockup didn’t load'; };
+  $('galLoad').textContent='Loading…'; img.src=it.u; img.alt='Mockup for '+(f[F.id]||'');
+  $('galCap').innerHTML='<span class="p-id">'+esc(f[F.id]||'—')+'</span><b>'+esc(f[F.nick]||'(no nickname)')+'</b><span class="sub">'+esc([str(f[F.loc]),str(f[F.cust]),when(f[F.created])].filter(Boolean).join(' · '))+(it.n>1?' · proof '+(it.j+1)+' of '+it.n:'')+'</span><span class="n">'+(G.i+1)+' / '+G.items.length+'</span>';
+  $('galPrev').disabled=G.i<=0; $('galNext').disabled=G.i>=G.items.length-1;
+  $('galOpen').textContent=S.sel===it.r.id?'Close and link a reorder':'Open '+(f[F.id]||'this imprint');
+  $('galStrip').querySelectorAll('button').forEach(function(b){ var on=+b.dataset.n===G.i; b.classList.toggle('on',on); if(on) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'}); });
+  [G.i+1,G.i-1].forEach(function(n){ var x=G.items[n]; if(x){ var p=new Image(); p.src=x.u; } }); }   // the next ones are ready when you get there
+function galStep(d){ var n=G.i+d; if(n<0||n>=G.items.length) return; G.i=n; paintGal(); }
+$('galPrev').onclick=function(){ galStep(-1); }; $('galNext').onclick=function(){ galStep(1); };
+$('galX').onclick=closeGal;
+$('galOpen').onclick=function(){ var it=G.items[G.i]; closeGal(); if(it&&S.sel!==it.r.id) pick(it.r.id); };
+$('galStrip').onclick=function(e){ var b=e.target.closest('button[data-n]'); if(b){ G.i=+b.dataset.n; paintGal(); } };
+$('galMain').onclick=function(e){ if(e.target===$('galMain')) closeGal(); };   // a click on the dark around the mockup closes
+(function(){ var x0=null; $('galMain').addEventListener('pointerdown',function(e){ x0=e.clientX; }); $('galMain').addEventListener('pointerup',function(e){ if(x0==null) return; var dx=e.clientX-x0; x0=null; if(Math.abs(dx)>50) galStep(dx<0?1:-1); }); })();
+/* --p-off-top: where the panes start */
+function measure(){ var b=document.querySelector('[data-pin]'), f=$('findForm'); document.documentElement.style.setProperty('--p-off-top',((b?b.offsetHeight:0)+(f?f.offsetHeight:0))+'px'); }
+window.addEventListener('resize',measure); try{ new ResizeObserver(measure).observe($('findForm')); }catch(e){}
+
+/* settings, refresh, keys */
+function showMenu(on){ $('gear').hidden=!on; $('gearBtn').setAttribute('aria-expanded',on); if(on){ $('tokHint').textContent=token()?'A token is saved on this computer.':'No token yet: paste it to search.';
+  $('pracHint').innerHTML=PRACTICE?'On: linking is faked, nothing is saved. <a href="'+location.pathname+'">Leave practice</a>':'Off. <a href="'+location.pathname+'?practice=1">Open in practice</a> to try linking without saving.'; } }
+$('gearBtn').onclick=function(){showMenu($('gear').hidden);};
+document.addEventListener('pointerdown',function(e){if(!$('gear').hidden&&!e.target.closest('#gear,#gearBtn')&&token())showMenu(false);});
+$('tokSave').onclick=function(){var v=$('tokIn').value.trim();if(!v)return;store('pine_at_key',v);$('tokIn').value='';showMenu(false);if(S.q)search();};
+$('findForm').onsubmit=function(e){e.preventDefault();search();};
+$('refreshBtn').onclick=async function(){ try{ if(window.PineUpdate&&PineUpdate.check&&await PineUpdate.check()) return; }catch(e){} if(S.q) search(); };
+document.addEventListener('keydown',function(e){ if(!$('gal').hidden){ if(e.key==='ArrowRight'){ e.preventDefault(); galStep(1); } else if(e.key==='ArrowLeft'){ e.preventDefault(); galStep(-1); } else if(e.key==='Escape') closeGal(); return; }
+  if(e.key==='Escape'){ if(!$('gear').hidden) showMenu(false); else document.body.classList.remove('det-open'); }
+  if((e.key==='ArrowDown'||e.key==='ArrowUp')&&S.recs.length&&$('gear').hidden){ var t=e.target, typing=t&&(t.tagName==='TEXTAREA'||t.isContentEditable||(t.tagName==='INPUT'&&!(t.id==='q'||(t.id==='newId'&&!t.value.trim())))); /* v9: the search box and an empty New imprint ID box step too */ if(!typing){ e.preventDefault(); stepCard(e.key==='ArrowDown'?1:-1); } } });
+window.pineBusy=function(){ return S.busy||!!S.tq||!$('gear').hidden||!$('gal').hidden; };
+measure();
+if(PRACTICE) $('practicePill').hidden=false;
+var qp=new URLSearchParams(location.search).get('q'); if(qp){ $('q').value=qp; search(); } else $('q').focus();
+if(!token()) showMenu(true);
+</script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>

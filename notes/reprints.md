@@ -78,3 +78,9 @@ Stephen: "get it in the new format and increase the reference mockups that pops 
 Stephen: "can we also make it so the down key when you are on a card goes through the stack."
 - On the results (not while typing in a box), ↓ opens the next card and ↑ the one before. The card stays in view and keeps the focus, so holding ↓ walks the stack; it stops at the ends.
 - Tested: ↓↓ → 3rd card, ↑ → 2nd, stops at the last, typing in the reorder box doesn't move it; no errors, 0 writes.
+
+## 2026-11-10 — v9: ↓ / ↑ work right after clicking a card
+Stephen: "v8 doesn't seem to be working the up and down keys through the cards."
+- Clicking a card puts the cursor in the New imprint ID box, and v8 ignored the arrow keys in any box, so they did nothing. (v8's test had focused the card directly, which hid it.)
+- Now ↓ / ↑ step through the cards from the search box and from the New imprint ID box while it's empty; only an ID being typed keeps them.
+- Tested the real flow (click a card, then ↓ ↓ ↑): 1st → 3rd → 2nd, stops at the last, typing an ID blocks it; no errors, 0 writes.
