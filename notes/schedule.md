@@ -545,3 +545,53 @@ Stephen: "Do the 5 bugs first". Code review: "jobs that run past midnight show 5
 - Split jobs ("Press 1 & 2 - SPLIT", the SP lane) used Press 1's teal, so they looked like Press 1 jobs.
 - They now have their own colour: half Press 1 teal (7473), half Press 2 mustard (7563), split down the middle at a slight slant. It's used on cards, tags, lane and day headers, the machine chip, fills and the impressions bars. The border and black text are kept.
 - Checked in practice mode: P1, P2 and SP cards and tags side by side.
+
+## 2026-11-10 · v30: Ping Pong days
+Stephen: "when we slow we are going to start a thing we are calling Ping Pong....a team of 4 people. 1 Loader, 1 unloader, 1 catcher, and 1 person who is setting up the job on the next press. So when one job is done on Press 1 the team of 3 moves to Press 2 and then the 1 floater tears down Press 1 and start setting up the next job....keep the same Press 1 and Press 2 logic and help the scheduler schedule out a realistic day".
+His answers to the questions:
+- The floater does all the teardown (managers can help). The crew of 3 starts printing right away.
+- If the floater isn't done, the crew waits and helps.
+- Press 1 is set up the night before. The crew is in at 8:00 and printing by 8:30–9:00.
+- For sure January and February, or any week that slows down.
+- A big split job: turn Ping Pong off that day.
+- Everyone takes lunch at the same time.
+- The crew is the 4 main printers (2 print leads, 2 press operators).
+- Teardown: a flat 15 min for now; measure and adjust later.
+
+**How a Ping Pong day is worked out:**
+- Only one press prints at a time. The first job prints at 8:30 (set up the night before). The floater starts at 8:00.
+- For each next job, the floater tears down that press (15 min) and sets the job up (calibrated setup: 8.2 / 8.9 min per screen, plus ink changes). The floater starts once it's free and that press's last run is done.
+- The crew starts the run when its run before is done and the setup is ready. Any gap is "crew waits N min".
+- Lunch (12:00, 30 min, Settings) stops everyone.
+- The floater's last task is setting up tomorrow's first job. If tomorrow is a Ping Pong day with jobs, it shows with its time.
+- A job's run = its length on the board (Allocated, or the estimate) minus its setup.
+
+**On screen:**
+- Day view, normal day: a "Ping Pong day" button (Press 1 or 2 shown, weekday, not past).
+- Day view, Ping Pong day: a panel above the lanes.
+  - Summary: printing time vs the crew's printing hours (6.5 h, Settings), crew waits, when printing is done, impressions.
+  - The crew's path, one row per job: press, run time, job, then "Floater 9:50–10:38: tear down + set up Press 1", and a red "Crew waits 2m: setup 48m, run before 46m. They help the floater." Rows open the job.
+  - "Turn off".
+  - "Plan for Ping Pong" (see below).
+  - A Press 1 & 2 split job on the day shows "Turn Ping Pong off".
+- Week and 3 Day: a "Ping Pong · waits 3m" tag on the day header.
+
+**Plan for Ping Pong:**
+- Re-orders the day when that cuts waits. It alternates presses; after each run it sets up the biggest job whose teardown + setup fits in that run (or the smallest if none fits). Locked, Hard Deadline, running and finished jobs keep their place.
+- It also re-times the day. Scheduled Start = run end − Allocated, on 5-min marks, so a card starts when its setup starts and Airtable's End Time is when its run ends. Press 1 and 2 cards overlap. Nothing new in Airtable, and Operator, the Board and the timers work as before.
+- A confirm box lists the times and waits. It writes Scheduled Start (plus Allocated where a job had none), with Undo. Running and finished jobs are never written. Practice writes nothing.
+
+**✨ Suggest on Ping Pong days:**
+- Fills the day by the crew's printing hours (both presses together) × the fill %, instead of each press's hours.
+- Balances job counts across the presses (Press 1 takes the odd one) so the crew can alternate.
+- Puts the new jobs in the Ping Pong order and times. No split jobs.
+
+**Settings › Ping Pong** (saved on this computer, like the other settings): From/To (default Jan 4 – Feb 26, 2027), teardown, lunch time and length, crew printing hours. Each day's switch overrides the range.
+
+**Tested** (mocked Airtable, Chromium 1440×900 and 390):
+- A day with 5 jobs: crew waits 3m, printing done 3:20p. Plan for Ping Pong wrote 1 PATCH with 4 records (start + Allocated). There was no same-press overlap afterwards.
+- Suggest with 3 new jobs on a Ping Pong day went P1 → P2 → P1 with 0 waits. Before the job-count balance, all 3 went on Press 1 and the crew waited 71 min.
+- Split warning and Turn off work, the Settings save works, and the week tag shows.
+- No console errors.
+
+Still to do: measure real teardown and waits from Operator once Ping Pong starts. The Ping Pong switch lives on each computer; if two people schedule, we can move it to Airtable later.
