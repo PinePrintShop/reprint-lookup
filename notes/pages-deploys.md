@@ -23,3 +23,4 @@ The site (`https://pineprintshop.github.io/reprint-lookup/`) is published by Git
 
 ## 2026-11-10 · deploy stuck after Mockup Maker v255
 - Run 2286 (PR 698, Mockup Maker v255): the build passed, then "Deploy to GitHub Pages" hung for over 4 minutes. Cancelled through the API, then this note was merged to republish the whole site.
+- 2026-11-10 20:11 UTC: republish (the deploys for Schedule v33 / Mockup v262 hung in progress; cancelled).
