@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!-- Vendor invoice check v1 (2026-11-10). Stephen: "Let's do the Worker route since I am an admin"; "all invoice go to
+     purchasing@pineprintshop.com and get filtered to an invoice section". Needs worker v42 and, in Google, the Gmail API
+     enabled + domain-wide delegation (gmail.readonly) for the Pine Apps service account. Shows whether the worker can read
+     the "2. Invoices" labels in purchasing@ and lists the newest invoice emails per vendor, with their PDFs. Read-only:
+     nothing is sent, changed or written anywhere. Uses the Airtable sign-in the other Pine apps saved on this computer. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vendor Invoices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row .p-input{flex:1;min-width:160px}
+.list{list-style:none;margin:8px 0 0;padding:0}
+.list li{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--p-line);font-size:14px}
+.list .when{color:var(--p-ink-2);font-variant-numeric:tabular-nums}
+.list .subj{min-width:0}.list .subj b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .subj span{color:var(--p-ink-2);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
+</style></head>
+<body class="p-app">
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v1</span>
+  <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
+<main>
+  <div class="p-note" id="msg">Checking…</div>
+  <section class="p-card" id="box" hidden>
+    <div class="row"><select class="p-input" id="vendor" aria-label="Vendor"><option value="">Every vendor (newest 3 each)</option></select>
+      <button class="p-btn p-btn-main" id="go" type="button">Show invoices</button></div>
+    <ul class="list" id="list"></ul></section>
+  <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
+    <div class="row"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="save" type="button">Save</button></div></div>
+</main>
+<script>
+const W='https://pine-workers.stephen-dab.workers.dev/proxy';
+const $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tok=()=>{ try{ return localStorage.getItem('pine_at_key')||''; }catch(e){ return ''; } };
+async function api(p){ const r=await fetch(W+p,{headers:{Authorization:'Bearer '+tok()},cache:'no-store'}); const j=await r.json().catch(()=>({})); if(!r.ok) throw Object.assign(new Error(j.error||('HTTP '+r.status)),{status:r.status,code:j.code}); return j; }
+const when=d=>{ const t=new Date(d); return isNaN(t)?'':t.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); };
+async function check(){
+  if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in below first.'; return; }
+  $('msg').className='p-note'; $('msg').textContent='Checking…'; $('box').hidden=true;
+  try{ const v=await fetch(W+'/version',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}));
+    if(!(+v.version>=42)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v42: paste worker v42 into Cloudflare first (worker-copy.html).`; return; }
+    const j=await api('/invoices/status'), vs=j.labels.filter(l=>l.vendor);
+    $('msg').className='p-note p-note-done'; $('msg').textContent=`✓ Worker v${v.version} can read ${j.mailbox} · “${j.root}” · ${vs.length} vendor labels`;
+    $('vendor').innerHTML='<option value="">Every vendor (newest 3 each)</option>'+vs.map(l=>`<option value="${esc(l.vendor)}">${esc(l.vendor)}</option>`).join('');
+    $('box').hidden=false; show();
+  }catch(e){ $('msg').className='p-note p-note-alert';
+    $('msg').textContent=e.status===401?'The saved Airtable sign-in was refused. Paste it again below.':e.code==='gmail_signin_failed'?'Google said no: '+e.message+'. Check the Gmail API is enabled and the domain-wide delegation (gmail.readonly) is saved, then Check again (it can take a few minutes).':'Could not check: '+e.message;
+    if(e.status===401) $('signin').hidden=false; }
+}
+async function show(){ const ul=$('list'), v=$('vendor').value; ul.innerHTML='<li>Loading…</li>';
+  try{ const j=await api('/invoices/list'+(v?'?vendor='+encodeURIComponent(v)+'&max=10':''));
+    ul.innerHTML=j.messages.length?j.messages.map(m=>`<li><span class="when">${when(m.date)}<br><b>${esc(m.vendor)}</b></span><span class="subj"><b>${esc(m.subject||'(no subject)')}</b><span>${esc(m.from)} · ${esc(m.snippet)}</span></span>`
+      +`<span class="files">${m.attachments.map(a=>`<button class="p-btn" type="button" data-u="${esc(a.url)}">${esc(a.filename)}</button>`).join('')||'<span class="p-hint">no attachment</span>'}</span></li>`).join(''):'<li>No invoice emails found.</li>';
+    ul.querySelectorAll('[data-u]').forEach(b=>b.onclick=async()=>{ const t=b.textContent; b.disabled=true; b.textContent='Opening…'; const w=window.open('','_blank');
+      try{ const r=await fetch(W.replace(/\/proxy$/,'')+b.dataset.u,{headers:{Authorization:'Bearer '+tok()}}); if(!r.ok) throw new Error('HTTP '+r.status);
+        const u=URL.createObjectURL(await r.blob()); if(w) w.location=u; else location.href=u; }catch(e){ if(w) w.close(); alert('Could not open it: '+e.message); }
+      b.disabled=false; b.textContent=t; });
+  }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
+$('again').onclick=check; $('go').onclick=show;
+$('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
+check();
+</script>
+</body></html>
