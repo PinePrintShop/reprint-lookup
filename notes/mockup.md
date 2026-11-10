@@ -3322,3 +3322,15 @@ Stephen: "can we also remove the warning we attach from page 1 and just keep it 
   - v260: the note on page 1 (2 text lines) and on the close-up.
   - v261: page 1 has none, the close-up still has it.
   - A screen print was the same as before (close-up only). No errors.
+
+## 2026-11-10 — v262: a new order starts blank
+Stephen, on 11187 (no line items yet), whose screen showed 11185-B: "I accidentaly clicke something from another job 11185-B and now it looks connected...when we move to another job it either is blank...it doesn't move over the info from a job that does have a line item".
+- **Cause:** `pickOrder` reset the line list but kept the last order's imprints (`J.imps`, `J.allImps`, the current imprint), its "Pick up where you left off" offer and its Notes brief.
+  - If the new order had lines, picking its first line replaced them.
+  - With no lines they stayed, so the last job's imprint, art and setup looked attached to 11187. Nothing was written to Airtable.
+- **Fix:** switching orders clears the imprints, the attach state, the offer and the brief first.
+  - An order with no lines shows "Pick a job to start" and "No lines with imprints".
+  - Each imprint's art and settings are still kept by imprint, so going back to the old order brings them back.
+- **Tested** (mocked, practice): on 11095, then an order with no lines, then back to 11095.
+  - v261 kept 11095-A on the empty order.
+  - v262 showed no imprints and no brief on it, and 11095-A came back with its art when switching back. No errors.
