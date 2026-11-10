@@ -3306,3 +3306,19 @@ Request via Stephen: "can we be able to make specific inks or colors DC or OW et
   - DC on the white made "WHT DC" on both garments.
   - EZP on Cool Gray 2 made "COOL GRAY 2 EZP" on both, with the other inks unchanged (OW on Navy, plain on Khaki).
   - Auto put it back. 0 writes, no errors.
+
+## 2026-11-10 — v261: proof notes on the close-up page only
+Stephen: "can we also remove the warning we attach from page 1 and just keep it on page 2 in the mockup builder".
+- **Proof notes** (the disclaimers picked from the drop-down, e.g. "ANY THIN LINE DETAILS <1 POINT MAY NOT PRINT") showed twice on two layouts: under the print's name on page 1, and again on the print's close-up page.
+  - Embroidery: page 1's notes list.
+  - The older bandana page-1 layout.
+  - The garment template (screen print) already kept them on the close-up only (v184).
+- **Now page 1 leaves them out** for every print that has a close-up page, which is every print except size tags. Tags have no close-up page, so their notes stay on page 1.
+- **Unchanged:**
+  - the fixed blue line on page 1 ("PLEASE NOTE: PRINT SIZE IS SHOWN TO SCALE ON A SIZE M GARMENT…");
+  - the embroidery thread-colour line;
+  - the bandana sizing line and the semi-opaque swatches.
+- **Tested** (mocked, practice) with an embroidery imprint and the thin-lines note:
+  - v260: the note on page 1 (2 text lines) and on the close-up.
+  - v261: page 1 has none, the close-up still has it.
+  - A screen print was the same as before (close-up only). No errors.
