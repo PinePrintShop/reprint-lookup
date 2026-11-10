@@ -254,3 +254,48 @@ Stephen:
 - AS Colour and LA Apparel confirmations count as the bill.
 - SAMPLES → Pine MFG COGS:Samples.
 - SLC is matched on Pine's PO inside its printed PO.
+
+## 2026-11-10: v44, QuickBooks direct
+Stephen: "can we just send bills directly to quickbooks since we can connect it to our api". He set up the Intuit app (Development keys), the `QBO_CLIENT_ID` / `QBO_CLIENT_SECRET` secrets and the `PINE_KV` KV binding.
+
+**Intuit pages** (registered in the Intuit app):
+- `/qbo/connect`: the launch and connect/reconnect URL. It points people to invoice-check.
+- `/qbo/callback`: the redirect URI.
+- `/qbo/disconnected`: the disconnect URL.
+
+**API** (Airtable token, and only answers Pine's site):
+- `GET /proxy/qbo/start`: returns the Intuit sign-in link with a one-time state, kept in KV for 10 minutes. This is the CSRF check.
+- `GET /proxy/qbo/status`
+- `POST /proxy/qbo/disconnect`: revokes the token at Intuit.
+- `GET /proxy/qbo/vendors`, `GET /proxy/qbo/accounts`
+- `POST /proxy/qbo/bill {rec}`
+- `POST /proxy/invoices/save?id=` saves a read invoice as a Vendor Bills record.
+
+**Bills:**
+- Only for a record that's Status Checked and has no QuickBooks bill ID.
+- Vendor mapped to its QuickBooks name.
+- Bill no. = Pine PO. A second bill for the same vendor + PO gets -2.
+- Dates come from the invoice. One line to Pine MFG COGS, or COGS:Samples, for the total.
+- The PDF from Gmail is attached.
+- Same vendor + PO + total already in QuickBooks → not sent again; the existing bill ID is written back.
+- Failures set Status Error, with the message and intuit_tid in Read notes.
+- Production never creates vendors or accounts. The sandbox creates a missing vendor and uses its own COGS account.
+
+**Tokens:**
+- Endpoints come from Intuit's discovery document.
+- Refreshed when under 5 minutes are left.
+- A 401 gets one refresh and one retry.
+- invalid_grant marks the connection disconnected, and the page asks to reconnect.
+- The cron refreshes daily so the 100-day refresh token never lapses.
+- The last 50 errors are kept in KV.
+
+`QBO_ENV=production` switches to the real books. Until then it's Intuit's test company.
+
+**Tested** (mocked Intuit, Airtable, KV):
+- Connect, a fake state and a reused state.
+- Status, and a wrong Origin (403).
+- A not-checked bill, and a bill after a 401 retry.
+- Sent twice, and the duplicate guard.
+- A second bill on the same PO → -2.
+- An expired grant → reconnect, and the bill marked Error.
+- Disconnect, and version 44.
