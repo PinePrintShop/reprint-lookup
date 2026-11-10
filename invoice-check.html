@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- v3 (2026-11-10): "Read" on each email (worker v43): what Claude pulled out of the PDF (or the email text, for AS Colour /
+     LA Apparel confirmations, which are their bills): kind, number, dates, terms, printed PO and Pine's PO, warehouse,
+     subtotal / freight / tax / total and lines. Nothing is saved. -->
 <!-- v2 (2026-11-10): invoices only by default (Stephen, on the first real list: "maybe we filter out order confirmations").
      Each email is sorted from its subject and attachment names: Invoice ("Invoice", "Original Invoice"), Order confirmation
      ("Order Confirmation", "OrderConf"), Shipment notice ("Shipment Acknowledgement", "shipped"); chips switch between them.
@@ -20,11 +23,14 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 .list .when{color:var(--p-ink-2);font-variant-numeric:tabular-nums}
 .list .subj{min-width:0}.list .subj b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list .subj span{color:var(--p-ink-2);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd{grid-column:1/-1;background:var(--p-cream-lt);border:1px solid var(--p-line);border-radius:8px;padding:10px 12px;font-size:14px}
+.rd dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px 16px;margin:0}.rd dt{font-size:12px;color:var(--p-ink-2);font-weight:700;text-transform:uppercase}.rd dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+.rd table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}.rd td,.rd th{text-align:left;padding:3px 6px;border-top:1px solid var(--p-line)}
 .files{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v2</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v3</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
   <div class="p-note" id="msg">Checking…</div>
@@ -54,7 +60,7 @@ async function check(){
   if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in below first.'; return; }
   $('msg').className='p-note'; $('msg').textContent='Checking…'; $('box').hidden=true;
   try{ const v=await fetch(W+'/version',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}));
-    if(!(+v.version>=42)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v42: paste worker v42 into Cloudflare first (worker-copy.html).`; return; }
+    if(!(+v.version>=43)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v43: paste worker v43 into Cloudflare first (worker-copy.html).`; return; }
     const j=await api('/invoices/status'), vs=j.labels.filter(l=>l.vendor);
     $('msg').className='p-note p-note-done'; $('msg').textContent=`✓ Worker v${v.version} can read ${j.mailbox} · “${j.root}” · ${vs.length} vendor labels`;
     $('vendor').innerHTML='<option value="">Every vendor (newest 3 each)</option>'+vs.map(l=>`<option value="${esc(l.vendor)}">${esc(l.vendor)}</option>`).join('');
@@ -68,11 +74,22 @@ async function show(){ const ul=$('list'), v=$('vendor').value; ul.innerHTML='<l
     LAST=j.messages; draw(); }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
 function draw(){ const ul=$('list'); chips(); const ms=LAST.filter(m=>KIND==='all'||kindOf(m)===KIND);
     ul.innerHTML=ms.length?ms.map(m=>`<li><span class="when">${when(m.date)}<br><b>${esc(m.vendor)}</b>${KIND==='all'?`<br><span class="p-hint">${({invoice:'Invoice',confirm:'Confirmation',ship:'Shipment'})[kindOf(m)]}</span>`:''}</span><span class="subj"><b>${esc(m.subject||'(no subject)')}</b><span>${esc(m.from)} · ${esc(m.snippet)}</span></span>`
-      +`<span class="files">${m.attachments.map(a=>`<button class="p-btn" type="button" data-u="${esc(a.url)}">${esc(a.filename)}</button>`).join('')||'<span class="p-hint">no attachment</span>'}</span></li>`).join(''):`<li>None in these emails${$('vendor').value?'':' (newest 3 per vendor)'}. Pick a vendor to look further back.</li>`;
+      +`<span class="files"><button class="p-btn p-btn-dark" type="button" data-read="${esc(m.id)}">Read</button>${m.attachments.map(a=>`<button class="p-btn" type="button" data-u="${esc(a.url)}">${esc(a.filename)}</button>`).join('')||'<span class="p-hint">no attachment</span>'}</span></li>`).join(''):`<li>None in these emails${$('vendor').value?'':' (newest 3 per vendor)'}. Pick a vendor to look further back.</li>`;
     ul.querySelectorAll('[data-u]').forEach(b=>b.onclick=async()=>{ const t=b.textContent; b.disabled=true; b.textContent='Opening…'; const w=window.open('','_blank');
       try{ const r=await fetch(W.replace(/\/proxy$/,'')+b.dataset.u,{headers:{Authorization:'Bearer '+tok()}}); if(!r.ok) throw new Error('HTTP '+r.status);
         const u=URL.createObjectURL(await r.blob()); if(w) w.location=u; else location.href=u; }catch(e){ if(w) w.close(); alert('Could not open it: '+e.message); }
-      b.disabled=false; b.textContent=t; }); }
+      b.disabled=false; b.textContent=t; });
+    ul.querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>readIt(b)); }
+const money=n=>n==null?'—':'$'+(+n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+async function readIt(b){ const li=b.closest('li'); let box=li.querySelector('.rd'); if(box){ box.remove(); return; }
+  box=document.createElement('div'); box.className='rd'; box.textContent='Reading…'; li.appendChild(box); b.disabled=true;
+  try{ const j=await api('/invoices/read?id='+encodeURIComponent(b.dataset.read)), d=j.doc, KN={invoice:'Invoice',order_confirmation:'Order confirmation',shipment_notice:'Shipment notice',credit_memo:'Credit memo',other:'Other'};
+    const f=[['Kind',KN[d.kind]||d.kind],['Number',d.document_number],['Date',d.document_date],['Due',d.due_date||'—'],['Terms',d.terms||'—'],['PO as printed',d.po_as_printed||'—'],['Pine PO',d.pine_po||'— not found'],['Warehouse',d.ship_from_warehouse||'—'],
+      ['Subtotal',money(d.subtotal)],['Freight',money(d.freight)],['Tax',money(d.tax)],['Other',money(d.other_charges)],['Total',money(d.total)],['Lines',d.line_count],['Read from',j.source.pdf?'PDF '+j.source.pdf:'email text']];
+    box.innerHTML='<dl>'+f.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')+'</dl>'+(d.notes?`<p class="p-hint" style="margin:8px 0 0">${esc(d.notes)}</p>`:'')
+      +(d.lines&&d.lines.length?'<table><tr><th>Item</th><th>Description</th><th>Qty</th><th>Each</th><th>Amount</th></tr>'+d.lines.map(x=>`<tr><td>${esc(x.item)}</td><td>${esc(x.description)}</td><td>${esc(x.qty)}</td><td>${money(x.unit_price)}</td><td>${money(x.amount)}</td></tr>`).join('')+'</table>':'');
+  }catch(e){ box.innerHTML=`<span class="p-tag p-tag-alert">Could not read it</span> ${esc(e.message)}`; }
+  b.disabled=false; }
 $('again').onclick=check; $('go').onclick=show;
 $('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
 check();
