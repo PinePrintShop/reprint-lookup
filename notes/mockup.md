@@ -3280,3 +3280,11 @@ Stephen: "can we be able to adjust the thread color when we are sewing these pat
 - The mockup shows the running stitch that sews the patch on: along the merrowed edge, 1/8" in on leather, in the border on a Cut-to-art patch. On a clip label it's the stitch across the top (the row reads "Stitch thread"; the Border row is hidden there).
 - The proof adds "Sewn with: Madeira 1747 Red thread" (or the colour's name) under Placement, once a thread is picked or named. Auto adds nothing.
 - Tested at 1440 with mocked Airtable; tabs regression 26/26; no errors, 0 writes.
+
+## 2026-11-10 — v259: close-ups on the garment's own fabric
+Stephen, 11184 (Colortone 8777 Funnel Cake tie-dye): "are we able to grab fabric texture from this tie dye to use for the close up."
+- A close-up's background was one flat colour (the darker of the front / back photo colours), so a tie-dye or camo became a plain beige box.
+- Now, when the garment photo is patterned, the close-up uses a crop of the photo's chest / belly (the middle of the garment, about life size, no print on it) behind the art. Solid garments keep the flat colour. The per-garment close-up pages do the same.
+- Colours tab › How it looks on the mockup › **Close-up background**: Auto (fabric when the photo is patterned) · Colour · Fabric, per garment, with a line saying which it's using.
+- "Patterned" = the colours across that crop vary a lot (tie-dye ~30, solid ~0 on the test; threshold 14). On-model photos and bandanas keep the flat colour.
+- Tested with a mocked tie-dye and a solid photo: tie-dye → fabric, solid → colour, Colour forces flat; no errors, 0 writes.

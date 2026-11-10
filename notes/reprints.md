@@ -73,3 +73,8 @@ Stephen: "get it in the new format and increase the reference mockups that pops 
   - The next and previous mockups load in the background, so stepping is quick.
 - Linking (Previous Imprint ID + Repeat?) and practice mode are unchanged.
 - Tested with mocked Airtable at 1440 and on a phone: 7 mockups across 5 imprints, keys, strip, open-imprint, filters; no errors, 0 writes.
+
+## 2026-11-10 — v8: ↓ / ↑ go through the cards
+Stephen: "can we also make it so the down key when you are on a card goes through the stack."
+- On the results (not while typing in a box), ↓ opens the next card and ↑ the one before. The card stays in view and keeps the focus, so holding ↓ walks the stack; it stops at the ends.
+- Tested: ↓↓ → 3rd card, ↑ → 2nd, stops at the last, typing in the reorder box doesn't move it; no errors, 0 writes.
