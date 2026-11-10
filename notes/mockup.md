@@ -3241,3 +3241,12 @@ Stephen: "can you add a hyperlink from the print notes? Airtable does". 11180's 
 - A trailing `. , ; : ! ? ) ]` stays outside the link, unless a `)` closes a `(` inside the address.
 - The full address keeps its `&…` parts.
 - **Tests:** Stephen's note, a link ending in a full stop, a link in brackets, a `www.` address, and text that isn't a link. Plus 26/26 tabs checks with mocked Airtable in practice mode. No page errors.
+
+## 2026-11-10 — v255: when Drive files were saved
+Stephen: "with the google drive connection can we see when the most recent files got uploaded?"
+
+- Every file tile in Customer's files shows when it was last saved, after the size: "today 2:14 pm", "yesterday", "Nov 6", or "Nov 6, 2025" for another year. Drive's `modifiedTime` is a save date, so a re-saved file shows its new date. Files that open in Drive show it too.
+- **Newest first** (next to Upload) lists the files by that date instead of art first. Remembered on this computer (`pine_mk_drv_newest`). The header row now wraps so it never overflows.
+- Unchanged: the New / Updated tags, and the date in the 🔍 preview.
+- **Fixed before shipping:** the setting was first declared after the Drive list's code, so the page stopped on load ("Cannot access 'DRV_NEWEST' before initialization"). It's now read with the app's other saved settings.
+- **Tests:** mocked Drive and Airtable, practice mode: dates on every tile, Newest first order, and the header fits at 1440. Plus 26/26 tabs checks. No page errors.
