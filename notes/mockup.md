@@ -3263,3 +3263,13 @@ Stephen: "Here is clip and patches that we are trying to streamline can we scan 
 - **Proof:** the block reads e.g. "WOVEN PATCH P5 · FRONT", with the shape's width and height. Quarter inches now read as quarters everywhere (2.25″, not 2.3″).
 - Saved with the mockup like the method. Patch pricing from the sheet (Nov 2026) isn't in Price-O-Matic yet.
 - Tested with mocked Airtable at 1440: all 14 shapes, each type, the 4 labels, the proof; the tabs regression (26 checks) passes; no errors, 0 writes.
+
+## 2026-11-10 — v257: designs fit the patch picked; die-cut "Cut to art"; felt
+Stephen, with the 11181 felt patch proof: "Can we have the design auto adjust to match the patch selected....and can we also have a custom option that let's us do something like this."
+- **The design fits the patch:** the art is trimmed to what's drawn, and a solid colour all round it (a logo on a navy box) is taken off and becomes the backing, so the design takes the patch's shape instead of sitting on it as a box. On round, oval and badge shapes the design is fitted inside the shape itself, not its bounding box.
+- **Design: Fit · Fill · Stretch** (standard shapes): Fit shows all of it; Fill fills the shape and cuts what runs past; Stretch fills the artwork area.
+- **Cut to art** (was Custom): a die-cut patch that follows the design's outline, a border round it (Thin / Medium / Wide) and a stitch line in the border, like the felt proof. Any size: the width typed is the whole patch, the height follows. Border colour from Border (Auto = black).
+- **Felt** type (any shape): full colour on felt with a soft texture. Leather cut-to-art presses the design in.
+- Fix: v256's Custom snapped back to a standard shape when picked.
+- Proof reads e.g. "FELT PATCH · DIE-CUT".
+- Tested at 1440 with mocked Airtable (pennant and boxed-logo art on every mode), tabs regression 26/26, no errors, 0 writes.
