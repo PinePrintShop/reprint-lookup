@@ -567,3 +567,26 @@ Stephen: "can you have an agent scan purchasing and make sure it is using all of
   - **Results:** v116 and v117 made **identical** requests (54) and writes (13, same order, same bodies), with the same app state after every step and 0 errors. Practice: 0 writes. Re-run independently before shipping: identical.
 - **Still under 40px:** the @mention chip ×, its search field, and the order # badges in the Garment view's To-buy table.
 - **Two yellow buttons:** while a pop-up is open its main button is yellow too (kit pop-up rule).
+
+## 2026-11-10: v118, edit in the cart and in Invoice check
+Purchasing:
+> "If there was a way I could edit the price per piece and inbound freight in the invoice check view, that would be AWESOME. Also, if I can edit things even when they're in the cart that would be helpful. Currently if something doesn't match I have to find the line item then take it out of the cart, edit it, then back in"
+
+Also: "You can also remove the 'checked S&S, etc' part" (of the OOS note).
+
+- **Invoice check:**
+  - The Each column is a price box per size bracket (XS–XL, 2XL …). Freight is a box too.
+  - Tab moves from box to box, and the cart total updates right away.
+  - Price is the same Blank cost as on Ordering. It's saved to Airtable when the cart is ordered, as before.
+  - Freight saves when you leave the box, as on Ordering. A line split over two carts has its freight box in the first cart.
+  - The boxes become plain numbers once any part of the line is ordered.
+- **Ordering:** a line in a cart stays editable (extras, split, warehouse, blank cost) until part of it is ordered. Before, everything locked once it went in a cart. A new warehouse moves the line to that cart.
+- **Out of stock:** the note no longer has "most at one warehouse …" or "checked S&S …". Sizes, the back-in-stock date and the note stay.
+  - The OOS line is already written to the line's **Order Notes** in Airtable. For example, 11085, 11088 and 11178 have "OOS. 11/x (purchasing): …".
+  - The app hides its own lines in the Order Notes box, so it can look as if nothing was written. Asked purchasing whether they meant the order's notes instead.
+- **Tested** (Playwright, mocked Airtable):
+  - The v117 regression replays with identical requests (54) and writes (13), apart from the shorter OOS note. Practice: 0 writes.
+  - A carted line's price is editable on Ordering and in Invoice check.
+  - Tab goes price → 2XL price → freight. Totals: $546.00 → $642.60 → $654.60 with $12 freight.
+  - Freight saves one PATCH. Changing the warehouse moves the cart.
+  - Ordering the cart writes the edited price and warehouse, and the line then locks.
