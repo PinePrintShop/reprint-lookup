@@ -531,3 +531,21 @@ Stephen: "Let's fix the size tag" (from the 11172 pricing check: Airtable priced
 - **11172:** the five size-tag imprints (B, D, F, H, J) were moved to the A4 gang size with 12 per sheet, as Stephen asked. Their price per impression went from $1.88–$2.78 to $1.61–$1.93, and the transfer cost from $0.47–$0.98 to $0.26–$0.31.
 - **Still different from Price-O-Matic** (for the December pricing pass): Airtable's size-tag price is cost × 1.25 + $15 ÷ qty + $1.25, while Price-O-Matic's is sheet ÷ 12 + $1.25. The two 1C A4 gang grids also differ by about 3% (Airtable $3.68 vs Price-O-Matic $3.79 at tier 1).
 - **Tests:** mocked Airtable in practice mode. Tag defaults, quote mapping and the fields sent on save were checked. No page errors.
+
+## 2026-11-10 — v27: flow tune-up, round 1
+Stephen: "really fine tune those flows … user friendly to the max." From the hands-on audit (Lakeside test order, quote Q-58, 1440/1920/1280/phone). Same Airtable reads and writes as v26 (checked: identical writes on a quote fill and a reorder); practice still fakes every write.
+- **Edit in place:** ✎ Edit opens the form where the card is. No more jumping to the bottom and back (fixing a quote fill was ~12,000px of scrolling at 1440).
+- **After Fill from quote:** a Nickname box on each imprint card (Enter goes to the next); line cards that need them get the color chips and a sizes box (paste, type, or tap a sentence in the emails), plus "Pine's mix of N" or "Same as <last order>".
+- **Still to do:** one live list replaces the quote's fixed "to finish" list (it never updated). Blockers first with a count, then the quote's things to check (tick "ok"). Each item opens its box or form. The first blocker also shows under Create order as a link.
+- **Goes on:** chips in the imprint form put a new imprint on existing lines; imprint IDs on each line card tap on/off.
+- **Layout:** the order list folds away once an order is open (Show list brings it back), so the forms get the width and at 1280 the emails sit beside the forms again. Side-by-side Imprints | Line items only from 2200px (too narrow at 1920).
+- **First screen:** Fill from quote is the yellow button when a quote is found; the deal emails show there too.
+- **Header:** pcs/total include the quoted qty until sizes are in ("incl. quoted").
+- Line Item Creator folds behind "＋ Add a line item" once there are lines.
+- **Keyboard:** Enter opens the order (search), picks the top garment, adds the imprint (nickname/colors) and the line (sizes/qty/price); arrows in garment results; focus moves to the next field after each pick.
+- **Wording trims:** no Linked Order rows, no repeated hints, one "nothing is saved" line by Create, a one-line quote box after filling.
+- **Toasts at the top.**
+- **After Create:** Review and Next order side by side; the order's row shows its lines at once (was "Needs lines" until Refresh); practice says Line Item Review won't have it.
+- **Fixes:** "Est. 2014" no longer splits into two email sentences; a line missing only its color says "pick the color"; the bar showed v25.
+- **Not in this round:** matching quote prints to the customer's past art (round 2); the red "under POM" on a quoted price (waiting on Stephen).
+- **Clicks, scroll and keys (same test order, 1440):** 59 clicks / ~32,700px scroll → 37 clicks / ~2,800px; keys about the same (~126; the typing is nicknames and notes).
