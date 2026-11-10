@@ -17,3 +17,12 @@ Stephen: "create the vendor bills. can we just send bills directly to quickbooks
 
 ## 2026-11-10: Intuit production pages
 Intuit's production-keys form needs public terms and privacy links. Added `qbo-eula.html` and `qbo-privacy.html`. They say this is an internal tool used only by Pine's staff.
+
+## 2026-11-10: worker v44 + invoice-check v4
+- **QuickBooks card:** test company or live books, Connect / Reconnect / Disconnect, recent errors with intuit_tid, and **Report a problem** (copies the errors).
+- **Save as a bill** on a read invoice creates a Vendor Bills record (New).
+- **Vendor Bills list:** Mark checked → Send to QuickBooks.
+- **Next:**
+  1. Stephen tests on Intuit's test company (connect, send a bill, disconnect, reconnect).
+  2. Production keys plus `QBO_ENV=production`.
+  3. Matching to Purchasing lines, the daily auto-save, and the Purchasing screen.

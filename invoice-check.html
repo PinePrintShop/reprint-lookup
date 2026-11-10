@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- v4 (2026-11-10): QuickBooks (worker v44). Stephen: "can we just send bills directly to quickbooks since we can connect it
+     to our api". A QuickBooks card: connected or not (test company or live), Connect / Reconnect / Disconnect, recent errors
+     with Intuit's tracking ID and Report a problem. On a read invoice: "Save as a bill" (a Vendor Bills record, Status New).
+     A Vendor Bills list: Mark checked, then Send to QuickBooks (only Checked bills, once). -->
 <!-- v3 (2026-11-10): "Read" on each email (worker v43): what Claude pulled out of the PDF (or the email text, for AS Colour /
      LA Apparel confirmations, which are their bills): kind, number, dates, terms, printed PO and Pine's PO, warehouse,
      subtotal / freight / tax / total and lines. Nothing is saved. -->
@@ -26,19 +30,26 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 .rd{grid-column:1/-1;background:var(--p-cream-lt);border:1px solid var(--p-line);border-radius:8px;padding:10px 12px;font-size:14px}
 .rd dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px 16px;margin:0}.rd dt{font-size:12px;color:var(--p-ink-2);font-weight:700;text-transform:uppercase}.rd dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
 .rd table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}.rd td,.rd th{text-align:left;padding:3px 6px;border-top:1px solid var(--p-line)}
+.qb{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.qb .grow{flex:1;min-width:200px}
+.errs{margin:8px 0 0;padding:0;list-style:none;font-size:13px}.errs li{padding:4px 0;border-top:1px solid var(--p-line)}
+.vb{list-style:none;margin:8px 0 0;padding:0}.vb li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--p-line);font-size:14px}
+.vb .act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .files{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v3</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v4</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
+  <section class="p-card" id="quickbooks"><div class="qb"><div class="grow"><h2 class="p-h2" style="margin:0">QuickBooks</h2><span class="p-hint" id="qbMsg">Checking…</span></div><span id="qbBtns" class="row"></span></div><ul class="errs" id="qbErr" hidden></ul></section>
   <div class="p-note" id="msg">Checking…</div>
   <section class="p-card" id="box" hidden>
     <div class="row"><select class="p-input" id="vendor" aria-label="Vendor"><option value="">Every vendor (newest 3 each)</option></select>
       <button class="p-btn p-btn-main" id="go" type="button">Show</button></div>
     <div class="p-chips" role="tablist" id="kinds" style="margin-top:10px"></div>
     <ul class="list" id="list"></ul></section>
+  <section class="p-card" id="bills" hidden><div class="qb"><h2 class="p-h2 grow" style="margin:0">Vendor Bills <span class="p-count" id="vbCount"></span></h2><button class="p-btn" id="vbRe" type="button">↻</button></div>
+    <p class="p-hint" style="margin:4px 0 0">Saved bills, newest first. Check one against its PDF, Mark checked, then Send to QuickBooks.</p><ul class="vb" id="vbList"></ul></section>
   <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
     <div class="row"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="save" type="button">Save</button></div></div>
 </main>
@@ -46,7 +57,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 const W='https://pine-workers.stephen-dab.workers.dev/proxy';
 const $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tok=()=>{ try{ return localStorage.getItem('pine_at_key')||''; }catch(e){ return ''; } };
-async function api(p){ const r=await fetch(W+p,{headers:{Authorization:'Bearer '+tok()},cache:'no-store'}); const j=await r.json().catch(()=>({})); if(!r.ok) throw Object.assign(new Error(j.error||('HTTP '+r.status)),{status:r.status,code:j.code}); return j; }
+async function api(p,o){ o=o||{}; const r=await fetch(W+p,{method:o.method||'GET',headers:Object.assign({Authorization:'Bearer '+tok()},o.body?{'Content-Type':'application/json'}:{}),body:o.body?JSON.stringify(o.body):undefined,cache:'no-store'}); const j=await r.json().catch(()=>({})); if(!r.ok) throw Object.assign(new Error(j.error||('HTTP '+r.status)),{status:r.status,code:j.code}); return j; }
 const KINDS=[['invoice','Invoices'],['confirm','Order confirmations'],['ship','Shipment notices'],['all','All']]; let KIND='invoice', LAST=[];
 function kindOf(m){ const t=(m.subject+' '+m.attachments.map(a=>a.filename).join(' ')).toLowerCase();
   if(/shipment|shipped|acknowledg|tracking/.test(t)) return 'ship';
@@ -60,7 +71,8 @@ async function check(){
   if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in below first.'; return; }
   $('msg').className='p-note'; $('msg').textContent='Checking…'; $('box').hidden=true;
   try{ const v=await fetch(W+'/version',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}));
-    if(!(+v.version>=43)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v43: paste worker v43 into Cloudflare first (worker-copy.html).`; return; }
+    if(!(+v.version>=44)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v44: paste worker v44 into Cloudflare first (worker-copy.html).`; $('qbMsg').textContent='Needs worker v44.'; return; }
+    qbCheck(); loadBills();
     const j=await api('/invoices/status'), vs=j.labels.filter(l=>l.vendor);
     $('msg').className='p-note p-note-done'; $('msg').textContent=`✓ Worker v${v.version} can read ${j.mailbox} · “${j.root}” · ${vs.length} vendor labels`;
     $('vendor').innerHTML='<option value="">Every vendor (newest 3 each)</option>'+vs.map(l=>`<option value="${esc(l.vendor)}">${esc(l.vendor)}</option>`).join('');
@@ -87,9 +99,43 @@ async function readIt(b){ const li=b.closest('li'); let box=li.querySelector('.r
     const f=[['Kind',KN[d.kind]||d.kind],['Number',d.document_number],['Date',d.document_date],['Due',d.due_date||'—'],['Terms',d.terms||'—'],['PO as printed',d.po_as_printed||'—'],['Pine PO',d.pine_po||'— not found'],['Warehouse',d.ship_from_warehouse||'—'],
       ['Subtotal',money(d.subtotal)],['Freight',money(d.freight)],['Tax',money(d.tax)],['Other',money(d.other_charges)],['Total',money(d.total)],['Lines',d.line_count],['Read from',j.source.pdf?'PDF '+j.source.pdf:'email text']];
     box.innerHTML='<dl>'+f.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')+'</dl>'+(d.notes?`<p class="p-hint" style="margin:8px 0 0">${esc(d.notes)}</p>`:'')
+      +`<div class="row" style="margin-top:8px"><button class="p-btn p-btn-dark" type="button" data-savebill>Save as a bill</button><span class="p-hint sv"></span></div>`
       +(d.lines&&d.lines.length?'<table><tr><th>Item</th><th>Description</th><th>Qty</th><th>Each</th><th>Amount</th></tr>'+d.lines.map(x=>`<tr><td>${esc(x.item)}</td><td>${esc(x.description)}</td><td>${esc(x.qty)}</td><td>${money(x.unit_price)}</td><td>${money(x.amount)}</td></tr>`).join('')+'</table>':'');
+    const sb=box.querySelector('[data-savebill]'); sb.onclick=async()=>{ sb.disabled=true; sb.textContent='Saving…';
+      try{ const s=await api('/invoices/save?id='+encodeURIComponent(b.dataset.read),{method:'POST'}); sb.textContent=s.already?'Already saved':'✓ Saved'; loadBills(); }
+      catch(e){ sb.disabled=false; sb.textContent='Save as a bill'; box.querySelector('.sv').textContent='Not saved: '+e.message; } };
   }catch(e){ box.innerHTML=`<span class="p-tag p-tag-alert">Could not read it</span> ${esc(e.message)}`; }
   b.disabled=false; }
+// v4: QuickBooks connection
+let QB={};
+async function qbCheck(){ const m=$('qbMsg'), btn=$('qbBtns'), er=$('qbErr');
+  try{ QB=await api('/qbo/status'); }catch(e){ QB={}; m.textContent=e.code==='no_kv'?'The worker has no PINE_KV storage yet.':e.code==='qbo_not_set_up'?'The worker has no QuickBooks keys yet (QBO_CLIENT_ID / QBO_CLIENT_SECRET).':'Could not check: '+e.message; btn.innerHTML=''; return; }
+  const live=QB.env==='production', tag=`<span class="p-tag ${live?'p-tag-done':'p-tag-soft'}">${live?'Live books':'Test company'}</span> `;
+  m.innerHTML=tag+(QB.connected?`✓ Connected to <b>${esc(QB.company||('company '+QB.realm))}</b>`:esc(QB.reason||'Not connected'));
+  btn.innerHTML=QB.connected?'<button class="p-btn" type="button" id="qbOff">Disconnect</button>':`<button class="p-btn p-btn-dark" type="button" id="qbOn">${QB.realm?'Reconnect':'Connect'} QuickBooks</button>`;
+  if($('qbOn')) $('qbOn').onclick=async()=>{ try{ const s=await api('/qbo/start'); location.href=s.url; }catch(e){ m.textContent='Could not start: '+e.message; } };
+  if($('qbOff')) $('qbOff').onclick=async()=>{ if(!confirm('Disconnect Pine Apps from QuickBooks? Bills can\'t be sent until someone reconnects.')) return; try{ await api('/qbo/disconnect',{method:'POST'}); }catch(e){} qbCheck(); };
+  const errs=QB.errors||[]; er.hidden=!errs.length;
+  er.innerHTML=errs.slice(0,5).map(x=>`<li>${when(x.at)} · ${esc(x.route)} · ${esc(x.msg)}${x.tid?` · <span class="p-hint">intuit_tid ${esc(x.tid)}</span>`:''}</li>`).join('')
+    +(errs.length?'<li><button class="p-btn" type="button" id="qbReport">Report a problem</button> <span class="p-hint">copies these errors to send to Stephen</span></li>':'');
+  if($('qbReport')) $('qbReport').onclick=()=>{ const txt='Pine Apps QuickBooks errors\n'+errs.map(x=>[x.at,x.route,x.status,x.msg,x.tid&&('intuit_tid '+x.tid)].filter(Boolean).join(' | ')).join('\n');
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>alert('Copied. Paste it in a message to Stephen.')).catch(()=>prompt('Copy this and send it to Stephen:',txt)); };
+}
+// v4: Vendor Bills (Airtable), Mark checked, Send to QuickBooks
+const AT='https://api.airtable.com/v0/appJkaLk8DykjsgHR/tbll36BD4hZelQIUL';
+async function loadBills(){ const ul=$('vbList'); $('bills').hidden=false;
+  try{ const r=await fetch(AT+'?pageSize=30&sort%5B0%5D%5Bfield%5D=Bill%20date&sort%5B0%5D%5Bdirection%5D=desc',{headers:{Authorization:'Bearer '+tok()},cache:'no-store'}); const j=await r.json(); if(!r.ok) throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+    const rs=j.records||[]; $('vbCount').textContent=rs.length;
+    ul.innerHTML=rs.length?rs.map(x=>{ const f=x.fields, st=f.Status||'New';
+      const tg=st==='Sent to QuickBooks'?'p-tag-done':st==='Error'?'p-tag-alert':st==='Checked'?'p-tag-soft':'p-tag-wait';
+      return `<li><span><b>${esc(f.Vendor)} · ${esc(f['Document #'])}</b> <span class="p-tag ${tg}">${esc(st)}</span>${f.Samples?' <span class="p-tag p-tag-soft">Samples</span>':''}<br><span class="p-hint">${esc(f['Bill date']||'no date')} · PO ${esc(f['Pine PO']||'— missing')} · ${money(f.Total)}${f.Freight?' incl. '+money(f.Freight)+' freight':''}${f['QuickBooks bill ID']?' · QuickBooks bill '+esc(f['QuickBooks bill ID']):''}</span>${f['Read notes']&&st==='Error'?`<br><span class="p-hint">${esc(String(f['Read notes']).split('\n').pop())}</span>`:''}</span>`
+        +`<span class="act">${st==='New'||st==='Error'?`<button class="p-btn" type="button" data-chk="${x.id}">Mark checked</button>`:''}${st==='Checked'?`<button class="p-btn p-btn-dark" type="button" data-send="${x.id}">Send to QuickBooks</button>`:''}</span></li>`; }).join(''):'<li>No bills saved yet. Read an invoice above and click Save as a bill.</li>';
+    ul.querySelectorAll('[data-chk]').forEach(b=>b.onclick=async()=>{ b.disabled=true; try{ const r=await fetch(AT+'/'+b.dataset.chk,{method:'PATCH',headers:{Authorization:'Bearer '+tok(),'Content-Type':'application/json'},body:JSON.stringify({fields:{Status:'Checked'}})}); if(!r.ok) throw new Error('HTTP '+r.status); }catch(e){ alert('Not saved: '+e.message); } loadBills(); });
+    ul.querySelectorAll('[data-send]').forEach(b=>b.onclick=async()=>{ if(!QB.connected){ alert('Connect QuickBooks first (top of the page).'); return; } b.disabled=true; b.textContent='Sending…';
+      try{ const s=await api('/qbo/bill',{method:'POST',body:{rec:b.dataset.send}}); alert(s.already?'Already in QuickBooks as bill '+s.billId+'. Not sent again.':'✓ In QuickBooks: bill '+s.docNumber+' · '+s.vendor+' · '+s.account+(s.attached?' · PDF attached':'')); }
+      catch(e){ alert('Not sent: '+e.message); } loadBills(); qbCheck(); });
+  }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
+$('vbRe').onclick=loadBills;
 $('again').onclick=check; $('go').onclick=show;
 $('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
 check();
