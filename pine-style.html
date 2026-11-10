@@ -159,6 +159,20 @@ body{margin:0}
  </div>
 </div></section>
 
+<section class="sec"><span class="p-section">Side panes</span>
+<p>Added Nov 10, so moving between apps feels the same: one list width (320–420px), one tools width (380–480px), two panes from 1100px wide, the same header at the top of every side pane, and one compact card. Each app keeps its own focus: it decides what goes in the card's slots (ID · name · sub-line · number · tags). Apps pick this up in their next version. Spec: notes/side-panel.md.</p>
+<div class="mock">
+ <div class="p-filters"><input class="p-input p-search" placeholder="Order # or customer" aria-label="Search"></div>
+ <div class="p-panes" style="--p-panes-top:0px;padding:0 var(--p-page-x)">
+  <div class="p-pane-side" style="height:440px">
+   <div class="p-pane-head"><span class="p-section">Orders <span class="p-count">4</span></span><div class="p-pane-head-end"><button class="p-btn">Hide list</button></div></div>
+   <p class="p-pane-hint">Due soonest first.</p>
+   <div class="p-lc is-compact is-open"><div class="p-lc-head is-tap"><span class="p-lc-id"><span class="p-id">11201</span></span><span class="p-lc-main"><span class="p-lc-title">Maple Hollow Coffee</span><span class="p-lc-sub">Comfort Colors 1717 · Front + Back</span></span><span class="p-lc-nums"><span class="p-num"><small>pcs</small><b>144</b></span></span><span class="p-lc-tags"><span class="p-tag p-tag-soft">Prints Fri 11/13</span><span class="p-tag p-tag-wait">In cart</span></span></div></div><div class="p-lc is-compact"><div class="p-lc-head is-tap"><span class="p-lc-id"><span class="p-id">11207</span></span><span class="p-lc-main"><span class="p-lc-title">Northside Running Club</span><span class="p-lc-sub">Bella 3001 · Left chest</span></span><span class="p-lc-nums"><span class="p-num"><small>pcs</small><b>72</b></span></span><span class="p-lc-tags"><span class="p-tag p-tag-soft">Prints Tue 11/17</span></span></div></div><div class="p-lc is-compact"><div class="p-lc-head is-tap"><span class="p-lc-id"><span class="p-id">11212</span></span><span class="p-lc-main"><span class="p-lc-title">Lakeview Youth Soccer</span><span class="p-lc-sub">Gildan 5000 · Front</span></span><span class="p-lc-nums"><span class="p-num"><small>pcs</small><b>310</b></span></span><span class="p-lc-tags"><span class="p-tag p-tag-alert">Hard Deadline</span><span class="p-tag p-tag-soft">Prints Thu 11/12</span></span></div></div><div class="p-lc is-compact"><div class="p-lc-head is-tap"><span class="p-lc-id"><span class="p-id">11215</span></span><span class="p-lc-main"><span class="p-lc-title">Summit Trail Runners</span><span class="p-lc-sub">Bandana 22″ · Discharge</span></span><span class="p-lc-nums"><span class="p-num"><small>pcs</small><b>50</b></span></span><span class="p-lc-tags"><span class="p-tag p-tag-done">Ordered</span></span></div></div>
+  </div>
+  <div class="p-pane-main" style="height:440px"><div class="p-split-empty">The picked record opens here.</div></div>
+ </div>
+</div></section>
+
 <section class="sec"><span class="p-section">Rules</span>
 <ol class="rules">
  <li>One yellow main button per screen.</li>
