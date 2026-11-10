@@ -163,3 +163,40 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
   - `SIGNED_FOLDERS` with a label and a full link; no token gives 401; drive/list still refuses non-shared-drive folders.
 - The page was tested in Playwright against a mocked worker on v37, then v40 with one folder shared, then both.
 - `/proxy/version` → 40. **Stephen deploys it:** worker-copy.html → Copy worker v40 → paste into Cloudflare → Deploy. It also brings v38 and v39 (the live worker was on v37).
+
+## 2026-11-10 · v41: each new order's Drive folder, made on its own
+- **Asked for:** Stephen wants every new order's Google Drive folder made automatically and its link saved in Airtable. Sales used to make it by hand. He approved each choice below.
+- **What happens to a new order** (`ensureOrderFolder`):
+  - The order's own folder already in the Printshop shared drive (`11185 - …` or `11185 Name`; not an imprint folder like `11185-B`, same ranking as v38)? Its link is saved and nothing is made (**linked**). Sales sometimes make it by hand.
+  - Otherwise the worker makes `11185 - <Customer Name>` in **Proofs & Artwork** (`1lhVl349gMbi7PSCajptMFaO6snRVQTYf`) with these folders inside, no files:
+    - Client Provided › unused previous art files, For Proof › unused
+    - Proofs › unused, working files
+    - Seps
+    - Embroidery › unused, For Proof
+    - Sales
+  - Then it saves `https://drive.google.com/drive/folders/<id>` in **Artwork Folder Link**, the same format the apps save (**created**).
+  - Folder name: no `/` or control characters (they become a space), at most 150 characters.
+  - **No doubles:** the shared drive is searched again right before making the folder, and the same order asked twice at once makes one.
+  - **Customer name still blank** (the name formula can fill a moment after the record is made): the instant step reads the order again up to 3 times, 4 s apart. Still blank → **pending**, and the cron makes it later.
+  - **Never touched:** orders created before `FOLDERS_SINCE` (default 2026-11-10, midnight Fort Collins time), orders that already have a link, orders with no order number (**skipped**, with the reason).
+- **Instant step — new `POST|GET /proxy/drive/neworder?rec=recXXXXXXXXXXXXXX`:**
+  - Called by an Airtable automation (Orders → record created → run script). **No Airtable token**, so no key sits in the automation.
+  - Safe without a token: it only acts on an order that exists, was made less than 6 hours ago and has a blank link. Anything else is a no-op that says why. The record id is checked strictly (`rec` + 14 letters/digits, else 400).
+  - Answers `{ok, action: linked | created | skipped | pending, reason?, folder?: {id, name, url}}`. Takes a few seconds.
+- **Backup — the 15-minute cron:**
+  - The PandaDoc sweep runs exactly as before. Next to it, a folder sweep picks orders with a blank link, made in the last 3 days but over 10 minutes ago (so the instant step goes first) and on or after `FOLDERS_SINCE`.
+  - At most 10 a run, oldest first. Blank customer name → skipped until it fills.
+  - **Subrequest budget:** Cloudflare's free plan allows 50 calls per run, shared with the PandaDoc sweep, and one new folder takes up to 19. So the cron makes about 1 new folder per run (linking is cheaper) and leaves the rest for the next run. That's plenty for a backup. On the paid plan, the optional plain variable `FOLDER_SWEEP_BUDGET` = `300` lets it do all 10.
+  - One failure never stops the other orders or the PandaDoc sweep. One log line: `[pine-folders] sweep eligible=… created=… linked=… skipped=… pending=… errors=… later=…`.
+- **Settings:** none needed. It uses `AIRTABLE_WRITE_TOKEN` or `AIRTABLE_TOKEN` (already read + write), and `GOOGLE_SA_KEY` + `GOOGLE_DRIVE_ID`. Optional: `FOLDERS_SINCE`, `ORDER_FOLDER_PARENT` (a folder id or link), `FOLDER_SWEEP_BUDGET`.
+- **Drive access:** making folders needs **Contributor or higher** on the shared drive. The service account is already a Content manager, which is higher.
+- **Tested** in Node with a mocked Airtable, Google sign-in (real RSA key, signature verified) and Drive, 109/109:
+  - A new order makes the exact tree and saves the link; asked again → skipped.
+  - A hand-made folder is linked and nothing is made; it's chosen over a newer `11186-B` and never `111860`; only imprint folders → a new folder is made.
+  - Skipped: link already set, over 6 hours old, before `FOLDERS_SINCE` (a timestamp, the default at Fort Collins midnight, an unreadable value falls back to the default), not found, no order number.
+  - Blank name → pending after 3 re-reads 4 s apart; a name that fills on the 2nd re-read → created; a hand-made folder links without waiting.
+  - Bad record ids → 400; missing token, key or drive ID → 503; a missing parent folder → 502 and no link; a Drive 500 is tried again; a folder Drive keeps refusing is listed in `missing`.
+  - Three calls at once → one folder; a folder made between the search and the re-check → linked, nothing made. No token or key in any answer.
+  - Cron: at most 10, oldest first; never under 10 minutes old, linked, over 3 days or before `FOLDERS_SINCE`; the next run makes the rest; the default budget keeps it at 30 calls or fewer; one failing order doesn't stop the next; a broken folder sweep doesn't stop PandaDoc; the PandaDoc sweep still runs (with or without the folder sweep).
+  - `/proxy/version` → 41. 43 v40 routes answer byte-for-byte the same as v40, side by side.
+- **Stephen deploys it:** worker-copy.html → Copy worker v41 → paste into Cloudflare → Deploy. Then add the Airtable automation (Orders → When a record is created → Run a script, input `recordId` = the record's ID) that calls the route.
