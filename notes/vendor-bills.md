@@ -29,3 +29,10 @@ Intuit's production-keys form needs public terms and privacy links. Added `qbo-e
 
 ## 2026-11-10: worker v45 + invoice-check v5
 Saving and updating bills now uses the Airtable sign-in of the person clicking. This fixes the 403 on Save.
+
+## 2026-11-10: sandbox passed; live connect waits for a QuickBooks admin
+- **Sandbox:** connect → Save as a bill → Mark checked → Send worked. The bill was Sanmar, LLC #110526, 11/07, due 12/07, Cost of Goods Sold $241.90, "Invoice INV-166739651 DC-AZ", with the PDF attached. Disconnect and reconnect also worked.
+- Intuit lists the app **In production**. The Production keys are in Cloudflare, plus `QBO_ENV=production` and the production redirect URI.
+- Stephen's connect to the real company was refused: "You need admin permissions to connect this app to your company". Garrett (QuickBooks admin) is to connect it on 2026-11-11.
+- Then test the duplicate guard on SanMar 110526, which is already in QuickBooks. Expected: "Already in QuickBooks … not sent again".
+- **Later:** fill the bill's Terms box ("Net 30") from the invoice.
