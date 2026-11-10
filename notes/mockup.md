@@ -3273,3 +3273,10 @@ Stephen, with the 11181 felt patch proof: "Can we have the design auto adjust to
 - Fix: v256's Custom snapped back to a standard shape when picked.
 - Proof reads e.g. "FELT PATCH · DIE-CUT".
 - Tested at 1440 with mocked Airtable (pennant and boxed-logo art on every mode), tabs regression 26/26, no errors, 0 writes.
+
+## 2026-11-10 — v258: sew-on thread colour
+Stephen: "can we be able to adjust the thread color when we are sewing these patches on the hats."
+- The Patch picker has a **Sew-on thread** row: Auto (matches the border, what we usually use), 9 shop colours or any colour, and an optional thread name (e.g. Madeira 1747).
+- The mockup shows the running stitch that sews the patch on: along the merrowed edge, 1/8" in on leather, in the border on a Cut-to-art patch. On a clip label it's the stitch across the top (the row reads "Stitch thread"; the Border row is hidden there).
+- The proof adds "Sewn with: Madeira 1747 Red thread" (or the colour's name) under Placement, once a thread is picked or named. Auto adds nothing.
+- Tested at 1440 with mocked Airtable; tabs regression 26/26; no errors, 0 writes.
