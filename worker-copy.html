@@ -58,6 +58,7 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
+  41:{what:'Every new order gets its Google Drive folder on its own ("11185 - Customer Name" in Proofs & Artwork, with Client Provided, Proofs, Seps, Embroidery and Sales inside), and the link is saved on the order. A folder sales already made is linked instead. Orders before Nov 10 are never touched. Keep the 15-minute Cron Trigger; it also makes any folder the instant step missed. Also still: the reps\' signed PandaDocs folders (v40).'},
   40:{what:'Reads the sales reps\' Pipedrive Drive folders (Chris and Patrick), where every signed PandaDoc lands — read-only; check it with signed-check.html. Also still: SanMar spec sheets (v39), the order\'s own Drive folder first (v38).'},
   39:{what:'Mockup Maker can read SanMar\'s measurement spec sheets (body length and width per size) and AS Colour size guides on its second store address. Also still: the order\'s own Drive folder first (v38), reprint folders (v37), signed PandaDocs (v36).'},
   38:{what:'Every app opens the order\'s own Drive folder ("11131 - Lydia Cruz Illustration"), not an imprint folder made inside it ("11131-B" in Embroidery) — before, the newest match came first. Also still: reprint folders (v37) and signed PandaDocs (v36).'},
