@@ -3250,3 +3250,16 @@ Stephen: "with the google drive connection can we see when the most recent files
 - Unchanged: the New / Updated tags, and the date in the 🔍 preview.
 - **Fixed before shipping:** the setting was first declared after the Drive list's code, so the page stopped on load ("Cannot access 'DRV_NEWEST' before initialization"). It's now read with the app's other saved settings.
 - **Tests:** mocked Drive and Airtable, practice mode: dates on every tile, Newest first order, and the header fits at 1440. Plus 26/26 tabs checks. No page errors.
+
+## 2026-11-10 — v256: patches and clip labels from the resource sheets
+Stephen: "Here is clip and patches that we are trying to streamline can we scan these and get these specs in to the mockup creator. Also can we work on how we can select patches." Before, any patch was a white rounded box the size of the art (white art vanished on it, sizes like 2.6″ × 2″ that aren't a real patch).
+- **Art tab › Method › Patch** opens a picker: **Patch | Clip label**.
+- **Patches:** the 14 standard shapes from the Patches sheet (P1 2.25″ circle … P14 Badge III), each a button with its outline and overall size. Picking one sets the size (width/height boxes lock; Custom frees them). The patch is drawn in that shape, the art fitted into its artwork area, with a merrowed edge.
+- **Type:** Woven, Embroidered (the art gets the stitch look), Sublimated (the art runs to the edge), Leather (no merrow; the art pressed in, a running stitch 1/8″ in).
+- **Backing / Border colours:** Auto (the art's own background, else a backing the art shows up on), 9 shop colours, or any colour.
+- **Clip labels:** the 4 sizes from the Woven Clip Labels sheet (1″×½″, ¾″ sq, 1″ sq, ¾″×1¼″), drawn as the visible area with a tack-down (zig-zag) or straight stitch across the top.
+- The spec line under the picker gives the overall size, artwork area and that type's detail limits (line width, letters, thread colours).
+- The first shape is picked from the art (round art → circle/oval, square-ish → square/rectangle); Airtable's "Hem Label" / "Woven Label Application" start as a clip label, "Decopress - Leather" as leather.
+- **Proof:** the block reads e.g. "WOVEN PATCH P5 · FRONT", with the shape's width and height. Quarter inches now read as quarters everywhere (2.25″, not 2.3″).
+- Saved with the mockup like the method. Patch pricing from the sheet (Nov 2026) isn't in Price-O-Matic yet.
+- Tested with mocked Airtable at 1440: all 14 shapes, each type, the 4 labels, the proof; the tabs regression (26 checks) passes; no errors, 0 writes.
