@@ -3288,3 +3288,21 @@ Stephen, 11184 (Colortone 8777 Funnel Cake tie-dye): "are we able to grab fabric
 - Colours tab › How it looks on the mockup › **Close-up background**: Auto (fabric when the photo is patterned) · Colour · Fabric, per garment, with a line saying which it's using.
 - "Patterned" = the colours across that crop vary a lot (tie-dye ~30, solid ~0 on the test; threshold 14). On-model photos and bandanas keep the flat colour.
 - Tested with a mocked tie-dye and a solid photo: tie-dye → fabric, solid → colour, Colour forces flat; no errors, 0 writes.
+
+## 2026-11-10 — v260: pick an ink's type by hand (OW, DC, …)
+Request via Stephen: "can we be able to make specific inks or colors DC or OW etc".
+- **Before:**
+  - The proof wrote one type for the whole print: DC on discharge, OW on a base (dark garments), plain direct to fabric.
+  - Getting a different type on one ink needed a Rename ("7501 DC", v226).
+- **Now:** tap an ink in Colours. The pop-up has a **Type on the proof** row: Auto · Plain · OW · DC · SOW · EZP.
+  - **Auto** is the old behaviour.
+  - **Plain** drops the type. Any other choice prints the ink with that type, e.g. "7501 DC", "COOL GRAY 2 EZP", "WHT DC" (white on EZP stays "EZP WHT").
+  - It applies to that ink in this imprint on every garment.
+  - It shows on the ink list and on the proof's ink chips. The hint says "On the proof: WHT DC · every garment in this print".
+  - It's kept with the job's saved work (`imps[id].inkType`), and it's copied when an imprint is copied.
+  - It only shows for screen prints. It's matched by the ink's name, so 7501, "PANTONE 7501 C", "7501OW" and "7501 DC" are the same ink, and WHITE = WHT.
+  - The row sits under the search box, not inside "More".
+- **Tested** (mocked Airtable, practice, a 10-colour print on Navy and Khaki):
+  - DC on the white made "WHT DC" on both garments.
+  - EZP on Cool Gray 2 made "COOL GRAY 2 EZP" on both, with the other inks unchanged (OW on Navy, plain on Khaki).
+  - Auto put it back. 0 writes, no errors.
