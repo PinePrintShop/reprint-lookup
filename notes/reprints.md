@@ -61,3 +61,15 @@ Stephen: "review ... the first ones that we did with the new brand colors to mak
 - **Phone bar:** 8px gaps, as in Seps, so the practice tag fits beside Refresh and ⚙ (in v5 they dropped to a second row).
 - Nothing else changed: the same search, filters, link, undo and Airtable writes.
 - **Tested** (Playwright, mocked Airtable). The v5 confirm-box test passes on v6: Cancel makes 0 writes, Link makes 1 PATCH, practice makes 0 writes. At 1440, 1280 and 390 the bar is 64px and there are no console errors. With a typical search the band is 123px at 1440 and 1280: line 1, plus a second row of chips, with every chip visible.
+
+## 2026-11-10 — v7: office format, bigger mockups, a mockup viewer
+Stephen: "get it in the new format and increase the reference mockups that pops up to be bigger and then be able to scroll through all the mockups for a client vs closing and opening."
+- **Office format** (pine-office-v1.css, like Line Item Review and Create order): the same bar, results and the picked imprint in two full-width panes that scroll on their own.
+- **Bigger mockup:** the picked imprint's mockup fills its pane's height. An imprint with several proofs shows them as tiles under it.
+- **Mockup viewer:** clicking a mockup (or "⤢ View all N mockups") opens it full screen on a solid dark background.
+  - ‹ › arrows, ← → keys or a swipe step through every mockup in the results (every proof of every imprint, newest first). The thumbnail strip along the bottom jumps anywhere; a small gap marks where the next imprint starts.
+  - The top shows the imprint ID, nickname, place, customer, date, "proof 2 of 3" and "4 / 27".
+  - "Open 10901-A" picks that imprint (to link a reorder) and closes; "✕ Close" or Esc closes. The filters apply (e.g. Embroidery only steps through embroidery).
+  - The next and previous mockups load in the background, so stepping is quick.
+- Linking (Previous Imprint ID + Repeat?) and practice mode are unchanged.
+- Tested with mocked Airtable at 1440 and on a phone: 7 mockups across 5 imprints, keys, strip, open-imprint, filters; no errors, 0 writes.
