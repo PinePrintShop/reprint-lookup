@@ -376,3 +376,10 @@ Stephen: "when QC clicks done a did you set head settings pops up in the operate
   - **Later** closes it.
 - The Start Setup prompt (v115) is unchanged. A job whose heads were saved during setup gets no second prompt.
 - **Tested** (two browsers, mocked Airtable): QC approve on a job with no heads → the prompt shows over run mode. Set heads now opens the heads screen with the run still running. QC End run still finishes it. No errors.
+
+## 2026-11-10 — Airtable: duration formulas use the corrected run times
+Stephen approved ("Let's do your option 1") after two jobs on ROQ YOU were printed with no timer (11078-B, 11108-A). They were ended by estimate with Run Start / Run End Override, but Airtable's durations read ~19 h setup and 0 run, because the "Actual" times are last-modified stamps on the checkboxes and can't be backdated. The app's own comment (v113) had left these formulas alone; now, on Imprints:
+- **Run Duration Actual** = Run End Override (else Run End Actual) − Run Start Override (else Run Start Actual) + Manual Run Time Add.
+- **Setup Duration Actual** ends at Run Start Override when that's earlier than Setup End Actual (a late "approve setup" no longer counts as setup), otherwise as before (− Setup Paused time, + Manual Setup Time Add).
+- **Print Date Actual / Print Month Actual** use Run End Override when there is one, so an overnight correction stays on the day it printed.
+- No override → exactly as before. Checked: 11078-B now 8 min setup / 20 min run / 11/09; 11108-A 10 / 36 / 11/09.
