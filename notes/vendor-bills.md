@@ -14,3 +14,6 @@ Stephen: "create the vendor bills. can we just send bills directly to quickbooks
   5. Otherwise "Needs a look".
 - SLC prints the PO as `<last 4 of SLC order #>-<PO>` (order 1000306041 → 6041-110526).
 - **QuickBooks:** direct from the worker through the QuickBooks Online Accounting API (Stephen's choice over Zapier). Needs an Intuit developer app, OAuth connect once, and the refresh token kept in Cloudflare KV.
+
+## 2026-11-10: Intuit production pages
+Intuit's production-keys form needs public terms and privacy links. Added `qbo-eula.html` and `qbo-privacy.html`. They say this is an internal tool used only by Pine's staff.
