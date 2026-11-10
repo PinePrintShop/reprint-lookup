@@ -175,3 +175,18 @@ Stephen, flipping between Purchasing and Catching: "if you scroll back and forth
 - Bars with views in them were 72px (10px padding + the 52px views pill), bars without views 64px, Catching's own bar 60px, and Seps / Screens / Ink were held at 72px by `pine-job-v1/v2.css`.
 - Fixed in the shared files, so every app (old versions too) picks it up without a new version: `pine-style-v2.css` — `.p-bar` 6px top/bottom padding, min-height 64px (also Catching's `.press-bar.p-bar`); `pine-job-v1.css` / `pine-job-v2.css` — 64px instead of 72px.
 - Measured all 17 current apps at 1440 wide (and Catching, Operator, Screens at iPad 1180): all 64px.
+
+## 2026-11-10 · Side panes (opt-in)
+`pine-style-v2.css` gets a "SIDE PANES" block, so every app's side panel will be the same size and have the same header.
+- **Widths:**
+  - `--p-pane-list` 320 / 346 / 420 at 1100 / 1440 / 1920;
+  - `--p-pane-tools` 380 / 432 / 480;
+  - `--p-pane-rail` 240–360 for the iPad rails.
+- **Two panes from 1100px wide.** The gutters are `--p-page-x` (16, or 24 from 1400) and 16px between panes.
+- **Classes:**
+  - layout: `.p-panes` (`.is-tools`, `.is-nolist`) > `.p-pane-side` + `.p-pane-main`;
+  - header: `.p-pane-head` (label + count + end slot) and `.p-pane-hint`;
+  - card: `.p-lc.is-compact` (ID · name · sub-line · number · tags) and `.p-lc-thumb`.
+- **No app changes:** all names are new (checked across every app file). Each app adopts them in its next version.
+- **Demo:** "Side panes" on `pine-style.html` measures exactly 320 / 346 / 420, with nothing under 12px.
+- **More:** the spec, the per-app card slots and the rollout order are in `notes/side-panel.md`.

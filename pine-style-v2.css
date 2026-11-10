@@ -291,3 +291,51 @@ body.has-bbar .p-split-list,body.has-bbar .p-split-detail{padding-bottom:96px}
 .p-bar{padding-top:6px;padding-bottom:6px;min-height:64px}
 html .p-bar.press-bar{min-height:64px}
 
+
+/* ---------- 2026-11-10 — SIDE PANES: one size and one header for every app's side panel (opt-in; nothing uses it yet) ----------
+   Stephen: "all of our left panels are different in each app...streamline how they are sized so moving between apps feels
+   cohesive". At 1440 the same list was 310, 317, 330, 346, 374, 540 or 640px wide, and two panes started at 901, 1100,
+   1200 or 1400px. Standard (notes/side-panel.md):
+     - list pane  (orders, jobs, results): --p-pane-list  320 / 346 / 420 at 1100 / 1440 / 1920
+     - tools pane (Mockup Maker, Sep Maker, Topo, Price-O-Matic's rail): --p-pane-tools  380 / 432 / 480
+     - iPad floor rail (Operator, Catching): --p-pane-rail  240–360
+     - two panes from 1100px wide; below that the list comes first and a record opens in place
+     - page gutter 16px (24px from 1400), 16px between panes, pane padding 16 / 4 / 32, each pane scrolls on its own
+   Markup: .p-panes (add .is-tools for a tools pane, .is-nolist to hide it) > .p-pane-side + .p-pane-main.
+   The app sets --p-panes-top (px from the page top to the panes). Side pane header: .p-pane-head (label + count + end slot)
+   and an optional .p-pane-hint. Rows: .p-lc.is-compact. Search stays in .p-filters above both panes. */
+:root{
+  --p-pane-list:clamp(320px,24vw,420px);
+  --p-pane-tools:clamp(380px,30vw,480px);
+  --p-pane-rail:clamp(240px,24vw,360px);
+  --p-pane-gap:16px;
+  --p-page-x:16px;
+}
+@media (min-width:1400px){ :root{ --p-page-x:24px } }
+.p-panes{display:grid;grid-template-columns:var(--p-pane-list) minmax(0,1fr);gap:var(--p-pane-gap);align-items:start}
+.p-panes.is-tools{grid-template-columns:var(--p-pane-tools) minmax(0,1fr)}
+.p-panes.is-nolist{grid-template-columns:minmax(0,1fr)}
+.p-panes.is-nolist>.p-pane-side{display:none}
+.p-pane-side,.p-pane-main{min-width:0;height:calc(100vh - var(--p-panes-top,120px));height:calc(100dvh - var(--p-panes-top,120px));overflow-y:auto;overscroll-behavior:contain;padding:var(--p-s4) 4px var(--p-s6)}
+@media (max-width:1099px){
+  .p-panes,.p-panes.is-tools{display:block}
+  .p-pane-side,.p-pane-main{height:auto;overflow:visible}
+}
+/* the same top of every side pane: label + count, an end slot (Hide list, sort), and one optional hint line */
+.p-pane-head{display:flex;align-items:center;gap:var(--p-s2);flex-wrap:wrap;margin:0 0 var(--p-s3)}
+.p-pane-head .p-section{margin:0}
+.p-pane-head-end{margin-left:auto;display:flex;gap:var(--p-s2);align-items:center}
+.p-pane-hint{font-size:var(--p-fs-s);color:var(--p-ink-2);margin:calc(-1 * var(--p-s2)) 0 var(--p-s3)}
+/* the compact list card: ID badge · name · one sub-line (a second allowed) · number(s) on the right · one tag row.
+   An app's thumbnail goes first in .p-lc-id as .p-lc-thumb. Each app chooses what goes in each slot. */
+.p-lc.is-compact>.p-lc-head{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"id main nums" "tags tags tags";gap:6px var(--p-s3);padding:10px var(--p-s3);min-height:0}
+.p-lc.is-compact .p-lc-title{font-size:15px;line-height:1.25}
+.p-lc.is-compact .p-lc-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-lc.is-compact .p-lc-nums{gap:var(--p-s3);align-items:flex-start}
+.p-lc.is-compact .p-num b{font-size:15px}
+.p-lc.is-compact .p-lc-act{display:none}
+.p-lc-thumb{width:48px;height:48px;flex:0 0 48px;border-radius:6px;background:var(--p-cream-lt);object-fit:cover;border:1px solid var(--p-line)}
+.p-pane-side .p-lc+.p-lc{margin-top:6px}
+.p-pane-side .p-lc.is-open{border:2px solid var(--p-black);box-shadow:inset 6px 0 0 var(--p-black)}
+.p-pane-side .p-lc.is-open>.p-lc-head{background:var(--p-cream)}
+.p-pane-side .p-lc.is-sel.is-open>.p-lc-head{background:var(--p-yellow-lt)}
