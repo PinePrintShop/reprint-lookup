@@ -224,3 +224,11 @@ Stephen: "Let's do the Worker route since I am an admin"; "all invoice go to pur
   - `/proxy/version` → 42.
 - **Check page:** `invoice-check.html` shows "✓ Worker v42 can read purchasing@ …" and lists the newest invoices per vendor, with Open buttons for the PDFs.
 - **Next** (after a look at real invoices): read each PDF into fields (vendor, invoice #, dates, PO, warehouse, subtotal, freight, tax, total) with the worker's existing `ANTHROPIC_API_KEY`, then match to Purchasing carts. QuickBooks is one click per cart.
+- **invoice-check.html v2** (Stephen, on the first real list, which works: "maybe we filter out order confirmations"):
+  - Each email is sorted from its subject and attachment names: Invoice / Order confirmation / Shipment notice / All. Invoices show by default.
+  - Picking a vendor fetches up to 20 of its emails (every vendor at once: the newest 3 each).
+  - **Real emails seen:**
+    - invoices: SanMar "SanMar Invoice - INV-…", SLC "SLC Activewear Invoice #… Purchase Order #…", Bandana "Original Invoice Enclosed for PO #…";
+    - order confirmations only: AS Colour "Order Confirmation (#…)", LA Apparel "OrderConf_L…_110626.pdf", SLC "order confirmation";
+    - shipment notices: SanMar "Shipment Acknowledgement … PO# 110526".
+  - The worker isn't changed.
