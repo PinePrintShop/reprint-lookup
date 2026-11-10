@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- v5 (2026-11-10): needs worker v45, which saves Vendor Bills with this page's Airtable sign-in (Stephen's first Save got
+     Airtable 403 with the worker's own token). If the worker sent a bill but couldn't write it back to Airtable, this page
+     writes the QuickBooks bill ID and "Sent to QuickBooks" itself. -->
 <!-- v4 (2026-11-10): QuickBooks (worker v44). Stephen: "can we just send bills directly to quickbooks since we can connect it
      to our api". A QuickBooks card: connected or not (test company or live), Connect / Reconnect / Disconnect, recent errors
      with Intuit's tracking ID and Report a problem. On a read invoice: "Save as a bill" (a Vendor Bills record, Status New).
@@ -38,7 +41,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 @media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v4</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v5</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
   <section class="p-card" id="quickbooks"><div class="qb"><div class="grow"><h2 class="p-h2" style="margin:0">QuickBooks</h2><span class="p-hint" id="qbMsg">Checking…</span></div><span id="qbBtns" class="row"></span></div><ul class="errs" id="qbErr" hidden></ul></section>
@@ -71,7 +74,7 @@ async function check(){
   if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in below first.'; return; }
   $('msg').className='p-note'; $('msg').textContent='Checking…'; $('box').hidden=true;
   try{ const v=await fetch(W+'/version',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}));
-    if(!(+v.version>=44)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v44: paste worker v44 into Cloudflare first (worker-copy.html).`; $('qbMsg').textContent='Needs worker v44.'; return; }
+    if(!(+v.version>=45)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v45: paste worker v45 into Cloudflare first (worker-copy.html).`; $('qbMsg').textContent='Needs worker v45.'; return; }
     qbCheck(); loadBills();
     const j=await api('/invoices/status'), vs=j.labels.filter(l=>l.vendor);
     $('msg').className='p-note p-note-done'; $('msg').textContent=`✓ Worker v${v.version} can read ${j.mailbox} · “${j.root}” · ${vs.length} vendor labels`;
@@ -132,7 +135,9 @@ async function loadBills(){ const ul=$('vbList'); $('bills').hidden=false;
         +`<span class="act">${st==='New'||st==='Error'?`<button class="p-btn" type="button" data-chk="${x.id}">Mark checked</button>`:''}${st==='Checked'?`<button class="p-btn p-btn-dark" type="button" data-send="${x.id}">Send to QuickBooks</button>`:''}</span></li>`; }).join(''):'<li>No bills saved yet. Read an invoice above and click Save as a bill.</li>';
     ul.querySelectorAll('[data-chk]').forEach(b=>b.onclick=async()=>{ b.disabled=true; try{ const r=await fetch(AT+'/'+b.dataset.chk,{method:'PATCH',headers:{Authorization:'Bearer '+tok(),'Content-Type':'application/json'},body:JSON.stringify({fields:{Status:'Checked'}})}); if(!r.ok) throw new Error('HTTP '+r.status); }catch(e){ alert('Not saved: '+e.message); } loadBills(); });
     ul.querySelectorAll('[data-send]').forEach(b=>b.onclick=async()=>{ if(!QB.connected){ alert('Connect QuickBooks first (top of the page).'); return; } b.disabled=true; b.textContent='Sending…';
-      try{ const s=await api('/qbo/bill',{method:'POST',body:{rec:b.dataset.send}}); alert(s.already?'Already in QuickBooks as bill '+s.billId+'. Not sent again.':'✓ In QuickBooks: bill '+s.docNumber+' · '+s.vendor+' · '+s.account+(s.attached?' · PDF attached':'')); }
+      try{ const s=await api('/qbo/bill',{method:'POST',body:{rec:b.dataset.send}});
+        if(s.airtableSaved===false&&s.billId){ await fetch(AT+'/'+b.dataset.send,{method:'PATCH',headers:{Authorization:'Bearer '+tok(),'Content-Type':'application/json'},body:JSON.stringify({fields:{Status:'Sent to QuickBooks','QuickBooks bill ID':String(s.billId)}})}).catch(()=>{}); }
+        alert(s.already?'Already in QuickBooks as bill '+s.billId+'. Not sent again.':'✓ In QuickBooks: bill '+s.docNumber+' · '+s.vendor+' · '+s.account+(s.attached?' · PDF attached':'')); }
       catch(e){ alert('Not sent: '+e.message); } loadBills(); qbCheck(); });
   }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
 $('vbRe').onclick=loadBills;

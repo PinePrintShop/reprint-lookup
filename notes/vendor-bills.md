@@ -26,3 +26,6 @@ Intuit's production-keys form needs public terms and privacy links. Added `qbo-e
   1. Stephen tests on Intuit's test company (connect, send a bill, disconnect, reconnect).
   2. Production keys plus `QBO_ENV=production`.
   3. Matching to Purchasing lines, the daily auto-save, and the Purchasing screen.
+
+## 2026-11-10: worker v45 + invoice-check v5
+Saving and updating bills now uses the Airtable sign-in of the person clicking. This fixes the 403 on Save.
