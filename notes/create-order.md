@@ -549,3 +549,11 @@ Stephen: "really fine tune those flows … user friendly to the max." From the h
 - **Fixes:** "Est. 2014" no longer splits into two email sentences; a line missing only its color says "pick the color"; the bar showed v25.
 - **Not in this round:** matching quote prints to the customer's past art (round 2); the red "under POM" on a quoted price (waiting on Stephen).
 - **Clicks, scroll and keys (same test order, 1440):** 59 clicks / ~32,700px scroll → 37 clicks / ~2,800px; keys about the same (~126; the typing is nicknames and notes).
+
+## 2026-11-10 — v28: a clear way back to the other orders
+Stephen: "once you are in a card in order creator you can't go back to the main menu to look at other orders needed line items and imprints." v27 folded the list away and left only two small links ("Show list", "‹ All orders") among Deal / Airtable.
+- **☰ Orders** button first in the order header. On a wide screen it opens the list beside the order (nothing typed is lost), and reads "✕ Hide orders" to fold it again. On a narrow screen it reads "‹ Orders" and goes back to the list (asks first if something would be lost).
+- Opening the list clears the search that found this order, so all the orders waiting show again (it was showing only the one).
+- **Order #N in the top bar** goes back to the list too.
+- The old "Show list" link and the duplicate "Hide list" button in the filter row are gone; "‹ All orders" stays for closing the order.
+- Tested at 1440 and 1024 with mocked Airtable: no errors, 0 writes.
