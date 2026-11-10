@@ -200,3 +200,27 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
   - Cron: at most 10, oldest first; never under 10 minutes old, linked, over 3 days or before `FOLDERS_SINCE`; the next run makes the rest; the default budget keeps it at 30 calls or fewer; one failing order doesn't stop the next; a broken folder sweep doesn't stop PandaDoc; the PandaDoc sweep still runs (with or without the folder sweep).
   - `/proxy/version` → 41. 43 v40 routes answer byte-for-byte the same as v40, side by side.
 - **Stephen deploys it:** worker-copy.html → Copy worker v41 → paste into Cloudflare → Deploy. Then add the Airtable automation (Orders → When a record is created → Run a script, input `recordId` = the record's ID) that calls the route.
+
+## 2026-11-10 · v42: vendor invoices from purchasing@ (read-only)
+Stephen: "Let's do the Worker route since I am an admin"; "all invoice go to purchasing@pineprintshop.com and get filtered to an invoice section". This is the first step toward vendor bills in QuickBooks. It only *reads* the invoice emails; nothing is sent, changed or deleted.
+- **Routes** (Airtable token, like the Drive routes; GET only, everything else is 403):
+  - `/proxy/invoices/status` returns the mailbox, the root label and the vendor labels.
+  - `/proxy/invoices/list[?vendor=S%26S&max=10&after=2026-11-01]` returns the newest invoice emails: vendor, date, from, subject, snippet and attachments. With no vendor, it returns 3 per vendor label (fits the free plan's subrequest limit); with a vendor, up to 20.
+  - `/proxy/invoices/attachment?id=&att=` returns the file (PDF), only for an email that carries one of the invoice labels (otherwise 403 `not_an_invoice`).
+- **Google:**
+  - The same service account (`GOOGLE_SA_KEY`) signs in as **one mailbox**, `INVOICE_MAILBOX` (default purchasing@pineprintshop.com), with scope `gmail.readonly`.
+  - It reads only labels named `INVOICE_LABEL_ROOT` (default `2. Invoices`) or under it. The vendor is the sub-label minus " Invoices" (AS Colour, Bandana, First Tactical, LA Apparel, S&S, Sanmar, SLC, Staton, WooHoo).
+- **Setup (Stephen):**
+  1. Turn on 2-Step Verification for the admin account (required by Google).
+  2. Enable the Gmail API in the pine-apps project.
+  3. Add domain-wide delegation in admin.google.com for client ID `110397149940649014691` with `https://www.googleapis.com/auth/gmail.readonly`.
+- **If delegation is missing:** 502 `gmail_signin_failed` "…domain-wide delegation for gmail.readonly is not set up…".
+- **Tested** in Node with Google, Gmail and Airtable faked:
+  - no token → 401;
+  - status, list (3 per vendor, sorted) and the vendor filter work;
+  - the JWT `sub` = purchasing@ and the scope = gmail.readonly;
+  - the attachment comes back for an invoice email, and a non-invoice label → 403;
+  - POST → 403, delegation missing → the 502 message;
+  - `/proxy/version` → 42.
+- **Check page:** `invoice-check.html` shows "✓ Worker v42 can read purchasing@ …" and lists the newest invoices per vendor, with Open buttons for the PDFs.
+- **Next** (after a look at real invoices): read each PDF into fields (vendor, invoice #, dates, PO, warehouse, subtotal, freight, tax, total) with the worker's existing `ANTHROPIC_API_KEY`, then match to Purchasing carts. QuickBooks is one click per cart.
