@@ -831,3 +831,32 @@ Stephen: "yes do the same for both", as Mockup Maker v110.
   4. Only if none of those: the added APPROVED box, as before.
 - The send sheet now says "N in the proof's own APPROVED box".
 - Tested on a bandana and a tee proof from Mockup Maker v194: the saved box and the picture search found the same box on both pages (within 3 pt); a PDF that isn't from Mockup Maker isn't searched.
+
+## 2026-11-10 — v54: flow audit, round 1 (Stephen: "really dial in how we move through these apps")
+- **Approving:** Quality OK and Price OK sit side by side under the line total; the next one to do is yellow.
+  - When a line leaves Review, the next one opens.
+  - Undo is in the toast; it no longer asks first.
+  - The "losing money" check on Price OK stays.
+- **Keys:** Q quality · P price (they only approve) · F full screen · E edit qty · / search · N next. A legend sits under the mockup. Keys don't fire while typing.
+- **Margins in the list:** red tag on the card ("Losing money", "3% margin", "$1.50 under autoprice") and a "Margin problems (n)" chip on Review.
+- **Price:** shown as $14.50, with "Saving…", then "Saved ✓ 2:41 PM" beside it. One save at a time. "Use $14.50" instead of "Use autoprice".
+- **The open line always matches the list:**
+  - Opening the app shows the first line, not an empty pane.
+  - A tab switch, filter, search or Refresh opens the list's first line when the open one isn't in it.
+- **Create order → "Review 11160 →"** (`?order=`) opens the first line that needs something, in its own tab (was: always All).
+- **Filter row:** salesperson is a picker; Sent / Archived only show when they have something. Fits at 1280.
+- **Trims:**
+  - "Fix in Mockup Maker" and "Change an imprint…" once each.
+  - One Margin figure ("Margin $1.80 / pc · $86.40 on the line").
+  - Review header on one line, with "2/8 approved" instead of a greyed-out Send button.
+  - Empty notes fold to "+ Sales notes".
+  - Ready to send shows one total: "Outstanding $X incl. tax, after N% discount".
+- **Comments:** the comment box stays in view on Review; the comment list scrolls inside its box.
+- **Bugs:**
+  - N after approving jumped back to the top of the list.
+  - A tab switch left the old line showing.
+  - The bar said v52.
+  - Practice didn't update totals after a price change.
+- **Same Airtable writes as v53;** practice still writes nothing.
+- **Tested:** mocked Airtable at 1440 / 1920 / 1280 and a 390 phone. No page errors, 0 writes, node --check OK.
+- **Not yet:** order-level discount / invoice on every tab, and adding or removing imprints (waiting on Stephen).
