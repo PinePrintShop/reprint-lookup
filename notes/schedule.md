@@ -595,3 +595,19 @@ His answers to the questions:
 - No console errors.
 
 Still to do: measure real teardown and waits from Operator once Ping Pong starts. The Ping Pong switch lives on each computer; if two people schedule, we can move it to Airtable later.
+
+## 2026-11-10 · v31: Ping Pong moves jobs between presses
+Stephen (screenshot of a Ping Pong day: 1 job on Press 1, then 7 in a row on Press 2, crew waits 5h 8m): "does this logic move jobs between presses? right now it seems like it just keeps what is on each press and tries to ping pong it".
+- **Plan for Ping Pong now also picks the press.**
+  - Each next job comes from either press and goes on the other press than the one just printed.
+  - Press 2 only takes jobs with 4 screens or fewer (bandanas 2), the same rule as Suggest.
+  - If nothing left fits Press 2, the crew stays on Press 1 and waits.
+  - The first job (set up the night before) is the one with the biggest setup.
+  - Among equal choices, a job stays on its press.
+- **A moved job gets:** the new Equipment and a new Allocated estimated for that press, plus the start time, in the same write, with Undo. Locked, Hard Deadline, running and finished jobs stay put.
+- **Suggest's new jobs on a Ping Pong day** can land on either press the same way.
+- **The confirm box** marks "(moved from Press 2)". The button says "Plan for Ping Pong · saves 2h 47m · moves 5".
+- **A pink note** shows when a day is too much for one crew ("Too much for one crew: 10h 39m of printing for 6h 30m"), and which jobs still run past close even when planned ("Move them to another day").
+- **Tested** (mocked Airtable, a day like the screenshot: 11107-A on Press 1, 11087 A–E and 10985 C/H on Press 2, 10985-D on Press 1):
+  - Crew waits went from 3h 26m to 39m, and printing is done at 4:01p instead of 7:17p.
+  - 5 jobs moved. 1 PATCH with 8 records (Equipment + start + Allocated for the moved ones). There was no same-press overlap afterwards and no errors.
