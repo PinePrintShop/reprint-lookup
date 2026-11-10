@@ -620,3 +620,13 @@ Stephen, on Mon 11/16 (screenshot: Press 1 four times in a row, then Press 2 thr
   - The Locked checkbox is never written: the jobs stay locked.
   - The confirm box says "Jobs stay on this day; Locked jobs stay locked."
 - **Tested:** the v31 test day with every job Locked. 5 jobs moved and crew waits went from 3h 26m to 39m. The writes were Equipment, start and Allocated only (no Scheduled checkbox). No overlap, no errors.
+
+## 2026-11-10 · v33: the Ping Pong panel shows the plan
+Stephen (screenshot: P1, P1, P2, P2, P1, P2, P2, P2, P1): "still not ping pong or am I reading this wrong...I see 2 jobs back to back on press 1 then 2 jobs back to back on press 2".
+- **Cause:** v30–v32 listed the day as it was on the calendar. The planned order only showed in the confirm box after "Plan for Ping Pong", so the panel looked like Ping Pong wasn't working.
+- **Now:** when a better Ping Pong order exists, the panel lists **that plan**.
+  - It's marked with a yellow "Plan · not saved yet" tag, and moved jobs say "moved from Press 2".
+  - The summary compares it with the calendar: "crew waits 39m · done 4:01p (on the calendar now: crew waits 3h 26m, done 7:17p)".
+  - The black **Save this plan · saves 2h 47m** button writes it, with the same confirm box and Undo.
+  - Once saved, the tag goes away and the list is the calendar again.
+- **Tested** (mocked, every job locked): the panel showed the alternating plan before saving. Save wrote 8 records, after which there were no changes left, no overlap and no errors.
