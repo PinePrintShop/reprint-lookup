@@ -63,7 +63,7 @@ What goes in the slots, per app (to confirm with each team as the app adopts it)
 
 ## Rollout (each app on its next version; the shared CSS above is already in)
 1. ~~Tokens, pane classes and compact card in `pine-style-v2.css`, plus a demo on `pine-style.html`~~ (done 2026-11-10; additive, so no app changed).
-2. Line Item Review, Create order, Reprints. Small changes: breakpoint 1200/901 → 1100, width within ~30px. Their office CSS width becomes the token.
+2. ~~Line Item Review, Create order, Reprints~~ (done 2026-11-10: Line Item Review v56, Create order v30, Reprints v10; identical requests old vs new).
 3. Seps, Screens, Ink: high use, small change (+3 to +80px).
 4. Damage Log and Receiving: the biggest visible change (640 → 346, compact card). **Open question for Stephen:** keep these two a little wider (~420)?
 5. Shipping, Reconnect (stat tiles move out of the list's way), Purchasing (Ordering columns on the tokens).

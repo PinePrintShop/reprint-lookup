@@ -588,3 +588,21 @@ Stephen: "can we have an agent run through the create order and see if tabbing t
 - **Mouse:** still 30 clicks and 700px of scrolling.
   - Watch out: a rep who clicks an imprint tick out of habit now *un*ticks it, because it starts ticked. The ✓ shows on the tick.
 - No page errors.
+
+## 2026-11-10 · side panel standard
+Stephen: "all of our left panels are different in each app...streamline how they are sized so moving between apps feels cohesive", then "lets roll out create order and line item review since those are not being used yet", "oh and include reprints as well!". Spec: notes/side-panel.md.
+- **Panel width:** the list pane uses `--p-pane-list`: 320 / 346 / 420px at 1100 / 1440 / 1920. Before, it was 340/346/460 (Create order, Line Item Review) and 340/374/480 (Reprints).
+- **Breakpoint:** two panes from **1100px**, one pane at 1099. Before, Create order and Line Item Review split at 1200 and Reprints at 901.
+- **Gutters:** `--p-page-x` (16, or 24 from 1400), 16px between panes, pane padding 16/4/32.
+- **List header and cards:**
+  - The list header is the shared `.p-pane-head` (label + count) plus a one-line hint. Search stays in the filter row.
+  - Cards use the compact card slots: ID badge · name · sub-line · number · tags.
+  - Every handler, id and class the code uses is kept.
+- **Regression test** (mocked Airtable and worker): old and new versions made identical requests (method, URL, body) and reached the same app state after every step of the main flows, in practice and live mode. 0 page errors.
+  - **Layout:** new at 1100–1199 matched old at 1440, and new at 1099 / 390 matched old's one-pane mode.
+  - **Measurements:** nothing under 12px, only brand colours, no horizontal scroll.
+- **Create order v30 specifics:**
+  - The order card shows the # badge, customer, "created · rep", a lines number when it has lines, and "Needs lines" or "Review →".
+  - "Hide list" sits in the list header while an order is open (☰ Orders still works).
+  - Between 1100 and 1279, with the list showing, the order header stacks: numbers and the yellow button go under the name.
+- **To decide:** "Hide list" and "✕ Hide orders" now sit side by side. The suggestion is to show ☰ Orders only while the list is hidden.

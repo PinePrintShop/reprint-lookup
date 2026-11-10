@@ -866,3 +866,35 @@ Stephen: "comments are weird in line item review" (screenshot: a change request'
 - v54 pinned the comment box to the bottom of the right column. On shorter screens it floated over the COMMENTS heading and the list, and with a change request the comments ran out of their card.
 - Now the comments card grows with what's in it again: a long list scrolls inside the card (up to about half the screen) and the comment box sits under it, inside the card. The right column scrolls when it all doesn't fit.
 - Tested at 1280 / 1440 / 1920 with and without a change request (mocked Airtable): the list never overlaps the box; no errors, 0 writes.
+
+## 2026-11-10 · Airtable: finishing costed as labour, not press time
+Stephen, on 11187 (−$5.42/pc margin): "is it because we can get the 1717 for under $6 at SLC". No: the line already used the $5.49 blank.
+- **Cause:** the Imprints cost formula (`fldSGssVzEkzjU4sI`) and the overhead formula (`fldNRHdvfPRtGbkTV`) had their own branches only for Embroidery/Patch/Label and Supacolor. Finishing fell into the screen-press branch: qty ÷ 230/hr × $466.88/hr = a flat **$2.03/pc + $0.22 overhead** for every finishing imprint. On 11187, Fold & Bag + UPC cost $4.50/pc against $1.75 charged. Over the last 12 months that's 68 finishing imprints (31,471 pcs) showing ≈ −$47k that isn't real.
+- **Stephen:** "$22/hr", "It is really just person power" (no overhead).
+- **Change (applied 2026-11-10):** a Finishing branch (Imprint Category = "Finishing") first in both formulas.
+  - **Cost:** minutes per piece × $22/hr. The minutes are Fold & Bag 0.75 (80/hr), UPC sticker 0.15 (400/hr), Bandana Hanger 1 (60/hr), and any other finishing 0.75. They're starting paces from published finishing data until the shop times a run.
+  - **Overhead:** 0.
+  - **Unchanged:** every other branch, word for word. No automation watches these fields.
+- **Checked after saving:** 11187-B and -A (prints) are unchanged ($5.14 / $3.81 cost).
+  - 11187-C Fold & Bag: cost $0.28, net +$1.20/pc.
+  - 11187-D UPC: cost $0.06, net +$0.19/pc.
+  - Line 11187 margin: −$5.42 → **−$1.26/pc** at the $15.55 price, about +$2.30/pc at the $19.10 autoprice.
+- **Still open (Stephen: talk later):**
+  - The price tier `fld5peolsobqg1i1g` counts *open* pieces, so completed orders show the 25–49 price. Embroidery and patch prices share that tier.
+  - The Schedule's / Estimated Run Time's finishing minutes (1.5 / 1 / 1.5 per pc) are slower than the new paces.
+- Decopress, Patch/Label ONLY and Woven Label show $0 on purpose: they're priced by hand (vendor price + markup).
+
+## 2026-11-10 · side panel standard
+Stephen: "all of our left panels are different in each app...streamline how they are sized so moving between apps feels cohesive", then "lets roll out create order and line item review since those are not being used yet", "oh and include reprints as well!". Spec: notes/side-panel.md.
+- **Panel width:** the list pane uses `--p-pane-list`: 320 / 346 / 420px at 1100 / 1440 / 1920. Before, it was 340/346/460 (Create order, Line Item Review) and 340/374/480 (Reprints).
+- **Breakpoint:** two panes from **1100px**, one pane at 1099. Before, Create order and Line Item Review split at 1200 and Reprints at 901.
+- **Gutters:** `--p-page-x` (16, or 24 from 1400), 16px between panes, pane padding 16/4/32.
+- **List header and cards:**
+  - The list header is the shared `.p-pane-head` (label + count) plus a one-line hint. Search stays in the filter row.
+  - Cards use the compact card slots: ID badge · name · sub-line · number · tags.
+  - Every handler, id and class the code uses is kept.
+- **Regression test** (mocked Airtable and worker): old and new versions made identical requests (method, URL, body) and reached the same app state after every step of the main flows, in practice and live mode. 0 page errors.
+  - **Layout:** new at 1100–1199 matched old at 1440, and new at 1099 / 390 matched old's one-pane mode.
+  - **Measurements:** nothing under 12px, only brand colours, no horizontal scroll.
+- **Line Item Review v56 specifics:** each order is one compact card (# badge, customer, rep · due · age, lines count, Hard/ASAP tag), with its line rows inside it, unchanged.
+- **Fix:** below 1280 the Review header (customer, subtotal, Airtable link) overlapped; this was already the case at 1200 in v55. It now wraps to two lines.
