@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- v2 (2026-11-10): invoices only by default (Stephen, on the first real list: "maybe we filter out order confirmations").
+     Each email is sorted from its subject and attachment names: Invoice ("Invoice", "Original Invoice"), Order confirmation
+     ("Order Confirmation", "OrderConf"), Shipment notice ("Shipment Acknowledgement", "shipped"); chips switch between them.
+     More of each vendor's emails are fetched (10 each) so the filtered list isn't empty. -->
 <!-- Vendor invoice check v1 (2026-11-10). Stephen: "Let's do the Worker route since I am an admin"; "all invoice go to
      purchasing@pineprintshop.com and get filtered to an invoice section". Needs worker v42 and, in Google, the Gmail API
      enabled + domain-wide delegation (gmail.readonly) for the Pine Apps service account. Shows whether the worker can read
@@ -20,13 +24,14 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 @media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v1</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v2</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
   <div class="p-note" id="msg">Checking…</div>
   <section class="p-card" id="box" hidden>
     <div class="row"><select class="p-input" id="vendor" aria-label="Vendor"><option value="">Every vendor (newest 3 each)</option></select>
-      <button class="p-btn p-btn-main" id="go" type="button">Show invoices</button></div>
+      <button class="p-btn p-btn-main" id="go" type="button">Show</button></div>
+    <div class="p-chips" role="tablist" id="kinds" style="margin-top:10px"></div>
     <ul class="list" id="list"></ul></section>
   <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
     <div class="row"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="save" type="button">Save</button></div></div>
@@ -36,6 +41,14 @@ const W='https://pine-workers.stephen-dab.workers.dev/proxy';
 const $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tok=()=>{ try{ return localStorage.getItem('pine_at_key')||''; }catch(e){ return ''; } };
 async function api(p){ const r=await fetch(W+p,{headers:{Authorization:'Bearer '+tok()},cache:'no-store'}); const j=await r.json().catch(()=>({})); if(!r.ok) throw Object.assign(new Error(j.error||('HTTP '+r.status)),{status:r.status,code:j.code}); return j; }
+const KINDS=[['invoice','Invoices'],['confirm','Order confirmations'],['ship','Shipment notices'],['all','All']]; let KIND='invoice', LAST=[];
+function kindOf(m){ const t=(m.subject+' '+m.attachments.map(a=>a.filename).join(' ')).toLowerCase();
+  if(/shipment|shipped|acknowledg|tracking/.test(t)) return 'ship';
+  if(/order ?conf|orderconf|confirmation|order received|thank you for your order/.test(t)&&!/invoice/.test(m.subject.toLowerCase())) return 'confirm';
+  if(/invoice/.test(t)) return 'invoice';
+  return 'confirm'; }
+function chips(){ $('kinds').innerHTML=KINDS.map(([k,l])=>`<button class="p-tab${k===KIND?' is-on':''}" type="button" data-k="${k}">${l} <span class="p-count">${k==='all'?LAST.length:LAST.filter(m=>kindOf(m)===k).length}</span></button>`).join('');
+  $('kinds').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ KIND=b.dataset.k; draw(); }); }
 const when=d=>{ const t=new Date(d); return isNaN(t)?'':t.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); };
 async function check(){
   if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in below first.'; return; }
@@ -51,14 +64,15 @@ async function check(){
     if(e.status===401) $('signin').hidden=false; }
 }
 async function show(){ const ul=$('list'), v=$('vendor').value; ul.innerHTML='<li>Loading…</li>';
-  try{ const j=await api('/invoices/list'+(v?'?vendor='+encodeURIComponent(v)+'&max=10':''));
-    ul.innerHTML=j.messages.length?j.messages.map(m=>`<li><span class="when">${when(m.date)}<br><b>${esc(m.vendor)}</b></span><span class="subj"><b>${esc(m.subject||'(no subject)')}</b><span>${esc(m.from)} · ${esc(m.snippet)}</span></span>`
-      +`<span class="files">${m.attachments.map(a=>`<button class="p-btn" type="button" data-u="${esc(a.url)}">${esc(a.filename)}</button>`).join('')||'<span class="p-hint">no attachment</span>'}</span></li>`).join(''):'<li>No invoice emails found.</li>';
+  try{ const j=await api('/invoices/list'+(v?'?vendor='+encodeURIComponent(v)+'&max=20':''));
+    LAST=j.messages; draw(); }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
+function draw(){ const ul=$('list'); chips(); const ms=LAST.filter(m=>KIND==='all'||kindOf(m)===KIND);
+    ul.innerHTML=ms.length?ms.map(m=>`<li><span class="when">${when(m.date)}<br><b>${esc(m.vendor)}</b>${KIND==='all'?`<br><span class="p-hint">${({invoice:'Invoice',confirm:'Confirmation',ship:'Shipment'})[kindOf(m)]}</span>`:''}</span><span class="subj"><b>${esc(m.subject||'(no subject)')}</b><span>${esc(m.from)} · ${esc(m.snippet)}</span></span>`
+      +`<span class="files">${m.attachments.map(a=>`<button class="p-btn" type="button" data-u="${esc(a.url)}">${esc(a.filename)}</button>`).join('')||'<span class="p-hint">no attachment</span>'}</span></li>`).join(''):`<li>None in these emails${$('vendor').value?'':' (newest 3 per vendor)'}. Pick a vendor to look further back.</li>`;
     ul.querySelectorAll('[data-u]').forEach(b=>b.onclick=async()=>{ const t=b.textContent; b.disabled=true; b.textContent='Opening…'; const w=window.open('','_blank');
       try{ const r=await fetch(W.replace(/\/proxy$/,'')+b.dataset.u,{headers:{Authorization:'Bearer '+tok()}}); if(!r.ok) throw new Error('HTTP '+r.status);
         const u=URL.createObjectURL(await r.blob()); if(w) w.location=u; else location.href=u; }catch(e){ if(w) w.close(); alert('Could not open it: '+e.message); }
-      b.disabled=false; b.textContent=t; });
-  }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
+      b.disabled=false; b.textContent=t; }); }
 $('again').onclick=check; $('go').onclick=show;
 $('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
 check();
