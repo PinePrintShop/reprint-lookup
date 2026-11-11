@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- v7 (2026-11-11): the QuickBooks card lists only errors since the latest successful connect (Stephen: an old "invalid_client"
+     from before the keys were fixed was "still showing up" after Garrett connected). -->
 <!-- v6 (2026-11-11): the Airtable sign-in box is at the top (Stephen, after clearing his browser: "the vendor invoice site needs
      the token again but it doesn't have a place to place it" — it was under everything else), and the QuickBooks card says
      "Sign in first" instead of "Checking…" forever. Enter in the box saves too. -->
@@ -44,7 +46,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 @media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v6</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v7</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
   <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in to Airtable</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
@@ -121,7 +123,7 @@ async function qbCheck(){ const m=$('qbMsg'), btn=$('qbBtns'), er=$('qbErr');
   btn.innerHTML=QB.connected?'<button class="p-btn" type="button" id="qbOff">Disconnect</button>':`<button class="p-btn p-btn-dark" type="button" id="qbOn">${QB.realm?'Reconnect':'Connect'} QuickBooks</button>`;
   if($('qbOn')) $('qbOn').onclick=async()=>{ try{ const s=await api('/qbo/start'); location.href=s.url; }catch(e){ m.textContent='Could not start: '+e.message; } };
   if($('qbOff')) $('qbOff').onclick=async()=>{ if(!confirm('Disconnect Pine Apps from QuickBooks? Bills can\'t be sent until someone reconnects.')) return; try{ await api('/qbo/disconnect',{method:'POST'}); }catch(e){} qbCheck(); };
-  const errs=QB.errors||[]; er.hidden=!errs.length;
+  const since=QB.connected&&QB.connectedAt?Date.parse(QB.connectedAt):0, errs=(QB.errors||[]).filter(x=>!since||Date.parse(x.at)>=since);   // v7: only errors since the latest connect er.hidden=!errs.length;
   er.innerHTML=errs.slice(0,5).map(x=>`<li>${when(x.at)} · ${esc(x.route)} · ${esc(x.msg)}${x.tid?` · <span class="p-hint">intuit_tid ${esc(x.tid)}</span>`:''}</li>`).join('')
     +(errs.length?'<li><button class="p-btn" type="button" id="qbReport">Report a problem</button> <span class="p-hint">copies these errors to send to Stephen</span></li>':'');
   if($('qbReport')) $('qbReport').onclick=()=>{ const txt='Pine Apps QuickBooks errors\n'+errs.map(x=>[x.at,x.route,x.status,x.msg,x.tid&&('intuit_tid '+x.tid)].filter(Boolean).join(' | ')).join('\n');
