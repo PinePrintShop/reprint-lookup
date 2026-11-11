@@ -3435,3 +3435,20 @@ Stephen, on 11192's sleeve patch: "we still need to be able to move the one on t
   - Turn 30° → saved in the job setup.
   - Reset clears it.
   - No errors.
+
+## 2026-11-11: v268, old proofs go to Proofs › unused reliably
+Stephen: "sales says it still is saving to the same spot". An agent read the code and the Proofs folders of 11117, 11172, 11177, 11178, 11181 and 11185.
+- **The move itself works:** 11177's V1–V3 and 11185's V1–V2 went to unused.
+- **Cause 1: shared names.** Two lines with the same style and colour but different designs made the same proof name. 11172 had two "V3 11172 | JOY 001-WB.pdf", and v105–v267 then deliberately moved nothing.
+- **Cause 2: proofs that never went through the app's Drive save.** On 11117, 11178, 11181 and the 11185 bandana, every PDF in Proofs was added by the Art Department account (download and drag, some renamed by hand). Nothing can match those automatically.
+- **v268:**
+  - Proof names carry the line's imprint letters: `V3 11172-B | JOY 001-WB.pdf`. `isProofPdf` accepts the new form.
+  - The proofs just taken off the line are matched in Drive by **name and size** (Airtable and Drive hold the same bytes). They move even when names are shared; other same-named files stay.
+  - A failed Drive save, or old proofs that didn't move, now leave a note above the proof that stays until dismissed, with Try again where it can retry. Before, a toast showed for a few seconds.
+- **Process:** attach with Mockup Maker's Attach, not by downloading and dragging into Drive.
+- **Tested** (Playwright, stubbed Drive):
+  - The name comes out as `11095-A | 1717-NAV.pdf`.
+  - With two same-named V1s (1000 and 2000 bytes), only the 2000-byte one, the one taken off the line, moved.
+  - A failing move was reported.
+  - The note shows.
+  - No errors.
