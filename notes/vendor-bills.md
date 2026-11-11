@@ -45,3 +45,8 @@ Stephen cleared his browser, and the page "needs the token again but it doesn't 
   - The QuickBooks card says "Sign in to Airtable first".
 
 The same day, Garrett's QuickBooks connect returned `Intuit token 401: invalid_client`: the Client Secret in Cloudflare doesn't match the Production Client ID. Re-paste both from Intuit › Production, then Connect again.
+
+## 2026-11-11: live
+- Garrett's QuickBooks connected to Pine's real company.
+- The SanMar test record had its sandbox bill ID (145) cleared and was set back to Checked, for a live duplicate test. Real QuickBooks has Sanmar 110526 $241.90 as bill 59294.
+- **Worker v46** before any live SLC send: same-day bills are typed 110526-1 / -2.
