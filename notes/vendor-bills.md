@@ -50,3 +50,10 @@ The same day, Garrett's QuickBooks connect returned `Intuit token 401: invalid_c
 - Garrett's QuickBooks connected to Pine's real company.
 - The SanMar test record had its sandbox bill ID (145) cleared and was set back to Checked, for a live duplicate test. Real QuickBooks has Sanmar 110526 $241.90 as bill 59294.
 - **Worker v46** before any live SLC send: same-day bills are typed 110526-1 / -2.
+- **2026-11-11, live duplicate test passed** (worker v46): Send to QuickBooks on Sanmar INV-166739651 (PO 110526, $241.90) answered "Already in QuickBooks as bill 59294. Not sent again." Nothing was created. Next: SLC 110526 → expect bill 59304 (110526-2); then one new SLC invoice sent for real.
+
+## 2026-11-11: invoice-check v8, which sign-in, and can it save
+"Save as a bill" kept getting Airtable 403 after Stephen cleared his browser and pasted a token. The new token is set up right (data.records:write; Pine Central, where he's a creator), so the page was probably still using another token.
+- **New line under the top note:** "Airtable sign-in ••••abcd · can save" or "read only — can't save bills", from Airtable's whoami (scopes).
+- **Change sign-in** opens the paste box any time. Enter saves.
+- **Tested** (mocked whoami): a read-only token shows "read only"; after pasting a write token it shows "can save".
