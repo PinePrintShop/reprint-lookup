@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- v8 (2026-11-11): which Airtable sign-in this computer is using, and whether it can write (Stephen: "Save as a bill" kept
+     getting Airtable 403 after he cleared his browser and pasted a token). A line under the top note: "Airtable sign-in ••••abcd ·
+     can save ✓" (or "read only") from Airtable's whoami, and a Change sign-in button that opens the paste box any time. -->
 <!-- v7 (2026-11-11): the QuickBooks card lists only errors since the latest successful connect (Stephen: an old "invalid_client"
      from before the keys were fixed was "still showing up" after Garrett connected). -->
 <!-- v6 (2026-11-11): the Airtable sign-in box is at the top (Stephen, after clearing his browser: "the vendor invoice site needs
@@ -46,13 +49,14 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 @media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v7</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v8</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
-  <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in to Airtable</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
+  <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in to Airtable</h2><p class="p-hint">Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
     <div class="row"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="save" type="button">Save</button></div></div>
   <section class="p-card" id="quickbooks"><div class="qb"><div class="grow"><h2 class="p-h2" style="margin:0">QuickBooks</h2><span class="p-hint" id="qbMsg">Checking…</span></div><span id="qbBtns" class="row"></span></div><ul class="errs" id="qbErr" hidden></ul></section>
   <div class="p-note" id="msg">Checking…</div>
+  <div class="row" id="whoRow" hidden style="font-size:14px"><span id="who" class="grow"></span><button class="p-btn is-sm" id="whoChg" type="button">Change sign-in</button></div>
   <section class="p-card" id="box" hidden>
     <div class="row"><select class="p-input" id="vendor" aria-label="Vendor"><option value="">Every vendor (newest 3 each)</option></select>
       <button class="p-btn p-btn-main" id="go" type="button">Show</button></div>
@@ -147,8 +151,16 @@ async function loadBills(){ const ul=$('vbList'); $('bills').hidden=false;
   }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
 $('vbRe').onclick=loadBills;
 $('again').onclick=check; $('go').onclick=show;
+// v8: which token, and can it write?
+async function whoCheck(){ const t=tok(), row=$('whoRow'); if(!t){ row.hidden=true; return; } row.hidden=false; const end='••••'+t.slice(-4);
+  try{ const r=await fetch('https://api.airtable.com/v0/meta/whoami',{headers:{Authorization:'Bearer '+t},cache:'no-store'}), j=await r.json().catch(()=>({}));
+    if(!r.ok){ $('who').innerHTML=`<span class="p-tag p-tag-alert">Airtable refused sign-in ${esc(end)}</span> paste a new one`; return; }
+    const sc=j.scopes||null, w=!sc||sc.includes('data.records:write');
+    $('who').innerHTML=`Airtable sign-in <b>${esc(end)}</b> · ${w?'<span class="p-tag p-tag-done">can save</span>':'<span class="p-tag p-tag-alert">read only — can\'t save bills</span>'}${sc?'':' <span class="p-hint">(scopes not shown for this kind of sign-in)</span>'}`;
+  }catch(e){ $('who').textContent='Airtable sign-in '+end+' · could not check: '+e.message; } }
+$('whoChg').onclick=()=>{ $('signin').hidden=false; $('tok').value=''; $('tok').focus(); window.scrollTo({top:0,behavior:'smooth'}); };
 $('tok').addEventListener('keydown',e=>{ if(e.key==='Enter') $('save').click(); });
-$('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
-check();
+$('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); whoCheck(); };
+check(); whoCheck();
 </script>
 </body></html>
