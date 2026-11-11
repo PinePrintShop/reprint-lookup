@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- v6 (2026-11-11): the Airtable sign-in box is at the top (Stephen, after clearing his browser: "the vendor invoice site needs
+     the token again but it doesn't have a place to place it" — it was under everything else), and the QuickBooks card says
+     "Sign in first" instead of "Checking…" forever. Enter in the box saves too. -->
 <!-- v5 (2026-11-10): needs worker v45, which saves Vendor Bills with this page's Airtable sign-in (Stephen's first Save got
      Airtable 403 with the worker's own token). If the worker sent a bill but couldn't write it back to Airtable, this page
      writes the QuickBooks bill ID and "Sent to QuickBooks" itself. -->
@@ -41,9 +44,11 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 @media (max-width:640px){.list li{grid-template-columns:1fr}.files{justify-content:flex-start}}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v5</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Vendor Invoices</span><span class="p-bar-ver">v6</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
+  <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in to Airtable</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
+    <div class="row"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="save" type="button">Save</button></div></div>
   <section class="p-card" id="quickbooks"><div class="qb"><div class="grow"><h2 class="p-h2" style="margin:0">QuickBooks</h2><span class="p-hint" id="qbMsg">Checking…</span></div><span id="qbBtns" class="row"></span></div><ul class="errs" id="qbErr" hidden></ul></section>
   <div class="p-note" id="msg">Checking…</div>
   <section class="p-card" id="box" hidden>
@@ -53,8 +58,6 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
     <ul class="list" id="list"></ul></section>
   <section class="p-card" id="bills" hidden><div class="qb"><h2 class="p-h2 grow" style="margin:0">Vendor Bills <span class="p-count" id="vbCount"></span></h2><button class="p-btn" id="vbRe" type="button">↻</button></div>
     <p class="p-hint" style="margin:4px 0 0">Saved bills, newest first. Check one against its PDF, Mark checked, then Send to QuickBooks.</p><ul class="vb" id="vbList"></ul></section>
-  <div class="p-card" id="signin" hidden><h2 class="p-h2">Sign in</h2><p class="p-hint">This computer has no saved Airtable sign-in. Paste the Airtable token the other Pine apps use (saved on this computer only).</p>
-    <div class="row"><input class="p-input" id="tok" type="password" autocomplete="off" placeholder="pat…"><button class="p-btn" id="save" type="button">Save</button></div></div>
 </main>
 <script>
 const W='https://pine-workers.stephen-dab.workers.dev/proxy';
@@ -71,7 +74,7 @@ function chips(){ $('kinds').innerHTML=KINDS.map(([k,l])=>`<button class="p-tab$
   $('kinds').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ KIND=b.dataset.k; draw(); }); }
 const when=d=>{ const t=new Date(d); return isNaN(t)?'':t.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); };
 async function check(){
-  if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in below first.'; return; }
+  if(!tok()){ $('signin').hidden=false; $('msg').textContent='Sign in above first.'; $('qbMsg').textContent='Sign in to Airtable first (top of the page).'; $('tok').focus(); return; }
   $('msg').className='p-note'; $('msg').textContent='Checking…'; $('box').hidden=true;
   try{ const v=await fetch(W+'/version',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}));
     if(!(+v.version>=45)){ $('msg').className='p-note p-note-alert'; $('msg').textContent=`The worker is on v${v.version||'?'}. This needs v45: paste worker v45 into Cloudflare first (worker-copy.html).`; $('qbMsg').textContent='Needs worker v45.'; return; }
@@ -81,8 +84,8 @@ async function check(){
     $('vendor').innerHTML='<option value="">Every vendor (newest 3 each)</option>'+vs.map(l=>`<option value="${esc(l.vendor)}">${esc(l.vendor)}</option>`).join('');
     $('box').hidden=false; show();
   }catch(e){ $('msg').className='p-note p-note-alert';
-    $('msg').textContent=e.status===401?'The saved Airtable sign-in was refused. Paste it again below.':e.code==='gmail_signin_failed'?'Google said no: '+e.message+'. Check the Gmail API is enabled and the domain-wide delegation (gmail.readonly) is saved, then Check again (it can take a few minutes).':'Could not check: '+e.message;
-    if(e.status===401) $('signin').hidden=false; }
+    $('msg').textContent=e.status===401?'The saved Airtable sign-in was refused. Paste it again above.':e.code==='gmail_signin_failed'?'Google said no: '+e.message+'. Check the Gmail API is enabled and the domain-wide delegation (gmail.readonly) is saved, then Check again (it can take a few minutes).':'Could not check: '+e.message;
+    if(e.status===401){ $('signin').hidden=false; $('tok').focus(); } }
 }
 async function show(){ const ul=$('list'), v=$('vendor').value; ul.innerHTML='<li>Loading…</li>';
   try{ const j=await api('/invoices/list'+(v?'?vendor='+encodeURIComponent(v)+'&max=20':''));
@@ -142,6 +145,7 @@ async function loadBills(){ const ul=$('vbList'); $('bills').hidden=false;
   }catch(e){ ul.innerHTML=`<li class="p-note p-note-alert">${esc(e.message)}</li>`; } }
 $('vbRe').onclick=loadBills;
 $('again').onclick=check; $('go').onclick=show;
+$('tok').addEventListener('keydown',e=>{ if(e.key==='Enter') $('save').click(); });
 $('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
 check();
 </script>
