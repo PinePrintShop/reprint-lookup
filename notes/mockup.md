@@ -3391,3 +3391,16 @@ On 11011's hang tags and UPC / polybag labels, Stephen said the customer's own l
 - Saving the setup and restoring it brings back 1 page with 2 pictures.
 - No errors.
 - (Again a `//` comment mid-line broke renderProof; fixed with `/* */` before shipping.)
+
+## 2026-11-11: v265, a pulled tag comes without the old shirt colour
+Stephen, on 11189's proof: "looks like the background of the tee isn't being removed".
+
+**What happened:** v263 offered two tiles for a drawn tag: one with the colour taken off, and one with its background. The second put a block of the old proof's shirt colour onto the new proof's tag box, beside the new colour, so the box showed a notch.
+
+**v265:** when a tag sits on a flat colour, only the clean tile is offered ("Drawn tag · shirt colour taken off").
+
+**To fix 11189:** pull the tag again from the old proof and use it for 11189-A.
+
+**Also asked:** "we don't have the overlay garment option anymore". **Overlap front & back** has, since v75, only shown when the garments are wide enough to overlap. On 11189's tees it doesn't change anything, so it's hidden. That is unchanged in v264 and v265.
+
+**Tested:** the 9954 proof gives one SIZE TAG tile, white art on see-through. No errors.
