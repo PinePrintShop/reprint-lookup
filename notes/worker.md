@@ -306,3 +306,11 @@ Stephen's first **Save as a bill** got an Airtable 403 from the worker's own tok
 - Once a bill is in QuickBooks, a failed Airtable write-back no longer reports the send as failed. The answer says `airtableSaved:false`, and invoice-check v5 writes the bill ID and status itself.
 - The callback page says "vendor bills" (Stephen asked whether "bills" meant Intuit charging Pine).
 - **Tested:** the v44 suite passes on v45. The caller's token is used rather than the worker's, and a failed write-back after the bill → 200 with airtableSaved:false.
+
+## 2026-11-11: worker settings, for re-entering after a mistake
+- **`GOOGLE_DRIVE_ID`** = `0AG2GlfwOQTFLUk9PVA`. This is the **Printshop** shared drive (Proofs & Artwork, order folders). It's an ID, not a secret.
+- **`GOOGLE_SA_KEY`** = the whole service-account JSON file (`pine-apps-<12 hex>.json`, account `pine-apps-drive@pine-apps.iam.gserviceaccount.com`, client ID `110397149940649014691`). Cloudflare can't show it again. If the file is lost, make a new key in Google Cloud (Service accounts › pine-apps-drive › Keys › Add key › JSON). Domain-wide delegation stays as it is.
+- **`QBO_CLIENT_ID` / `QBO_CLIENT_SECRET`:** both from Intuit › Pine Apps › Keys & credentials › **Production**.
+- **`QBO_ENV`** = `production`.
+- **`PINE_KV`:** the KV binding.
+- **What happened (2026-11-11):** while re-pasting the QuickBooks keys, `GOOGLE_SA_KEY` and `GOOGLE_DRIVE_ID` were pasted over. Invoices showed "GOOGLE_SA_KEY is not valid JSON". The QuickBooks connect showed `invalid_client` (Client Secret not matching the Production Client ID).
