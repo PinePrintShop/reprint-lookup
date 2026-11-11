@@ -57,3 +57,12 @@ The same day, Garrett's QuickBooks connect returned `Intuit token 401: invalid_c
 - **New line under the top note:** "Airtable sign-in ••••abcd · can save" or "read only — can't save bills", from Airtable's whoami (scopes).
 - **Change sign-in** opens the paste box any time. Enter saves.
 - **Tested** (mocked whoami): a read-only token shows "read only"; after pasting a write token it shows "can save".
+- **2026-11-11: first live bill.** SLC Activewear invoice 1443361 became QuickBooks bill **59373**:
+  - Bill no. 111026; 11/11, due 12/11.
+  - Pine MFG COGS, $2,088.72.
+  - The PDF "SLC Activewear Invoice 1443361.pdf" is attached.
+  - Memo "Pine Apps · Vendor Bills recZcz6iXKuITSeZ6".
+
+  Checked through Garrett's QuickBooks connection in Zapier (read only).
+  - **To fix next:** the reader put SLC's street address in Warehouse, so the bill description is long. It should be a short place name. Also fill the bill's Terms (SalesTermRef) from the invoice.
+- The token pasted after Stephen cleared his browser couldn't write to Airtable. A fresh token pasted with Change sign-in fixed it. The working one yesterday was "Pine Apps Token" (shown in the revision history).
