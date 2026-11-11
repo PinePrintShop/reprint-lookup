@@ -3452,3 +3452,13 @@ Stephen: "sales says it still is saving to the same spot". An agent read the cod
   - A failing move was reported.
   - The note shows.
   - No errors.
+
+## 2026-11-11 · v269 · Change the Airtable key
+Stephen: "my mockup app wont write to Airtable… can you add a token to the mockup creator". The proof attach failed with
+Airtable's "Invalid permissions" (403). The key box only showed when no key was saved, so a read-only key couldn't be swapped.
+- On load, the app asks Airtable (whoami) whether the saved key can write. If it can't, or Airtable refuses it, a red
+  "Read-only key" / "Key refused" line shows with the key's last 4 and opens the key box.
+- Any refused write (401/403) does the same and says "this Airtable sign-in can't save… paste a new key at the top left".
+- Change sign-in button; Enter saves; after saving it shows "can save" for a few seconds.
+- The key is the shared `pine_at_key`, so a new key fixes every Pine app in that browser.
+- Tested with mocked Airtable: read-only key flagged, refused PATCH message, new key saved and shown as can save. No errors.
