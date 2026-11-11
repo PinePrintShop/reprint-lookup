@@ -3334,3 +3334,25 @@ Stephen, on 11187 (no line items yet), whose screen showed 11185-B: "I accidenta
 - **Tested** (mocked, practice): on 11095, then an order with no lines, then back to 11095.
   - v261 kept 11095-A on the empty order.
   - v262 showed no imprints and no brief on it, and 11095-A came back with its art when switching back. No errors.
+
+## 2026-11-11: v263, "Pull the art out" finds a drawn tag beside the shirts
+Stephen, on proof 9954 | 5026-MS: "looks like the mockup creator is having a hard time pulling out this Inside Tag I want to grab".
+
+**Why it failed:** the tag on page 1 is drawn art (Illustrator vectors) in the left column under "SIZE TAG - 9954-A / Width: 0.8" Height: 2" / Placement …". "Pull the art out" only offered:
+- art on the shirt photos;
+- loose placed pictures (here, the printer's logo).
+
+Drawn art off the shirts was never a tile.
+
+**v263:**
+- Any "… TAG - <order>-<letter>" label (size, inside, neck, hang or woven tag, or label) gets its own tile.
+- The tile is the art between that label's Width / Placement lines and the next text in its column (APPROVED, a note). Photos and placed pictures in that strip are left out.
+- The width is taken from the label's own line.
+- A flat swatch behind the tag (the garment colour) gives two tiles:
+  - one with the background colour taken off (colour → see-through, inside letters too, edges unmixed);
+  - one with its background.
+- "Use for" picks the order's tag print.
+
+**Tested** on the 9954 proof (Playwright, real pdf.js and pdf-lib):
+- Tiles: LEFT CHEST, BACK, the new SIZE TAG - 9954-A (clean white art, 0.8″) plus its with-background version, and the logo.
+- The 11011 BGE and VDBLK proofs, 11136 and 10695 give exactly the same tiles in v262 and v263.
