@@ -35,7 +35,7 @@
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v10 (side panel standard) |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v263 (pulls a drawn tag beside the shirts out of an old proof) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v264 (+ Page: your own pictures on an extra proof page) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v13 |

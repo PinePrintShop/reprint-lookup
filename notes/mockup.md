@@ -3356,3 +3356,38 @@ Drawn art off the shirts was never a tile.
 **Tested** on the 9954 proof (Playwright, real pdf.js and pdf-lib):
 - Tiles: LEFT CHEST, BACK, the new SIZE TAG - 9954-A (clean white art, 0.8″) plus its with-background version, and the logo.
 - The 11011 BGE and VDBLK proofs, 11136 and 10695 give exactly the same tiles in v262 and v263.
+
+## 2026-11-11: v264, extra proof pages
+On 11011's hang tags and UPC / polybag labels, Stephen said the customer's own label files can be used as they are: "I am just more interested in being able to add a Page to the mockup and place the images in similar section or move them around". Carton labels are handled in the packing app.
+
+**The 11011 research** (an agent read the proofs and the Drive folder):
+- The extra pages were laid out by hand in Illustrator.
+- The labels came from Illustrator data merges.
+- The hang tag front and back were pasted onto 11×11 pages with their sizes in blue above them.
+
+**v264:**
+- **Proof › + Page:** an 11 × 11″ page with the close-ups' header (logo box, order number, the page's title, default "Hang tags & labels") and APPROVED box.
+- **Getting pictures on:** **Add pictures** (PNG, JPG, PDF or AI), dropping files on the page, or pasting.
+  - Each PDF page becomes its own picture, blank edges trimmed, at its real size. A UPC label PDF comes in at 1.39″.
+  - Other pictures come in about 3″.
+- **Moving and sizing:**
+  - drag to move;
+  - drag the blue corner to resize, or type the width;
+  - arrow keys nudge (Shift for bigger steps);
+  - Delete or **Take off** removes a picture (with Undo);
+  - **Line up** puts the pictures in neat rows.
+- **Notes:** a blue note above any picture. **Size** writes e.g. `1.23"w x 3.2"h`.
+- **Saving:**
+  - One set of pages per order, so every garment's proof gets them.
+  - They're in the proof PDF.
+  - They're saved with the job (on this computer and in the Drive setup file) and come back with Pick up.
+  - **Remove page** (with Undo).
+
+**Tested** (Playwright, mocked Airtable, 11095 mock order):
+- + Page adds the tab and the bar.
+- A PNG and a UPC PDF go on side by side.
+- Dragging moves a picture by +1″ / +0.5″, and Size fills the note.
+- The PDF has 5 pages (4 + the new one).
+- Saving the setup and restoring it brings back 1 page with 2 pictures.
+- No errors.
+- (Again a `//` comment mid-line broke renderProof; fixed with `/* */` before shipping.)
