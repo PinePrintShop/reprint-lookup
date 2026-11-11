@@ -65,7 +65,16 @@ What goes in the slots, per app (to confirm with each team as the app adopts it)
 1. ~~Tokens, pane classes and compact card in `pine-style-v2.css`, plus a demo on `pine-style.html`~~ (done 2026-11-10; additive, so no app changed).
 2. ~~Line Item Review, Create order, Reprints~~ (done 2026-11-10: Line Item Review v56, Create order v30, Reprints v10; identical requests old vs new).
 3. Seps, Screens, Ink: high use, small change (+3 to +80px).
-4. Damage Log and Receiving: the biggest visible change (640 → 346, compact card). **Open question for Stephen:** keep these two a little wider (~420)?
+4. Damage Log and Receiving: the biggest visible change (640 → 346, compact card). **Decided (Stephen, 2026-11-10): the standard 346**, "since it is when they open that is the most important".
 5. Shipping, Reconnect (stat tiles move out of the list's way), Purchasing (Ordering columns on the tokens).
 6. Schedule (search moves to the filter row), Mockup Maker, Sep Maker, Price-O-Matic, Topo Packing (mostly matching already).
 7. Operator and Catching: header block and rail width only.
+
+## 2026-11-10: plan for the next batches (Stephen)
+- **Purchasing:** now (v119), while purchasing is off for the day: "Let's do purchasing now since he is done for the day".
+- **2026-11-11:**
+  1. Seps, Screens and Ink in the morning.
+  2. Damage Log and Receiving at midday, at 346.
+  3. Shipping and Reconnect in the afternoon.
+- **Later:** Schedule, Mockup Maker, Sep Maker, Price-O-Matic and Topo Packing. Then Operator and Catching after a shift.
+- **Every batch:** old vs new must make identical requests on the same scripted run, plus screenshots at 1100 / 1440 / 1920 / 390.
