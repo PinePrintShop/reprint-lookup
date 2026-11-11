@@ -3420,3 +3420,18 @@ v174's "only when one style fits" rule gave up, so no photos. SanMar's 3000 is G
 - v265: Independent 3000 → nothing.
 - v266: Independent 3000 → IND3000 Royal.
 - Independent 4000, Valucap 300A and Comfort Colors 1717 find the same photos as before.
+
+## 2026-11-11: v267, a sleeve print moves and turns on the front photo; fabric on the flat sleeve
+Stephen, on 11192's sleeve patch: "we still need to be able to move the one on the garment as well for this patch. So maybe we make the one on the garment rotatable and moveable and the one on the sleeve mockup its own...also can we add fabric texture to that sleeve mockup as well".
+
+- **FRONT view:**
+  - Drag the sleeve print anywhere.
+  - Placement › **On the front photo** turns it (slider or degrees, −180…180) and has **Reset**.
+- **RIGHT / LEFT SLEEVE view:** keeps its own inches (below the shoulder seam, off center). The placement text and the sleeve close-up don't change.
+- **Saving:** the move and turn are per print and garment (`SLVF`). They're saved on this computer and with the job, and come back with Pick up.
+- **Flat sleeve drawing:** filled with the garment's fabric, as the close-ups are since v259, when the photo has a texture. Otherwise the flat colour, as before.
+- **Tested** (Playwright, mocked order with a Right Sleeve print on a sweatshirt):
+  - Dragging the patch on the front → SLVF offset; the sleeve placement stays `{dx:0, down:3}`.
+  - Turn 30° → saved in the job setup.
+  - Reset clears it.
+  - No errors.
