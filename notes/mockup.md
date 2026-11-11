@@ -3404,3 +3404,19 @@ Stephen, on 11189's proof: "looks like the background of the tee isn't being rem
 **Also asked:** "we don't have the overlay garment option anymore". **Overlap front & back** has, since v75, only shown when the garments are wide enough to overlap. On 11189's tees it doesn't change anything, so it's hidden. That is unchanged in v264 and v265.
 
 **Tested:** the 9954 proof gives one SIZE TAG tile, white art on see-through. No errors.
+
+## 2026-11-11: v266, Independent 3000 finds its photos
+Stephen: "can you look and see why the Independent 3000 - Royal is pulling up?" (11192, garment `reckj6bbgBJOUPUyM`).
+
+**Why:** the order says style "3000". S&S has two Independent styles ending in 3000:
+- IND3000, Unisex Heavyweight Crewneck (styleID 11977), the 10 oz one;
+- SS3000, Midweight Crewneck (2771).
+
+v174's "only when one style fits" rule gave up, so no photos. SanMar's 3000 is Gildan, rightly refused.
+
+**v266:** when several of the brand's styles end in the number, the one whose prefix starts the brand's name wins (IND → Independent). It still won't guess when that doesn't leave exactly one.
+
+**Tested** against the live S&S catalog through the worker:
+- v265: Independent 3000 → nothing.
+- v266: Independent 3000 → IND3000 Royal.
+- Independent 4000, Valucap 300A and Comfort Colors 1717 find the same photos as before.
