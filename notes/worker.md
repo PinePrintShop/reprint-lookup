@@ -314,3 +314,20 @@ Stephen's first **Save as a bill** got an Airtable 403 from the worker's own tok
 - **`QBO_ENV`** = `production`.
 - **`PINE_KV`:** the KV binding.
 - **What happened (2026-11-11):** while re-pasting the QuickBooks keys, `GOOGLE_SA_KEY` and `GOOGLE_DRIVE_ID` were pasted over. Invoices showed "GOOGLE_SA_KEY is not valid JSON". The QuickBooks connect showed `invalid_client` (Client Secret not matching the Production Client ID).
+
+## 2026-11-11: v46, the duplicate check finds -1 / -2 bills
+Stephen was about to test a live SLC invoice. Real QuickBooks already had SLC **110526-1** ($667.85) and **110526-2** ($290.79), which purchasing types for same-day carts. v45 only looked for bill no. "110526" exactly, so it would have made a second bill.
+
+**v46:**
+- Reads this vendor's bills from 45 days before to 15 days after the invoice date.
+- **Already in QuickBooks** (not sent; the existing bill ID is written back) when a bill has the same total and either:
+  - the same PO, with or without -n; or
+  - a date within 3 days (catches mistyped POs).
+- **A new bill's number:** the PO, or the next free -n when that PO is already used for this vendor.
+
+**Tested** (mocked QuickBooks and Airtable):
+- 110526 for $290.79 → already bill 59304.
+- Same PO, new total → 110526-3.
+- PO 091126, same total, date a day later → already.
+- New PO 111026 → 111026.
+- Plain 110626 exists → 110626-2.
