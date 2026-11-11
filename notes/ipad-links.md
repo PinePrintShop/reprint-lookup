@@ -19,7 +19,7 @@
 | Catching | `pine-catching.html` | v174 |
 | Damage Log | `damage-log.html` | v23 |
 | Ink Queue | `pine-ink-queue.html` | v105 |
-| Purchasing | `pine-purchasing.html` | v118 (edit price + freight in Invoice check; carts stay editable) |
+| Purchasing | `pine-purchasing.html` | v119 (shared side panel: 346 list, compact cards, two panes from 1100) |
 | Receiving | `receiving.html` | receiving-dashboard v88 |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
 | Production Board | `pine-production-board.html` | v48 |

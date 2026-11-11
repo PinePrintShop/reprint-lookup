@@ -590,3 +590,27 @@ Also: "You can also remove the 'checked S&S, etc' part" (of the OOS note).
   - Tab goes price → 2XL price → freight. Totals: $546.00 → $642.60 → $654.60 with $12 freight.
   - Freight saves one PATCH. Changing the warehouse moves the cart.
   - Ordering the cart writes the edited price and warehouse, and the line then locks.
+
+## 2026-11-10: v119, the shared side panel (looks only)
+Stephen: "Let's do purchasing now since he is done for the day". It's step 5 of `notes/side-panel.md`.
+
+- **Ordering:**
+  - The orders list is the standard list pane: 320 / 346 / 420 at 1100 / 1440 / 1920, with the standard header ("Orders · N to order").
+  - Group by and search sit in a filter row above all three columns.
+  - Each column scrolls on its own. Three columns from 1100px. Carts keeps its widths.
+- **Order cards:** the compact card.
+  - The order # badge, then the customer in bold.
+  - A grey line: "Due Fri, 11/13 · Rep A".
+  - On the right: "To order 2/3".
+  - The same tags as before.
+- **Invoice check, Past orders, Reprints:**
+  - Two panes from 1100px (was 1400).
+  - The list pane is the standard width (was 560–640), with the standard header and hint.
+  - When wide, Past orders' price log sits under the picked PO.
+- **Tested:**
+  - The v118 regression replays with identical requests (54) and writes (13); only "ver" differs. Practice: 0 writes.
+  - Screenshots at 1100 / 1440 / 1920 / 390. No sideways scroll on a phone, nothing under 12px.
+- **Open for purchasing:**
+  - The due date shows twice: under the "Due …" group heading and on the card.
+  - "To order" counts lines in a cart as still to order.
+  - Tell me if either should change.
