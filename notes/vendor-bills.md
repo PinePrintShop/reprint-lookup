@@ -36,3 +36,12 @@ Saving and updating bills now uses the Airtable sign-in of the person clicking. 
 - Stephen's connect to the real company was refused: "You need admin permissions to connect this app to your company". Garrett (QuickBooks admin) is to connect it on 2026-11-11.
 - Then test the duplicate guard on SanMar 110526, which is already in QuickBooks. Expected: "Already in QuickBooks … not sent again".
 - **Later:** fill the bill's Terms box ("Net 30") from the invoice.
+
+## 2026-11-11: invoice-check v6, sign-in box on top
+Stephen cleared his browser, and the page "needs the token again but it doesn't have a place to place it".
+- **Why:** the sign-in box was there, but at the bottom under everything else. The QuickBooks card said "Checking…" forever.
+- **Now:**
+  - The Airtable sign-in box is first, with the cursor already in it. Enter saves.
+  - The QuickBooks card says "Sign in to Airtable first".
+
+The same day, Garrett's QuickBooks connect returned `Intuit token 401: invalid_client`: the Client Secret in Cloudflare doesn't match the Production Client ID. Re-paste both from Intuit › Production, then Connect again.
