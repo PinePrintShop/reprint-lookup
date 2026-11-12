@@ -215,3 +215,9 @@ some real jobs".
   It's our own invoice template, for customers who want the familiar invoice or need it for their books.
 - The live version should also attach it, with the signed approval, to the copy we email the signer.
 - `approve.html` → v16.
+
+## 2026-11-12 · v17 · preview waiting screen
+- While the preview builds, the welcome card shows a spinner, "Getting your proofs ready…" and Line Item Review's progress.
+  Let's go is greyed out and the empty order badge is hidden (it was an empty black card).
+- If the build fails, the card says "This preview couldn't be built" and the reason.
+- `approve.html` → v17.
