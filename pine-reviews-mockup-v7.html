@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pine Reviews · mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+/* Pine Reviews — clickable MOCKUP. No Airtable: everything lives in this page and resets on reload.
+   People are made up (this is a public page). */
+body{margin:0}
+[hidden].p-toast{display:none!important}
+.wrap{padding:0 var(--p-page-x)}
+.demo{display:flex;align-items:center;gap:8px;color:var(--p-white);font:700 var(--p-fs-s)/1 var(--p-sans)}
+.demo select{min-height:var(--p-tap);border-radius:var(--p-r);border:1.5px solid rgba(255,255,255,.45);background:var(--p-black);color:var(--p-white);font:700 var(--p-fs-s)/1 var(--p-sans);padding:0 10px}
+.mock-note{background:var(--p-cream);border-bottom:1px solid var(--p-cream-dk);padding:8px var(--p-page-x);font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.mock-note b{color:var(--p-black)}
+
+/* form */
+.f-head{display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap}
+.f-who{font:900 var(--p-fs-xl)/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em}
+.f-sub{color:var(--p-ink-2);font-size:var(--p-fs-s)}
+.q{background:var(--p-white);border:1px solid var(--p-line);border-left:6px solid var(--p-black);border-radius:var(--p-r-lg);padding:var(--p-s5);display:grid;gap:var(--p-s4)}
+.q.is-miss{border:2px solid var(--p-black);background:var(--p-yellow-lt)}
+.q-top{display:flex;gap:var(--p-s4);align-items:flex-start}
+.q-n{flex:none;display:grid;place-items:center;width:40px;height:40px;font:900 var(--p-fs-l)/1 var(--p-display);background:var(--p-black);color:var(--p-yellow);border-radius:4px}
+.q-t{display:block;font:700 22px/1.3 var(--p-sans);flex:1;min-width:0;color:var(--p-black)}
+.q-t .p-label{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+@media (max-width:700px){ .q{padding:var(--p-s4)} .q-t{font-size:19px} .q-n{width:34px;height:34px;font-size:var(--p-fs-m)} }
+.why textarea{min-height:72px}
+.why-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.why-h .p-hint{font-size:var(--p-fs-xs);white-space:nowrap}
+.why.is-short .p-textarea{border-color:var(--p-black)}
+.why.is-short .why-h .p-hint{color:var(--p-black);font-weight:700}
+.rate{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rate button{min-height:64px;border:2px solid var(--p-line-strong);border-radius:var(--p-r);background:var(--p-white);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;padding:8px 6px;color:var(--p-black);font:400 var(--p-fs-xs)/1.25 var(--p-sans);text-align:center}
+.rate button b{font:900 22px/1 var(--p-display)}
+.rate button:hover{border-color:var(--p-black)}
+.rate button.is-on{background:var(--p-black);color:var(--p-white);border-color:var(--p-black)}
+.rate button.is-on b{color:var(--p-yellow)}
+.rate-pick{display:none;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+@media (max-width:700px){
+  .rate button span{display:none}
+  .rate button{min-height:56px;justify-content:center}
+  .rate-pick{display:block}
+}
+.why{display:grid;gap:6px}
+.why .p-label{color:var(--p-black)}
+.f-foot{position:sticky;bottom:calc(-1 * var(--p-s6));padding-bottom:calc(var(--p-s3) + var(--p-s6))!important;background:var(--p-cream-lt);border-top:1px solid var(--p-line);padding:var(--p-s3) 0;display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap;margin-top:var(--p-s2)}
+.f-foot .p-hint{flex:1;min-width:180px}
+.stack{display:grid;gap:var(--p-s3)}
+.lock{display:inline-flex;align-items:center;gap:6px;font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.04em;color:var(--p-ink-2)}
+
+/* results */
+.res-top{display:grid;grid-template-columns:auto 1fr;gap:var(--p-s4);align-items:center}
+.res-score{background:var(--p-black);color:var(--p-white);border-radius:var(--p-r-lg);padding:var(--p-s4) var(--p-s5);text-align:center;min-width:150px}
+.res-score .p-big{color:var(--p-yellow);font-size:56px}
+.res-score .p-label{color:rgba(255,255,255,.75)}
+.rt{width:100%;border-collapse:collapse;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
+.rt th,.rt td{padding:10px 12px;border-top:1px solid var(--p-line);text-align:left;vertical-align:middle}
+.rt th{font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2);background:var(--p-cream-lt);border-top:0}
+.rt td.n{font:800 17px/1 var(--p-sans);font-variant-numeric:tabular-nums;white-space:nowrap;width:1%}
+.rt td.n small{font:400 var(--p-fs-xs)/1 var(--p-sans);color:var(--p-ink-3);margin-left:4px}
+.bar5{display:inline-block;width:90px;height:10px;border-radius:5px;background:var(--p-cream);vertical-align:middle;margin-left:8px;position:relative;overflow:hidden}
+.bar5 i{position:absolute;left:0;top:0;bottom:0;background:var(--p-black)}
+@media (max-width:700px){ .bar5{display:none} .res-top{grid-template-columns:1fr} }
+.cmt{background:var(--p-white);border:1px solid var(--p-line);border-left:4px solid var(--p-black);border-radius:var(--p-r);padding:10px 14px}
+.cmt .p-label{display:block;margin-bottom:4px}
+.cmt-peer{border-left-color:var(--p-cream-dk)}
+.rq{gap:var(--p-s3)}
+.rq-h{display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap}
+.rq-h .q-t{flex:1 1 auto}
+.rq-n{display:inline-flex;flex-direction:column;align-items:flex-end;min-width:64px}
+.rq-n small{font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.04em;color:var(--p-ink-2)}
+.rq-n b{font:800 20px/1.1 var(--p-sans);font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--p-s3)}
+@media (max-width:900px){ .grid2{grid-template-columns:1fr} }
+.mini{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:var(--p-fs-s)}
+.mini b{font-variant-numeric:tabular-nums}
+
+/* setup */
+.st-row{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(150px,1fr) minmax(260px,2.4fr) auto;gap:var(--p-s3);align-items:center;padding:10px var(--p-s4);border-top:1px solid var(--p-line);background:var(--p-white)}
+.st-row:first-child{border-top:0}
+.st-row.is-h{background:var(--p-cream-lt);font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2);min-height:0;padding-top:8px;padding-bottom:8px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 4px 0 10px;border-radius:var(--p-pill);background:var(--p-cream);border:1px solid var(--p-cream-dk);font:700 var(--p-fs-s)/1 var(--p-sans)}
+.chip button{width:28px;height:28px;border:0;background:transparent;border-radius:50%;cursor:pointer;font-size:16px;color:var(--p-ink-2)}
+.chip button:hover{background:var(--p-cream-dk)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips select{min-height:32px;border-radius:var(--p-pill);border:1.5px dashed var(--p-line-strong);background:var(--p-white);font:700 var(--p-fs-s)/1 var(--p-sans);padding:0 8px;color:var(--p-ink-2)}
+.st-row .p-select{min-height:36px;padding:4px 8px}
+@media (max-width:900px){
+  .st-row{grid-template-columns:1fr 1fr}
+  .st-row > :nth-child(3){grid-column:1 / -1}
+  .st-row.is-h{display:none}
+}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--p-s3)}
+.stats .p-stat .p-big{font-size:32px}
+.p-pane-main > .stack{max-width:980px}
+/* ---------- v5: the employee's link (text/email → PIN → their reviews → all done) ---------- */
+body.is-link #mnote, body.is-link .demo, body.is-link #views, body.is-link main.wrap{display:none}
+#link{display:none}
+body.is-link #link{display:block;max-width:640px;margin:0 auto;padding:var(--p-s5) var(--p-page-x) var(--p-s6)}
+.lk-me{margin-left:auto;font:800 var(--p-fs-s)/1 var(--p-sans);color:var(--p-white)}
+.sms{background:var(--p-white);border:1px solid var(--p-line);border-radius:22px;padding:var(--p-s4);display:grid;gap:8px}
+.sms-from{font:700 var(--p-fs-xs)/1.2 var(--p-sans);color:var(--p-ink-2);text-align:center;text-transform:uppercase;letter-spacing:.06em}
+.bubble{background:var(--p-cream);border-radius:18px 18px 18px 4px;padding:12px 14px;font-size:var(--p-fs-m);line-height:1.4;max-width:92%}
+.bubble u{word-break:break-all}
+.mail{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
+.mail-h{background:var(--p-cream-lt);border-bottom:1px solid var(--p-line);padding:10px 14px;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.mail-h b{color:var(--p-black)}
+.mail-b{padding:14px;display:grid;gap:10px;font-size:var(--p-fs-s)}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin:var(--p-s3) 0}
+.pin-dots i{width:20px;height:20px;border-radius:50%;border:2px solid var(--p-black)}
+.pin-dots i.on{background:var(--p-black)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:320px;margin:0 auto;width:100%}
+.pad button{min-height:64px;border:2px solid var(--p-line-strong);border-radius:var(--p-r-lg);background:var(--p-white);font:900 26px/1 var(--p-display);color:var(--p-black);cursor:pointer}
+.pad button:active,.pad button.tap{background:var(--p-black);color:var(--p-yellow)}
+.pad button.ghost{visibility:hidden}
+.done-ck{width:96px;height:96px;border-radius:50%;background:var(--p-black);color:var(--p-yellow);display:grid;place-items:center;font:900 52px/1 var(--p-display);margin:var(--p-s6) auto var(--p-s4)}
+body.is-link .f-foot{bottom:0;padding-bottom:var(--p-s3)!important;margin-left:calc(-1 * var(--p-page-x));margin-right:calc(-1 * var(--p-page-x));padding-left:var(--p-page-x);padding-right:var(--p-page-x)}
+.center{text-align:center}
+/* ---------- v6: the form is just the questions. No bar at the bottom: answers save as you go,
+   a slim progress line sits at the top, and Send is at the end. (Stephen: the Send / Save for later bar
+   "is really strong and feels in the way on mobile … focus on the 1-5 and the comments") ---------- */
+.prog{position:sticky;top:calc(-1 * var(--p-s4));z-index:5;background:var(--p-cream-lt);padding:10px 0 8px;margin:0 0 -4px;display:flex;align-items:center;gap:10px}
+body.is-link .prog{top:64px}
+.prog-bar{flex:1;height:6px;border-radius:3px;background:var(--p-cream-dk);overflow:hidden}
+.prog-bar i{display:block;height:100%;background:var(--p-black);transition:width .25s}
+.prog span{font:700 var(--p-fs-xs)/1 var(--p-sans);color:var(--p-ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.f-end{display:grid;gap:10px;margin:var(--p-s4) 0 var(--p-s6);justify-items:start}
+.f-end .p-btn{min-width:240px}
+@media (max-width:700px){
+  .stack>.q{background:transparent;border:0;border-bottom:1px solid var(--p-line-strong);border-radius:0;padding:var(--p-s5) 0}
+  .stack>.q.is-miss{background:var(--p-yellow-lt);border:0;border-radius:var(--p-r-lg);padding:var(--p-s4) var(--p-s3)}
+  .rate button{min-height:60px}
+  .rate button b{font-size:26px}
+  .f-end{justify-items:stretch}
+  .f-end .p-btn{width:100%}
+  .anon{font-size:var(--p-fs-s)}
+}
+/* v7: after the example is written and the keyboard closes, glide to the next unanswered question */
+.stack>.q{scroll-margin-top:44px}
+body.is-link .stack>.q, body.is-link .f-end{scroll-margin-top:112px}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar" id="bar">
+  <span class="p-mark"><span class="p-logo"></span></span>
+  <span class="p-bar-app">Reviews</span>
+  <span class="p-bar-ver">mockup v7</span>
+  <span class="p-tag p-tag-wait">Mockup</span>
+  <nav class="p-bar-views" id="views"></nav>
+  <div class="p-bar-sp">
+    <label class="demo">Viewing as
+      <button class="p-barbtn" data-act="trylink">Try the employee link</button>
+      <select id="as">
+        <option value="owner">Owner</option>
+        <option value="lead" selected>Press lead</option>
+        <option value="member">Press operator</option>
+      </select>
+    </label>
+  </div>
+</header>
+<div class="mock-note" id="mnote"><b>Mockup.</b> Nothing is saved, and everyone here is made up. Switch “Viewing as” to see what each person gets.</div>
+<main class="wrap"><div class="p-panes" id="panes"><aside class="p-pane-side" id="side"></aside><section class="p-pane-main" id="main"></section></div></main>
+<section id="link"></section>
+<div id="toast" class="p-toast" hidden></div>
+
+<script>
+/* ---------- made-up people ---------- */
+const P = {
+  own:{n:'You', role:'Owner', dept:'Office'},
+  off:{n:'Office manager', role:'Office manager', dept:'Office'},
+  jor:{n:'Jordan P.', role:'Press lead', dept:'Press', lead:'own'},
+  cas:{n:'Casey M.', role:'Pre-press lead', dept:'Pre-press', lead:'own'},
+  ril:{n:'Riley T.', role:'Shipping lead', dept:'Shipping', lead:'own'},
+  ale:{n:'Alex R.', role:'Press operator', dept:'Press', lead:'jor'},
+  mor:{n:'Morgan K.', role:'Press operator', dept:'Press', lead:'jor'},
+  dev:{n:'Devin S.', role:'Catcher', dept:'Press', lead:'jor'},
+  sky:{n:'Sky W.', role:'Catcher', dept:'Press', lead:'jor'},
+  jam:{n:'Jamie L.', role:'Screens', dept:'Pre-press', lead:'cas'},
+  tay:{n:'Taylor B.', role:'Seps / art', dept:'Pre-press', lead:'cas'},
+  qui:{n:'Quinn H.', role:'Receiving', dept:'Shipping', lead:'ril'},
+  ree:{n:'Reese D.', role:'Packing', dept:'Shipping', lead:'ril'},
+};
+const ME = {owner:'own', lead:'jor', member:'ale'};
+const LINK = location.hash.startsWith('#t=');   // the employee's own link (mockup: #t=demo)
+const WEIGHT = {mgr:.75, peer:.25};
+const MIN_PEERS = 2;
+
+/* ---------- questions ---------- */
+const SCALE = ['Needs significant improvement','Below expectations','Meets expectations','Exceeds expectations','Exceptional — a role model'];
+const RQ = [ // rated + counted. [key, short, manager wording, peer wording]
+  ['comp','Job competence','Handles their job responsibilities competently and consistently.','When I work with them, they do their job well and consistently.'],
+  ['rel','Reliability','On time, ready to work, and follows through on what they say.','I can count on them: on time, ready, and they follow through.'],
+  ['qual','Quality & detail','Gets the details right and catches problems before they become reprints.','They get the details right and catch problems before they reach me.'],
+  ['team','Teamwork','Helps out beyond their own station and hands work off cleanly.','They help out when I need it and hand work off cleanly.'],
+  ['pos','Positive workplace','Contributes to a positive, affirming, and fun workplace.','They make Pine a better place to work.'],
+  ['grow','Takes feedback & grows','Takes coaching well and changes because of it.','They are open to feedback and keep getting better.'],
+];
+const USED = ['used','Skills fully used','This person’s skills are fully used in their current role.',
+  ['Badly under-used or in the wrong role','Under-used in some clear ways','A good fit for the role','Well used and engaged','Thriving — ready for more']];
+const OPEN = [['out','Where are they doing outstanding work?'],['imp','Where is there room to improve?']];
+const CQ = [ // quarterly check-in, self, 1–5 (not scored)
+  ['succ','I know what success looks like in my role.'],
+  ['clear','My role feels clear and comfortable.'],
+  ['tools','I have the tools and training I need.'],
+  ['vibe','The team vibe and culture are good.'],
+  ['comm','Communication is good, on my team and across Pine.'],
+  ['voice','I have a voice in ideas and changes.'],
+];
+const CSCALE = ['Strongly disagree','Disagree','Neutral','Agree','Strongly agree'];
+const COPEN = [
+  ['chal','What’s been your biggest challenge this quarter? How are you working through it?'],
+  ['proud','A recent moment you felt proud or successful at work.'],
+  ['grow','What would help you grow? Skills, tools, or training.'],
+  ['well','One thing Pine does really well, and one thing we could improve.'],
+];
+const LEAD_Q = ['lgap','Do you see any leadership gaps at Pine that might be holding us back?'];
+
+/* ---------- state: assignments + answers (seeded) ---------- */
+let peers = {
+  ale:['mor','dev'], mor:['ale','sky','dev'], dev:['sky','ale','mor'], sky:['dev','mor'],
+  jam:['tay'], tay:['jam','qui'], qui:['ree','tay'], ree:['qui'],
+  jor:['cas','ril'], cas:['jor','tay'], ril:['jor','cas'],
+};
+const ans = {}; // key `${kind}:${by}:${about}` -> {r:{}, why:{}, o:{}, done:bool}
+const BANK={
+  comp:['Runs a clean press and knows the jobs cold.','Solid on the everyday jobs, still learning the tricky ones.','Knows the work well; I rarely have to double-check.'],
+  rel:['On time most days, but setup has started late a few mornings.','Always there and ready when the shift starts.','Follows through on what they say they will do.'],
+  qual:['Catches registration problems before the run starts.','Has missed a couple of misprints that made it to packing.','Checks the first prints every time.'],
+  team:['Jumps in on changeovers without being asked.','Helps the catchers when the dryer backs up.','Hands off screens and notes cleanly at shift change.'],
+  pos:['Keeps the crew loose on long runs.','Easy to work next to all day.','Brings good energy, even on rough days.'],
+  grow:['Took the feedback on setup times and fixed it within a week.','Asks good questions and keeps learning new garments.','Open to coaching; still working on slowing down on checks.'],
+  used:['Ready to learn the auto press.','Good fit where they are right now.'],
+  succ:['We talk about my targets every week.','Not sure what a good day looks like for my role.'],clear:['Most of it is clear.','The handoff part is still fuzzy.'],
+  tools:['The old press slows me down.','Have what I need.'],vibe:['The crew gets along well.','Fun most days.'],
+  comm:['Schedule changes reach us late sometimes.','Good on my team, less so across departments.'],voice:['I get listened to.','Not always sure who to bring ideas to.'],
+};
+function fillWhy(r,why,i){ const w={...why}; Object.keys(r).forEach((k,j)=>{ if(!w[k]&&BANK[k]) w[k]=BANK[k][(i+j)%BANK[k].length]; }); return w; }
+let seedN=0;
+function seed(kind,by,about,r,o,why){ ans[`${kind}:${by}:${about}`]={r:{...r},why:fillWhy(r,why||{},seedN++),o:o||{},done:true}; }
+const R = (a,b,c,d,e,f,u)=>({comp:a,rel:b,qual:c,team:d,pos:e,grow:f,...(u?{used:u}:{})});
+seed('mgr','jor','mor',R(4,3,4,4,5,4,4),{out:'Dials in tough multi-color jobs fast. Newer people go to Morgan first.',imp:'Start-of-shift setup runs late a couple of days a week.'},{pos:'Keeps the press crew loose on long runs.'});
+seed('peer','ale','mor',R(4,3,4,5,5,4),{out:'Always jumps in when I fall behind on a changeover.',imp:'Could slow down on the first-print check.'});
+seed('peer','sky','mor',R(5,4,4,4,5,4),{out:'Fastest registration on the floor.',imp:'Sometimes forgets to log the misprints.'},{comp:'Dials in four-color jobs faster than anyone.'});
+seed('peer','dev','mor',R(4,3,3,4,4,4),{out:'Great at walking me through new garments.',imp:'Could hand off the next job’s screens earlier.'});
+seed('mgr','jor','sky',R(3,4,3,4,4,3,3),{out:'Rock solid on catching counts.',imp:'Ready to learn the press; let’s plan cross-training.'});
+seed('peer','dev','sky',R(3,4,3,4,4,3),{out:'Counts are always right.',imp:'Could speak up sooner when the dryer backs up.'});
+seed('peer','mor','sky',R(4,4,3,4,4,4),{out:'Never leaves a mess at the dryer.',imp:'Ask for help earlier on big orders.'});
+seed('peer','mor','dev',R(3,3,3,4,4,3),{out:'Great attitude on long runs.',imp:'Double-check counts before boxing.'});
+seed('check','mor','mor',{succ:4,clear:4,tools:3,vibe:4,comm:3,voice:3},{chal:'Long runs on the old press. Splitting them across two days helps.',proud:'Ran the 2,000-piece order with zero reprints.',grow:'Would like to learn the auto press.',well:'Good: the schedule board. Improve: earlier notice on rush jobs.',lgap:'Shift handoffs between press and pre-press could use one clear owner.'});
+seed('check','sky','sky',{succ:3,clear:3,tools:4,vibe:5,comm:4,voice:4},{chal:'Keeping up when two presses unload at once.',proud:'Trained the new catcher.',grow:'Press training.',well:'Good: the crew. Improve: clearer handoffs.',lgap:'None that I see.'});
+ans['check:ale:ale']={r:{},why:{},o:{},done:false};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nm=k=>P[k].n;
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const f1=n=>n==null?'—':n.toFixed(1);
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1800);}
+function crewOf(lead){return Object.keys(P).filter(k=>P[k].lead===lead);}
+function seesResultsFor(me){ if(me==='own') return Object.keys(P).filter(k=>P[k].lead); return crewOf(me); }
+
+/* tasks for the person viewing */
+function tasksFor(me){
+  const t=[];
+  crewOf(me).forEach(k=>t.push({kind:'mgr',about:k}));
+  Object.entries(peers).forEach(([about,list])=>{ if(list.includes(me)) t.push({kind:'peer',about}); });
+  if(P[me].lead&&!LINK) t.push({kind:'check',about:me});
+  return t.map(x=>({...x,by:me,key:`${x.kind}:${me}:${x.about}`,done:!!ans[`${x.kind}:${me}:${x.about}`]?.done}));
+}
+const KIND={mgr:'Manager review',peer:'Peer review',check:'Quarterly check-in'};
+
+/* ---------- views ---------- */
+let as='lead', view='todo', pick=null;
+function viewsFor(){
+  const v=[['todo','To do']];
+  if(as!=='member') v.push(['results','Results'],['checkins','Check-ins']);
+  if(as==='owner') v.push(['setup','Setup']);
+  return v;
+}
+function renderViews(){
+  const me=ME[as]; const open=tasksFor(me).filter(t=>!t.done).length;
+  $('#views').innerHTML=viewsFor().map(([k,l])=>`<button class="${k===view?'is-on':''}" data-v="${k}">${l}${k==='todo'?`<span class="p-count">${open||''}</span>`:''}</button>`).join('');
+}
+function render(){
+  if(!viewsFor().some(v=>v[0]===view)) view='todo';
+  renderViews();
+  document.documentElement.style.setProperty('--p-panes-top',($('#bar').offsetHeight+$('#mnote').offsetHeight)+'px');
+  $('#panes').classList.toggle('is-nolist',view==='setup');
+  ({todo:rTodo,results:rResults,checkins:rCheckins,setup:rSetup})[view]();
+}
+
+/* ===== TO DO ===== */
+function rTodo(){
+  const me=ME[as]; const ts=tasksFor(me);
+  if(!pick||!ts.some(t=>t.key===pick)) pick=(ts.find(t=>!t.done)||ts[0])?.key;
+  const open=ts.filter(t=>!t.done), done=ts.filter(t=>t.done);
+  const card=t=>`<div class="p-lc is-compact ${t.key===pick?'is-open':''} ${t.done?'is-done':''}"><div class="p-lc-head is-tap" data-pick="${t.key}">
+      <div class="p-lc-main"><span class="p-lc-title">${t.kind==='check'?'Your check-in':esc(nm(t.about))}</span><span class="p-lc-sub">${KIND[t.kind]}${t.kind!=='check'?' · '+esc(P[t.about].role):''}</span></div>
+      <div class="p-lc-nums"></div>
+      <div class="p-lc-tags">${t.done?'<span class="p-tag p-tag-done">✓ Sent</span>':'<span class="p-tag p-tag-wait">Due Jan 31</span>'}</div></div></div>`;
+  $('#side').innerHTML=`<div class="p-pane-head"><span class="p-section">To do <span class="p-count">${open.length}</span></span></div>
+    <p class="p-pane-hint">Mid-year review and Q1 check-in · due Jan 31</p>
+    ${open.map(card).join('')||'<p class="p-hint">All done. Thanks!</p>'}
+    ${done.length?`<div class="p-pane-head" style="margin-top:20px"><span class="p-label">Sent</span></div>${done.map(card).join('')}`:''}`;
+  const t=ts.find(x=>x.key===pick);
+  $('#main').innerHTML=t?(t.kind==='check'?formCheck(t):formReview(t)):'<div class="p-split-empty">Nothing to do</div>';
+}
+function rateRow(qkey,val,labels,name){
+  return `<div class="rate" role="radiogroup" aria-label="${esc(name)}">${labels.map((l,i)=>`<button type="button" role="radio" aria-checked="${val===i+1}" class="${val===i+1?'is-on':''}" data-q="${qkey}" data-v="${i+1}"><b>${i+1}</b><span>${esc(l)}</span></button>`).join('')}</div>
+    <div class="rate-pick">${val?`<b>${val}</b> · ${esc(labels[val-1])}`:''}</div>`;
+}
+function cur(t){ return ans[t.key] ||= {r:{},why:{},o:{},done:false}; }
+const MIN_TXT=20; // about one short sentence
+const okTxt=v=>(v||'').trim().length>=MIN_TXT;
+function missing(t){
+  const a=cur(t), m=[];
+  const rated = t.kind==='check' ? CQ.map(x=>x[0]) : [...RQ.map(x=>x[0]), ...(t.kind==='mgr'?['used']:[])];
+  const open  = t.kind==='check' ? [...COPEN.map(x=>x[0]),'lgap'] : OPEN.map(x=>x[0]);
+  rated.forEach(k=>{ if(!a.r[k]||!okTxt(a.why[k])) m.push(k); });
+  open.forEach(k=>{ if(!okTxt(a.o[k])) m.push('o-'+k); });
+  return m;
+}
+function progCounts(t){ const tot=(t.kind==='check'?CQ.length+COPEN.length+1:RQ.length+OPEN.length+(t.kind==='mgr'?1:0)); return [tot-missing(t).length,tot]; }
+function progHTML(t){ const [d,n]=progCounts(t); return `<div class="prog" aria-live="polite"><div class="prog-bar"><i id="progi" style="width:${d/n*100}%"></i></div><span id="progt">${d} of ${n} · saved</span></div>`; }
+function leftText(t){ const n=missing(t).length; return n?`${n} left. Every question needs a number and one example.`:'All answered. Ready to send.'; }
+function whyPrompt(){ return 'Give one example'; } // same label on every form (Stephen, Nov 12)
+function whyBox(k,v,txt,ro){
+  const n=(txt||'').trim().length;
+  return `<div class="why ${n&&n<MIN_TXT?'is-short':''}"><div class="why-h"><label class="p-label" for="w-${k}">${whyPrompt(v)}</label><span class="p-hint" data-cnt="${k}">${n>=MIN_TXT?'✓':n?'Add a bit more':''}</span></div>
+    <textarea class="p-textarea" id="w-${k}" data-why="${k}" rows="2" enterkeyhint="done" ${ro?'disabled':''}>${esc(txt||'')}</textarea></div>`;
+}
+function openBox(k,label,txt,ro,extra){
+  const n=(txt||'').trim().length;
+  return `<div class="q" data-box="o-${k}"><div class="why ${n&&n<MIN_TXT?'is-short':''}"><div class="why-h"><label class="q-t" for="o-${k}">${esc(label)}</label><span class="p-hint" data-cnt="o-${k}">${n>=MIN_TXT?'✓':n?'Add a bit more':''}</span></div>${extra||''}
+    <textarea class="p-textarea" id="o-${k}" data-open="${k}" rows="3" enterkeyhint="done" ${ro?'disabled':''}>${esc(txt||'')}</textarea></div></div>`;
+}
+function formReview(t){
+  const a=cur(t), mgr=t.kind==='mgr', ro=a.done, p=P[t.about];
+  const q=(i,[k,short,mw,pw])=>{
+    const v=a.r[k];
+    return `<div class="q" data-box="${k}"><div class="q-top"><span class="q-n">${i+1}</span><div class="q-t"><span class="p-label">${esc(short)}</span>${esc(mgr?mw:pw)}</div></div>
+      ${rateRow(k,v,SCALE,short)}
+      ${whyBox(k,v,a.why[k],ro)}</div>`;
+  };
+  return `<div class="stack" data-form="${t.key}">
+    <div class="f-head"><span class="p-section">${KIND[t.kind]}</span>${ro?'<span class="p-tag p-tag-done">✓ Sent</span>':''}</div>
+    <div><div class="f-who">${esc(p.n)}</div><div class="f-sub">${esc(p.role)} · ${esc(p.dept)}</div></div>
+    ${ro?'':progHTML(t)}
+    <div class="p-note anon">${mgr?'':`<b>Your name is never shown</b> to ${esc(p.n.split(' ')[0])}. `}1 is low, 5 is high. Every answer needs one example.</div>
+    ${RQ.map((x,i)=>q(i,x)).join('')}
+    ${mgr?`<div class="q" data-box="used"><div class="q-top"><span class="q-n">7</span><div class="q-t"><span class="p-label">${USED[1]} <span class="p-tag p-tag-soft">Not in the score</span></span>${USED[2]}</div></div>${rateRow('used',a.r.used,USED[3],USED[1])}${whyBox('used',a.r.used,a.why.used,ro)}</div>`:''}
+    ${OPEN.map(([k,l])=>openBox(k,l,a.o[k],ro)).join('')}
+    ${ro?'':`<div class="f-end"><span class="p-hint" id="left">${leftText(t)}</span><button class="p-btn p-btn-main p-btn-lg" data-act="send">Send review</button></div>`}
+  </div>`;
+}
+function formCheck(t){
+  const a=cur(t), ro=a.done;
+  return `<div class="stack" data-form="${t.key}">
+    <div class="f-head"><span class="p-section">Quarterly check-in</span>${ro?'<span class="p-tag p-tag-done">✓ Sent</span>':''}</div>
+    <div><div class="f-who">Q1 2027</div><div class="f-sub">Fill this in before you sit down with ${esc(nm(P[t.about].lead).replace(/\.$/,''))}. It isn’t scored.</div></div>
+    <div class="p-note anon">1 is low, 5 is high. Every answer needs one example.</div>
+    ${ro?'':progHTML(t)}
+    ${CQ.map(([k,l],i)=>`<div class="q" data-box="${k}"><div class="q-top"><span class="q-n">${i+1}</span><div class="q-t">${esc(l)}</div></div>${rateRow(k,a.r[k],CSCALE,l)}${whyBox(k,a.r[k],a.why[k],ro)}</div>`).join('')}
+    ${COPEN.map(([k,l])=>openBox(k,l,a.o[k],ro)).join('')}
+    ${openBox('lgap',LEAD_Q[1],a.o.lgap,ro,'<span class="lock">🔒 Only the owner and office manager see this. Not your lead. “None” plus a reason is fine.</span>')}
+    ${ro?'':`<div class="f-end"><span class="p-hint" id="left">${leftText(t)}</span><button class="p-btn p-btn-main p-btn-lg" data-act="send">Send check-in</button></div>`}
+  </div>`;
+}
+
+/* ===== RESULTS ===== */
+let rpick=null;
+function scoreFor(k){
+  const m=ans[`mgr:${P[k].lead}:${k}`]; const pr=(peers[k]||[]).map(b=>ans[`peer:${b}:${k}`]).filter(x=>x?.done);
+  const mAvg=m?.done?avg(RQ.map(([q])=>m.r[q])):null;
+  const show=pr.length>=MIN_PEERS;
+  const pAvg=show?avg(pr.map(x=>avg(RQ.map(([q])=>x.r[q])))):null;
+  let total=null, note='';
+  if(mAvg!=null&&pAvg!=null){ total=WEIGHT.mgr*mAvg+WEIGHT.peer*pAvg; note=`Manager 75% · Peers 25% (${pr.length})`; }
+  else if(mAvg!=null){ total=mAvg; note=pr.length?`Manager only: ${pr.length} peer answered, needs ${MIN_PEERS}`:'Manager only: no peers yet'; }
+  return {m,pr,show,mAvg,pAvg,total,note};
+}
+function rResults(){
+  const me=ME[as], list=seesResultsFor(me);
+  if(!list.includes(rpick)) rpick=list.find(k=>scoreFor(k).total!=null)||list[0];
+  $('#side').innerHTML=`<div class="p-pane-head"><span class="p-section">Mid-year review <span class="p-count">${list.length}</span></span></div>
+    <p class="p-pane-hint">${as==='owner'?'Everyone':'Your crew'} · score = manager 75%, peers 25%</p>
+    ${list.map(k=>{const s=scoreFor(k), pd=s.pr.length, pt=(peers[k]||[]).length;
+      return `<div class="p-lc is-compact ${k===rpick?'is-open':''}"><div class="p-lc-head is-tap" data-rpick="${k}">
+        <div class="p-lc-main"><span class="p-lc-title">${esc(nm(k))}</span><span class="p-lc-sub">${esc(P[k].role)}${as==='owner'?' · '+esc(nm(P[k].lead)):''}</span></div>
+        <div class="p-lc-nums"><div class="p-num ${s.total==null?'is-quiet':''}"><small>Score</small><b>${f1(s.total)}</b></div></div>
+        <div class="p-lc-tags">${s.m?.done?'<span class="p-tag p-tag-done">✓ Manager</span>':'<span class="p-tag p-tag-wait">Manager review</span>'}<span class="p-tag p-tag-soft">Peers ${pd}/${pt}</span></div></div></div>`;}).join('')}`;
+  $('#main').innerHTML=resultsFor(rpick);
+}
+function resultsFor(k){
+  if(!k) return '<div class="p-split-empty">No one to show</div>';
+  const p=P[k], s=scoreFor(k), m=s.m?.done?s.m:null;
+  const peerQ=q=>s.show?avg(s.pr.map(x=>x.r[q])):null;
+  const cell=v=>v==null?'<td class="n">—</td>':`<td class="n">${f1(v)}<span class="bar5"><i style="width:${v/5*100}%"></i></span></td>`;
+  const rows=RQ.map(([q,short])=>{const mv=m?.r[q], pv=peerQ(q), gap=mv!=null&&pv!=null&&Math.abs(mv-pv)>=1;
+    return `<tr><td>${esc(short)} ${gap?'<span class="p-tag p-tag-wait">Talk about</span>':''}</td>${cell(mv)}${cell(pv)}</tr>`;}).join('');
+  const mix=arr=>arr.filter(Boolean).sort((a,b)=>a.localeCompare(b)); // mixed order so comments can't be matched to a person
+  const qCard=(q,short,notScored)=>{ const mv=m?.r[q], pv=notScored?null:peerQ(q), gap=mv!=null&&pv!=null&&Math.abs(mv-pv)>=1;
+    const pcs=(s.show&&!notScored)?mix(s.pr.map(x=>x.why[q])):[];
+    return `<div class="q rq"><div class="rq-h"><span class="q-t" style="font-size:18px">${esc(short)}</span>${notScored?'<span class="p-tag p-tag-soft">Not in the score</span>':''}${gap?'<span class="p-tag p-tag-wait">Talk about</span>':''}
+      <span class="rq-n"><small>Manager</small><b>${mv??'—'}</b></span>${notScored?'':`<span class="rq-n"><small>Peers${s.show?' ('+s.pr.length+')':''}</small><b>${f1(pv)}</b></span>`}</div>
+      ${m?.why[q]?`<div class="cmt"><span class="p-label">Manager</span>${esc(m.why[q])}</div>`:''}
+      ${pcs.map(c=>`<div class="cmt cmt-peer"><span class="p-label">A peer</span>${esc(c)}</div>`).join('')}</div>`; };
+  const ch=ans[`check:${k}:${k}`];
+  return `<div class="stack">
+    <div class="f-head"><span class="p-section">Results</span><span class="p-hint">Mid-year review · Jan 2027</span></div>
+    <div class="res-top">
+      <div class="res-score"><div class="p-label">Score</div><div class="p-big">${f1(s.total)}</div><div class="p-label" style="margin-top:6px">out of 5</div></div>
+      <div><div class="f-who">${esc(p.n)}</div><div class="f-sub">${esc(p.role)} · reviewed by ${esc(nm(p.lead))}</div><p class="p-hint" style="margin:8px 0 0">${esc(s.note)}</p></div>
+    </div>
+    ${!s.show&&s.pr.length?`<div class="p-note">Peer answers stay hidden until at least ${MIN_PEERS} peers have answered, so no one can tell who wrote what.</div>`:''}
+    <table class="rt"><thead><tr><th>Question</th><th>Manager</th><th>Peers${s.show?` (${s.pr.length})`:''}</th></tr></thead><tbody>${rows}</tbody></table>
+    ${m?'':`<div class="p-note p-note-wait">${esc(nm(p.lead))} hasn’t sent the manager review yet.</div>`}
+    <span class="p-section">Question by question</span>
+    ${RQ.map(([q,short])=>qCard(q,short)).join('')}
+    ${qCard('used',USED[1],true)}
+    ${OPEN.map(([o,l])=>`<div class="q rq"><span class="q-t" style="font-size:18px">${esc(l)}</span>
+      ${m?.o[o]?`<div class="cmt"><span class="p-label">Manager</span>${esc(m.o[o])}</div>`:''}
+      ${(s.show?mix(s.pr.map(x=>x.o[o])):[]).map(c=>`<div class="cmt cmt-peer"><span class="p-label">A peer</span>${esc(c)}</div>`).join('')}</div>`).join('')}
+    <span class="p-section">Latest check-in · their own view</span>
+    ${ch?.done?`<div class="p-card"><div class="mini">${CQ.map(([q,l])=>`<span>${esc(l)}</span><b>${ch.r[q]} / 5</b>`).join('')}</div>${COPEN.filter(([q])=>ch.o[q]).map(([q,l])=>`<div class="cmt" style="margin-top:10px"><span class="p-label">${esc(l)}</span>${esc(ch.o[q])}</div>`).join('')}</div>`:'<p class="p-hint">No check-in yet this quarter.</p>'}
+    <div class="f-foot"><span class="p-hint">After the sit-down:</span><button class="p-btn" data-act="print">Print</button><button class="p-btn p-btn-main" data-act="met" ${s.total==null?'disabled':''}>Mark as reviewed with ${esc(p.n.split(' ')[0])}</button></div>
+  </div>`;
+}
+
+/* ===== CHECK-INS (lead / owner) ===== */
+let cpick=null;
+function rCheckins(){
+  const me=ME[as], list=seesResultsFor(me);
+  if(!list.includes(cpick)) cpick=list[0];
+  $('#side').innerHTML=`<div class="p-pane-head"><span class="p-section">Q1 check-ins <span class="p-count">${list.length}</span></span></div>
+    <p class="p-pane-hint">Their answers come in before you meet. Not scored.</p>
+    ${list.map(k=>{const c=ans[`check:${k}:${k}`];return `<div class="p-lc is-compact ${k===cpick?'is-open':''}"><div class="p-lc-head is-tap" data-cpick="${k}">
+      <div class="p-lc-main"><span class="p-lc-title">${esc(nm(k))}</span><span class="p-lc-sub">${esc(P[k].role)}</span></div><div class="p-lc-nums"></div>
+      <div class="p-lc-tags">${c?.done?'<span class="p-tag p-tag-done">✓ Answered</span>':'<span class="p-tag p-tag-soft">Not answered yet</span>'}</div></div></div>`;}).join('')}`;
+  const k=cpick, c=ans[`check:${k}:${k}`];
+  $('#main').innerHTML=`<div class="stack">
+    <div class="f-head"><span class="p-section">Quarterly check-in</span><span class="p-hint">Q1 2027</span></div>
+    <div><div class="f-who">${esc(nm(k))}</div><div class="f-sub">${esc(P[k].role)} · with ${esc(nm(P[k].lead))}</div></div>
+    ${c?.done?`<div class="p-card"><div class="mini">${CQ.map(([q,l])=>`<span>${esc(l)}${c.why[q]?`<br><span class="p-hint">“${esc(c.why[q])}”</span>`:''}</span><b>${c.r[q]} · ${CSCALE[c.r[q]-1]}</b>`).join('')}</div></div>
+      ${COPEN.map(([q,l])=>`<div class="cmt"><span class="p-label">${esc(l)}</span>${esc(c.o[q]||'—')}</div>`).join('')}
+      ${as==='owner'?`<div class="cmt"><span class="p-label">🔒 ${esc(LEAD_Q[1])}</span>${esc(c.o.lgap||'—')}</div>`:''}`
+      :`<div class="p-note">${esc(nm(k).split(' ')[0])} hasn’t answered yet. You can still meet and take notes.</div>`}
+    <div class="q"><label class="q-t" for="cn">Your notes from the conversation</label><textarea class="p-textarea" id="cn" rows="4" placeholder="Issues, opportunities, what you agreed to do next"></textarea></div>
+    <div class="f-foot"><span class="p-hint">${esc(nm(k).split(' ')[0])} doesn’t see your notes.</span><button class="p-btn p-btn-main" data-act="cdone">Save check-in</button></div>
+  </div>`;
+}
+
+/* ===== SETUP (owner / office manager) ===== */
+function rSetup(){
+  const staff=Object.keys(P).filter(k=>P[k].lead);
+  const mgrDone=staff.filter(k=>ans[`mgr:${P[k].lead}:${k}`]?.done).length;
+  const pTot=staff.reduce((n,k)=>n+(peers[k]||[]).length,0);
+  const pDone=staff.reduce((n,k)=>n+(peers[k]||[]).filter(b=>ans[`peer:${b}:${k}`]?.done).length,0);
+  const load={}; staff.forEach(k=>(peers[k]||[]).forEach(b=>load[b]=(load[b]||0)+1));
+  const leads=['own','jor','cas','ril'];
+  $('#side').innerHTML='';
+  $('#main').innerHTML=`<div class="stack" style="max-width:1200px">
+    <div class="p-head" style="margin-top:0"><span class="p-section">Mid-year review</span><span class="p-head-sum">Jan 2027 · due <b>Jan 31</b> · score = manager 75%, peers 25%</span></div>
+    <div class="stats">
+      <div class="p-stat"><div class="p-label">Manager reviews</div><div class="p-big">${mgrDone}/${staff.length}</div></div>
+      <div class="p-stat"><div class="p-label">Peer reviews</div><div class="p-big">${pDone}/${pTot}</div></div>
+    </div>
+    <div class="p-head"><span class="p-section">Who reviews whom</span><span class="p-head-sum">Pick 2–4 peers each, from the people they work with most. Peers stay anonymous.</span>
+      <div class="p-head-end"><button class="p-btn" data-act="suggest">Suggest peers from same department</button></div></div>
+    <div class="p-list">
+      <div class="st-row is-h"><span>Person</span><span>Manager</span><span>Peers</span><span>Reviews to write</span></div>
+      ${staff.map(k=>{const pl=peers[k]||[]; const opts=Object.keys(P).filter(b=>P[b].lead&&b!==k&&!pl.includes(b));
+        return `<div class="st-row"><div><b>${esc(nm(k))}</b><div class="p-hint">${esc(P[k].role)}</div></div>
+        <select class="p-select" data-lead="${k}">${leads.filter(l=>l!==k).map(l=>`<option value="${l}" ${P[k].lead===l?'selected':''}>${esc(nm(l))}</option>`).join('')}</select>
+        <div class="chips">${pl.map(b=>`<span class="chip">${esc(nm(b))}<button aria-label="Remove ${esc(nm(b))}" data-rm="${k}:${b}">×</button></span>`).join('')}
+          ${pl.length<4?`<select data-add="${k}"><option value="">+ Add peer</option>${opts.map(b=>`<option value="${b}">${esc(nm(b))} · ${esc(P[b].dept)}</option>`).join('')}</select>`:''}
+          ${pl.length<MIN_PEERS?`<span class="p-tag p-tag-wait">Needs ${MIN_PEERS}+</span>`:''}</div>
+        <span class="p-num"><b>${load[k]||0}</b></span></div>`;}).join('')}
+    </div>
+    <p class="p-hint">“Reviews to write” is how many peer reviews each person has, so no one gets buried. Leads also write a manager review for each of their crew.</p>
+    <div class="f-foot"><span class="p-hint">Sends each person their to-do list and a link.</span><button class="p-btn p-btn-dark" data-act="startq">Start Q1 check-ins</button><button class="p-btn p-btn-main" data-act="start">Start mid-year review</button></div>
+  </div>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button,[data-pick],[data-rpick],[data-cpick],[data-lpick]'); if(!b) return;
+  if(b.dataset.v&&b.closest('#views')){ view=b.dataset.v; render(); return; }
+  if(b.dataset.pick){ pick=b.dataset.pick; rTodo(); scrollMain(); return; }
+  if(b.dataset.rpick){ rpick=b.dataset.rpick; rResults(); scrollMain(); return; }
+  if(b.dataset.cpick){ cpick=b.dataset.cpick; rCheckins(); scrollMain(); return; }
+  if(b.dataset.q){ const t=tasksFor(ME[as]).find(x=>x.key===pick); const a=cur(t); if(a.done) return;
+    const fresh=!(a.why[b.dataset.q]||'').trim(); a.r[b.dataset.q]=+b.dataset.v; if(LINK){ const y=scrollY; rLink(); scrollTo(0,y); } else { const y=$('#main').scrollTop; rTodo(); $('#main').scrollTop=y; } if(fresh) $('#w-'+b.dataset.q)?.focus(); return; }
+  if(b.dataset.rm){ const [k,x]=b.dataset.rm.split(':'); peers[k]=peers[k].filter(y=>y!==x); rSetup(); return; }
+  const act=b.dataset.act;
+  if(act==='send'){ const t=tasksFor(ME[as]).find(x=>x.key===pick); const m=missing(t);
+    if(m.length){ document.querySelectorAll('.q.is-miss').forEach(x=>x.classList.remove('is-miss'));
+      m.forEach(k=>document.querySelector(`[data-box="${k}"]`)?.classList.add('is-miss'));
+      document.querySelector('.q.is-miss')?.scrollIntoView({behavior:'smooth',block:'center'}); toast(`${m.length} left: each needs a number and one example`); return; }
+    cur(t).done=true; pick=null; if(LINK){ const left=tasksFor(ME[as]).filter(x=>!x.done).length; stage=left?'list':'done'; toast(left?`Sent. ${left} left.`:'Sent. Thanks!'); rLink(); scrollTo(0,0); return; } toast('Sent (mockup: nothing saved)'); render(); }
+  if(act==='trylink'){ location.hash='#t=demo'; location.reload(); return; }
+  if(act==='open'){ stage='pin1'; rLink(); return; }
+  if(b.dataset.key!=null){ pinKey(b.dataset.key,b); return; }
+  if(act==='back'){ pick=null; stage='list'; rLink(); scrollTo(0,0); return; }
+  if(b.dataset.lpick){ pick=b.dataset.lpick; stage='form'; rLink(); scrollTo(0,0); return; }
+  if(act==='later'){ toast('Saved for later (mockup)'); }
+  if(act==='met'){ toast('Marked as reviewed (mockup)'); }
+  if(act==='print'){ window.print(); }
+  if(act==='cdone'){ toast('Check-in saved (mockup)'); }
+  if(act==='suggest'){ Object.keys(P).filter(k=>P[k].lead).forEach(k=>{ if((peers[k]||[]).length>=MIN_PEERS) return;
+      const same=Object.keys(P).filter(b=>P[b].lead&&b!==k&&P[b].dept===P[k].dept&&!(peers[k]||[]).includes(b));
+      peers[k]=[...(peers[k]||[]),...same].slice(0,Math.max(MIN_PEERS,(peers[k]||[]).length)); }); rSetup(); toast('Filled in anyone under 2 peers'); }
+  if(act==='start'){ toast('Review started: to-do lists sent (mockup)'); }
+  if(act==='startq'){ toast('Q1 check-ins started (mockup)'); }
+});
+document.addEventListener('input',e=>{
+  const el=e.target; const t=tasksFor(ME[as]).find(x=>x.key===pick); if(!t||view!=='todo') return; const a=cur(t);
+  if(el.dataset.why) a.why[el.dataset.why]=el.value;
+  if(el.dataset.open) a.o[el.dataset.open]=el.value;
+  const key=el.dataset.why||(el.dataset.open&&'o-'+el.dataset.open);
+  if(key){ const n=el.value.trim().length, c=document.querySelector(`[data-cnt="${key}"]`);
+    if(c) c.textContent=n>=MIN_TXT?'✓':n?'Add a bit more':'';
+    el.closest('.why')?.classList.toggle('is-short',n>0&&n<MIN_TXT);
+    if(n>=MIN_TXT) el.closest('.q')?.classList.remove('is-miss'); }
+  const l=$('#left'); if(l) l.textContent=leftText(t);
+  const [d,n]=progCounts(t); const pi=$('#progi'), pt=$('#progt'); if(pi){ pi.style.width=(d/n*100)+'%'; pt.textContent=`${d} of ${n} · saved`; }
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='as'){ as=el.value; pick=null; render(); return; }
+  if(el.dataset.add&&el.value){ (peers[el.dataset.add] ||= []).push(el.value); rSetup(); }
+  if(el.dataset.lead){ P[el.dataset.lead].lead=el.value; toast('Manager changed (mockup)'); }
+});
+function scrollMain(){ if(innerWidth<1100) $('#main').scrollIntoView({behavior:'smooth'}); }
+addEventListener('resize',()=>document.documentElement.style.setProperty('--p-panes-top',($('#bar').offsetHeight+$('#mnote').offsetHeight)+'px'));
+/* ===== v7: auto-advance =====
+   Tap a number → its example box opens (keyboard up). Write the example → close the keyboard (Done, return,
+   or tap on the page) → the page glides to the next unanswered question, or to Send when everything is in.
+   It doesn't move if the example is too short, or if you tapped another box or button yourself. */
+let lastTapUI=0;
+document.addEventListener('pointerdown',e=>{ if(e.target.closest('button,textarea,input,select,a')) lastTapUI=Date.now(); },true);
+document.addEventListener('keydown',e=>{ const el=e.target;
+  if(e.key==='Enter'&&!e.shiftKey&&el.matches?.('textarea[data-why],textarea[data-open]')){ e.preventDefault(); el.blur(); } });
+document.addEventListener('focusout',e=>{
+  const el=e.target; if(!el.matches?.('textarea[data-why],textarea[data-open]')) return;
+  const at=Date.now();
+  setTimeout(()=>{
+    if(lastTapUI>at-200) return;                               // the blur came from tapping another box or button
+    if(document.activeElement?.matches?.('textarea,input,select')) return;
+    const box=el.closest('[data-box]'); if(!box) return;
+    const t=tasksFor(ME[as]).find(x=>x.key===pick); if(!t||cur(t).done) return;
+    const miss=new Set(missing(t)); if(miss.has(box.dataset.box)) return;   // this one isn't finished yet
+    const boxes=[...document.querySelectorAll('.stack [data-box]')], i=boxes.indexOf(box);
+    const next=boxes.slice(i+1).find(b=>miss.has(b.dataset.box))||boxes.find(b=>miss.has(b.dataset.box))||document.querySelector('.f-end');
+    next?.scrollIntoView({behavior:'smooth',block:'start'});
+  },320);                                                      // let the iPhone keyboard finish closing
+});
+
+let stage='msg', pin='', pin1='';
+function rLink(){
+  const me=ME[as], first=nm(me).split(' ')[0], ts=tasksFor(me), open=ts.filter(t=>!t.done);
+  const L=$('#link');
+  if(stage==='msg'){ L.innerHTML=`<div class="stack">
+      <span class="p-section">What ${first} gets</span>
+      <div class="sms"><div class="sms-from">Text · Pine Print Shop</div>
+        <div class="bubble">Hi ${first}, your Pine mid-year review is ready: ${open.length} peer reviews, due Jan 31. Only you can use this link: <u>pineprintshop.github.io/reprint-lookup/reviews#t=8fK2…</u></div></div>
+      <div class="mail"><div class="mail-h"><b>Your Pine review is ready</b> · reviews@pine</div>
+        <div class="mail-b"><span>Hi ${first}, you have ${open.length} peer reviews to fill in by Jan 31. It takes about 10 minutes each. Your name is never shown to the people you review.</span><span class="p-hint">Same link as the text. Don’t forward it.</span></div></div>
+      <button class="p-btn p-btn-main p-btn-lg" data-act="open">Open the link</button></div>`; return; }
+  if(stage==='pin1'||stage==='pin2'){ L.innerHTML=`<div class="stack center">
+      <div class="f-who" style="margin-top:12px">Hi ${esc(first)}</div>
+      <div class="f-sub" style="font-size:16px">${stage==='pin1'?'Pick a 4-digit PIN. You’ll use it every time you open your reviews.':'Enter the same PIN again.'}</div>
+      <div class="pin-dots" aria-label="${pin.length} of 4 digits">${[0,1,2,3].map(i=>`<i class="${i<pin.length?'on':''}"></i>`).join('')}</div>
+      <div class="pad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>`<button class="${k?'':'ghost'}" data-key="${k}" aria-label="${k==='⌫'?'Delete':k}">${k}</button>`).join('')}</div>
+      <p class="p-hint">Forgot it? Ask the office to reset it.</p></div>`; return; }
+  if(stage==='done'){ L.innerHTML=`<div class="stack center"><div class="done-ck">✓</div><div class="f-who">All done</div>
+      <p class="f-sub" style="font-size:16px">Thanks, ${esc(first)}. Your reviews are sent and locked. Nothing else is due.</p>
+      <p class="p-hint">We’ll text you when your next check-in is ready.</p></div>`; return; }
+  if(stage==='form'){ const t=ts.find(x=>x.key===pick);
+    L.innerHTML=`<button class="p-btn p-btn-quiet" data-act="back" style="padding-left:0">‹ My reviews</button>${formReview(t)}`; return; }
+  // list
+  L.innerHTML=`<div class="stack"><div class="f-head"><span class="p-section">Your reviews <span class="p-count">${open.length}</span></span></div>
+    <p class="f-sub">Due Jan 31 · each takes about 10 minutes · your name is never shown</p>
+    ${ts.map(t=>`<div class="p-lc ${t.done?'is-done':''}"><div class="p-lc-head is-tap" data-lpick="${t.key}">
+      <div class="p-lc-main"><span class="p-lc-title">${esc(nm(t.about))}</span><span class="p-lc-sub">Peer review · ${esc(P[t.about].role)}</span></div>
+      <div class="p-lc-act"><span class="p-lc-chev">›</span></div>
+      <div class="p-lc-tags">${t.done?'<span class="p-tag p-tag-done">✓ Sent</span>':'<span class="p-tag p-tag-wait">To do</span>'}</div></div></div>`).join('')}</div>`;
+}
+function pinKey(k,btn){
+  if(!k) return; btn.classList.add('tap'); setTimeout(()=>btn.classList.remove('tap'),150);
+  if(k==='⌫') pin=pin.slice(0,-1); else if(pin.length<4) pin+=k;
+  rLink();
+  if(pin.length===4) setTimeout(()=>{
+    if(stage==='pin1'){ pin1=pin; pin=''; stage='pin2'; }
+    else if(pin===pin1){ pin=''; stage='list'; toast('PIN set'); }
+    else { pin=''; stage='pin1'; toast('Those didn’t match. Try again.'); }
+    rLink(); },250);
+}
+if(LINK){
+  as='member'; document.body.classList.add('is-link');
+  delete ans['peer:ale:mor'];                       // demo: Alex starts with both peer reviews to do
+  $('#bar').insertAdjacentHTML('beforeend','<span class="lk-me">Alex R.</span>');
+  document.querySelector('.p-bar-sp').style.display='none';
+  rLink();
+} else render();
+</script>
+</body>
+</html>

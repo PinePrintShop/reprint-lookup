@@ -37,3 +37,37 @@
 
 ## 2026-11-12 · mockup v4 (`pine-reviews-mockup-v4.html`)
 - Stephen: "peer and manager should all read the same way". Every comment box on every form (manager, peer, check-in) now says **"Give one example"**, whatever the score. The score-based prompts are gone.
+
+## 2026-11-12 · mockup v5 (`pine-reviews-mockup-v5.html`) + walkthrough video
+**Why:** Stephen asked to see the flow for an employee who gets the link, and how it's secured. Decisions: **text and email** both carry the link; **link + 4-digit PIN** for now (not everyone has a Google account).
+- **Employee link mode** (`#t=demo`, or "Try the employee link" in the bar):
+  1. the text and email they get;
+  2. pick a PIN, enter it again ("Forgot it? Ask the office to reset it.");
+  3. a phone-first list of just the peer reviews they owe;
+  4. each review full screen with "‹ My reviews";
+  5. after the last one is sent, "All done".
+  It hides the mockup controls and the check-in, so it shows only the peer flow.
+- **Walkthrough video** (about 1 minute, 1080p, 9 captioned steps) recorded from this mode with Playwright, sent in chat, not in the repo.
+- **Security plan (agreed direction, not built):**
+  - a private reviews base, reachable only through the worker;
+  - PINs stored scrambled (hashed), never readable, only reset;
+  - link codes that expire at the end of the cycle and can be turned off;
+  - the worker removes peer names before results reach a lead.
+
+## 2026-11-12 · mockup v6 (`pine-reviews-mockup-v6.html`)
+**Why:** Stephen: "that send save for later bar is really strong and feels in the way on mobile let's look at really focusing on the 1-5 and the comments".
+- **No bar at the bottom.** "Save for later" is gone because answers save as you go. **Send is one big button at the end** of the form.
+- **A slim progress line** sticks under the top bar: "3 of 8 · saved".
+- **On a phone the questions aren't boxed:** a line between questions, bigger 1–5 buttons (60px, 26px numbers).
+- **Said once:** "1 is low, 5 is high. Every answer needs one example." sits at the top of every form. The per-question "Tap 1 to 5" and "Required" labels are gone; the box shows only "Add a bit more" or ✓.
+- The peer note is shorter: "Your name is never shown to Devin."
+- The walkthrough video was re-recorded on v6.
+
+## 2026-11-12 · mockup v7 (`pine-reviews-mockup-v7.html`)
+**Why:** Stephen: "after you filled out the text and close the keyboard on an iPhone can we make it auto move through the questions".
+- **Tap a number → its example box opens** with the keyboard up (only when the box is still empty, so changing a score later doesn't pop the keyboard).
+- **Close the keyboard → the page glides to the next unanswered question,** with it at the top under the progress line. After the last one it lands on Send. Closing the keyboard means Done, the return key (now labelled "done", and it no longer adds a new line), or tapping on the page.
+- **It stays put when:**
+  - the example is under 20 characters (the box says "Add a bit more");
+  - the keyboard closed because they tapped another box or button themselves.
+- Works the same on desktop (Enter or clicking away). Tested with iPhone 13 emulation in Playwright. Walkthrough video re-recorded on v7.
