@@ -367,3 +367,18 @@ Stephen was about to test a live SLC invoice. Real QuickBooks already had SLC **
   - Matching: Exact PO (another supplier's line left out), By order #, PO fixed, Needs a look, Picked by hand kept.
   - QuickBooks: Net 30 → term 4, due 2026-12-10; "Invoice 1234567 Lockport, IL".
   - The quote fix checked on three names.
+
+## 2026-11-12 · v48 · split invoices, PO from the matched lines
+The first automatic run (19:30 UTC) saved SLC 1443434 ($651.30) and 1443481 ($361.53), both printed "FOR 11022". Each was
+matched By order # to both of 11022's SLC lines on PO 110526 (Cart total $1,031.48), and neither had a Pine PO, so neither
+could go to QuickBooks. Line 1 is $361.53; line 2 is $669.95 in Airtable ($18.65 more than its invoice).
+- **Several lines found:** first, lines another bill already accounts for exactly (its Cart total within $0.50 of its total)
+  are left out. Then the bill keeps the lines whose Total Line Cost adds up to its total (within $0.50, only when exactly one
+  set does), or the one line left over. A bill narrowed this way has the other bills on those lines matched once more.
+- **No Pine PO on the invoice:** the bill takes the PO # of its matched lines when they share one. QuickBooks then numbers a
+  second bill on that PO with -2, as before.
+- **The hourly sweep** re-matches up to 3 New bills from the last 7 days that have no Pine PO, or have lines with a Cart total
+  more than $0.50 off. So the two v47 bills fix themselves.
+- `POST /proxy/invoices/match` no longer needs the Gmail sign-in (Airtable only).
+- Tested in Node with the two real totals, in both orders: 1443481 → line 1, $361.53, PO 110526; 1443434 → line 2, $669.95,
+  PO 110526. The v47 suite still passes (20/20 apart from the version number).
