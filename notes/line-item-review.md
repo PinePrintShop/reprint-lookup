@@ -935,3 +935,20 @@ Stephen: "yes to the invoice download on the new preview". The packet now includ
 PandaDoc packet uses (invoicePages, the Airtable invoice extension's layout), without PandaDoc's hidden signature tag
 (`invoicePages(…, {noTags:true})`). The Approve page offers it as "Download invoice (PDF)", named "Invoice <order> - <customer>.pdf".
 - Tested: the link shows, and the file is a real PDF (29 KB) with no signature tag. No writes, no errors.
+
+## 2026-11-12 · v60 · the approval preview never hangs silently
+Stephen: "just getting stuck on this window" (the preview tab at "Getting proofs… 0 of 1").
+- **Cause:** when the proof download failed fast, the "Preview failed" message went out before the new tab was listening, so
+  it was lost and the tab waited forever. A likely failure: Airtable file links expire after a few hours, so a Line Item
+  Review tab left open since morning holds dead links.
+- **Fixes:**
+  - The failure message waits for the tab to be ready, then shows, with what to do next.
+  - A proof whose link fails gets a fresh link from Airtable (that line re-read) and one more try.
+  - Live progress per file: "Proof 1 of 1 · downloading 6.4 of 18 MB", then "page 3 of 7".
+  - Any proof not done in 2 minutes stops the preview with its name.
+- Tested with an art department proof PDF:
+  - normal → preview with 2 pages and both APPROVED boxes, plus the invoice download;
+  - slow download → progress shows;
+  - download fails → the tab says so;
+  - expired link → fresh link fetched, preview built.
+  - No errors.
