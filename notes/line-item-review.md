@@ -957,3 +957,8 @@ Stephen: "just getting stuck on this window" (the preview tab at "Getting proofs
 The approval packet tells the Approve page where our invoice's signature line, Name and Date sit
 (`invoiceSig:{box:[26,48,219,89],name:[42,27],date:[38,8]}` in PDF points on the last invoice page), so the signed copy can
 sign it. Opens approve-v18.html.
+
+## 2026-11-12 · v62 · Preview approval opens approve.html
+The preview opens the Approve page's permanent link (which goes to the newest version), so Approve fixes reach the preview
+without a new Line Item Review. The postMessage handoff survives approve.html's redirect, since the tab keeps its opener.
+Tested end to end through the redirect into Approve v19.

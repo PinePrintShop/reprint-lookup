@@ -243,3 +243,8 @@ Stephen: "When they click through the approval can we add code to add the initia
   - signed copy: 6 pages (record, 4 proof pages, invoice), 642 KB; initials and time in each box; the signature,
     "Name: Dana Smith" and the date on the invoice.
   - No errors.
+
+## 2026-11-12 · v19 · initials only in the boxes
+Stephen: "working great! Can we remove the date and time in the initials boxes". On the signed copy, each APPROVED box (and
+the corner stamp) now holds only the initials, sized to fill it. Every initial's time stays on the record page.
+- Tested: proof pages 2–5 of the signed copy have no time text; the record page still lists all 11 times. No errors.
