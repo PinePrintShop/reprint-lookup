@@ -952,3 +952,8 @@ Stephen: "just getting stuck on this window" (the preview tab at "Getting proofs
   - download fails → the tab says so;
   - expired link → fresh link fetched, preview built.
   - No errors.
+
+## 2026-11-12 · v61 · signature spot for the signed copy
+The approval packet tells the Approve page where our invoice's signature line, Name and Date sit
+(`invoiceSig:{box:[26,48,219,89],name:[42,27],date:[38,8]}` in PDF points on the last invoice page), so the signed copy can
+sign it. Opens approve-v18.html.
