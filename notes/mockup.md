@@ -3462,3 +3462,21 @@ Airtable's "Invalid permissions" (403). The key box only showed when no key was 
 - Change sign-in button; Enter saves; after saving it shows "can save" for a few seconds.
 - The key is the shared `pine_at_key`, so a new key fixes every Pine app in that browser.
 - Tested with mocked Airtable: read-only key flagged, refused PATCH message, new key saved and shown as can save. No errors.
+
+## 2026-11-12 · v270 · Promo bandanas
+Stephen: "look at Airtable to see how we do promo danas and get that added to Mockup Creator".
+What Airtable shows (40 lines with a "BANDANA PROMO" proof): Product Type **Promo Product**, supplier Rivers Promo, usually
+no garment and no imprint, the spec only in the notes: cotton 22″ digital (322436), polyester sublimated 22″ (201166),
+silk / satin 35″ or 42″, often "double sided … mirror image". The art department proofs them on the bandana template
+(Bandana Color "Various", COLORS FULL COLOR, 22″ X 22″ Centered) named `11185 | BANDANA PROMO.pdf`. Mockup Maker skipped
+these lines ("waiting for imprints").
+- A Promo Product line with no garment/imprint whose notes say bandana / dana now opens as a bandana, with a stand-in
+  imprint (the order number; nothing written to Imprints).
+- Read from the notes, changeable under the Line menu: **Full color** (on unless the notes name Pantones / inks),
+  **Double-sided (mirrored back)**, **Size** (20–42″), the fabric, and a base colour ("BURGUNDY BASE", "natural fabric").
+  Kept per line on this computer.
+- Full colour: the art opens at the bandana's full size; page 1 shows Bandana Color "Various" and the FULL COLOR bar.
+  Not full colour: the usual ink chips. Never discharge.
+- Double-sided: a third page, "Back (mirrored)", with the art flipped, and a blue note on the front close-up.
+- Proof name `11185 | BANDANA PROMO.pdf` (numbered 1, 2 … when an order has several promo bandanas).
+- Tested with mocked Airtable (two promo lines + a fee line): both open, settings read right, pages drawn, no writes, no errors.
