@@ -3480,3 +3480,12 @@ these lines ("waiting for imprints").
 - Double-sided: a third page, "Back (mirrored)", with the art flipped, and a blue note on the front close-up.
 - Proof name `11185 | BANDANA PROMO.pdf` (numbered 1, 2 … when an order has several promo bandanas).
 - Tested with mocked Airtable (two promo lines + a fee line): both open, settings read right, pages drawn, no writes, no errors.
+
+## 2026-11-12 · v271 · A linked order stopped reopening on every refresh
+Stephen: "every time I hard refresh or we do an update order 11185 also shows up". Opening Mockup Maker from a link
+(`mockup.html?order=11185&line=…`, e.g. from Line Item Review) left `?order=` in the address. A refresh reloads that address,
+and the self-update keeps it (pine-update.js carries `location.search`), so the order opened again each time.
+- Once the linked order is open, `order`, `line` and `imprint` are taken off the address (history.replaceState). Other
+  settings such as `?practice=1` stay.
+- Tested with mocked Airtable: the link opened 11185 on the asked line, the address became `…v271.html?practice=1`, and a
+  reload opened no order. No errors.
