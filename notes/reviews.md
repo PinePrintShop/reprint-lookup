@@ -34,3 +34,6 @@
 
 ## 2026-11-12 · mockup v3 (`pine-reviews-mockup-v3.html`)
 - Stephen: "remove Why? and just leave give one example". Before a number is picked, and on every check-in rating, the comment label is now just **"Give one example"**. The score-based prompts for reviews stay ("What would make it a 4?" etc.).
+
+## 2026-11-12 · mockup v4 (`pine-reviews-mockup-v4.html`)
+- Stephen: "peer and manager should all read the same way". Every comment box on every form (manager, peer, check-in) now says **"Give one example"**, whatever the score. The score-based prompts are gone.
