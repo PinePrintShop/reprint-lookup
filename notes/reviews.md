@@ -19,3 +19,15 @@
 
 **Next, before a real version:**
 - **Privacy:** reviews can't be open to anyone with the link like the shop apps. Plan: a personal sign-in per person, all reads/writes through the Cloudflare worker with a who-is-asking check, and a separate Airtable base so shop tokens can't read reviews. Tables roughly People · Cycles · Assignments · Responses. Talk to Stephen before creating anything.
+
+## 2026-11-12 · mockup v2 (`pine-reviews-mockup-v2.html`)
+**Why:** Stephen: "make the questions a little more prominent and … make everything required even comments … I am trying to avoid someone just hitting numbers."
+- **Questions are the headline:** 22px bold (19px on a phone), a yellow-on-black number box, a black bar down the left of each question, and the short name (JOB COMPETENCE) as a small label above.
+- **Everything is required, in reviews and check-ins:**
+  - every rating needs a comment, including "Skills fully used" and the check-in ratings;
+  - every open question is required (peers now answer both, not one of two);
+  - the check-in's leadership-gaps box is required too ("None" plus a reason is fine).
+- **"Real sentence" rule:** a comment needs at least 20 characters. The box says Required → Add a bit more → ✓ as you type, and "Send" jumps to the first thing missing.
+- **The comment prompt follows the score:** 1–2 "What would help?", 3 "What would make it a 4?", 4 "Give one example", 5 "What makes it a 5?".
+- **Results go question by question:** each question shows the manager's number and comment, then the peer average and every peer comment (labelled "A peer", mixed order). The score table stays at the top.
+- v1 left as is.
