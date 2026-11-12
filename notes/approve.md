@@ -209,3 +209,37 @@ some real jobs".
   on a laptop". A tapped proof page now opens scaled to fit the screen, centred, with no scrolling: 1123×868 on 1440×900,
   890×688 on 1280×720, full width on a phone (pinch to zoom in). It closes with ×, Esc or a tap.
 - `approve.html` → v15.
+
+## 2026-11-12 · v16 · Download invoice (PDF)
+- When the packet carries `invoicePdf` (from Line Item Review v59), "⬇ Download invoice (PDF)" sits under the invoice table.
+  It's our own invoice template, for customers who want the familiar invoice or need it for their books.
+- The live version should also attach it, with the signed approval, to the copy we email the signer.
+- `approve.html` → v16.
+
+## 2026-11-12 · v17 · preview waiting screen
+- While the preview builds, the welcome card shows a spinner, "Getting your proofs ready…" and Line Item Review's progress.
+  Let's go is greyed out and the empty order badge is hidden (it was an empty black card).
+- If the build fails, the card says "This preview couldn't be built" and the reason.
+- `approve.html` → v17.
+
+## 2026-11-12 · v18 · initials on the proofs and the invoice
+Stephen: "When they click through the approval can we add code to add the initials to the proofs and invoice?"
+- **On screen:** each proof page's own printed APPROVED box (`appr`, from the PDF) is a tap target over the picture.
+  - The next one pulses yellow.
+  - Once approved, the signer's initials sit in it, in the signature style (Dancing Script).
+  - The "Approve — initial here" button beside it still works.
+- **Signed copy:** Finish builds a PDF in the browser (pdf-lib from cdnjs):
+  1. an approval record page: signer, email, consent, time, every Terms initial and proof page with its time, the
+     invoice total, and the signature;
+  2. every proof page with the initials and time in its APPROVED box (a small APPROVED stamp in the corner when the page
+     has no box);
+  3. our invoice with the signature on its signature line, plus the printed name and date (Line Item Review v61 passes
+     where they sit: `invoiceSig`).
+  "⬇ Download signed copy (PDF)" appears on the done screen. In the preview nothing leaves the browser; the live version
+  will email it to the signer and save it to the order's Drive folder and Airtable.
+- Fix along the way: the printed name and date are kept before the done screen replaces the form.
+- Tested (preview of a mock order with a real 4-page Mockup Maker proof):
+  - 4 APPROVED boxes on screen; the box pulses, takes the tap, and shows "DS";
+  - signed copy: 6 pages (record, 4 proof pages, invoice), 642 KB; initials and time in each box; the signature,
+    "Name: Dana Smith" and the date on the invoice.
+  - No errors.
