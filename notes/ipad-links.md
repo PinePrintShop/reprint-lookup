@@ -29,7 +29,7 @@
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v119 |
-| Line Item Review | `pine-line-item-review.html` | v62 (approval preview opens approve.html, always the newest) |
+| Line Item Review | `pine-line-item-review.html` | v64 (one card per order on Ready to send; Preview approval under Send for signature; ⋯ menu) |
 | Create order | `create-order.html` | v30 (side panel standard) |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
