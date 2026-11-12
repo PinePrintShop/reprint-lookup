@@ -82,3 +82,28 @@
 | 3 | What would get them to a 4? | What would make it a 4? |
 | 4 | Give one example | Give one example |
 | 5 | What makes it a 5? Give one example | What makes it a 5? Give one example |
+
+## 2026-11-12 · mockup v9 (`pine-reviews-mockup-v9.html`): the quarterly check-in
+**Why:** Stephen: "what would the quarterly check in look like since that is really just questions and answers to be reviewed with the manager at the check in meeting".
+- **The employee's side is the Quarterly Conversation Guide, word for word:** 10 questions in its order, under its three headings. Every answer is required (a sentence or two), and auto-advance works.
+  - Four questions also get a quick 1–5 so we can see how people feel over time (not scored):
+    - #2 success is clear (Not at all → Completely)
+    - #6 vibe (Poor → Great)
+    - #8 communication (Poor → Great)
+    - #9 voice (Not at all → Completely)
+  - Their example box uses the score prompts ("What would make it a 4?").
+  - #10 leadership gaps: 🔒 owner and office manager only.
+  - Send says "Send to Jordan". The done screen says the lead will go over the answers on Thursday, and that next steps come by text after.
+- **The lead's side is a meeting screen** (Check-ins tab), the agenda in order:
+  1. last quarter's next steps, ticked off;
+  2. each question with the employee's answer and an optional notes box;
+  3. Issues & opportunities;
+  4. Next steps we agreed (type, then Add);
+  5. Finish check-in.
+  - The employee gets the next steps by text. The lead's notes stay private.
+  - #10 shows only "goes to the owner and office manager" to the lead. The owner sees the answer.
+- **Phone demo:** `#t=checkin` shows the employee's check-in flow (text and email → PIN → straight into the form → "Sent to Jordan"). `#t=demo` is still the peer reviews. Both links are in the mockup note; the bar's "Try the employee link" button was removed (said once).
+- The Results tab's "Latest check-in" now shows the four 1–5s and points to the Check-ins tab for the answers.
+- **Open questions for Stephen:**
+  - Should the employee see the next steps in the app too, not only by text?
+  - Should check-in answers stay required, given the meeting covers them?
