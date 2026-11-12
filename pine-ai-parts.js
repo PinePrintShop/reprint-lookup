@@ -168,12 +168,18 @@
       st.crop=null; st.pick=-1;
       let c=await draw(page,s,occOf()); if(me!==tok) return; let b=inkBox(c); const pv=$('[data-pv]'); pv.innerHTML='';
       // a solid background: offer to drop it (ticked to start when a layer on says it's the fabric / background)
-      const bg=opt.knock?bgOf(c,b):null, kn=$('[data-kn]'); st.bg=bg; kn.hidden=!bg;   // only apps that knock() after rendering ask for it
+      // 2026-11-12 (Stephen, a bandana drawn on its fabric square with a few stray specks outside it: "the picker didn't offer
+      // drop the background"): the specks pushed the art's box past the square, so its corners weren't the fabric colour.
+      // One solid square holding most of the art is taken as the art: offered with its colour to drop (ticked), cropped to it.
+      let dom=null, domBg=null; if(opt.knock&&b&&!bgOf(c,b)){ try{ const inset=q=>{ const m=Math.max(3,Math.round(Math.min(q.w,q.h)*0.025)); return {x:q.x+m,y:q.y+m,w:q.w-2*m,h:q.h-2*m}; };   // past a soft edge or a thin border line
+          dom=pieces(c,s,true).map(q=>{ const k=inkBox(crop(c,q,0)); return k?{x:q.x+k.x,y:q.y+k.y,w:k.w,h:k.h}:q; })
+          .filter(q=>q.w*q.h>=b.w*b.h*0.7&&bgOf(c,inset(q))).sort((a,z)=>z.w*z.h-a.w*a.h)[0]||null; if(dom) domBg=bgOf(c,inset(dom)); }catch(e){ dom=null; } if(dom){ const most=dom.w*dom.h>=b.w*b.h*0.85; b=dom; if(st.knock===null&&most) st.knock=true; } }   // ticked only when the square is nearly all of it (the fabric), else just offered
+      const bg=opt.knock?(domBg||bgOf(c,b)):null, kn=$('[data-kn]'); st.bg=bg; kn.hidden=!bg;   // only apps that knock() after rendering ask for it
       if(bg){ if(st.auto===null) st.auto=L.list.some(l=>st.on[l.id]&&BG_LAYER.test(l.name)); if(st.knock===null&&st.auto) st.knock=true;
         $('[data-ksw]').style.background=hex(bg); $('[data-knc]').checked=!!st.knock; }
       st.box=null;
       if(bg&&st.knock){ const k=document.createElement('canvas'); k.width=c.width; k.height=c.height; k.getContext('2d').drawImage(c,0,0);
-        if(knock(k,bg)){ const kb=inkBox(k); if(kb){ c=k; b=kb; st.box={x:kb.x/s,y:kb.y/s,w:kb.w/s,h:kb.h/s}; } } }
+        if(knock(k,bg)){ const k0=dom?inkBox(crop(k,dom,0)):inkBox(k), kb=k0&&dom?{x:dom.x+k0.x,y:dom.y+k0.y,w:k0.w,h:k0.h}:k0; if(kb){ c=k; b=kb; st.box={x:kb.x/s,y:kb.y/s,w:kb.w/s,h:kb.h/s}; } } }   // 2026-11-12: inside the square only
       pv.classList.toggle('is-dark',!!st.box);   // light art shows on a dark see-through grid
       if(!b){ pv.innerHTML='<span class="pap-hint" style="padding:0 24px;text-align:center">Nothing on this artboard with these layers.'+(L.list.some(l=>!st.on[l.id])?' The art is on a layer you unticked. To take out a background colour, keep it ticked'+(opt.knock?' and tick “Drop the background colour”.':', open the file, then use “drop the background” (Everywhere).'):'')+'</span>'; $('[data-sz]').textContent=''; $('[data-go]').disabled=true; PV=null; return; }
       $('[data-go]').disabled=false;

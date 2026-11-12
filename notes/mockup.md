@@ -3489,3 +3489,17 @@ and the self-update keeps it (pine-update.js carries `location.search`), so the 
   settings such as `?practice=1` stay.
 - Tested with mocked Airtable: the link opened 11185 on the asked line, the address became `…v271.html?practice=1`, and a
   reload opened no order. No errors.
+
+## 2026-11-12 · v272 · "Drop the background colour" for a bandana drawn on its fabric square
+Stephen: "the picker didn't offer drop the background before placing the art on the dana". His Illustrator PDF (one layer,
+a 68″ artboard, saved without Illustrator editing data) was a rust square holding the tan artwork, plus a few stray speckle
+dots outside the square. The specks pushed the art's box past the square, so the box's corners weren't the fabric colour
+and the picker offered nothing.
+- pine-ai-parts.js (shared with Sep Maker): when the whole art has no solid background, one solid square making up 70%+ of
+  the art is taken as the art. It's checked a little inside its corners (2.5%, past a soft edge or thin border line). Its colour
+  is offered as "Drop the background colour" and it opens cropped to what's inside (the specks outside are left out).
+  Ticked to start only when the square is 85%+ of the art (the fabric); otherwise just offered.
+- Mockup Maker v272 loads pine-ai-parts.js?v=272, so browsers get the new picker.
+- Tested with Stephen's file: v271 offered nothing ("Art 63.8 × 64.7″"); v272 offers the rust colour, ticked, see-through
+  preview, "Print 62.7 × 61.7″". A 4-artboard proof sheet PDF opens exactly as with the old picker. No errors.
+- The file is drawn about 3× size (68″ artboard), so set the print width (e.g. 20–22″) after it opens.
