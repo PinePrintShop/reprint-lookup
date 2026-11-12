@@ -929,3 +929,9 @@ Stephen: "it is taking a long time to build out the approval preview".
   the customer signs all of them").
 - Measured (8 lines × a 4-page Mockup Maker PDF, 400 ms per download): v57 19.7 s and 8.4 MB; v58 9.2 s and 4.7 MB. Both
   had 32 pages and 32 APPROVED boxes. The functional preview test passes with no writes and no errors.
+
+## 2026-11-12 · v59 · the preview carries our invoice PDF
+Stephen: "yes to the invoice download on the new preview". The packet now includes our invoice as a PDF: the same pages the
+PandaDoc packet uses (invoicePages, the Airtable invoice extension's layout), without PandaDoc's hidden signature tag
+(`invoicePages(…, {noTags:true})`). The Approve page offers it as "Download invoice (PDF)", named "Invoice <order> - <customer>.pdf".
+- Tested: the link shows, and the file is a real PDF (29 KB) with no signature tag. No writes, no errors.
