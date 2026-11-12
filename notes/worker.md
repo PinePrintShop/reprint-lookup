@@ -382,3 +382,20 @@ could go to QuickBooks. Line 1 is $361.53; line 2 is $669.95 in Airtable ($18.65
 - `POST /proxy/invoices/match` no longer needs the Gmail sign-in (Airtable only).
 - Tested in Node with the two real totals, in both orders: 1443481 → line 1, $361.53, PO 110526; 1443434 → line 2, $669.95,
   PO 110526. The v47 suite still passes (20/20 apart from the version number).
+
+## 2026-11-12 · v49 · the invoice run stays inside its call budget
+After v48 went live (20:31 UTC), the 21:30 run didn't fix the two 11022 bills, though the same code fixed them in a simulated
+run. The likely cause is Cloudflare's per-run limit on calls (50 on the free plan; KV reads count). Each run read one KV
+"done" marker per invoice email of the last 3 days, then re-matched with the supplier list fetched again for every bill.
+- The done list is one KV entry, `inv:doneset` (`{d:{id:time}, f:{id:failures}}`, 30 days kept), read once and written once
+  per run. The old `inv:done:<id>` markers are folded in the first time (one list call).
+- The supplier list is cached for the run (10 minutes).
+- Re-matching: at most 2 bills a run, skipping a bill already fixed as another bill's sibling.
+- **`GET /proxy/health`** (public, counts only): when each sweep last ran, saved / already / skipped / errors / re-matched /
+  later / calls, and the first error's text with quoted subjects blanked. The same for the folder sweep. Lets runs be checked
+  without the Cloudflare logs.
+- 1443277 (SLC, $134, PO 111026) can't be narrowed: no set of its 5 lines ($357.06, $716.23, $181.38, $1,451.04, $231) adds
+  up to $134. It stays for a person to look at.
+- Tested in Node: a simulated run fixes both 11022 bills (PO 110526; $361.53 and $669.95) with one re-match plus its sibling;
+  the v47/v48 suites pass apart from the version number and the old per-email KV markers (now one entry); /proxy/health and
+  /proxy/version answer.
