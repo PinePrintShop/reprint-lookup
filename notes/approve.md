@@ -209,3 +209,9 @@ some real jobs".
   on a laptop". A tapped proof page now opens scaled to fit the screen, centred, with no scrolling: 1123×868 on 1440×900,
   890×688 on 1280×720, full width on a phone (pinch to zoom in). It closes with ×, Esc or a tap.
 - `approve.html` → v15.
+
+## 2026-11-12 · v16 · Download invoice (PDF)
+- When the packet carries `invoicePdf` (from Line Item Review v59), "⬇ Download invoice (PDF)" sits under the invoice table.
+  It's our own invoice template, for customers who want the familiar invoice or need it for their books.
+- The live version should also attach it, with the signed approval, to the copy we email the signer.
+- `approve.html` → v16.
