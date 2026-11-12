@@ -28,14 +28,14 @@
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |
-| Price-O-Matic | `price-o-matic.html` | v118 |
+| Price-O-Matic | `price-o-matic.html` | v119 |
 | Line Item Review | `pine-line-item-review.html` | v62 (approval preview opens approve.html, always the newest) |
 | Create order | `create-order.html` | v30 (side panel standard) |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v10 (side panel standard) |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v271 (a link's order opens once, not on every refresh) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v272 (bandana on its fabric square: drop the colour in the picker) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v19 (signed copy: initials only in the boxes) |
