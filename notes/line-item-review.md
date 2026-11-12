@@ -974,3 +974,8 @@ Stephen: "still feels a little cluttered" (Ready to send screenshot) and "let's 
   - The long Pipedrive note is now one cream tag beside the customer, linking to the deal; the explanation shows on hover.
 - Airtable reads are the same as v62 (checked in the mock test, request for request); the only write is the existing Pricing approved toggle.
 - Still to decide (Stephen): whether the card number should be lines instead of $; where Preview approval lives; how often people un-approve from Ready to send. Next from the audit: the proof card (drop "1 file", the file name and the Attach row on Ready to send) and the right column (Comments first, the rest folded under Details).
+
+## 2026-11-12 · v64 — Stephen's answers on v63
+- The $ outstanding on Ready to send cards stays ("the dollar amount is nice").
+- "Preview approval" sits just under Send for signature in the order header (was above it).
+- Un-approving from Ready to send is rare ("not often"), so "↩ Back to Review" and "Archive order" moved into a "⋯" menu in the Ready to send header, each with a one-line note on what it does. Art folder and Airtable stay as links. Other tabs are unchanged.
