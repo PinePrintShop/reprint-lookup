@@ -916,3 +916,16 @@ invoices work with some real jobs".
 - Tested (Playwright, mocked Airtable, a real Mockup Maker proof PDF on one line, 1440): the button shows, and the preview
   opens with the order's 7 proofs (the PDF as 4 pages with their APPROVED boxes), 18 steps, 9 invoice rows with sizes and
   totals that add up. No writes, no errors. The plain approve.html sample still opens.
+
+## 2026-11-12 · v58 · Preview approval about twice as fast
+Stephen: "it is taking a long time to build out the approval preview".
+- Proof files download 3 at a time instead of one after another.
+- Each PDF is read once. v57 read it twice, and for older Mockup Maker proofs drew every page an extra time to find the APPROVED box.
+- The APPROVED box comes from the PDF's saved box or its APPROVED text. Otherwise the page gets the plain Approve button.
+- Pages are drawn up to 1250px wide (JPEG 0.82); tap-to-zoom is still sharp.
+- The preview tab opens at once and shows "Getting proofs… 3 of 8".
+- A built preview is kept while the page is open, so reopening the same order is instant. It rebuilds when the proofs or invoice change.
+- Every page of every proof is still there, each with its own initial (Stephen: "it needs to bring all the pdf pages since
+  the customer signs all of them").
+- Measured (8 lines × a 4-page Mockup Maker PDF, 400 ms per download): v57 19.7 s and 8.4 MB; v58 9.2 s and 4.7 MB. Both
+  had 32 pages and 32 APPROVED boxes. The functional preview test passes with no writes and no errors.

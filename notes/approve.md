@@ -202,3 +202,10 @@ some real jobs".
 - Spec cells with no value are left out, since real proofs carry size, placement and colors on the sheet. Quantities show
   per proof. The invoice uses each row's own total and the order's totals rows; "Balance due" when payments were received.
 - Without `?preview=1` it's the v13 sample page, as before. `approve.html` → v14.
+
+## 2026-11-12 · v15 · preview progress, the tapped page fits the screen
+- While Line Item Review builds the preview, the yellow note shows its progress ("Getting proofs… 3 of 8").
+- Stephen: "when you tap to preview … can we work on making that fill the page? right now it is so large it becomes scrollable
+  on a laptop". A tapped proof page now opens scaled to fit the screen, centred, with no scrolling: 1123×868 on 1440×900,
+  890×688 on 1280×720, full width on a phone (pinch to zoom in). It closes with ×, Esc or a tap.
+- `approve.html` → v15.
