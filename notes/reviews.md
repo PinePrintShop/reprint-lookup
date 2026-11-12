@@ -53,3 +53,12 @@
   - PINs stored scrambled (hashed), never readable, only reset;
   - link codes that expire at the end of the cycle and can be turned off;
   - the worker removes peer names before results reach a lead.
+
+## 2026-11-12 · mockup v6 (`pine-reviews-mockup-v6.html`)
+**Why:** Stephen: "that send save for later bar is really strong and feels in the way on mobile let's look at really focusing on the 1-5 and the comments".
+- **No bar at the bottom.** "Save for later" is gone because answers save as you go. **Send is one big button at the end** of the form.
+- **A slim progress line** sticks under the top bar: "3 of 8 · saved".
+- **On a phone the questions aren't boxed:** a line between questions, bigger 1–5 buttons (60px, 26px numbers).
+- **Said once:** "1 is low, 5 is high. Every answer needs one example." sits at the top of every form. The per-question "Tap 1 to 5" and "Required" labels are gone; the box shows only "Add a bit more" or ✓.
+- The peer note is shorter: "Your name is never shown to Devin."
+- The walkthrough video was re-recorded on v6.
