@@ -304,3 +304,13 @@ Stephen: "sometimes the art dept will manually drop something in the google driv
 - Separator, notes, Sep URL, type and inks changed elsewhere update in place on the open job.
 - **Refresh** now updates the queue in place ("✓ Up to date") and keeps the open job, filters, search and scroll.
 - Airtable writes unchanged; practice mode unchanged. Tests: 56 new checks + the v49 (89) and v45 (56) suites pass on v50.
+
+## 2026-11-12 · v51 · Ink list off screen at home
+From home: "the ink menu disappearing … when I'm using a different screen ratio than my work computer … the drop down menu
+goes to the corner". The Add-an-ink list is `position:fixed`, placed from the search box's spot in the window. The job pane
+is a size container (`container-type:inline-size`, for its narrow layouts), and in some browsers (Safari) a container is
+what `position:fixed` is measured from, so the list landed shifted by the pane's offset: bottom-right, often off screen.
+- The list now moves to the page itself when it opens (an older copy from a redraw is dropped), so it sits under the box
+  on any screen and browser. Nothing else changed.
+- Tested: with the pane's containment forced, v50 put the list ~300–420px right and ~300px down (the screenshot's symptom);
+  v51 puts it 2px under the box at 1280, 1440 and 2000 wide. Chromium without the forced containment: both fine.
