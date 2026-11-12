@@ -514,3 +514,11 @@ Stephen sent a phone screenshot: "This is napping on quote on mobile". The yello
 ## 2026-10-22 · v118: colour swatches wrap on phones
 Stephen: "The color swatches still go off the side". On phones (≤767px) the swatch row was a single line that never wrapped and wasn't allowed to scroll, so it ran past the right edge and the page scrolled sideways. With 24 colours at 390px the last swatch ended at 860px.
 - **Fix:** the swatches now wrap onto more lines (CSS only). With 24 colours at 390px they all fit within 335px, and the page no longer scrolls sideways.
+
+## 2026-11-12 · v119: import bandana tariff 10% → 25%
+Stephen: "we found out that there are way more additional tariffs on fabric so we need the calculator to update the tariff add on from 10% to 25%".
+- **Where the 10% lived:** only in the code, `RATES.ibandana.tariffRate: 0.10`. No stored setting in the browser, no Airtable field, no "10%" anywhere on screen.
+- **Scope (unchanged):** Import bandanas only. Tariff = (bandana price + screen charge per piece) × rate, added before freight and before the 100% markup (cost × 2, rounded to $0.05). So 15 more points of tariff add 30% of (bandana + screens) to the price. Apparel, Bandanas, Flatstock and Patches have no tariff add-on and didn't change.
+- **On screen:** the Import bandanas screen now says "Cost includes a 25% tariff on the bandana and screens." (read from the rate), so reps can see it.
+- **Already-built quotes keep their price:** a quote line added before v119 (in the saved cart on that computer, or a saved quote) keeps the unit price it was given. Edit the line and add it again to re-price it at 25%.
+- Tested with mocked Airtable, old v118 vs new v119, all 50 priced import combos (3 weights × 1c/4c/6c/DIGITAL × 100/300/600/1000/2500): only the tariff and price moved; bandana price, screens and freight unchanged; all other products and rates identical. Examples: 80 GSM 1c @ 300 $8.90 → $9.90; 80 GSM 1c @ 100 $14.05 → $15.50; 55 GSM 1c @ 1000 $5.20 → $5.80; 80 GSM DIGITAL @ 2500 $6.25 → $6.95. No page errors.

@@ -28,7 +28,7 @@
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |
-| Price-O-Matic | `price-o-matic.html` | v118 |
+| Price-O-Matic | `price-o-matic.html` | v119 |
 | Line Item Review | `pine-line-item-review.html` | v62 (approval preview opens approve.html, always the newest) |
 | Create order | `create-order.html` | v30 (side panel standard) |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
