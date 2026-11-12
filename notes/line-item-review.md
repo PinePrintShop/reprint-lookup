@@ -962,3 +962,15 @@ sign it. Opens approve-v18.html.
 The preview opens the Approve page's permanent link (which goes to the newest version), so Approve fixes reach the preview
 without a new Line Item Review. The postMessage handoff survives approve.html's redirect, since the tab keeps its opener.
 Tested end to end through the redirect into Approve v19.
+
+## 2026-11-12 · v63 — quieter list and Ready to send
+Stephen: "still feels a little cluttered" (Ready to send screenshot) and "let's work today on getting the side bar updated", the side bar being this app's list. From a flow audit of v62 at 1100 / 1440 / 1920 / phone.
+- **Ready to send, Sent and Archived list one card per order.** Order #, customer, rep · age, and one number on the right: on Ready to send, what's outstanding incl. tax (the hint line says so once: "By rep · oldest first · $ outstanding"); on Sent / Archived, the number of lines. No line cards and no "READY TO SEND" tag on every line. Tags only for what needs someone: Hard / ASAP, the Pipedrive deal still at an earlier stage (cream, "Deal at Awaiting Approval"), a pricing problem (red). Six orders now fit in about the space three took. Art to do, Review and All keep their line cards (the lines differ there).
+- The list header counts orders on those tabs.
+- **Ready to send header:**
+  - The Lines / Pcs / Subtotal block is gone. The Invoice strip below has the one total.
+  - The four approval steps and Next are gone (everything there is approved). The new "↩ Back to Review" link takes Pricing approved off the line, after a confirm, so it goes back to Review.
+  - "Created … ago", "Proof took …" and "terms + proofs + invoice" are gone.
+  - The long Pipedrive note is now one cream tag beside the customer, linking to the deal; the explanation shows on hover.
+- Airtable reads are the same as v62 (checked in the mock test, request for request); the only write is the existing Pricing approved toggle.
+- Still to decide (Stephen): whether the card number should be lines instead of $; where Preview approval lives; how often people un-approve from Ready to send. Next from the audit: the proof card (drop "1 file", the file name and the Attach row on Ready to send) and the right column (Comments first, the rest folded under Details).
