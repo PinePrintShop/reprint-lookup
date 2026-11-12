@@ -66,3 +66,9 @@ The same day, Garrett's QuickBooks connect returned `Intuit token 401: invalid_c
   Checked through Garrett's QuickBooks connection in Zapier (read only).
   - **To fix next:** the reader put SLC's street address in Warehouse, so the bill description is long. It should be a short place name. Also fill the bill's Terms (SalesTermRef) from the invoice.
 - The token pasted after Stephen cleared his browser couldn't write to Airtable. A fresh token pasted with Change sign-in fixed it. The working one yesterday was "Pine Apps Token" (shown in the revision history).
+
+## 2026-11-12 · worker v47
+- New Vendor Bills fields: **Line item IDs** (`fld1VRcnhMsokK4lq`, long text) and **Cart total** (`fld36EXtr9p4UhtVD`, currency).
+- Invoices now save themselves every hour and get matched to Purchasing lines; see notes/worker.md (v47).
+- The old **Matched lines** field (`fldsmatWtCBggl0xV`) links to Garments by mistake (inverse `fldIbdLip99WGPEEQ` on Garments).
+  It's unused; asked Stephen before deleting it.

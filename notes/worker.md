@@ -331,3 +331,39 @@ Stephen was about to test a live SLC invoice. Real QuickBooks already had SLC **
 - PO 091126, same total, date a day later → already.
 - New PO 111026 → 111026.
 - Plain 110626 exists → 110626-2.
+
+## 2026-11-12 · v47 · invoices save themselves, folder duplicates, Terms
+- **Order folders.** 11198 got two folders: the new-order hook made one at 16:05 (no 11198 folder existed yet), named with
+  quote marks round the customer name, and at 16:07 sales renamed an older folder to 11198.
+  - Folder names lose the quote marks Airtable's Customer Name puts round a name with a comma.
+  - Stephen chose "1 and 3": (1) sales stop making order folders by hand; (3) the worker remembers each folder it makes for
+    3 days (PINE_KV `nf:made:<order>`). The folder sweep (every run of the existing cron) looks once for recently changed
+    folders. If another folder for that order appears and the worker's is still empty (only its empty inside folders), the
+    worker's goes to Drive's trash (30 days to restore). The order's Artwork Folder Link then moves to the other one, but
+    only if the link was blank or pointed at the worker's. A worker folder with any file in it is never touched
+    ("kept both" in the log).
+- **Invoice sweep** on its own Cron Trigger (`INVOICE_CRON`, default `30 * * * *`, so it has its own subrequest budget):
+  emails from the last 3 days under the vendor labels → Vendor Bills (Status New), as Save as a bill.
+  - Skipped: shipment and tracking notices; order confirmations except AS Colour and LA Apparel; anything read as "other".
+  - One bill per PDF when an email has several.
+  - Done markers `inv:done:<id>` (30 days); a failing email is tried 3 times.
+  - `INVOICE_SWEEP_BUDGET` (default 45). Manual run: `POST /proxy/invoices/sweep[?days=]` with the apps' Airtable sign-in.
+- **Matching** (also `POST /proxy/invoices/match?rec=`): only Ordered Line Items whose Supplier name fits the vendor label
+  (S&S / SLC / Sanmar / AS Colour / Los Angeles Apparel / Carolina Creative). Tried in order:
+  1. PO # carries the Pine PO → **Exact PO**.
+  2. A real MMDDYY one digit off, or two neighbouring digits swapped → **PO fixed**.
+  3. An order number (1xxxx) in the printed PO → **By order #**.
+  4. Otherwise **Needs a look**.
+  It writes Match, Supplier, Line item IDs (new field) and Cart total (new field, sum of Total Line Cost). "Picked by hand"
+  is left alone.
+- **QuickBooks:** SalesTermRef from "Net N" (QuickBooks' term with N due days); due date = bill date + N when the invoice
+  has none. The description's warehouse is a short place ("Lockport, IL").
+- **Setup after pasting:**
+  - `AIRTABLE_WRITE_TOKEN` = a key that can add Vendor Bills and edit Orders (Stephen's working key).
+  - A second Cron Trigger, `30 * * * *` (keep the `*/15 * * * *` one).
+- **Tested** in Node with mocked Google / Gmail / Airtable / Claude / QuickBooks / KV: 20/20.
+  - Folders: empty duplicate trashed and link moved; one with files kept; link pointing elsewhere kept; single folder untouched.
+  - Sweep: saved S&S + SLC, skipped a shipment notice and an S&S order confirmation; a second run saved nothing.
+  - Matching: Exact PO (another supplier's line left out), By order #, PO fixed, Needs a look, Picked by hand kept.
+  - QuickBooks: Net 30 → term 4, due 2026-12-10; "Invoice 1234567 Lockport, IL".
+  - The quote fix checked on three names.
