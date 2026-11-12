@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pine Reviews · mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+/* Pine Reviews — clickable MOCKUP. No Airtable: everything lives in this page and resets on reload.
+   People are made up (this is a public page). */
+body{margin:0}
+[hidden].p-toast{display:none!important}
+.wrap{padding:0 var(--p-page-x)}
+.demo{display:flex;align-items:center;gap:8px;color:var(--p-white);font:700 var(--p-fs-s)/1 var(--p-sans)}
+.demo select{min-height:var(--p-tap);border-radius:var(--p-r);border:1.5px solid rgba(255,255,255,.45);background:var(--p-black);color:var(--p-white);font:700 var(--p-fs-s)/1 var(--p-sans);padding:0 10px}
+.mock-note{background:var(--p-cream);border-bottom:1px solid var(--p-cream-dk);padding:8px var(--p-page-x);font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.mock-note b{color:var(--p-black)}
+
+/* form */
+.f-head{display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap}
+.f-who{font:900 var(--p-fs-xl)/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em}
+.f-sub{color:var(--p-ink-2);font-size:var(--p-fs-s)}
+.q{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:var(--p-s4);display:grid;gap:var(--p-s3)}
+.q.is-miss{border:2px solid var(--p-black);background:var(--p-yellow-lt)}
+.q-top{display:flex;gap:var(--p-s3);align-items:baseline;flex-wrap:wrap}
+.q-n{font:900 var(--p-fs-s)/1 var(--p-display);background:var(--p-black);color:var(--p-white);padding:5px 8px;border-radius:2px}
+.q-t{font:700 var(--p-fs-m)/1.35 var(--p-sans);flex:1;min-width:220px}
+.q-t small{display:block;font-weight:400;color:var(--p-ink-2);font-size:var(--p-fs-s);margin-top:2px}
+.rate{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rate button{min-height:64px;border:2px solid var(--p-line-strong);border-radius:var(--p-r);background:var(--p-white);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;padding:8px 6px;color:var(--p-black);font:400 var(--p-fs-xs)/1.25 var(--p-sans);text-align:center}
+.rate button b{font:900 22px/1 var(--p-display)}
+.rate button:hover{border-color:var(--p-black)}
+.rate button.is-on{background:var(--p-black);color:var(--p-white);border-color:var(--p-black)}
+.rate button.is-on b{color:var(--p-yellow)}
+.rate-pick{display:none;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+@media (max-width:700px){
+  .rate button span{display:none}
+  .rate button{min-height:56px;justify-content:center}
+  .rate-pick{display:block}
+}
+.why{display:grid;gap:6px}
+.why .p-label{color:var(--p-black)}
+.f-foot{position:sticky;bottom:calc(-1 * var(--p-s6));padding-bottom:calc(var(--p-s3) + var(--p-s6))!important;background:var(--p-cream-lt);border-top:1px solid var(--p-line);padding:var(--p-s3) 0;display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap;margin-top:var(--p-s2)}
+.f-foot .p-hint{flex:1;min-width:180px}
+.stack{display:grid;gap:var(--p-s3)}
+.lock{display:inline-flex;align-items:center;gap:6px;font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.04em;color:var(--p-ink-2)}
+
+/* results */
+.res-top{display:grid;grid-template-columns:auto 1fr;gap:var(--p-s4);align-items:center}
+.res-score{background:var(--p-black);color:var(--p-white);border-radius:var(--p-r-lg);padding:var(--p-s4) var(--p-s5);text-align:center;min-width:150px}
+.res-score .p-big{color:var(--p-yellow);font-size:56px}
+.res-score .p-label{color:rgba(255,255,255,.75)}
+.rt{width:100%;border-collapse:collapse;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
+.rt th,.rt td{padding:10px 12px;border-top:1px solid var(--p-line);text-align:left;vertical-align:middle}
+.rt th{font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2);background:var(--p-cream-lt);border-top:0}
+.rt td.n{font:800 17px/1 var(--p-sans);font-variant-numeric:tabular-nums;white-space:nowrap;width:1%}
+.rt td.n small{font:400 var(--p-fs-xs)/1 var(--p-sans);color:var(--p-ink-3);margin-left:4px}
+.bar5{display:inline-block;width:90px;height:10px;border-radius:5px;background:var(--p-cream);vertical-align:middle;margin-left:8px;position:relative;overflow:hidden}
+.bar5 i{position:absolute;left:0;top:0;bottom:0;background:var(--p-black)}
+@media (max-width:700px){ .bar5{display:none} .res-top{grid-template-columns:1fr} }
+.cmt{background:var(--p-white);border:1px solid var(--p-line);border-left:4px solid var(--p-black);border-radius:var(--p-r);padding:10px 14px}
+.cmt .p-label{display:block;margin-bottom:4px}
+.cmt-peer{border-left-color:var(--p-cream-dk)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--p-s3)}
+@media (max-width:900px){ .grid2{grid-template-columns:1fr} }
+.mini{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:var(--p-fs-s)}
+.mini b{font-variant-numeric:tabular-nums}
+
+/* setup */
+.st-row{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(150px,1fr) minmax(260px,2.4fr) auto;gap:var(--p-s3);align-items:center;padding:10px var(--p-s4);border-top:1px solid var(--p-line);background:var(--p-white)}
+.st-row:first-child{border-top:0}
+.st-row.is-h{background:var(--p-cream-lt);font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2);min-height:0;padding-top:8px;padding-bottom:8px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 4px 0 10px;border-radius:var(--p-pill);background:var(--p-cream);border:1px solid var(--p-cream-dk);font:700 var(--p-fs-s)/1 var(--p-sans)}
+.chip button{width:28px;height:28px;border:0;background:transparent;border-radius:50%;cursor:pointer;font-size:16px;color:var(--p-ink-2)}
+.chip button:hover{background:var(--p-cream-dk)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips select{min-height:32px;border-radius:var(--p-pill);border:1.5px dashed var(--p-line-strong);background:var(--p-white);font:700 var(--p-fs-s)/1 var(--p-sans);padding:0 8px;color:var(--p-ink-2)}
+.st-row .p-select{min-height:36px;padding:4px 8px}
+@media (max-width:900px){
+  .st-row{grid-template-columns:1fr 1fr}
+  .st-row > :nth-child(3){grid-column:1 / -1}
+  .st-row.is-h{display:none}
+}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--p-s3)}
+.stats .p-stat .p-big{font-size:32px}
+.p-pane-main > .stack{max-width:980px}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar" id="bar">
+  <span class="p-mark"><span class="p-logo"></span></span>
+  <span class="p-bar-app">Reviews</span>
+  <span class="p-bar-ver">mockup v1</span>
+  <span class="p-tag p-tag-wait">Mockup</span>
+  <nav class="p-bar-views" id="views"></nav>
+  <div class="p-bar-sp">
+    <label class="demo">Viewing as
+      <select id="as">
+        <option value="owner">Owner</option>
+        <option value="lead" selected>Press lead</option>
+        <option value="member">Press operator</option>
+      </select>
+    </label>
+  </div>
+</header>
+<div class="mock-note" id="mnote"><b>Mockup.</b> Nothing is saved, and everyone here is made up. Switch “Viewing as” to see what each person gets.</div>
+<main class="wrap"><div class="p-panes" id="panes"><aside class="p-pane-side" id="side"></aside><section class="p-pane-main" id="main"></section></div></main>
+<div id="toast" class="p-toast" hidden></div>
+
+<script>
+/* ---------- made-up people ---------- */
+const P = {
+  own:{n:'You', role:'Owner', dept:'Office'},
+  off:{n:'Office manager', role:'Office manager', dept:'Office'},
+  jor:{n:'Jordan P.', role:'Press lead', dept:'Press', lead:'own'},
+  cas:{n:'Casey M.', role:'Pre-press lead', dept:'Pre-press', lead:'own'},
+  ril:{n:'Riley T.', role:'Shipping lead', dept:'Shipping', lead:'own'},
+  ale:{n:'Alex R.', role:'Press operator', dept:'Press', lead:'jor'},
+  mor:{n:'Morgan K.', role:'Press operator', dept:'Press', lead:'jor'},
+  dev:{n:'Devin S.', role:'Catcher', dept:'Press', lead:'jor'},
+  sky:{n:'Sky W.', role:'Catcher', dept:'Press', lead:'jor'},
+  jam:{n:'Jamie L.', role:'Screens', dept:'Pre-press', lead:'cas'},
+  tay:{n:'Taylor B.', role:'Seps / art', dept:'Pre-press', lead:'cas'},
+  qui:{n:'Quinn H.', role:'Receiving', dept:'Shipping', lead:'ril'},
+  ree:{n:'Reese D.', role:'Packing', dept:'Shipping', lead:'ril'},
+};
+const ME = {owner:'own', lead:'jor', member:'ale'};
+const WEIGHT = {mgr:.75, peer:.25};
+const MIN_PEERS = 2;
+
+/* ---------- questions ---------- */
+const SCALE = ['Needs significant improvement','Below expectations','Meets expectations','Exceeds expectations','Exceptional — a role model'];
+const RQ = [ // rated + counted. [key, short, manager wording, peer wording]
+  ['comp','Job competence','Handles their job responsibilities competently and consistently.','When I work with them, they do their job well and consistently.'],
+  ['rel','Reliability','On time, ready to work, and follows through on what they say.','I can count on them: on time, ready, and they follow through.'],
+  ['qual','Quality & detail','Gets the details right and catches problems before they become reprints.','They get the details right and catch problems before they reach me.'],
+  ['team','Teamwork','Helps out beyond their own station and hands work off cleanly.','They help out when I need it and hand work off cleanly.'],
+  ['pos','Positive workplace','Contributes to a positive, affirming, and fun workplace.','They make Pine a better place to work.'],
+  ['grow','Takes feedback & grows','Takes coaching well and changes because of it.','They are open to feedback and keep getting better.'],
+];
+const USED = ['used','Skills fully used','This person’s skills are fully used in their current role.',
+  ['Badly under-used or in the wrong role','Under-used in some clear ways','A good fit for the role','Well used and engaged','Thriving — ready for more']];
+const OPEN = [['out','Where are they doing outstanding work?'],['imp','Where is there room to improve?']];
+const CQ = [ // quarterly check-in, self, 1–5 (not scored)
+  ['succ','I know what success looks like in my role.'],
+  ['clear','My role feels clear and comfortable.'],
+  ['tools','I have the tools and training I need.'],
+  ['vibe','The team vibe and culture are good.'],
+  ['comm','Communication is good, on my team and across Pine.'],
+  ['voice','I have a voice in ideas and changes.'],
+];
+const CSCALE = ['Strongly disagree','Disagree','Neutral','Agree','Strongly agree'];
+const COPEN = [
+  ['chal','What’s been your biggest challenge this quarter? How are you working through it?'],
+  ['proud','A recent moment you felt proud or successful at work.'],
+  ['grow','What would help you grow? Skills, tools, or training.'],
+  ['well','One thing Pine does really well, and one thing we could improve.'],
+];
+const LEAD_Q = ['lgap','Do you see any leadership gaps at Pine that might be holding us back?'];
+
+/* ---------- state: assignments + answers (seeded) ---------- */
+let peers = {
+  ale:['mor','dev'], mor:['ale','sky','dev'], dev:['sky','ale','mor'], sky:['dev','mor'],
+  jam:['tay'], tay:['jam','qui'], qui:['ree','tay'], ree:['qui'],
+  jor:['cas','ril'], cas:['jor','tay'], ril:['jor','cas'],
+};
+const ans = {}; // key `${kind}:${by}:${about}` -> {r:{}, why:{}, o:{}, done:bool}
+function seed(kind,by,about,r,o,why){ ans[`${kind}:${by}:${about}`]={r:{...r},why:why||{},o:o||{},done:true}; }
+const R = (a,b,c,d,e,f,u)=>({comp:a,rel:b,qual:c,team:d,pos:e,grow:f,...(u?{used:u}:{})});
+seed('mgr','jor','mor',R(4,3,4,4,5,4,4),{out:'Dials in tough multi-color jobs fast. Newer people go to Morgan first.',imp:'Start-of-shift setup runs late a couple of days a week.'},{pos:'Keeps the press crew loose on long runs.'});
+seed('peer','ale','mor',R(4,3,4,5,5,4),{out:'Always jumps in when I fall behind on a changeover.'});
+seed('peer','sky','mor',R(5,4,4,4,5,4),{imp:'Sometimes forgets to log the misprints.'},{comp:'Fastest registration on the floor.'});
+seed('peer','dev','mor',R(4,3,3,4,4,4),{out:'Great at walking me through new garments.',imp:'Could hand off the next job’s screens earlier.'});
+seed('mgr','jor','sky',R(3,4,3,4,4,3,3),{out:'Rock solid on catching counts.',imp:'Ready to learn the press; let’s plan cross-training.'});
+seed('peer','dev','sky',R(3,4,3,4,4,3),{});
+seed('peer','mor','sky',R(4,4,3,4,4,4),{out:'Never leaves a mess at the dryer.'});
+seed('peer','mor','dev',R(3,3,3,4,4,3),{});
+seed('check','mor','mor',{succ:4,clear:4,tools:3,vibe:4,comm:3,voice:3},{chal:'Long runs on the old press.',grow:'Would like to learn the auto press.',lgap:'Shift handoffs between press and pre-press could use one clear owner.'});
+seed('check','sky','sky',{succ:3,clear:3,tools:4,vibe:5,comm:4,voice:4},{grow:'Press training.'});
+ans['check:ale:ale']={r:{},why:{},o:{},done:false};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nm=k=>P[k].n;
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const f1=n=>n==null?'—':n.toFixed(1);
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600);}
+function crewOf(lead){return Object.keys(P).filter(k=>P[k].lead===lead);}
+function seesResultsFor(me){ if(me==='own') return Object.keys(P).filter(k=>P[k].lead); return crewOf(me); }
+
+/* tasks for the person viewing */
+function tasksFor(me){
+  const t=[];
+  crewOf(me).forEach(k=>t.push({kind:'mgr',about:k}));
+  Object.entries(peers).forEach(([about,list])=>{ if(list.includes(me)) t.push({kind:'peer',about}); });
+  if(P[me].lead) t.push({kind:'check',about:me});
+  return t.map(x=>({...x,by:me,key:`${x.kind}:${me}:${x.about}`,done:!!ans[`${x.kind}:${me}:${x.about}`]?.done}));
+}
+const KIND={mgr:'Manager review',peer:'Peer review',check:'Quarterly check-in'};
+
+/* ---------- views ---------- */
+let as='lead', view='todo', pick=null;
+function viewsFor(){
+  const v=[['todo','To do']];
+  if(as!=='member') v.push(['results','Results'],['checkins','Check-ins']);
+  if(as==='owner') v.push(['setup','Setup']);
+  return v;
+}
+function renderViews(){
+  const me=ME[as]; const open=tasksFor(me).filter(t=>!t.done).length;
+  $('#views').innerHTML=viewsFor().map(([k,l])=>`<button class="${k===view?'is-on':''}" data-v="${k}">${l}${k==='todo'?`<span class="p-count">${open||''}</span>`:''}</button>`).join('');
+}
+function render(){
+  if(!viewsFor().some(v=>v[0]===view)) view='todo';
+  renderViews();
+  document.documentElement.style.setProperty('--p-panes-top',($('#bar').offsetHeight+$('#mnote').offsetHeight)+'px');
+  $('#panes').classList.toggle('is-nolist',view==='setup');
+  ({todo:rTodo,results:rResults,checkins:rCheckins,setup:rSetup})[view]();
+}
+
+/* ===== TO DO ===== */
+function rTodo(){
+  const me=ME[as]; const ts=tasksFor(me);
+  if(!pick||!ts.some(t=>t.key===pick)) pick=(ts.find(t=>!t.done)||ts[0])?.key;
+  const open=ts.filter(t=>!t.done), done=ts.filter(t=>t.done);
+  const card=t=>`<div class="p-lc is-compact ${t.key===pick?'is-open':''} ${t.done?'is-done':''}"><div class="p-lc-head is-tap" data-pick="${t.key}">
+      <div class="p-lc-main"><span class="p-lc-title">${t.kind==='check'?'Your check-in':esc(nm(t.about))}</span><span class="p-lc-sub">${KIND[t.kind]}${t.kind!=='check'?' · '+esc(P[t.about].role):''}</span></div>
+      <div class="p-lc-nums"></div>
+      <div class="p-lc-tags">${t.done?'<span class="p-tag p-tag-done">✓ Sent</span>':'<span class="p-tag p-tag-wait">Due Jan 31</span>'}</div></div></div>`;
+  $('#side').innerHTML=`<div class="p-pane-head"><span class="p-section">To do <span class="p-count">${open.length}</span></span></div>
+    <p class="p-pane-hint">Mid-year review and Q1 check-in · due Jan 31</p>
+    ${open.map(card).join('')||'<p class="p-hint">All done. Thanks!</p>'}
+    ${done.length?`<div class="p-pane-head" style="margin-top:20px"><span class="p-label">Sent</span></div>${done.map(card).join('')}`:''}`;
+  const t=ts.find(x=>x.key===pick);
+  $('#main').innerHTML=t?(t.kind==='check'?formCheck(t):formReview(t)):'<div class="p-split-empty">Nothing to do</div>';
+}
+function rateRow(qkey,val,labels,name){
+  return `<div class="rate" role="radiogroup" aria-label="${esc(name)}">${labels.map((l,i)=>`<button type="button" role="radio" aria-checked="${val===i+1}" class="${val===i+1?'is-on':''}" data-q="${qkey}" data-v="${i+1}"><b>${i+1}</b><span>${esc(l)}</span></button>`).join('')}</div>
+    <div class="rate-pick">${val?`<b>${val}</b> · ${esc(labels[val-1])}`:'Tap 1 (low) to 5 (high)'}</div>`;
+}
+function cur(t){ return ans[t.key] ||= {r:{},why:{},o:{},done:false}; }
+function missing(t){
+  const a=cur(t), m=[];
+  if(t.kind==='check'){ CQ.forEach(([k])=>{if(!a.r[k])m.push(k)}); return m; }
+  RQ.forEach(([k])=>{ if(!a.r[k]) m.push(k); else if((a.r[k]<=2||a.r[k]===5)&&!(a.why[k]||'').trim()) m.push(k); });
+  if(t.kind==='mgr'){ if(!a.r.used) m.push('used'); OPEN.forEach(([k])=>{if(!(a.o[k]||'').trim())m.push(k)}); }
+  else if(!OPEN.some(([k])=>(a.o[k]||'').trim())) m.push('open');
+  return m;
+}
+function formReview(t){
+  const a=cur(t), mgr=t.kind==='mgr', ro=a.done, p=P[t.about];
+  const q=(i,[k,short,mw,pw])=>{
+    const v=a.r[k], needWhy=v&&(v<=2||v===5);
+    return `<div class="q" data-box="${k}"><div class="q-top"><span class="q-n">${i+1}</span><div class="q-t">${esc(short)}<small>${esc(mgr?mw:pw)}</small></div></div>
+      ${rateRow(k,v,SCALE,short)}
+      ${needWhy?`<div class="why"><label class="p-label" for="w-${k}">${v===5?'What makes it a 5? One example':'What would help? One example'}</label><textarea class="p-textarea" id="w-${k}" data-why="${k}" rows="2" ${ro?'disabled':''}>${esc(a.why[k]||'')}</textarea></div>`:''}</div>`;
+  };
+  const left=missing(t).length;
+  return `<div class="stack" data-form="${t.key}">
+    <div class="f-head"><span class="p-section">${KIND[t.kind]}</span>${ro?'<span class="p-tag p-tag-done">✓ Sent</span>':''}</div>
+    <div><div class="f-who">${esc(p.n)}</div><div class="f-sub">${esc(p.role)} · ${esc(p.dept)}</div></div>
+    ${mgr?'':`<div class="p-note"><b>Your name is never shown.</b> ${esc(nm(p.lead))} sees your ratings and comments without your name and goes over them with ${esc(p.n.split(' ')[0])}.</div>`}
+    ${RQ.map((x,i)=>q(i,x)).join('')}
+    ${mgr?`<div class="q" data-box="used"><div class="q-top"><span class="q-n">+</span><div class="q-t">${USED[1]} <span class="p-tag p-tag-soft">Not in the score</span><small>${USED[2]}</small></div></div>${rateRow('used',a.r.used,USED[3],USED[1])}</div>`:''}
+    ${OPEN.map(([k,l])=>`<div class="q" data-box="${mgr?k:'open'}"><label class="q-t" for="o-${k}">${esc(l)}</label><textarea class="p-textarea" id="o-${k}" data-open="${k}" rows="3" ${ro?'disabled':''} placeholder="${mgr?'Required':'Answer at least one of these two'}">${esc(a.o[k]||'')}</textarea></div>`).join('')}
+    ${ro?'':`<div class="f-foot"><span class="p-hint" id="left">${left?`${left} left to answer. A 1, 2 or 5 needs one example.`:'All answered.'}</span><button class="p-btn p-btn-quiet" data-act="later">Save for later</button><button class="p-btn p-btn-main" data-act="send">Send review</button></div>`}
+  </div>`;
+}
+function formCheck(t){
+  const a=cur(t), ro=a.done;
+  return `<div class="stack" data-form="${t.key}">
+    <div class="f-head"><span class="p-section">Quarterly check-in</span>${ro?'<span class="p-tag p-tag-done">✓ Sent</span>':''}</div>
+    <div><div class="f-who">Q1 2027</div><div class="f-sub">Fill this in before you sit down with ${esc(nm(P[t.about].lead).replace(/\.$/,''))}. It isn’t scored.</div></div>
+    ${CQ.map(([k,l],i)=>`<div class="q" data-box="${k}"><div class="q-top"><span class="q-n">${i+1}</span><div class="q-t">${esc(l)}</div></div>${rateRow(k,a.r[k],CSCALE,l)}</div>`).join('')}
+    ${COPEN.map(([k,l])=>`<div class="q"><label class="q-t" for="o-${k}">${esc(l)}</label><textarea class="p-textarea" id="o-${k}" data-open="${k}" rows="3" ${ro?'disabled':''}>${esc(a.o[k]||'')}</textarea></div>`).join('')}
+    <div class="q"><label class="q-t" for="o-lgap">${esc(LEAD_Q[1])}</label><span class="lock">🔒 Only the owner and office manager see this. Not your lead.</span><textarea class="p-textarea" id="o-lgap" data-open="lgap" rows="3" ${ro?'disabled':''}>${esc(a.o.lgap||'')}</textarea></div>
+    ${ro?'':`<div class="f-foot"><span class="p-hint" id="left"></span><button class="p-btn p-btn-quiet" data-act="later">Save for later</button><button class="p-btn p-btn-main" data-act="send">Send check-in</button></div>`}
+  </div>`;
+}
+
+/* ===== RESULTS ===== */
+let rpick=null;
+function scoreFor(k){
+  const m=ans[`mgr:${P[k].lead}:${k}`]; const pr=(peers[k]||[]).map(b=>ans[`peer:${b}:${k}`]).filter(x=>x?.done);
+  const mAvg=m?.done?avg(RQ.map(([q])=>m.r[q])):null;
+  const show=pr.length>=MIN_PEERS;
+  const pAvg=show?avg(pr.map(x=>avg(RQ.map(([q])=>x.r[q])))):null;
+  let total=null, note='';
+  if(mAvg!=null&&pAvg!=null){ total=WEIGHT.mgr*mAvg+WEIGHT.peer*pAvg; note=`Manager 75% · Peers 25% (${pr.length})`; }
+  else if(mAvg!=null){ total=mAvg; note=pr.length?`Manager only: ${pr.length} peer answered, needs ${MIN_PEERS}`:'Manager only: no peers yet'; }
+  return {m,pr,show,mAvg,pAvg,total,note};
+}
+function rResults(){
+  const me=ME[as], list=seesResultsFor(me);
+  if(!list.includes(rpick)) rpick=list.find(k=>scoreFor(k).total!=null)||list[0];
+  $('#side').innerHTML=`<div class="p-pane-head"><span class="p-section">Mid-year review <span class="p-count">${list.length}</span></span></div>
+    <p class="p-pane-hint">${as==='owner'?'Everyone':'Your crew'} · score = manager 75%, peers 25%</p>
+    ${list.map(k=>{const s=scoreFor(k), pd=s.pr.length, pt=(peers[k]||[]).length;
+      return `<div class="p-lc is-compact ${k===rpick?'is-open':''}"><div class="p-lc-head is-tap" data-rpick="${k}">
+        <div class="p-lc-main"><span class="p-lc-title">${esc(nm(k))}</span><span class="p-lc-sub">${esc(P[k].role)}${as==='owner'?' · '+esc(nm(P[k].lead)):''}</span></div>
+        <div class="p-lc-nums"><div class="p-num ${s.total==null?'is-quiet':''}"><small>Score</small><b>${f1(s.total)}</b></div></div>
+        <div class="p-lc-tags">${s.m?.done?'<span class="p-tag p-tag-done">✓ Manager</span>':'<span class="p-tag p-tag-wait">Manager review</span>'}<span class="p-tag p-tag-soft">Peers ${pd}/${pt}</span></div></div></div>`;}).join('')}`;
+  $('#main').innerHTML=resultsFor(rpick);
+}
+function resultsFor(k){
+  if(!k) return '<div class="p-split-empty">No one to show</div>';
+  const p=P[k], s=scoreFor(k), m=s.m?.done?s.m:null;
+  const peerQ=q=>s.show?avg(s.pr.map(x=>x.r[q])):null;
+  const cell=v=>v==null?'<td class="n">—</td>':`<td class="n">${f1(v)}<span class="bar5"><i style="width:${v/5*100}%"></i></span></td>`;
+  const rows=RQ.map(([q,short])=>{const mv=m?.r[q], pv=peerQ(q), gap=mv!=null&&pv!=null&&Math.abs(mv-pv)>=1;
+    return `<tr><td>${esc(short)} ${gap?'<span class="p-tag p-tag-wait">Talk about</span>':''}</td>${cell(mv)}${cell(pv)}</tr>`;}).join('');
+  const pc=[]; s.show&&s.pr.forEach(x=>{ OPEN.forEach(([o,l])=>x.o[o]&&pc.push([l,x.o[o]])); RQ.forEach(([q,short])=>x.why[q]&&pc.push([short+' · '+x.r[q],x.why[q]])); });
+  pc.sort((a,b)=>a[1].localeCompare(b[1])); // mixed order so comments can't be matched to a person
+  const ch=ans[`check:${k}:${k}`];
+  return `<div class="stack">
+    <div class="f-head"><span class="p-section">Results</span><span class="p-hint">Mid-year review · Jan 2027</span></div>
+    <div class="res-top">
+      <div class="res-score"><div class="p-label">Score</div><div class="p-big">${f1(s.total)}</div><div class="p-label" style="margin-top:6px">out of 5</div></div>
+      <div><div class="f-who">${esc(p.n)}</div><div class="f-sub">${esc(p.role)} · reviewed by ${esc(nm(p.lead))}</div><p class="p-hint" style="margin:8px 0 0">${esc(s.note)}</p></div>
+    </div>
+    ${!s.show&&s.pr.length?`<div class="p-note">Peer answers stay hidden until at least ${MIN_PEERS} peers have answered, so no one can tell who wrote what.</div>`:''}
+    <table class="rt"><thead><tr><th>Question</th><th>Manager</th><th>Peers${s.show?` (${s.pr.length})`:''}</th></tr></thead><tbody>${rows}
+      <tr><td>${USED[1]} <span class="p-tag p-tag-soft">Not in the score</span></td><td class="n">${m?.r.used??'—'}<small>${m?.r.used?esc(USED[3][m.r.used-1]):''}</small></td><td class="n">—</td></tr></tbody></table>
+    <span class="p-section">Manager</span>
+    ${m?`<div class="grid2">${OPEN.map(([o,l])=>`<div class="cmt"><span class="p-label">${esc(l)}</span>${esc(m.o[o])}</div>`).join('')}</div>
+      ${RQ.filter(([q])=>m.why[q]).map(([q,short])=>`<div class="cmt"><span class="p-label">${esc(short)} · ${m.r[q]}</span>${esc(m.why[q])}</div>`).join('')}`
+      :`<div class="p-note p-note-wait">${esc(nm(p.lead))} hasn’t sent the manager review yet.</div>`}
+    <span class="p-section">Peers · no names</span>
+    ${s.show?(pc.map(([l,t])=>`<div class="cmt cmt-peer"><span class="p-label">${esc(l)}</span>${esc(t)}</div>`).join('')||'<p class="p-hint">No written comments.</p>'):'<p class="p-hint">Not enough peer answers yet.</p>'}
+    <span class="p-section">Latest check-in · their own view</span>
+    ${ch?.done?`<div class="p-card"><div class="mini">${CQ.map(([q,l])=>`<span>${esc(l)}</span><b>${ch.r[q]} / 5</b>`).join('')}</div>${COPEN.filter(([q])=>ch.o[q]).map(([q,l])=>`<div class="cmt" style="margin-top:10px"><span class="p-label">${esc(l)}</span>${esc(ch.o[q])}</div>`).join('')}</div>`:'<p class="p-hint">No check-in yet this quarter.</p>'}
+    <div class="f-foot"><span class="p-hint">After the sit-down:</span><button class="p-btn" data-act="print">Print</button><button class="p-btn p-btn-main" data-act="met" ${s.total==null?'disabled':''}>Mark as reviewed with ${esc(p.n.split(' ')[0])}</button></div>
+  </div>`;
+}
+
+/* ===== CHECK-INS (lead / owner) ===== */
+let cpick=null;
+function rCheckins(){
+  const me=ME[as], list=seesResultsFor(me);
+  if(!list.includes(cpick)) cpick=list[0];
+  $('#side').innerHTML=`<div class="p-pane-head"><span class="p-section">Q1 check-ins <span class="p-count">${list.length}</span></span></div>
+    <p class="p-pane-hint">Their answers come in before you meet. Not scored.</p>
+    ${list.map(k=>{const c=ans[`check:${k}:${k}`];return `<div class="p-lc is-compact ${k===cpick?'is-open':''}"><div class="p-lc-head is-tap" data-cpick="${k}">
+      <div class="p-lc-main"><span class="p-lc-title">${esc(nm(k))}</span><span class="p-lc-sub">${esc(P[k].role)}</span></div><div class="p-lc-nums"></div>
+      <div class="p-lc-tags">${c?.done?'<span class="p-tag p-tag-done">✓ Answered</span>':'<span class="p-tag p-tag-soft">Not answered yet</span>'}</div></div></div>`;}).join('')}`;
+  const k=cpick, c=ans[`check:${k}:${k}`];
+  $('#main').innerHTML=`<div class="stack">
+    <div class="f-head"><span class="p-section">Quarterly check-in</span><span class="p-hint">Q1 2027</span></div>
+    <div><div class="f-who">${esc(nm(k))}</div><div class="f-sub">${esc(P[k].role)} · with ${esc(nm(P[k].lead))}</div></div>
+    ${c?.done?`<div class="p-card"><div class="mini">${CQ.map(([q,l])=>`<span>${esc(l)}</span><b>${c.r[q]} · ${CSCALE[c.r[q]-1]}</b>`).join('')}</div></div>
+      ${COPEN.map(([q,l])=>`<div class="cmt"><span class="p-label">${esc(l)}</span>${esc(c.o[q]||'—')}</div>`).join('')}
+      ${as==='owner'?`<div class="cmt"><span class="p-label">🔒 ${esc(LEAD_Q[1])}</span>${esc(c.o.lgap||'—')}</div>`:''}`
+      :`<div class="p-note">${esc(nm(k).split(' ')[0])} hasn’t answered yet. You can still meet and take notes.</div>`}
+    <div class="q"><label class="q-t" for="cn">Your notes from the conversation</label><textarea class="p-textarea" id="cn" rows="4" placeholder="Issues, opportunities, what you agreed to do next"></textarea></div>
+    <div class="f-foot"><span class="p-hint">${esc(nm(k).split(' ')[0])} doesn’t see your notes.</span><button class="p-btn p-btn-main" data-act="cdone">Save check-in</button></div>
+  </div>`;
+}
+
+/* ===== SETUP (owner / office manager) ===== */
+function rSetup(){
+  const staff=Object.keys(P).filter(k=>P[k].lead);
+  const mgrDone=staff.filter(k=>ans[`mgr:${P[k].lead}:${k}`]?.done).length;
+  const pTot=staff.reduce((n,k)=>n+(peers[k]||[]).length,0);
+  const pDone=staff.reduce((n,k)=>n+(peers[k]||[]).filter(b=>ans[`peer:${b}:${k}`]?.done).length,0);
+  const load={}; staff.forEach(k=>(peers[k]||[]).forEach(b=>load[b]=(load[b]||0)+1));
+  const leads=['own','jor','cas','ril'];
+  $('#side').innerHTML='';
+  $('#main').innerHTML=`<div class="stack" style="max-width:1200px">
+    <div class="p-head" style="margin-top:0"><span class="p-section">Mid-year review</span><span class="p-head-sum">Jan 2027 · due <b>Jan 31</b> · score = manager 75%, peers 25%</span></div>
+    <div class="stats">
+      <div class="p-stat"><div class="p-label">Manager reviews</div><div class="p-big">${mgrDone}/${staff.length}</div></div>
+      <div class="p-stat"><div class="p-label">Peer reviews</div><div class="p-big">${pDone}/${pTot}</div></div>
+    </div>
+    <div class="p-head"><span class="p-section">Who reviews whom</span><span class="p-head-sum">Pick 2–4 peers each, from the people they work with most. Peers stay anonymous.</span>
+      <div class="p-head-end"><button class="p-btn" data-act="suggest">Suggest peers from same department</button></div></div>
+    <div class="p-list">
+      <div class="st-row is-h"><span>Person</span><span>Manager</span><span>Peers</span><span>Reviews to write</span></div>
+      ${staff.map(k=>{const pl=peers[k]||[]; const opts=Object.keys(P).filter(b=>P[b].lead&&b!==k&&!pl.includes(b));
+        return `<div class="st-row"><div><b>${esc(nm(k))}</b><div class="p-hint">${esc(P[k].role)}</div></div>
+        <select class="p-select" data-lead="${k}">${leads.filter(l=>l!==k).map(l=>`<option value="${l}" ${P[k].lead===l?'selected':''}>${esc(nm(l))}</option>`).join('')}</select>
+        <div class="chips">${pl.map(b=>`<span class="chip">${esc(nm(b))}<button aria-label="Remove ${esc(nm(b))}" data-rm="${k}:${b}">×</button></span>`).join('')}
+          ${pl.length<4?`<select data-add="${k}"><option value="">+ Add peer</option>${opts.map(b=>`<option value="${b}">${esc(nm(b))} · ${esc(P[b].dept)}</option>`).join('')}</select>`:''}
+          ${pl.length<MIN_PEERS?`<span class="p-tag p-tag-wait">Needs ${MIN_PEERS}+</span>`:''}</div>
+        <span class="p-num"><b>${load[k]||0}</b></span></div>`;}).join('')}
+    </div>
+    <p class="p-hint">“Reviews to write” is how many peer reviews each person has, so no one gets buried. Leads also write a manager review for each of their crew.</p>
+    <div class="f-foot"><span class="p-hint">Sends each person their to-do list and a link.</span><button class="p-btn p-btn-dark" data-act="startq">Start Q1 check-ins</button><button class="p-btn p-btn-main" data-act="start">Start mid-year review</button></div>
+  </div>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button,[data-pick],[data-rpick],[data-cpick]'); if(!b) return;
+  if(b.dataset.v&&b.closest('#views')){ view=b.dataset.v; render(); return; }
+  if(b.dataset.pick){ pick=b.dataset.pick; rTodo(); scrollMain(); return; }
+  if(b.dataset.rpick){ rpick=b.dataset.rpick; rResults(); scrollMain(); return; }
+  if(b.dataset.cpick){ cpick=b.dataset.cpick; rCheckins(); scrollMain(); return; }
+  if(b.dataset.q){ const t=tasksFor(ME[as]).find(x=>x.key===pick); const a=cur(t); if(a.done) return;
+    a.r[b.dataset.q]=+b.dataset.v; const y=$('#main').scrollTop; rTodo(); $('#main').scrollTop=y; return; }
+  if(b.dataset.rm){ const [k,x]=b.dataset.rm.split(':'); peers[k]=peers[k].filter(y=>y!==x); rSetup(); return; }
+  const act=b.dataset.act;
+  if(act==='send'){ const t=tasksFor(ME[as]).find(x=>x.key===pick); const m=missing(t);
+    if(m.length){ document.querySelectorAll('.q.is-miss').forEach(x=>x.classList.remove('is-miss'));
+      m.forEach(k=>document.querySelector(`[data-box="${k}"]`)?.classList.add('is-miss'));
+      document.querySelector('.q.is-miss')?.scrollIntoView({behavior:'smooth',block:'center'}); toast(`${m.length} left to answer`); return; }
+    cur(t).done=true; toast('Sent (mockup: nothing saved)'); pick=null; render(); }
+  if(act==='later'){ toast('Saved for later (mockup)'); }
+  if(act==='met'){ toast('Marked as reviewed (mockup)'); }
+  if(act==='print'){ window.print(); }
+  if(act==='cdone'){ toast('Check-in saved (mockup)'); }
+  if(act==='suggest'){ Object.keys(P).filter(k=>P[k].lead).forEach(k=>{ if((peers[k]||[]).length>=MIN_PEERS) return;
+      const same=Object.keys(P).filter(b=>P[b].lead&&b!==k&&P[b].dept===P[k].dept&&!(peers[k]||[]).includes(b));
+      peers[k]=[...(peers[k]||[]),...same].slice(0,Math.max(MIN_PEERS,(peers[k]||[]).length)); }); rSetup(); toast('Filled in anyone under 2 peers'); }
+  if(act==='start'){ toast('Review started: to-do lists sent (mockup)'); }
+  if(act==='startq'){ toast('Q1 check-ins started (mockup)'); }
+});
+document.addEventListener('input',e=>{
+  const el=e.target; const t=tasksFor(ME[as]).find(x=>x.key===pick); if(!t||view!=='todo') return; const a=cur(t);
+  if(el.dataset.why) a.why[el.dataset.why]=el.value;
+  if(el.dataset.open) a.o[el.dataset.open]=el.value;
+  const l=$('#left'); if(l&&t.kind!=='check'){ const n=missing(t).length; l.textContent=n?`${n} left to answer. A 1, 2 or 5 needs one example.`:'All answered.'; }
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='as'){ as=el.value; pick=null; render(); return; }
+  if(el.dataset.add&&el.value){ (peers[el.dataset.add] ||= []).push(el.value); rSetup(); }
+  if(el.dataset.lead){ P[el.dataset.lead].lead=el.value; toast('Manager changed (mockup)'); }
+});
+function scrollMain(){ if(innerWidth<1100) $('#main').scrollIntoView({behavior:'smooth'}); }
+addEventListener('resize',()=>document.documentElement.style.setProperty('--p-panes-top',($('#bar').offsetHeight+$('#mnote').offsetHeight)+'px'));
+render();
+</script>
+</body>
+</html>
