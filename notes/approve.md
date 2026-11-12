@@ -190,3 +190,15 @@ Stephen: "can we put back the name email auto fill in the approval app."
 - "Who's signing?" starts with the order's contact name and email filled in (v4 had made them grey hints only). The signer can change either; the initials follow the name unless typed.
 - If the signer already adopted a name in this tab, theirs is shown instead.
 - Tested: prefill Garrett Sample / garrett@sample.co → GS; typing a new name updates the initials; no errors.
+
+## 2026-11-12 · v14 · previews real orders from Line Item Review
+Stephen: "create a practice line item review with the approval concept built in … see how our mockups and invoices work with
+some real jobs".
+- `approve-v14.html?preview=1`, opened by Line Item Review v57's **Preview approval**, waits for the order's packet from the
+  page that opened it (postMessage, same site only). Packet: proof pages as pictures `{blob, ar, label, appr:[x,y,w,h]}`,
+  invoice rows `{d, q, p, t, sz}`, `totals:{sub, tax, total, paid, rows:[[label, amount]]}`, contact, rep, repEmail, due, ship.
+- Yellow note: "Preview of order N from Line Item Review. Nothing you enter here is saved or sent to the customer."
+  Its own saved progress key, cleared on load.
+- Spec cells with no value are left out, since real proofs carry size, placement and colors on the sheet. Quantities show
+  per proof. The invoice uses each row's own total and the order's totals rows; "Balance due" when payments were received.
+- Without `?preview=1` it's the v13 sample page, as before. `approve.html` → v14.

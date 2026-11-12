@@ -898,3 +898,21 @@ Stephen: "all of our left panels are different in each app...streamline how they
   - **Measurements:** nothing under 12px, only brand colours, no horizontal scroll.
 - **Line Item Review v56 specifics:** each order is one compact card (# badge, customer, rep · due · age, lines count, Hard/ASAP tag), with its line rows inside it, unchanged.
 - **Fix:** below 1280 the Review header (customer, subtotal, Airtable link) overlapped; this was already the case at 1200 in v55. It now wraps to two lines.
+
+## 2026-11-12 · v57 · Preview approval
+Stephen: "can we create a practice line item review with the approval concept built in and then I can see how our mockups and
+invoices work with some real jobs".
+- **Preview approval** button next to Send for signature, in the order header and on Review. It shows on any order with a
+  proof attached, approved or not.
+- It builds the order's packet in the browser:
+  - every proof page as a picture, with its APPROVED box found the same way as the PandaDoc packet (Mockup Maker's saved box,
+    art's APPROVED text, or the box in the picture);
+  - the invoice rows (invRows, sizes per line);
+  - the order's totals (subtotal, discount, sales tax, Colorado retail delivery fee, payments), with the total adding up
+    from the rows shown;
+  - contact name and email, rep and rep email, due date (with Hard date / ASAP), ship method.
+- It opens `approve-v14.html?preview=1` in a new tab and hands over the packet by postMessage (same site only).
+- Nothing is saved, sent or written to Airtable. It's the same with or without `?practice=1`.
+- Tested (Playwright, mocked Airtable, a real Mockup Maker proof PDF on one line, 1440): the button shows, and the preview
+  opens with the order's 7 proofs (the PDF as 4 pages with their APPROVED boxes), 18 steps, 9 invoice rows with sizes and
+  totals that add up. No writes, no errors. The plain approve.html sample still opens.
