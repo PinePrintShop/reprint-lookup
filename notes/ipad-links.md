@@ -29,7 +29,7 @@
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v118 |
-| Line Item Review | `pine-line-item-review.html` | v60 (approval preview: progress, expired links, no silent hang) |
+| Line Item Review | `pine-line-item-review.html` | v61 (approval preview with initials + signed copy) |
 | Create order | `create-order.html` | v30 (side panel standard) |
 | Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
@@ -38,7 +38,7 @@
 | Mockup Maker (desktop, art dept) | `mockup.html` | v271 (a link's order opens once, not on every refresh) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
-| Approve (customer page: order approval + signing, prototype) | `approve.html` | v17 (preview waiting screen) |
+| Approve (customer page: order approval + signing, prototype) | `approve.html` | v18 (initials in the APPROVED boxes; signed copy PDF) |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`
