@@ -37,3 +37,19 @@
 
 ## 2026-11-12 · mockup v4 (`pine-reviews-mockup-v4.html`)
 - Stephen: "peer and manager should all read the same way". Every comment box on every form (manager, peer, check-in) now says **"Give one example"**, whatever the score. The score-based prompts are gone.
+
+## 2026-11-12 · mockup v5 (`pine-reviews-mockup-v5.html`) + walkthrough video
+**Why:** Stephen asked to see the flow for an employee who gets the link, and how it's secured. Decisions: **text and email** both carry the link; **link + 4-digit PIN** for now (not everyone has a Google account).
+- **Employee link mode** (`#t=demo`, or "Try the employee link" in the bar):
+  1. the text and email they get;
+  2. pick a PIN, enter it again ("Forgot it? Ask the office to reset it.");
+  3. a phone-first list of just the peer reviews they owe;
+  4. each review full screen with "‹ My reviews";
+  5. after the last one is sent, "All done".
+  It hides the mockup controls and the check-in, so it shows only the peer flow.
+- **Walkthrough video** (about 1 minute, 1080p, 9 captioned steps) recorded from this mode with Playwright, sent in chat, not in the repo.
+- **Security plan (agreed direction, not built):**
+  - a private reviews base, reachable only through the worker;
+  - PINs stored scrambled (hashed), never readable, only reset;
+  - link codes that expire at the end of the cycle and can be turned off;
+  - the worker removes peer names before results reach a lead.
