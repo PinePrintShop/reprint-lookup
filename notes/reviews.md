@@ -71,3 +71,14 @@
   - the example is under 20 characters (the box says "Add a bit more");
   - the keyboard closed because they tapped another box or button themselves.
 - Works the same on desktop (Enter or clicking away). Tested with iPhone 13 emulation in Playwright. Walkthrough video re-recorded on v7.
+
+## 2026-11-12 · mockup v8 (`pine-reviews-mockup-v8.html`)
+**Why:** Stephen liked the score-based prompts from v2 ("what would get them to a four if they clicked 3"), which v4 had replaced with one label. They're back, and they read the same way on all three forms:
+
+| Score | Manager & peer | Check-in (about yourself) |
+|---|---|---|
+| none yet | Give one example | Give one example |
+| 1–2 | What would help them improve? Give one example | What would help? Give one example |
+| 3 | What would get them to a 4? | What would make it a 4? |
+| 4 | Give one example | Give one example |
+| 5 | What makes it a 5? Give one example | What makes it a 5? Give one example |
