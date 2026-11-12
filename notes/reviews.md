@@ -107,3 +107,13 @@
 - **Open questions for Stephen:**
   - Should the employee see the next steps in the app too, not only by text?
   - Should check-in answers stay required, given the meeting covers them?
+
+## 2026-11-12 · mockup v10 (`pine-reviews-mockup-v10.html`): next steps in the app
+**Stephen:** check-in answers stay **required**, and "I like having the next steps in the app".
+- **"Your next steps"** shows for the employee:
+  - at the top of their To do (desktop) and their phone list;
+  - at the top of their check-in form;
+  - on the "Sent to Jordan" screen.
+- The employee ticks a step when it's done ("You marked done").
+- **The lead's meeting screen** shows "Alex says done" (yellow) next to those steps. The lead ticks the ones they agree are done.
+- **Finish check-in** moves the new next steps into the employee's list. Steps that aren't done carry over, and confirmed ones drop off. The employee still gets a text.
