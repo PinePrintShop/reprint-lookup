@@ -614,3 +614,20 @@ Stephen: "Let's do purchasing now since he is done for the day". It's step 5 of 
   - The due date shows twice: under the "Due …" group heading and on the card.
   - "To order" counts lines in a cart as still to order.
   - Tell me if either should change.
+
+## 2026-11-12 · v120 · Each past PO shows its vendor invoice (built; goes live Friday 11/13 with the side-panel rollout)
+From the plan Stephen OK'd ("yes lets keep moving"): Past orders shows each PO's invoice with a Send to QuickBooks button.
+Worker v47 saves invoice emails as Vendor Bills and matches them to Line Items (Line item IDs).
+- Past orders reads the last 60 days of Vendor Bills, one request. A bill belongs to a PO card when its Line item IDs include
+  that card's lines; otherwise when its Pine PO (without -n) and supplier match.
+- Card tag: **Invoice in** (yellow, waiting on you) · **Invoice +$x / −$x** (red, $1 or more off Airtable's total) ·
+  **In QuickBooks** (black) · **QuickBooks error** · **No invoice yet** (cream, PO older than 3 days).
+- Open PO: the invoice block (number, vendor, date, PO, how it matched if not Exact PO, status; Invoice / Airtable /
+  Difference; freight on the invoice), then View PDF (worker attachment route), Mark checked (New → Checked) and Send to
+  QuickBooks (Checked only; the worker's /qbo/bill with its duplicate guard; asks first). Several invoices on one PO each
+  compare to their own lines' Cart total.
+- Bills the worker couldn't place on a PO are counted in the hint with a link to Invoice check.
+- Practice mode: Mark checked is faked (as every write), Send to QuickBooks only says what it would do.
+- Tested with mocked Airtable and worker at 1440 and 390 and in practice mode: the right tags, the +$23.25 difference,
+  Send → "In QuickBooks: bill 59500 with the PDF", Mark checked PATCH, View PDF fetch; practice made no writes. No errors.
+- Idea for later: Send to QuickBooks could also tick Reviewed on that PO, since both mean "it matches the invoice".
