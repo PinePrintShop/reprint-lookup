@@ -62,3 +62,12 @@
 - **Said once:** "1 is low, 5 is high. Every answer needs one example." sits at the top of every form. The per-question "Tap 1 to 5" and "Required" labels are gone; the box shows only "Add a bit more" or ✓.
 - The peer note is shorter: "Your name is never shown to Devin."
 - The walkthrough video was re-recorded on v6.
+
+## 2026-11-12 · mockup v7 (`pine-reviews-mockup-v7.html`)
+**Why:** Stephen: "after you filled out the text and close the keyboard on an iPhone can we make it auto move through the questions".
+- **Tap a number → its example box opens** with the keyboard up (only when the box is still empty, so changing a score later doesn't pop the keyboard).
+- **Close the keyboard → the page glides to the next unanswered question,** with it at the top under the progress line. After the last one it lands on Send. Closing the keyboard means Done, the return key (now labelled "done", and it no longer adds a new line), or tapping on the page.
+- **It stays put when:**
+  - the example is under 20 characters (the box says "Add a bit more");
+  - the keyboard closed because they tapped another box or button themselves.
+- Works the same on desktop (Enter or clicking away). Tested with iPhone 13 emulation in Playwright. Walkthrough video re-recorded on v7.
