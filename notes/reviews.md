@@ -31,3 +31,6 @@
 - **The comment prompt follows the score:** 1–2 "What would help?", 3 "What would make it a 4?", 4 "Give one example", 5 "What makes it a 5?".
 - **Results go question by question:** each question shows the manager's number and comment, then the peer average and every peer comment (labelled "A peer", mixed order). The score table stays at the top.
 - v1 left as is.
+
+## 2026-11-12 · mockup v3 (`pine-reviews-mockup-v3.html`)
+- Stephen: "remove Why? and just leave give one example". Before a number is picked, and on every check-in rating, the comment label is now just **"Give one example"**. The score-based prompts for reviews stay ("What would make it a 4?" etc.).
