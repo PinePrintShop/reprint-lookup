@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<!-- Laser Prep v1 (2026-11-12). Stephen: the new Saati 8012 laser holds far more detail and the Xitron RIP images at ~1270 dpi;
+     "need a way to make sure the sep files are setup so that they will rip cleaner". Workflow stays: the sep PSD (spot
+     channels) is placed in the .AI, and Xitron makes the TIFF. This page takes the sep PSD and gives back the same PSD,
+     ready for the laser:
+     - Resolution an exact fraction of 1270 (635 ppi, or 1270 for fine detail). A 300 ppi file has to be stretched 4.23x by
+       the RIP, so edges come out in uneven 4- and 5-dot steps.
+     - Solid channels: smoothed (scaled up, a slight blur, then cut at 50%) and pure black / white. No grey edge pixels, which
+       the RIP turns into tiny halftone dots (fuzzy edges, dots under 6% that don't hold). Line weight is unchanged.
+     - Halftone channels: resized only (bicubic); tones untouched. Optionally tones under 6% dropped to 0 or raised to 6%.
+     - Checks with the shop's limits (Stephen: dots hold at 6%, lines no smaller than 1pt): lines and gaps under 1pt, dots
+       under 6% and over 94%, each with the places they are.
+     - Before / after preview: 0.4" at the laser's 1270 dpi, simulating the RIP's halftone (round dot, 22.5 deg).
+     Same channels, names, colours and physical size; place it at 100% in the .AI as before. Nothing is uploaded: the file
+     never leaves this computer. No Airtable, so no practice mode. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laser Prep — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+.lp{padding:0 var(--p-page-x,16px)}
+.lp .p-panes{--p-panes-top:72px}
+.lp-step{display:flex;flex-direction:column;gap:10px}
+.lp-step+.lp-step{margin-top:14px}
+.drop{border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);background:var(--p-white);padding:22px 16px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;cursor:pointer}
+.drop.is-over{border-color:var(--p-black);background:var(--p-yellow-lt)}
+.drop b{font-size:16px}
+.file{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.file b{font-size:16px;overflow-wrap:anywhere}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;font-size:14px}
+.opt .p-input,.opt .p-select{width:auto;min-width:96px;min-height:40px;padding:6px 10px;font-size:14px}
+.opt label{font-weight:700}
+.go{display:flex;flex-direction:column;gap:6px}
+.go .p-btn-main{width:100%}
+.bar{height:8px;border-radius:4px;background:var(--p-line);overflow:hidden}.bar i{display:block;height:100%;background:var(--p-black);width:0}
+.pv{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pv figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pv figcaption{font-weight:700;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pv canvas{width:100%;height:auto;aspect-ratio:1;border:1px solid var(--p-line);border-radius:8px;background:#fff;image-rendering:pixelated}
+.pv-empty{grid-column:1/-1;display:grid;place-items:center;min-height:160px;border:2px dashed var(--p-line-strong);border-radius:var(--p-r-lg);color:var(--p-ink-2);font-weight:700;text-align:center;padding:16px}
+.chs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}
+.ch{display:flex;flex-direction:column;gap:10px}
+.ch.is-on{border:2px solid var(--p-black)}
+.ch-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sw{width:22px;height:22px;border-radius:5px;border:1px solid rgba(0,0,0,.3);flex:0 0 auto}
+.ch-h b{font-size:16px;overflow-wrap:anywhere}
+.ch-h .p-tag{margin-left:auto}
+.ch canvas{width:100%;height:auto;border:1px solid var(--p-line);border-radius:6px;cursor:crosshair;background:#fff}
+.ck{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.ck li{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ck .ok{color:var(--p-ink-2)}
+.pl{border:1px solid var(--p-alert);color:var(--p-alert);background:#fff;border-radius:6px;font:700 12px/1 var(--p-sans);padding:5px 7px;min-height:28px;cursor:pointer}
+.pl:hover{background:var(--p-alert-lt)}
+.kind{display:flex;gap:6px}
+.kind .p-tab{min-height:36px;padding:0 12px;font-size:13px}
+.howto{font-size:14px;line-height:1.45}
+.howto ol{margin:6px 0 0;padding-left:20px}
+@media (max-width:1099px){.lp .p-panes{grid-template-columns:1fr}.lp .p-pane-side,.lp .p-pane-main{height:auto;overflow:visible}}
+@media (max-width:640px){.pv{grid-template-columns:1fr}}
+</style></head>
+<body class="p-app">
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Laser Prep</span><span class="p-bar-ver" id="ver">v1</span>
+  <div class="p-bar-sp"><button class="p-barbtn" id="newBtn" type="button" hidden>↺ <span class="p-barbtn-word">New file</span></button></div></header>
+<div class="lp"><div class="p-panes is-tools">
+  <aside class="p-pane-side">
+    <section class="p-card lp-step">
+      <span class="p-section">1 · Sep PSD</span>
+      <label class="drop" id="drop" tabindex="0"><b>Drop the sep PSD here</b><span class="p-hint">or tap to choose · the PSD with the spot channels that goes in the .AI</span>
+        <input type="file" id="file" accept=".psd,.psb,image/vnd.adobe.photoshop" hidden></label>
+      <div class="file" id="fileInfo" hidden></div>
+    </section>
+    <section class="p-card lp-step">
+      <span class="p-section">2 · Output</span>
+      <div class="seg" role="radiogroup" aria-label="Resolution" id="ppiSeg"></div>
+      <p class="p-hint" id="ppiHint" style="margin:0"></p>
+      <div class="opt">
+        <label for="smooth">Smoothing</label><select class="p-select" id="smooth"><option value="0.6">Light</option><option value="1" selected>Normal</option><option value="1.4">Strong</option></select>
+        <label for="snap">Dots under the minimum</label><select class="p-select" id="snap"><option value="leave">Leave</option><option value="zero">Drop to 0%</option><option value="min">Raise to the minimum</option></select>
+        <label for="minDot">Smallest dot that holds (%)</label><input class="p-input" id="minDot" type="number" min="1" max="20" step="0.5" value="6">
+        <label for="minLine">Thinnest line (pt)</label><input class="p-input" id="minLine" type="number" min="0.25" max="4" step="0.25" value="1">
+        <label for="lpi">Preview LPI</label><input class="p-input" id="lpi" type="number" min="20" max="300" step="5" value="200">
+      </div>
+    </section>
+    <section class="p-card lp-step go">
+      <button class="p-btn p-btn-main p-btn-lg" id="goBtn" type="button" disabled>Download laser-ready PSD</button>
+      <div class="bar" id="bar" hidden><i id="barI"></i></div>
+      <span class="p-hint" id="goMsg">Drop a PSD first.</span>
+    </section>
+    <section class="p-note howto"><b>Then</b><ol><li>Place the new PSD in the .AI at <b>100%</b>, in place of the old one (same size, so nothing moves).</li><li>Rip as usual. Xitron makes the TIFF.</li></ol><span class="p-hint">The file stays on this computer. Nothing is uploaded.</span></section>
+  </aside>
+  <main class="p-pane-main">
+    <section class="p-card">
+      <div class="p-pane-head"><span class="p-section">Preview</span><span class="p-hint" id="pvWhere"></span></div>
+      <div class="pv" id="pv"><div class="pv-empty">Click a channel picture, or a flagged place, to see 0.4″ of it at the laser's 1270 dpi: as it rips now, and laser-ready.</div></div>
+    </section>
+    <div class="chs" id="chs"></div>
+  </main>
+</div></div>
+
+<script type="text/plain" id="core">
+/* ---- shared by the page and its worker ---- */
+var DEV=1270;
+function psdParse(buf){ const dv=new DataView(buf), u8=new Uint8Array(buf);
+  if(u8.length<26||String.fromCharCode(u8[0],u8[1],u8[2],u8[3])!=='8BPS') throw new Error('This isn\'t a Photoshop file (.psd).');
+  const ver=dv.getUint16(4), psb=ver===2; let p=12;
+  const nch=dv.getUint16(p); p+=2; const h=dv.getUint32(p); p+=4; const w=dv.getUint32(p); p+=4; const depth=dv.getUint16(p); p+=2; const mode=dv.getUint16(p); p+=2;
+  if(depth!==8&&depth!==16) throw new Error('This PSD is '+depth+'-bit. Save it as 8-bit (or 16-bit).');
+  if(mode===0||mode===2) throw new Error('Bitmap and Indexed PSDs aren\'t supported. Use Grayscale or Multichannel.');
+  const cmLen=dv.getUint32(p); const cm=u8.slice(p+4,p+4+cmLen); p+=4+cmLen;
+  const resLen=dv.getUint32(p); p+=4; const resEnd=p+resLen, res=[];
+  while(p+12<=resEnd&&dv.getUint32(p)===0x3842494D){ const id=dv.getUint16(p+4); let q=p+6, nl=1+u8[q]; if(nl%2) nl++; const name=u8.slice(q,q+nl); q+=nl; const sz=dv.getUint32(q); q+=4; res.push({id,name,data:u8.slice(q,q+sz)}); p=q+sz+(sz%2); }
+  p=resEnd; const lm=psb?Number(dv.getBigUint64(p)):dv.getUint32(p); p+=(psb?8:4)+lm;
+  const comp=dv.getUint16(p); p+=2;
+  if(comp!==0&&comp!==1) throw new Error('This PSD\'s image is ZIP-compressed. In Photoshop, save it with "Maximize compatibility" on, or as 8-bit.');
+  const P={u8,dv,psb,nch,h,w,depth,mode,cm,res,comp,at:p};
+  const bps=depth/8, rowB=w*bps;
+  if(comp===1){ const cw=psb?4:2, n=nch*h; P.cnt=new Uint32Array(n); for(let i=0;i<n;i++) P.cnt[i]=psb?dv.getUint32(p+i*4):dv.getUint16(p+i*2);
+    P.off=new Float64Array(nch); let o=p+n*cw; for(let c=0;c<nch;c++){ P.off[c]=o; for(let y=0;y<h;y++) o+=P.cnt[c*h+y]; } }
+  P.rowB=rowB; P.ppi=300;
+  const r=res.find(x=>x.id===1005); if(r&&r.data.length>=4){ const v=new DataView(r.data.buffer,r.data.byteOffset).getUint32(0)/65536; if(v>10&&v<10000) P.ppi=v; }
+  return P; }
+function unpack(src,p,end,dst,n){ let i=0; while(i<n&&p<end){ let b=src[p++]; if(b>127) b-=256;
+  if(b>=0){ const m=Math.min(b+1,n-i); dst.set(src.subarray(p,p+m),i); p+=b+1; i+=b+1; } else if(b!==-128){ const v=src[p++], m=Math.min(-b+1,n-i); dst.fill(v,i,i+m); i+=-b+1; } } }
+function readChannel(P,c){ const {w,h,depth,rowB,u8}=P, out=new Uint8Array(w*h), tmp=depth===16?new Uint8Array(rowB):null;
+  if(P.comp===0){ const base=P.at+c*h*rowB; if(depth===8) out.set(u8.subarray(base,base+w*h)); else for(let i=0;i<w*h;i++) out[i]=u8[base+i*2];
+  } else { let o=P.off[c]; for(let y=0;y<h;y++){ const n=P.cnt[c*h+y]; if(depth===8) unpack(u8,o,o+n,out.subarray(y*w,y*w+w),w); else { unpack(u8,o,o+n,tmp,rowB); for(let x=0;x<w;x++) out[y*w+x]=tmp[x*2]; } o+=n; } }
+  return out; }
+function chanNames(P){ const base={1:1,3:3,4:4,7:0,8:1,9:3}[P.mode]??0, baseN={1:['Gray'],3:['Red','Green','Blue'],4:['Cyan','Magenta','Yellow','Black'],8:['Duotone'],9:['Lightness','a','b']}[P.mode]||[];
+  let names=[]; const u=P.res.find(x=>x.id===1045), a=P.res.find(x=>x.id===1006);
+  if(u){ const dv=new DataView(u.data.buffer,u.data.byteOffset,u.data.length); let p=0; while(p+4<=u.data.length){ const n=dv.getUint32(p); p+=4; let s=''; for(let i=0;i<n&&p+1<u.data.length;i++,p+=2){ const ch=dv.getUint16(p); if(ch) s+=String.fromCharCode(ch); } names.push(s); } }
+  else if(a){ let p=0; while(p<a.data.length){ const n=a.data[p++]; names.push(String.fromCharCode(...a.data.subarray(p,p+n))); p+=n; } }
+  const di=[]; const d=P.res.find(x=>x.id===1077), d0=P.res.find(x=>x.id===1007);
+  if(d){ const dv=new DataView(d.data.buffer,d.data.byteOffset,d.data.length); for(let p=4;p+13<=d.data.length;p+=13) di.push({cs:dv.getUint16(p),c:[dv.getUint16(p+2),dv.getUint16(p+4),dv.getUint16(p+6),dv.getUint16(p+8)],kind:dv.getUint8(p+12)}); }
+  else if(d0){ const dv=new DataView(d0.data.buffer,d0.data.byteOffset,d0.data.length); for(let p=0;p+14<=d0.data.length;p+=14) di.push({cs:dv.getUint16(p),c:[dv.getUint16(p+2),dv.getUint16(p+4),dv.getUint16(p+6),dv.getUint16(p+8)],kind:dv.getUint8(p+12)}); }
+  const out=[]; for(let c=0;c<P.nch;c++){ if(c<base) out.push({name:baseN[c]||('Channel '+(c+1)),kind:'base',rgb:[20,20,18]}); else { const i=c-base, x=di[i]; out.push({name:names[i]||('Channel '+(c+1)),kind:x?(x.kind===2?'spot':'alpha'):'spot',rgb:x?dispRgb(x):[20,20,18]}); } }
+  return out; }
+function dispRgb(x){ const c=x.c; if(x.cs===0) return [c[0]>>8,c[1]>>8,c[2]>>8];
+  if(x.cs===2){ const C=1-c[0]/65535,M=1-c[1]/65535,Y=1-c[2]/65535,K=1-c[3]/65535; return [255*(1-C)*(1-K),255*(1-M)*(1-K),255*(1-Y)*(1-K)].map(Math.round); }
+  if(x.cs===8){ const g=Math.round(255*(1-c[0]/10000)); return [g,g,g]; }
+  if(x.cs===7){ const L=c[0]/100, A=((c[1]<<16)>>16)/100, B=((c[2]<<16)>>16)/100; let fy=(L+16)/116, fx=fy+A/500, fz=fy-B/200; const f=t=>t>0.206893?t*t*t:(t-16/116)/7.787;
+    const X=0.95047*f(fx),Y=f(fy),Z=1.08883*f(fz); const g=v=>{ v=v<=0.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-0.055; return Math.max(0,Math.min(255,Math.round(v*255))); };
+    return [g(3.2406*X-1.5372*Y-0.4986*Z),g(-0.9689*X+1.8758*Y+0.0415*Z),g(0.0557*X-0.2040*Y+1.0570*Z)]; }
+  return [20,20,18]; }
+/* 0 = full ink, 255 = no ink (as Photoshop shows a channel) */
+function blur8(src,w,h,s){ const r=Math.max(1,Math.ceil(s*3)), k=new Float32Array(2*r+1); let t=0; for(let i=-r;i<=r;i++){ k[i+r]=Math.exp(-i*i/(2*s*s)); t+=k[i+r]; } for(let i=0;i<k.length;i++) k[i]/=t;
+  const tmp=new Uint8Array(w*h), out=new Uint8Array(w*h);
+  for(let y=0;y<h;y++){ const o=y*w; for(let x=0;x<w;x++){ let a=0; for(let i=-r;i<=r;i++){ let xx=x+i; xx=xx<0?0:xx>=w?w-1:xx; a+=src[o+xx]*k[i+r]; } tmp[o+x]=a+0.5; } }
+  for(let y=0;y<h;y++){ for(let x=0;x<w;x++){ let a=0; for(let i=-r;i<=r;i++){ let yy=y+i; yy=yy<0?0:yy>=h?h-1:yy; a+=tmp[yy*w+x]*k[i+r]; } out[y*w+x]=a+0.5; } }
+  return out; }
+function sizeAt(w,h,k){ return {W:Math.max(1,Math.round(w*k)),H:Math.max(1,Math.round(h*k))}; }
+/* solid: blur at the source, bilinear up, cut at 50% -> 0 / 255 */
+function solidRows(src,w,h,k,sigma,emit){ const b=sigma>0?blur8(src,w,h,sigma):src, {W,H}=sizeAt(w,h,k), row=new Uint8Array(W), x0=new Int32Array(W), fx=new Float32Array(W);
+  for(let x=0;x<W;x++){ let sx=(x+0.5)/k-0.5; sx=sx<0?0:sx>w-1?w-1:sx; const i=Math.min(Math.max(w-2,0),Math.floor(sx)); x0[x]=i; fx[x]=w>1?sx-i:0; }
+  for(let y=0;y<H;y++){ let sy=(y+0.5)/k-0.5; sy=sy<0?0:sy>h-1?h-1:sy; const j=Math.min(Math.max(h-2,0),Math.floor(sy)), fy=h>1?sy-j:0, r0=j*w, r1=h>1?r0+w:r0;
+    for(let x=0;x<W;x++){ const i=x0[x], f=fx[x], i1=w>1?i+1:i, a=b[r0+i]+(b[r0+i1]-b[r0+i])*f, c=b[r1+i]+(b[r1+i1]-b[r1+i])*f; row[x]=(a+(c-a)*fy)<127.5?0:255; }
+    emit(row,y,H); } return {W,H}; }
+/* halftone: Catmull-Rom, tones kept; snap tiny dots if asked */
+function cubicW(t){ const t2=t*t,t3=t2*t; return [(-t3+2*t2-t)/2,(3*t3-5*t2+2)/2,(-3*t3+4*t2+t)/2,(t3-t2)/2]; }
+function toneRows(src,w,h,k,snap,minDot,emit){ const {W,H}=sizeAt(w,h,k), row=new Uint8Array(W), xi=new Int32Array(W*4), xw=new Float32Array(W*4);
+  for(let x=0;x<W;x++){ const sx=(x+0.5)/k-0.5, i=Math.floor(sx), ww=cubicW(sx-i); for(let q=0;q<4;q++){ let ii=i-1+q; ii=ii<0?0:ii>=w?w-1:ii; xi[x*4+q]=ii; xw[x*4+q]=ww[q]; } }
+  const cache=new Map(); const hrow=j=>{ j=j<0?0:j>=h?h-1:j; let r=cache.get(j); if(r) return r; r=new Float32Array(W); const o=j*w; for(let x=0;x<W;x++){ const b=x*4; r[x]=src[o+xi[b]]*xw[b]+src[o+xi[b+1]]*xw[b+1]+src[o+xi[b+2]]*xw[b+2]+src[o+xi[b+3]]*xw[b+3]; } cache.set(j,r); return r; };
+  const lo=255*(1-minDot/100);   /* values above this (and below 255) are dots under the minimum */
+  for(let y=0;y<H;y++){ const sy=(y+0.5)/k-0.5, j=Math.floor(sy), ww=cubicW(sy-j); const R=[hrow(j-1),hrow(j),hrow(j+1),hrow(j+2)];
+    for(const key of cache.keys()) if(key<j-1) cache.delete(key);
+    for(let x=0;x<W;x++){ let v=R[0][x]*ww[0]+R[1][x]*ww[1]+R[2][x]*ww[2]+R[3][x]*ww[3]; v=v<0?0:v>255?255:Math.round(v);
+      if(snap!=='leave'&&v>lo&&v<255) v=snap==='zero'?255:Math.floor(lo); row[x]=v; }
+    emit(row,y,H); } return {W,H}; }
+/* morphology on 0/1 masks (r steps: plus, square, plus...) */
+function erode(m,w,h,r){ let a=m; for(let s=0;s<r;s++){ const b=new Uint8Array(w*h), sq=s%2===1;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x; if(!a[i]) continue; const L=x>0?a[i-1]:1, R=x<w-1?a[i+1]:1, U=y>0?a[i-w]:1, D=y<h-1?a[i+w]:1; let v=L&R&U&D;
+    if(v&&sq){ v=(x>0&&y>0?a[i-w-1]:1)&(x<w-1&&y>0?a[i-w+1]:1)&(x>0&&y<h-1?a[i+w-1]:1)&(x<w-1&&y<h-1?a[i+w+1]:1); } b[i]=v; } a=b; } return a; }
+function dilate(m,w,h,r){ let a=m; for(let s=r-1;s>=0;s--){ const b=new Uint8Array(w*h), sq=s%2===1;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x; let v=a[i]|(x>0?a[i-1]:0)|(x<w-1?a[i+1]:0)|(y>0?a[i-w]:0)|(y<h-1?a[i+w]:0);
+    if(!v&&sq) v=(x>0&&y>0?a[i-w-1]:0)|(x<w-1&&y>0?a[i-w+1]:0)|(x>0&&y<h-1?a[i+w-1]:0)|(x<w-1&&y<h-1?a[i+w+1]:0); b[i]=v; } a=b; } return a; }
+/* places: 0.5" cells with flagged pixels, most first */
+function places(mask,w,h,ppi,min){ const cs=Math.max(8,Math.round(ppi/2)), gw=Math.ceil(w/cs), gh=Math.ceil(h/cs), g=new Uint32Array(gw*gh);
+  for(let y=0;y<h;y++){ const gy=(y/cs|0)*gw, o=y*w; for(let x=0;x<w;x++) if(mask[o+x]) g[gy+(x/cs|0)]++; }
+  const out=[]; for(let i=0;i<g.length;i++) if(g[i]>=min) out.push({n:g[i],x:((i%gw)+0.5)*cs/ppi,y:((i/gw|0)+0.5)*cs/ppi}); out.sort((a,b)=>b.n-a.n); return out; }
+function analyze(src,w,h,ppi,lim){ const n=w*h; let ink=0, pure0=0, pure255=0; for(let i=0;i<n;i++){ const v=src[i]; if(v<128) ink++; if(v===0) pure0++; else if(v===255) pure255++; }
+  if(pure0===n||pure255===n) return {empty:pure255===n,full:pure0===n,ink:ink/n,kind:'solid',thinInk:[],thinGap:[],lowDot:[],highDot:[]};
+  /* interior mid-tones (not the anti-aliased edge of a solid shape) mean a halftone channel */
+  const pure=new Uint8Array(n); for(let i=0;i<n;i++){ const v=src[i]; pure[i]=v<=12||v>=243?1:0; }
+  const near=dilate(pure,w,h,2); let interior=0; const lowM=new Uint8Array(n), highM=new Uint8Array(n); const lo=255*(1-lim.minDot/100), hi=255*lim.minDot/100;
+  for(let i=0;i<n;i++){ const v=src[i]; if(!pure[i]&&!near[i]) interior++; if(!near[i]){ if(v>lo&&v<255) lowM[i]=1; else if(v>0&&v<hi) highM[i]=1; } }
+  const kind=interior>Math.max(300,0.0005*ink)?'tone':'solid';
+  const b=new Uint8Array(n), wb=new Uint8Array(n); for(let i=0;i<n;i++){ b[i]=src[i]<128?1:0; wb[i]=1-b[i]; }
+  const r=Math.max(1,Math.round(ppi*lim.minLine/72/2));   /* opening radius: features narrower than the thinnest line */
+  /* thin = left over after an opening AND more than a line-width from what survived it: a hairline or a speck, not the
+     staircase of an edge or the point of a leaf (those sit right against the shape they belong to) */
+  const oi=dilate(erode(b,w,h,r),w,h,r), og=dilate(erode(wb,w,h,r),w,h,r), ni=dilate(oi,w,h,2*r), ng=dilate(og,w,h,2*r), ti=new Uint8Array(n), tg=new Uint8Array(n);
+  for(let i=0;i<n;i++){ if(b[i]&&!ni[i]) ti[i]=1; else if(wb[i]&&!ng[i]) tg[i]=1; }
+  const mn=Math.max(3,Math.round(ppi/100));
+  return {ink:ink/n,kind,interior,thinInk:places(ti,w,h,ppi,mn),thinGap:places(tg,w,h,ppi,mn),lowDot:kind==='tone'?places(lowM,w,h,ppi,mn):[],highDot:kind==='tone'?places(highM,w,h,ppi,mn):[],_ti:ti,_tg:tg}; }
+function thumb(src,w,h,max,flags,rgb){ const s=Math.max(w,h)/max, W=Math.max(1,Math.round(w/s)), H=Math.max(1,Math.round(h/s)), out=new Uint8ClampedArray(W*H*4);
+  const fl=new Uint8Array(W*H); if(flags) for(const f of flags) if(f) for(let y=0;y<h;y++){ const ty=Math.min(H-1,y/s|0), o=y*w; for(let x=0;x<w;x++) if(f[o+x]) fl[ty*W+Math.min(W-1,x/s|0)]=1; }
+  for(let ty=0;ty<H;ty++) for(let tx=0;tx<W;tx++){ const x0=Math.floor(tx*s), y0=Math.floor(ty*s), x1=Math.min(w,Math.max(x0+1,Math.floor((tx+1)*s))), y1=Math.min(h,Math.max(y0+1,Math.floor((ty+1)*s)));
+    let a=0,c=0; const st=Math.max(1,Math.floor((x1-x0)/4)); for(let y=y0;y<y1;y+=st) for(let x=x0;x<x1;x+=st){ a+=src[y*w+x]; c++; }
+    const t=1-a/c/255, o=(ty*W+tx)*4; if(fl[ty*W+tx]){ out[o]=198; out[o+1]=40; out[o+2]=40; } else { out[o]=255-(255-rgb[0])*t; out[o+1]=255-(255-rgb[1])*t; out[o+2]=255-(255-rgb[2])*t; } out[o+3]=255; }
+  return {W,H,px:out}; }
+/* the RIP: device pixels at 1270 dpi; greys become round dots (22.5 deg) */
+function screenDot(v,x,y,lpi){ if(v<=0) return 1; if(v>=255) return 0; const t=1-v/255, cell=DEV/lpi, A=0.3927, u=(x*Math.cos(A)+y*Math.sin(A))/cell, w=(-x*Math.sin(A)+y*Math.cos(A))/cell;
+  const spot=(Math.cos(2*Math.PI*u)+Math.cos(2*Math.PI*w))/4+0.5; return t>1-spot?1:0; }
+</script>
+
+<script>
+(0,eval)(document.getElementById('core').textContent);
+const $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ST={file:null,info:null,chans:[],kinds:{},ppiOut:635,sel:null,busy:false};
+window.pineBusy=()=>!!ST.file||ST.busy;
+/* ---- worker ---- */
+const WK=new Worker(URL.createObjectURL(new Blob([document.getElementById('core').textContent+`
+let P=null, CH=[], AN=[];
+const lim=()=>({minDot:L.minDot,minLine:L.minLine}); let L={minDot:6,minLine:1};
+function sendThumb(c,names){ const a=AN[c]; const t=thumb(CH[c],P.w,P.h,360,a&&(a.thinInk.length||a.thinGap.length||a.lowDot.length||a.highDot.length)?[a._ti,a._tg]:null,names[c].rgb); return t; }
+onmessage=async e=>{ const m=e.data; try{
+  if(m.t==='open'){ P=psdParse(m.buf); L=m.lim; const names=chanNames(P); CH=[]; AN=[];
+    postMessage({t:'info',info:{w:P.w,h:P.h,ppi:P.ppi,nch:P.nch,depth:P.depth,mode:P.mode,psb:P.psb},names});
+    for(let c=0;c<P.nch;c++){ postMessage({t:'prog',msg:'Checking '+names[c].name+' ('+(c+1)+' of '+P.nch+')',f:c/P.nch}); CH[c]=readChannel(P,c); AN[c]=analyze(CH[c],P.w,P.h,P.ppi,L);
+      const a=AN[c], th=sendThumb(c,names); a._ti=a._tg=null; postMessage({t:'chan',c,an:{empty:a.empty,full:a.full,ink:a.ink,kind:a.kind,thinInk:a.thinInk,thinGap:a.thinGap,lowDot:a.lowDot,highDot:a.highDot},thumb:th},[th.px.buffer]); }
+    postMessage({t:'opened'}); }
+  if(m.t==='recheck'){ L=m.lim; const names=chanNames(P); for(let c=0;c<P.nch;c++){ postMessage({t:'prog',msg:'Checking again ('+(c+1)+' of '+P.nch+')',f:c/P.nch}); AN[c]=analyze(CH[c],P.w,P.h,P.ppi,L); const a=AN[c], th=sendThumb(c,names); a._ti=a._tg=null;
+      postMessage({t:'chan',c,an:{empty:a.empty,full:a.full,ink:a.ink,kind:a.kind,thinInk:a.thinInk,thinGap:a.thinGap,lowDot:a.lowDot,highDot:a.highDot},thumb:th,re:true},[th.px.buffer]); } postMessage({t:'opened'}); }
+  if(m.t==='crop'){ const s=CH[m.c], ppi=P.ppi, M=24, x0=Math.max(0,Math.floor(m.x*ppi)-M), y0=Math.max(0,Math.floor(m.y*ppi)-M), x1=Math.min(P.w,Math.ceil((m.x+m.sz)*ppi)+M), y1=Math.min(P.h,Math.ceil((m.y+m.sz)*ppi)+M);
+    const cw=x1-x0, ch=y1-y0, out=new Uint8Array(cw*ch); for(let y=0;y<ch;y++) out.set(s.subarray((y0+y)*P.w+x0,(y0+y)*P.w+x1),y*cw);
+    postMessage({t:'crop',id:m.id,x0,y0,cw,ch,ppi,px:out},[out.buffer]); }
+  if(m.t==='export'){ const k=m.ppi/P.ppi, {W,H}=sizeAt(P.w,P.h,k);
+    if(W>30000||H>30000) throw new Error('At '+m.ppi+' ppi this file is '+W+' × '+H+' pixels, over Photoshop\\'s PSD limit (30,000). Use 635 ppi.');
+    const cnt=new Uint16Array(P.nch*H), chunks=[]; let buf=new Uint8Array(8<<20), len=0;
+    const flush=()=>{ if(len){ chunks.push(buf.slice(0,len)); len=0; } };
+    const pack=(row,W)=>{ if(len+W+(W>>6)+16>buf.length) flush(); let i=0, o=len; while(i<W){ let j=i+1; while(j<W&&j-i<128&&row[j]===row[i]) j++;
+        if(j-i>=3){ buf[o++]=(257-(j-i))&255; buf[o++]=row[i]; i=j; continue; }
+        const st=o++; let n=0, q=i; while(q<W&&n<128){ if(q+2<W&&row[q]===row[q+1]&&row[q]===row[q+2]) break; buf[o++]=row[q++]; n++; } buf[st]=n-1; i=q; }
+      const b=o-len; len=o; return b; };
+    for(let c=0;c<P.nch;c++){ const a=AN[c], kind=m.kinds[c]||a.kind, name=m.names[c];
+      const emit=(row,y,HH)=>{ cnt[c*H+y]=pack(row,W); if(y%256===0) postMessage({t:'prog',msg:'Writing '+name+' ('+(c+1)+' of '+P.nch+')',f:(c+y/HH)/P.nch}); };
+      if(a.empty||a.full){ const row=new Uint8Array(W).fill(a.full?0:255); for(let y=0;y<H;y++) emit(row,y,H); }
+      else if(kind==='tone') toneRows(CH[c],P.w,P.h,k,m.snap,L.minDot,emit);
+      else solidRows(CH[c],P.w,P.h,k,m.sigma,emit); }
+    flush();
+    /* header, the same colour mode data, the channel names / spot colours / resolution, no layers, RLE image */
+    const keep=[1006,1045,1077,1007,1053,1005]; const parts=[]; const hd=new DataView(new ArrayBuffer(26)); [56,66,80,83].forEach((b,i)=>hd.setUint8(i,b)); hd.setUint16(4,1); hd.setUint16(12,P.nch); hd.setUint32(14,H); hd.setUint32(18,W); hd.setUint16(22,8); hd.setUint16(24,P.mode); parts.push(hd.buffer);
+    const cmL=new DataView(new ArrayBuffer(4)); cmL.setUint32(0,P.cm.length); parts.push(cmL.buffer, P.cm);
+    const blocks=[]; let resLen=0; const res=P.res.filter(r=>keep.includes(r.id));
+    if(!res.find(r=>r.id===1005)) res.push({id:1005,name:new Uint8Array(2),data:new Uint8Array(16)});
+    for(const r of res){ let data=r.data; if(r.id===1005){ data=new Uint8Array(Math.max(16,r.data.length)); data.set(r.data); const dv=new DataView(data.buffer); dv.setUint32(0,Math.round(m.ppi*65536)); dv.setUint16(4,1); if(!r.data.length) dv.setUint16(6,1); dv.setUint32(8,Math.round(m.ppi*65536)); dv.setUint16(12,1); if(!r.data.length) dv.setUint16(14,1); }
+      const name=r.name&&r.name.length?r.name:new Uint8Array(2), pad=data.length%2, b=new Uint8Array(4+2+name.length+4+data.length+pad), dv=new DataView(b.buffer);
+      b.set([56,66,73,77]); dv.setUint16(4,r.id); b.set(name,6); dv.setUint32(6+name.length,data.length); b.set(data,10+name.length); blocks.push(b); resLen+=b.length; }
+    const rl=new DataView(new ArrayBuffer(4)); rl.setUint32(0,resLen); parts.push(rl.buffer,...blocks);
+    parts.push(new Uint8Array(4));   /* layer and mask section: none (the image data below is what the RIP uses) */
+    const cp=new DataView(new ArrayBuffer(2)); cp.setUint16(0,1); parts.push(cp.buffer);
+    const cb=new Uint8Array(cnt.length*2), cdv=new DataView(cb.buffer); for(let i=0;i<cnt.length;i++) cdv.setUint16(i*2,cnt[i]); parts.push(cb,...chunks);
+    const blob=new Blob(parts,{type:'image/vnd.adobe.photoshop'}); postMessage({t:'done',blob,W,H}); }
+}catch(err){ postMessage({t:'err',msg:String(err&&err.message||err)}); } };
+`],{type:'text/javascript'})));
+const PV={req:0};
+WK.onmessage=e=>{ const m=e.data;
+  if(m.t==='prog'){ prog(m.msg,m.f); }
+  else if(m.t==='info'){ ST.info=m.info; ST.chans=m.names.map((n,i)=>Object.assign({},n,{c:i})); drawInfo(); drawChans(); }
+  else if(m.t==='chan'){ const ch=ST.chans[m.c]; ch.an=m.an; ch.thumb=m.thumb; if(!m.re||!(m.c in ST.kinds)) {} drawChan(m.c); }
+  else if(m.t==='opened'){ ST.busy=false; prog(''); $('goBtn').disabled=false; goMsg(); if(ST.sel==null){ const first=ST.chans.find(ch=>ch.an&&!ch.an.empty&&!ch.an.full); if(first){ const f=firstPlace(first)||{x:ST.info.w/ST.info.ppi/2,y:ST.info.h/ST.info.ppi/2}; look(first.c,f.x,f.y); } } }
+  else if(m.t==='crop'){ if(m.id===PV.req) renderPv(m); }
+  else if(m.t==='done'){ ST.busy=false; prog(''); const a=document.createElement('a'), nm=outName(); a.href=URL.createObjectURL(m.blob); a.download=nm; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+    $('goBtn').disabled=false; $('goMsg').innerHTML=`Saved <b>${esc(nm)}</b> · ${(m.blob.size/1048576).toFixed(1)} MB · ${m.W} × ${m.H} px. Place it at 100% in the .AI.`; }
+  else if(m.t==='err'){ ST.busy=false; prog(''); $('goBtn').disabled=!ST.chans.length; $('goMsg').innerHTML=`<span style="color:var(--p-alert);font-weight:700">${esc(m.msg)}</span>`; } };
+function prog(msg,f){ $('bar').hidden=!msg; $('barI').style.width=Math.round((f||0)*100)+'%'; if(msg) $('goMsg').textContent=msg; }
+function lim(){ return {minDot:Math.max(1,Math.min(20,+$('minDot').value||6)),minLine:Math.max(0.25,Math.min(4,+$('minLine').value||1))}; }
+function outName(){ const n=(ST.file&&ST.file.name||'sep.psd').replace(/\.(psd|psb)$/i,''); return `${n}-laser${ST.ppiOut}.psd`; }
+/* ---- open ---- */
+async function openFile(f){ if(!f) return; if(!/\.(psd|psb)$/i.test(f.name)&&f.type!=='image/vnd.adobe.photoshop'){ $('goMsg').innerHTML='<span style="color:var(--p-alert);font-weight:700">That isn\'t a PSD. Drop the sep PSD (the one placed in the .AI).</span>'; return; }
+  ST.file=f; ST.info=null; ST.chans=[]; ST.kinds={}; ST.sel=null; ST.busy=true; $('newBtn').hidden=false; $('goBtn').disabled=true; $('chs').innerHTML=''; $('pv').innerHTML='<div class="pv-empty">Reading…</div>'; $('pvWhere').textContent='';
+  $('fileInfo').hidden=false; $('fileInfo').innerHTML=`<b>${esc(f.name)}</b><span class="p-hint">${(f.size/1048576).toFixed(1)} MB · reading…</span>`; prog('Reading the PSD…',0);
+  const buf=await f.arrayBuffer(); WK.postMessage({t:'open',buf,lim:lim()},[buf]); }
+function drawInfo(){ const i=ST.info, inW=i.w/i.ppi, inH=i.h/i.ppi, modes={1:'Grayscale',3:'RGB',4:'CMYK',7:'Multichannel',8:'Duotone',9:'Lab'};
+  const odd=Math.abs(DEV/i.ppi-Math.round(DEV/i.ppi))>0.01;
+  $('fileInfo').innerHTML=`<b>${esc(ST.file.name)}</b><span>${inW.toFixed(2)} × ${inH.toFixed(2)} in · <b>${Math.round(i.ppi*10)/10} ppi</b> · ${i.nch} channel${i.nch>1?'s':''} · ${modes[i.mode]||'mode '+i.mode}${i.depth===16?' · 16-bit (saved as 8-bit)':''}</span>
+    ${odd?`<span class="p-hint">The RIP stretches ${Math.round(i.ppi)} ppi by ${(DEV/i.ppi).toFixed(2)}×, an uneven step: some pixels become ${Math.floor(DEV/i.ppi)} laser dots, others ${Math.ceil(DEV/i.ppi)}.</span>`:''}`; ppiSeg(); }
+function ppiSeg(){ const i=ST.info; $('ppiSeg').innerHTML=[[635,'635 ppi'],[1270,'1270 ppi']].map(([v,l])=>`<button class="p-tab${ST.ppiOut===v?' is-on':''}" role="radio" aria-checked="${ST.ppiOut===v}" type="button" data-ppi="${v}">${l}</button>`).join('');
+  const sz=i?((i.w/i.ppi*ST.ppiOut)*(i.h/i.ppi*ST.ppiOut)/1e6):0;
+  $('ppiHint').textContent=(ST.ppiOut===635?'Exactly half of 1270: the RIP doubles every pixel evenly. Recommended.':'One pixel per laser dot, for very fine detail. About 4× the file size.')+(i?` · ${Math.round(sz)} megapixels a channel`:'');
+  $('ppiSeg').querySelectorAll('[data-ppi]').forEach(b=>b.onclick=()=>{ ST.ppiOut=+b.dataset.ppi; ppiSeg(); goMsg(); if(PV.last) look(PV.last.c,PV.last.cx,PV.last.cy); }); }
+function goMsg(){ if(!ST.chans.length||ST.busy) return; const n=ST.chans.filter(ch=>ch.an&&!ch.an.empty).length; $('goMsg').textContent=`${n} channel${n===1?'':'s'} with ink · saves as ${outName()}`; }
+/* ---- channels ---- */
+function kindOf(ch){ return ST.kinds[ch.c]||(ch.an&&ch.an.kind)||'solid'; }
+function drawChans(){ $('chs').innerHTML=ST.chans.map(ch=>`<section class="p-card ch" id="ch${ch.c}"></section>`).join(''); ST.chans.forEach(ch=>drawChan(ch.c)); }
+function firstPlace(ch){ const a=ch.an; if(!a) return null; return (a.thinInk[0]||a.thinGap[0]||a.lowDot[0]||a.highDot[0]||null); }
+function drawChan(c){ const ch=ST.chans[c], el=$('ch'+c); if(!el) return; const a=ch.an, k=kindOf(ch);
+  const sw=`<span class="sw" style="background:rgb(${ch.rgb.join(',')})"></span>`, tag=ch.kind==='alpha'?'<span class="p-tag p-tag-soft" title="An alpha channel (a saved selection), not a spot colour">Alpha</span>':ch.kind==='base'?'<span class="p-tag p-tag-soft">'+esc(ch.name)+' channel</span>':'';
+  if(!a){ el.innerHTML=`<div class="ch-h">${sw}<b>${esc(ch.name)}</b>${tag}</div><span class="p-hint">Checking…</span>`; return; }
+  if(a.empty||a.full){ el.innerHTML=`<div class="ch-h">${sw}<b>${esc(ch.name)}</b>${tag}</div><span class="p-hint">${a.empty?'No ink in this channel. Kept empty.':'Solid everywhere. Kept solid.'}</span>`; el.classList.toggle('is-on',ST.sel===c); return; }
+  const pl=(arr,what)=>arr.slice(0,8).map((p,i)=>`<button class="pl" type="button" data-x="${p.x}" data-y="${p.y}" title="Show this place">${i+1}</button>`).join('')+(arr.length>8?`<span class="p-hint">+${arr.length-8} more</span>`:'');
+  const L=lim(), rows=[];
+  rows.push(a.thinInk.length?`<li><span class="p-tag p-tag-alert">Lines under ${L.minLine}pt · ${a.thinInk.length} place${a.thinInk.length>1?'s':''}</span>${pl(a.thinInk)}</li>`:`<li class="ok">✓ No lines under ${L.minLine}pt</li>`);
+  rows.push(a.thinGap.length?`<li><span class="p-tag p-tag-alert" title="Thin knocked-out lines and gaps can fill in">Gaps under ${L.minLine}pt · ${a.thinGap.length} place${a.thinGap.length>1?'s':''}</span>${pl(a.thinGap)}</li>`:`<li class="ok">✓ No gaps under ${L.minLine}pt</li>`);
+  if(a.kind==='tone'||k==='tone'){ rows.push(a.lowDot.length?`<li><span class="p-tag p-tag-alert">Dots under ${L.minDot}% · ${a.lowDot.length} place${a.lowDot.length>1?'s':''}</span>${pl(a.lowDot)}</li>`:`<li class="ok">✓ No dots under ${L.minDot}%</li>`);
+    rows.push(a.highDot.length?`<li><span class="p-tag p-tag-alert" title="Tones this dark can close up and print solid">Tones over ${100-L.minDot}% · ${a.highDot.length} place${a.highDot.length>1?'s':''}</span>${pl(a.highDot)}</li>`:`<li class="ok">✓ No tones over ${100-L.minDot}%</li>`); }
+  el.innerHTML=`<div class="ch-h">${sw}<b>${esc(ch.name)}</b>${tag}</div>
+    <div class="kind" role="radiogroup" aria-label="How to prepare ${esc(ch.name)}"><button class="p-tab${k==='solid'?' is-on':''}" type="button" data-k="solid" title="Smoothed, pure black and white">Solid${a.kind==='solid'?' · auto':''}</button><button class="p-tab${k==='tone'?' is-on':''}" type="button" data-k="tone" title="Resized only, tones kept for the RIP's dots">Halftone${a.kind==='tone'?' · auto':''}</button></div>
+    <canvas width="${ch.thumb.W}" height="${ch.thumb.H}" aria-label="${esc(ch.name)}: click to preview a place"></canvas>
+    <ul class="ck">${rows.join('')}</ul>`;
+  el.classList.toggle('is-on',ST.sel===c);
+  const cv=el.querySelector('canvas'); cv.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(ch.thumb.px),ch.thumb.W,ch.thumb.H),0,0);
+  cv.onclick=e=>{ const r=cv.getBoundingClientRect(), i=ST.info; look(c,(e.clientX-r.left)/r.width*i.w/i.ppi,(e.clientY-r.top)/r.height*i.h/i.ppi); };
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ ST.kinds[c]=b.dataset.k; drawChan(c); if(PV.last&&PV.last.c===c) look(c,PV.last.cx,PV.last.cy); });
+  el.querySelectorAll('.pl').forEach(b=>b.onclick=()=>look(c,+b.dataset.x,+b.dataset.y)); }
+/* ---- preview ---- */
+const SZ=0.4;
+function look(c,cx,cy){ if(!ST.info) return; const i=ST.info; cx=Math.max(SZ/2,Math.min(i.w/i.ppi-SZ/2,cx)); cy=Math.max(SZ/2,Math.min(i.h/i.ppi-SZ/2,cy));
+  const prev=ST.sel; ST.sel=c; if(prev!=null&&prev!==c) drawChan(prev); const el=$('ch'+c); if(el) el.classList.add('is-on');
+  PV.last={c,cx,cy}; PV.req++; $('pvWhere').textContent=`${ST.chans[c].name} · ${cx.toFixed(2)}″ across, ${cy.toFixed(2)}″ down · 0.4″ square at 1270 dpi`;
+  WK.postMessage({t:'crop',id:PV.req,c,x:cx-SZ/2,y:cy-SZ/2,sz:SZ}); }
+function renderPv(m){ const {c,cx,cy}=PV.last, ch=ST.chans[c], k=kindOf(ch), lpi=Math.max(20,Math.min(300,+$('lpi').value||200)), N=Math.round(SZ*DEV), ppi=m.ppi;
+  const gx=(cx-SZ/2)*DEV, gy=(cy-SZ/2)*DEV;   /* device coordinates of the crop's corner (the screen angle is page-fixed) */
+  const now=new Uint8ClampedArray(N*N*4), rdy=new Uint8ClampedArray(N*N*4), ink=[40,40,40];
+  const put=(arr,i,on)=>{ const o=i*4; arr[o]=on?ink[0]:255; arr[o+1]=on?ink[1]:255; arr[o+2]=on?ink[2]:255; arr[o+3]=255; };
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){ const dx=gx+x, dy=gy+y; let sx=Math.floor(dx*ppi/DEV)-m.x0, sy=Math.floor(dy*ppi/DEV)-m.y0; sx=Math.max(0,Math.min(m.cw-1,sx)); sy=Math.max(0,Math.min(m.ch-1,sy)); put(now,y*N+x,screenDot(m.px[sy*m.cw+sx],dx,dy,lpi)); }
+  const kk=ST.ppiOut/ppi, ox=m.x0*kk, oy=m.y0*kk; let out=null, OW=0;
+  const keep=(row,y)=>{ if(!out){ OW=row.length; out=[]; } out[y]=row.slice(); };
+  const sig=+$('smooth').value, L=lim();
+  if(ch.an&&(ch.an.empty||ch.an.full)) { for(let i=0;i<N*N;i++) put(rdy,i,ch.an.full); }
+  else { if(k==='tone') toneRows(m.px,m.cw,m.ch,kk,$('snap').value,L.minDot,keep); else solidRows(m.px,m.cw,m.ch,kk,sig,keep);
+    const f=DEV/ST.ppiOut;
+    for(let y=0;y<N;y++) for(let x=0;x<N;x++){ const dx=gx+x, dy=gy+y; let px_=Math.floor(dx/f-ox), py=Math.floor(dy/f-oy); px_=Math.max(0,Math.min(OW-1,px_)); py=Math.max(0,Math.min(out.length-1,py)); put(rdy,y*N+x,screenDot(out[py][px_],dx,dy,lpi)); } }
+  $('pv').innerHTML=`<figure><figcaption>As it rips now <span class="p-hint">${Math.round(ppi)} ppi</span></figcaption><canvas id="cvNow" width="${N}" height="${N}"></canvas></figure>
+    <figure><figcaption>Laser-ready <span class="p-hint">${ST.ppiOut} ppi · ${k==='tone'?'halftone: resized, tones kept':'solid: smoothed, pure black/white'}</span></figcaption><canvas id="cvRdy" width="${N}" height="${N}"></canvas></figure>`;
+  $('cvNow').getContext('2d').putImageData(new ImageData(now,N,N),0,0); $('cvRdy').getContext('2d').putImageData(new ImageData(rdy,N,N),0,0); }
+/* ---- export ---- */
+$('goBtn').onclick=()=>{ if(!ST.chans.length||ST.busy) return; ST.busy=true; $('goBtn').disabled=true; prog('Starting…',0);
+  WK.postMessage({t:'export',ppi:ST.ppiOut,kinds:ST.chans.map(ch=>ST.kinds[ch.c]||null),names:ST.chans.map(ch=>ch.name),sigma:+$('smooth').value,snap:$('snap').value}); };
+/* ---- inputs ---- */
+const dz=$('drop');
+['dragenter','dragover'].forEach(t=>dz.addEventListener(t,e=>{ e.preventDefault(); dz.classList.add('is-over'); }));
+['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{ e.preventDefault(); dz.classList.remove('is-over'); }));
+dz.addEventListener('drop',e=>{ const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f&&!ST.busy) openFile(f); });
+dz.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('file').click(); } });
+document.addEventListener('dragover',e=>e.preventDefault()); document.addEventListener('drop',e=>{ e.preventDefault(); const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f&&!ST.busy&&!dz.contains(e.target)) openFile(f); });
+$('file').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; if(f&&!ST.busy) openFile(f); };
+$('newBtn').onclick=()=>{ if(ST.busy) return; $('file').click(); };
+['minDot','minLine'].forEach(id=>$(id).addEventListener('change',()=>{ if(!ST.chans.length||ST.busy) return; ST.busy=true; $('goBtn').disabled=true; WK.postMessage({t:'recheck',lim:lim()}); }));
+['smooth','snap','lpi'].forEach(id=>$(id).addEventListener('change',()=>{ if(PV.last) look(PV.last.c,PV.last.cx,PV.last.cy); }));
+ppiSeg();
+</script>
+<script src="pine-update.js" data-link="laser-prep.html"></script>
+<script>if(window.PineUpdate&&PineUpdate.ver) document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body></html>
