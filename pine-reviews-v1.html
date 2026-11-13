@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Reviews">
+<title>Pine Reviews</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<style>
+/* Pine Reviews v1 (2026-11-13) — performance reviews (manager + anonymous peers) and quarterly check-ins.
+   The page holds no data and no keys: everything comes from the pine-reviews worker for the person signed in
+   (personal link #k=… + PIN). ?practice=1 runs on made-up people inside the page and never calls the worker.
+   Built from pine-reviews-mockup-v10.html. Notes: notes/reviews.md */
+body{margin:0}
+[hidden].p-toast{display:none!important}
+.wrap{padding:0 var(--p-page-x)}
+.col{max-width:680px;margin:0 auto;padding:var(--p-s5) var(--p-page-x) var(--p-s6)}
+.col-wide{max-width:1200px}
+.p-bar-me{font:800 var(--p-fs-s)/1 var(--p-sans);color:var(--p-white);white-space:nowrap}
+.p-bar-sp{position:relative}
+
+.f-head{display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap}
+.f-who{font:900 var(--p-fs-xl)/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em}
+.f-sub{color:var(--p-ink-2);font-size:var(--p-fs-s)}
+.stack{display:grid;gap:var(--p-s3);grid-template-columns:minmax(0,1fr)}
+.st>*{min-width:0;overflow-wrap:anywhere}
+.q{background:var(--p-white);border:1px solid var(--p-line);border-left:6px solid var(--p-black);border-radius:var(--p-r-lg);padding:var(--p-s5);display:grid;gap:var(--p-s4)}
+.q.is-miss{border:2px solid var(--p-black);background:var(--p-yellow-lt)}
+.q-top{display:flex;gap:var(--p-s4);align-items:flex-start}
+.q-n{flex:none;display:grid;place-items:center;width:40px;height:40px;font:900 var(--p-fs-l)/1 var(--p-display);background:var(--p-black);color:var(--p-yellow);border-radius:4px}
+.q-t{display:block;font:700 22px/1.3 var(--p-sans);flex:1;min-width:0;color:var(--p-black)}
+.q-t .p-label{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+@media (max-width:700px){ .q{padding:var(--p-s4)} .q-t{font-size:19px} .q-n{width:34px;height:34px;font-size:var(--p-fs-m)} }
+.why{display:grid;gap:6px}
+.why .p-label{color:var(--p-black)}
+.why textarea{min-height:72px}
+.why-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;min-height:16px}
+.why-h .p-hint{font-size:var(--p-fs-xs);white-space:nowrap}
+.why.is-short .p-textarea{border-color:var(--p-black)}
+.why.is-short .why-h .p-hint{color:var(--p-black);font-weight:700}
+.rate{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rate button{min-height:64px;border:2px solid var(--p-line-strong);border-radius:var(--p-r);background:var(--p-white);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;padding:8px 6px;color:var(--p-black);font:400 var(--p-fs-xs)/1.25 var(--p-sans);text-align:center}
+.rate button b{font:900 22px/1 var(--p-display)}
+.rate button:hover{border-color:var(--p-black)}
+.rate button.is-on{background:var(--p-black);color:var(--p-white);border-color:var(--p-black)}
+.rate button.is-on b{color:var(--p-yellow)}
+.rate button:disabled{cursor:default}
+.rate-pick{display:none;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.lock{display:inline-flex;align-items:center;gap:6px;font:700 var(--p-fs-xs)/1.3 var(--p-sans);text-transform:uppercase;letter-spacing:.04em;color:var(--p-ink-2)}
+.prog{position:sticky;top:var(--bar-h,64px);z-index:5;background:var(--p-cream-lt);padding:10px 0 8px;margin:0 0 -4px;display:flex;align-items:center;gap:10px}
+.prog-bar{flex:1;height:6px;border-radius:3px;background:var(--p-cream-dk);overflow:hidden}
+.prog-bar i{display:block;height:100%;background:var(--p-black);transition:width .25s}
+.prog span{font:700 var(--p-fs-xs)/1 var(--p-sans);color:var(--p-ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.prog span.is-err{color:var(--p-alert)}
+.f-end{display:grid;gap:10px;margin:var(--p-s4) 0 var(--p-s6);justify-items:start}
+.f-end .p-btn{min-width:240px}
+.stack>.q,.f-end{scroll-margin-top:calc(var(--bar-h,64px) + 48px)}
+@media (max-width:700px){
+  .rate button span{display:none}
+  .rate button{min-height:60px;justify-content:center}
+  .rate button b{font-size:26px}
+  .rate-pick{display:block}
+  .col>.stack>.q{background:transparent;border:0;border-bottom:1px solid var(--p-line-strong);border-radius:0;padding:var(--p-s5) 0}
+  .col>.stack>.q.is-miss{background:var(--p-yellow-lt);border:0;border-radius:var(--p-r-lg);padding:var(--p-s4) var(--p-s3)}
+  .f-end{justify-items:stretch}
+  .f-end .p-btn{width:100%}
+}
+/* sign-in */
+.pin-dots{display:flex;gap:14px;justify-content:center;margin:var(--p-s3) 0}
+.pin-dots i{width:20px;height:20px;border-radius:50%;border:2px solid var(--p-black)}
+.pin-dots i.on{background:var(--p-black)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:320px;margin:0 auto;width:100%}
+.pad button{min-height:64px;border:2px solid var(--p-line-strong);border-radius:var(--p-r-lg);background:var(--p-white);font:900 26px/1 var(--p-display);color:var(--p-black);cursor:pointer}
+.pad button:active,.pad button.tap{background:var(--p-black);color:var(--p-yellow)}
+.pad button.ghost{visibility:hidden}
+.pad button:disabled{opacity:.4}
+.center{text-align:center}
+.done-ck{width:96px;height:96px;border-radius:50%;background:var(--p-black);color:var(--p-yellow);display:grid;place-items:center;font:900 52px/1 var(--p-display);margin:var(--p-s6) auto var(--p-s4)}
+.pick-card{display:grid;gap:4px;text-align:left;width:100%;padding:var(--p-s4);border:2px solid var(--p-black);border-radius:var(--p-r-lg);background:var(--p-white);cursor:pointer;font:400 var(--p-fs-m)/1.3 var(--p-sans);color:var(--p-black)}
+.pick-card b{font:800 var(--p-fs-l)/1.2 var(--p-sans)}
+.pick-card:hover{background:var(--p-cream)}
+/* next steps */
+.mine{display:grid;gap:var(--p-s2);margin:var(--p-s2) 0 var(--p-s4)}
+.mine .f-head{margin:0}
+.mt-step{gap:12px;min-height:52px;cursor:pointer;flex-wrap:wrap}
+.mt-step input{width:22px;height:22px;accent-color:var(--p-black)}
+.mt-step span:first-of-type{flex:1 1 55%}
+/* results */
+.res-top{display:grid;grid-template-columns:auto 1fr;gap:var(--p-s4);align-items:center}
+.res-score{background:var(--p-black);color:var(--p-white);border-radius:var(--p-r-lg);padding:var(--p-s4) var(--p-s5);text-align:center;min-width:150px}
+.res-score .p-big{color:var(--p-yellow);font-size:56px}
+.res-score .p-label{color:rgba(255,255,255,.75)}
+.rt{width:100%;border-collapse:collapse;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden}
+.rt th,.rt td{padding:10px 12px;border-top:1px solid var(--p-line);text-align:left;vertical-align:middle}
+.rt th{font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2);background:var(--p-cream-lt);border-top:0}
+.rt td.n{font:800 17px/1 var(--p-sans);font-variant-numeric:tabular-nums;white-space:nowrap;width:1%}
+.bar5{display:inline-block;width:90px;height:10px;border-radius:5px;background:var(--p-cream);vertical-align:middle;margin-left:8px;position:relative;overflow:hidden}
+.bar5 i{position:absolute;left:0;top:0;bottom:0;background:var(--p-black)}
+@media (max-width:700px){ .bar5{display:none} .res-top{grid-template-columns:1fr} }
+.cmt{background:var(--p-white);border:1px solid var(--p-line);border-left:4px solid var(--p-black);border-radius:var(--p-r);padding:10px 14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmt .p-label{display:block;margin-bottom:4px;white-space:normal}
+.cmt-peer{border-left-color:var(--p-cream-dk)}
+.rq{gap:var(--p-s3)}
+.rq-h{display:flex;align-items:center;gap:var(--p-s3);flex-wrap:wrap}
+.rq-h .q-t{flex:1 1 auto;font-size:18px}
+.rq-n{display:inline-flex;flex-direction:column;align-items:flex-end;min-width:64px}
+.rq-n small{font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.04em;color:var(--p-ink-2)}
+.rq-n b{font:800 20px/1.1 var(--p-sans);font-variant-numeric:tabular-nums}
+.mini{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:var(--p-fs-s)}
+/* check-in meeting */
+.mt{gap:var(--p-s3)}
+.mt-q{font-size:18px}
+.mt-a{background:var(--p-cream);border-radius:var(--p-r);padding:10px 14px;font-size:var(--p-fs-m);line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.mt-n{min-height:44px;font-size:var(--p-fs-s);background:var(--p-cream-lt)}
+.mt-next{display:flex;align-items:center;gap:8px;justify-content:space-between;border-bottom:1px solid var(--p-line);padding:4px 0}
+.mt-add{display:flex;gap:8px}
+.mt-add .p-input{flex:1}
+/* setup */
+.st{display:grid;grid-template-columns:minmax(170px,1.2fr) minmax(120px,.8fr) minmax(150px,1fr) 380px;gap:var(--p-s3);align-items:center;padding:10px var(--p-s4);border-top:1px solid var(--p-line);background:var(--p-white)}
+.st:first-child{border-top:0}
+.st.is-h{background:var(--p-cream-lt);font:700 var(--p-fs-xs)/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.06em;color:var(--p-ink-2);padding-top:8px;padding-bottom:8px}
+.st.is-off{color:var(--p-ink-3)}
+.st .p-btns{justify-content:flex-start}
+.st .p-btn{min-height:40px;padding:0 12px;font-size:var(--p-fs-s)}
+.st-cyc{grid-template-columns:minmax(170px,1.4fr) minmax(90px,.6fr) minmax(120px,.8fr) minmax(120px,.8fr) 120px}
+@media (max-width:900px){ .st,.st-cyc{grid-template-columns:1fr 1fr} .st>.p-btns{grid-column:1 / -1;justify-content:flex-start} .st.is-h{display:none} }
+.as-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.as-row .p-select{width:auto;min-width:0;flex:1 1 160px}
+.as-row .p-btn{white-space:normal;text-align:left;min-height:44px;height:auto;padding-top:8px;padding-bottom:8px}
+.q{grid-template-columns:minmax(0,1fr)}
+.chip{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 4px 0 10px;border-radius:var(--p-pill);background:var(--p-cream);border:1px solid var(--p-cream-dk);font:700 var(--p-fs-s)/1.2 var(--p-sans)}
+.chip button{width:28px;height:28px;border:0;background:transparent;border-radius:50%;cursor:pointer;font-size:16px;color:var(--p-ink-2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.linkbox{font:400 var(--p-fs-xs)/1.4 var(--p-sans);color:var(--p-ink-2);word-break:break-all;background:var(--p-cream-lt);border-radius:var(--p-r);padding:8px 10px}
+.p-pane-main > .stack{max-width:980px}
+.loading{color:var(--p-ink-2);padding:var(--p-s5) 0}
+@media print{ .p-bar,.p-pane-side,.f-end,.no-print{display:none!important} .p-panes{display:block} .p-pane-main{height:auto;overflow:visible} }
+.p-bar-views:empty{display:none}
+</style>
+</head>
+<body class="p-app">
+<header class="p-bar" id="bar">
+  <span class="p-mark"><span class="p-logo"></span></span>
+  <span class="p-bar-app">Reviews</span>
+  <span class="p-bar-ver" id="ver"></span>
+  <span class="p-tag p-tag-wait" id="practiceTag" hidden>Practice</span>
+  <nav class="p-bar-views" id="views" hidden></nav>
+  <div class="p-bar-sp">
+    <span class="p-bar-me" id="meName"></span>
+    <button class="p-barbtn" data-act="refresh" id="refreshBtn" hidden aria-label="Refresh">↻ <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" data-act="menu" id="gearBtn" hidden aria-label="Settings">⚙</button>
+    <div class="p-menu" id="menu" hidden></div>
+  </div>
+</header>
+<main id="app"></main>
+<div id="modal"></div>
+<div id="toast" class="p-toast" hidden role="status"></div>
+
+<script src="pine-update.js" data-link="reviews.html"></script>
+<script>
+'use strict';
+/* ======================================================================= setup */
+const WORKER = 'https://pine-reviews.stephen-dab.workers.dev';
+const QS = new URLSearchParams(location.search);
+const PRACTICE = QS.get('practice') === '1';
+const LOCALDEV = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const API = (LOCALDEV && QS.get('api')) || WORKER;   // ?api= only for local tests
+const MIN_TXT = 20;
+
+const ss = {   // sessionStorage, wrapped (private mode / blocked storage must not break the app)
+  get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} },
+};
+// The personal link code arrives after "#k=". Take it, then wipe it from the address bar at once.
+(function takeCode() {
+  const m = location.hash.match(/[#&]k=([A-Za-z0-9_-]{20,120})/);
+  if (m) { if (!PRACTICE) ss.set('rv.code', m[1]); history.replaceState(null, '', location.pathname + location.search); }
+})();
+
+const S = {
+  code: PRACTICE ? null : ss.get('rv.code'),
+  session: PRACTICE ? null : ss.get('rv.session'),
+  stage: 'boot', msg: '', hello: null, pin: '', pin1: '', pinBusy: false,
+  data: null, view: 'todo', pick: null, form: null,
+  crew: null, cycleId: null, rPick: null, results: null, cPick: null, ci: null,
+  admin: null, assign: { cycleId: null, items: [] },
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const firstOf = n => String(n || '').trim().split(/\s+/)[0] || '';
+const okT = t => typeof t === 'string' && t.trim().length >= MIN_TXT;
+const isRated = q => q.scale && q.scale !== 'None';
+const f1 = n => (n == null ? '—' : Number(n).toFixed(1));
+const day = d => { if (!d) return ''; const x = new Date(String(d).length <= 10 ? d + 'T12:00:00' : d); return isNaN(x) ? '' : x.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); };
+function toast(t, isAlert) { const el = $('#toast'); el.textContent = t; el.classList.toggle('is-alert', !!isAlert); el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2600); }
+
+const SCALES = {
+  'Expectations': ['Needs significant improvement', 'Below expectations', 'Meets expectations', 'Exceeds expectations', 'Exceptional — a role model'],
+  'Skills used': ['Badly under-used or in the wrong role', 'Under-used in some clear ways', 'A good fit for the role', 'Well used and engaged', 'Thriving — ready for more'],
+  'Not at all–Completely': ['Not at all', 'A little', 'Somewhat', 'Mostly', 'Completely'],
+  'Poor–Great': ['Poor', 'Fair', 'OK', 'Good', 'Great'],
+};
+const scaleLabels = s => SCALES[String(s || '').replace(/\s*[-—–]\s*/, '–')] || ['', '', '', '', ''];
+// the example box's label follows the number (Stephen: "what would get them to a four if they clicked 3")
+function whyPrompt(v, self) {
+  if (!v || v === 4) return 'Give one example';
+  if (v <= 2) return self ? 'What would help? Give one example' : 'What would help them improve? Give one example';
+  if (v === 3) return self ? 'What would make it a 4?' : 'What would get them to a 4?';
+  return 'What makes it a 5? Give one example';
+}
+
+/* ======================================================================= talking to the worker */
+class ApiErr extends Error { constructor(status, msg, extra) { super(msg); this.status = status; this.extra = extra || {}; } }
+async function call(path, body) {
+  let status, j;
+  if (PRACTICE) {
+    ({ status, j } = await Practice.call(path, body, S.session));
+  } else {
+    const h = { 'Content-Type': 'application/json' };
+    if (S.session) h.Authorization = 'Bearer ' + S.session;
+    let r;
+    try { r = await fetch(API + path, { method: 'POST', headers: h, body: JSON.stringify(body || {}), cache: 'no-store', referrerPolicy: 'no-referrer' }); }
+    catch (e) { throw new ApiErr(0, 'No connection. Check your signal and try again.'); }
+    status = r.status; j = await r.json().catch(() => ({}));
+  }
+  if (status >= 200 && status < 300) return j;
+  const err = new ApiErr(status, (j && j.error) || 'Something went wrong. Try again.', j);
+  if (status === 401 && S.session && !/^\/r\/(hello|signin|pin\/set)$/.test(path)) signedOut(err.message);
+  throw err;
+}
+function signedOut(msg) {
+  S.session = null; ss.set('rv.session', null); S.data = null; S.form = null;
+  startSignIn(msg || 'You were signed out. Enter your PIN again.');
+}
+
+/* ======================================================================= boot + sign-in */
+async function boot() {
+  $('#ver').textContent = 'v' + ((window.PineUpdate && PineUpdate.ver) || 1);
+  if (PRACTICE) { $('#practiceTag').hidden = false; await Practice.init(); S.stage = 'practice'; return render(); }
+  if (S.session) { try { await loadMe(); S.stage = 'app'; return render(); } catch (e) { if (e.status !== 401) { S.stage = 'msg'; S.msg = e.message; return render(); } } }
+  startSignIn();
+}
+async function startSignIn(note) {
+  S.session = null; ss.set('rv.session', null); S.pin = ''; S.pin1 = '';
+  if (!S.code) { S.stage = 'nolink'; S.msg = ''; return render(); }
+  S.stage = 'boot'; render();
+  try {
+    S.hello = await call('/r/hello', { code: S.code });
+    S.stage = S.hello.needsPin ? 'pin-set' : 'pin';
+    S.msg = S.hello.locked === 'hard' ? 'Locked. Ask the office to reset your PIN.'
+      : S.hello.locked === 'soft' ? 'Too many tries. Try again in 15 minutes.' : (note || '');
+  } catch (e) {
+    if (e.status === 401) { S.code = null; ss.set('rv.code', null); S.stage = 'nolink'; S.msg = e.message; }
+    else { S.stage = 'msg'; S.msg = e.message; }
+  }
+  render();
+}
+async function pinDone() {
+  const n = S.hello.pinLength;
+  if (S.pin.length !== n || S.pinBusy) return;
+  if (S.stage === 'pin-set') { S.pin1 = S.pin; S.pin = ''; S.stage = 'pin-again'; S.msg = ''; return render(); }
+  if (S.stage === 'pin-again' && S.pin !== S.pin1) { S.pin = ''; S.pin1 = ''; S.stage = 'pin-set'; S.msg = 'Those didn’t match. Try again.'; return render(); }
+  S.pinBusy = true; render();
+  try {
+    const setting = S.stage === 'pin-again';
+    const r = await call(setting ? '/r/pin/set' : '/r/signin', { code: S.code, pin: S.pin });
+    S.session = r.session; if (!PRACTICE) ss.set('rv.session', r.session);
+    S.pin = ''; S.pin1 = ''; S.msg = '';
+    await loadMe(); S.stage = 'app';
+    toast(setting ? 'PIN set' : 'Signed in');
+  } catch (e) {
+    S.pin = '';
+    if (e.status === 423) S.msg = e.extra.locked === 'hard' ? 'Locked. Ask the office to reset your PIN.' : 'Too many tries. Try again in 15 minutes.';
+    else if (e.status === 401 && e.extra.triesLeft != null) S.msg = `That PIN isn’t right. ${e.extra.triesLeft} ${e.extra.triesLeft === 1 ? 'try' : 'tries'} left before a lock.`;
+    else if (e.status === 401) { S.code = null; ss.set('rv.code', null); S.stage = 'nolink'; S.msg = e.message; }
+    else if (e.status === 409 && e.extra.needsPin) { S.stage = 'pin-set'; S.msg = 'Pick a PIN first.'; }
+    else if (e.status === 409) { S.stage = 'pin'; S.msg = e.message; }
+    else S.msg = e.message;
+  } finally { S.pinBusy = false; render(); }
+}
+function pinKey(k, btn) {
+  if (!k || S.pinBusy || !S.hello || S.hello.locked) return;
+  if (btn) { btn.classList.add('tap'); setTimeout(() => btn.classList.remove('tap'), 150); }
+  if (k === '⌫') S.pin = S.pin.slice(0, -1); else if (S.pin.length < S.hello.pinLength) S.pin += k;
+  renderPinDots();
+  if (S.pin.length === S.hello.pinLength) setTimeout(pinDone, 180);
+}
+async function loadMe() {
+  S.data = await call('/r/me');
+  const role = S.data.me.role;
+  const allowed = viewsFor().map(v => v[0]);
+  if (!allowed.includes(S.view)) S.view = 'todo';
+  if (role !== 'Employee' && !S.data.assignments.some(a => a.status !== 'Sent') && !S.data.steps.length && S.view === 'todo' && !S._landed) S.view = 'results';
+  S._landed = true;
+}
+async function signOut() {
+  try { await call('/r/signout'); } catch (e) {}
+  S.session = null; ss.set('rv.session', null); S.data = null; S.form = null; S.crew = null; S.admin = null;
+  if (PRACTICE) { S.stage = 'practice'; return render(); }
+  startSignIn('Signed out.');
+}
+
+/* ======================================================================= views */
+function viewsFor() {
+  const role = S.data?.me.role;
+  const v = [['todo', 'To do']];
+  if (role === 'Lead' || role === 'Admin') v.push(['results', 'Results'], ['checkins', 'Check-ins']);
+  if (role === 'Admin') v.push(['setup', 'Setup']);
+  return v;
+}
+function render() {
+  const inApp = S.stage === 'app' && S.data;
+  const views = $('#views');
+  views.hidden = !inApp;
+  if (inApp) {
+    const open = S.data.assignments.filter(a => a.status !== 'Sent').length;
+    views.innerHTML = viewsFor().map(([k, l]) => `<button class="${k === S.view ? 'is-on' : ''}" data-view="${k}">${l}${k === 'todo' ? `<span class="p-count">${open || ''}</span>` : ''}</button>`).join('');
+  }
+  $('#meName').textContent = inApp ? S.data.me.first : '';
+  $('#refreshBtn').hidden = !inApp; $('#gearBtn').hidden = !inApp && !PRACTICE;
+  $('#menu').hidden = true;
+  document.documentElement.style.setProperty('--bar-h', $('#bar').offsetHeight + 'px');
+  const A = $('#app');
+  if (!inApp) { A.innerHTML = `<div class="col">${signInHTML()}</div>`; return; }
+  if (S.view === 'todo') return rTodo();
+  if (S.view === 'results') return rResults();
+  if (S.view === 'checkins') return rCheckins();
+  if (S.view === 'setup') return rSetup();
+}
+function panes(nolist) {
+  const A = $('#app');
+  if (!$('#app > .wrap > .p-panes') || A.dataset.panes !== String(!!nolist)) {
+    A.innerHTML = `<div class="wrap"><div class="p-panes${nolist ? ' is-nolist' : ''}"><aside class="p-pane-side" id="side"></aside><section class="p-pane-main" id="main"></section></div></div>`;
+    A.dataset.panes = String(!!nolist);
+  }
+  document.documentElement.style.setProperty('--p-panes-top', $('#bar').offsetHeight + 'px');
+  return [$('#side'), $('#main')];
+}
+function col(html, wide) { const A = $('#app'); A.dataset.panes = ''; A.innerHTML = `<div class="col${wide ? ' col-wide' : ''}">${html}</div>`; }
+
+/* ----------------------------------------------------------------------- sign-in screens */
+function signInHTML() {
+  if (S.stage === 'boot') return '<p class="loading center">Opening…</p>';
+  if (S.stage === 'practice') return practiceHTML();
+  if (S.stage === 'nolink') return `<div class="stack center"><div class="done-ck">!</div><div class="f-who">Open your link</div>
+    <p class="f-sub" style="font-size:16px">${esc(S.msg || 'Open the personal link from your text or email to get to your reviews.')}</p>
+    <p class="p-hint">Lost it? Ask the office for a new one.</p></div>`;
+  if (S.stage === 'msg') return `<div class="stack center"><div class="done-ck">!</div><p class="f-sub" style="font-size:16px">${esc(S.msg)}</p>
+    <div><button class="p-btn" data-act="retry">Try again</button></div></div>`;
+  const h = S.hello, n = h.pinLength;
+  const title = S.stage === 'pin-set' ? `Pick a ${n}-digit PIN. You’ll use it every time you open your reviews.`
+    : S.stage === 'pin-again' ? 'Enter the same PIN again.' : `Enter your ${n}-digit PIN.`;
+  const locked = !!h.locked;
+  return `<div class="stack center" id="pinbox">
+    <div class="f-who" style="margin-top:12px">Hi ${esc(h.first)}</div>
+    <div class="f-sub" style="font-size:16px">${title}</div>
+    <div class="pin-dots" id="dots" aria-label="${S.pin.length} of ${n} digits"></div>
+    ${S.msg ? `<div class="p-note${/match|right|signed out/i.test(S.msg) ? ' p-note-wait' : locked ? ' p-note-alert' : ''}" role="alert" style="text-align:left">${esc(S.msg)}</div>` : ''}
+    <div class="pad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(k => `<button class="${k ? '' : 'ghost'}" data-key="${k}" aria-label="${k === '⌫' ? 'Delete' : k}" ${locked || S.pinBusy ? 'disabled' : ''}>${k}</button>`).join('')}</div>
+    <p class="p-hint">${S.pinBusy ? 'Checking…' : 'Forgot it? Ask the office to reset it.'}</p></div>`;
+}
+function renderPinDots() {
+  const d = $('#dots'); if (!d || !S.hello) return;
+  const n = S.hello.pinLength;
+  d.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < S.pin.length ? 'on' : ''}"></i>`).join('');
+  d.setAttribute('aria-label', `${S.pin.length} of ${n} digits`);
+}
+const _render = render;   // dots after every render of a PIN screen
+render = function () { _render(); renderPinDots(); };
+
+/* ----------------------------------------------------------------------- To do: list, forms, done */
+function myStepsHTML() {
+  const st = S.data.steps || []; if (!st.length) return '';
+  const lead = firstOf(S.data.me.lead?.name) || 'your manager';
+  const left = st.filter(s => !s.employeeDone).length;
+  return `<div class="mine"><div class="f-head"><span class="p-section">Your next steps <span class="p-count">${left || ''}</span></span></div>
+    <p class="p-hint" style="margin:0">From your last check-in with ${esc(lead)}. Tick them off as you go.</p>
+    <div class="p-list">${st.map(s => `<label class="p-row mt-step"><input type="checkbox" data-mystep="${esc(s.id)}" ${s.employeeDone ? 'checked' : ''}><span>${esc(s.step)}</span>${s.employeeDone ? '<span class="p-tag p-tag-soft">You marked done</span>' : ''}</label>`).join('')}</div></div>`;
+}
+const KIND_TITLE = { 'Manager review': 'Manager review', 'Peer review': 'Peer review', 'Check-in': 'Quarterly check-in' };
+function rTodo() {
+  if (S.pick) return rForm();
+  const d = S.data, list = d.assignments.slice().sort((a, b) => (a.status === 'Sent') - (b.status === 'Sent') || String(a.kind).localeCompare(b.kind));
+  const open = list.filter(a => a.status !== 'Sent');
+  const dues = open.map(a => a.cycle?.due).filter(Boolean).sort();
+  const card = a => `<div class="p-lc ${a.status === 'Sent' ? 'is-done' : ''}"><div class="p-lc-head is-tap" role="button" tabindex="0" data-open="${esc(a.id)}">
+      <div class="p-lc-main"><span class="p-lc-title">${a.kind === 'Check-in' ? 'Your check-in' : esc(a.about?.name)}</span>
+      <span class="p-lc-sub">${KIND_TITLE[a.kind] || esc(a.kind)}${a.kind !== 'Check-in' && a.about?.department ? ' · ' + esc(a.about.department) : ''}${a.cycle ? ' · ' + esc(a.cycle.name) : ''}</span></div>
+      <div class="p-lc-tags">${a.status === 'Sent' ? '<span class="p-tag p-tag-done">✓ Sent</span>' : a.status === 'In progress' ? '<span class="p-tag p-tag-wait">Started</span>' : '<span class="p-tag p-tag-wait">To do</span>'}${a.status !== 'Sent' && a.cycle?.due ? `<span class="p-tag p-tag-soft">Due ${day(a.cycle.due)}</span>` : ''}</div></div></div>`;
+  col(`<div class="stack">${myStepsHTML()}
+    <div class="f-head"><span class="p-section">To do <span class="p-count">${open.length || ''}</span></span></div>
+    <p class="f-sub" style="margin:0">${open.length ? `${dues.length ? 'Due ' + day(dues[0]) + ' · ' : ''}about 10 minutes each${open.some(a => a.kind === 'Peer review') ? ' · your name is never shown to the people you review' : ''}` : 'Nothing to fill in right now. Thanks!'}</p>
+    ${open.map(card).join('')}
+    ${list.length > open.length ? `<span class="p-label" style="margin-top:12px">Sent</span>${list.filter(a => a.status === 'Sent').map(card).join('')}` : ''}</div>`);
+}
+function formQs(kind) { return S.data.questions.filter(q => q.form === kind).sort((a, b) => a.order - b.order); }
+async function openForm(id) {
+  const a = S.data.assignments.find(x => x.id === id); if (!a) return;
+  S.pick = id; S.form = { asg: a, ans: {}, dirty: new Set(), saving: false, saved: false, err: null, loading: true, miss: new Set() };
+  render(); scrollTo(0, 0);
+  try {
+    const r = await call('/r/assignment/get', { id });
+    if (S.form?.asg.id !== id) return;
+    for (const x of r.answers) S.form.ans[x.q] = { score: x.score, text: x.text || '' };
+    S.form.asg.status = r.assignment.status; S.form.saved = r.answers.length > 0; S.form.loading = false;
+  } catch (e) { if (S.form) { S.form.loading = false; S.form.loadErr = e.message; } }
+  if (S.pick === id) render();
+}
+function missingIds() {
+  const f = S.form; if (!f) return [];
+  return formQs(f.asg.kind).filter(q => { const v = f.ans[q.id] || {}; return !okT(v.text) || (isRated(q) && !(v.score >= 1 && v.score <= 5)); }).map(q => q.id);
+}
+function progCounts() { const n = formQs(S.form.asg.kind).length; return [n - missingIds().length, n]; }
+function progText() {
+  const f = S.form, [d, n] = progCounts();
+  const st = f.saving || f.dirty.size ? 'saving…' : f.err ? 'not saved yet' : f.saved ? 'saved' : '';
+  return `${d} of ${n}${st ? ' · ' + st : ''}`;
+}
+function setProg() {
+  if (!S.form) return; const [d, n] = progCounts();
+  const i = $('#progi'), t = $('#progt'); if (!i) return;
+  i.style.width = (n ? d / n * 100 : 0) + '%'; t.textContent = progText(); t.classList.toggle('is-err', !!S.form.err && !S.form.saving);
+  const l = $('#left'); if (l) l.textContent = leftText();
+}
+function leftText() { const n = missingIds().length; return n ? `${n} left. Every question needs ${S.form.asg.kind === 'Check-in' ? 'an answer' : 'a number and one example'}.` : 'All answered. Ready to send.'; }
+function rateRow(qid, val, labels, ro) {
+  return `<div class="rate" role="radiogroup">${labels.map((l, i) => `<button type="button" role="radio" aria-checked="${val === i + 1}" aria-label="${i + 1}${l ? ' · ' + esc(l) : ''}" class="${val === i + 1 ? 'is-on' : ''}" data-rate="${esc(qid)}" data-v="${i + 1}" ${ro ? 'disabled' : ''}><b>${i + 1}</b><span>${esc(l)}</span></button>`).join('')}</div>
+    <div class="rate-pick">${val ? `<b>${val}</b>${labels[val - 1] ? ' · ' + esc(labels[val - 1]) : ''}` : ''}</div>`;
+}
+function cntText(t) { const n = String(t || '').trim().length; return n >= MIN_TXT ? '✓' : n ? 'Add a bit more' : ''; }
+function whyBox(q, v, ro, self) {
+  const t = v.text || '', n = t.trim().length, rated = isRated(q);
+  return `<div class="why ${n && n < MIN_TXT ? 'is-short' : ''}"><div class="why-h">${rated ? `<label class="p-label" for="w-${esc(q.id)}">${whyPrompt(v.score, self)}</label>` : '<span></span>'}<span class="p-hint" data-cnt="${esc(q.id)}">${cntText(t)}</span></div>
+    <textarea class="p-textarea" id="w-${esc(q.id)}" data-q="${esc(q.id)}" rows="${rated ? 2 : 3}" enterkeyhint="done" ${ro ? 'readonly' : ''} aria-label="${esc(q.short || q.wording)}">${esc(t)}</textarea></div>`;
+}
+function rForm() {
+  const f = S.form, a = f.asg, ro = a.status === 'Sent', check = a.kind === 'Check-in', peer = a.kind === 'Peer review';
+  const back = `<button class="p-btn p-btn-quiet no-print" data-act="back" style="padding-left:0">‹ Your reviews</button>`;
+  if (f.loading) return col(back + '<p class="loading">Loading…</p>');
+  if (f.loadErr) return col(back + `<div class="p-note p-note-alert">${esc(f.loadErr)}</div>`);
+  const qs = formQs(a.kind), lead = firstOf(S.data.me.lead?.name) || 'your manager';
+  let n = 0, sec = '';
+  const one = q => {
+    const v = f.ans[q.id] || {}, rated = isRated(q);
+    const num = check || rated ? ++n : 0;
+    let head = '';
+    if (check && q.section && q.section !== sec) { sec = q.section; head = `<span class="p-section">${esc(sec)}</span>`; }
+    return `${head}<div class="q${f.miss.has(q.id) ? ' is-miss' : ''}" data-box="${esc(q.id)}">
+      <div class="q-top">${num ? `<span class="q-n">${num}</span>` : ''}<div class="q-t">${!check && q.short && rated ? `<span class="p-label">${esc(q.short)}${q.counts ? '' : ' <span class="p-tag p-tag-soft">Not in the score</span>'}</span>` : ''}${esc(q.wording)}</div></div>
+      ${q.private ? '<span class="lock">🔒 Only the owner sees this answer, not your manager. “None” plus a reason is fine.</span>' : ''}
+      ${rated ? rateRow(q.id, v.score, scaleLabels(q.scale), ro) : ''}
+      ${whyBox(q, v, ro, check)}</div>`;
+  };
+  const [d, nq] = progCounts();
+  const intro = check
+    ? `<div><div class="f-who">${esc(a.cycle?.name || 'Check-in')}</div><div class="f-sub">Answer these before you meet with ${esc(lead)}. You’ll go over them together. Nothing here is scored.</div></div>
+       <div class="p-note">A sentence or two each is plenty.</div>${myStepsHTML()}`
+    : `<div><div class="f-who">${esc(a.about?.name)}</div><div class="f-sub">${esc(a.about?.role || '')}${a.about?.department ? ' · ' + esc(a.about.department) : ''}</div></div>
+       <div class="p-note">${peer ? `<b>Your name is never shown</b> to ${esc(firstOf(a.about?.name))}. ` : ''}1 is low, 5 is high. Every answer needs one example.</div>`;
+  col(`${back}<div class="stack" data-form="${esc(a.id)}">
+    <div class="f-head"><span class="p-section">${KIND_TITLE[a.kind] || esc(a.kind)}</span>${ro ? '<span class="p-tag p-tag-done">✓ Sent</span>' : ''}</div>
+    ${intro}
+    ${ro ? '<div class="p-note p-note-done">Sent and locked. Thanks!</div>' : `<div class="prog" aria-live="polite"><div class="prog-bar"><i id="progi" style="width:${nq ? d / nq * 100 : 0}%"></i></div><span id="progt">${progText()}</span></div>`}
+    ${qs.map(one).join('')}
+    ${ro ? '' : `<div class="f-end"><span class="p-hint" id="left">${leftText()}</span><button class="p-btn p-btn-main p-btn-lg" data-act="send">${check ? 'Send to ' + esc(lead) : 'Send review'}</button></div>`}
+  </div>`);
+}
+function scheduleSave(ms) { const f = S.form; if (!f) return; clearTimeout(f.t); f.t = setTimeout(saveNow, ms == null ? 1500 : ms); setProg(); }
+async function saveNow() {
+  const f = S.form; if (!f || f.saving || !f.dirty.size || f.asg.status === 'Sent') return;
+  const qids = [...f.dirty]; f.dirty.clear(); f.saving = true; setProg();
+  try {
+    await call('/r/assignment/save', { id: f.asg.id, answers: qids.map(q => ({ q, score: f.ans[q]?.score ?? null, text: f.ans[q]?.text || '' })) });
+    f.saved = true; f.err = null;
+    if (f.asg.status === 'Not started') f.asg.status = 'In progress';
+  } catch (e) {
+    qids.forEach(q => f.dirty.add(q)); f.err = e.message;
+    if (e.status === 0 || e.status >= 500 || e.status === 429) setTimeout(() => S.form === f && scheduleSave(0), 5000);
+    else if (e.status !== 401) toast(e.message, true);
+  } finally {
+    f.saving = false; setProg();
+    if (f.dirty.size && !f.err) scheduleSave();
+  }
+}
+async function flushSave() {
+  const f = S.form; clearTimeout(f.t);
+  for (let i = 0; i < 40 && (f.saving || f.dirty.size); i++) { if (!f.saving) await saveNow(); else await new Promise(r => setTimeout(r, 150)); if (f.err) break; }
+  return !f.dirty.size && !f.err;
+}
+async function sendForm(btn) {
+  const f = S.form; if (!f) return;
+  const miss = missingIds();
+  if (miss.length) { f.miss = new Set(miss); markMissing(); toast(`${miss.length} left: ${f.asg.kind === 'Check-in' ? 'each needs an answer' : 'each needs a number and one example'}`); return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    if (!(await flushSave())) throw new ApiErr(0, f.err || 'Not saved yet. Check your signal and try again.');
+    await call('/r/assignment/send', { id: f.asg.id });
+    f.asg.status = 'Sent';
+    const a = S.data.assignments.find(x => x.id === f.asg.id); if (a) a.status = 'Sent';
+    const left = S.data.assignments.filter(x => x.status !== 'Sent').length;
+    S.form = null; S.pick = null;
+    if (!left) return doneScreen(f.asg);
+    toast(`Sent. ${left} left.`); render(); scrollTo(0, 0);
+  } catch (e) {
+    if (e.extra?.missing) { f.miss = new Set(e.extra.missing.map(m => m.id)); markMissing(); }
+    toast(e.message, true); btn.disabled = false; btn.textContent = f.asg.kind === 'Check-in' ? 'Send to ' + (firstOf(S.data.me.lead?.name) || 'your manager') : 'Send review';
+  }
+}
+function markMissing() {
+  document.querySelectorAll('.q[data-box]').forEach(el => el.classList.toggle('is-miss', S.form.miss.has(el.dataset.box)));
+  document.querySelector('.q.is-miss')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function doneScreen(a) {
+  const lead = firstOf(S.data.me.lead?.name) || 'your manager', first = S.data.me.first;
+  render();
+  col(a.kind === 'Check-in'
+    ? `<div class="stack center"><div class="done-ck">✓</div><div class="f-who">Sent to ${esc(lead)}</div>
+       <p class="f-sub" style="font-size:16px">Thanks, ${esc(first)}. ${esc(lead)} will go over your answers with you at your check-in.</p>
+       <p class="p-hint">After the meeting your next steps show up here.</p></div><div class="stack">${myStepsHTML()}</div>`
+    : `<div class="stack center"><div class="done-ck">✓</div><div class="f-who">All done</div>
+       <p class="f-sub" style="font-size:16px">Thanks, ${esc(first)}. Your reviews are sent and locked. Nothing else is due.</p></div><div class="stack">${myStepsHTML()}</div>`);
+  scrollTo(0, 0);
+}
+function setScore(qid, v) {
+  const f = S.form; if (!f || f.asg.status === 'Sent') return;
+  const cur = (f.ans[qid] ||= { score: null, text: '' });
+  const fresh = !cur.text.trim(); cur.score = v; f.dirty.add(qid); f.miss.delete(qid);
+  const y = scrollY; rForm(); scrollTo(0, y);
+  scheduleSave();
+  if (fresh) document.getElementById('w-' + qid)?.focus({ preventScroll: false });
+}
+
+/* ----------------------------------------------------------------------- auto-advance (from mockup v7)
+   Tap a number → its example box opens. Close the keyboard (Done, return, or tap the page) → glide to the next
+   unanswered question, or to Send. Stays put when the example is too short or when they tapped something themselves. */
+let lastTapUI = 0;
+document.addEventListener('pointerdown', e => { if (e.target.closest('button,textarea,input,select,a,label')) lastTapUI = Date.now(); }, true);
+document.addEventListener('keydown', e => {
+  const el = e.target;
+  if (e.key === 'Enter' && !e.shiftKey && el.matches?.('textarea[data-q]')) { e.preventDefault(); el.blur(); return; }
+  if (e.key === 'Enter' && el.id === 'newstep') { e.preventDefault(); addStep(); return; }
+  if (S.stage.startsWith('pin') && !el.matches?.('input,textarea')) {
+    if (/^\d$/.test(e.key)) pinKey(e.key); else if (e.key === 'Backspace') pinKey('⌫');
+  }
+});
+document.addEventListener('focusout', e => {
+  const el = e.target;
+  if (el.matches?.('textarea[data-note]')) return scheduleNotes(0);
+  if (!el.matches?.('textarea[data-q]')) return;
+  scheduleSave(0);
+  const at = Date.now();
+  setTimeout(() => {
+    if (lastTapUI > at - 200) return;
+    if (document.activeElement?.matches?.('textarea,input,select')) return;
+    const box = el.closest('[data-box]'); if (!box || !S.form) return;
+    const miss = new Set(missingIds()); if (miss.has(box.dataset.box)) return;
+    const boxes = [...document.querySelectorAll('.stack [data-box]')], i = boxes.indexOf(box);
+    const next = boxes.slice(i + 1).find(b => miss.has(b.dataset.box)) || boxes.find(b => miss.has(b.dataset.box)) || document.querySelector('.f-end');
+    next?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 320);
+});
+
+/* ----------------------------------------------------------------------- Results (lead / admin) */
+async function ensureCrew(force) {
+  if (!S.crew || force) S.crew = (await call('/r/crew')).people;
+  if (S.data.me.role === 'Admin' && (!S.admin || force)) await loadAdmin();
+}
+function cyclesOfType(type) {
+  const list = S.data.me.role === 'Admin' && S.admin ? S.admin.cycles : S.data.cycles;
+  return list.filter(c => c.type === type).sort((a, b) => (b.status === 'Open') - (a.status === 'Open') || String(b.opens || '').localeCompare(a.opens || ''));
+}
+function cyclePicker(type, cur) {
+  const cs = cyclesOfType(type);
+  if (cs.length < 2) return cs[0] ? `<span class="p-hint">${esc(cs[0].name)}</span>` : '';
+  return `<select class="p-select" data-cycle="${type}" style="width:auto;min-height:36px;padding:4px 8px">${cs.map(c => `<option value="${esc(c.id)}" ${c.id === cur ? 'selected' : ''}>${esc(c.name)}${c.status !== 'Open' ? ' (' + esc(c.status) + ')' : ''}</option>`).join('')}</select>`;
+}
+async function rResults() {
+  const [side, main] = panes();
+  if (!S.crew) { side.innerHTML = '<p class="loading">Loading…</p>'; main.innerHTML = ''; try { await ensureCrew(); } catch (e) { side.innerHTML = `<div class="p-note p-note-alert">${esc(e.message)}</div>`; return; } }
+  const cyc = cyclesOfType('Review');
+  if (!S.rCycle || !cyc.some(c => c.id === S.rCycle)) S.rCycle = cyc[0]?.id || null;
+  const admin = S.data.me.role === 'Admin';
+  side.innerHTML = `<div class="p-pane-head"><span class="p-section">Results <span class="p-count">${S.crew.length || ''}</span></span><div class="p-pane-head-end">${cyclePicker('Review', S.rCycle)}</div></div>
+    <p class="p-pane-hint">${admin ? 'Everyone' : 'Your crew'} · score = manager ${weightPct()}%, peers ${100 - weightPct()}%</p>
+    ${S.crew.map(p => `<div class="p-lc is-compact ${p.id === S.rPick ? 'is-open' : ''}"><div class="p-lc-head is-tap" role="button" tabindex="0" data-rpick="${esc(p.id)}">
+      <div class="p-lc-main"><span class="p-lc-title">${esc(p.name)}</span><span class="p-lc-sub">${esc(p.department || p.role)}</span></div><div class="p-lc-nums"></div>
+      <div class="p-lc-tags">${p.managerReview ? (p.managerReview.status === 'Sent' ? '<span class="p-tag p-tag-done">✓ Manager</span>' : '<span class="p-tag p-tag-wait">Manager review</span>') : ''}<span class="p-tag p-tag-soft">Peers ${p.peers.sent}/${p.peers.total}</span></div></div></div>`).join('') || '<p class="p-hint">No one to show yet.</p>'}`;
+  if (!S.rPick) { main.innerHTML = '<div class="p-split-empty">Pick someone on the left</div>'; return; }
+  if (!S.results || S.results._k !== S.rPick + S.rCycle) {
+    main.innerHTML = '<p class="loading">Loading…</p>';
+    try { if (!S.rCycle) throw new ApiErr(0, 'No review cycle yet.'); S.results = await call('/r/results', { personId: S.rPick, cycleId: S.rCycle }); S.results._k = S.rPick + S.rCycle; }
+    catch (e) { main.innerHTML = `<div class="p-note p-note-alert">${esc(e.message)}</div>`; return; }
+  }
+  main.innerHTML = resultsHTML(S.results);
+}
+function weightPct() { const c = (S.admin?.cycles || []).find(x => x.id === S.rCycle); let w = c?.managerWeight ?? 0.75; if (w > 1) w /= 100; return Math.round(w * 100); }
+function resultsHTML(r) {
+  const p = r.person, m = r.manager, pr = r.peers, w = Math.round((r.score.weight ?? 0.75) * 100);
+  const mBy = new Map(m.answers.map(a => [a.key, a]));
+  const pBy = new Map(pr.questions.map(q => [q.key, q]));
+  const keys = [...new Set([...m.answers.map(a => a.key), ...pr.questions.map(q => q.key)])];
+  const info = k => mBy.get(k) || pBy.get(k);
+  const counted = keys.filter(k => info(k).rated && info(k).counts);
+  const note = !m.sent ? `Waiting on the manager review${pr.shown ? '' : ''}.`
+    : pr.shown ? `Manager ${w}% · Peers ${100 - w}% (${pr.sent})`
+    : `Manager only: ${pr.sent} of ${pr.total} peer${pr.total === 1 ? '' : 's'} sent, needs ${pr.min}`;
+  const cell = v => v == null ? '<td class="n">—</td>' : `<td class="n">${f1(v)}<span class="bar5"><i style="width:${v / 5 * 100}%"></i></span></td>`;
+  const gap = k => { const mv = mBy.get(k)?.score, pv = pBy.get(k)?.avg; return mv != null && pv != null && Math.abs(mv - pv) >= 1; };
+  const rows = counted.map(k => `<tr><td>${esc(info(k).short || info(k).wording)} ${gap(k) ? '<span class="p-tag p-tag-wait">Talk about</span>' : ''}</td>${cell(mBy.get(k)?.score)}${cell(pBy.get(k)?.avg)}</tr>`).join('');
+  const peerCmts = k => (pBy.get(k)?.texts || []).map(t => `<div class="cmt cmt-peer"><span class="p-label">A peer</span>${esc(t)}</div>`).join('');
+  const qCard = k => { const i = info(k), mv = mBy.get(k), pv = pBy.get(k);
+    return `<div class="q rq"><div class="rq-h"><span class="q-t">${esc(i.short || i.wording)}</span>${!i.counts ? '<span class="p-tag p-tag-soft">Not in the score</span>' : ''}${gap(k) ? '<span class="p-tag p-tag-wait">Talk about</span>' : ''}
+      <span class="rq-n"><small>Manager</small><b>${mv?.score ?? '—'}</b></span>${pv ? `<span class="rq-n"><small>Peers (${pr.sent})</small><b>${f1(pv.avg)}</b></span>` : ''}</div>
+      ${mv?.text ? `<div class="cmt"><span class="p-label">Manager</span>${esc(mv.text)}</div>` : ''}${peerCmts(k)}</div>`; };
+  const openCard = k => { const i = info(k), mv = mBy.get(k);
+    return `<div class="q rq"><span class="q-t" style="font-size:18px">${esc(i.wording)}</span>
+      ${mv?.text ? `<div class="cmt"><span class="p-label">Manager</span>${esc(mv.text)}</div>` : ''}${peerCmts(k)}</div>`; };
+  const by = pr.byWriter;
+  return `<div class="stack">
+    <div class="f-head"><span class="p-section">Results</span><span class="p-hint">${esc(r.cycle?.name || '')}</span></div>
+    <div class="res-top">
+      <div class="res-score"><div class="p-label">Score</div><div class="p-big">${f1(r.score.total)}</div><div class="p-label" style="margin-top:6px">out of 5</div></div>
+      <div><div class="f-who">${esc(p.name)}</div><div class="f-sub">${esc(p.department || p.role)}</div><p class="p-hint" style="margin:8px 0 0">${esc(note)}</p></div>
+    </div>
+    ${!pr.shown && pr.sent ? `<div class="p-note">Peer answers stay hidden until at least ${pr.min} peers have sent, so no one can tell who wrote what.</div>` : ''}
+    ${counted.length ? `<table class="rt"><thead><tr><th>Question</th><th>Manager</th><th>Peers${pr.shown ? ` (${pr.sent})` : ''}</th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+    ${m.sent || pr.shown ? `<span class="p-section">Question by question</span>
+      ${keys.filter(k => info(k).rated).map(qCard).join('')}
+      ${keys.filter(k => !info(k).rated).map(openCard).join('')}` : ''}
+    ${by && by.length ? `<span class="p-section">Who wrote what · admins only</span>
+      ${by.map(b => `<div class="q rq"><div class="rq-h"><span class="q-t">${esc(b.writer?.name || '?')}</span></div>
+        ${b.answers.map(a => `<div class="cmt cmt-peer"><span class="p-label">${esc(info(a.key)?.short || a.key)}${a.score != null ? ' · ' + a.score : ''}</span>${esc(a.text)}</div>`).join('')}</div>`).join('')}` : ''}
+    <div class="f-end"><button class="p-btn" data-act="print">Print</button></div>
+  </div>`;
+}
+
+/* ----------------------------------------------------------------------- Check-ins (lead / admin): the meeting screen */
+async function rCheckins() {
+  const [side, main] = panes();
+  if (!S.crew) { side.innerHTML = '<p class="loading">Loading…</p>'; main.innerHTML = ''; try { await ensureCrew(); } catch (e) { side.innerHTML = `<div class="p-note p-note-alert">${esc(e.message)}</div>`; return; } }
+  const cyc = cyclesOfType('Check-in');
+  if (!S.cCycle || !cyc.some(c => c.id === S.cCycle)) S.cCycle = cyc[0]?.id || null;
+  side.innerHTML = `<div class="p-pane-head"><span class="p-section">Check-ins <span class="p-count">${S.crew.length || ''}</span></span><div class="p-pane-head-end">${cyclePicker('Check-in', S.cCycle)}</div></div>
+    <p class="p-pane-hint">Their answers come in before you meet. Read them, then take notes in the meeting.</p>
+    ${S.crew.map(p => { const c = p.checkin && p.checkin.cycleId === S.cCycle ? p.checkin : (p.checkin && !S.cCycle ? p.checkin : null);
+      return `<div class="p-lc is-compact ${p.id === S.cPick ? 'is-open' : ''}"><div class="p-lc-head is-tap" role="button" tabindex="0" data-cpick="${esc(p.id)}">
+      <div class="p-lc-main"><span class="p-lc-title">${esc(p.name)}</span><span class="p-lc-sub">${esc(p.department || p.role)}</span></div><div class="p-lc-nums"></div>
+      <div class="p-lc-tags">${!c ? '<span class="p-tag p-tag-soft">No check-in set up</span>' : c.metAt ? '<span class="p-tag p-tag-done">✓ Met</span>' : c.status === 'Sent' ? '<span class="p-tag p-tag-wait">Answers in</span>' : '<span class="p-tag p-tag-soft">Not answered yet</span>'}</div></div></div>`; }).join('') || '<p class="p-hint">No one to show yet.</p>'}`;
+  if (!S.cPick) { main.innerHTML = '<div class="p-split-empty">Pick someone on the left</div>'; return; }
+  if (!S.ci || S.ci._k !== S.cPick + S.cCycle) {
+    main.innerHTML = '<p class="loading">Loading…</p>';
+    try {
+      if (!S.cCycle) throw new ApiErr(0, 'No check-in cycle yet.');
+      const r = await call('/r/checkin', { personId: S.cPick, cycleId: S.cCycle });
+      S.ci = { ...r, _k: S.cPick + S.cCycle, confirm: new Set(r.steps.filter(s => s.employeeDone).map(s => s.id)), newSteps: [], dirty: false, saving: false };
+    } catch (e) { main.innerHTML = `<div class="p-note p-note-alert">${esc(e.message)}</div>`; return; }
+  }
+  main.innerHTML = meetingHTML();
+}
+function meetingHTML() {
+  const c = S.ci, first = firstOf(c.person.name), admin = S.data.me.role === 'Admin';
+  const ro = !!c.metAt && !admin;
+  if (!c.assignmentId) return `<div class="stack"><div class="f-head"><span class="p-section">Check-in meeting</span></div>
+    <div><div class="f-who">${esc(c.person.name)}</div></div><div class="p-note">No check-in is set up for ${esc(first)} in this cycle.${admin ? ' Add one under Setup.' : ' Ask an admin to add one.'}</div></div>`;
+  let n = 0, sec = '';
+  const qHTML = q => { n++;
+    const head = q.section && q.section !== sec ? `<span class="p-section">${esc(sec = q.section)}</span>` : '';
+    if (q.hidden) return `${head}<div class="q mt"><div class="q-top"><span class="q-n">${n}</span><div class="q-t mt-q">${esc(q.wording)}</div></div><div class="p-note">🔒 ${esc(first)}’s answer goes to the owner only.</div></div>`;
+    const lab = isRated(q) && q.score ? `<span class="p-tag p-tag-done">${q.score} · ${esc(scaleLabels(q.scale)[q.score - 1])}</span> ` : '';
+    return `${head}<div class="q mt"><div class="q-top"><span class="q-n">${n}</span><div class="q-t mt-q">${esc(q.wording)}</div></div>
+      ${c.answersIn ? `<div class="mt-a">${lab}${q.private ? '🔒 ' : ''}${esc(q.text || '—')}</div>` : ''}
+      <textarea class="p-textarea mt-n" data-note="${esc(q.key)}" rows="1" placeholder="Your notes (optional)" ${ro ? 'readonly' : ''}>${esc(c.notes[q.key] || '')}</textarea></div>`; };
+  return `<div class="stack">
+    <div class="f-head"><span class="p-section">Check-in meeting</span>${c.metAt ? `<span class="p-tag p-tag-done">✓ Met ${day(c.metAt)}</span>` : c.answersIn ? '<span class="p-tag p-tag-done">✓ Answers in</span>' : '<span class="p-tag p-tag-wait">Answers not in yet</span>'}<span class="p-hint" id="ciSaved"></span></div>
+    <div><div class="f-who">${esc(c.person.name)}</div><div class="f-sub">${esc(c.person.department || c.person.role)}</div></div>
+    ${c.answersIn ? '' : `<div class="p-note">${esc(first)} hasn’t sent answers yet. You can still meet and take notes.</div>`}
+    ${c.steps.length ? `<span class="p-section">Last quarter’s next steps</span><p class="p-hint" style="margin:-4px 0 0">Tick the ones you agree are done.</p>
+      <div class="p-list">${c.steps.map(s => `<label class="p-row mt-step"><input type="checkbox" data-step="${esc(s.id)}" ${c.confirm.has(s.id) ? 'checked' : ''} ${ro ? 'disabled' : ''}><span>${esc(s.step)}</span>${s.employeeDone ? `<span class="p-tag p-tag-wait">${esc(first)} says done</span>` : '<span class="p-tag p-tag-soft">Not yet</span>'}</label>`).join('')}</div>` : ''}
+    ${c.questions.map(qHTML).join('')}
+    <span class="p-section">Issues & opportunities</span>
+    <div class="q mt"><textarea class="p-textarea" data-note="__issues" rows="3" placeholder="Anything to fix, and any opportunities you talked about" ${ro ? 'readonly' : ''}>${esc(c.issues || '')}</textarea></div>
+    ${ro ? '' : `<span class="p-section">Next steps we agreed</span>
+    <div class="q mt">${c.newSteps.map((t, i) => `<div class="mt-next"><span>• ${esc(t)}</span><button class="p-btn p-btn-quiet" data-rmstep="${i}">Remove</button></div>`).join('')}
+      <div class="mt-add"><input class="p-input" id="newstep" maxlength="300" placeholder="e.g. Learn the auto press with ${esc(firstOf(S.data.me.name))} by March" enterkeyhint="done"><button class="p-btn p-btn-dark" data-act="addstep">Add</button></div></div>
+    <div class="f-end"><span class="p-hint">${esc(first)} sees the next steps in the app. Your notes stay private.</span><button class="p-btn p-btn-main p-btn-lg" data-act="finish">Finish check-in</button></div>`}
+  </div>`;
+}
+function scheduleNotes(ms) { const c = S.ci; if (!c || !c.dirty) return; clearTimeout(c.t); c.t = setTimeout(saveNotes, ms == null ? 1500 : ms); }
+async function saveNotes() {
+  const c = S.ci; if (!c || !c.dirty || c.saving || !c.assignmentId) return;
+  c.dirty = false; c.saving = true; const el = $('#ciSaved'); if (el) el.textContent = 'saving…';
+  try { await call('/r/checkin/save', { assignmentId: c.assignmentId, notes: c.notes, issues: c.issues }); if (S.ci === c && $('#ciSaved')) $('#ciSaved').textContent = 'notes saved'; }
+  catch (e) { c.dirty = true; if ($('#ciSaved')) $('#ciSaved').textContent = 'notes not saved'; if (e.status !== 401) toast(e.message, true); }
+  finally { c.saving = false; if (c.dirty) scheduleNotes(); }
+}
+function addStep() {
+  const el = $('#newstep'); const v = (el?.value || '').trim(); if (!v || !S.ci) return;
+  if (S.ci.newSteps.length >= 10) return toast('Up to 10 new next steps.');
+  S.ci.newSteps.push(v); const y = $('#main').scrollTop; $('#main').innerHTML = meetingHTML(); $('#main').scrollTop = y; $('#newstep').focus();
+}
+async function finishCheckin(btn) {
+  const c = S.ci; clearTimeout(c.t);
+  const pending = ($('#newstep')?.value || '').trim(); if (pending) c.newSteps.push(pending);
+  btn.disabled = true; btn.textContent = 'Finishing…';
+  try {
+    const r = await call('/r/checkin/finish', { assignmentId: c.assignmentId, notes: c.notes, issues: c.issues, confirmSteps: [...c.confirm], newSteps: c.newSteps });
+    toast(`Check-in finished. ${r.created} new next step${r.created === 1 ? '' : 's'} for ${firstOf(c.person.name)}.`);
+    S.ci = null; await ensureCrew(true); rCheckins();
+  } catch (e) { toast(e.message, true); btn.disabled = false; btn.textContent = 'Finish check-in'; }
+}
+
+/* ----------------------------------------------------------------------- Setup (admin) */
+async function loadAdmin() {
+  const [p, c] = await Promise.all([call('/r/admin/people'), call('/r/admin/cycles')]);
+  S.admin = { people: p.people, cycles: c.cycles };
+}
+const pName = id => S.admin?.people.find(p => p.id === id)?.name || '';
+async function rSetup() {
+  const [, main] = panes(true);
+  if (!S.admin) { main.innerHTML = '<p class="loading">Loading…</p>'; try { await loadAdmin(); } catch (e) { main.innerHTML = `<div class="p-note p-note-alert">${esc(e.message)}</div>`; return; } }
+  const { people, cycles } = S.admin;
+  const act = people.filter(p => p.active), as = S.assign;
+  const openable = cycles.filter(c => c.status !== 'Closed');
+  if (!as.cycleId || !openable.some(c => c.id === as.cycleId)) as.cycleId = openable[0]?.id || null;
+  const cyc = cycles.find(c => c.id === as.cycleId);
+  const opt = (list, sel) => list.map(p => `<option value="${esc(p.id)}" ${p.id === sel ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+  const linkCell = p => `${p.linkSent ? 'Link sent ' + day(p.linkSent) : p.hasLink ? 'Has a link' : '<b>No link yet</b>'}<br><span class="p-hint">${p.pinSet ? 'PIN set' : 'No PIN yet'}</span>
+    ${p.locked === 'hard' ? ' <span class="p-tag p-tag-alert">Locked</span>' : p.locked === 'soft' ? ' <span class="p-tag p-tag-wait">Locked 15 min</span>' : ''}`;
+  main.innerHTML = `<div class="stack" style="max-width:1200px">
+    <div class="p-head" style="margin-top:0"><span class="p-section">People <span class="p-count">${act.length}</span></span><span class="p-head-sum">Send each person their own link. A new link stops the old one.</span></div>
+    <div class="p-list">
+      <div class="st is-h"><span>Person</span><span>Manager</span><span>Link</span><span></span></div>
+      ${people.slice().sort((a, b) => (b.active - a.active) || a.name.localeCompare(b.name)).map(p => `<div class="st${p.active ? '' : ' is-off'}" data-person="${esc(p.id)}">
+        <div><b>${esc(p.name)}</b><div class="p-hint">${esc(p.role==='Lead'?'Manager':p.role)}${p.department ? ' · ' + esc(p.department) : ''}${p.active ? '' : ' · not active'}</div></div>
+        <div>${esc(pName(p.lead)) || '<span class="p-hint">—</span>'}</div>
+        <div>${p.active ? linkCell(p) : ''}</div>
+        <div class="p-btns">${p.active ? `<button class="p-btn p-btn-dark" data-act="wa" data-id="${esc(p.id)}">Send on WhatsApp</button>
+          <button class="p-btn" data-act="email" data-id="${esc(p.id)}" ${p.email ? '' : 'disabled title="No email on file"'}>Email link</button>
+          ${p.pinSet || p.locked ? `<button class="p-btn p-btn-quiet" data-act="reset" data-id="${esc(p.id)}">Reset PIN</button>` : ''}` : ''}</div></div>`).join('')}
+    </div>
+    <p class="p-hint">Names, roles, leads, emails and phones are edited in the Pine Reviews base (Garrett and Stephen).</p>
+
+    <div class="p-head"><span class="p-section">Cycles</span><span class="p-head-sum">Open a cycle to let people in; close it when it’s done.</span></div>
+    <div class="p-list">
+      <div class="st st-cyc is-h"><span>Cycle</span><span>Type</span><span>Status</span><span>Sent</span><span></span></div>
+      ${cycles.map(c => `<div class="st st-cyc"><div><b>${esc(c.name)}</b><div class="p-hint">${c.due ? 'Due ' + day(c.due) : 'No due date'}</div></div><div>${esc(c.type)}</div>
+        <div>${c.status === 'Open' ? '<span class="p-tag p-tag-done">Open</span>' : `<span class="p-tag p-tag-soft">${esc(c.status || 'Draft')}</span>`}</div>
+        <div class="p-num" style="text-align:left"><b>${c.sent}/${c.assignments}</b></div>
+        <div class="p-btns">${c.status === 'Open' ? `<button class="p-btn" data-act="close" data-id="${esc(c.id)}">Close</button>` : `<button class="p-btn" data-act="opencyc" data-id="${esc(c.id)}">Open</button>`}</div></div>`).join('') || '<div class="st"><span class="p-hint">No cycles yet. Add one in the Cycles table.</span></div>'}
+    </div>
+
+    <div class="p-head"><span class="p-section">Assign</span><span class="p-head-sum">Who fills in what about whom. Duplicates are skipped.</span></div>
+    ${cyc ? `<div class="q" style="gap:var(--p-s3)">
+      <div class="as-row"><label class="p-label" for="asCycle">Cycle</label><select class="p-select" id="asCycle">${openable.map(c => `<option value="${esc(c.id)}" ${c.id === as.cycleId ? 'selected' : ''}>${esc(c.name)} (${esc(c.type)})</option>`).join('')}</select></div>
+      <div class="as-row">${cyc.type === 'Check-in'
+        ? '<button class="p-btn" data-act="qcheck">Add a check-in for everyone with a lead</button>'
+        : '<button class="p-btn" data-act="qmgr">Add a manager review for everyone with a lead</button>'}</div>
+      <div class="as-row">
+        <select class="p-select" id="asKind">${(cyc.type === 'Check-in' ? ['Check-in'] : ['Peer review', 'Manager review']).map(k => `<option>${k}</option>`).join('')}</select>
+        <select class="p-select" id="asWriter" aria-label="Who writes it"><option value="">Who writes it…</option>${opt(act)}</select>
+        <span aria-hidden="true">→</span>
+        <select class="p-select" id="asAbout" aria-label="About whom"><option value="">About…</option>${opt(act)}</select>
+        <button class="p-btn p-btn-dark" data-act="asadd">Add</button></div>
+      <div class="chips">${as.items.map((it, i) => `<span class="chip">${esc(it.kind === 'Check-in' ? 'Check-in · ' + pName(it.about) : `${it.kind}: ${pName(it.writer)} → ${pName(it.about)}`)}<button aria-label="Remove" data-asrm="${i}">×</button></span>`).join('') || '<span class="p-hint">Nothing added yet.</span>'}</div>
+      <div><button class="p-btn p-btn-main" data-act="ascreate" ${as.items.length ? '' : 'disabled'}>Create ${as.items.length || ''} assignment${as.items.length === 1 ? '' : 's'}</button></div>
+    </div>` : '<p class="p-hint">Add a cycle (Draft or Open) in the Cycles table first.</p>'}
+  </div>`;
+}
+/* one-line pop-ups (Pine p-modal) */
+function modal(title, bodyHTML, buttonsHTML) {
+  $('#modal').innerHTML = `<div class="p-scrim" data-mclose="1"><div class="p-modal" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <div class="p-modal-h"><span class="p-h2">${esc(title)}</span><button class="p-modal-x" data-mclose="1" aria-label="Close">×</button></div>
+    <div class="p-modal-b">${bodyHTML}</div><div class="p-modal-f">${buttonsHTML}</div></div></div>`;
+}
+function closeModal() { $('#modal').innerHTML = ''; S.mOk = null; }
+function confirmBox(title, body, okText, onOk) {
+  S.mOk = onOk;
+  modal(title, `<p style="margin:0">${body}</p>`, `<button class="p-btn p-btn-quiet" data-mclose="1">Cancel</button><button class="p-btn p-btn-main" data-act="mok">${esc(okText)}</button>`);
+}
+function waNumber(phone) { let d = String(phone || '').replace(/\D/g, ''); if (d.length === 10) d = '1' + d; return d.length >= 11 ? d : ''; }
+function linkMessage(p, url) { return `Hi ${firstOf(p.name)}, this is your private link for Pine reviews. Please don’t forward it: ${url}`; }
+async function adminAction(kind, id, extra) {
+  const p = S.admin.people.find(x => x.id === id), first = firstOf(p?.name);
+  if (kind === 'wa' || kind === 'email') {
+    const how = kind === 'wa' ? 'on WhatsApp' : 'by email';
+    confirmBox('New link', `Send ${esc(first)} a new link ${how}? ${p.hasLink ? 'Their old link stops working.' : ''}`, 'Make the link', async () => {
+      const r = await call('/r/admin/link', { personId: id, via: kind === 'email' ? 'email' : 'none' });
+      p.hasLink = true; p.linkSent = new Date().toISOString();
+      if (kind === 'email') { closeModal(); toast(PRACTICE ? 'Practice: no email sent.' : `Saved. The email to ${first} goes out in a minute.`); return rSetup(); }
+      const num = waNumber(p.phone), msg = linkMessage(p, r.url);
+      S.lastLink = r.url;
+      modal('Link ready', `${num ? `<p style="margin:0 0 10px">Tap <b>Open WhatsApp</b>, then send.</p>` : `<p style="margin:0 0 10px">No phone number on file for ${esc(first)}. Copy the message and send it yourself.</p>`}
+        <div class="linkbox">${esc(msg)}</div>${PRACTICE ? '<p class="p-hint">Practice: this link only works in practice mode.</p>' : ''}`,
+        `<button class="p-btn${num ? '' : ' p-btn-main'}" data-act="copy">Copy message</button>${num ? `<a class="p-btn p-btn-main" id="waLink" target="_blank" rel="noopener noreferrer" href="https://wa.me/${num}?text=${encodeURIComponent(msg)}">Open WhatsApp</a>` : ''}`);
+      S.copyText = msg; rSetupKeepModal();
+    });
+  } else if (kind === 'reset') {
+    confirmBox('Reset PIN', `Reset ${esc(first)}’s PIN? They pick a new one next time they open their link.`, 'Reset PIN', async () => {
+      await call('/r/admin/pin/reset', { personId: id }); closeModal(); toast(`PIN reset for ${first}.`); S.admin = null; rSetup();
+    });
+  } else if (kind === 'opencyc' || kind === 'close') {
+    const c = S.admin.cycles.find(x => x.id === id);
+    if (kind === 'opencyc') confirmBox('Open cycle', `Open “${esc(c.name)}”? People can sign in and fill in their forms.`, 'Open', async () => {
+      await call('/r/admin/cycle/open', { cycleId: id }); closeModal(); toast('Opened.'); S.admin = null; S.crew = null; await loadMe(); rSetup(); renderViewsOnly();
+    });
+    else { S.mOk = async () => { const exp = $('#expire')?.checked; await call('/r/admin/cycle/close', { cycleId: id, expireLinks: !!exp }); closeModal(); toast('Closed.'); S.admin = null; S.crew = null; await loadMe(); rSetup(); renderViewsOnly(); };
+      modal('Close cycle', `<p style="margin:0 0 12px">Close “${esc(c.name)}”? Nothing more can be filled in.</p><label class="mt-step" style="display:flex;align-items:center"><input type="checkbox" id="expire"> <span>Also turn off everyone’s links (not admins’)</span></label>`,
+        `<button class="p-btn p-btn-quiet" data-mclose="1">Cancel</button><button class="p-btn p-btn-main" data-act="mok">Close cycle</button>`); }
+  }
+}
+function rSetupKeepModal() { rSetup(); }   // the pop-up lives outside the page, so it stays open
+function renderViewsOnly() { const open = S.data.assignments.filter(a => a.status !== 'Sent').length; $('#views').innerHTML = viewsFor().map(([k, l]) => `<button class="${k === S.view ? 'is-on' : ''}" data-view="${k}">${l}${k === 'todo' ? `<span class="p-count">${open || ''}</span>` : ''}</button>`).join(''); }
+function quickAssign(kind) {
+  const act = S.admin.people.filter(p => p.active);
+  const ok = new Set(act.map(p => p.id));
+  const items = act.filter(p => p.lead && ok.has(p.lead)).map(p => kind === 'Check-in' ? { kind, writer: p.id, about: p.id } : { kind, writer: p.lead, about: p.id });
+  const have = new Set(S.assign.items.map(i => `${i.kind}|${i.writer}|${i.about}`));
+  items.forEach(i => { const k = `${i.kind}|${i.writer}|${i.about}`; if (!have.has(k)) { have.add(k); S.assign.items.push(i); } });
+  toast(`${items.length} added to the list. Check it, then Create.`); rSetup();
+}
+async function createAssignments(btn) {
+  const as = S.assign; btn.disabled = true; btn.textContent = 'Creating…';
+  try { const r = await call('/r/admin/assign', { cycleId: as.cycleId, items: as.items }); as.items = []; toast(`${r.created} created${r.skipped ? `, ${r.skipped} already there` : ''}.`); S.admin = null; S.crew = null; await loadMe(); rSetup(); renderViewsOnly(); }
+  catch (e) { toast(e.message, true); btn.disabled = false; btn.textContent = `Create ${as.items.length} assignments`; }
+}
+
+/* ======================================================================= events */
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button,[data-open],[data-rpick],[data-cpick],[data-mclose]');
+  if (!b) { if (!e.target.closest('#menu')) $('#menu').hidden = true; return; }
+  if (b.dataset.mclose && e.target === b) return closeModal();
+  if (b.dataset.key != null) return pinKey(b.dataset.key, b);
+  if (b.dataset.view) {
+    if (S.form && (S.form.dirty.size || S.form.saving)) await flushSave();
+    S.view = b.dataset.view; S.pick = null; S.form = null; render(); scrollTo(0, 0); return;
+  }
+  if (b.dataset.open) return openForm(b.dataset.open);
+  if (b.dataset.rate) return setScore(b.dataset.rate, +b.dataset.v);
+  if (b.dataset.rpick) { S.rPick = b.dataset.rpick; rResults(); if (innerWidth < 1100) setTimeout(() => $('#main')?.scrollIntoView({ behavior: 'smooth' }), 50); return; }
+  if (b.dataset.cpick) { if (S.ci?.dirty) await saveNotes(); S.cPick = b.dataset.cpick; S.ci = null; rCheckins(); if (innerWidth < 1100) setTimeout(() => $('#main')?.scrollIntoView({ behavior: 'smooth' }), 50); return; }
+  if (b.dataset.rmstep != null) { S.ci.newSteps.splice(+b.dataset.rmstep, 1); $('#main').innerHTML = meetingHTML(); return; }
+  if (b.dataset.asrm != null) { S.assign.items.splice(+b.dataset.asrm, 1); return rSetup(); }
+  if (b.dataset.pract) return Practice.start(b.dataset.pract);
+  const act = b.dataset.act;
+  if (act === 'menu') { const m = $('#menu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = menuHTML(); return; }
+  if (act === 'signout') return signOut();
+  if (act === 'refresh') { if (window.PineUpdate) PineUpdate.check(); return refresh(); }
+  if (act === 'retry') return startSignIn();
+  if (act === 'back') { if (S.form) await flushSave(); S.pick = null; S.form = null; render(); scrollTo(0, 0); return; }
+  if (act === 'send') return sendForm(b);
+  if (act === 'print') return print();
+  if (act === 'addstep') return addStep();
+  if (act === 'finish') return finishCheckin(b);
+  if (['wa', 'email', 'reset', 'opencyc', 'close'].includes(act)) return adminAction(act, b.dataset.id);
+  if (act === 'mok' && S.mOk) { b.disabled = true; try { await S.mOk(); } catch (err) { toast(err.message, true); b.disabled = false; } return; }
+  if (act === 'copy') { try { await navigator.clipboard.writeText(S.copyText || ''); toast('Copied.'); } catch (err) { toast('Couldn’t copy. Press and hold the text to copy it.'); } return; }
+  if (act === 'qmgr') return quickAssign('Manager review');
+  if (act === 'qcheck') return quickAssign('Check-in');
+  if (act === 'asadd') {
+    const kind = $('#asKind').value, writer = $('#asWriter').value, about = $('#asAbout').value;
+    if (!writer || !about) return toast('Pick who writes it and who it’s about.');
+    if (kind !== 'Check-in' && writer === about) return toast('Nobody reviews themselves.');
+    S.assign.items.push({ kind, writer: kind === 'Check-in' ? about : writer, about }); return rSetup();
+  }
+  if (act === 'ascreate') return createAssignments(b);
+  if (act === 'leavepractice') { location.href = location.pathname; }
+});
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('[role=button][data-open],[role=button][data-rpick],[role=button][data-cpick]')) { e.preventDefault(); e.target.click(); } if (e.key === 'Escape') { closeModal(); $('#menu').hidden = true; } });
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset.q && S.form) {
+    const f = S.form, q = el.dataset.q, cur = (f.ans[q] ||= { score: null, text: '' });
+    cur.text = el.value; f.dirty.add(q);
+    const n = el.value.trim().length, c = document.querySelector(`[data-cnt="${CSS.escape(q)}"]`);
+    if (c) c.textContent = cntText(el.value);
+    el.closest('.why')?.classList.toggle('is-short', n > 0 && n < MIN_TXT);
+    if (n >= MIN_TXT && f.miss.has(q)) { f.miss.delete(q); el.closest('.q')?.classList.remove('is-miss'); }
+    return scheduleSave();
+  }
+  if (el.dataset.note && S.ci) {
+    if (el.dataset.note === '__issues') S.ci.issues = el.value; else S.ci.notes[el.dataset.note] = el.value;
+    if (el.classList.contains('mt-n')) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+    S.ci.dirty = true; return scheduleNotes();
+  }
+});
+document.addEventListener('change', async e => {
+  const el = e.target;
+  if (el.dataset.mystep) {
+    const s = S.data.steps.find(x => x.id === el.dataset.mystep); if (!s) return;
+    const was = s.employeeDone; s.employeeDone = el.checked;
+    try { await call('/r/steps/mark', { stepId: s.id, done: el.checked }); toast(el.checked ? 'Marked done. Your manager will see it.' : 'Unmarked.'); }
+    catch (err) { s.employeeDone = was; el.checked = was; toast(err.message, true); }
+    const y = scrollY; S.pick ? rForm() : (S.stage === 'app' && S.view === 'todo' ? rTodo() : null); scrollTo(0, y); return;
+  }
+  if (el.dataset.step && S.ci) { el.checked ? S.ci.confirm.add(el.dataset.step) : S.ci.confirm.delete(el.dataset.step); return; }
+  if (el.dataset.cycle === 'Review') { S.rCycle = el.value; S.results = null; return rResults(); }
+  if (el.dataset.cycle === 'Check-in') { S.cCycle = el.value; S.ci = null; return rCheckins(); }
+  if (el.id === 'asCycle') { S.assign.cycleId = el.value; S.assign.items = []; return rSetup(); }
+});
+async function refresh() {
+  try {
+    if (S.form && (S.form.dirty.size || S.form.saving)) await flushSave();
+    await loadMe(); S.crew = null; S.admin = null; S.results = null;
+    if (S.ci && !S.ci.dirty) S.ci = null;
+    if (S.pick) { const id = S.pick; S.form = null; return openForm(id); }
+    render(); toast('Up to date.');
+  } catch (e) { if (e.status !== 401) toast(e.message, true); }
+}
+function menuHTML() {
+  if (!S.data) return `<div class="p-menu-row"><span class="p-menu-label">Practice</span><button class="p-btn" data-act="leavepractice">Leave practice</button></div>`;
+  return `<div class="p-menu-row"><span class="p-menu-label">Signed in</span><b>${esc(S.data.me.name)}</b><span class="p-hint">${esc(S.data.me.role)}</span></div>
+    <div class="p-menu-row"><button class="p-btn" data-act="signout">Sign out</button>${PRACTICE ? '<button class="p-btn p-btn-quiet" data-act="leavepractice">Leave practice</button>' : ''}</div>`;
+}
+// self-update: don't jump to a new version while someone has unsaved typing
+window.pineBusy = () => !!((S.form && (S.form.dirty.size || S.form.saving)) || (S.ci && (S.ci.dirty || S.ci.saving)) || S.assign.items.length);
+addEventListener('beforeunload', e => { if (window.pineBusy()) { e.preventDefault(); e.returnValue = ''; } });
+addEventListener('resize', () => { document.documentElement.style.setProperty('--bar-h', $('#bar').offsetHeight + 'px'); document.documentElement.style.setProperty('--p-panes-top', $('#bar').offsetHeight + 'px'); });
+
+/* ======================================================================= practice mode (?practice=1)
+   Made-up people, run against the same worker code (workers/pine-reviews-v1.js) inside this page with a fake
+   in-memory Airtable. Nothing is sent anywhere: no worker, no Airtable. Reload = start over. */
+const Practice = (() => {
+  let worker, env, db, idn = 0, codes = {};
+  const PEOPLE = [
+    ['pat', 'Pat Quinn', 'Admin', 'Office', null], ['jor', 'Jordan Park', 'Lead', 'Press', 'pat'], ['cas', 'Casey Moore', 'Lead', 'Pre-press', 'pat'],
+    ['ale', 'Alex Rivera', 'Employee', 'Press', 'jor'], ['mor', 'Morgan Kim', 'Employee', 'Press', 'jor'], ['dev', 'Devin Shaw', 'Employee', 'Press', 'jor'],
+    ['sky', 'Sky Walsh', 'Employee', 'Press', 'jor'], ['jam', 'Jamie Lee', 'Employee', 'Pre-press', 'cas'],
+  ];
+  const RQ = [['comp', 'Job competence', 'Handles their job responsibilities competently and consistently.', 'When I work with them, they do their job well and consistently.'],
+    ['rel', 'Reliability', 'On time, ready to work, and follows through on what they say.', 'I can count on them: on time, ready, and they follow through.'],
+    ['qual', 'Quality & detail', 'Gets the details right and catches problems before they become reprints.', 'They get the details right and catch problems before they reach me.'],
+    ['team', 'Teamwork', 'Helps out beyond their own station and hands work off cleanly.', 'They help out when I need it and hand work off cleanly.'],
+    ['pos', 'Positive workplace', 'Contributes to a positive, affirming, and fun workplace.', 'They make Pine a better place to work.'],
+    ['grow', 'Takes feedback & grows', 'Takes coaching well and changes because of it.', 'They are open to feedback and keep getting better.']];
+  const CHECK = [['Your experience in your role', [['unclear', 'Unclear parts of the role', 'Are there any parts of your role that feel unclear, challenging, or uncomfortable?', 'None'], ['succ', 'Knows what success looks like', 'Do you feel you have a clear understanding of what success looks like in your role?', 'Not at all–Completely'], ['chal', 'Biggest challenge', 'What’s been your biggest challenge this past quarter? How have you been working through it?', 'None'], ['proud', 'Proud moment', 'Can you share a moment recently when you felt particularly proud or successful at work?', 'None'], ['growth', 'Growth', 'What does growth look like for you right now? Any skills, tools, or training that would help?', 'None']]],
+    ['Your experience at Pine', [['vibe', 'Team vibe & culture', 'How would you describe the team vibe and culture over the past few months?', 'Poor–Great'], ['well', 'Doing well / could improve', 'What’s one thing we’re doing really well as a company? What’s one thing we could improve?', 'None'], ['comm', 'Communication', 'How has communication been, both on your team and across the company?', 'Poor–Great'], ['voice', 'Has a voice', 'Do you feel like you have a voice when it comes to ideas, changes, or opportunities?', 'Not at all–Completely']]],
+    ['Our working together & feedback', [['lgap', 'Leadership gaps', 'Do you see any leadership gaps at the company that might be holding us back?', 'None']]]];
+  const SAMPLE = ['Dials in tough multi-color jobs fast, and newer people go to them first.', 'Setup at the start of a shift runs late a couple of days a week.',
+    'Always jumps in when someone falls behind on a changeover.', 'Catches registration problems before the run starts.', 'Keeps the crew loose on long runs, even on rough days.',
+    'Took the feedback on setup times and fixed it within a week.', 'Could hand off the next job’s screens a little earlier.', 'Logs misprints at the end of every run without being asked.'];
+  const rec = (t, fields) => { const r = { id: 'recPR' + String(++idn).padStart(12, '0'), createdTime: new Date().toISOString(), fields: { ...fields } }; db[t].push(r); return r; };
+  const sha = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  function evalF(f, fields) {
+    f = f.trim(); const or = f.match(/^OR\((.*)\)$/s);
+    if (or) return split(or[1]).some(x => evalF(x, fields));
+    let m = f.match(/^\{([^}]+)\}='((?:[^'\\]|\\.)*)'$/); if (m) return String(fields[m[1]] ?? '') === m[2].replace(/\\(.)/g, '$1');
+    m = f.match(/^FIND\('((?:[^'\\]|\\.)*)',\{([^}]+)\}\)=1$/); if (m) return String(fields[m[2]] ?? '').indexOf(m[1].replace(/\\(.)/g, '$1')) === 0;
+    return false;
+  }
+  function split(s) { const o = []; let d = 0, q = false, c = ''; for (const ch of s) { if (ch === "'") q = !q; if (!q && ch === '(') d++; if (!q && ch === ')') d--; if (!q && !d && ch === ',') { o.push(c); c = ''; } else c += ch; } if (c) o.push(c); return o; }
+  async function fakeAirtable(url, opt = {}) {
+    const u = new URL(url), table = decodeURIComponent(u.pathname.split('/')[3]);
+    const ok = j => new Response(JSON.stringify(j), { status: 200 });
+    if (!db[table]) return new Response('{}', { status: 404 });
+    if ((opt.method || 'GET') === 'GET') { const f = u.searchParams.get('filterByFormula'); return ok({ records: db[table].filter(r => !f || evalF(f, r.fields)).map(r => structuredClone(r)) }); }
+    const body = JSON.parse(opt.body);
+    if (opt.method === 'POST') return ok({ records: body.records.map(r => structuredClone(rec(table, r.fields))) });
+    return ok({ records: body.records.map(r => { const row = db[table].find(x => x.id === r.id); for (const [k, v] of Object.entries(r.fields)) { if (v == null) delete row.fields[k]; else row.fields[k] = v; } return structuredClone(row); }) });
+  }
+  async function init() {
+    const realFetch = window.fetch.bind(window);
+    // the worker code calls fetch() for Airtable; in practice that goes to the fake. Nothing may reach the real worker.
+    window.fetch = (u, o) => { const s = String(u && u.url || u); if (s.startsWith('https://api.airtable.com/')) return fakeAirtable(s, o); if (s.includes('pine-reviews.') && s.includes('workers.dev')) return Promise.reject(new Error('practice: no worker calls')); return realFetch(u, o); };
+    worker = (await import('./workers/pine-reviews-v1.js')).default;
+    const kv = new Map();
+    env = { REVIEWS_AIRTABLE_TOKEN: 'practice', REVIEWS_BASE_ID: 'appPRACTICE00000', PIN_PEPPER: crypto.randomUUID() + crypto.randomUUID(), DEV: '1',
+      REVIEWS_KV: { async get(k) { const v = kv.get(k); return v && (!v.exp || v.exp > Date.now()) ? v.val : null; }, async put(k, val, o = {}) { kv.set(k, { val, exp: o.expirationTtl ? Date.now() + o.expirationTtl * 1000 : 0 }); }, async delete(k) { kv.delete(k); } } };
+    db = { People: [], Cycles: [], Questions: [], Assignments: [], Answers: [], 'Next steps': [], 'Activity log': [] };
+    const P = {};
+    for (const [k, name, role, dept] of PEOPLE) P[k] = rec('People', { Name: name, Role: role, Department: dept, Active: true });
+    for (const [k, , , , lead] of PEOPLE) if (lead) P[k].fields.Lead = [P[lead].id];
+    for (const k of Object.keys(P)) { codes[k] = 'practice-' + k + '-' + crypto.randomUUID().replace(/-/g, ''); P[k].fields['Link hash'] = await sha(codes[k]); }
+    const due = new Date(Date.now() + 14 * 864e5).toISOString().slice(0, 10);
+    const rev = rec('Cycles', { Name: 'Mid-year review (practice)', Type: 'Review', Status: 'Open', Due: due, 'Manager weight': 0.75, 'Min peers': 2 });
+    const chk = rec('Cycles', { Name: 'Q1 check-in (practice)', Type: 'Check-in', Status: 'Open', Due: due });
+    const Q = { m: {}, p: {}, c: {} };
+    for (const [form, t, i] of [['Manager review', 'm', 2], ['Peer review', 'p', 3]]) {
+      let n = 0;
+      for (const q of RQ) Q[t][q[0]] = rec('Questions', { Key: q[0], Form: form, Order: ++n, Wording: q[i], 'Short name': q[1], Scale: 'Expectations', 'Counts in score': true, Active: true });
+      if (t === 'm') Q.m.used = rec('Questions', { Key: 'used', Form: form, Order: ++n, Wording: 'This person’s skills are fully used in their current role.', 'Short name': 'Skills fully used', Scale: 'Skills used', Active: true });
+      Q[t].out = rec('Questions', { Key: 'out', Form: form, Order: ++n, Wording: 'Where are they doing outstanding work?', 'Short name': 'Outstanding work', Scale: 'None', Active: true });
+      Q[t].imp = rec('Questions', { Key: 'imp', Form: form, Order: ++n, Wording: 'Where is there room to improve?', 'Short name': 'Room to improve', Scale: 'None', Active: true });
+    }
+    let n = 0;
+    for (const [sec, qs] of CHECK) for (const [k, s, w, sc] of qs) Q.c[k] = rec('Questions', { Key: k, Form: 'Check-in', Order: ++n, Section: sec, Wording: w, 'Short name': s, Scale: sc, Private: k === 'lgap', Active: true });
+    const asg = (cyc, kind, w, a, status) => rec('Assignments', { Label: `${kind} ${w}→${a}`, Cycle: [cyc.id], Kind: kind, Writer: [P[w].id], About: [P[a].id], Status: status || 'Not started' });
+    let s = 0;
+    const fill = (a, qs, scores) => { Object.values(qs).forEach((q, i) => rec('Answers', { Label: `${a.id}:${q.id}`, Assignment: [a.id], Question: [q.id], Score: q.fields.Scale === 'None' ? null : scores[i % scores.length], Text: SAMPLE[(s++) % SAMPLE.length] })); a.fields['Sent at'] = new Date().toISOString(); };
+    fill(asg(rev, 'Manager review', 'jor', 'mor', 'Sent'), Q.m, [4, 3, 4, 4, 5, 4, 4]);
+    fill(asg(rev, 'Peer review', 'dev', 'mor', 'Sent'), Q.p, [4, 3, 3, 4, 4, 4]);
+    fill(asg(rev, 'Peer review', 'sky', 'mor', 'Sent'), Q.p, [5, 4, 4, 4, 5, 4]);
+    fill(asg(rev, 'Peer review', 'jam', 'mor', 'Sent'), Q.p, [4, 3, 4, 5, 5, 4]);
+    for (const a of ['ale', 'dev', 'sky']) asg(rev, 'Manager review', 'jor', a);
+    asg(rev, 'Manager review', 'pat', 'jor'); asg(rev, 'Manager review', 'pat', 'cas');
+    asg(rev, 'Peer review', 'ale', 'dev'); asg(rev, 'Peer review', 'ale', 'sky'); asg(rev, 'Peer review', 'jor', 'cas');
+    asg(rev, 'Peer review', 'mor', 'ale'); asg(rev, 'Peer review', 'dev', 'ale');
+    const cm = asg(chk, 'Check-in', 'mor', 'mor', 'Sent');
+    Object.values(Q.c).forEach((q, i) => rec('Answers', { Label: `${cm.id}:${q.id}`, Assignment: [cm.id], Question: [q.id], Score: q.fields.Scale === 'None' ? null : [4, 4, 3, 3][i % 4], Text: SAMPLE[(s++) % SAMPLE.length] }));
+    for (const k of ['ale', 'dev', 'sky', 'jam']) asg(chk, 'Check-in', k, k);
+    rec('Next steps', { Step: 'Get signed off on the dryer settings sheet', Person: [P.ale.id], 'Employee done': true });
+    rec('Next steps', { Step: 'Shadow Morgan on press 2 one afternoon a week', Person: [P.ale.id] });
+    rec('Next steps', { Step: 'Learn auto press setup with Jordan', Person: [P.mor.id], 'Employee done': true });
+    rec('Next steps', { Step: 'Log misprints at the end of each run', Person: [P.mor.id] });
+  }
+  async function call(path, body, session) {
+    const H = { 'content-type': 'application/json', origin: 'http://localhost', 'cf-connecting-ip': 'practice' };
+    if (session) H.authorization = 'Bearer ' + session;
+    const text = JSON.stringify(body || {});
+    const req = { url: 'https://practice.local' + path, method: 'POST', headers: { get: k => H[String(k).toLowerCase()] ?? null }, text: async () => text };
+    const res = await worker.fetch(req, env, {});
+    const t = await res.text();
+    return { status: res.status, j: t ? JSON.parse(t) : {} };
+  }
+  function start(k) { S.code = codes[k]; startSignIn(); }
+  return { init, call, start };
+})();
+function practiceHTML() {
+  return `<div class="stack">
+    <div class="f-who" style="margin-top:8px">Practice</div>
+    <p class="f-sub" style="font-size:16px;margin:0">Try every screen with made-up people. Nothing is saved or sent, and reloading starts over. Pick who to be, then pick any PIN.</p>
+    <button class="pick-card" data-pract="ale"><b>Alex Rivera · press operator</b><span class="p-hint">Two peer reviews, a check-in and next steps</span></button>
+    <button class="pick-card" data-pract="jor"><b>Jordan Park · press manager</b><span class="p-hint">Manager reviews for the crew, results and check-in meetings</span></button>
+    <button class="pick-card" data-pract="pat"><b>Pat Quinn · admin</b><span class="p-hint">Everything, plus Setup: links, cycles and assignments (6-digit PIN)</span></button>
+  </div>`;
+}
+
+boot();
+</script>
+</body>
+</html>
