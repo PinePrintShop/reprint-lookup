@@ -4,6 +4,7 @@
 - **iPad (floor, touch, 56px buttons):** Operator, Catching.
 - **Desktop (mouse, wide screens, use the full width):** Purchasing, Receiving, Seps, Screens, Ink, Damage Log.
 - **Also desktop** (Stephen confirmed): Schedule, Price-O-Matic, Line Item Review, Create order, KPIs, Reprints lookup, Reconnect.
+- **Reviews:** desktop-first for leads and admins (Results, Check-ins, Setup); phone-first for everyone's own forms.
 - **Wall TV:** Production Board.
 - Pine Central: not listed yet.
 - Every app still has to work on an iPad and a phone. The list sets which layout gets designed first and tested hardest.
@@ -40,6 +41,7 @@
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v19 (signed copy: initials only in the boxes) |
+| Reviews (office: performance reviews + quarterly check-ins; people open it from their personal link `reviews.html#k=…`, phones too) | `reviews.html` | v1 |
 | Worker copy (phone: paste the newest worker into Cloudflare) | `worker-copy.html` | – |
 
 Base: `https://pineprintshop.github.io/reprint-lookup/`

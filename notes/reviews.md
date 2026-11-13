@@ -206,3 +206,23 @@
 - **People rows created:** Stephen (Admin), plus Nicole, Chris, Whitney and Mike (Role "Lead", Lead = Stephen). Everyone else is added by Stephen in Airtable.
 - **Contact details go only into the base,** never into GitHub: the repository is public.
 - **Wording to do:** the base and worker say "Lead". Stephen calls the role "Manager". Rename the option and the field to Manager, together with the worker, once the app is built.
+
+### 2026-11-13 · App v1 (`pine-reviews-v1.html`) + permanent link `reviews.html`. Not live until the worker is deployed.
+- **Built from mockup v10** and wired to worker v1. `reviews.html` forwards to v1 and keeps `?practice=1` and the `#k=` code. The app reads the code once, then wipes it from the address bar. The code and the session live in sessionStorage only.
+- **Screens:**
+  - PIN set / PIN keypad
+  - Your next steps + To do
+  - review and check-in forms: the same feel as v10, with autosave to the worker (1.5 s after typing; "saved" only once the worker confirms)
+  - Results and the Check-ins meeting screen for managers and the admin
+  - Setup for the admin:
+    - people with link and PIN state
+    - **Send on WhatsApp**: a new link, then a wa.me message ready to send
+    - Email link and Reset PIN
+    - Open / Close cycles
+    - the Assign builder
+- **Practice (`?practice=1`)** runs the real worker code inside the page on made-up people. It makes no network calls.
+- **Visible wording** says "manager" (the base and worker still say Lead; to rename later). The private check-in question says "Only the owner sees this answer, not your manager."
+- **Tests:**
+  - 45/45 end-to-end checks, run against the real worker on a fake Airtable: the PIN flow, autosave and reload, send validation, results without peer names, the private answer hidden from the manager, link rotation, lockout, zero network calls in practice, and phone/iPad/desktop layout.
+  - Worker unit tests: 17/17.
+- **The worker URL is assumed** to be `https://pine-reviews.stephen-dab.workers.dev`. If Cloudflare gives it another name, change `API` in the app.
