@@ -198,3 +198,11 @@
   - Peer review: 6 counted + 2 open
   - Check-in: the Conversation Guide's 10 questions, with #10 Private
 - **Time zone** on date-time fields: America/Chicago (display only).
+
+### 2026-11-13 · Roles (Stephen)
+- **Stephen is the only Admin** in the app. Nicole, Chris, Whitney and Mike are **managers**: they review their own people and see only their own crew's results, with no peer names and no leadership-gap answers.
+  - This replaces the earlier "Nicole uses the admin screens": only Stephen sends links, resets PINs and sets up cycles.
+- **Garrett has access to the raw base only.** He has no account in the app.
+- **People rows created:** Stephen (Admin), plus Nicole, Chris, Whitney and Mike (Role "Lead", Lead = Stephen). Everyone else is added by Stephen in Airtable.
+- **Contact details go only into the base,** never into GitHub: the repository is public.
+- **Wording to do:** the base and worker say "Lead". Stephen calls the role "Manager". Rename the option and the field to Manager, together with the worker, once the app is built.
