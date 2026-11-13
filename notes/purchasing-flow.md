@@ -615,7 +615,7 @@ Stephen: "Let's do purchasing now since he is done for the day". It's step 5 of 
   - "To order" counts lines in a cart as still to order.
   - Tell me if either should change.
 
-## 2026-11-12 · v120 · Each past PO shows its vendor invoice (built; goes live Friday 11/13 with the side-panel rollout)
+## 2026-11-12 · v120 · Each past PO shows its vendor invoice (live 11/13)
 From the plan Stephen OK'd ("yes lets keep moving"): Past orders shows each PO's invoice with a Send to QuickBooks button.
 Worker v47 saves invoice emails as Vendor Bills and matches them to Line Items (Line item IDs).
 - Past orders reads the last 60 days of Vendor Bills, one request. A bill belongs to a PO card when its Line item IDs include
