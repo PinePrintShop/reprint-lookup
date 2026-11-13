@@ -314,3 +314,11 @@ what `position:fixed` is measured from, so the list landed shifted by the pane's
   on any screen and browser. Nothing else changed.
 - Tested: with the pane's containment forced, v50 put the list ~300–420px right and ~300px down (the screenshot's symptom);
   v51 puts it 2px under the box at 1280, 1440 and 2000 wide. Chromium without the forced containment: both fine.
+
+## 2026-11-13 · v52: the shared side pane
+Stephen: "streamline how [the left panels] are sized so moving between apps feels cohesive", with the cards keeping "the focus per app" (notes/side-panel.md, rollout step 3, with Screens v35 and Ink v106).
+- **Panes:** the queue is the standard list width (`--p-pane-list`, 320 / 346 / 420 at 1100 / 1440 / 1920; was 300-340), two panes from 1100px as before, page gutter 16px (24px from 1400), 16px between panes, each pane scrolls on its own.
+- **Top of the list:** the tab's name + how many jobs (TO SEP 4), total screens on the right, and one hint line only when Bandanas only / Supacolor only is on. Search stays in the filter row.
+- **Card (compact):** mockup thumbnail over the imprint ID badge · the design in bold · location · type under it · Screens on the right · tags (Sep'd / Burned / Sep file, Reorder, ↩ previous run, coverage) with **+ Claim** (or the separator) at the end of that row. Qty moved off the card (it's in the open job's header). The print date stays the day head the cards sit under.
+- Same Airtable reads and writes, keys, Drive, practice mode and the v51 ink-list fix.
+- **Tested** (Playwright, mocked Airtable, the same scripted run on v51 and v52: load, open a job, Reorders tab and back, search and clear, at 1100, 1440, 1920 and 390 wide): the Airtable requests are identical at every width (5 / 5 / 5 / 4 requests), and so are the Drive-worker calls. No page errors, no text under 12px, one yellow button, no sideways scroll at 390. List width 320 / 346 / 420 (was 300 / 317 / 340).
