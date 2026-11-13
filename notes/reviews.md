@@ -157,3 +157,26 @@
 - **Sent assignments are read-only.** Closed cycles refuse writes and sign-ins (except for Admins).
 - **Activity log:** sign-ins, wrong PINs, sends, link sends, PIN resets, admin views.
 - **Headers:** `Cache-Control: no-store` and `Referrer-Policy: no-referrer` on every response.
+
+### 2026-11-13 · worker v1 written (`workers/pine-reviews-v1.js`), not deployed
+- **Tests:** 17 with a fake Airtable and KV. Run `node --test workers/test/*.test.mjs`; on Node 22 use the glob, not the folder. All pass.
+- **Routes:**
+  - `/r/version`
+  - Signing in: `/r/hello`, `/r/pin/set`, `/r/signin`, `/r/signout`
+  - Own forms: `/r/me`, `/r/assignment/get`, `/r/assignment/save`, `/r/assignment/send`, `/r/steps/mark`
+  - Lead or admin: `/r/crew`, `/r/results`, `/r/checkin`, `/r/checkin/save`, `/r/checkin/finish`
+  - Admin: `/r/admin/people`, `/r/admin/cycles`, `/r/admin/link`, `/r/admin/pin/reset`, `/r/admin/assign`, `/r/admin/cycle/open`, `/r/admin/cycle/close`
+- **It won't start without its settings:** `REVIEWS_AIRTABLE_TOKEN`, `REVIEWS_BASE_ID`, `PIN_PEPPER` and `REVIEWS_KV`.
+- **Choices made while building:**
+  - Manager and peer questions are paired by Key.
+  - Answer rows are labelled `<assignment>:<question>`.
+  - Leads and admins can sign in when no cycle is open. Employees can only if they have open next steps.
+  - The 10th wrong PIN locks the link until an admin resets it.
+  - Peer comments come back shuffled within each question. Only admins get who wrote what (`byWriter`).
+  - Closing a cycle expires links only when asked, and never an admin's.
+  - A lead sees a check-in only after the employee sends it.
+- **Still to do:**
+  - the Pine Reviews base (waiting on the Airtable connector reaching it)
+  - the email automation
+  - the real app
+  - Stephen's Cloudflare setup
