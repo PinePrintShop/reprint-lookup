@@ -117,3 +117,43 @@
 - The employee ticks a step when it's done ("You marked done").
 - **The lead's meeting screen** shows "Alex says done" (yellow) next to those steps. The lead ticks the ones they agree are done.
 - **Finish check-in** moves the new next steps into the employee's list. Steps that aren't done carry over, and confirmed ones drop off. The employee still gets a text.
+
+## 2026-11-13 · Going real: decisions and the build spec
+**Stephen (Nov 13):**
+1. The 7 tables are approved.
+2. Nicole uses the **admin screens only**. The raw base is shared with **Stephen and Garrett only**.
+3. **Email first.** At go-live, Stephen also sends each person their link on **WhatsApp** himself.
+4. Admin accounts use a **6-digit PIN**.
+
+### Pieces
+- **Base "Pine Reviews"**, separate from `appJkaLk8DykjsgHR`. Collaborators: Stephen and Garrett.
+- **Worker `pine-reviews`**: a new Cloudflare worker (`workers/pine-reviews-vN.js`), separate from `pine-workers`.
+  - **Secrets:**
+    - `REVIEWS_AIRTABLE_TOKEN` (a personal access token scoped to the Pine Reviews base only)
+    - `PIN_PEPPER` (random, 32+ bytes)
+    - `REVIEWS_BASE_ID`
+  - **KV:** `REVIEWS_KV` (sessions, lockouts).
+  - **CORS:** only `https://pineprintshop.github.io`.
+- **App:** `pine-reviews-vN.html`, with the permanent link `reviews.html`.
+
+### Tables (field names exact; the worker uses names)
+- **People:** Name (primary) · Role (Employee / Lead / Admin) · Department · Lead (→ People) · Email · Phone · Active (checkbox) · Link hash · PIN hash · PIN set (date-time) · Wrong PINs (number) · Locked until (date-time) · Link sent (date-time) · Email link (text; the plain link sits here only until the email automation sends it and clears it)
+- **Cycles:** Name (primary) · Type (Review / Check-in) · Opens (date) · Due (date) · Status (Draft / Open / Closed) · Manager weight (percent, 75) · Min peers (number, 2)
+- **Questions:** Key (primary) · Form (Manager review / Peer review / Check-in) · Order · Section · Wording · Short name · Scale (Expectations / Skills used / Not at all–Completely / Poor–Great / None) · Counts in score (checkbox) · Private (checkbox) · Active (checkbox)
+- **Assignments:** Label (primary, written by the worker) · Cycle (→ Cycles) · Kind (Manager review / Peer review / Check-in) · Writer (→ People) · About (→ People) · Status (Not started / In progress / Sent) · Sent at · Met at · Lead notes (long text, JSON by question) · Issues & opportunities (long text)
+- **Answers:** Label (primary) · Assignment (→ Assignments) · Question (→ Questions) · Score (number) · Text (long text)
+- **Next steps:** Step (primary) · Person (→ People) · From (→ Assignments) · Employee done (checkbox) · Lead confirmed (checkbox) · Created (created time)
+- **Activity log:** What (primary) · Who (→ People) · Detail (long text) · When (created time)
+
+### Security rules the worker enforces
+- **Link code:** 32 random bytes, base64url, stored as SHA-256 only. It sits in the URL fragment (`#k=`). A new code is made each time a link is sent; the old one stops working.
+- **PIN:** PBKDF2-SHA256 (100k rounds), salted with the person's record ID, plus `PIN_PEPPER`. 4 digits, or 6 for Admins.
+- **Wrong PINs:** 5 → locked for 15 min. 10 → locked until an admin resets it.
+- **Sessions:** a random token in KV with a 30-minute idle timeout, a 12-hour maximum, and an end on sign-out. The app keeps it in sessionStorage.
+- **Every route checks role and relationship:**
+  - Employees: their own assignments and steps.
+  - Leads: their crew. Peer answers have no writer and are hidden below Min peers; Private questions are hidden.
+  - Admins: everything.
+- **Sent assignments are read-only.** Closed cycles refuse writes and sign-ins (except for Admins).
+- **Activity log:** sign-ins, wrong PINs, sends, link sends, PIN resets, admin views.
+- **Headers:** `Cache-Control: no-store` and `Referrer-Policy: no-referrer` on every response.
