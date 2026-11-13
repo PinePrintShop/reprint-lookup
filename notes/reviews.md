@@ -180,3 +180,21 @@
   - the email automation
   - the real app
   - Stephen's Cloudflare setup
+
+### 2026-11-13 · Pine Reviews base created
+- **Base:** `app18uATdd147oIth`, in Stephen's private workspace. Collaborators: Stephen and Garrett (Stephen adds Garrett himself).
+- **Tables:**
+  - People `tblZ7oc8i9ZrxcPOg`
+  - Cycles `tbltZH8X1yxkD4gHT`
+  - Questions `tblUjO4iEn2jpdsfs`
+  - Assignments `tblvBdPygBCIwQVKf`
+  - Answers `tblXrUAgaHPIStYZ6`
+  - Next steps `tblQTR22orpzR3Jak`
+  - Activity log `tblgbQjIOi8NNVBAZ`
+  - Airtable's empty starter "Table 1" is still there; Stephen can delete it.
+- **Field names** match the spec and `workers/pine-reviews-v1.js` exactly.
+- **Questions loaded (27):**
+  - Manager review: 6 counted + Skills used + 2 open
+  - Peer review: 6 counted + 2 open
+  - Check-in: the Conversation Guide's 10 questions, with #10 Private
+- **Time zone** on date-time fields: America/Chicago (display only).
