@@ -159,3 +159,18 @@ Stephen: "I like the Waiting on Items ideas."
   - a Partially Completed order marked shipped → Completed
   - one batched request each for lines and imprints
   - 0 writes in practice, nothing under 12px, no console errors
+
+## 2026-11-13 · v12: the shared side panel (looks only)
+Step 5 of `notes/side-panel.md` (Stephen: "streamline how [the left panels] are sized so moving between apps feels cohesive").
+- **List:** the standard list pane, 320 / 346 / 420 at 1100 / 1440 / 1920 (was 460–540). Two panes from 1100px (was 1400). Below that the list comes first and the order opens under it, as before. Each pane scrolls on its own.
+- **List header:** the standard one: "Ready to ship 5", "Waiting on items 1" with its one-line hint, "Shipped today 1", and "Search 2" with Clear.
+- **Order cards:** the compact card.
+  - The order # badge, then the customer in bold.
+  - A grey line: ship method · city.
+  - On the right: **Boxes**, once the order is weighed (read from the ShipStation note it already loads; "—" until then).
+  - Tags: the same status tag as before (Ready, Label bought, ✓ Shipped…), then **Due Nov 12** (red when late). The due date was the number on the right.
+  - Waiting cards keep one line of what's missing ("10953-A Screen Print — printed, not caught +2 more"). The full list is in the open order, as before.
+- **Stat tiles:** Shipping has none, so nothing moved.
+- **Same requests:** an identical scripted run on v11 and v12 makes the same 18 Airtable and ShipStation requests. Saving weights and Mark shipped make the same 2 writes. Practice: 0 writes.
+- Screenshots at 1100 / 1440 / 1920 / 390. No sideways scroll on a phone, nothing under 12px, no errors.
+- **For the shipping team:** the slot table says "Label made" and "Picked up". The app's own tags stay as they were ("Label bought", "✓ Shipped"). The app doesn't know about carrier pickups.
