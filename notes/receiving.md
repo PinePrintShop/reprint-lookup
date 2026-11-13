@@ -329,3 +329,26 @@ Stephen: "can you see if the box label in receiving follows along our new font s
   - Screen-only parts use yellow #FBE122, cream #EFE2CD and black (the feedback bar is black, the remove bar and edit highlight cream).
 - **Same room for 7 lines:** table cells have 1 px less padding top and bottom, so with 7 garment lines the notes still get a line, as in v87 (long notes still end "… see job sheet").
 - **Tested** (Playwright print media, 4×6): 2 lines and 7 lines both fit the 6 in label with nothing cut off.
+
+## 2026-11-13 — v89: the shared side pane (346 at 1440)
+Rollout step 4 of `notes/side-panel.md`. Stephen (2026-11-10): the standard 346, "since it is when they open that is the most important".
+- **Two panes from 1100px** (was 1400). The order list is the standard width: 320 / 346 / 420 at 1100 / 1440 / 1920 (was 640). The picked order gets the rest (1030px at 1440, was 728).
+  - Page gutter 16px (24px from 1400), 16px between the panes, and each pane scrolls on its own under the filter row.
+  - Built with the kit's `.p-panes` / `.p-pane-side` / `.p-pane-main`.
+- **Top of the list:** ORDERS + count. The date groups ("Prints tomorrow", "Due Nov 25", or the POs when sorted by PO) are small grey labels in the list.
+- **Compact card** (`.p-lc.is-compact`):
+  - the order # badge and the customer in bold
+  - vendor / warehouse under it (every warehouse on the order)
+  - **Pcs in** on the right as in / expected ("72/108"): ordered pieces of the lines received, out of the whole order. Lines on screen follow Receive and Undo; lines that already left the board count as Airtable had them at load. Same reads as before (the whole-order read already has Received and the sizes).
+  - tags: Mis-ship (red), **Partial · 2 of 3 lines** (cream), **✓ Arrived** (black), Counts typed (yellow), and Prints in Nd when sorted by PO
+- **Wording:** "Partly in" is now "Partial" and "All in" is now "Arrived" (the side-panel standard's words), on the card and in the open order. The open order still says "Waiting · n lines".
+- **Moved off the list card into the picked order** (already there, nothing lost): the order's POs and its total pieces.
+- Below 1100px orders open in place, as in v88.
+- **Phone fixes:**
+  - A long vendor name in the vendor menu pushed Sort off the screen (the page was 430px wide on a 390px phone).
+  - A long vendor tag on a line ran under its "36 PCS".
+- **Tested** (Playwright, mocked Airtable):
+  - The same scripted run on v88 and v89 makes identical requests at 1440, 1100 and 390: 11 each (load, open an order, every tab, search, sort by PO and back, receive a line with its stage write, Promo and back).
+  - Practice: 0 writes.
+  - Screenshots at 1100 / 1440 / 1920 / 390. No sideways scroll, nothing under 12px, no console errors.
+- **Still open:** at 1100–1400 the filter tabs scroll sideways (only All and Prints soon show at 1100), as in v88.
