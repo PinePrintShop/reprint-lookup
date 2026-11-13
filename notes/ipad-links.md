@@ -18,21 +18,21 @@
 |---|---|---|
 | Operator | `pine-operator.html` | v137 |
 | Catching | `pine-catching.html` | v174 |
-| Damage Log | `damage-log.html` | v23 |
-| Ink Queue | `pine-ink-queue.html` | v105 |
+| Damage Log | `damage-log.html` | v24 (shared side panel: 346 list, compact cards) |
+| Ink Queue | `pine-ink-queue.html` | v106 (shared side panel) |
 | Purchasing | `pine-purchasing.html` | v120 (Past orders show each PO's vendor invoice; shared side panel) |
-| Receiving | `receiving.html` | receiving-dashboard v88 |
-| Shipping (desktop, shipping computer) | `pine-shipping.html` | v11 |
+| Receiving | `receiving.html` | receiving-dashboard v89 (shared side panel: 346 list, compact cards) |
+| Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |
-| Seps | `seps.html` | v51 |
-| Screens | `screens.html` | v34 |
+| Seps | `seps.html` | v52 (shared side panel) |
+| Screens | `screens.html` | v35 (shared side panel) |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v119 |
 | Line Item Review | `pine-line-item-review.html` | v64 (one card per order on Ready to send; Preview approval under Send for signature; ⋯ menu) |
 | Create order | `create-order.html` | v30 (side panel standard) |
-| Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v6 |
+| Reconnect (was Sales Targets; desktop office app) | `reconnect.html` | v7 (shared side panel; totals in one strip) |
 | KPIs (desktop office app) | `pine-kpi.html` | v24 |
 | Reprints (desktop office app) | `reprints.html` | v10 (side panel standard) |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |

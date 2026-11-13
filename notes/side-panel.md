@@ -64,9 +64,9 @@ What goes in the slots, per app (to confirm with each team as the app adopts it)
 ## Rollout (each app on its next version; the shared CSS above is already in)
 1. ~~Tokens, pane classes and compact card in `pine-style-v2.css`, plus a demo on `pine-style.html`~~ (done 2026-11-10; additive, so no app changed).
 2. ~~Line Item Review, Create order, Reprints~~ (done 2026-11-10: Line Item Review v56, Create order v30, Reprints v10; identical requests old vs new).
-3. Seps, Screens, Ink: high use, small change (+3 to +80px).
-4. Damage Log and Receiving: the biggest visible change (640 → 346, compact card). **Decided (Stephen, 2026-11-10): the standard 346**, "since it is when they open that is the most important".
-5. Shipping, Reconnect (stat tiles move out of the list's way), Purchasing (Ordering columns on the tokens).
+3. ~~Seps, Screens, Ink~~ (done 2026-11-13: Seps v52, Screens v35, Ink Queue v106).
+4. ~~Damage Log and Receiving~~ (done 2026-11-13: Damage Log v24, Receiving v89): the biggest visible change (640 → 346, compact card). **Decided (Stephen, 2026-11-10): the standard 346**, "since it is when they open that is the most important".
+5. ~~Shipping, Reconnect, Purchasing~~ (done: Purchasing v119 on 2026-11-10; Shipping v12 and Reconnect v7 on 2026-11-13, Reconnect's totals in one strip above both panes).
 6. Schedule (search moves to the filter row), Mockup Maker, Sep Maker, Price-O-Matic, Topo Packing (mostly matching already).
 7. Operator and Catching: header block and rail width only.
 
@@ -78,3 +78,32 @@ What goes in the slots, per app (to confirm with each team as the app adopts it)
   3. Shipping and Reconnect in the afternoon.
 - **Later:** Schedule, Mockup Maker, Sep Maker, Price-O-Matic and Topo Packing. Then Operator and Catching after a shift.
 - **Every batch:** old vs new must make identical requests on the same scripted run, plus screenshots at 1100 / 1440 / 1920 / 390.
+
+## 2026-11-13: steps 3–5 (the scheduled Friday run)
+Three agents in parallel, one per batch, each on its own branch; reviewed and merged by the coordinator.
+- **Every batch:** identical requests old vs new on the same scripted run (mocked Airtable and worker), at 1100 / 1440 / 1920 / 390. Practice mode makes 0 writes. Screenshots in the scratchpad (`rollout/`).
+- **Seps / Screens / Ink:**
+  - The ID slot spans both rows, with the 48px thumbnail over the imprint ID, so the design name keeps its width at 320.
+  - Qty moved to the open job.
+  - The print date stays as the day heading.
+- **Damage Log:**
+  - The number is pcs short.
+  - The tags are the app's own refund and reprint tags: there's no "waiting on vendor" data. To confirm with the production manager.
+  - Below 1100 the full cards stay, as in Purchasing.
+- **Receiving:**
+  - The number is pcs in / expected (ordered pcs of received lines).
+  - "Partly in" → "Partial", "All in" → "Arrived".
+  - Two phone overflow bugs fixed.
+- **Shipping:**
+  - The number is boxes once weighed.
+  - The due date is a tag (red when late).
+  - The app's own tags are kept ("Label bought", "✓ Shipped"): there's no pickup data.
+- **Reconnect:**
+  - The totals are one strip above both panes, with Copy list.
+  - The tags are shortened ("No rep — confirm first"). To confirm with sales.
+- **Left for later:**
+  - The Seps filter chips overflow at 1100–1440.
+  - The Receiving filter tabs scroll sideways at 1100.
+  - Long names cut off in the Seps / Ink job header.
+  - Ink saves the same Inks list again when a job opens (v105 too).
+- Next: step 6 (Schedule, Mockup Maker, Sep Maker, Price-O-Matic, Topo Packing), then step 7 (Operator, Catching).

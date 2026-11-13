@@ -147,3 +147,26 @@ Stephen: "review ... the first ones that we did with the new brand colors to mak
 - **⚙ menu:** now the kit's `.p-menu` (Airtable token, Practice), the same as Seps, Receiving and Reprints. v22 used its own `.menu p-card` card. The same ids are kept, so the token, practice and pineBusy work as before.
 - Nothing else changed: the same filters, two panes, refund flow and Airtable writes.
 - **Tested** (Playwright, mocked Airtable). The v22 test (`test_dl.js`: refund retry A–C, approve D, practice E with 0 writes, month start F) passes on v23, 29/29, three runs. The first run timed out once on a click, then passed on reruns. At 1440, 1280 and 390, on Orders and Trends, the bar is 64px (116 on a phone, where the Orders/Trends views get their own row, as in Seps), and there are no console errors.
+
+## 2026-11-13 · v24: the shared side pane (346 at 1440)
+Rollout step 4 of `notes/side-panel.md`. Stephen (2026-11-10): the standard 346, "since it is when they open that is the most important".
+- **Two panes from 1100px** (was 1400). The order list is the standard width: 320 / 346 / 420 at 1100 / 1440 / 1920 (was 640). The picked order gets the rest (1030px at 1440, was 728).
+  - Page gutter 16px (24px from 1400), 16px between the panes, and each pane scrolls on its own under the filter row.
+  - Built with the kit's `.p-panes` / `.p-pane-side` / `.p-pane-main`. v21's own `.p-split` copy is gone.
+- **Top of the list:** ORDERS + count, with Select all on the right. One hint line gives the refunds that need approval ("$64.50 in refunds need approval").
+- **Compact card** (`.p-lc.is-compact`):
+  - select box (only when something can be approved) and the order # badge
+  - the customer in bold
+  - garment · what's damaged ("3001 SS Tee · Misprint, Ink smear"; "+1" when more garments have issues; the sizes when no reason was entered), up to two lines
+  - **Short** on the right: pieces short after extras on the lines with issues
+  - the status tags as before: Refund needs approval · $, Sent to bookkeeper, Refund not sent, Possible duplicate, Negative qty, Cost rule differs, Reprint needs approval, Reprint in progress
+- **Moved off the list card into the picked order** (already there, nothing lost):
+  - Refund, Reprint would cost, Bandanas and Approve all N
+  - "Last issue · N issues · N pcs" (the picked order also says "· N short")
+  - the mockup thumbnails (on each line)
+- Below 1100px orders open in place as in v23. On a phone the list header is the same, with "Select all N to approve" full width.
+- **Not done:** "Waiting on vendor" from the side-panel table. The Damage Log has no vendor-waiting state, so the tags stay the app's own (refund and reprint steps). To confirm with the production manager.
+- **Tested** (Playwright, mocked Airtable):
+  - The same scripted run on v23 and v24 makes identical requests at 1440, 1100 and 390: 14 each, including the approve → In Refund Request → refund request writes (load, open an order, the All / Reprints / Awaiting review chips, search, approve a refund, Trends, a 30-day range).
+  - Practice: 0 writes.
+  - Screenshots at 1100 / 1440 / 1920 / 390. No sideways scroll, nothing under 12px, no console errors.

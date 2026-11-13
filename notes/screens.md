@@ -200,3 +200,11 @@ Stephen: "Do the 5 bugs first".
   - after a merge the box shows the saved text and a toast says "Print notes were changed in another app — merged, check them".
 - Practice mode: no read, no write (as before).
 - **Tested** (Playwright, mocked Airtable, 1440×900), 8 checks passed: plain save = one PATCH with the box; Seps line added meanwhile + Screens line added = both kept; both rewrote = both kept with "Screens version:"; the next save after a merge is plain; practice sends 0 writes. No page errors.
+
+## 2026-11-13 · v35: the shared side pane
+Stephen: "streamline how [the left panels] are sized so moving between apps feels cohesive", with the cards keeping "the focus per app" (notes/side-panel.md, rollout step 3, with Seps v52 and Ink v106).
+- **Panes:** the queue is the standard list width (`--p-pane-list`, 320 / 346 / 420 at 1100 / 1440 / 1920; was 300-340), two panes from 1100px as before, page gutter 16px (24px from 1400), 16px between panes, each pane scrolls on its own.
+- **Top of the list:** the tab's name + how many imprints (TO IMAGE 3), total screens on the right, one hint line when Bandanas only is on. Search stays in the filter row.
+- **Card (compact):** mockup thumbnail (tap: full proof) over the imprint ID badge · the design in bold · location · inks · type under it · Screens on the right · tags (✓ Imaged / No sep file, Reorder, ↩ previous run). In place (under 1100px) the open card's ✓ Imaged gets its own row. Qty is in the open imprint's header.
+- Same Airtable reads and writes, keys, Drive, print-notes merge and practice mode as v34.
+- **Tested** (Playwright, mocked Airtable, the same scripted run on v34 and v35: load, open a job, Reorders tab and back, search and clear, at 1100, 1440, 1920 and 390 wide): the Airtable requests are identical at every width (5 / 5 / 5 / 4 requests), and so are the Drive-worker calls. No page errors, no text under 12px, one yellow button, no sideways scroll at 390. List width 320 / 346 / 420 (was 300 / 317 / 340).
