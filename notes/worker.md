@@ -399,3 +399,22 @@ run. The likely cause is Cloudflare's per-run limit on calls (50 on the free pla
 - Tested in Node: a simulated run fixes both 11022 bills (PO 110526; $361.53 and $669.95) with one re-match plus its sibling;
   the v47/v48 suites pass apart from the version number and the old per-email KV markers (now one entry); /proxy/health and
   /proxy/version answer.
+
+## 2026-11-13 · v50 · one bill per invoice, re-matching takes turns
+**From v49's first night** (checked with /proxy/health and Vendor Bills at 04:30):
+- The runs worked. The backlog cleared at 04:30 (nothing left for later), with no errors and 33–44 calls a run.
+- **Duplicate bills.** LA Apparel L0642753-00 and L0642751-00 were each saved twice, seconds apart: the same invoice number arrived in two emails. The save only checked "is this email saved already?".
+- **11022 never re-matched.** Re-matching does 2 bills a run but always took the first 2 in the list. Bills it can't fix (1443277, with a price that differs from the cart, and the LA duplicates) came first every hour, so the two 11022 SLC bills never got a turn.
+
+**Fix**
+- Saving also checks for a bill with the same vendor and document #: `{Bill}` = "<vendor> <document #>". If one exists, nothing is saved, and the run counts it as "already". One more call per save, which the call budget allows for. A bill with no document # is still checked by email only.
+- A re-matched bill (and its sibling) waits 20 hours before it's tried again. That's kept in the `inv:doneset` KV entry, which is now written after the re-match: no extra KV calls.
+
+**Tested** with Node, Gmail, Airtable and Claude mocked (scratchpad w50test.mjs, 9/9):
+- Two emails for the same LA Apparel invoice give 1 saved and 1 "already".
+- The two bills that can't be fixed are tried first; the next run splits 1443481 to its own line ($361.53) and moves 1443434 to the other line ($669.95, "By order #").
+- The v48 tests still pass on v50, apart from the version number.
+
+**Live data:**
+- 1443434 is $651.30 against a $669.95 cart line ($18.65 apart), so it needs a look by hand after the split.
+- The two existing duplicate LA Apparel bills are still in Vendor Bills. Stephen decides whether to remove them.
