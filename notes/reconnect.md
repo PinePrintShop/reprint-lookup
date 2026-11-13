@@ -166,3 +166,21 @@ Each customer gets a one-line **Why now**, e.g. "Ordered in Feb 2025 and Mar 202
 - "Clear all Contacted / Skip marks" now asks in the shared Pine box (`pine-confirm.js`) instead of the browser's grey pop-up. It says only this computer's marks are cleared; the button is a red **Clear marks**.
 - Nothing else changed. Still read-only in Airtable.
 - **Tested:** Cancel keeps the marks, Clear marks clears them, no network writes, no errors.
+
+## 2026-11-13 · v7: the shared side panel (looks only)
+Step 5 of `notes/side-panel.md` (Stephen: "streamline how [the left panels] are sized so moving between apps feels cohesive").
+- **List:** the standard list pane, 320 / 346 / 420 at 1100 / 1440 / 1920 (was about 640). Two panes from 1100px (was 1400). Below that the list comes first and a customer opens in place, as before. Each pane scrolls on its own.
+- **Summary tiles → one strip above both panes.** It shows their Q1 sales last year and the year before, lifetime spend, and the Pipedrive line, with **Copy list** (the yellow button) at the end. It still follows the filters.
+  - Why a strip and not the main pane: the totals describe the list, not the open customer.
+  - The big count is now the list header's count ("Who to call 13").
+  - "N left out by Pipedrive" was said twice. Now the Left out by Pipedrive chip's count says it.
+- **List header:** "Who to call 13", the rep / minimum spend when one is picked, and a one-line hint with the view's window ("Last order Nov 2025 – Jul 2026").
+- **Customer cards:** the compact card.
+  - The score, then the customer.
+  - A grey line: "Last Feb 2026 · Garrett".
+  - On the right: lifetime spend.
+  - Tags in short words: "Ordered Q1 before", "Due to reorder", "Order in progress", Contacted / Skipped, and "No rep — confirm first" (the full "No rep currently assigned — confirm before assigning" shows when it's open).
+  - Number of orders, the last order amount and usual months are in the open customer's header, as before.
+- **Same requests:** an identical scripted run on v6 and v7 makes the same 12 requests: Airtable orders in three streams, paging included, and the worker's Pipedrive route, on load and Refresh. Still read-only.
+- Screenshots at 1100 / 1440 / 1920 / 390. No sideways scroll on a phone, nothing under 12px, no errors.
+- **Fixed:** `reconnect.html`'s fallback link (shown only if the redirect doesn't run) pointed to v5. It now points to v7.
