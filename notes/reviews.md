@@ -226,3 +226,8 @@
   - 45/45 end-to-end checks, run against the real worker on a fake Airtable: the PIN flow, autosave and reload, send validation, results without peer names, the private answer hidden from the manager, link rotation, lockout, zero network calls in practice, and phone/iPad/desktop layout.
   - Worker unit tests: 17/17.
 - **The worker URL is assumed** to be `https://pine-reviews.stephen-dab.workers.dev`. If Cloudflare gives it another name, change `API` in the app.
+
+### 2026-11-13 · Worker deployed
+- **Stephen deployed `pine-reviews`** (`/r/version` → 1) and added the KV binding and the three settings.
+- **First admin link:** made by hand. The code was generated in the session, and only its SHA-256 went into Stephen's People row. The link itself was given to Stephen in chat only.
+- **Stephen's next step:** open the link and set a 6-digit PIN. Then send himself a fresh link from Setup (Send on WhatsApp / Copy), which retires the one shared in chat.
