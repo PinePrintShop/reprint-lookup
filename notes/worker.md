@@ -427,3 +427,4 @@ run. The likely cause is Cloudflare's per-run limit on calls (50 on the free pla
   - An existing folder is handed back and nothing is made.
   - Mockup Maker v274 uses it for orders made before v51.
 - **Tested** with mocked Drive (scratchpad w51test.mjs, 6/6): existing folder handed back; missing one made; other names → 400; outside the shared drive → 403; no token → 401.
+- 2026-11-16: the merge of v51 hit a GitHub 502, so the site wasn't republished (worker-copy.html still showed v50). A follow-up commit republished it.
