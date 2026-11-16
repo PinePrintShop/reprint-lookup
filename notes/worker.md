@@ -428,3 +428,17 @@ run. The likely cause is Cloudflare's per-run limit on calls (50 on the free pla
   - Mockup Maker v274 uses it for orders made before v51.
 - **Tested** with mocked Drive (scratchpad w51test.mjs, 6/6): existing folder handed back; missing one made; other names → 400; outside the shared drive → 403; no token → 401.
 - 2026-11-16: the merge of v51 hit a GitHub 502, so the site wasn't republished (worker-copy.html still showed v50). A follow-up commit republished it.
+
+## 2026-11-16 · v52 · split bills stay apart
+**On v51's 17:30 run:** SLC 1443481 ($361.53) matched its own line exactly. 1443434 ($651.30, "6813-FOR 11022") got worse. Once its Pine PO was filled in (110526), the re-match took every line on that PO: 3 lines and a $1,322.27 cart, including 1443481's line and a line from another order. Lines another bill had claimed were only left out when what was left added up to the bill.
+
+**Fixed by hand first** (Stephen: "let's do both"): 1443434 is set to the one remaining 11022 line ($669.95 cart), "Picked by hand", with a note. The bill is $18.65 lower than the cart; check it against the SLC invoice.
+
+**v52**
+- A bill whose printed PO or notes say "FOR <order #>" keeps only that order's lines from the PO, when it has any.
+- Lines another bill has claimed are always left out: a bill matched exactly (cart = total), or one marked "Picked by hand". If what's left doesn't add up, the bill keeps what's left and says "Needs a look", instead of taking the whole PO.
+- **Tested** (mocked Gmail and Airtable; scratchpad w52test.mjs, 6/6):
+  - Both bills on all 3 lines of PO 110526: 1443481 gets its own line, 1443434 gets only the other 11022 line ($669.95).
+  - A "Picked by hand" bill is kept, and other bills don't take its line.
+  - A bill naming no order with nothing claimed still gets the whole PO, as before.
+  - The v48 and v50 tests pass on v52, apart from the version number.
