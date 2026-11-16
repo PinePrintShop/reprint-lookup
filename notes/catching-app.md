@@ -491,3 +491,28 @@ Stephen: "Let's not have to have the operator hit stop setup".
 - Approve during setup closes the setup at that moment (SETUP COMPLETE with the full setup time) and starts the run.
 - "Setup done" still shows the same buttons, for a press that used Stop Setup on an older Operator.
 - Tested with Operator v136 (see its notes).
+
+## 2026-11-16 · v175: + Report damage on a caught job
+Stephen: "if a job gets marked complete on the catching app before damages are reported....what is the best way to get those added?"
+- **Completed:** each line item has a **+ Report damage** button (big, white, next to the line item; the proof still opens from the line item). Once damage is saved the line item shows "N dmg".
+- **The tally is the same one as an open card:** size, then reason (the press's own reasons: screen print / Embroidery / Heat press), Other, Unsure, Undo. The line item list, Review, "+ caught", Checked locations and Done are hidden. The header shows "✓ Caught 10:32 AM". At the bottom: **Cancel** and **Save damage** (the one yellow button, with "2 damaged · 1 logged before").
+- **Saving uses the same write path** as Done (`smConfirm`, called with `damageOnly`):
+  - remembered issue on this iPad → PATCH the Order Issue + Damage Detail with the new totals;
+  - otherwise the v167 check first; if a QC issue for that line item + team is already in Airtable, nothing is created and the "already logged … No new issue" message shows (changes go through the Damage Log, as today);
+  - otherwise create the Order Issue, then the Damage Detail. 4XL / 5XL go to [RP] and Damage Details; 6XL to Damage Details only.
+  - A failure shows the error and the button turns into **Retry · save damage** (an issue already created is finished, not created again).
+  - Unsure pieces open the same "Sort the unsure pieces" pop-up first.
+- **Damage only.** The late save skips Extras Sent. It doesn't write Caught / Caught At / Run Finished, Order Status or Boxes Packed, and it doesn't change the job's state. The job stays in Completed. Practice mode fakes it like every other write.
+- **Add-only.** The counts already on this iPad's tally can't be lowered here: no − on them, and Undo only reaches this visit's taps. Cancel (or leaving for a press tab / Completed) asks "Drop this damage?" when there are unsaved taps, and puts the tally back as it was.
+- **Find / "Catch it →" on a caught job** now opens that order in Completed and says "Found damage? Tap + Report damage".
+- **Known limit (unchanged rule):** if the other iPad already logged a QC issue for the same line item + team on this run, the late pieces for that team are not added (no second email). The catcher sees the message; the production manager adds them in the Damage Log. Pieces for the other team still save. The local "N dmg" count includes them, the same as an open card's count.
+- APP_VER 175. Permanent link `pine-catching.html` → v175.
+- **Tested** (Playwright, mocked Airtable, 1180×820 and 820×1180; every request logged):
+  - Embroidery job caught, no earlier damage: M Puckering + 4XL Mill Flaw. Exactly 2 duplicate checks (GET), 2 Order Issue POSTs, 2 Damage Detail POSTs. Nothing else was written.
+  - Then 1 more (L): 2 Order Issue + 2 Damage Detail PATCHes on the remembered records. No checks, no creates.
+  - Job with a QC Print Team issue already in Airtable: the Print Team piece creates nothing and shows the message. The Other piece creates its issue + detail.
+  - Practice: 0 writes.
+  - A Damage Detail failure → Retry PATCHes the issue and creates the detail (no second issue).
+  - Unsure → sort pop-up → saved as Embroidery Team / Hoop Burn.
+  - Cancel → asks, the tally goes back, 0 writes.
+  - A normal open-card catch (Done → Next) sends the identical 11 requests on v174 and v175.

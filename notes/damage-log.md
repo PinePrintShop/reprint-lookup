@@ -20,7 +20,7 @@ The production manager's desk view of Order Issues. Used mostly on a laptop, som
   - Mark a reprint done (Status = Completed).
   - Orders > Refund Issued.
   - The one-per-order refund request on the Order (Refund Request Amount / Details / Count / At). The *Refund Request* automation emails finance when this is written. Background: `plan-one-refund-email.md`.
-  - The app never creates Order Issues.
+  - Since v25: *+ Add damage* creates an Order Issue + Damage Detail (the same records Catching creates), or adds to an open one. Before v25 the app never created Order Issues.
 - **Trends tab:**
   - Apparel vs bandanas.
   - Damaged pieces by reason, accountability and garment.
@@ -170,3 +170,56 @@ Rollout step 4 of `notes/side-panel.md`. Stephen (2026-11-10): the standard 346,
   - The same scripted run on v23 and v24 makes identical requests at 1440, 1100 and 390: 14 each, including the approve → In Refund Request → refund request writes (load, open an order, the All / Reprints / Awaiting review chips, search, approve a refund, Trends, a 30-day range).
   - Practice: 0 writes.
   - Screenshots at 1100 / 1440 / 1920 / 390. No sideways scroll, nothing under 12px, no console errors.
+
+## 2026-11-16 · v25: + Add damage
+Stephen: damage found after a job was marked complete in Catching (by shipping, or reported by the customer) had to be typed straight into Airtable's Order Issues table. Now the production manager logs it here.
+- **Where:**
+  - *+ Add damage* on the picked / open order (next to *Order in Airtable*).
+  - *+ Add damage* in the top bar (next to Refresh; just "+" on a phone): type the order #, and the order and its line items load, also when the order isn't in the list.
+  - A search for an order # with no issues offers *+ Add damage to order N*.
+  - The filter band is unchanged (same height as v24 at 1440 / 1100 / 390).
+- **The form** (the kit's pop-up, one yellow button: Save):
+  - Line item: garment · colour · pcs (picked for you when the order has one line).
+  - Found by: *Found by us* (QC Initiated) / *Customer reported* (Customer Initiated). Saved to Order Issues › Category.
+  - Team: Print team / Other, with the machine (Screen print / Embroidery / Heat press) picking Catching's reason list and team label ("Embroidery Team"). Embroidered line items start on Embroidery. Heat press can't be told from the line item, so it's picked by hand.
+  - Reason: the same buttons as Catching for that machine and team.
+  - Damaged pieces: − / number / + for the line's own sizes (4XL–6XL included), with how many were made.
+  - Note (optional). A "Saves as" line shows the description before saving.
+- **What it saves:** the same records as Catching (`buildIssuePayloads` + `writePair` in Catching v174). The test ran Catching's own code on the same damage and compared the fields.
+  - **Order Issue:**
+    - Affected Line Item and Affected Order.
+    - Status Awaiting Review.
+    - Accountability (Print Team / Other).
+    - QC Reasons (legacy), plus QC Reasons – Print Team or – Other.
+    - The [RP] size counts.
+    - Description in Catching's format, e.g. "2 damaged (Print Team) [1M, 1L]: Smudge", with "Notes: …" when there is a note.
+    - **Plus Category.**
+    - **Not Originator:** the app doesn't know who is signed in. Catching writes "Quality Control".
+  - **Damage Detail**, linked to the issue: line item, accountability, reasons, per-size counts (6XL only here, as in Catching) and the note.
+- **No duplicate emails:**
+  - Before creating, the app asks Airtable for an open issue (not approved, not Resolved / Completed) on the same line item + team + category. Catching's issues count as QC Initiated through Category (auto).
+  - Found: the form says so and offers *Add to open issue* (yellow) or *Separate issue*.
+    - Adding writes the new size totals, the combined reasons and the rebuilt description to the issue, and adds the counts to its Damage Detail. That is a PATCH, so no new email.
+    - The description and the Damage Detail notes get "Added Nov 16 in the Damage Log: +2 [1M, 1XL]".
+  - Can't ask Airtable: nothing is saved, and the form says try again.
+  - The create confirm says a new Order Issue emails people (Airtable automation).
+  - If the Damage Detail fails after the issue was created, the button becomes *Finish saving*. It only saves the Damage Detail, so there's no second issue and no second email.
+- **After saving:**
+  - The order is picked / opened with the new issue Awaiting Review.
+  - If the current filter doesn't show it, the filter switches to *Awaiting review*.
+  - Approve / Change to work on it as usual.
+- Practice: the issue (or the addition) shows on screen only. Nothing is written.
+- **Tested** (Playwright, mocked Airtable, made-up customers, 1440×900 and 1100×800, plus a 390 check):
+  1. **2 pieces on a line of an order in the list:** 1 check, then 2 writes (POST Order Issue, POST Damage Detail). The fields match Catching's payload for the same damage, apart from Originator (not sent) and Category (added). It showed Awaiting Review, and Approve made the usual 3 writes.
+  2. **An order not in the list** (found by order #): 2XL + 6XL, Other, Customer Initiated, with a note. The fields match Catching's, and 6XL went to the Damage Detail only.
+  3. **An open issue for that line, team and category:** "Add to open issue" made 2 PATCHes (the issue and its Damage Detail) and 0 creates.
+  4. **Practice:** 0 writes for both the create and the add.
+  5. **The v24 scripted run** (load, open, chips, search, approve, Trends, range) made the same 14 requests on v25 at 1440, 1100 and 390.
+  - **Also:** a Damage Detail failure then *Finish saving* made 1 issue and 2 Damage Detail tries. A failed duplicate check made 0 writes. There were no page errors.
+  - **Layout:** nothing under 12px, no sideways scroll, one yellow button per screen.
+- **Open:**
+  - Originator for these issues: leave it empty, or add a "Logged by" (Patrick / Chris / Josh / Stephen)? Category (auto) already reads Customer Initiated for those names.
+  - Does the "new Order Issue" email automation filter on Originator?
+  - Catching's "Update QC" rewrites its own issue's totals for 8 days, so it would undo an addition made here to a Catching issue during that time.
+  - Photos skipped.
+
