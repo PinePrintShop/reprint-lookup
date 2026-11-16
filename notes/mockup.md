@@ -3529,3 +3529,16 @@ and the picker offered nothing.
 - Dpi: 201 and 275 are Low-res; 296 and 300 are print ready.
 - The 2565 px / 12.75″ PSD reads 201.18 ppi = 12.750″.
 - With Client Provided, the upload goes to For Proof; without it, to Seps › working files.
+
+## 2026-11-16 · v274: files for seps in Seps › Production Files
+Stephen: "can we look at maybe also creating a new folder in the seps folder for production files and all of these get stored there?" He chose Seps › Production Files instead of v273's Client Provided › For Proof.
+- The layered PSD / vector .ai for each imprint goes to **Seps › Production Files**.
+- If the order doesn't have that folder, it's made (worker v51, `drive/mkdir`). New order folders get it from the worker.
+- Before worker v51, or if making it fails, the files go to Seps › working files (as before v273).
+- No Seps folder at all: Client Provided › For Proof (v273).
+- Names, the exact size and the under-300 dpi note are as in v273.
+- **Tested** (Playwright, mocked Drive):
+  - The folder exists: saved there.
+  - It's missing: one mkdir, then saved in the new folder.
+  - Old worker: saved to Seps › working files.
+  - No Seps folder: saved to Client Provided › For Proof.

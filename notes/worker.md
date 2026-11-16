@@ -418,3 +418,12 @@ run. The likely cause is Cloudflare's per-run limit on calls (50 on the free pla
 **Live data:**
 - 1443434 is $651.30 against a $669.95 cart line ($18.65 apart), so it needs a look by hand after the split.
 - The two existing duplicate LA Apparel bills are still in Vendor Bills. Stephen decides whether to remove them.
+
+## 2026-11-16 · v51 · Seps › Production Files
+- New order folders get **Seps › Production Files**. NF_TREE now has 14 folders; NF_PER_ORDER is 20.
+- New `POST /proxy/drive/mkdir?parent=<folder id>&name=Production%20Files`:
+  - It needs the Airtable token, as every drive route does.
+  - "Production Files" is the only name allowed, and only inside Pine's shared drive.
+  - An existing folder is handed back and nothing is made.
+  - Mockup Maker v274 uses it for orders made before v51.
+- **Tested** with mocked Drive (scratchpad w51test.mjs, 6/6): existing folder handed back; missing one made; other names → 400; outside the shared drive → 403; no token → 401.
