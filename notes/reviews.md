@@ -244,3 +244,10 @@
   - "2026 review": 16 manager reviews, each manager for their crew and Stephen for the 4 managers
 - **Peer reviews:** Stephen and Nicole pick pairs on Nov 17; then they get added.
 - **Plan for Wednesday:** huddle → open both cycles in Setup → Send on WhatsApp to each person.
+
+### 2026-11-16 · Email automation (draft; Stephen turns it on)
+- **Automation "Email review link, then clear it"** in Pine Reviews (`wfl5PrJtfHyGyIQMw`).
+  - **Trigger:** People › Email link is not empty, and Email is not empty.
+  - **Then:** it emails the link ("Your Pine review link", from "Pine Print Shop", with a "don't forward" note), and clears Email link.
+- **It's off until Stephen reviews it and turns it on** in Airtable.
+- Until it's on, the **Email link** button only stores the link; nothing is emailed. Whitney's link was waiting there on Nov 16; it goes out as soon as the automation is turned on.
