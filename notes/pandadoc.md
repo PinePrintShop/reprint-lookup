@@ -167,3 +167,70 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
   - Yes to the "Not signed yet" flag.
   - In QC (Catching), a job with no Signed Proof also gets a link to its PandaDoc document. Use the order's PandaDoc ID: `https://app.pandadoc.com/a/#/documents/<id>`. If there's no ID, link to a PandaDoc search for the order number. That way QC can see where signing stands before the job goes out.
   - Build all of this once Patrick's folder shows ✓ on signed-check.html.
+
+## 2026-11-16 · Signed packets from Drive (worker v53), Signed Proof pages, initials
+Stephen said go on the 2026-11-05 flow. He added: "make sure the QR code in invoices and box labels are the signed ones as well", and that proof initials aren't required in PandaDoc, so customers can skip them (Terms and the invoice are required).
+
+**Correction to 2026-10-28:** the PandaDoc sweep wasn't fully paused. From v41 on it ran in the worker's 15-minute cron. Most open orders have a PandaDoc download as Signed Packet ("<n> signed (completed).pdf"). Nobody has checked whether those copies carry the watermark (v36 asked for the signed copy).
+
+**1. Worker v53: Signed Packet from the rep's Drive folder** (details in worker.md)
+- **When:** every 15 minutes, in the existing cron.
+- **How many:** 3 orders a run, the most recently signed first.
+- **Which file:** the newest "<n> | …" PDF from the last 30 days.
+- **What it writes:** Signed Packet ("<n> signed (drive).pdf"), and Signed At (the file's created time) only when it's empty.
+- **Which orders:** empty packets, plus packets the old sweep made itself. Never a file attached by hand. Never Shipped, Completed, Cancelled or Partially Completed orders.
+- No PandaDoc downloads.
+
+**2. pine-signed.js (Line Item Review, Screens): each line's Signed Proof**
+- **Which packets:** only Drive packets ("(drive)" in the name). The PandaDoc copies may lack the initials, which would read as "not initialed" everywhere.
+- **Which lines:** those with no Signed Proof yet. Up to 4 orders per load, most recently signed first.
+- **Finding the page(s):** from PandaDoc Pages when LIR built the packet (a shared proof page goes to every line on it), else by matching the signed pages to the line's proof.
+- **Writing:** the page(s) go into **Signed Proof**, only when it's empty. Nothing is cleared or overwritten.
+- **Retries:** an order with a line whose page can't be found waits 12 hours on that computer.
+- **Initials:**
+  - It looks inside the APPROVED box: LIR's box from PandaDoc Pages (art's white box, or the white part of LIR's own stamp), or, for a hand-built packet, the box beside the "APPROVED" text found on the page.
+  - It measures the darkness there and takes off whatever is in the same box on the proof in Airtable.
+  - Empty → **Signed Check** "NOT INITIALED · page N · 11139 signed 11/14 · the customer skipped the APPROVED initials on this mockup [doc …]", only when Signed Check is empty.
+  - Initialed → nothing is written.
+  - No APPROVED box found → nothing is written (no guessing).
+- **The full comparison** (OK / CHECK, reorder note) stays paused (`CHECK_PAUSED`). It has only been tried on made-up pages, never on a real Drive copy, so it can't be shown not to false-flag yet.
+- **Practice:** nothing is written.
+
+**3. Box-label QR (mockups.html)**
+- The line's signed page comes first, with "✓ Signed".
+- "Not signed yet" (calm) when the line has no signed page.
+- "Proof not initialed" (red) from the Signed Check.
+- "Signed packet" at the top opens the whole PDF.
+- With an older worker the page looks as before.
+- Pine colours, Poppins order number, nothing under 12px.
+
+**Tested (mocked; scratchpad sg53):**
+- **Worker:** 52/52 (see worker.md).
+- **pine-signed.js** in Playwright, with made-up packets in LIR's format (Terms, proofs with art's APPROVED box or LIR's own stamp, invoice), 18/18:
+  - A 3-line packet: proof page 2 is shared by L1 and L2, page 3 is L3's.
+  - Each line gets just its page. L3's empty box gets "NOT INITIALED · page 3"; the initialed lines get nothing.
+  - An existing Signed Proof and an existing Signed Check are kept.
+  - Practice writes nothing.
+  - A thin light-grey pen counts as initialed.
+  - Hand-built packet: pages are matched by picture. A page with no APPROVED box writes no check, but its page is still saved.
+  - LIR's own stamp: empty → NOT INITIALED, initialed → nothing.
+  - A PandaDoc "(completed)" packet is left alone.
+  - A line with no page waits 12 hours.
+- **Darkness in the box** (the threshold is 0.003):
+
+| Box | Darkness |
+|---|---|
+| Empty | 0 |
+| Thin light-grey pen | 0.023 |
+| Black initials | 0.10 to 0.16 |
+
+- **mockups.html** (Playwright, phone width), 8/8:
+  - New page with the v53 response.
+  - New page with the v52 response: as before.
+  - The old page with the v53 response still works.
+- **signed-check.html v2**, 4/4: the "Signed packets on orders" card, hidden on an older worker.
+
+**Risks**
+- **False "not initialed":** a hand-built packet where the rep put the initials field away from the APPROVED box. Or a PandaDoc copy that drops the initials (that's why only Drive packets are used).
+- **Missed "not initialed":** if PandaDoc draws something in an empty optional field (an outline or placeholder), the box reads as initialed. That fails safe: nothing is written.
+- **A Drive file that isn't the signed packet:** a non-PandaDoc PDF named "<n> | …" in the folder would be attached. Pipedrive's PandaDoc files follow that name.

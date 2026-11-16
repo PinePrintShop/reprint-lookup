@@ -442,3 +442,48 @@ run. The likely cause is Cloudflare's per-run limit on calls (50 on the free pla
   - A "Picked by hand" bill is kept, and other bills don't take its line.
   - A bill naming no order with nothing claimed still gets the whole PO, as before.
   - The v48 and v50 tests pass on v52, apart from the version number.
+
+## 2026-11-16 · v53 · signed packets from the reps' Drive folders
+The flow agreed with Stephen on 2026-11-05 (pandadoc.md), and today "go". Stephen also: "make sure the QR code in invoices and box labels are the signed ones as well".
+
+**Found first:** the 15-minute cron had been running the PandaDoc sweep since the Cron Trigger went in (v41). `SWEEP_PAUSED` only stopped Line Item Review from asking. So most open orders already have a PandaDoc download as Signed Packet ("<n> signed (completed).pdf"; the newest stored today). A read-only look on 2026-11-16 showed 176 orders with a Signed Packet or a PandaDoc ID, finished ones included.
+
+**v53**
+- **No PandaDoc sweep in the cron any more.** `/proxy/pandadoc/sweep` still answers when asked, but it never replaces a Drive packet.
+- **`signedPacketSweep`**, in the 15-minute cron:
+  - Reads the PDFs made in the last 30 days in the sales folders (`SIGNED_FOLDERS`, as v40).
+  - Only names like "11139 | …": the leading number, then the pipe. 111390 never matches 11139, and "Proof 11143.pdf" is ignored.
+  - An order with several PDFs (signed again) takes the newest by created time.
+  - Skips Shipped, Completed, Cancelled and Partially Completed orders.
+  - Writes **Signed Packet** = "<n> signed (drive).pdf", and **Signed At** = the file's created time, only when Signed At is empty.
+  - Only empty packets, plus the old sweep's own copies ("<n> signed (completed).pdf" or "<n> signed.pdf" with the order's own number), which may be the watermarked download. Any other file (attached by hand) is never touched. `SIGNED_REPLACE_PANDADOC=0` turns the replacing off.
+  - At most 3 orders a run, the most recently signed first, in one Airtable write. No PandaDoc calls.
+  - **Budget:** its own `SIGNED_SWEEP_BUDGET` (default 10; usually 6 calls: Google sign-in, 1 list per folder, 1 Airtable read, 1 write, 1 KV). The folder sweep keeps its 30 and the invoice run its own Cron Trigger, so the */15 run stays under 50.
+  - Settings, all optional: `SIGNED_SWEEP_BUDGET`, `SIGNED_SWEEP_MAX` (3), `SIGNED_SWEEP_DAYS` (30).
+- **`GET /proxy/drive/signedlink/<file id>?exp=&sig=`**, for Airtable's attachment fetcher (no token, like v33's PandaDoc link):
+  - HMAC-signed with a key derived from `SIGNED_LINK_KEY`, else `GOOGLE_SA_KEY`. No new secret is needed.
+  - Expires in 2 days.
+  - Serves only a PDF whose folder is a sales folder, 25 MB max. The file name is "<n> signed (drive).pdf", never the customer's name.
+- **`GET /proxy/mockups`** (the box-label QR; keyless, read-only):
+  - Each line's Signed Proof comes first in `mockups[]` with `signed:true`; the proofs follow.
+  - Each item has `signed` (true/false) and `notInitialed` (Signed Check starts "NOT INITIALED").
+  - The order's Signed Packet link comes back as `packet`.
+  - The old fields are unchanged, so the old mockups.html still works.
+- **`GET /proxy/drive/signed/packets`** (Airtable token, read-only): the last run and a dry run of the next. signed-check.html v2 shows it.
+- **`/proxy/health`** has `signed`: when the last run was, attached / waiting / errors / calls (counts only).
+- `/proxy/version` → 53.
+
+**Tested** in Node with mocked Drive, Airtable and KV (scratchpad sg53/w53test.mjs, 52/52):
+- An empty packet gets filled, and a hand-attached packet is left alone.
+- The newest of two PDFs wins, and Signed At is kept when it's already set.
+- 111390 is never attached to 11139, and a Shipped order is skipped.
+- 3 a run; the next runs do the rest. The signed sweep stays within 10 calls (6 when the budget is 6).
+- The folder sweep still runs on */15, and the invoice run still runs on its own cron (which doesn't run the signed sweep).
+- No PandaDoc call in the cron.
+- Signed link: it serves the file without a token. A tampered signature, a changed or far-off expiry, the same signature on another file, a file outside the folders, or another link key are all refused.
+- The old sweep's copies are replaced (Signed At kept); a hand-attached file, or another order's name, is not; `SIGNED_REPLACE_PANDADOC=0` replaces nothing.
+- `pandadoc/sweep` leaves a Drive packet alone.
+- Mockups: the signed page comes first, the flags and the packet link are there, and the v52 response is contained in v53.
+- 9 other routes answer byte-for-byte as v52.
+
+**Stephen deploys it:** worker-copy.html → Copy worker v53 → paste into Cloudflare → Deploy. Keep both Cron Triggers. No new secret. Then signed-check.html shows the runs.

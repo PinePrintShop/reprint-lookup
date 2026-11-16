@@ -1,16 +1,20 @@
-/* pine-signed.js (2026-10-28) — signed PandaDoc packets → each line's signed mockup, and a check before screens.
+/* pine-signed.js (2026-10-28; 2026-11-16) — signed PandaDoc packets → each line's signed mockup, and a check before screens.
    Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtable so we can use the actual signed
    mockups?" … "Client puts in a reorder … client changes back print. Sales forgets to update imprint id but an update
    is made to the PandaDoc mockup … we still have the old reference in Airtable so screens burns the reorder screens".
 
-   1. Asks the worker (v33) to store new completed PandaDocs on their orders (Signed Packet, PandaDoc ID, Signed At).
-   2. For orders with a Signed Packet whose lines aren't checked for that document yet:
+   1. The order's Signed Packet comes from the worker (v53): every 15 minutes it attaches the rep's signed PDF from their
+      Pipedrive Drive folder ("<n> signed (drive).pdf"). This script no longer asks for a sweep (SWEEP_PAUSED).
+   2. For orders with a Drive packet whose lines have no Signed Proof yet:
       - finds each line's page(s): from the order's PandaDoc Pages (Line Item Review writes it when it sends), or by
         matching the signed pages against the line's proof in Airtable;
-      - compares the signed page with the proof in Airtable (a picture compare, small and blurred, so the customer's
-        initials don't count). Different = the mockup was changed in PandaDoc, or a new proof went into Airtable after;
-      - saves the page(s) as the line's Signed Proof, and a Signed Check: "OK · …" or "CHECK · …" (+ a reorder note
-        when an imprint on the line is a reorder, so the screen room compares with the previous run).
+      - saves the page(s) as the line's Signed Proof (only when Signed Proof is empty: never overwritten);
+      - initials (2026-11-16, Stephen: proof initials aren't required in PandaDoc, so customers can skip them): looks in
+        the page's APPROVED box (where LIR put the initials field, from PandaDoc Pages; or found by its "APPROVED" text)
+        for ink that isn't on the proof in Airtable. None = Signed Check "NOT INITIALED · page N · …" (only when Signed
+        Check is empty). Initialed = nothing written. No APPROVED box found = nothing written (no guessing).
+      - the full comparison with the proof in Airtable (OK / CHECK + reorder note) is still paused (CHECK_PAUSED): the
+        first real runs (PandaDoc downloads) false-flagged, and it hasn't been tried on the Drive copies yet.
    Use: <script src="pine-signed.js"></script>, then PineSigned.sync({token, practice}) (returns a summary).
    Needs pdf.js + pdf-lib (loaded from cdnjs if the page doesn't have them). Practice: nothing is written. */
 (function(){
@@ -21,18 +25,25 @@
   const I={id:'fldDFfwFQ9B20n2kT',repeat:'flda9L7041ahNZT0b',prev:'fldAEQvMAAZX9gnhl'};
   const DONE=['Shipped','Completed','Cancelled / Voided','Partially Completed'];
   const LIB={pdflib:'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',pdfjs:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',pdfjsWorker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'};
+  // 2026-10-28: the comparison is paused (PandaDoc's downloads had a demo watermark and no initials, so every page read as
+  // "changed"). 2026-11-16: still paused until it's been tried on the Drive copies; the pages and the initials run without it.
   const CHECK_PAUSED=true;
-  // 2026-10-28: the sweep is paused too. PandaDoc's downloads kept failing (too many at once), so every run emptied and
-  // re-wrote Signed Packets. Back on when the worker takes signed PDFs from the Pipedrive Drive folders instead.
+  // 2026-10-28: the PandaDoc sweep is paused for good. Since worker v53 the cron attaches the reps' Drive PDFs itself.
   const SWEEP_PAUSED=true;
+  // 2026-11-16: only packets the worker took from Drive ("… signed (drive).pdf"). The PandaDoc sweep's "(completed)" copies
+  // may be the unsigned download (no initials), which would read as NOT INITIALED everywhere.
+  const DRIVE_ONLY=true;
   const SWEEP_MS=10*60*1000, MAX_ORDERS=4, MATCH=0.025;   // MATCH: how much of any one patch of the page may differ and it is still the same mockup (2.5%)
+  const RETRY_MS=12*3600*1000;   // an order whose lines couldn't all be done waits 12 hours on this computer before it's tried again
+  const INK_MIN=0.003;   // initials: average darkness added inside the APPROVED box (0–1). A thin light-grey pen adds ~0.01, black initials 0.05+
   // where the customer initials: the APPROVED box, bottom left on Pine's proof template (left/top/right/bottom, 0–1 of the page)
   const APPROVED_BOX=[[0,0.8,0.36,1],[0,0.97,1,1]];   // + a footer strip (a signing stamp)
 
   const loadScript=src=>new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('Could not load '+src)); document.head.appendChild(s); });
   async function libs(){ if(!window.PDFLib) await loadScript(LIB.pdflib); if(!window.pdfjsLib){ await loadScript(LIB.pdfjs); pdfjsLib.GlobalWorkerOptions.workerSrc=LIB.pdfjsWorker; } }
-  const sel=v=>v&&typeof v==='object'&&!Array.isArray(v)?v.name||'':v;
   const day=s=>{ const d=new Date(s); return isNaN(d)?'':(d.getMonth()+1)+'/'+d.getDate(); };
+  const lsGet=k=>{ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } };
+  const lsSet=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
 
   function mk(token){
     const at=async(path,opt)=>{ const r=await fetch(/^https:/.test(path)?path:`https://api.airtable.com/v0/${BASE}/${path}`,Object.assign({},opt,{headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}}));
@@ -47,12 +58,15 @@
     return {at,all,byIds,bytes,flds};
   }
 
-  // a page (or picture) as a small blurred grey grid, so two renders of the same mockup compare as the same
+  // a page (or picture) as a small blurred grey grid, so two renders of the same mockup compare as the same.
+  // hi: the full render's lightness (0–255), for the initials (a thin pen line is lost in the small grid)
   const GW=240;
   function grid(canvas){ const w=GW, h=Math.max(8,Math.round(GW*canvas.height/canvas.width)), c=document.createElement('canvas'); c.width=w; c.height=h;
     const x=c.getContext('2d'); x.filter='blur(0.6px)'; x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(canvas,0,0,w,h);
     const d=x.getImageData(0,0,w,h).data, g=new Float32Array(w*h); for(let i=0;i<w*h;i++) g[i]=(0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2])/255;
-    return {w,h,g,asp:canvas.width/canvas.height}; }
+    const D=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data, hl=new Uint8ClampedArray(canvas.width*canvas.height);
+    for(let i=0;i<hl.length;i++) hl[i]=0.299*D[i*4]+0.587*D[i*4+1]+0.114*D[i*4+2];
+    return {w,h,g,asp:canvas.width/canvas.height,hi:{W:canvas.width,H:canvas.height,L:hl}}; }
   // how different two pages are, outside where the customer signs. all: the share of the page that changed (to find a
   // line's page among the signed ones). block: the most-changed 16×16 patch, so a changed word or print counts in full
   // instead of being averaged away over the whole page (MATCH is on this).
@@ -63,16 +77,24 @@
     let mx=0; for(let k=0;k<bn.length;k++) if(bt[k]>B*B/3) mx=Math.max(mx,bn[k]/bt[k]);
     return {all:tot?n/tot:1,block:mx}; }
   const diff=(a,b,mask)=>cmp(a,b,mask).block;
-  async function pdfGrids(data){ const doc=await pdfjsLib.getDocument({data:data.slice(0),isEvalSupported:false}).promise, out=[];
+  // every page: its grid, its size in points, and the white box next to each "APPROVED" (art's proof template; measured
+  // in Line Item Review: x1+0.79fs … x1+3.0fs, baseline−0.61fs … baseline+1.39fs, 2.5 pt inside), as 0–1 of the page
+  async function pdfGrids(data,withBoxes){ const doc=await pdfjsLib.getDocument({data:data.slice(0),isEvalSupported:false}).promise, out=[];
     for(let i=1;i<=doc.numPages;i++){ const pg=await doc.getPage(i), v=pg.getViewport({scale:1}), sc=720/Math.max(v.width,v.height), vp=pg.getViewport({scale:sc});
-      const c=document.createElement('canvas'); c.width=Math.round(vp.width); c.height=Math.round(vp.height); const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
-      await pg.render({canvasContext:x,viewport:vp}).promise; out.push(grid(c)); }
+      const c=document.createElement('canvas'); c.width=Math.round(vp.width); c.height=Math.round(vp.height); const x=c.getContext('2d',{willReadFrequently:true}); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+      await pg.render({canvasContext:x,viewport:vp}).promise; const gr=grid(c); gr.pw=v.width; gr.ph=v.height; gr.appr=[];
+      if(withBoxes) try{ const tc=await pg.getTextContent();
+        for(const it of tc.items){ if(String(it.str).trim()!=='APPROVED') continue; const t=it.transform, fs=Math.hypot(t[2],t[3])||it.height, x1=t[4]+it.width, b=t[5];
+          const p0=v.convertToViewportPoint(x1+0.79*fs+2.5,b+1.39*fs-2.5), p1=v.convertToViewportPoint(x1+3.0*fs-2.5,b-0.61*fs+2.5);
+          gr.appr.push([Math.min(p0[0],p1[0])/v.width,Math.min(p0[1],p1[1])/v.height,Math.max(p0[0],p1[0])/v.width,Math.max(p0[1],p1[1])/v.height]); } }catch(e){}
+      out.push(gr); }
     return out; }
   async function imgGrid(data,type){ const url=URL.createObjectURL(new Blob([data],{type:type||'image/png'}));
     try{ const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
       // Line Item Review puts a picture proof on a letter page (fitted into 744×520 pt, 72 pt from the bottom): do the same
-      const c=document.createElement('canvas'); c.width=720; c.height=556; const x=c.getContext('2d'), k=720/792; x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
-      const sc=Math.min(744/im.width,520/im.height); x.drawImage(im,(792-im.width*sc)/2*k,(612-72-im.height*sc-(520-im.height*sc)/2)*k,im.width*sc*k,im.height*sc*k); return grid(c); }
+      const c=document.createElement('canvas'); c.width=720; c.height=556; const x=c.getContext('2d',{willReadFrequently:true}), k=720/792; x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+      const sc=Math.min(744/im.width,520/im.height); x.drawImage(im,(792-im.width*sc)/2*k,(612-72-im.height*sc-(520-im.height*sc)/2)*k,im.width*sc*k,im.height*sc*k);
+      const gr=grid(c); gr.pw=792; gr.ph=612; gr.appr=[]; return gr; }
     finally{ URL.revokeObjectURL(url); } }
   // a line's proof in Airtable: [{file, fp, grid}] for every page of every proof file
   async function proofGrids(api,line,cache){ const out=[];
@@ -81,76 +103,110 @@
       cache[key].forEach((g,fp)=>out.push({file:a.filename||'',size:a.size||'',fp,grid:g})); }
     return out; }
 
+  // initials. The box from PandaDoc Pages: LIR's mask is the white box (2.5 pt inside) + 8 pt; for a stamp LIR added itself
+  // (a proof without art's APPROVED), the whole 170 pt stamp + 8 pt, whose white part is the right 52 pt.
+  function maskBox(m,pw,ph){ if(!Array.isArray(m)||m.length<4||!pw||!ph) return null;
+    let [l,t,r,b]=[m[0]+8/pw,m[1]+8/ph,m[2]-8/pw,m[3]-8/ph], own=false;
+    if((r-l)*pw>100){ own=true; l=r-49.5/pw; r=r-2.5/pw; t+=2.5/ph; b-=2.5/ph; }
+    const e=1.5; l+=e/pw; r-=e/pw; t+=e/ph; b-=e/ph;   // off the box's own edge lines
+    return r>l&&b>t?{box:[l,t,r,b],own}:null; }
+  function edge(box,pw,ph){ const e=1.5; return [box[0]+e/pw,box[1]+e/ph,box[2]-e/pw,box[3]-e/ph]; }
+  // average darkness inside a box (0 = white). Faint anti-aliasing and paper noise under 3% are ignored.
+  function ink(gr,box){ if(!gr||!gr.hi) return 0; const {W,H,L:px}=gr.hi;
+    const x0=Math.max(0,Math.floor(box[0]*W)), x1=Math.min(W,Math.ceil(box[2]*W)), y0=Math.max(0,Math.floor(box[1]*H)), y1=Math.min(H,Math.ceil(box[3]*H)); let s=0, n=0;
+    for(let y=y0;y<y1;y++) for(let x=x0;x<x1;x++){ const v=px[y*W+x]/255; n++; if(v<0.97) s+=1-v; }
+    return n?s/n:0; }
+  // one signed page: true (initialed), false (an empty APPROVED box), null (no box found: say nothing)
+  function initialed(sg,boxes,base){ if(!sg||!boxes.length) return null;
+    return boxes.some(x=>ink(sg,x.box)-(x.own||!base||Math.abs(base.asp-sg.asp)>0.02*sg.asp?0:ink(base,x.box))>INK_MIN); }
+
   async function checkOrder(api,o,lines,imps,opt){
-    const f=o.fields, num=f[O.num], doc=f[O.pdId]||'', att=(f[O.packet]||[])[0], when=day(f[O.signedAt]);
-    const packet=await api.bytes(att.url), signed=await pdfGrids(packet), cache={};
+    const f=o.fields, num=f[O.num], att=(f[O.packet]||[])[0], doc=f[O.pdId]||'', key=docKey(o), when=day(f[O.signedAt]);
+    const packet=await api.bytes(att.url), signed=await pdfGrids(packet,true), cache={};
     let map=null; try{ const j=JSON.parse(f[O.pages]||'null'); if(j&&Array.isArray(j.pages)&&(!j.doc||!doc||j.doc===doc)) map=j; }catch(e){}
     const res=[];
     for(const ln of lines){
-      const pg=await proofGrids(api,ln,cache); let pages=[], best=1, how='';
-      if(map){ const mine=map.pages.filter(p=>(p.lines||[]).includes(ln.id));
-        pages=mine.map(p=>p.p).filter(p=>p>=1&&p<=signed.length);
+      const pg=await proofGrids(api,ln,cache); let pages=[], best=1, how='', ini=[];
+      if(map){ const mine=map.pages.filter(p=>(p.lines||[]).includes(ln.id)&&p.p>=1&&p.p<=signed.length);
+        pages=mine.map(p=>p.p);
         // each listed page against the same page of the same file in Airtable now (gone from Airtable = a newer proof went in)
         const ds=mine.map(p=>{ const g=pg.find(x=>x.file===p.file&&x.fp===(p.fp||0)); const pm=p.mask?(Array.isArray(p.mask[0])?p.mask:[p.mask]):null; return g&&signed[p.p-1]?diff(signed[p.p-1],g.grid,pm?pm.concat([[0,0.97,1,1]]):null):null; });
         if(ds.length&&ds.every(d=>d!==null)) best=Math.max(...ds); else if(ds.length&&pg.length) how='newer';
+        ini=mine.map(p=>{ const sg=signed[p.p-1], mm=p.mask?(Array.isArray(p.mask[0])?p.mask[0]:p.mask):null, bx=maskBox(mm,sg.pw,sg.ph), g=pg.find(x=>x.file===p.file&&x.fp===(p.fp||0));
+          return {p:p.p,ok:bx?initialed(sg,[bx],g&&g.grid):null}; });
       } else if(pg.length){
         // no page list (a packet built by hand): the signed page(s) closest to this line's proof pages
-        pg.forEach(x=>{ let bi=-1, bd=1; signed.forEach((s,i)=>{ const d=cmp(s,x.grid).all; if(d<bd){ bd=d; bi=i; } }); if(bi>=0&&bd<0.15&&!pages.includes(bi+1)) pages.push(bi+1); });
+        const pair={};
+        pg.forEach(x=>{ let bi=-1, bd=1; signed.forEach((s,i)=>{ const d=cmp(s,x.grid).all; if(d<bd){ bd=d; bi=i; } }); if(bi>=0&&bd<0.15&&!pages.includes(bi+1)){ pages.push(bi+1); pair[bi+1]=x.grid; } });
         if(pages.length) best=Math.max(...pg.map(x=>Math.min(...pages.map(p=>diff(signed[p-1],x.grid)))));
+        ini=pages.map(p=>{ const sg=signed[p-1]; return {p,ok:initialed(sg,sg.appr.map(b=>({box:edge(b,sg.pw,sg.ph),own:false})),pair[p])}; });   // "APPROVED" found on the page, or nothing said
       }
       pages.sort((a,b)=>a-b);
-      const im=(ln.fields[L.imps]||[]).map(id=>imps[id]).filter(Boolean), re=im.filter(x=>x.fields[I.repeat]&&(x.fields[I.prev]||[]).length);
-      const reTxt=re.length?` Reorder of ${re.map(x=>x.prevName||'a previous imprint').join(', ')}: compare the signed mockup with the previous run before reusing its screens.`:'';
-      let ok, msg;
-      if(!pg.length){ ok=false; msg=`no proof on this line in Airtable to compare with${pages.length?'':' — find its page in the signed packet'}.`; }
-      else if(!pages.length){ ok=false; msg=`none of the signed pages matches this line's proof in Airtable — the mockup was probably changed in PandaDoc. Check the imprint IDs and the proof before screens.`; }
-      else if(best<=MATCH){ ok=true; msg=`matches the proof in Airtable.`; }
-      else { ok=false; msg=how==='newer'?`a different proof is in Airtable now than the one that was signed. Check which one is right (and the imprint IDs) before screens.`
-        :`the signed mockup is different from the proof in Airtable — it was probably changed in PandaDoc. Update the proof and check the imprint IDs before screens.`; }
-      const check=`${ok?'OK':'CHECK'} · ${num} signed ${when}${pages.length?' · page '+pages.join(', '):''} · ${msg}${reTxt} [doc ${doc}]`;
-      res.push({line:ln.id,pages,diff:Math.round(best*1000)/1000,ok,reorder:re.length>0,check});
+      const missing=ini.filter(x=>x.ok===false).map(x=>x.p).sort((a,b)=>a-b), initials=missing.length?false:ini.some(x=>x.ok===true)?true:null;
+      const notIni=missing.length?`NOT INITIALED · page ${missing.join(', ')} · `:'';
+      let ok=true, check='';
+      if(!CHECK_PAUSED){
+        const im=(ln.fields[L.imps]||[]).map(id=>imps[id]).filter(Boolean), re=im.filter(x=>x.fields[I.repeat]&&(x.fields[I.prev]||[]).length);
+        const reTxt=re.length?` Reorder of ${re.map(x=>x.prevName||'a previous imprint').join(', ')}: compare the signed mockup with the previous run before reusing its screens.`:'';
+        let msg;
+        if(!pg.length){ ok=false; msg=`no proof on this line in Airtable to compare with${pages.length?'':' — find its page in the signed packet'}.`; }
+        else if(!pages.length){ ok=false; msg=`none of the signed pages matches this line's proof in Airtable — the mockup was probably changed in PandaDoc. Check the imprint IDs and the proof before screens.`; }
+        else if(best<=MATCH){ ok=true; msg=`matches the proof in Airtable.`; }
+        else { ok=false; msg=how==='newer'?`a different proof is in Airtable now than the one that was signed. Check which one is right (and the imprint IDs) before screens.`
+          :`the signed mockup is different from the proof in Airtable — it was probably changed in PandaDoc. Update the proof and check the imprint IDs before screens.`; }
+        check=`${notIni}${ok?'OK':'CHECK'} · ${num} signed ${when}${pages.length?' · page '+pages.join(', '):''} · ${msg}${reTxt} [doc ${key}]`;
+      } else if(notIni) check=`${notIni}${num} signed ${when} · the customer skipped the APPROVED initials on this mockup [doc ${key}]`;
+      res.push({line:ln.id,pages,diff:CHECK_PAUSED?null:Math.round(best*1000)/1000,ok,initialed:initials,check,
+        hasProof:!!(ln.fields[L.signed]||[]).length,hasCheck:!!String(ln.fields[L.check]||'').trim(),wrote:{proof:false,check:false}});
     }
-    // write: the line's pages as its Signed Proof, then the check
+    // write: the line's pages as its Signed Proof, then the check. Only into empty fields: nothing is ever overwritten.
     if(!opt.practice){
       const src=await PDFLib.PDFDocument.load(packet,{ignoreEncryption:true});
       for(const r of res){
-        if(r.pages.length){ const out=await PDFLib.PDFDocument.create(); (await out.copyPages(src,r.pages.map(p=>p-1))).forEach(p=>out.addPage(p));
+        if(r.pages.length&&!r.hasProof){ const out=await PDFLib.PDFDocument.create(); (await out.copyPages(src,r.pages.map(p=>p-1))).forEach(p=>out.addPage(p));
           const b=await out.save();
-          if(b.length<4.9e6){ await api.at(`${T_LI}/${r.line}`,{method:'PATCH',body:JSON.stringify({fields:{[L.signed]:[]}})});
-            let s=''; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));
-            await api.at(`https://content.airtable.com/v0/${BASE}/${r.line}/${L.signed}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:'application/pdf',file:btoa(s),filename:`${num} signed ${r.pages.length>1?'pages '+r.pages.join('-'):'page '+r.pages[0]}.pdf`})}); }
-          else r.check+=' (page too big to save on the line — open the Signed Packet on the order)'; }
-        await api.at(`${T_LI}/${r.line}`,{method:'PATCH',body:JSON.stringify({fields:{[L.check]:r.check}})});
+          if(b.length<4.9e6){ let s=''; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));
+            await api.at(`https://content.airtable.com/v0/${BASE}/${r.line}/${L.signed}/uploadAttachment`,{method:'POST',body:JSON.stringify({contentType:'application/pdf',file:btoa(s),filename:`${num} signed ${r.pages.length>1?'pages '+r.pages.join('-'):'page '+r.pages[0]}.pdf`})}); r.wrote.proof=true; }
+          else if(r.check) r.check+=' (page too big to save on the line — open the Signed Packet on the order)'; }
+        if(r.check&&!r.hasCheck){ await api.at(`${T_LI}/${r.line}`,{method:'PATCH',body:JSON.stringify({fields:{[L.check]:r.check}})}); r.wrote.check=true; }
       }
     }
-    return {order:num,doc,mapped:!!map,lines:res};
+    return {order:num,doc:key,mapped:!!map,lines:res};
   }
+  // what a packet is known by: the PandaDoc ID when there is one, else the packet file in Airtable
+  const docKey=o=>o.fields[O.pdId]||(((o.fields[O.packet]||[])[0]||{}).id)||'';
+  const isDrive=o=>/\(drive\)/.test((((o.fields[O.packet]||[])[0])||{}).filename||'');
 
   async function sync(opt){ opt=opt||{}; const token=opt.token, log=opt.log||(()=>{}); if(!token) return {ok:false,error:'no token'};
     const api=mk(token), out={ok:true,swept:null,orders:[]};
-    // 1. new signed packets onto their orders (the worker; at most every 10 minutes from this browser)
+    // 1. (paused for good) new signed packets onto their orders — worker v53's cron does this from the reps' Drive folders
     let last=0; try{ last=+localStorage.getItem('pine_signed_sweep')||0; }catch(e){}
     if(!SWEEP_PAUSED&&(opt.force||Date.now()-last>SWEEP_MS)){ try{ const r=await fetch(`${WORKER}/pandadoc/sweep${opt.practice?'?dry=1':''}`,{headers:{Authorization:'Bearer '+token}}); out.swept=await r.json();
         if(r.ok) try{ localStorage.setItem('pine_signed_sweep',String(Date.now())); }catch(e){} }catch(e){ out.swept={ok:false,error:e.message}; } }
-    // 2026-10-28: paused. The worker's PDFs came back with PandaDoc's demo watermark and without the customer's initials,
-    // so every page read as "changed" (11045, 11068). Back on once the worker stores the real signed PDF.
-    if(CHECK_PAUSED) return out;
-    // 2. orders with a signed packet whose lines aren't checked against it yet
-    const f=`AND({Signed Packet}!='',{PandaDoc ID}!='',NOT(OR(${DONE.map(x=>`{Order Status}='${x}'`).join(',')})))`;
-    const ords=await api.all(T_ORD,`${api.flds(Object.values(O))}&filterByFormula=${encodeURIComponent(f)}`);
+    // 2. orders with a signed packet whose lines have no Signed Proof yet (or, with the comparison on, no Signed Check)
+    const f=`AND({Signed Packet}!='',NOT(OR(${DONE.map(x=>`{Order Status}='${x}'`).join(',')})))`;
+    const ords=(await api.all(T_ORD,`${api.flds(Object.values(O))}&filterByFormula=${encodeURIComponent(f)}`)).filter(o=>!DRIVE_ONLY||isDrive(o));
     const lineIds=[...new Set(ords.flatMap(o=>o.fields[O.lines]||[]))];
     const lines=lineIds.length?await api.byIds(T_LI,lineIds,[L.proof,L.check,L.imps,L.signed]):[], byId={}; lines.forEach(l=>byId[l.id]=l);
-    const todo=ords.map(o=>({o,ls:(o.fields[O.lines]||[]).map(id=>byId[id]).filter(l=>l&&!String(l.fields[L.check]||'').includes('[doc '+o.fields[O.pdId]+']'))})).filter(x=>x.ls.length).slice(0,MAX_ORDERS);
+    const tried=lsGet('pine_signed_tried')||{}, now=Date.now(); Object.keys(tried).forEach(k=>{ if(now-tried[k]>RETRY_MS) delete tried[k]; });
+    const listed=o=>{ try{ const j=JSON.parse(o.fields[O.pages]||'null'); return new Set((j&&j.pages||[]).flatMap(p=>p.lines||[])); }catch(e){ return new Set(); } };
+    const todo=ords.filter(o=>opt.force||!tried[docKey(o)]).map(o=>{ const ls=listed(o);
+        return {o,ls:(o.fields[O.lines]||[]).map(id=>byId[id]).filter(l=>l&&((l.fields[L.proof]||[]).length||ls.has(l.id))
+          &&(!(l.fields[L.signed]||[]).length||(!CHECK_PAUSED&&!String(l.fields[L.check]||'').trim())))}; })
+      .filter(x=>x.ls.length).sort((a,b)=>String(b.o.fields[O.signedAt]||'').localeCompare(String(a.o.fields[O.signedAt]||''))).slice(0,MAX_ORDERS);
     if(!todo.length) return out;
     await libs();
-    const impIds=[...new Set(todo.flatMap(x=>x.ls.flatMap(l=>l.fields[L.imps]||[])))], imps={};
-    if(impIds.length){ (await api.byIds(T_IMP,impIds,[I.id,I.repeat,I.prev])).forEach(r=>imps[r.id]=r);
-      const prevIds=[...new Set(Object.values(imps).flatMap(r=>r.fields[I.repeat]?(r.fields[I.prev]||[]):[]))];
-      if(prevIds.length){ const pv={}; (await api.byIds(T_IMP,prevIds,[I.id])).forEach(r=>pv[r.id]=r.fields[I.id]||'');
-        Object.values(imps).forEach(r=>{ r.prevName=(r.fields[I.prev]||[]).map(id=>pv[id]).filter(Boolean).join(' / '); }); } }
-    for(const x of todo){ try{ log('Signed packet '+x.o.fields[O.num]+'…'); out.orders.push(await checkOrder(api,x.o,x.ls,imps,opt)); }
-      catch(e){ out.orders.push({order:x.o.fields[O.num],error:e.message}); } }
+    const imps={};
+    if(!CHECK_PAUSED){ const impIds=[...new Set(todo.flatMap(x=>x.ls.flatMap(l=>l.fields[L.imps]||[])))];
+      if(impIds.length){ (await api.byIds(T_IMP,impIds,[I.id,I.repeat,I.prev])).forEach(r=>imps[r.id]=r);
+        const prevIds=[...new Set(Object.values(imps).flatMap(r=>r.fields[I.repeat]?(r.fields[I.prev]||[]):[]))];
+        if(prevIds.length){ const pv={}; (await api.byIds(T_IMP,prevIds,[I.id])).forEach(r=>pv[r.id]=r.fields[I.id]||'');
+          Object.values(imps).forEach(r=>{ r.prevName=(r.fields[I.prev]||[]).map(id=>pv[id]).filter(Boolean).join(' / '); }); } } }
+    for(const x of todo){ try{ log('Signed packet '+x.o.fields[O.num]+'…'); const r=await checkOrder(api,x.o,x.ls,imps,opt); out.orders.push(r);
+        if(r.lines.some(l=>!l.pages.length)) tried[docKey(x.o)]=now; }   // a line with no page found: not again for 12 hours
+      catch(e){ out.orders.push({order:x.o.fields[O.num],error:e.message}); tried[docKey(x.o)]=now; } }
+    lsSet('pine_signed_tried',tried);
     return out; }
 
-  window.PineSigned={sync,FIELDS:{O,L,I},_t:{grid,diff,cmp,pdfGrids,MATCH}};
+  window.PineSigned={sync,FIELDS:{O,L,I},_t:{grid,diff,cmp,pdfGrids,MATCH,ink,maskBox,initialed,INK_MIN}};
 })();

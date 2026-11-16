@@ -58,6 +58,7 @@ body{margin:0;background:var(--p-cream-lt)}
 const $=id=>document.getElementById(id);
 // newest first. tiny = a one-line edit that does the same job, for when pasting the whole file is a pain
 const VERSIONS={
+  53:{what:'Signed PandaDocs come from the sales reps\' Drive folders: every 15 minutes the worker puts the newest signed PDF on orders with an empty Signed Packet (3 a run; it also replaces the old PandaDoc sweep\'s own copies, never a file attached by hand), and the PandaDoc downloads stop. The box-label QR (mockups) shows each line\'s signed page first. No new secret: paste, deploy, and keep the 15-minute Cron Trigger.'},
   52:{what:'Vendor bill matching keeps a split order\'s bills apart: a bill that says "FOR <order>" keeps only that order\'s lines, and lines another bill already matched (or that were picked by hand) are never taken again; if the rest doesn\'t add up it says Needs a look instead of taking the whole PO. Just paste and deploy.'},
   51:{what:'New order folders get Seps \u203a Production Files, and Mockup Maker can make that folder in an order that doesn\'t have it yet (for its files for seps). Just paste and deploy.'},
   50:{what:'No second Vendor Bill when a vendor sends the same invoice number in two emails (LA Apparel did overnight), and re-matching takes turns so bills it can\'t fix don\'t block the rest (the two 11022 SLC bills never got a turn). Just paste and deploy.'},
