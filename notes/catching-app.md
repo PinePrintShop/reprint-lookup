@@ -516,3 +516,16 @@ Stephen: "if a job gets marked complete on the catching app before damages are r
   - Unsure → sort pop-up → saved as Embroidery Team / Hoop Burn.
   - Cancel → asks, the tally goes back, 0 writes.
   - A normal open-card catch (Done → Next) sends the identical 11 requests on v174 and v175.
+
+## 2026-11-16 · v176: the signed mockup on the catch screen (with Operator v138, Seps v53, Screens v36, Ink v107)
+Stephen (2026-11-05, pandadoc.md): QC shows the line's signed page with a link to the whole packet, a calm "Not signed yet" when there is none, and for a job with no Signed Proof a link to its PandaDoc document, "so QC can see where signing stands before the job goes out". Stephen (2026-11-16): a proof page that came back without the customer's initials is a real problem, so it is red and also gets the PandaDoc link.
+- **Where:** one row under the proof on the catch screen (under the location caption), for the line item on screen. Buttons 44px.
+- **What it says:**
+  - Signed Proof on the line: **✓ Signed** · **Signed page** · **Whole packet**. Both open in the app's own proof viewer; the packet opens on the line's page (from the page number in Signed Check).
+  - No Signed Proof: a plain **Not signed yet** tag (white, not red). + **PandaDoc ↗**.
+  - Signed Check starting `NOT INITIALED` (the customer left the APPROVED box empty): red **Proof not initialed**, still with Signed page + Whole packet, and "page 3 of the signed packet" under it. + **PandaDoc ↗**.
+  - Signed Check starting `CHECK`: red **Check signed mockup** + the reason (2 lines; the whole reason is the tooltip).
+  - The order has no Signed Packet yet: Whole packet says "No signed packet on this order yet".
+- **PandaDoc ↗** opens `https://app.pandadoc.com/a/#/documents/<PandaDoc ID>` (Safari, a new tab). With no PandaDoc ID on the order: `https://app.pandadoc.com/a/#/documents?q=<order #>` (not checked against PandaDoc: if it doesn't filter, search the order number there).
+- **Reads:** the line-item read when a job opens asks for 2 more fields (Signed Proof, Signed Check); the queue's Orders read asks for 2 more (Signed Packet, PandaDoc ID). Whole packet reads the order's Signed Packet again when tapped (the link expires). No new writes; catching, damage, Done, boxes and late damage are unchanged. APP_VER 176; permanent link → v176.
+- **Tested** (Playwright, mocked Airtable, 1180×820 and 820×1180, five line items on P2): opening each card sends the same Airtable requests on v175 and v176 once the added fields are set aside; 0 writes. Signed (Signed page 1/1, packet on p2/3), not signed with a PandaDoc ID (the link opens `/documents/<id>`), not signed with no ID (search link), not initialed (red + PandaDoc link, packet on p3/3), CHECK. No page errors, no text under 12px, no sideways scroll.
