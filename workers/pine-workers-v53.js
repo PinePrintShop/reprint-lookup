@@ -197,7 +197,7 @@
  *
  * v40 CHANGES (2026-11-05): the sales reps' signed PandaDocs, read from their Pipedrive Drive folders (Stephen: "get me the
  *   new worker ... so we can see about getting into Chris's folder since I did share it with that google connection").
- *   Pipedrive saves each signed PandaDoc there seconds after signing, as "11139 | Outer Range Brewing.pdf", without
+ *   Pipedrive saves each signed PandaDoc there seconds after signing, as "11139 | <customer>.pdf", without
  *   PandaDoc's watermark. These folders are in the reps' own Drive, not Pine's shared drive, so v39 refused them.
  *   READ-ONLY, and only these folders (anything else is still refused):
  *     GET /proxy/drive/signed/status       -> {ok, account, folders:[{id,label,ok,name?,count?,newest?:{name,modifiedTime}, error?,code?}]}
@@ -3032,7 +3032,7 @@ async function driveSearch(env, params) {
   return jsonOk({ ok: true, folders });
 }
 
-// v40: the reps' Pipedrive Drive folders, where each signed PandaDoc lands ("11139 | Outer Range Brewing.pdf").
+// v40: the reps' Pipedrive Drive folders, where each signed PandaDoc lands ("11139 | <customer>.pdf").
 // Read-only; only these folders. SIGNED_FOLDERS ("Chris:1Yx…,Patrick:1UP…") replaces the defaults.
 const SIGNED_DEFAULT = [{ label: 'Chris', id: '1YxDfnUUoYDDEMkQqzJtKq9XIddndXWcD' }, { label: 'Patrick', id: '1UPMct3fRUQky2AjZZxlbyrAaPPGs4o79' }];
 function signedFolders(env) {

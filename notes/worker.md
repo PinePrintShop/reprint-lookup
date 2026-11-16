@@ -146,7 +146,7 @@ Stephen: "We have that read and write to Pine base already in Cloudflare...so do
 - Share any folder outside the Printshop shared drive with this address as **Viewer**. That includes the sales Pipedrive folders with the signed PandaDocs.
 
 ## 2026-11-05 · v40: the sales reps' signed PandaDocs folders (read-only)
-- **Stephen:** "get me the new worker ... so we can see about getting into Chris's folder since I did share it with that google connection". Chris's Pipedrive Drive sync is reconnected, and his "Pipedrive (Pine Printshop)" folder gets each signed PandaDoc ("11139 | Outer Range Brewing.pdf").
+- **Stephen:** "get me the new worker ... so we can see about getting into Chris's folder since I did share it with that google connection". Chris's Pipedrive Drive sync is reconnected, and his "Pipedrive (Pine Printshop)" folder gets each signed PandaDoc ("11139 | <customer>.pdf").
 - **Why a new worker:** v37 to v39 only open items in Pine's shared drive (`driveCheck`). The reps' folders are in their own Drive, so they were refused.
 - **New, read-only, only these folders:**
   - `GET /proxy/drive/signed/status`: for each folder, whether the worker can open it, plus its 5 newest PDFs.

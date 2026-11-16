@@ -142,7 +142,7 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
 - **Paused:** `pine-signed.js` no longer asks the worker for the sweep (`SWEEP_PAUSED`), and the checks stay paused (`CHECK_PAUSED`). The worker has no Cron Trigger (Stephen checked: the list is empty), so the sweeps came from Line Item Review asking every 10 minutes on each open computer. That's what `SWEEP_PAUSED` stops.
 - **Safe for current flows:** only the new fields are written (Signed Packet, PandaDoc ID, Signed At on Orders; Signed Proof / Signed Check on Line Items, never written while paused). No app shown on the floor reads them (Screens v33 doesn't; LIR v45 only shows a toast). No Airtable automation watches them (checked the recordUpdated automations: Orders watches Order Status, the address fields, Refund Request At and a scheduled-imprint field only).
 - **Next (Monday):** worker v38 takes the signed PDF from Pipedrive's Google Drive folders instead of downloading from PandaDoc: no watermark, no API calls.
-  - Patrick's login (hello@): "Pipedrive (Pine Printshop)" `1UPMct3fRUQky2AjZZxlbyrAaPPGs4o79`. Each signed PandaDoc lands there seconds after signing, as "11045 | Color Coffee Roasters.pdf".
+  - Patrick's login (hello@): "Pipedrive (Pine Printshop)" `1UPMct3fRUQky2AjZZxlbyrAaPPGs4o79`. Each signed PandaDoc lands there seconds after signing, as "11045 | <customer>.pdf".
   - Chris's login (sales@): Pipedrive's Drive sync had an authentication error; Stephen is having Chris reconnect it and turn on "Store Pipedrive files in a separate folder".
   - Both folders get shared (Viewer) with the worker's service account.
 
