@@ -3503,3 +3503,29 @@ and the picker offered nothing.
 - Tested with Stephen's file: v271 offered nothing ("Art 63.8 × 64.7″"); v272 offers the rust colour, ticked, see-through
   preview, "Print 62.7 × 61.7″". A 4-artboard proof sheet PDF opens exactly as with the old picker. No errors.
 - The file is drawn about 3× size (68″ artboard), so set the print width (e.g. 20–22″) after it opens.
+
+## 2026-11-16 · v273: the files for seps (art department feedback)
+**Feedback:** save the production files in Client Provided › For Proof, not Seps ("it gets a bit confusing / cluttered"). Shorter names: "IMPRINTID-PRINTNICKNAME-LOCATION (ex. 11159 - 11159B-…-BACK)". Raster files "slightly off on the sizing", almost all of 11172 needed adjusting. Art under 300 dpi wasn't being flagged.
+
+**Changes**
+- **Where:** attaching a proof saves each imprint's layered PSD (or vector .ai) to **Client Provided › For Proof**.
+  - No For Proof folder: Client Provided.
+  - Neither: Seps › working files, as before.
+  - Our own older copy with the same name still goes to the Drive trash.
+- **Name:** `<order> - <imprint ID>-<print nickname>-<location>.psd`, e.g. `11159 - 11159B-NICKNAME-BACK.psd`. No `_setup`.
+  - The nickname is the imprint's Print Nickname. If that's empty, the File Name without the order # in front; if both are empty, "ART".
+  - The location is written out (LEFT-CHEST) and isn't repeated when the nickname already ends with it.
+  - "Download setup PSD" uses the same names.
+- **Size:** two causes.
+  1. A size read from the file was rounded to the nearest ¼″, and the PSD was made at that. It's now kept to 1/100″.
+  2. The PSD's resolution was rounded to a whole ppi. 11172-G's file: 2565 px at "201 ppi" = 12.76″ for a 12.75″ print. It now has its exact ppi (201.18), so it opens at 12.75″.
+- **Under 300 dpi:**
+  - "Low-res" now means under 300 dpi at the print width; it was under 250. 295 and up counts as 300. "Mockup only" stays under 150.
+  - The Drive message lists each file under 300 ("11172-G: ~201 dpi at 12.75″, under 300").
+  - 250–299 dpi used to pass as print ready.
+
+**Tested** (Playwright, mocked Drive and Airtable):
+- Names come out as `11159 - 11159B-<NICKNAME>-BACK`.
+- Dpi: 201 and 275 are Low-res; 296 and 300 are print ready.
+- The 2565 px / 12.75″ PSD reads 201.18 ppi = 12.750″.
+- With Client Provided, the upload goes to For Proof; without it, to Seps › working files.

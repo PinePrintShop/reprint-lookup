@@ -37,7 +37,7 @@
 | Reprints (desktop office app) | `reprints.html` | v10 (side panel standard) |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
 | Laser Prep (desktop, art dept: sep PSD ready for the Saati 8012 / Xitron) | `laser-prep.html` | v1 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v272 (bandana on its fabric square: drop the colour in the picker) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v273 (files for seps: Client Provided › For Proof, short names, exact size, under 300 dpi flagged) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v19 (signed copy: initials only in the boxes) |
