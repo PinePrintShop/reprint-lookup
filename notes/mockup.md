@@ -3643,3 +3643,11 @@ Stephen: the setup PSD for a job whose art came from a vector .ai had blurred st
   - no OCGs and no layer marks are left; the spot Separations are still there;
   - the synthetic file (2 spot inks + black, a nested form) came out as 3 groups, 1 per ink, and its interleaved version as 1 group.
 - Not tested: opening the new .ai in Illustrator (the groups and spot names should come in as they do from any PDF), and the PSDs in Photoshop.
+
+## 2026-11-16 · v278: the background drop keeps light inks close to the background
+- **Stephen** (a badge logo, cream outline and lettering on white): "is this asking a lot for the background removal? it is removing a lot of the tan".
+- **Cause:** "Art has a solid background — drop it" (at the edges) took every pixel within about 14 (Lab distance) of the corner colour that it could reach from the edge. Cream (about #EFE2CD) is just under 14 from white, so the outer cream ring was taken as background, and through it the inside and the cream lettering. Only the gold leaves and the tan text survived.
+- **Fix:** when the art has a solid area of a colour that close to the background (real ink, not just soft edge pixels: at least 0.2% of the art), the drop is tight (about 5). The pixels right next to the dropped area that are between 5 and 14 become partly see-through by how far they are from the background, so edges stay smooth. Art without such a colour drops exactly as before (tested: a black logo on white gives the same result as v277).
+- **Inside white:** "at the edges" only takes the background it can reach from the edge, so the white inside the ring stays (it would print as white). To drop it too, tick "everywhere". That option already kept the cream in v277.
+- **Tested** on the logo Stephen sent (local only): v277 kept 328 light cream pixels, v278 keeps 55,767 (ring, divider lines and lettering). "Everywhere" is unchanged.
+- The setup PSD follows the same mask, so the 635 file keeps the cream too.

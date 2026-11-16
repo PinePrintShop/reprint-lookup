@@ -37,7 +37,7 @@
 | Reprints (desktop office app) | `reprints.html` | v10 (side panel standard) |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
 | Laser Prep (desktop, art dept: sep PSD ready for the Saati 8012 / Xitron) | `laser-prep.html` | v1 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v277 (art template .ai → an art-only .ai in Production Files, one group per ink; setup PSD from the vector at 635 also after the layer picker, no soft streaks) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v278 (background drop keeps light inks like cream on white; art-only .ai for template files; 635 PSD from vector) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v19 (signed copy: initials only in the boxes) |
