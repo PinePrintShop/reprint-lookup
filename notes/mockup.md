@@ -3591,3 +3591,55 @@ Stephen: shorter names for the files for seps, and "can we explore doing that 63
 - Memory is all of Chromium's processes, peak minus before. The page stayed responsive (the work is in the worker).
 - Every PSD read back by ag-psd, psd-tools and a separate Python reader: 12700 × 12700, 635 ppi = 20.000″, layer names and order as v275, ink layers pure 0 / 255 alpha, the inks add up to Approved art exactly; the halftone one keeps 6.5 M in-between pixels.
 - Not yet tried: opening one in Photoshop and placing it in Illustrator; a real customer PSD over 4000 px (big PSDs are still read at 4000 px, so they don't get the full-size path).
+
+## 2026-11-16 · v277 · Art-only .ai for template files; the 635 PSD without soft streaks
+Stephen: the setup PSD for a job whose art came from a vector .ai had blurred streaks along edges and thin dark slits where shapes meet (the .ai was clean). Then: "can we build a new .AI with just the Art File....art dept can always come back and open a clean template if they need....this is really just a production file for the sep template".
+
+**Why the PSD was soft**
+- The .ai is Pine's art template: an Artwork layer plus template layers (print areas, zones, registration, notes, size tags, the adjuster), most of them hidden in the file.
+- The layer picker passed the file's own hidden layers on as "hidden", which marked the art as changed in the picker. Then:
+  - no plain vector file was possible, so Production Files got the customer's .ai + a PSD (v275's rule);
+  - v276 only drew the PSD from the vector for art opened unchanged, so the PSD came from the app's ~150 ppi copy, scaled up 4×.
+- v276's tone finder took thin slivers and the bits of fine lines for halftone dots (any blob ≤ 30 px) or gradients. Those were kept soft and scaled up: the streaks. The slits were soft edges where the art met the background.
+
+**Setup PSD**
+- Vector art: drawn from the vector by pdf.js at 635 in every case it can be:
+  - with the layers as picked (kept on the art; art opened through the picker before v277 has to be opened again);
+  - a background dropped (in the picker or with "Art has a solid background") taken out by its colour;
+  - measurement marks taken out, inks recoloured or erased.
+  Each pixel goes to one ink or to nothing, cut at 50%: crisp edges.
+- Only art turned, thickened, filled in, in pieces or upscaled in the app, or a pdf.js failure, still uses the app's copy, and the message says why ("PSD made from the app's copy of the art, not the vector: …").
+- App's copy (PNG / JPG / PSD art): tones only where there's a real area of them: a gradient (mid-tones 3+ px from any solid edge, at least 0.25 sq in, mostly more than 5 px in from its own edge) or a halftone (25+ dots close together, at least 0.25 sq in). Spot art with no such area is cut everywhere.
+- Spot art: each pixel goes to exactly one of the inks, the tones there, or nothing (the biggest smoothed coverage). Where two inks meet there's no gap and no overlap.
+
+**The art-only .ai** (files with template layers)
+- Production Files gets a new .ai with only the art, instead of the customer's whole template:
+  - kept: the art layer(s), plus any other layer left ticked in the picker that isn't a template layer;
+  - everything drawn inside the other layers is taken out, in nested forms too. The drawing state around it stays, so the rest draws exactly as before.
+- What's in it:
+  - the file's own paths, text, fonts and colour spaces (spot colours keep their names);
+  - one group (form) per ink, in the order they're first drawn;
+  - the art's box at print size, as v146's rebuilt .ai; no layers.
+- When the inks are drawn in turns (one ink, another on top, the first again), it's one group in the file's order, so the look can't change, and the message says so.
+- Ink changes are made on top, as v146 does. A spot colour can't be changed in the .ai: the message says so, and the PSD has the new ink.
+- The PSD next to it is drawn from the same art-only page.
+- Picker: such files now open with only the art ticked (pine-ai-parts.js?v=277, `artLayers` option). Template layers can still be ticked on for the mockup; they never go into the .ai or the PSD.
+- A template .ai that Mockup Maker rebuilt before v277 (its layer list was lost, so every template layer showed) opens without the template layers.
+- Files without template layers (a customer's own layers, e.g. "bg" and "design") keep v275's original, byte for byte.
+
+**Tested** (Playwright, Chromium, mocked Airtable / Drive; synthetic art, plus two real template files Stephen sent, tested locally and not kept):
+
+| Art | PSD v276 → v277 |
+|---|---|
+| Real template .ai (20″, 1 spot ink) | from the 150 ppi copy, 1.5 M soft pixels, 31 MB, 14 s → from the vector, 0 soft pixels, 22 MB, 9 s |
+| Vector, black + cream, background dropped in the picker | from the copy (stair-stepped) → from the vector, crisp |
+| Vector, background dropped + ink recoloured | from the copy → from the vector |
+| Raster, black + cream (186 ppi) | cream "solid + tones" (soft bits) → solid; 0 overlap, 0 gaps |
+| Halftone + gradient test art (v276's) | tones kept (8.69 M in-between pixels, as v276) |
+
+- Ink layers are pure 0 / 255 for spot art; no pixel is in two inks; no gaps inside the fully inked square.
+- Art-only .ai:
+  - rendered by pdf.js, it matches the original with only the art layer showing, pixel for pixel (0 different pixels at 1400 px wide), on both real files and the synthetic one;
+  - no OCGs and no layer marks are left; the spot Separations are still there;
+  - the synthetic file (2 spot inks + black, a nested form) came out as 3 groups, 1 per ink, and its interleaved version as 1 group.
+- Not tested: opening the new .ai in Illustrator (the groups and spot names should come in as they do from any PDF), and the PSDs in Photoshop.
