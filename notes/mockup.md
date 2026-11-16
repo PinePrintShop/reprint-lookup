@@ -3555,3 +3555,39 @@ Stephen, on 11159-A: "why this vector ... is doing this with the black backgroun
   - As opened: the original, identical bytes.
   - Background dropped: original + PSD.
   - Ink changed: rebuilt file.
+
+## 2026-11-16 · v276 · Shorter file names; the setup PSD at 635 ppi with smooth edges
+Stephen: shorter names for the files for seps, and "can we explore doing that 635dpi and smooth the edges when creating the setup file".
+
+**Names** (file names only; Airtable keeps the full Print Nickname)
+- Dropped from the nickname: ink counts (1C, 4CLR, 2-COLOR), dates (OCT2026, NOV-26, 2026, 11-16-26, 2026-11-16, 111626) and words that repeat the location or name the product (DANA / BANDANA on a bandana, TEE, HOODIE, CREW, HAT…, FRONT / BACK / LC / LS when that's the location).
+- The first word always stays, so a name is never emptied (a nickname of just `2C` stays `2C`). A year after OF / CLASS / EST / SINCE stays (`CLASS-OF-2026`).
+- `SUNNY-CAFE-2C-DANA-OCT2026` on a Bandana → `11212 - 11212A-SUNNY-CAFE-BANDANA`. `ARTISAN` on the Back → `11159 - 11159B-ARTISAN-BACK` (unchanged). 16 made-up nicknames tested.
+
+**Setup PSD**
+- Was: made from the app's working copy of the art (4000 px at most), so a 20″ bandana came out 3729 px at 186 ppi, edges in stair steps.
+- Now: always 635 ppi at the print width (20″ = 12700 px), resolution 635 in the file so it opens at the print size. Same layers: the Inks group (one layer per ink, same names; the ink's colour with its coverage as see-through) and Approved art on top, plus the flattened copy.
+- How: a Web Worker writes the PSD one row at a time; no full-size canvas is made (one 12700 px canvas is ~650 MB). Each pixel goes to its nearest two scanned inks (as the recolour does). Solid inks are blurred ~1 source pixel, scaled up and cut at 50% (Laser Prep v1's smoothing): crisp, smooth edges. Gradients, halftone dots and photos keep their tones (resized only): per ink, the places with tones are found and only the rest of that ink (its lettering, outlines) is cut. Photo-like art: Approved art is a smooth resize of the picture itself.
+- Where the pixels come from: vector art (.ai / .pdf / .eps opened as is, also with the background dropped) is drawn straight at 635 by pdf.js, 256 rows at a time. A PNG / JPG that was shrunk to 4000 px is read again at its own size (up to 40 MP). Everything else: the art as the app holds it.
+- The vector files themselves are unchanged (the customer's file, or the rebuilt .ai). The PSD only goes with them when it did before (background dropped, an ink erased…).
+- Layer pixels are ZIP-compressed (as ag-psd's "compress" option writes them; not yet opened in Photoshop); the flattened copy is RLE, as Photoshop wants.
+- Limits: over 30,000 px a side or 330 megapixels, it's made at a lower ppi and the message says so. If the worker fails, v275's PSD is made instead.
+- Under 300 dpi still means the art itself: "11300-A: saved at 635 ppi with smooth edges, but the art is ~186 dpi at 20″, so fine detail stays soft — the real art file is better".
+- Download setup file shows "Saving… 45%" while it works.
+- **Drive:** the worker takes uploads up to 25 MB (held in memory; the app stops at 24 MB). Spot-colour bandanas came out 13–19 MB. Over 24 MB (photo-like art: 206 MB at 635 in the test), Drive gets a copy at the highest ppi that fits and the message says "went at 193 ppi: at 635 it's 206 MB, over the 24 MB upload limit (Download setup file gives the 635 ppi one)". The worker wasn't changed.
+
+**Tested** (Playwright, Chromium, mocked Airtable / Drive; made-up art only), 20″ bandanas at 186 ppi:
+
+| Art | Time | Memory added | File (v275 → v276) |
+|---|---|---|---|
+| 1 ink | 8 s | ~75 MB | 2.9 MB at 186 ppi → 13.0 MB at 635 |
+| 3 inks | 15 s | ~240 MB | 6.1 → 15.4 MB |
+| 6 colours (scanned as 5 inks) | 20 s | ~225 MB | 7.9 → 16.6 MB |
+| 1 ink + gradient + halftone dots | 12 s | ~110–170 MB | 6.3 → 18.9 MB (tones kept) |
+| 6000 px PNG (300 dpi, read again at full size) | 10 s | ~175–265 MB | 3.6 MB at 200 ppi → 13.0 MB at 635 |
+| vector PDF, background dropped | 20 s | ~230 MB | 6.1 MB at 174 ppi → 15.3 MB at 635 |
+| 4″ vector left chest | 1 s | ~60 MB | 1.0 → 0.8 MB |
+
+- Memory is all of Chromium's processes, peak minus before. The page stayed responsive (the work is in the worker).
+- Every PSD read back by ag-psd, psd-tools and a separate Python reader: 12700 × 12700, 635 ppi = 20.000″, layer names and order as v275, ink layers pure 0 / 255 alpha, the inks add up to Approved art exactly; the halftone one keeps 6.5 M in-between pixels.
+- Not yet tried: opening one in Photoshop and placing it in Illustrator; a real customer PSD over 4000 px (big PSDs are still read at 4000 px, so they don't get the full-size path).
