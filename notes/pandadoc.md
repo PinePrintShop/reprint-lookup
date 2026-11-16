@@ -234,3 +234,10 @@ Stephen said go on the 2026-11-05 flow. He added: "make sure the QR code in invo
 - **False "not initialed":** a hand-built packet where the rep put the initials field away from the APPROVED box. Or a PandaDoc copy that drops the initials (that's why only Drive packets are used).
 - **Missed "not initialed":** if PandaDoc draws something in an empty optional field (an outline or placeholder), the box reads as initialed. That fails safe: nothing is written.
 - **A Drive file that isn't the signed packet:** a non-PandaDoc PDF named "<n> | …" in the folder would be attached. Pipedrive's PandaDoc files follow that name.
+
+## 2026-11-16 · Built: the signed mockup in Seps v53, Screens v36, Ink v107, Operator v138, Catching v176
+Per "Decided (Stephen, 2026-11-05)" above, plus Stephen 2026-11-16: proof initials are optional in PandaDoc, so the worker writes Signed Check `NOT INITIALED · page N` when the line's page has an empty APPROVED box.
+- **Each app, where the mockup already is:** "✓ Signed" · Signed page · Whole packet (the app's own proof viewer; the packet opens on the line's page), or a plain "Not signed yet". Red only for `NOT INITIALED` ("Proof not initialed") and `CHECK` ("Check signed mockup" + the reason).
+- **Catching only:** PandaDoc ↗ when not signed or not initialed: `/a/#/documents/<PandaDoc ID>`, or `/a/#/documents?q=<order #>` with no ID (unverified search link).
+- **Reads, no writes:** Operator and Catching add the fields to their existing line-item (and Catching's Orders) reads. Seps, Screens and Ink work from imprints, and Imprints has no lookup of Signed Proof, so they read the open job's line items once (cached until Refresh). Every app reads the order's Signed Packet only when Whole packet is tapped.
+- **Open:** a lookup of Signed Proof / Signed Check on Imprints would let Seps, Screens and Ink skip their extra read (an Airtable change: ask Stephen first).

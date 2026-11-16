@@ -208,3 +208,15 @@ Stephen: "streamline how [the left panels] are sized so moving between apps feel
 - **Card (compact):** mockup thumbnail (tap: full proof) over the imprint ID badge · the design in bold · location · inks · type under it · Screens on the right · tags (✓ Imaged / No sep file, Reorder, ↩ previous run). In place (under 1100px) the open card's ✓ Imaged gets its own row. Qty is in the open imprint's header.
 - Same Airtable reads and writes, keys, Drive, print-notes merge and practice mode as v34.
 - **Tested** (Playwright, mocked Airtable, the same scripted run on v34 and v35: load, open a job, Reorders tab and back, search and clear, at 1100, 1440, 1920 and 390 wide): the Airtable requests are identical at every width (5 / 5 / 5 / 4 requests), and so are the Drive-worker calls. No page errors, no text under 12px, one yellow button, no sideways scroll at 390. List width 320 / 346 / 420 (was 300 / 317 / 340).
+
+## 2026-11-16 · v36: the signed mockup (with Seps v53, Ink v107, Operator v138, Catching v176)
+Stephen (2026-11-05, pandadoc.md): Seps, Screens, Ink, Operator and QC show the line's signed page with a link to the whole packet, and a calm "Not signed yet" when there is none. This replaces v33's "no PandaDoc flag in Screens": the row is small and only red for a real problem.
+- **Where:** one row under the open imprint's mockup, above its footer (file name · ↩ Previous run · Full screen).
+- **What it says:**
+  - Signed Proof on the line: **✓ Signed** · **Signed page** · **Whole packet**. Both open in the app's own proof viewer; the packet opens on the line's page (from the page number in Signed Check).
+  - No Signed Proof: a plain **Not signed yet** tag (white, not red).
+  - Signed Check starting `NOT INITIALED` (the customer left the APPROVED box empty): red **Proof not initialed**, still with Signed page + Whole packet, and "page 3 of the signed packet" under it.
+  - Signed Check starting `CHECK`: red **Check signed mockup** + the reason (2 lines; the whole reason is the tooltip).
+  - The order has no Signed Packet yet: Whole packet says "No signed packet on this order yet".
+- **Reads:** the queue read is unchanged (it already returns every field, including the Line Items link). New: one Line Items read (Signed Proof, Signed Check, Order) when an imprint opens, cached until Refresh; the order's Signed Packet only when Whole packet is tapped (the link expires, so it is read fresh). No new writes.
+- **Tested** (Playwright, mocked Airtable): the v35 scripted run (load, open, Reorders and back, search and clear) sends the same Airtable requests on v36 at 1440 and 390, plus the one signed read per opened imprint; Drive-worker calls the same; 0 writes. Cases at 1440, 1100 and 390: signed (Signed page 1/1, packet on page 2/3), not signed, not initialed (packet on 3/3), CHECK with no packet (the toast). No page errors, no text under 12px, no sideways scroll.
