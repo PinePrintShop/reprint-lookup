@@ -383,3 +383,16 @@ Stephen approved ("Let's do your option 1") after two jobs on ROQ YOU were print
 - **Setup Duration Actual** ends at Run Start Override when that's earlier than Setup End Actual (a late "approve setup" no longer counts as setup), otherwise as before (− Setup Paused time, + Manual Setup Time Add).
 - **Print Date Actual / Print Month Actual** use Run End Override when there is one, so an overnight correction stays on the day it printed.
 - No override → exactly as before. Checked: 11078-B now 8 min setup / 20 min run / 11/09; 11108-A 10 / 36 / 11/09.
+
+## 2026-11-16 · v138: the signed mockup under the job's proof (with Catching v176, Seps v53, Screens v36, Ink v107)
+Stephen (2026-11-05, pandadoc.md): Operator shows the line's signed page with a link to the whole packet, and a calm "Not signed yet" when there is none.
+- **Where:** one row under the job's proof (under the page arrows), for the colorway on screen; it changes with the Color chips. Buttons 44px.
+- **What it says:**
+  - Signed Proof on the line: **✓ Signed** · **Signed page** · **Whole packet**. Both open in the app's own proof viewer; the packet opens on the line's page (from the page number in Signed Check).
+  - No Signed Proof: a plain **Not signed yet** tag (white, not red).
+  - Signed Check starting `NOT INITIALED` (the customer left the APPROVED box empty): red **Proof not initialed**, still with Signed page + Whole packet, and "page 3 of the signed packet" under it.
+  - Signed Check starting `CHECK`: red **Check signed mockup** + the reason (2 lines; the whole reason is the tooltip).
+  - The order has no Signed Packet yet: Whole packet says "No signed packet on this order yet".
+- Signed page / Whole packet open in the full proof lightbox (pinch zoom, pages). Run mode is unchanged.
+- **Reads:** the job's line-item read (when the job opens) asks for 3 more fields (Signed Proof, Signed Check, Order). The order's Signed Packet is read only when Whole packet is tapped. No new writes. Version on screen v138; permanent link → v138.
+- **Tested** (Playwright, mocked Airtable, 1180×820 and 820×1180, four jobs on ROQ YOU): opening each job sends the same Airtable requests on v137 and v138 once the 3 added fields are set aside; 0 writes. Signed (Signed page 1/1, packet on 2/3), not signed, not initialed (packet on 3/3), CHECK with no packet ("No signed packet on this order yet"). No page errors, no text under 12px, no sideways scroll.

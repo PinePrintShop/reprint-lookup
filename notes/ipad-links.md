@@ -16,16 +16,16 @@
 
 | App | Permanent link | Opens now |
 |---|---|---|
-| Operator | `pine-operator.html` | v137 |
-| Catching | `pine-catching.html` | v175 (+ Report damage on caught jobs) |
+| Operator | `pine-operator.html` | v138 (the signed mockup under the job's proof) |
+| Catching | `pine-catching.html` | v176 (the signed mockup under the proof; PandaDoc link when not signed / not initialed) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
-| Ink Queue | `pine-ink-queue.html` | v106 (shared side panel) |
+| Ink Queue | `pine-ink-queue.html` | v107 (the signed mockup under the job's mockup) |
 | Purchasing | `pine-purchasing.html` | v120 (Past orders show each PO's vendor invoice; shared side panel) |
 | Receiving | `receiving.html` | receiving-dashboard v89 (shared side panel: 346 list, compact cards) |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |
-| Seps | `seps.html` | v52 (shared side panel) |
-| Screens | `screens.html` | v35 (shared side panel) |
+| Seps | `seps.html` | v53 (the signed mockup under the job's mockup) |
+| Screens | `screens.html` | v36 (the signed mockup under the imprint's mockup) |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |

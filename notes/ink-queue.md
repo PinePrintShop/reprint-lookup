@@ -344,3 +344,15 @@ Stephen: "streamline how [the left panels] are sized so moving between apps feel
 - Same Airtable reads and writes, keys, labels, recipes, print-notes merge and practice mode as v105.
 - **Tested** (Playwright, mocked Airtable, the same scripted run on v105 and v106: load, open a job, Reorders tab and back, search and clear, at 1100, 1440, 1920 and 390 wide): the Airtable requests are identical at every width (7 / 7 / 7 / 6 requests), and so are the Drive-worker calls. No page errors, no text under 12px, one yellow button, no sideways scroll at 390. List width 320 / 346 / 420 (was 300 / 317 / 340).
 - Seen while testing, not changed: opening a job whose inks are already saved sends one PATCH of the same Inks list (v105 does the same).
+
+## 2026-11-16 · v107: the signed mockup (with Seps v53, Screens v36, Operator v138, Catching v176)
+Stephen (2026-11-05, pandadoc.md): Seps, Screens, Ink, Operator and QC show the line's signed page with a link to the whole packet, and a calm "Not signed yet" when there is none.
+- **Where:** one row under the open job's mockup, above its footer (‹ 1/N › · file name · ↩ Previous run · Full screen); also when the job has no proof in Airtable.
+- **What it says:**
+  - Signed Proof on the line: **✓ Signed** · **Signed page** · **Whole packet**. Both open in the app's own proof viewer; the packet opens on the line's page (from the page number in Signed Check).
+  - No Signed Proof: a plain **Not signed yet** tag (white, not red).
+  - Signed Check starting `NOT INITIALED` (the customer left the APPROVED box empty): red **Proof not initialed**, still with Signed page + Whole packet, and "page 3 of the signed packet" under it.
+  - Signed Check starting `CHECK`: red **Check signed mockup** + the reason (2 lines; the whole reason is the tooltip).
+  - The order has no Signed Packet yet: Whole packet says "No signed packet on this order yet".
+- **Reads:** the queue reads are unchanged (they already ask for the Line Items link). New: one Line Items read (Signed Proof, Signed Check, Order) when a job opens, cached until Refresh; the order's Signed Packet only when Whole packet is tapped. The proof viewer opens a packet on the line's page. No new writes.
+- **Tested** (Playwright, mocked Airtable): the v106 scripted run sends the same Airtable requests on v107 at 1440 and 390, plus the signed reads; the same 1 write on both (the existing ink fill-from-previous-run on a reorder, not practice). Cases at 1440, 1100 and 390: signed, not signed, not initialed, CHECK with no packet. No page errors, no text under 12px, no sideways scroll.

@@ -167,3 +167,10 @@ Stephen: "how can we make sure the signed PandaDoc mockup gets back into Airtabl
   - Yes to the "Not signed yet" flag.
   - In QC (Catching), a job with no Signed Proof also gets a link to its PandaDoc document. Use the order's PandaDoc ID: `https://app.pandadoc.com/a/#/documents/<id>`. If there's no ID, link to a PandaDoc search for the order number. That way QC can see where signing stands before the job goes out.
   - Build all of this once Patrick's folder shows ✓ on signed-check.html.
+
+## 2026-11-16 · Built: the signed mockup in Seps v53, Screens v36, Ink v107, Operator v138, Catching v176
+Per "Decided (Stephen, 2026-11-05)" above, plus Stephen 2026-11-16: proof initials are optional in PandaDoc, so the worker writes Signed Check `NOT INITIALED · page N` when the line's page has an empty APPROVED box.
+- **Each app, where the mockup already is:** "✓ Signed" · Signed page · Whole packet (the app's own proof viewer; the packet opens on the line's page), or a plain "Not signed yet". Red only for `NOT INITIALED` ("Proof not initialed") and `CHECK` ("Check signed mockup" + the reason).
+- **Catching only:** PandaDoc ↗ when not signed or not initialed: `/a/#/documents/<PandaDoc ID>`, or `/a/#/documents?q=<order #>` with no ID (unverified search link).
+- **Reads, no writes:** Operator and Catching add the fields to their existing line-item (and Catching's Orders) reads. Seps, Screens and Ink work from imprints, and Imprints has no lookup of Signed Proof, so they read the open job's line items once (cached until Refresh). Every app reads the order's Signed Packet only when Whole packet is tapped.
+- **Open:** a lookup of Signed Proof / Signed Check on Imprints would let Seps, Screens and Ink skip their extra read (an Airtable change: ask Stephen first).
