@@ -223,3 +223,5 @@ Stephen: damage found after a job was marked complete in Catching (by shipping, 
   - Catching's "Update QC" rewrites its own issue's totals for 8 days, so it would undo an addition made here to a Catching issue during that time.
   - Photos skipped.
 
+
+Checked 2026-11-16 (automations): "New Order Issue Notification" emails on every Order Issue created, with no condition, so issues made here still send it. "Categorize Order Issues & Status" only acts when Originator is set, so the Category written here is kept.

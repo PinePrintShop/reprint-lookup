@@ -17,8 +17,8 @@
 | App | Permanent link | Opens now |
 |---|---|---|
 | Operator | `pine-operator.html` | v137 |
-| Catching | `pine-catching.html` | v174 |
-| Damage Log | `damage-log.html` | v24 (shared side panel: 346 list, compact cards) |
+| Catching | `pine-catching.html` | v175 (+ Report damage on caught jobs) |
+| Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v106 (shared side panel) |
 | Purchasing | `pine-purchasing.html` | v120 (Past orders show each PO's vendor invoice; shared side panel) |
 | Receiving | `receiving.html` | receiving-dashboard v89 (shared side panel: 346 list, compact cards) |
