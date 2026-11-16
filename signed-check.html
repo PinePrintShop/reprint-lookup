@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <!-- Signed PandaDocs check v1 (2026-11-05). Stephen: "get me the new worker ... so we can see about getting into Chris's
      folder since I did share it with that google connection". Needs worker v40. Shows whether the worker can open each
-     sales rep's Pipedrive Drive folder (where every signed PandaDoc lands, "11139 | Outer Range Brewing.pdf"), its newest
+     sales rep's Pipedrive Drive folder (where every signed PandaDoc lands, "11139 | <customer>.pdf"), its newest
      signed PDFs, and finds an order's signed PDF. Read-only: nothing is written anywhere. Uses the Airtable sign-in the
-     other Pine apps saved on this computer. -->
+     other Pine apps saved on this computer.
+     v2 (2026-11-16, worker v53): "Signed packets on orders": which orders the worker's 15-minute run attached a signed
+     PDF to last time, and which it will do next (read-only; order numbers only). -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Signed PandaDocs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap" rel="stylesheet">
@@ -18,11 +20,14 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
 .find{display:flex;gap:8px;flex-wrap:wrap}.find .p-input{flex:1;min-width:160px}
 </style></head>
 <body class="p-app">
-<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Signed PandaDocs</span><span class="p-bar-ver">v1</span>
+<header class="p-bar"><span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span><span class="p-bar-app">Signed PandaDocs</span><span class="p-bar-ver">v2</span>
   <div class="p-bar-sp"><button class="p-barbtn" id="again" type="button">↻ <span class="p-barbtn-word">Check again</span></button></div></header>
 <main>
   <div class="p-note" id="msg">Checking…</div>
   <div class="cols" id="folders"></div>
+  <section class="p-card" id="pkCard" hidden><h2 class="p-h2">Signed packets on orders</h2>
+    <p class="p-hint">Every 15 minutes the worker attaches the newest signed PDF to orders whose Signed Packet is empty, a few at a time.</p>
+    <ul class="hits" id="pk"></ul></section>
   <section class="p-card"><h2 class="p-h2">Find an order's signed PDF</h2>
     <div class="find"><input class="p-input" id="ord" inputmode="numeric" placeholder="Order number, e.g. 11139"><button class="p-btn p-btn-main" id="go" type="button">Find</button></div>
     <ul class="hits" id="hits"></ul></section>
@@ -46,8 +51,19 @@ async function check(){
     $('folders').innerHTML=j.folders.map(f=>`<section class="p-card fold"><h2 class="p-h2">${esc(f.label)}</h2>`
       +(f.ok?`<div class="okk">✓ Can open “${esc(f.name)}”</div><ul>${(f.recent||[]).map(x=>`<li><span>${esc(x.name)}</span><span>${when(x.modifiedTime)}</span></li>`).join('')||'<li>No PDFs yet</li>'}</ul>`
         :`<div class="bad">✕ ${esc(f.error)}</div><p class="p-hint"><a href="https://drive.google.com/drive/folders/${esc(f.id)}" target="_blank" rel="noopener">Open the folder in Drive ↗</a> › Share</p>`)+`</section>`).join('');
+    if(+v.version>=53) packets();
   }catch(e){ $('msg').className='p-note p-note-alert'; $('msg').textContent=e.status===401?'The saved Airtable sign-in was refused — paste it again below.':'Could not check: '+e.message; if(e.status===401) $('signin').hidden=false; }
 }
+/* v2: the worker's signed-packet runs (worker v53+) */
+async function packets(){ const ul=$('pk'); $('pkCard').hidden=false; ul.innerHTML='<li>Looking…</li>';
+  try{ const j=await api('/drive/signed/packets'), l=j.last, n=j.next||{}, list=a=>(a||[]).join(', ');
+    const rows=[];
+    rows.push(l?`<li><span>Last run${l.attached&&l.attached.length?': attached '+esc(list(l.attached)):': nothing new'}${l.errors&&l.errors.length?' <span class="bad">· '+esc(l.errors.join('; '))+'</span>':''}</span><span class="when">${when(l.at)}</span></li>`
+      :'<li><span>No run yet. Check the 15-minute Cron Trigger in Cloudflare.</span></li>');
+    if(n.ok===false) rows.push(`<li class="bad">${esc(n.error||'Could not check')}</li>`);
+    else rows.push(`<li><span>Next run${n.attached&&n.attached.length?': '+esc(n.attached.map(x=>x.order).join(', ')):': nothing waiting'}${n.later?' · then '+n.later+' more':''}</span><span class="when">${n.has||0} already have one</span></li>`);
+    ul.innerHTML=rows.join(''); }
+  catch(e){ ul.innerHTML=`<li class="bad">${esc(e.message)}</li>`; } }
 async function find(){ const n=$('ord').value.replace(/\D/g,''); const ul=$('hits'); if(!n){ ul.innerHTML='<li>Type an order number</li>'; return; }
   ul.innerHTML='<li>Looking…</li>';
   try{ const j=await api('/drive/signed?order='+n);
