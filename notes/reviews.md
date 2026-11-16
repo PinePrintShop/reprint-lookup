@@ -231,3 +231,16 @@
 - **Stephen deployed `pine-reviews`** (`/r/version` → 1) and added the KV binding and the three settings.
 - **First admin link:** made by hand. The code was generated in the session, and only its SHA-256 went into Stephen's People row. The link itself was given to Stephen in chat only.
 - **Stephen's next step:** open the link and set a 6-digit PIN. Then send himself a fresh link from Setup (Send on WhatsApp / Copy), which retires the one shared in chat.
+
+### 2026-11-16 · First real cycles (Draft)
+- **Crews (Stephen):**
+  - Nicole: 8 people
+  - Whitney: 2
+  - Chris H: 1
+  - Mike: 1
+  - The 4 managers report to Stephen.
+- **Cycles,** opening Wed Nov 18, both due Nov 30, status **Draft**:
+  - "Q4 check-in": 16 check-ins, everyone except Stephen
+  - "2026 review": 16 manager reviews, each manager for their crew and Stephen for the 4 managers
+- **Peer reviews:** Stephen and Nicole pick pairs on Nov 17; then they get added.
+- **Plan for Wednesday:** huddle → open both cycles in Setup → Send on WhatsApp to each person.
