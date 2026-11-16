@@ -241,3 +241,37 @@ Per "Decided (Stephen, 2026-11-05)" above, plus Stephen 2026-11-16: proof initia
 - **Catching only:** PandaDoc ↗ when not signed or not initialed: `/a/#/documents/<PandaDoc ID>`, or `/a/#/documents?q=<order #>` with no ID (unverified search link).
 - **Reads, no writes:** Operator and Catching add the fields to their existing line-item (and Catching's Orders) reads. Seps, Screens and Ink work from imprints, and Imprints has no lookup of Signed Proof, so they read the open job's line items once (cached until Refresh). Every app reads the order's Signed Packet only when Whole packet is tapped.
 - **Open:** a lookup of Signed Proof / Signed Check on Imprints would let Seps, Screens and Ink skip their extra read (an Airtable change: ask Stephen first).
+
+## 2026-11-16 · pine-signed.js: signed pages sorted by imprint ID
+Stephen: sort the signed pages by imprint ID, "similar to how we scan it in the mockup creator to update the imprint id". Pine's proofs carry the IDs as real text ("FRONT - 11106-A", "EMBROIDERY · LEFT CHEST - 11094-A"), read with pdf.js getTextContent as Mockup Maker's Edit PDF does.
+
+**Which page is a line's** (packets with no PandaDoc Pages; when LIR built the packet, PandaDoc Pages still wins):
+1. **By imprint ID.** The pages showing one of the line's IDs (Line Items › Imprint ID Lookup, read-only). The Terms and invoice pages are skipped (the invoice lists the IDs too).
+2. **Same ID on several pages** (one print on two colourways): the page whose text has the line's colour (Line Items › Colorway). The colour counts most right after the proof's "Colorway" or "Garment:" label, because it can also be an ink. The style number in the line's garment text helps a little. Still several: the line's proof picture picks among them. Still several, and the ID is on more than one line: nothing is saved for that ID.
+3. **No page shows the line's IDs** (a page that's only a picture, or an old proof): the picture match as before.
+4. **The reorder guard:** if the picture match picks a page that shows a different imprint ID of this order, and none of the line's, the page isn't saved. Signed Check (only when empty): `CHECK · 11106 signed 11/14 · page 2 · signed page 2 shows 11106-B, line has 11106-A — the picture matches this line's proof but the imprint ID doesn't, so the page wasn't saved. Fix the line's imprint ID (a reorder?) or the mockup before screens. [doc …]`. This is a text check, so it writes even though the picture comparison (`CHECK_PAUSED`) is still paused.
+- A shared page (A and B on one page) still goes to both lines.
+- A line with an imprint ID but no proof in Airtable can now be found by its ID.
+- The result and the log say how each page was found: `map`, `id`, `id+colour`, `id+picture`, or `picture`.
+- NOT INITIALED, "never overwrite", practice (nothing written), 4 orders per load and the 12-hour retry are unchanged.
+
+**ID formats read:**
+- `11106-A` and `11106-AB`, for any 5-digit number starting with 1. An en or em dash counts as "-". This is the only form used for the guard's "different ID".
+- `11106 - A` (spaces round the dash) and `11106A` (no dash): this order's number only, and only when that ID is one of the order's line IDs.
+- Not read: lower case (`11106-a`), `11106 A` (no dash), an ID glued to letters before it.
+- An ID drawn in two pieces ("11106-" then "A") is joined when the pieces touch on the same line.
+
+**Tested** (Playwright, mocked Airtable, made-up pdf-lib packets; scratchpad sg54/tid.js), 29/29:
+- ID formats, and the two-piece join.
+- 3 lines, 11303-A/B/C on shuffled pages (C's ID in two pieces), with Airtable proofs that point the picture match at the wrong pages. Every page is found by ID. The invoice page listing every ID is ignored.
+- 11303-A on Black and Natural pages (the Natural page also lists Black as an ink): found by colour.
+- A page listing A and B goes to both lines. NOT INITIALED still works on a page found by ID.
+- Picture-only pages (no text) use the picture match.
+- The line has 11303-A, the picture matches a page that says 11303-B: nothing is saved and CHECK is written. An existing Signed Check is kept. The same happens when the line's ID belongs to an older order (10940-C).
+- PandaDoc Pages present: the map wins.
+- Practice: 0 writes.
+- The sg53 tests still pass (18/18).
+
+**Open:**
+- Not tried on a real Drive packet yet. Check the first few hand-built packets' log lines.
+- Proofs whose text was turned into outlines have no readable IDs. Those still fall back to the picture match.

@@ -6,8 +6,12 @@
    1. The order's Signed Packet comes from the worker (v53): every 15 minutes it attaches the rep's signed PDF from their
       Pipedrive Drive folder ("<n> signed (drive).pdf"). This script no longer asks for a sweep (SWEEP_PAUSED).
    2. For orders with a Drive packet whose lines have no Signed Proof yet:
-      - finds each line's page(s): from the order's PandaDoc Pages (Line Item Review writes it when it sends), or by
-        matching the signed pages against the line's proof in Airtable;
+      - finds each line's page(s): from the order's PandaDoc Pages (Line Item Review writes it when it sends); else
+        (2026-11-16, Stephen: "sort by imprint ID, similar to how we scan it in the mockup creator") by the imprint IDs
+        typed on the signed pages ("FRONT - 11106-A"), narrowed by the garment colour on the page when the same ID is on
+        several pages; else by matching the signed pages against the line's proof in Airtable (picture). A picture match
+        whose page shows another imprint ID of this order is not saved: Signed Check "CHECK · … shows 11106-B, line has
+        11106-A …" (the reorder case: the line's imprint ID wasn't updated);
       - saves the page(s) as the line's Signed Proof (only when Signed Proof is empty: never overwritten);
       - initials (2026-11-16, Stephen: proof initials aren't required in PandaDoc, so customers can skip them): looks in
         the page's APPROVED box (where LIR put the initials field, from PandaDoc Pages; or found by its "APPROVED" text)
@@ -21,7 +25,8 @@
   const BASE='appJkaLk8DykjsgHR', T_ORD='tbl8Tf0AeS9gnHOOS', T_LI='tblJx5UlwO7oMSk5H', T_IMP='tbln9oAGvz2PNBZLV';
   const WORKER='https://pine-workers.stephen-dab.workers.dev/proxy';
   const O={num:'fld4S3B5yJANKlE7l',status:'fldhS4z28CdGmS1j5',lines:'fldU6fgrz6sU3wyIZ',packet:'fldSwLl9yIMSXcT0Y',pdId:'fldfQJ8QwtNXxGPE5',signedAt:'fld2h7L1aqDHPfcQM',pages:'fldlumFLBJi3WrfUS'};
-  const L={proof:'flddhvdkKI31tFTdX',signed:'fldYeu8XZgBNSQ3N6',check:'fldzHcS22EcdZ3xwN',imps:'fldTFz4ZzfOthqkg6'};
+  const L={proof:'flddhvdkKI31tFTdX',signed:'fldYeu8XZgBNSQ3N6',check:'fldzHcS22EcdZ3xwN',imps:'fldTFz4ZzfOthqkg6',
+    impIds:'fldmGRcdXyvheWjmv',colour:'fldoXTRyLP4SshFZ0',garment:'fldKhz9uZgXwfeIto'};   // 2026-11-16, read-only: Imprint ID Lookup, Colorway (lookup), garment text (formula)
   const I={id:'fldDFfwFQ9B20n2kT',repeat:'flda9L7041ahNZT0b',prev:'fldAEQvMAAZX9gnhl'};
   const DONE=['Shipped','Completed','Cancelled / Voided','Partially Completed'];
   const LIB={pdflib:'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',pdfjs:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',pdfjsWorker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'};
@@ -77,13 +82,62 @@
     let mx=0; for(let k=0;k<bn.length;k++) if(bt[k]>B*B/3) mx=Math.max(mx,bn[k]/bt[k]);
     return {all:tot?n/tot:1,block:mx}; }
   const diff=(a,b,mask)=>cmp(a,b,mask).block;
+
+  // ---- imprint IDs typed on the signed pages (2026-11-16) ----
+  // Pine's proofs carry the imprint IDs as real text ("FRONT - 11106-A", "EMBROIDERY · LEFT CHEST - 11094-A"); read the
+  // way Mockup Maker's Edit PDF reads them (pdf.js getTextContent). Pieces that touch on the same line are joined without
+  // a space, so an ID drawn in two pieces ("11106-" + "A") still reads as one.
+  function pageText(items){ let s='', prev=null;
+    for(const it of items||[]){ const str=String(it.str||''), t=it.transform||[1,0,0,1,0,0], fs=Math.hypot(t[2],t[3])||it.height||10;
+      if(str){ if(prev) s+=(Math.abs(t[5]-prev.y)<fs*0.3&&t[4]>=prev.end-fs*0.5&&t[4]-prev.end<fs*0.2)?'':' ';
+        s+=str; prev={y:t[5],end:t[4]+(it.width||0)}; }
+      if(it.hasEOL){ s+=' '; prev=null; } }
+    return s.replace(/[‐-―−]/g,'-').replace(/\s+/g,' ').trim(); }
+  // the IDs on a page. Accepted: "11106-A" / "11106-AB" (any 1xxxx number; an en or em dash counts as "-"). For this
+  // order's number only, and only when the result is one of the order's imprint IDs (so "11106 - A tee" can't make an ID):
+  // "11106 - A" (spaces round the dash) and "11106A" (no dash). Lower case ("11106-a") is not read.
+  function idsIn(text,num,known){ const out=new Set(), t=String(text||'').replace(/[\u2010-\u2015\u2212]/g,'-');
+    for(const m of t.matchAll(/\b(1\d{4})-([A-Z]{1,2})\b/g)) out.add(m[1]+'-'+m[2]);
+    if(num&&known&&/^\d+$/.test(String(num))) for(const m of t.matchAll(new RegExp(`\\b${num}(?:\\s*-\\s*)?([A-Z]{1,2})\\b`,'g'))){ const id=num+'-'+m[1]; if(known.has(id)) out.add(id); }
+    return out; }
+  // a line's imprint IDs (Line Items › Imprint ID Lookup)
+  const idsOf=ln=>{ const v=ln.fields[L.impIds];
+    return new Set((Array.isArray(v)?v:[v]).flatMap(x=>String(x==null?'':x).split(/[,\s]+/)).map(x=>x.trim().toUpperCase().replace(/[‐-―−]/g,'-')).filter(x=>/^\d{4,6}-[A-Z]{1,2}$/.test(x))); };
+  // the packet's Terms and invoice pages (the invoice lists the imprints too): never a line's page by ID
+  const notProof=s=>!s.appr.length&&/\b(invoice|subtotal|balance due|terms of service|terms and conditions)\b/i.test(s.text);
+  // how well a page's text fits a line's garment: its colour (more when it follows the proof's "Colorway" / "Garment:"
+  // label — "Colorway Black", "Garment: Brown · …" — since the colour can also be an ink), and the style number(s) in the
+  // line's garment text
+  const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  function fitScore(text,ln){ const t=' '+String(text||'').toLowerCase()+' '; let sc=0;
+    const cw=ln.fields[L.colour], cols=(Array.isArray(cw)?cw:[cw]).map(x=>String(x==null?'':x).trim().toLowerCase()).filter(x=>x.length>=3);
+    for(const c of cols){ const re=new RegExp(`(?<![a-z0-9])${reEsc(c)}(?![a-z0-9])`,'g'); let m, best=0;
+      while((m=re.exec(t))){ best=Math.max(best,/(colou?rway|garment\s*:)[^a-z0-9]*$/.test(t.slice(Math.max(0,m.index-30),m.index))?4:2); }
+      sc+=best; }
+    const tokens=String(ln.fields[L.garment]||'').toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>=3&&/\d/.test(x));
+    tokens.forEach(k=>{ if(new RegExp(`(?<![a-z0-9])${reEsc(k)}(?![a-z0-9])`).test(t)) sc+=1; });
+    return sc; }
+  // a line's page(s) by its imprint IDs: for each ID, the pages showing it; several → the line's garment colour on the page,
+  // then the line's proof picture among those. by: {page: 'id' | 'id+colour' | 'id+picture' | 'id+colour+picture'}.
+  // odd: IDs on several pages that are on several lines too, and nothing told the pages apart (nothing assigned for those).
+  function byImprint(ln,own,signed,pg,shared){ const by={}, odd=[];
+    for(const id of own){ let cand=signed.map((s,i)=>s.ids.has(id)&&!s.notProof?i+1:0).filter(Boolean), how='id';
+      if(!cand.length) continue;
+      if(cand.length>1){ const sc=cand.map(p=>fitScore(signed[p-1].text,ln)), mx=Math.max(...sc), top=cand.filter((p,k)=>sc[k]===mx);
+        if(mx>0&&top.length<cand.length){ cand=top; how='id+colour'; } }
+      if(cand.length>1&&pg.length){ const pick=new Set();
+        pg.forEach(x=>{ let bp=0, bd=1; cand.forEach(p=>{ const d=cmp(signed[p-1],x.grid).all; if(d<bd){ bd=d; bp=p; } }); if(bp&&bd<0.15) pick.add(bp); });
+        if(pick.size&&pick.size<cand.length){ cand=[...pick]; how+='+picture'; } }
+      if(cand.length>1&&(shared.get(id)||0)>1){ odd.push(id); continue; }
+      cand.forEach(p=>{ if(!by[p]) by[p]=how; }); }
+    return {by,odd}; }
   // every page: its grid, its size in points, and the white box next to each "APPROVED" (art's proof template; measured
   // in Line Item Review: x1+0.79fs … x1+3.0fs, baseline−0.61fs … baseline+1.39fs, 2.5 pt inside), as 0–1 of the page
   async function pdfGrids(data,withBoxes){ const doc=await pdfjsLib.getDocument({data:data.slice(0),isEvalSupported:false}).promise, out=[];
     for(let i=1;i<=doc.numPages;i++){ const pg=await doc.getPage(i), v=pg.getViewport({scale:1}), sc=720/Math.max(v.width,v.height), vp=pg.getViewport({scale:sc});
       const c=document.createElement('canvas'); c.width=Math.round(vp.width); c.height=Math.round(vp.height); const x=c.getContext('2d',{willReadFrequently:true}); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
-      await pg.render({canvasContext:x,viewport:vp}).promise; const gr=grid(c); gr.pw=v.width; gr.ph=v.height; gr.appr=[];
-      if(withBoxes) try{ const tc=await pg.getTextContent();
+      await pg.render({canvasContext:x,viewport:vp}).promise; const gr=grid(c); gr.pw=v.width; gr.ph=v.height; gr.appr=[]; gr.text='';
+      if(withBoxes) try{ const tc=await pg.getTextContent(); gr.text=pageText(tc.items);
         for(const it of tc.items){ if(String(it.str).trim()!=='APPROVED') continue; const t=it.transform, fs=Math.hypot(t[2],t[3])||it.height, x1=t[4]+it.width, b=t[5];
           const p0=v.convertToViewportPoint(x1+0.79*fs+2.5,b+1.39*fs-2.5), p1=v.convertToViewportPoint(x1+3.0*fs-2.5,b-0.61*fs+2.5);
           gr.appr.push([Math.min(p0[0],p1[0])/v.width,Math.min(p0[1],p1[1])/v.height,Math.max(p0[0],p1[0])/v.width,Math.max(p0[1],p1[1])/v.height]); } }catch(e){}
@@ -120,25 +174,36 @@
   function initialed(sg,boxes,base){ if(!sg||!boxes.length) return null;
     return boxes.some(x=>ink(sg,x.box)-(x.own||!base||Math.abs(base.asp-sg.asp)>0.02*sg.asp?0:ink(base,x.box))>INK_MIN); }
 
-  async function checkOrder(api,o,lines,imps,opt){
+  async function checkOrder(api,o,lines,imps,opt,ctx){
     const f=o.fields, num=f[O.num], att=(f[O.packet]||[])[0], doc=f[O.pdId]||'', key=docKey(o), when=day(f[O.signedAt]);
     const packet=await api.bytes(att.url), signed=await pdfGrids(packet,true), cache={};
+    ctx=ctx||{}; const known=ctx.known||new Set(lines.flatMap(l=>[...idsOf(l)])), shared=ctx.shared||new Map();
+    signed.forEach(s=>{ s.ids=idsIn(s.text,num,known); s.notProof=notProof(s); });
+    const mineOrd=id=>id.startsWith(String(num)+'-');   // an imprint ID of this order
     let map=null; try{ const j=JSON.parse(f[O.pages]||'null'); if(j&&Array.isArray(j.pages)&&(!j.doc||!doc||j.doc===doc)) map=j; }catch(e){}
     const res=[];
     for(const ln of lines){
-      const pg=await proofGrids(api,ln,cache); let pages=[], best=1, how='', ini=[];
+      const pg=await proofGrids(api,ln,cache), own=idsOf(ln); let pages=[], best=1, how='', ini=[], by={}, odd=[], wrongId=[];
       if(map){ const mine=map.pages.filter(p=>(p.lines||[]).includes(ln.id)&&p.p>=1&&p.p<=signed.length);
-        pages=mine.map(p=>p.p);
+        pages=mine.map(p=>p.p); pages.forEach(p=>by[p]='map');
         // each listed page against the same page of the same file in Airtable now (gone from Airtable = a newer proof went in)
         const ds=mine.map(p=>{ const g=pg.find(x=>x.file===p.file&&x.fp===(p.fp||0)); const pm=p.mask?(Array.isArray(p.mask[0])?p.mask:[p.mask]):null; return g&&signed[p.p-1]?diff(signed[p.p-1],g.grid,pm?pm.concat([[0,0.97,1,1]]):null):null; });
         if(ds.length&&ds.every(d=>d!==null)) best=Math.max(...ds); else if(ds.length&&pg.length) how='newer';
         ini=mine.map(p=>{ const sg=signed[p.p-1], mm=p.mask?(Array.isArray(p.mask[0])?p.mask[0]:p.mask):null, bx=maskBox(mm,sg.pw,sg.ph), g=pg.find(x=>x.file===p.file&&x.fp===(p.fp||0));
           return {p:p.p,ok:bx?initialed(sg,[bx],g&&g.grid):null}; });
-      } else if(pg.length){
-        // no page list (a packet built by hand): the signed page(s) closest to this line's proof pages
-        const pair={};
-        pg.forEach(x=>{ let bi=-1, bd=1; signed.forEach((s,i)=>{ const d=cmp(s,x.grid).all; if(d<bd){ bd=d; bi=i; } }); if(bi>=0&&bd<0.15&&!pages.includes(bi+1)){ pages.push(bi+1); pair[bi+1]=x.grid; } });
-        if(pages.length) best=Math.max(...pg.map(x=>Math.min(...pages.map(p=>diff(signed[p-1],x.grid)))));
+      } else {
+        // no page list (a packet built by hand). 1: the pages showing the line's imprint ID(s)
+        const pair={}; if(own.size){ const r=byImprint(ln,own,signed,pg,shared); by=r.by; odd=r.odd; pages=Object.keys(by).map(Number); }
+        pages.forEach(p=>{ let bd=1; pg.forEach(x=>{ const d=cmp(signed[p-1],x.grid).all; if(d<bd){ bd=d; pair[p]=x.grid; } }); });   // its proof page, for the initials
+        // 2: none → the signed page(s) closest to this line's proof pages (picture)
+        if(!pages.length&&pg.length){
+          pg.forEach(x=>{ let bi=-1, bd=1; signed.forEach((s,i)=>{ const d=cmp(s,x.grid).all; if(d<bd){ bd=d; bi=i; } }); if(bi>=0&&bd<0.15&&!pages.includes(bi+1)){ pages.push(bi+1); pair[bi+1]=x.grid; by[bi+1]='picture'; } });
+          // the reorder case: the picture matches, but the page shows another imprint ID of this order (and none of the
+          // line's) — the line's imprint ID wasn't updated, or it's another line's mockup. Not saved; Signed Check says so.
+          pages=pages.filter(p=>{ const other=[...signed[p-1].ids].filter(id=>mineOrd(id)&&!own.has(id));
+            if(other.length&&![...signed[p-1].ids].some(id=>own.has(id))){ wrongId.push({p,ids:other}); delete by[p]; return false; } return true; });
+        }
+        if(pages.length&&pg.length) best=Math.max(...pg.map(x=>Math.min(...pages.map(p=>diff(signed[p-1],x.grid)))));
         ini=pages.map(p=>{ const sg=signed[p-1]; return {p,ok:initialed(sg,sg.appr.map(b=>({box:edge(b,sg.pw,sg.ph),own:false})),pair[p])}; });   // "APPROVED" found on the page, or nothing said
       }
       pages.sort((a,b)=>a-b);
@@ -156,7 +221,10 @@
           :`the signed mockup is different from the proof in Airtable — it was probably changed in PandaDoc. Update the proof and check the imprint IDs before screens.`; }
         check=`${notIni}${ok?'OK':'CHECK'} · ${num} signed ${when}${pages.length?' · page '+pages.join(', '):''} · ${msg}${reTxt} [doc ${key}]`;
       } else if(notIni) check=`${notIni}${num} signed ${when} · the customer skipped the APPROVED initials on this mockup [doc ${key}]`;
-      res.push({line:ln.id,pages,diff:CHECK_PAUSED?null:Math.round(best*1000)/1000,ok,initialed:initials,check,
+      // the imprint ID guard (separate from CHECK_PAUSED: it's text, not a picture comparison, so it may write)
+      if(wrongId.length){ ok=false; const has=own.size?[...own].join(', '):'no imprint ID';
+        check=`${notIni}CHECK · ${num} signed ${when} · page ${wrongId.map(w=>w.p).join(', ')} · ${wrongId.map(w=>`signed page ${w.p} shows ${w.ids.join(', ')}, line has ${has}`).join('; ')} — the picture matches this line's proof but the imprint ID doesn't, so the page wasn't saved. Fix the line's imprint ID (a reorder?) or the mockup before screens. [doc ${key}]`; }
+      res.push({line:ln.id,pages,by,odd,wrongId,diff:CHECK_PAUSED?null:Math.round(best*1000)/1000,ok,initialed:initials,check,
         hasProof:!!(ln.fields[L.signed]||[]).length,hasCheck:!!String(ln.fields[L.check]||'').trim(),wrote:{proof:false,check:false}});
     }
     // write: the line's pages as its Signed Proof, then the check. Only into empty fields: nothing is ever overwritten.
@@ -187,11 +255,11 @@
     const f=`AND({Signed Packet}!='',NOT(OR(${DONE.map(x=>`{Order Status}='${x}'`).join(',')})))`;
     const ords=(await api.all(T_ORD,`${api.flds(Object.values(O))}&filterByFormula=${encodeURIComponent(f)}`)).filter(o=>!DRIVE_ONLY||isDrive(o));
     const lineIds=[...new Set(ords.flatMap(o=>o.fields[O.lines]||[]))];
-    const lines=lineIds.length?await api.byIds(T_LI,lineIds,[L.proof,L.check,L.imps,L.signed]):[], byId={}; lines.forEach(l=>byId[l.id]=l);
+    const lines=lineIds.length?await api.byIds(T_LI,lineIds,[L.proof,L.check,L.imps,L.signed,L.impIds,L.colour,L.garment]):[], byId={}; lines.forEach(l=>byId[l.id]=l);
     const tried=lsGet('pine_signed_tried')||{}, now=Date.now(); Object.keys(tried).forEach(k=>{ if(now-tried[k]>RETRY_MS) delete tried[k]; });
     const listed=o=>{ try{ const j=JSON.parse(o.fields[O.pages]||'null'); return new Set((j&&j.pages||[]).flatMap(p=>p.lines||[])); }catch(e){ return new Set(); } };
     const todo=ords.filter(o=>opt.force||!tried[docKey(o)]).map(o=>{ const ls=listed(o);
-        return {o,ls:(o.fields[O.lines]||[]).map(id=>byId[id]).filter(l=>l&&((l.fields[L.proof]||[]).length||ls.has(l.id))
+        return {o,ls:(o.fields[O.lines]||[]).map(id=>byId[id]).filter(l=>l&&((l.fields[L.proof]||[]).length||ls.has(l.id)||(!ls.size&&idsOf(l).size))   // no page list: a line with an imprint ID can be found by it
           &&(!(l.fields[L.signed]||[]).length||(!CHECK_PAUSED&&!String(l.fields[L.check]||'').trim())))}; })
       .filter(x=>x.ls.length).sort((a,b)=>String(b.o.fields[O.signedAt]||'').localeCompare(String(a.o.fields[O.signedAt]||''))).slice(0,MAX_ORDERS);
     if(!todo.length) return out;
@@ -202,11 +270,14 @@
         const prevIds=[...new Set(Object.values(imps).flatMap(r=>r.fields[I.repeat]?(r.fields[I.prev]||[]):[]))];
         if(prevIds.length){ const pv={}; (await api.byIds(T_IMP,prevIds,[I.id])).forEach(r=>pv[r.id]=r.fields[I.id]||'');
           Object.values(imps).forEach(r=>{ r.prevName=(r.fields[I.prev]||[]).map(id=>pv[id]).filter(Boolean).join(' / '); }); } } }
-    for(const x of todo){ try{ log('Signed packet '+x.o.fields[O.num]+'…'); const r=await checkOrder(api,x.o,x.ls,imps,opt); out.orders.push(r);
+    for(const x of todo){ try{ log('Signed packet '+x.o.fields[O.num]+'…'); const all=(x.o.fields[O.lines]||[]).map(id=>byId[id]).filter(Boolean), shared=new Map();
+        all.forEach(l=>idsOf(l).forEach(id=>shared.set(id,(shared.get(id)||0)+1)));
+        const r=await checkOrder(api,x.o,x.ls,imps,opt,{known:new Set(shared.keys()),shared}); out.orders.push(r);
+        r.lines.forEach(l=>log(`  ${r.order} ${l.line}: ${l.pages.length?l.pages.map(p=>'page '+p+' ('+(l.by[p]||'?')+')').join(', '):'no page'}${l.wrongId.length?' · not saved: '+l.wrongId.map(w=>'page '+w.p+' shows '+w.ids.join('/')).join(', '):''}${l.odd.length?' · '+l.odd.join('/')+' on several pages and lines':''}`));
         if(r.lines.some(l=>!l.pages.length)) tried[docKey(x.o)]=now; }   // a line with no page found: not again for 12 hours
       catch(e){ out.orders.push({order:x.o.fields[O.num],error:e.message}); tried[docKey(x.o)]=now; } }
     lsSet('pine_signed_tried',tried);
     return out; }
 
-  window.PineSigned={sync,FIELDS:{O,L,I},_t:{grid,diff,cmp,pdfGrids,MATCH,ink,maskBox,initialed,INK_MIN}};
+  window.PineSigned={sync,FIELDS:{O,L,I},_t:{grid,diff,cmp,pdfGrids,MATCH,ink,maskBox,initialed,INK_MIN,pageText,idsIn,idsOf,fitScore}};
 })();
