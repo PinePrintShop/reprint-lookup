@@ -3542,3 +3542,16 @@ Stephen: "can we look at maybe also creating a new folder in the seps folder for
   - It's missing: one mkdir, then saved in the new folder.
   - Old worker: saved to Seps › working files.
   - No Seps folder: saved to Client Provided › For Proof.
+
+## 2026-11-16 · v275: the customer's own vector file in Production Files
+Stephen, on 11159-A: "why this vector ... is doing this with the black background vs the background just being a solid color that is locked in layers". The screenshot was the production file Mockup Maker made.
+- **What happened:** the customer's .ai has a "bg" layer (one plain rectangle) and a "design" layer. Mockup Maker rebuilt the file by placing the customer's page in a new PDF, which drops Illustrator's own data, so:
+  - the layers became one "Layer 1";
+  - Illustrator opened it with the background as a compound path, the lettering punched out and the insides of the letters as loose black pieces.
+- **Change:** when the art came from an .ai / .eps / .pdf, wasn't cropped or turned in Mockup Maker and no ink was changed, Production Files gets **the customer's file itself**, byte for byte, renamed `<order> - <imprint ID>-<nickname>-<location>.ai`. That means layers, the locked background and every artboard (11159's file holds both the left chest and the back).
+  - If the approved look differs (background dropped, layer hidden), the setup PSD goes with it, as before.
+  - If an ink was changed, the rebuilt file is still made (it carries the new ink), and its layers are still lost.
+- **Tested** with 11159's file (Playwright, scratchpad only):
+  - As opened: the original, identical bytes.
+  - Background dropped: original + PSD.
+  - Ink changed: rebuilt file.
