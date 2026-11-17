@@ -285,3 +285,8 @@ Stephen: sort the signed pages by imprint ID, "similar to how we scan it in the 
 - **Audit (read-only):** worker v53 has attached a Drive packet to every waiting order (`signed`: attached 1 on the latest run, 0 waiting, 0 errors). But no line item has a Signed Proof from a Drive packet yet. The only 4 lines with Signed Proof or Signed Check are left over from the October PandaDoc copies (10966 ×2, 11068, 11072; all CHECK, from the watermarked copies).
 - The split only runs in Line Item Review (Screens v33+ no longer loads pine-signed.js), 4 orders per load, and an error there is swallowed.
 - **signed-check.html** gets "Test the page split": it runs `PineSigned.sync` in practice mode (nothing saved) and shows the log line for each line item, or the error, so the cause can be seen.
+
+## 2026-11-17 · Close-up pages follow their proof's first page
+- The first test run (signed-check, nothing saved) found pages on 11211, 11214, 11184 and 11210. When the colour decided (`id+colour`), each line got only its proof's first page, because the close-up pages after it don't name the colour (some have no text at all).
+- Now each picked page also takes the pages right after it, up to the line's own proof page count. It stops at another proof's first page ("Colorway" / "Garment:"), the Terms or the invoice, or a page showing another imprint ID of the order. These pages show as `…+next` in the log.
+- The existing tests pass (29/29 and 18/18). Next: run "Test now" again and check the page lists before Line Item Review saves them.

@@ -129,7 +129,14 @@
         pg.forEach(x=>{ let bp=0, bd=1; cand.forEach(p=>{ const d=cmp(signed[p-1],x.grid).all; if(d<bd){ bd=d; bp=p; } }); if(bp&&bd<0.15) pick.add(bp); });
         if(pick.size&&pick.size<cand.length){ cand=[...pick]; how+='+picture'; } }
       if(cand.length>1&&(shared.get(id)||0)>1){ odd.push(id); continue; }
-      cand.forEach(p=>{ if(!by[p]) by[p]=how; }); }
+      cand.forEach(p=>{ if(!by[p]) by[p]=how; });
+      // 2026-11-17: a proof's close-up pages follow its first page and don't name the colour (some have no text at all), so
+      // the colour picked only page 1 (11214, 11184). Each picked page takes the pages right after it, up to the line's own
+      // proof page count, while they aren't another proof's first page ("Colorway" / "Garment:"), the Terms or the invoice,
+      // and show none of this order's other imprint IDs.
+      const lead=q=>/colou?rway|garment\s*:/i.test(signed[q-1].text||''), max=Math.max(1,pg.length);
+      cand.slice().forEach(p=>{ let n=1; for(let q=p+1;q<=signed.length&&n<max;q++,n++){ const s2=signed[q-1];
+        if(s2.notProof||lead(q)||[...s2.ids].some(i=>!own.has(i))) break; if(!by[q]) by[q]=how+'+next'; } }); }
     return {by,odd}; }
   // every page: its grid, its size in points, and the white box next to each "APPROVED" (art's proof template; measured
   // in Line Item Review: x1+0.79fs … x1+3.0fs, baseline−0.61fs … baseline+1.39fs, 2.5 pt inside), as 0–1 of the page
