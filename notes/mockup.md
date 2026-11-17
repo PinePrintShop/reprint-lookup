@@ -3718,3 +3718,47 @@ Stephen: "With mockups that have a visual center can we make a bigger blue text 
 - Without the note: every page pixel for pixel v279's. With it: only page 1 and that print's close-up differ (the other print's close-up is identical).
 - ✕, True center, a drag back to center and typing 0: each brings page 1 and the close-up back to pixel for pixel v279's.
 - No writes, no errors.
+
+## 2026-11-17 · v281 · Pick up brings the proof back exactly
+Stephen: "when mockup creator picks back up it sometimes doesn't save the colors selected etc". (The second half, the outsourced art department editing proofs, is dropped: they work from the proof PDF in Drive, so no Drive autosave or sharing was built. The Drive copy is still written at attach, as before.)
+
+**Cause of the lost colours.** The ink changes (recolours, erases, names, merges) are tied to the scan's list of colours, and on Pick up they only came back if the art scanned to exactly the same list. Colours added with "+ Add colour" (v249) weren't saved, so the scan came back shorter and every ink change on that print was dropped silently. A setup saved before the scan had finished kept no ink changes at all. Reproduced on v280 with a 3-colour print plus one added colour: 286 / BLK / 347 before, 186 / BLK / 2388 after Pick up. v281: the same both times.
+
+**What a job keeps** (L = this computer, D = the Drive "… Mockup Maker setup.json" written at attach, R = brought back by Pick up)
+
+| Setting | v280 L / D / R | v281 |
+|---|---|---|
+| Art pixels, crop, background drop, width, turn, fill in, pieces, vector file | yes / yes / yes | same |
+| Colours added with "+ Add colour" (`a.picked`) | no / no / no, and it voided every ink change | kept, restored |
+| Ink changes per line (RECOL), erased inks, ink names / merges (`a.ed`) | yes / yes / only on an exact scan match | restored; a scan that isn't an exact match takes them by colour |
+| Ink changes when the scan hadn't run at save time | not restored | restored |
+| Inks added to the proof (EXTRA_INK), colour order (INKORD), base (UBASE), DC / EZP / OW by hand (INKTYPE), effects (FX), "Colors will be determined by Separation" (SEPDET), ink swap | yes / yes / yes | same, and a pick-up's value replaces a stale one on this computer |
+| Proof notes (DISC), Visual center (note + offset), placement (PLACE, PLACE_L per garment), placement text (PTEXT, PTEXT_L), opacity, hat curve, method / patch / emb style | yes / yes / yes | same (stale values replaced) |
+| "Don't drop the background" (unticked) | no: Pick up dropped it again on transfers | kept |
+| Thickened lines: the original (for "Back to the original lines") | no | kept |
+| Upscale / trace: the original, the SVG, its note in the quality line | no (canVector could then use the vector) | kept |
+| Template .ai: art-only info (`_tplv`, v277) | not looked up after Pick up, so no art-only .ai | looked up again |
+| Customer's layout picture (REF) | no | kept |
+| Sleeve move / turn (SLVF), size per line, body length, typed-in garment, extra pages, sew-out photo | yes / yes / yes (local values won over the job's) | the job's values win |
+| Own garment photo, stand-in / typed-in garment | yes / yes / yes | same |
+| Own garment photo of a garment with its own record, not saved to it ("Save photo") | no | kept |
+| Garment marks: collar line, sideways nudge, hem, shoulder point and its offset, photo crop, person's height | this computer only (per garment, localStorage) / no / no | kept with the job for that garment, restored |
+| Close-up background (fabric / flat), garment kind, accessory width, bandana size and colour, promo bandana options | no / no / no | kept, restored |
+| Other lines of the order sharing the prints | only the line opened; a print came back as saved on that line, even if it was changed later on another line | every line: each print from the newest setup that has it, each line's own size, garment and marks from its own |
+| PSD layer switches, the pdf.js layer picker list | no (the picture is saved as composed) | same; the art looks the same but the switches aren't there |
+
+**Timing fixes**
+- A change made less than 2.5 s before closing the tab was lost (the save waited 2.5 s). Now saved at once on pagehide / visibilitychange, on switching line and on switching order. Switching line inside the 2.5 s also dropped the save.
+- Restored art was rebuilt before it was placed on its imprint, so the rebuild used the open print's method: an embroidery or transfer print with its background dropped came back different. Now placed first, then rebuilt.
+- A save that finished after the line or order changed could read the new line's art (the art lookup follows the open line). The line's art, size and pages are now read when the save starts. "Attach to all lines" saved every line with the open line's own art and size.
+
+**On this computer** a setup is now `{light, blobs}` (the settings with each picture as `ref:<id>`, and the pictures once each). Older setups (v55–v280, on this computer or on Drive) still open. The Drive file is the same single file as before, now with the new settings.
+
+**Tested** (Playwright, Chromium, mocked Airtable and mocked worker Drive routes, synthetic art; `scratchpad/mk281/t281.js`, `t281x.js`, `tlegacy.js`):
+- Every setting in the table set on an order with two lines (white tee; black tee turned into a typed-in brown hoodie with its own back art) sharing a front, a back and a left sleeve. Then: the page closed and opened again → Pick up; and a fresh browser → Pick up from the Drive setup.json written by attach. Both: settings identical, colour chips identical, **18 / 18 proof pages pixel-identical**. The same test on v280: 8 / 18 and 4 / 18.
+- Colours (Stephen's case): identical after Pick up (v280: lost).
+- A change 0.3 s before closing the tab: kept (v280: lost).
+- Practice: picked up; 0 Drive writes, 0 Airtable writes.
+- Requests for open → art → colours → attach's setup → a fresh browser picks up: the same as v280's.
+- Setups saved by v280 (this computer and Drive) open in v281.
+- Not tested: PSD art with layer switches, a real template .ai, upscale / trace and thicken round trips, sew-out photos.
