@@ -334,3 +334,10 @@ Stephen (2026-11-05, pandadoc.md): Seps, Screens, Ink, Operator and QC show the 
   - The order has no Signed Packet yet: Whole packet says "No signed packet on this order yet".
 - **Reads:** the queue read (and the one-job read) ask for one more field, the Line Items link (`fldsvntAy1QHEoDAg`). New: one Line Items read (Signed Proof, Signed Check, Order) when a job opens, cached until Refresh; the order's Signed Packet only when Whole packet is tapped. No new writes.
 - **Tested** (Playwright, mocked Airtable): the v52 scripted run sends the same Airtable requests on v53 at 1440 and 390 once the added field and the signed reads are set aside; Drive-worker calls the same; 0 writes. Cases at 1440, 1100 and 390: signed, not signed, not initialed, CHECK with no packet. No page errors, no text under 12px, no sideways scroll.
+
+## 2026-11-17 · v54: the signed-packet page split runs in Seps
+- Stephen: "yes that works better". Until now the split (pine-signed.js) only ran when Line Item Review was opened, and that app's list has no signed orders. Seps is open all day, so it now runs there in the background: 8 s after the app opens, then every 15 minutes, at most 4 orders each time.
+- **What it does:** each line's page(s) of the order's signed packet go into Signed Proof, plus the "NOT INITIALED" check. Empty fields only, never overwriting.
+- Nothing on screen changes. Practice mode (?practice=1) saves nothing. Line Item Review keeps it as a backup.
+- **Tested** (Playwright, mocked Airtable): the same requests as v53 plus one background query for orders with a signed packet; no errors.
+- **Note:** the held "signed page as the main mockup" build has its own seps-v54 on its branch. It becomes v55 when it's released.
