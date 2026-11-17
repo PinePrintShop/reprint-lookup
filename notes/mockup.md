@@ -3687,3 +3687,34 @@ Stephen: the setup PSD for a job whose art came from a vector .ai had blurred st
 - Download toast checked: "… — 11300 - 11300A-TEST-FRONT.psd layers: Approved art · Inks: 186OW, 116OW, BASE (white, under the inks)".
 - Not tried: opening a PSD with a base in Photoshop; the Drive upload message (it uses the same wording, not run).
 - Checked 2026-11-17: no Airtable automation watches Imprints › Pantone (fldzEbYXESOVnYrtw), so the reorder write triggers nothing.
+
+## 2026-11-17 · v280 · A bigger Visual center warning, on page 1 and the close-up
+Stephen: "With mockups that have a visual center can we make a bigger blue text warning to pay attention. Or maybe add it to the closeup as well". Since v261 the Visual center note was an ordinary proof note, on the close-up page only.
+
+**Page 1:** each print with the Visual center note gets a warning, bigger and bolder than the fixed blue line ("PLEASE NOTE: PRINT SIZE IS SHOWN TO SCALE…") and in its blue (#00a0df), with a blue bar on its left:
+- `VISUAL CENTER — FRONT:` (13 pt, Black weight), then `PRINT IS PLACED 0.4" TO THE WEARER'S LEFT OF THE GARMENT'S TRUE CENTER` (10.5 pt bold).
+- The inches and the side are the note's own (`noteText`'s rounding and `wearerSide`, so a back print says the wearer's side right). A print on true center gets the plain wording.
+- The print is named by its location (FRONT, BACK, FULL FRONT…). Front and back both with the note: two warnings, stacked.
+- Where it goes:
+  - Garment template (screen print, hats): the left column, right above the fixed blue line. With a tag section (the left column is the tag's): across the bottom, under the blue line and the info blocks.
+  - Embroidery: the bottom of the left column, over APPROVED, when the info blocks fit above it (they shrink first). Otherwise the strip under the garment, over the sew-out boxes (the notes then go under it).
+  - Bandana: under the colours (or the semi-opaque swatches); when that column is full, the strip right of the bandana.
+  - It shrinks only when it has to, never under 9 pt.
+
+**Close-up:** the same warning under the header, bigger (20 pt heading, 15 pt line, centred), not in the notes' style. The print's other notes follow under it as before, then the drawing, which moves down and gets a little shorter to make room. On the drawing:
+- a thin dashed blue line at the garment's true center, labelled TRUE CENTER;
+- a dimension arrow from it to the art's center, with the inches (e.g. `0.4"`), above the art when there's room.
+- On a light blue fabric the marks get a thin white edge so they still read.
+
+**Taking the note off** (✕, True center, typing 0 in Off center, dragging back to center) takes the warning, the line and the arrow off.
+
+**Unchanged:** prints without the note, and tags (no close-up page, so their notes stay on page 1 as before), are pixel for pixel v279's.
+
+**Visual center applies to:** front/back prints on garments (screen print and embroidery). Left chest has no Visual center button (v86), nor do bandanas and hats, but the note can be picked from the drop-down on any print and the warning follows it.
+
+**Tested** (Playwright, Chromium, mocked Airtable, practice, synthetic art):
+- A white tee with a front (Visual center 0.4375 → "0.4"") and a back; a black tee whose back got it from the Visual center button (1.3125 → "1.3" TO THE WEARER'S RIGHT"); embroidery left chest + back (−0.3125 → "0.3" … WEARER'S LEFT"); a bandana (1″); a cap (0.25″); a light blue tee; a front with two more notes; a front on true center (plain wording); a tee with a size tag.
+- The proof PDF of each made and rendered to PNG.
+- Without the note: every page pixel for pixel v279's. With it: only page 1 and that print's close-up differ (the other print's close-up is identical).
+- ✕, True center, a drag back to center and typing 0: each brings page 1 and the close-up back to pixel for pixel v279's.
+- No writes, no errors.
