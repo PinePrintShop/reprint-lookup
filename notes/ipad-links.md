@@ -24,7 +24,7 @@
 | Receiving | `receiving.html` | receiving-dashboard v89 (shared side panel: 346 list, compact cards) |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |
-| Seps | `seps.html` | v53 (the signed mockup under the job's mockup) |
+| Seps | `seps.html` | v54 (splits signed packets into line pages in the background; the signed mockup under the job's mockup) |
 | Screens | `screens.html` | v36 (the signed mockup under the imprint's mockup) |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v33 |
