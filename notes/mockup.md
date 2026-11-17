@@ -3686,3 +3686,4 @@ Stephen: the setup PSD for a job whose art came from a vector .ai had blurred st
   - Seven Pantone texts tried (commas, +, new lines, " / ", a base piece left in place, extra spaces kept).
 - Download toast checked: "… — 11300 - 11300A-TEST-FRONT.psd layers: Approved art · Inks: 186OW, 116OW, BASE (white, under the inks)".
 - Not tried: opening a PSD with a base in Photoshop; the Drive upload message (it uses the same wording, not run).
+- Checked 2026-11-17: no Airtable automation watches Imprints › Pantone (fldzEbYXESOVnYrtw), so the reorder write triggers nothing.
