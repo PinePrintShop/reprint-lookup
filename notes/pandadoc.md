@@ -280,3 +280,8 @@ Stephen: sort the signed pages by imprint ID, "similar to how we scan it in the 
 - Stephen: "let's just have it show a preview of the signed version as well" — a stopgap until Pine moves off PandaDoc, after which the QR codes go back to showing only the mockups (no terms or invoice).
 - The "Signed packet" button on mockups.html (the box-label QR page) now opens a full-screen preview of every page of the signed PDF on the page itself, drawn with pdf.js 3.11.174. No sign-in and no new tab. Close or Esc goes back. If the preview can't load, it opens the PDF as before.
 - Tested (Playwright, mocked worker, made-up PDF): the preview shows every page, Close works, no pop-up, no errors.
+
+## 2026-11-17 · Audit: no signed pages split yet, and a test button
+- **Audit (read-only):** worker v53 has attached a Drive packet to every waiting order (`signed`: attached 1 on the latest run, 0 waiting, 0 errors). But no line item has a Signed Proof from a Drive packet yet. The only 4 lines with Signed Proof or Signed Check are left over from the October PandaDoc copies (10966 ×2, 11068, 11072; all CHECK, from the watermarked copies).
+- The split only runs in Line Item Review (Screens v33+ no longer loads pine-signed.js), 4 orders per load, and an error there is swallowed.
+- **signed-check.html** gets "Test the page split": it runs `PineSigned.sync` in practice mode (nothing saved) and shows the log line for each line item, or the error, so the cause can be seen.

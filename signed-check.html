@@ -28,6 +28,10 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-dir
   <section class="p-card" id="pkCard" hidden><h2 class="p-h2">Signed packets on orders</h2>
     <p class="p-hint">Every 15 minutes the worker attaches the newest signed PDF to orders whose Signed Packet is empty, a few at a time.</p>
     <ul class="hits" id="pk"></ul></section>
+  <section class="p-card"><h2 class="p-h2">Test the page split</h2>
+    <p class="p-hint">Runs what Line Item Review does with the signed packets (each line's signed page, the initials check) on up to 4 orders, but saves nothing.</p>
+    <div class="find"><button class="p-btn" id="dry" type="button">Test now (no saving)</button></div>
+    <ul class="hits" id="dryOut"></ul></section>
   <section class="p-card"><h2 class="p-h2">Find an order's signed PDF</h2>
     <div class="find"><input class="p-input" id="ord" inputmode="numeric" placeholder="Order number, e.g. 11139"><button class="p-btn p-btn-main" id="go" type="button">Find</button></div>
     <ul class="hits" id="hits"></ul></section>
@@ -74,8 +78,20 @@ async function find(){ const n=$('ord').value.replace(/\D/g,''); const ul=$('hit
         const u=URL.createObjectURL(await r.blob()); if(w) w.location=u; else location.href=u; }catch(e){ if(w) w.close(); alert('Could not open it: '+e.message); }
       b.disabled=false; b.textContent='Open'; }); }
   catch(e){ ul.innerHTML=`<li class="bad">${esc(e.message)}</li>`; } }
+/* 2026-11-17: the page split run as a test (practice: nothing saved), to see what Line Item Review would do */
+$('dry').onclick=async()=>{ const ul=$('dryOut'), b=$('dry'); if(!window.PineSigned){ ul.innerHTML='<li class="bad">pine-signed.js did not load</li>'; return; }
+  b.disabled=true; b.textContent='Testing…'; const lines=[]; const show=()=>{ ul.innerHTML=lines.map(t=>`<li><span>${esc(t)}</span></li>`).join('')||'<li>Working…</li>'; };
+  show();
+  try{ const r=await PineSigned.sync({token:tok(),practice:true,force:true,log:t=>{ lines.push(t); show(); }});
+    if(!r.ok) lines.push('Stopped: '+(r.error||'unknown'));
+    else if(!r.orders.length) lines.push('Nothing to do: no order with a Drive signed packet and a line still missing its signed page.');
+    r.orders.forEach(o=>{ if(o.error) lines.push(`${o.order}: error, ${o.error}`); });
+    show(); }
+  catch(e){ lines.push('Error: '+e.message); show(); }
+  b.disabled=false; b.textContent='Test now (no saving)'; };
 $('again').onclick=check; $('go').onclick=find; $('ord').addEventListener('keydown',e=>{ if(e.key==='Enter') find(); });
 $('save').onclick=()=>{ const v=$('tok').value.trim(); if(!v) return; try{ localStorage.setItem('pine_at_key',v); }catch(e){} $('tok').value=''; $('signin').hidden=true; check(); };
 check();
 </script>
+<script src="pine-signed.js"></script>
 </body></html>
