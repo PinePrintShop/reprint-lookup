@@ -3651,3 +3651,39 @@ Stephen: the setup PSD for a job whose art came from a vector .ai had blurred st
 - **Inside white:** "at the edges" only takes the background it can reach from the edge, so the white inside the ring stays (it would print as white). To drop it too, tick "everywhere". That option already kept the cream in v277.
 - **Tested** on the logo Stephen sent (local only): v277 kept 328 light cream pixels, v278 keeps 55,767 (ring, divider lines and lettering). "Everywhere" is unchanged.
 - The setup PSD follows the same mask, so the 635 file keeps the cream too.
+
+## 2026-11-17 · v279 · The base in the setup PSD; the colours' order
+**Base in the setup PSD.** Stephen: "the base should download as well in the setup file correct? can you check that in the mockup creator". It didn't: since v145 the PSD left the proof's BASE chip out, so no base layer was ever written.
+- When the proof shows a BASE chip, the PSD's Inks group gets one more layer:
+  - named as the chip. The chip always reads `BASE`: every base name (1/2 BB, EZ WHT, 1/2 BLOCKER, UNDERBASE…) and the automatic base on a dark garment become one `BASE` chip (inkChips, since v65 / v201);
+  - at the bottom of Inks, under the colours; white (#ffffff);
+  - its mask is the union of the ink layers' masks: on the same 635 grid with the same cut, so it lines up exactly (0 / 255 for spot art). Not choked: seps choke it.
+  - Erased inks aren't in it (they aren't ink layers). With one ink, the Inks group is still made, so BASE and the ink are separate layers.
+- Same in all three PSD paths: vector drawn at 635, the raster path and v145's fallback.
+- No BASE chip: the PSD is byte for byte v278's. The .ai / original file and the other outputs are unchanged.
+- Download setup file and the Drive message list the layers when there's a base: "…psd layers: Approved art · Inks: 186OW, 116OW, BASE (white, under the inks)".
+
+**Colour order.** Stephen: "we need to be able to adjust the order of the colors".
+- Colours tab › **Order on the proof**: drag a colour, or use its ↑ / ↓ buttons (the focus stays on the moved colour, so ↑ ↑ walks it up). It shows when the proof has 2 or more colours. BASE isn't in the list: it stays first on the proof and at the bottom of the PSD.
+- **Per imprint**, as the Pantone field is (the same colour with or without OW counts as one, so the order holds on every garment).
+- The order sets:
+  - the proof's chips, left to right;
+  - the setup PSD's ink layers (the first on top);
+  - the imprint's Pantone field (`fldzEbYXESOVnYrtw`), when the chips come from it: the same pieces and separators, in the new order (`186, 116 + BLK` → `BLK, 116 + 186`). One save, 1.2 s after the last move. Practice: nothing is saved; the message says what would be.
+- Before this, Mockup Maker never wrote the Pantone field. It now does, but only the one field on the one imprint and only when the order changes.
+- When the chips don't come from the Pantone field (recoloured art, a sep's films, the file's spot colours), or it is one piece with no commas (`186 116 BLK`), the order is kept with the job but not written to Airtable.
+
+**Tested** (Playwright, Chromium, mocked Airtable; synthetic 4″ art):
+- Base, on a black tee (Pantones 186, 116):
+  - raster with 2 inks, raster with 1 ink, raster with 116 erased, vector with 2 inks, vector with 1 ink;
+  - each through the 635 path and v145's fallback;
+  - read by ag-psd, psd-tools (`python3 -I`) and our own reader. In every one, BASE is the bottom layer of Inks, white, and its alpha equals the union of the ink alphas pixel for pixel. The 635 ones are 0 / 255.
+  - Next to v278's: the ink layers, Approved art and the flattened copy are identical; BASE is the only new layer.
+- No base (white tee): the PSDs (635 and fallback, raster and vector) and the vector file are byte for byte v278's.
+- Order, 3 inks (186, 116 + BLK): ↑, then Enter, then a drag → BLK, 116, 186 on the proof and in the PSD (BLK on top, BASE at the bottom).
+  - Requests: exactly one PATCH (`BLK, 116 + 186`); everything else is the same as v278's.
+  - Practice: no writes.
+  - Seven Pantone texts tried (commas, +, new lines, " / ", a base piece left in place, extra spaces kept).
+- Download toast checked: "… — 11300 - 11300A-TEST-FRONT.psd layers: Approved art · Inks: 186OW, 116OW, BASE (white, under the inks)".
+- Not tried: opening a PSD with a base in Photoshop; the Drive upload message (it uses the same wording, not run).
+- Checked 2026-11-17: no Airtable automation watches Imprints › Pantone (fldzEbYXESOVnYrtw), so the reorder write triggers nothing.
