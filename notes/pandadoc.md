@@ -275,3 +275,8 @@ Stephen: sort the signed pages by imprint ID, "similar to how we scan it in the 
 **Open:**
 - Not tried on a real Drive packet yet. Check the first few hand-built packets' log lines.
 - Proofs whose text was turned into outlines have no readable IDs. Those still fall back to the picture match.
+
+## 2026-11-17 · mockups.html previews the signed packet
+- Stephen: "let's just have it show a preview of the signed version as well" — a stopgap until Pine moves off PandaDoc, after which the QR codes go back to showing only the mockups (no terms or invoice).
+- The "Signed packet" button on mockups.html (the box-label QR page) now opens a full-screen preview of every page of the signed PDF on the page itself, drawn with pdf.js 3.11.174. No sign-in and no new tab. Close or Esc goes back. If the preview can't load, it opens the PDF as before.
+- Tested (Playwright, mocked worker, made-up PDF): the preview shows every page, Close works, no pop-up, no errors.

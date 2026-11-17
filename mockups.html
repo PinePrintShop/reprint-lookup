@@ -12,7 +12,10 @@
    2026-11-16 (worker v53; Stephen: "make sure the QR code in invoices and box labels are the signed ones as well"):
    the line's signed page comes first ("✓ Signed"), "Not signed yet" when there is none, "Proof not initialed" when the
    customer skipped the APPROVED initials, and "Signed packet" opens the whole signed PDF. Pine colours, nothing under 12px.
-   An older worker (no signed fields) shows the page as before. */
+   An older worker (no signed fields) shows the page as before.
+   2026-11-17 (Stephen: "let's just have it show a preview of the signed version as well"): "Signed packet" opens a
+   preview of every page of the signed PDF right here (pdf.js), no sign-in and no new tab; if the preview can't load,
+   it falls back to opening the PDF as before. */
 :root{
   --bg:#F7F0E4;--surface:#fff;--border:#E2D2B6;--border-dk:rgba(20,20,18,.32);--cream:#EFE2CD;
   --text:#141412;--muted:#4A453C;--bar:#141412;--yellow:#FBE122;--red:#C62828;--red-lt:#FBE9E7;
@@ -57,6 +60,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .flag{font-size:12px;font-weight:700;letter-spacing:.04em;padding:5px 10px;border-radius:4px;background:var(--cream);color:var(--muted)}
 .flag.bad{background:var(--red-lt);color:var(--red)}
 .top .pk{flex-shrink:0;font-size:12px;font-weight:700;letter-spacing:.04em;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:14px;padding:6px 10px;text-decoration:none;white-space:nowrap}
+.pv{position:fixed;inset:0;background:rgba(20,20,18,.92);z-index:9;display:flex;flex-direction:column}
+.pv-h{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;color:#fff}
+.pv-h b{flex:1;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.pv-h button{font:700 13px var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:10px 16px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;cursor:pointer;min-height:44px}
+.pv-b{flex:1;overflow-y:auto;padding:0 12px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:12px}
+.pv-b canvas{width:100%;max-width:860px;height:auto;background:#fff;border-radius:4px;display:block}
+.pv-b .pv-m{color:#fff;font-size:14px;padding:24px;text-align:center}
 .msg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 24px;gap:8px;color:var(--muted)}
 .msg b{color:var(--text);font-size:18px}
 .msg.err b{color:var(--red)}
@@ -72,6 +82,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </header>
 <div class="msg" id="msg"><b>Loading mockups…</b><span>This takes a second.</span></div>
 <main class="track" id="track" hidden aria-live="polite"></main>
+<div class="pv" id="pv" hidden role="dialog" aria-modal="true" aria-labelledby="pvT"><div class="pv-h"><b id="pvT">Signed packet</b><button type="button" id="pvX">Close</button></div><div class="pv-b" id="pvB"></div></div>
 <nav class="nav" id="nav" hidden>
   <button type="button" id="prev" aria-label="Previous garment">&#8592; Prev</button>
   <div class="dots" id="dots"></div>
@@ -91,6 +102,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     m.className = 'msg err'; m.hidden = false;
     m.innerHTML = '<b>' + esc(title) + '</b><span>' + esc(detail) + '</span>';
     document.getElementById('cust').textContent = '';
+  }
+  /* 2026-11-17: the signed packet previewed on this page, every page, with pdf.js */
+  var pv = document.getElementById('pv'), pvB = document.getElementById('pvB'), pvT = document.getElementById('pvT'), shown = '';
+  function closePv(){ pv.hidden = true; }
+  document.getElementById('pvX').onclick = closePv;
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !pv.hidden) closePv(); });
+  function pdfjs(){ if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return new Promise(function(res, rej){ var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      sc.onload = function(){ if (!window.pdfjsLib) return rej(new Error('pdf.js')); pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(pdfjsLib); };
+      sc.onerror = rej; document.head.appendChild(sc); }); }
+  function preview(url){
+    pv.hidden = false; document.getElementById('pvX').focus();
+    if (shown === url) return; shown = url; pvT.textContent = 'Signed packet'; pvB.innerHTML = '<div class="pv-m">Loading the signed packet…</div>';
+    pdfjs().then(function(lib){ return lib.getDocument({ url: url }).promise; }).then(function(doc){
+      pvT.textContent = 'Signed packet · ' + doc.numPages + ' page' + (doc.numPages > 1 ? 's' : ''); pvB.innerHTML = '';
+      var w = Math.min(860, pvB.clientWidth - 24) * Math.min(2, window.devicePixelRatio || 1), chain = Promise.resolve();
+      for (var i = 1; i <= doc.numPages; i++) (function(n){ chain = chain.then(function(){ return doc.getPage(n).then(function(pg){
+        var v = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: w / v.width }), c = document.createElement('canvas');
+        c.width = Math.round(vp.width); c.height = Math.round(vp.height); c.setAttribute('aria-label', 'Page ' + n); pvB.appendChild(c);
+        return pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise; }); }); })(i);
+      return chain;
+    }).catch(function(){ shown = ''; closePv(); window.open(url, '_blank', 'noopener'); });
   }
   if (!/^rec[A-Za-z0-9]{14}$/.test(o)) { fail('This link is incomplete', 'Scan the QR code on the label again.'); return; }
 
@@ -141,7 +174,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
       document.getElementById('ord').textContent = '#' + (j.order || '');
       document.getElementById('cust').textContent = j.customer || '';
       document.title = 'Order ' + (j.order || '') + ' Mockups — Pine Print Shop';
-      if (j.packet) { var pk = document.getElementById('pk'); pk.href = j.packet; pk.hidden = false; }
+      if (j.packet) { var pk = document.getElementById('pk'); pk.href = j.packet; pk.hidden = false; pk.onclick = function(e){ e.preventDefault(); preview(j.packet); }; }
       items = j.items || [];
       if (!items.length) { fail('No garments on this order yet', 'Check with the office.'); return; }
       track.innerHTML = items.map(slide).join('');
