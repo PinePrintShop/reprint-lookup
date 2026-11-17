@@ -37,7 +37,7 @@
 | Reprints (desktop office app) | `reprints.html` | v10 (side panel standard) |
 | Sep Maker (desktop, art dept) | `sep-maker.html` | v61 |
 | Laser Prep (desktop, art dept: sep PSD ready for the Saati 8012 / Xitron) | `laser-prep.html` | v1 |
-| Mockup Maker (desktop, art dept) | `mockup.html` | v281 (Pick up brings the proof back exactly: colours, every line, saved on leaving; bigger Visual center warning; BASE layer in the setup PSD; colour order in the Colours tab) |
+| Mockup Maker (desktop, art dept) | `mockup.html` | v282 (an editable copy of the proof for Illustrator, "… (editable).pdf", next to the proof in Drive and on Download; Pick up brings the proof back exactly; bigger Visual center warning; BASE layer in the setup PSD) |
 | Sticker Proof (now in Mockup Maker) | `sticker-proof.html` → `mockup.html` | – |
 | Topo Packing (desktop office: carton labels + packing list) | `topo-pack.html` | v11 |
 | Approve (customer page: order approval + signing, prototype) | `approve.html` | v19 (signed copy: initials only in the boxes) |

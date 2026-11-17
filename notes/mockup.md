@@ -3762,3 +3762,40 @@ Stephen: "when mockup creator picks back up it sometimes doesn't save the colors
 - Requests for open → art → colours → attach's setup → a fresh browser picks up: the same as v280's.
 - Setups saved by v280 (this computer and Drive) open in v281.
 - Not tested: PSD art with layer switches, a real template .ai, upscale / trace and thicken round trips, sew-out photos.
+
+## 2026-11-17 · v282 · An editable proof for Illustrator
+Stephen: the outsourced art department opens Mockup Maker's proof PDF from Drive in Illustrator to make adjustments, but each page is one flat picture, so nothing is editable.
+
+**What's new:** beside every proof, "`<proof name> (editable).pdf`" (e.g. `V2 11300-AB | 5000 (editable).pdf`). Same pages, same size, same look, but built from separate pieces, grouped per page.
+- **Attach** (and Attach to all): saved next to the proof in Drive (the order's Proofs folder). It replaces the older editable copy the same way the proof replaces the older proof (V-number or the proof taken off the line); Undo puts those back too (not tested). If it can't be made or saved, the yellow Drive warning says so; the proof itself still attaches.
+- **Download PDF:** the proof, then the editable copy as a second file.
+- **Practice:** nothing uploaded (the toast says "proof and its editable copy not uploaded").
+- Airtable still gets only the normal proof. The normal proof is unchanged, pixel for pixel.
+
+**How:** the page code is not copied. While the editable copy is made, each page's canvas is swapped for a recorder (`pageCv`). The recorder still draws on a canvas (at 2×, so prints shaded by the photo come out at 300 ppi) and also writes down every call as a PDF object (pdf-lib, low level). Layout stays in one place, so the two PDFs can't drift apart. Anything the recorder can't write as an object (a gradient, a shadow, an unusual blend) is cut out of the canvas as a picture of just that piece and logged in the console ("editable proof:"). In the tests, nothing needed this.
+
+**Groups per page** (Form XObjects; Illustrator should show each as a group), in drawing order: Background, Logo, Layout pieces, Approved, then per side Garment · FRONT, Art · 11300-A, then Garment · BACK, Art · 11300-B, Center line, Visual center, Distances, Fabric, Sew-out, Swatches, Picture (extra pages), and finally Chips and Text. Text and chips go last unless something drawn later covers them; then they stay in place.
+
+| Piece | In the editable PDF |
+|---|---|
+| Page white, rules, fabric strip, APPROVED box, sew-out boxes, warning bar, center line, distances, Visual center TRUE CENTER dashed line and arrow | vector |
+| All text (Proof, Order #, fine print, garment, headings, Width / Height / Placement, notes, blue notes, Visual center warning, APPROVED, chip labels) | real text, Helvetica / Helvetica-Bold / Oblique (standard fonts, not embedded). The proof never used Poppins, so nothing changes there. The Black weight (Visual center heading) is Helvetica-Bold, as the canvas draws it. |
+| Colour chips | vector squares (outlined when light) + text, in the Chips group. The Supacolour logo is a picture. FULL COLOR's gradient bar would be cut out as a picture (not in the tests). |
+| Pine logo | the white logo as a picture (300 ppi, transparent) on the vector black square |
+| Garment photo | its own picture at its own resolution (no more than 300 ppi at the placed size), JPEG, clipped to its slot. A widened photo is 3 strips; an overlapped one is the cut-out with transparency. |
+| Drawn stand-in shirt, cap stand-in | vector |
+| Bandana (generated picture) | picture |
+| Print on page 1 / Colorways | its own picture with transparency at 300 ppi. This is how the print looks there: shaded by the photo's folds, stitched, curved round a hat, or on the sleeve. When drawn flat (no photo), it's the vector art (below). |
+| Print on a close-up and the tag section | **the customer's vector page** when the art came from a vector file (the setup .ai's own: art-only when the file has template layers (v277), else v146's with the ink changes), placed at its exact spot and size. Otherwise the art picture at its own resolution (≤ 300 ppi at the placed size) with transparency. Flat art is lossless; photo-like art is JPEG colour + an exact alpha mask. |
+| Sew-out photo, extra-page pictures | pictures |
+
+**Sizes** (synthetic jobs): 50–130 KB for tees, hats, tags and extra pages (the normal proof is 215–410 KB), 613 KB for a bandana (the generated bandana picture), and 3.5 MB for the worst case: two 12″ photographic prints made of pure noise (normal proof 715 KB). Making it takes 0.2–0.7 s (3.3 s for the noise prints).
+
+**Tested** (Playwright, Chromium, mocked Airtable + the worker's Drive routes, synthetic art and a synthetic flat tee photo; `scratchpad/mk282/t282.js`, `t282a.js`, `ana.py`):
+- 11 jobs, 29 pages: tee front + back with raster art; the same with vector (PDF) art; the drawn stand-in shirt (vector + raster); embroidery left chest + back (with sew-out boxes); bandana with semi-opaque swatches; cap on a photo (curved print) and the cap stand-in; a size tag; an extra page with two pictures; photo-like art; Visual center (light blue tee, warning, close-up TRUE CENTER line and arrow, plus a second note).
+- Each editable PDF rendered at 150 dpi (pdftoppm) against the canvas page. Close-ups: 99% of pixels within 0–4 levels (28 with the photo-like art, which is JPEG); the rest are glyph edges (max 224–255, 0.5–0.6% over 64). Page 1: mean 1.6–2.5 levels, 0.8–1.1% over 64 (glyph edges and photo resampling). The normal proof's own JPEG is further off the canvas: mean 2.4–3.8 on page 1.
+- pdftotext reads the order number, Placement, Width / Height, APPROVED, the fine print, notes and the Visual center warning.
+- Structure (pikepdf): every page's content is only Form XObject groups (5–12 per page). Pictures are image XObjects inside them; vector art is a Form XObject (the embedded page) inside its Art group.
+- Normal proof: every page canvas and its JPEG identical to v281's (29 / 29).
+- Attach: the proof and "(editable).pdf" uploaded to Proofs. Attach again: V2 of both uploaded, and the first proof and the first editable copy moved out (Drive trash in the mock, which has no "unused" folder). Practice: 0 Drive uploads, 0 Airtable writes. Download PDF: 2 files.
+- **Not tested:** opening it in Illustrator (not available here): how it names the groups, and Helvetica substitution on a computer without Helvetica. Also not tested: real vendor photos and real customer .ai files (template layers), Attach to all lines (same per-line code), Edit PDF and sticker proofs (no editable copy there).
