@@ -17,7 +17,7 @@
 | App | Permanent link | Opens now |
 |---|---|---|
 | Operator | `pine-operator.html` | v138 (the signed mockup under the job's proof) |
-| Catching | `pine-catching.html` | v176 (the signed mockup under the proof; PandaDoc link when not signed / not initialed) |
+| Catching | `pine-catching.html` | v177 (signed packet = ✓ Signed; no PandaDoc link; skipped mockup initials are a grey note) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v107 (the signed mockup under the job's mockup) |
 | Purchasing | `pine-purchasing.html` | v120 (Past orders show each PO's vendor invoice; shared side panel) |
