@@ -296,3 +296,9 @@ Stephen: sort the signed pages by imprint ID, "similar to how we scan it in the 
 - Seps, Screens and Ink now show one row per colourway (Stephen, imprint 11214-A: "there should be two colorways but only one is showing up"). Operator already did, per colour chip.
 - To know whether the order has a packet, Seps, Screens, Ink and Operator each make one small Orders read (Signed Packet only), once per order, only when a line has no page of its own. None of them had an order read to add it to.
 - **Held build:** the "signed page as the main mockup" branch has files named seps-v54, screens-v37, pine-ink-queue-v108, pine-operator-v139 and pine-catching-v177. Those numbers are now taken, so it gets renumbered when it's released (Seps v56, Screens v38, Ink v109, Operator v140, Catching v178), on top of these versions.
+
+## 2026-11-18 · The imprint-ID guard skips imprints with no screens
+- 11194-B (beanie, Patch Application): the closest signed page showed 11194-A, so the guard wrote CHECK and saved nothing. Stephen: "it is a patch application ... applications usually get there own imprint as well as the patch...and the appliction is similar to the print for a tee". The beanie mockup was labelled 11194-A in PandaDoc, before 11194-B existed.
+- The guard protects against reusing the wrong screens on a reorder. When every imprint on the line uses a method with no screens (Patch Application, patches, labels, tags, stickers, transfers, embroidery: `NO_SCREENS`), the matching page is now saved, logged as `picture (no screens: ID on page …)`, and no CHECK is written. Screen-printed lines keep the guard as before.
+- The two 11194-B CHECK texts were cleared, so Seps does those lines again.
+- The existing tests pass (29/29 and 18/18).
