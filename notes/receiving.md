@@ -382,3 +382,39 @@ Mike (purchasing): Line Items **Replacements Received?** (`fldeGE2Lyi4ZOA1zF`) "
 - Re-prints that use garments already in the shop (nothing ordered) never show here, since Replacements Ordered? isn't ticked.
 - The vendor menu doesn't filter the Re-prints tab, but search does.
 - Proposed Airtable "Reprint Ready?" formula for Stephen: see the v90 hand-off (not built).
+
+## 2026-11-18 · v91: re-print line cards open
+Stephen on v90 (live, order 11097, two LA Apparel 1801GD lines): "these cards don't open". The order cards on the left switched orders, but the line cards were static, and on real data **What purchasing ordered** (`fldLaOaYriGPxxQMu`) was empty on all 4 open re-print lines, so a card showed nothing but the button.
+
+### Where the re-print sizes are (read 2026-11-18, nothing changed in Airtable)
+- The `[RP] S/M/L/...` number fields are on **Order Issues** (`tblEplYB3mtIBBcpi`).
+- **Line Items** already rolls them up: `[RP] <size> Rollup (from Order Issues)`, XS `fldJKbWbILEYGfs44`, S `fldjri4pqa6YXFUZC`, M `fldCmuUO2XEGGxRam`, L `fldBuyVNoKyVSW0qb`, XL `fldlN2SIlXxVgRmjj`, 2XL `fldCM8nlLi39aZWLG`, 3XL `fldZEdt7izsp46obF`, 4XL `fldOhVT2IKE5ES7cR`, 5XL `fld7IGxvzH3odIgcB`, OSFA `fldfRo6ETos0AmyDM`. They use the same filter as Reprint Qty (RE-PRINT issues that are In progress), so they add up to it.
+- Live, 11097 has S 5 · M 12 · L 12 · XL 6 · 2XL 1 = 36 on each line. 10876 has OSFA 50, and 11023 has 105 split by size.
+- None of the 4 has a **Replacement Supplier** (`fldqPZ5EUCHAE10eu`).
+
+### What v91 does
+- **A re-print line opens and closes like the other lines.** Tap the row, or press Enter or Space; it has aria-expanded. The first line still waiting in the picked order starts open. A closed line still shows **Waiting** or **✓ Received** and the pieces.
+- **Row tags, like normal lines:** RE-PRINT replacements, vendor, PO # (For Reprints), and Note when there are order notes. The vendor is the Replacement Supplier when one is set. Its names come from one Suppliers read, made only when the Re-prints tab shows and only if a line has one. Otherwise the vendor is the line's own.
+- **Open card:**
+  - order notes;
+  - a read-only **Size / Re-print** table with a total. If the sizes don't add up to Reprint Qty, it says so. With no sizes, it shows the total and points to the re-print in the Damage Log;
+  - **What purchasing ordered**, only when it's filled;
+  - **Replacements received**.
+- **Still one yellow button:** the first waiting line's. After a receive, that line stays open with its ✓, and the next waiting line opens with the yellow button.
+- **Quotes cleaned for display:** customer and Ref sometimes arrive CSV-quoted, e.g. `"11097-""Sanpo Studios, llc"""-LA Apparel-1801GD-Ash`. They are cleaned everywhere Receiving shows them: list cards, open orders, line refs, toasts, box labels, job sheet, Promo. They are never written back. Search still uses the raw text, which still matches.
+- **The only write is unchanged:** PATCH `{fldeGE2Lyi4ZOA1zF: true}`. The re-print read now also asks for the size rollups, Replacement Supplier and order notes.
+
+### Tested (Playwright, mocked Airtable, made-up names)
+- **Normal tabs, v90 vs v91** at 1440, 1100 and 390: identical requests and writes, leaving out the re-print read (which has new fields). The normal run makes no Suppliers read.
+- **Re-print cards** at 1440, 1100 and 390, live and practice:
+  - The first waiting line starts open and the second starts closed.
+  - Tapping closes and opens a line. Enter opens it and Space closes it. Tapping the proof thumbnail doesn't toggle the line.
+  - The size table reads S 5 M 12 L 12 XL 6 2XL 1 Total 36.
+  - An empty "What purchasing ordered" isn't shown. The Replacement Supplier name shows.
+  - At most one yellow button is visible.
+- **Receive:** exactly one PATCH `{fldeGE2Lyi4ZOA1zF:true}` live, 0 in practice. The normal practice run also makes 0 writes.
+- **Quotes:** the customer and Ref show without quotes on the Re-prints tab and on normal tabs.
+- No console errors, nothing under 12px, no sideways scroll.
+
+### Open
+- On a phone only the first waiting line starts open (one yellow button). If receiving wants every re-print line open on a phone, that is a one-line change.
