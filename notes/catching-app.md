@@ -564,3 +564,26 @@ Stephen: "can we look at adding an additional comment box for Catching when some
   - No page errors, no text under 12px, no sideways scroll, one yellow button per screen, sheet buttons 56px.
 - **Open questions for Stephen:** is Shipping Notes the right home (or a new "Catching Notes" field, which would need your OK)? Should the packing slip show "6 not printed (back ordered)" for that line? Who follows up on the refund / later shipment for pieces not printed (today it's only the note)?
 - The held "signed page as the main mockup" Catching build becomes **v179** when it's released (was going to be v178; pandadoc.md).
+
+## 2026-11-18 · v179: a Back ordered note also makes a Backorders record
+Stephen approved (11/18) a home for back-ordered garments: a new Airtable table **Backorders** that Purchasing (v121 ›
+Backorders) works, with a Slack ping to purchasing and the rep when it's back in stock (backorders.md).
+- **When:** a Note with reason **Back ordered** *and* pieces per size is saved (✓ Done, or Save on Completed › + Report
+  damage). Customer changed / Other, or Back ordered with no sizes: only the Shipping Notes line, as v178.
+- **What:** the same fresh read of the line item (v178) also asks for its Garment link, garment text ("Gildan 5000 - Sport
+  Grey"), Orders link and Supplier Name. After the Shipping Notes PATCH (unchanged), ONE POST to Backorders:
+  Name `12401 · 5000 Sport Grey · M×2, L×4`, Order, Line Item, Vendor (S&S / SanMar / SLC / AS Colour / Carolina Creative
+  from the line's supplier, Other for anything else, empty if no supplier), Style, Colour, Garment ID, Sizes `M:2, L:4`,
+  Qty, Status Waiting, Created From `Catching 11/18`, Notes = the comment. No automation fires on create.
+- **Retries:** if the POST fails, Done shows "Backorder not saved: …" and the note stays waiting. Done again skips the
+  Shipping Notes line (already there), looks for its own record by Name + Created From, and only POSTs if it isn't there,
+  so an answer lost on the way back never makes a second record.
+- Save after the fact says "✓ Note saved · Order 12398 · backorder sent to purchasing".
+- Practice fakes the write. APP_VER 179. Permanent link → v179. The held "signed page as the main mockup" build becomes
+  **v180** (pandadoc.md).
+- **Tested** (Playwright, mocked Airtable, made-up orders): Back ordered M 2 + L 4 + comment → Done → Next: one line-item
+  GET (with the extra fields), the Shipping Notes PATCH (same text as v178), then exactly 1 Backorders POST with the fields
+  above, order → Caught - Awaiting Ship; after the fact (XL 3, no supplier, no comment) → 1 GET + 1 PATCH + 1 POST with no
+  Vendor / Notes; Customer changed, Other and Back ordered without sizes → no POST and the same requests as v178; practice
+  0 writes; POST fails → error, Done again → 1 record; POST saved but answer lost → Done again finds it, no second POST;
+  a normal catch with no note → the same 38 requests as v178; no text under 12px, no sideways scroll, no errors.
