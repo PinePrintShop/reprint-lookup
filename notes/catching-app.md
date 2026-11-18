@@ -538,3 +538,29 @@ Stephen (2026-11-05, pandadoc.md): QC shows the line's signed page with a link t
 - Red stays only for "Check signed mockup" (the imprint ID guard). APP_VER 177.
 - **Tested** (Playwright, practice): signed, packet only, mockup not initialed, not signed and CHECK rows render as above; no PandaDoc button; no errors.
 - The held "signed page as the main mockup" Catching build becomes v178 when it's released.
+
+## 2026-11-18 · v178: Not printed / note (back ordered, customer changes)
+Stephen: "can we look at adding an additional comment box for Catching when something doesn't fit in the Print or Other damages....for example we have an order that some garments are back ordered so we need to clear it out with that note since the customer paid for it and we printed what we had but need to mark the ones we didn't get to".
+- **Where it's saved: Line Items › Shipping Notes** (`fld7rY74m37acM2Ik`, long text; `NP_FIELD` in the code, one line to change). Checked read-only on 11/18:
+  - No automation watches it. (Line Items › Order Notes posts to Slack when it contains "OOS.", and Proofing Notes when it contains "UPDATE:", so neither is used. Order Issues email on create, so a note is never an Order Issue.)
+  - The office already sees it: Shipping v12 (yellow "Shipping notes" box on the order, through the Orders lookup), Line Item Review (Shipping notes), Receiving. Sales types it in Create Order, so it already holds ship-to / deadline text; the catch line goes on the end.
+  - Not chosen: Final Notes (`fldIcEGPGBVesHqgU`, empty on every record, no app shows it), Production Notes (purchasing instructions), Orders › Shortage / Damage Summary (`fldfG3wcky1zggfWU`, old hand-typed damage summaries, order level, no app shows it, and "damage" in the name).
+- **On the catch screen:** a **Note** button between Review and ✓ Done opens "Not printed / note":
+  - Why: **Back ordered · Customer changed / cancelled · Other** (Other needs a comment).
+  - Pieces not printed (optional): one − / + stepper per size of the line (56px), capped at what's left after damage.
+  - Comment (16px text, so the iPad doesn't zoom; Return closes the keyboard). A preview shows the exact line that will be saved.
+  - **Add note** keeps it on the card (saved with the tally on the iPad, like taps). Tap the note strip to change or remove it.
+- **Saved with ✓ Done** (and with **Save note / Save damage** on Completed › + Report damage, after the fact): read the line item's Shipping Notes fresh, then one PATCH with the old text + a new line, e.g. `Catching 11/18: 6 not printed — back ordered [M:2, L:4]. Vendor short on Sport Grey, ships next week`. Existing text is never replaced. Sizes are written "M:2" like Extras Sent, because "3XL" would read as the size 3XL. A retry that finds its own line already there sends nothing.
+- **Counts:** pieces not printed are neither caught nor damaged. Done reads "22/28 caught · 6 not printed"; no Order Issue, no damage count; the size buttons say "2 not printed". Caught on the imprints and the Order Status move exactly as before, so the order can be cleared. A bandana line's "more to print" leaves them out. The order card says "· 6 not printed"; a mixed-order handoff line says "(… not printed)".
+- **Shows afterwards:** on the line item card ("6 NOT PRINTED"), under the tally (✓ Saved + the line), in Completed ("6 not printed · back ordered") and in the Review sheet. These come from this iPad's saved tally (8 days); the Airtable line is the record.
+- **Not changed:** the packing slip (it still lists ordered + extras − damage from the Line Items, so it doesn't know about pieces not printed; see open question), Damage Log, Order Issues, a catch with no note (identical requests to v177). Practice fakes the write. APP_VER 178. Permanent link → v178.
+- **Tested** (Playwright, mocked Airtable, made-up orders, 1180×820 and 820×1180, plus 390×844):
+  - Back ordered, M 2 + L 4 + comment on a 28-piece line (the only line of its order) → Done → Next: Extras Sent PATCH (as v177), 1 GET + **1 PATCH** to Shipping Notes ("Ship with the Main St store order\nCatching 11/18: 6 not printed — back ordered [M:2, L:4]. Vendor short…"), Caught on both imprints, Order → Caught - Awaiting Ship + Boxes Packed. Done showed "22/28 caught · 6 not printed".
+  - Other with no comment → "Other: type what happened"; with a comment → 1 PATCH ("Catching 11/18: Customer asked us…"), pick-up order → Completed.
+  - After the fact: Completed › 12398 › + Report damage › Note (Customer changed / cancelled, XL 3) → **Save note**: exactly 1 GET + 1 PATCH, no Order Issue check or write, toast "✓ Note saved".
+  - Practice: both flows, 0 writes.
+  - Note PATCH fails → error, Done again → the line saved once. PATCH saved but the answer lost → Done again sends no second PATCH.
+  - A normal catch with no note (damage + Done + Next, then a two-line order): the same 38 requests on v177 and v178.
+  - No page errors, no text under 12px, no sideways scroll, one yellow button per screen, sheet buttons 56px.
+- **Open questions for Stephen:** is Shipping Notes the right home (or a new "Catching Notes" field, which would need your OK)? Should the packing slip show "6 not printed (back ordered)" for that line? Who follows up on the refund / later shipment for pieces not printed (today it's only the note)?
+- The held "signed page as the main mockup" Catching build becomes **v179** when it's released (was going to be v178; pandadoc.md).

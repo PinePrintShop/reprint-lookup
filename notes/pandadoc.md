@@ -302,3 +302,6 @@ Stephen: sort the signed pages by imprint ID, "similar to how we scan it in the 
 - The guard protects against reusing the wrong screens on a reorder. When every imprint on the line uses a method with no screens (Patch Application, patches, labels, tags, stickers, transfers, embroidery: `NO_SCREENS`), the matching page is now saved, logged as `picture (no screens: ID on page …)`, and no CHECK is written. Screen-printed lines keep the guard as before.
 - The two 11194-B CHECK texts were cleared, so Seps does those lines again.
 - The existing tests pass (29/29 and 18/18).
+
+## 2026-11-18 · Catching v178 is taken (Not printed / note)
+- Catching v178 shipped the "Not printed / note" box (catching-app.md). The held "signed page as the main mockup" Catching build becomes **Catching v179** when it's released (APP_VER 179, on top of v178). The other held numbers are unchanged (Seps v56, Screens v38, Ink v109, Operator v140).
