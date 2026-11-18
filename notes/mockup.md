@@ -3799,3 +3799,32 @@ Stephen: the outsourced art department opens Mockup Maker's proof PDF from Drive
 - Normal proof: every page canvas and its JPEG identical to v281's (29 / 29).
 - Attach: the proof and "(editable).pdf" uploaded to Proofs. Attach again: V2 of both uploaded, and the first proof and the first editable copy moved out (Drive trash in the mock, which has no "unused" folder). Practice: 0 Drive uploads, 0 Airtable writes. Download PDF: 2 files.
 - **Not tested:** opening it in Illustrator (not available here): how it names the groups, and Helvetica substitution on a computer without Helvetica. Also not tested: real vendor photos and real customer .ai files (template layers), Attach to all lines (same per-line code), Edit PDF and sticker proofs (no editable copy there).
+
+## 2026-11-17 · v283 · Handles in front
+Stephen (tote 11221, Econscious EC8056 Natural, the art drawn over the straps): "when things have handles can we figure out how to get it placed like this where the image feels behind the handles".
+
+**The tool:** "Handles in front" on the mockup's bar (next to Keep print size; it shows when the line has a garment photo, any kind: totes, backpacks, drawstring bags, aprons). It opens the photo big:
+- **Wand** (W): click a strap. It fills out from the click over the strap's colour (Tolerance, 30 to start) and stops at edges, so a strap the same cream as the bag still stops at its outline or shadow. Click more straps to add; Alt-click takes a part off. Moving Tolerance redoes the last click.
+- **Brush** (B): paint to add, Erase (E, or hold Alt) to take off; Size with the slider or `[` `]`.
+- Undo (Ctrl+Z, 12 steps), Clear, Fit (0). Wheel zooms at the pointer; Space-drag or right-drag moves the photo. Enter = Done, Esc = Cancel. Front / Back when the garment has both photos.
+- The selection shows in yellow with a black edge.
+
+**How the wand decides** (`hdWand`): the photo softened (3 × 3) and its edge strength (Sobel, strongest channel). From the click: neighbours within Tolerance of the clicked colour AND under an edge limit. The edge limit follows the fabric's own texture round the click (2.2 × the 75th percentile of edge strength within 25 px, never under 6, scaled by Tolerance), so canvas weave doesn't stop it but a strap's outline does. The softening stops the fill ~2 px short of the edge, so it then grows 2 px (near the colour) and up to 2 px more into the strap's own outline (edge pixels only); small holes (stitching, specks: under 2% of the pick) are filled. A fold across a strap is an edge too: click again past it, or brush.
+
+**Kept:** the mark is a mask at the photo's resolution, as 1-bit run lengths (varints, base64: ~9 KB for the test tote's strap loop). Per garment photo (brand, style, colour, side) on this computer (`pine_mk_handles_v1`, like the collar / hem marks) and with the job (`gcal.handles` in the setup and the Drive setup.json, v281), so Pick up brings it back and every job with the same garment photo on this computer gets it. A mask that doesn't fit the photo's shape (a different photo) is ignored. Nothing in Airtable.
+
+**Drawing:** wherever the art is drawn on the photo (the mockup, page 1, colorways, the mockup pictures), the art is drawn as before, then the photo is drawn again exactly as the garment was (same picture, transform, widening, crop) on a layer the size of the straps, kept only where marked (1 px soft edge), and put over the art. Inside the straps the pixels are the photo's own, so the print's shading doesn't show through. The guides and sizes on the mockup are drawn after the straps. Close-ups are unchanged (flat art). Sleeve prints on the front photo are drawn after the straps (not put behind them).
+
+**Art over the handles** (beside the button, and in the tool): per garment line, kept with the job (`lineOpt.hOver`). On: the art goes over the straps as in v282.
+
+**Editable proof (v282):** the straps are their own group, "Handles" (a picture with transparency), right above "Art · …".
+
+**Tested** (Playwright, Chromium, mocked Airtable + the worker's Drive routes, a synthetic tote photo: cream body, a cream strap loop with a 2 px darker edge and a soft shadow crossing a 10″ print, light weave noise; `scratchpad/mk283/t283.js`, `t282s.js`):
+- Wand, one click on the strap: IoU 0.985 against the known strap mask (148 px outside it, all on its edge). With a fold across the bag: 0.77 after one click, 0.96 after clicking below the fold on each strap.
+- Brush: Alt-drag across the strap cleared it (451 / 451 px → 0), a drag on the body added (0 → 231 / 231); Ctrl+Z twice put both back.
+- Page 1 with the straps marked: all 27,501 page pixels fully inside the straps equal the page drawn without the art (max difference 0); pixels away from the straps' footprint equal v282's; page 2 (close-up) identical to v282.
+- Art over the handles on: every page pixel for pixel v282's (the mockup drawing too; the on-screen mockup's guides scale with the bar, which wraps one more line).
+- No mask: the tote's pages and mockup identical to v282; v282's 11 test jobs (29 pages, normal proof JPEGs) identical; the editable proof's groups unchanged.
+- Editable proof: page 1 groups … Garment · FRONT, Art · 11221-A, **Handles**, Layout, Chips, Text.
+- Pick up: setup.json carries the mask; a fresh browser picks it up, same mask, both pages identical. No Airtable writes, no errors.
+- Not tested: real vendor photos (JPEG noise, real stitching), a photo the vendor's server doesn't let the page read (the tool says so and stops), very large photos (the wand works at the photo's full size).
