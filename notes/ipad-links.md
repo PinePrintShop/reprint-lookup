@@ -17,7 +17,7 @@
 | App | Permanent link | Opens now |
 |---|---|---|
 | Operator | `pine-operator.html` | v139 (signed packet = ✓ Signed; skipped mockup initials are a grey note) |
-| Catching | `pine-catching.html` | v178 (Note: not printed / back ordered / comment, saved to the line's Shipping notes) |
+| Catching | `pine-catching.html` | v179 (a Back ordered note with sizes also makes a Backorders record for Purchasing; notes/backorders.md) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v108 (signed packet = ✓ Signed; one signed row per colourway) |
 | Purchasing | `pine-purchasing.html` | v121 (Backorders tab: one card per back-ordered garment, Order these → cart; notes/backorders.md) |
