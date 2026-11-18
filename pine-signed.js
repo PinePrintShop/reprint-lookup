@@ -27,7 +27,10 @@
   const O={num:'fld4S3B5yJANKlE7l',status:'fldhS4z28CdGmS1j5',lines:'fldU6fgrz6sU3wyIZ',packet:'fldSwLl9yIMSXcT0Y',pdId:'fldfQJ8QwtNXxGPE5',signedAt:'fld2h7L1aqDHPfcQM',pages:'fldlumFLBJi3WrfUS'};
   const L={proof:'flddhvdkKI31tFTdX',signed:'fldYeu8XZgBNSQ3N6',check:'fldzHcS22EcdZ3xwN',imps:'fldTFz4ZzfOthqkg6',
     impIds:'fldmGRcdXyvheWjmv',colour:'fldoXTRyLP4SshFZ0',garment:'fldKhz9uZgXwfeIto'};   // 2026-11-16, read-only: Imprint ID Lookup, Colorway (lookup), garment text (formula)
-  const I={id:'fldDFfwFQ9B20n2kT',repeat:'flda9L7041ahNZT0b',prev:'fldAEQvMAAZX9gnhl'};
+  const I={id:'fldDFfwFQ9B20n2kT',repeat:'flda9L7041ahNZT0b',prev:'fldAEQvMAAZX9gnhl',method:'fldjNCuaGOkWgzH2K'};
+  // 2026-11-18: methods with no screens to reuse (Stephen, 11194-B: "it is a patch application ... applications usually get
+  // their own imprint as well as the patch"): a signed page showing another imprint ID is still saved for these, no CHECK
+  const NO_SCREENS=/applica|patch|label|tag|sticker|transfer|emb/i;
   const DONE=['Shipped','Completed','Cancelled / Voided','Partially Completed'];
   const LIB={pdflib:'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',pdfjs:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',pdfjsWorker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'};
   // 2026-10-28: the comparison is paused (PandaDoc's downloads had a demo watermark and no initials, so every page read as
@@ -207,8 +210,15 @@
           pg.forEach(x=>{ let bi=-1, bd=1; signed.forEach((s,i)=>{ const d=cmp(s,x.grid).all; if(d<bd){ bd=d; bi=i; } }); if(bi>=0&&bd<0.15&&!pages.includes(bi+1)){ pages.push(bi+1); pair[bi+1]=x.grid; by[bi+1]='picture'; } });
           // the reorder case: the picture matches, but the page shows another imprint ID of this order (and none of the
           // line's) — the line's imprint ID wasn't updated, or it's another line's mockup. Not saved; Signed Check says so.
-          pages=pages.filter(p=>{ const other=[...signed[p-1].ids].filter(id=>mineOrd(id)&&!own.has(id));
-            if(other.length&&![...signed[p-1].ids].some(id=>own.has(id))){ wrongId.push({p,ids:other}); delete by[p]; return false; } return true; });
+          let noScr=null; const isNoScr=async()=>{ if(noScr!==null) return noScr; noScr=false; const ids=ln.fields[L.imps]||[];
+            if(ids.length) try{ const rs=await api.byIds(T_IMP,ids,[I.method]); noScr=rs.length>0&&rs.every(r=>{ const m=r.fields[I.method]; return NO_SCREENS.test(String((m&&m.name)||m||'')); }); }catch(e){}
+            return noScr; };
+          const keep=[]; for(const p of pages){ const other=[...signed[p-1].ids].filter(id=>mineOrd(id)&&!own.has(id));
+            if(other.length&&![...signed[p-1].ids].some(id=>own.has(id))){
+              if(await isNoScr()){ by[p]='picture (no screens: ID on page '+other.join('/')+')'; keep.push(p); continue; }
+              wrongId.push({p,ids:other}); delete by[p]; continue; }
+            keep.push(p); }
+          pages=keep;
         }
         if(pages.length&&pg.length) best=Math.max(...pg.map(x=>Math.min(...pages.map(p=>diff(signed[p-1],x.grid)))));
         ini=pages.map(p=>{ const sg=signed[p-1]; return {p,ok:initialed(sg,sg.appr.map(b=>({box:edge(b,sg.pw,sg.ph),own:false})),pair[p])}; });   // "APPROVED" found on the page, or nothing said
