@@ -710,3 +710,46 @@ Stephen: "when jobs are reprints they are not showing up in the sidebar since th
 - The 👍/🛑 Imprint Ready? emoji is Airtable's formula on the normal Sep'd/Screens/Inks fields, so on a re-print it still shows the first run's 👍.
 - If [For RE-PRINT] Scheduled? is still ticked from an earlier re-print, the job shows unlocked while it's in the list. It shows locked after a reload, once it's placed.
 - Replacements Received? is rarely ticked, so most re-prints say "Replacements not in". Should Receiving tick it?
+
+## 2026-11-18 · v35: Suggest Ping Pong days (suggestions only)
+Stephen: "a suggest Ping Pong sounds good and that will allow us to review them before implementing it in Jan".
+
+**Ships with v34.** v34 (re-prints) isn't live yet. v34 and v35 go out together once Stephen answers the v34 re-print questions (see v34 › Open). `pine-schedule.html` already points at v35 on this branch.
+
+### The rule (from the Ping Pong study, "The rule")
+- **Backlog for a day** = Allocated hours of the Press 1, Press 2 and split jobs on the calendar in the **10 business days starting that day**.
+  - It uses the calendar's own length (Allocated, or the estimate when there's none).
+  - Re-print runs count (v34). Finished jobs and unplaced Suggest ghosts don't.
+- **Under 75 h:** suggest Ping Pong. **Over 90 h:** suggest 2 presses. **In between:** keep the day before's suggestion. The first day (today) starts on 2 presses.
+- **Big job:** a day with a job of **4 h or more of printing** (run time, not setup) is 2 presses, and the reason names the job. This is for that day only: the next day goes back to the backlog rule.
+- **Which days:** the days Ping Pong can be on (Mon–Thu; Fridays only when Settings has both presses on Fridays). 10 business days are Mon–Fri, so 8 press days, as in the study. The app only knows weekends and the Friday setting as closed days. There's no holiday list.
+- **The Ping Pong From/To range** doesn't change a suggestion. The panel shows it for context, and "Now" shows what each day is (range + its own switch).
+- **75 / 90 / 4** are in Settings › Ping Pong › Suggest Ping Pong days, saved on this computer like the other settings. If under is bigger than over, they're swapped.
+
+### On screen
+- **Day headers** (Week, 3 Day, 2 Week, Month): a cream dashed **PP suggested** pill when the day is 2 presses but Ping Pong is suggested. **2 presses suggested** shows when it's a Ping Pong day but 2 presses is suggested. Nothing shows when they agree. The real Ping Pong tag stays the outlined "Ping Pong" pill.
+- **Day view:** one line in the Ping Pong area, e.g. "Suggested: Ping Pong — next 10 days hold 60 h (under 75)". On a big-job day: "Suggested: 2 presses — 11344-B prints 4h 44m (4 h or more) · next 10 days hold 68 h". It's hidden when the day is 2 presses and that's the suggestion.
+- **Ping Pong suggestions** (toolbar, next to Suggest; "Ping Pong" on narrow screens; also a link in Settings):
+  - The next 6 weeks of press days, by week: date, hours, suggestion, why, what the day is now.
+  - **Make Ping Pong day** / **Back to 2 presses** uses the existing per-day switch (the same as Day view's Ping Pong day / Turn off), saved on this computer.
+  - Rows where the suggestion differs from the day are shaded, and their button is black.
+  - Each date opens the day.
+- **Loaded range:** the app loads the calendar to 25 workdays out, the same requests as v34. Days whose 10-day window runs past that get a `*` and a note ("Later days only count what is loaded").
+
+### Nothing else changes
+- No Airtable writes are added, and no new reads. The feature only reads the jobs the calendar already has.
+
+### Tested (Playwright, mocked Airtable shaped like real imprints, made-up names, clock fixed at Wed Nov 18 2026)
+- **A 6-week calendar** (12–14 h days, then 5–7, then 14) and an independent calculation agreed on all 24 press days:
+  - Nov 18: 92 h, over → 2 presses.
+  - Nov 19 / Nov 23: 84 / 76 h → still 2 presses (hysteresis).
+  - Nov 24: 68 h → Ping Pong.
+  - Dec 2 / Dec 3: 75.0 / 83 h → still Ping Pong (hysteresis).
+  - Dec 7: 91 h → 2 presses.
+- **Big job:** Dec 1 has a 5 h job (4h 44m of printing). It's 2 presses with the reason, and Dec 2 is back to Ping Pong.
+- **Counting:** a re-print run of a caught imprint (v34) counted, and a finished job didn't.
+- **Settings:** 60 / 70 / 6 gave the expected new suggestions, and the big-job rule stopped applying to Dec 1. The numbers were saved, survived a reload, and swapped when entered the wrong way round.
+- **Panel:** its buttons switched the day on and off (`CFG.pp.days`, localStorage), with 0 requests and 0 writes.
+- **Practice:** switching from the panel plus Save this plan made 0 writes.
+- **v34 vs v35:** the same flow (every view, refresh, one Lock in) made identical reads (32) and identical writes (1).
+- **Layout:** no text under 12px, no sideways scroll at 390 and 1024, and no page errors.
