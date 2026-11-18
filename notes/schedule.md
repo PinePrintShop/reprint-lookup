@@ -630,3 +630,83 @@ Stephen (screenshot: P1, P1, P2, P2, P1, P2, P2, P2, P1): "still not ping pong o
   - The black **Save this plan · saves 2h 47m** button writes it, with the same confirm box and Undo.
   - Once saved, the tag goes away and the list is the calendar again.
 - **Tested** (mocked, every job locked): the panel showed the alternating plan before saving. Save wrote 8 records, after which there were no changes left, no overlap and no errors.
+
+## 2026-11-18 · v34: re-prints in the list, hatched, locked with [For RE-PRINT] Scheduled?
+Stephen: "when jobs are reprints they are not showing up in the sidebar since those follow a slightly different rule....can you scan airtable to find those rules so we can get those into the sidebar and maybe we explore a different color for reprints. Right now since we are using the same order number we have a check box that says [For RE-PRINT] Scheduled? for the reprint when this box is clicked can that act like the locked in box right now."
+
+### How a re-print works in Airtable (read 2026-11-18)
+- **Order Issue** (Order Issues table). Resolution `fldAT3sfeVSAqTRvk` is a formula: Change Resolution if set, else Suggested Resolution.
+- **Approving it:** ticking **Approve Resolution** (`fldpiZYluCb72W1vs`) runs the automation **Order Issue Resolutions** (`wflkoTIJ2m8981lPI`). On RE-PRINT it:
+  - sets the **order's** Status to **Delayed - Mis-Print - Needs Order**
+  - posts "RE-PRINT ISSUED" to Slack
+  - sets the issue's Status to **In progress**.
+  - It doesn't touch Line Items or Imprints.
+- **Ordering:** Purchasing › Reprints ticks **Replacements Ordered?** (`fldEZmyBBJzI4mrOb`) on the line item, plus PO # (For Reprints), Replacement Supplier and Replacement Order.
+- **Receiving:** **Replacements Received?** (`fldeGE2Lyi4ZOA1zF`) is ticked by hand. With both boxes ticked, "SLACK: Re-Print Garments Received" (`wflrBwlHvRhSyx1PG`) posts.
+  - On Nov 18 none of the 3 open re-prints had Received ticked, and 2 were already scheduled.
+- **Closing:** Catching's Mark Complete sets the issue's Status to Completed (Catching v129).
+- **The imprint:** usually the **same imprint record runs again**.
+  - Its Scheduled Start Time is moved to the re-print day.
+  - Run Started, Run Finished, Caught and Scheduled stay ticked from the first run.
+  - Sometimes a new imprint is made instead (10835-H).
+- **Imprint fields for re-prints:**
+  - **[For RE-PRINT] Scheduled?** `flduvuUWAzzDYby6y`
+  - [REPRINT] Sep'd `fldvgRleMqIOTrAGx`
+  - [REPRINT] Screens Burned `fldwutzrKZ2k3FhSy`
+  - [REPRINT] CTS Printed `fld6gtcNJiBsIbVtO`
+  - Inks Ready (For Re-Print) `fldov8WDDSl1ytGeo`
+  - Reprint Emoji Identifier `fldXRqE3k67ZIOO8X`: 🔁 while the order is Mis-Print - Needs Order.
+  - Resolution? lookup `fldmO8b0RDbi8bKkf`: every issue, open or done.
+  - The Imprints › Order Issues link (`fldSknA5TThozovh8`) is empty in practice, so Reprint Qty (Imprint) is 0. Issues link line items, not imprints.
+- **Line Items:**
+  - Reprint Qty `fldatIwNPZdUHXWgp`: Total Damaged Pieces of the RE-PRINT issues that are In progress.
+  - [RP] OSFA…5XL rollups: the sizes.
+- **Why v33 missed them:** the Unscheduled query needs all three of no Scheduled Start Time, not Run Finished and not Caught. A re-print of the original imprint fails all three because of its first run.
+- **No automation watches [For RE-PRINT] Scheduled?** (checked the automation list on Nov 18). "All Imprints Scheduled" on Orders, which drives "Preliminary Scheduling Notification", only counts **Scheduled**.
+
+### What v34 does
+- **Finds open re-prints the way Catching does:** the Order Issues with Resolution RE-PRINT and Status In progress → their Affected Line Items → those line items' Imprints.
+  - That's 1 extra read, plus 2 small ones when there are re-prints. If it fails, the board loads as in v33.
+  - When a line also has a print that isn't caught yet (a new imprint made for the re-print), only that print counts (Catching v172).
+  - Patch/Label ONLY is left out, as in the normal list.
+- **In the Unscheduled list:** a re-print shows there until it's scheduled for the re-print. That means it has no start, or its start is the first run's (before the day the issue was raised).
+  - Qty is the re-print qty: the open issues' Total Damaged Pieces on its line items. Time is estimated from that qty.
+  - Tags come from the line items: "Replacements not ordered" (Replacements Ordered? unticked) or "Replacements not in" (Replacements Received? unticked).
+  - ✨ Suggest treats these like "Garments not ordered" (4 workdays out) and "Not received" (2 workdays out).
+- **On the calendar:** a re-print run (a start on or after the issue day) shows as a normal job, not a finished one. While the issue is open, the first run's Run Started, Run Finished and Caught are ignored.
+- **Look:**
+  - Black diagonal hatching over the card's own colour, so the press colour still shows.
+  - A white **RE-PRINT** badge with a black outline: on calendar cards, Month and 2 Week chips, side cards (which also get a black left edge), the order header and search results.
+  - A key under the list: "Hatched = re-print".
+  - No red.
+- **Lock:** on re-prints, Lock in, Unlock and Lock in day tick and untick **[For RE-PRINT] Scheduled?**, never Scheduled. Normal jobs still use Scheduled.
+  - The confirm box says so when re-prints are in the day.
+  - Moving a locked re-print keeps it locked. Ping Pong still never writes a lock.
+- **Placing a re-print from the list** writes:
+  - Equipment (only if it changes)
+  - Scheduled Start Time
+  - **Allocated**, from the re-print estimate. This replaces the first run's Allocated, just as the new start replaces the first run's start.
+  - Undo puts the first run's start and Allocated back.
+- **Job card:**
+  - A one-line note, e.g. "RE-PRINT · 72 pcs to print again · issue raised Mon Nov 16 · first run Nov 5".
+  - Sep'd / Screens / Inks show the [REPRINT] checkboxes.
+  - "Replacements in" replaces "Garments in".
+- **Normal jobs:** the same writes as v33. The same reads, plus the one Order Issues read.
+
+### Tested (Playwright, mocked Airtable shaped like 11097-A, 11023-A and 10835-G/H, made-up names, 1440×900)
+- **Normal-only data, the same flow on v33 and v34** (drop, lock, unlock, move + Undo, unschedule, Lock in day): the 7 writes were identical. The reads were identical, apart from the Order Issues read.
+- **Re-print data:**
+  - The re-used imprint and the new H imprint are listed and hatched; the caught G isn't. The list qty is 72 (the re-print), not the imprint's total.
+  - The scheduled re-print shows as a hatched block with RE-PRINT and Locked, not finished.
+  - Placing wrote the start + Allocated 2700 s (was 4500). Undo wrote back the Nov 5 start and 4500.
+  - Lock in / Unlock wrote only `flduvuUWAzzDYby6y` true / false. Lock in day wrote it for the re-print, and a normal job's lock still wrote Scheduled.
+  - Moving a locked re-print wrote the start only.
+- **Practice and errors:**
+  - Practice made 0 writes.
+  - A failed Order Issues read gave the normal board.
+  - No page errors, and no text under 12px.
+
+### Open
+- The 👍/🛑 Imprint Ready? emoji is Airtable's formula on the normal Sep'd/Screens/Inks fields, so on a re-print it still shows the first run's 👍.
+- If [For RE-PRINT] Scheduled? is still ticked from an earlier re-print, the job shows unlocked while it's in the list. It shows locked after a reload, once it's placed.
+- Replacements Received? is rarely ticked, so most re-prints say "Replacements not in". Should Receiving tick it?
