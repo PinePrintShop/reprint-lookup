@@ -631,3 +631,24 @@ Worker v47 saves invoice emails as Vendor Bills and matches them to Line Items (
 - Tested with mocked Airtable and worker at 1440 and 390 and in practice mode: the right tags, the +$23.25 difference,
   Send → "In QuickBooks: bill 59500 with the PDF", Mark checked PATCH, View PDF fetch; practice made no writes. No errors.
 - Idea for later: Send to QuickBooks could also tick Reviewed on that PO, since both mean "it matches the invoice".
+
+## 2026-11-18 · v121: Backorders tab
+Stephen approved (11/18) a home for back-ordered garments (customer paid, we printed what we had). Full design: backorders.md.
+- **New tab Backorders** (badge = open backorders). One card per record in the new Airtable table Backorders: order #,
+  garment, sizes missing, vendor, days waiting, status, In cart / ETA tags. Open / All. Two panes from 1100px, as Reprints.
+- **Open card:** Stock found (the stock watch's last result, later) or "no stock feed" for SLC / Carolina Creative / mill
+  direct; **Order these** with a warehouse picker (that vendor's warehouses first, nearest first); Estimated restock date;
+  Notes (saved on leaving the box); Set status Waiting / Ordered / Received / Cancelled (Cancelled asks first).
+- **Order these** = the normal cart. The missing sizes go in the warehouse's cart through `pickWh` + `addToCart`, as
+  "11190 Backorder". ✓ Ordered / Order all write the backorder (Status Ordered, PO #, Ordered From), never the line item.
+  The garment-cost raise still applies. A backorder in a cart survives a reload.
+- **+ Add backorder:** order # → Find (one read of its Line Items) → pick the line → pieces missing per size (capped at
+  what the line has) → vendor (from the line's supplier) and notes → one POST.
+- Practice mode fakes every write. Everything else makes the same requests and writes as v120, plus one read of Backorders
+  on load / Refresh.
+- **Tested** (Playwright, mocked Airtable, made-up data): the v120 regression run (29 steps: carts, splits, OOS, sizes,
+  order all, reprints, past orders…) gives identical writes, requests and app state on v121 apart from the Backorders read,
+  live and practice. Backorders: tab render and order (Back in stock first), Open/All, ETA / Notes / each status PATCH body
+  (one field + Status Changed At), Cancelled after confirm, Order these → Olathe cart {M:2, L:4} with no write, reload
+  keeps it, ✓ Ordered → one Backorders PATCH (Ordered, PO 111826, S&S - Olathe, KS) and no Line Items write, manual add
+  POST body, practice 0 writes, no sideways scroll at 1100 / 390, nothing under 12px, one yellow button, no errors.

@@ -20,7 +20,7 @@
 | Catching | `pine-catching.html` | v178 (Note: not printed / back ordered / comment, saved to the line's Shipping notes) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v108 (signed packet = ✓ Signed; one signed row per colourway) |
-| Purchasing | `pine-purchasing.html` | v120 (Past orders show each PO's vendor invoice; shared side panel) |
+| Purchasing | `pine-purchasing.html` | v121 (Backorders tab: one card per back-ordered garment, Order these → cart; notes/backorders.md) |
 | Receiving | `receiving.html` | receiving-dashboard v89 (shared side panel: 346 list, compact cards) |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |
