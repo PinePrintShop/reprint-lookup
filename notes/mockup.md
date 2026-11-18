@@ -3871,3 +3871,43 @@ Stephen: "I did a vector trace in mockup creator and it only downloads a PSD fil
 - Unchanged vs v283 (setup files, white and black tee): a flat PNG logo (PSD byte for byte), a vector PDF as opened (the original, byte for byte), a vector PDF with an ink changed (rebuilt .ai, identical but for its date), the synthetic template .ai (art-only .ai + PSD byte for byte).
 - Not tested: opening the .ai in Illustrator (groups, spot swatches); the svg fallback.
 - **Worth knowing:** the trace is good enough to separate from here (6 flat inks, clean edges), but it's still a trace of a ~247 dpi picture (at 12″): small hatch ends get rounded. The designer placed this art in Illustrator as a flattened picture; if they have it as vector (or as layered, higher-res art), that is better than any trace: worth asking for.
+
+## 2026-11-18 · v285 · Distressed texture is kept
+Stephen (a one-colour distressed tattoo-style design, 11230-A front, white on a dark tee): "Here is what it made and here is the original.....it is good....but it did fill in a lot of the texture and vibes." The art: white on clear, 1083 × 1500 px, grunge texture inside the letters and shapes and stippled fades on the hatching. At 13.1″ that is ~80 ppi.
+
+**Why it filled in** (reproduced with the real flow on the original, 13.1″, black tee; v277–v284 make the same file)
+- At 80 ppi the distress isn't holes any more: it's a grey mottle. Inside the letters the see-through is mostly 150–240 (median 233; solid is ~250), with 2,076 darker grains and 302 small holes.
+- Setup PSD (no upscale, no trace, the path Stephen used): each ink is blurred ~1 source pixel, enlarged and cut at 50%. Nearly all of the mottle is over 50%, so the letters come out solid: 61 holes left in the whole design. The tone finder (v277) keeps a few patches soft (2% of the pixels here; in Stephen's file the "R" of the bottom line), so the result isn't even consistent.
+- Upscale: blurred 0.6 × the scale, and anything over 170 is made solid: 112 holes.
+- Trace: the same blur and "over 170 is solid", then specks and holes under the clean-up size are merged: 64 holes (Normal), 86 (Fine).
+- Line weights didn't actually grow (the bottom rules are 1.64 mm in the original and every version). The art looked bolder because the grain went solid. Coverage of the design's own frame: original 19.46% (average see-through), 20.48% counted at 50%; v284's PSD 20.54%. The 19.2% vs 20.5% first compared was two different frames: 19.2% is the original's whole 1083 × 1500 canvas.
+
+**What v285 does**
+- **Finds texture:** each ink's coverage at the art's size is checked for grains: a pixel that is the lowest of its 3 × 3, at least 40 under the most of its 5 × 5 and 20 under their average, and not next to the background (so a line's soft edge never counts), plus small holes (12 px at most, closed in by ink). Texture means at least 100 grains, at least 1 per 500 ink pixels, in at least 15% of the art's 32 px blocks with ink. This art: 2,378 grains, in 30% of the blocks. None in a made-up flat logo, its JPEG, scan noise or a halftone + gradient (4% of blocks).
+- **Texture: Keep / Smooth** shows in the art's quality box only when texture is found (Keep to start). Smooth is v284 exactly. It's kept with the job (Pick up).
+- **Keep, setup PSD:** no blur; the ink is enlarged smoothly (Catmull-Rom) and cut where the ink keeps its own coverage, place by place: where the 50% cut gives more ink than the art has round there (over ~2 source px), the cut goes up, so the darkest grains open as round holes; where it gives less (a stippled fade under 50%), it goes down, so the brightest grains stay as dots. Clean edges keep the 50% cut. Worked out once at the art's size (8 rounds, 1.4 s here), sampled with the rows.
+- Stippled fades: printed as dots, not kept soft. It's one white screen on a dark shirt: the art's own stipple is the screen. Left soft, seps would put a regular halftone over it, which loses the stipple and, in white on dark, the finest halftone dots are the first to go. The grains here are ~0.3 mm, which hold on a normal mesh.
+- **Keep, upscale and trace:** the see-through comes from the same cut (with v119's 2–3 px soft ramp in the upscale). The trace starts at **Fine**, and Fine with Keep only merges specks under 0.01 mm² (~0.11 mm across, too small to hold on a screen). Normal and Clean still merge as before if picked. Switching Keep / Smooth makes the upscale or trace again from the original (Smooth → Normal, Keep → Fine).
+- Upscale and trace with texture only apply to art with see-through (an opaque picture with its background not dropped keeps v284's upscale / trace; its setup PSD still keeps the texture per ink).
+
+**Tested** (Playwright, Chromium, mocked Airtable / Drive / worker; the customer's art locally only, nothing kept in the repo). Holes = clear pieces closed in by ink, 4 px to 1 mm²; specks = ink pieces up to 1 mm²; all at 635 ppi, 8320 px wide (13.1″).
+
+| File | Coverage | Holes | Specks | Bottom rules | Time |
+|---|---|---|---|---|---|
+| Original (80 ppi) | 19.46% (avg) · 20.48% (≥50%) | 2,076 grains + 302 holes | – | 1.64 mm | – |
+| Stephen's PSD | 20.45% (7.6% soft) | 443 | 5 | 1.64 mm | – |
+| v284 PSD | 20.54% (2.0% soft) | 61 | 1 | 1.64 (mean 1.850) | 8.7 s |
+| **v285 Keep PSD** | **19.75%** | **1,345** | **141** | 1.64 (mean 1.839) | 8.9 s |
+| v285 Smooth PSD | byte for byte v284's | | | | 9.2 s |
+| v284 upscale → PSD | 20.58% | 112 | 2 | 1.64 | 3.6 s + 11.8 s |
+| v285 Keep upscale → PSD | 19.86% | 1,262 | 112 | 1.64 | 5.6 s + 9.9 s |
+| v284 trace (Normal) → PSD | 20.65% | 64 | 2 | 1.60 | 6.6 s + 8.1 s |
+| v285 Keep trace (Fine) → PSD | 19.88% | 1,240 | 110 | 1.64 | 7.1 s + 9.1 s |
+
+- Keep is within 0.3 points of the original's ink (average see-through), and line weights don't grow: the rules are the same, and a hatched leaf's outline measures 0.788 mm in the original cut at 50%, 0.804 mm in v284, 0.788 mm in Keep.
+- Keep trace: 63 specks merged at Fine (Normal with Keep: 528); the .ai is 0.52 MB (v284 0.17 MB) for the extra grain.
+- Side by side on a dark tee (original | v284 | Keep | Smooth): letters, a stippled fade on the barbed wire, a hatched leaf and the rose. Keep's holes follow where the original was darkest; v284's letters are solid.
+- UI: the box shows "Texture  Keep · Smooth" under Clean-up; Smooth and back; a trace starts at Fine; Smooth on a trace traces again at Normal; phone width wraps.
+- Unchanged vs v284 (setup files, white and black tee): a made-up flat PNG logo (PSD byte for byte), a vector PDF as opened (byte for byte), a vector PDF with an ink changed (identical but for its date), the synthetic template .ai (.ai + PSD byte for byte; the first template case comes out one of two ways in both versions, a timing quirk of the test, the same two files). Texture isn't found in any of them.
+- Not tested: opening the files in Photoshop / Illustrator; a printed test.
+- **Worth knowing:** this art is ~80 ppi at 13″. The grain kept is a good guess at the distress from a blurred copy of it, not the real one: holes come out a little bigger and clumpier than in the designer's file. The customer's full-size art (or the vector with its texture) would beat any upscale: worth asking for.
