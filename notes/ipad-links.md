@@ -20,7 +20,7 @@
 | Catching | `pine-catching.html` | v179 (a Back ordered note with sizes also makes a Backorders record for Purchasing; notes/backorders.md) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v108 (signed packet = ✓ Signed; one signed row per colourway) |
-| Purchasing | `pine-purchasing.html` | v122 (View email: AS Colour confirmations open in Gmail; Backorders tab since v121) |
+| Purchasing | `pine-purchasing.html` | v123 (View email shows the email in the app, no Google sign-in, with worker v55; Backorders tab since v121) |
 | Receiving | `receiving.html` | receiving-dashboard v91 (Re-prints tab: line cards open to the re-print sizes; "Replacements received" ticks Replacements Received?, which posts the re-print Slack message) |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |

@@ -660,3 +660,19 @@ Stephen approved (11/18) a home for back-ordered garments (customer paid, we pri
 - **Mark checked** only sets Status = Checked. **Send to QuickBooks** is a separate button that appears after; the worker makes the bill only when there's no QuickBooks bill ID, and says "Already in QuickBooks" if it finds one. Nothing sends on its own.
 - Tested with a mocked worker: no attachment → Gmail, logo only → Gmail, octet-stream PDF → PDF, normal PDF → PDF (same as v121).
 
+
+## 2026-11-18 · v123: View email shows the email here, no Google sign-in
+- Stephen wants a preview anyone can review, with no Google login. v122's "View email" opened Gmail, which only works in a browser signed in to purchasing@.
+- Now **View email** (order confirmations), and **View PDF** when the email has no PDF, open a panel in the app:
+  - The top shows the subject, then From, Date and the email's files.
+  - Below is the email itself, cleaned by worker v55 (`/proxy/invoices/email`: no scripts, nothing that loads, images shown as their alt text, links as plain text). It's shown in a `sandbox=""` frame with a no-load Content-Security-Policy, so nothing in it can run even if the cleaner missed something.
+  - An email with only text shows the text, line breaks kept.
+  - The corners hold a small **Open in Gmail ↗** link (its tooltip says it needs purchasing@) and ✕. The panel fills the screen on a phone.
+- **Before worker v55 is deployed:** the route answers "Unknown invoices route" (404), so the button opens Gmail as in v122. After that, it goes straight to Gmail for the rest of the session.
+- Real PDFs open in a new tab as before.
+- **Send to QuickBooks** says "with the confirmation" when v55 attached the email as a text file.
+- Everything else is the same as v122. No new Airtable reads or writes.
+- Tested with Playwright (scratchpad inv55/t123.js, 48/48 live and 48/48 practice), with mocked Airtable and the real v55 worker code over mocked Gmail:
+  - The preview opens with cleaned content, and no script runs inside it, even with raw `<script>`/`onerror`/`svg onload` html.
+  - It falls back to Gmail on the v54 404. A text-only invoice works. A real PDF still opens in a tab.
+  - Desktop 1440 and phone 390, with no console errors and no horizontal scroll. Practice mode makes 0 Airtable writes and sends nothing to QuickBooks.
