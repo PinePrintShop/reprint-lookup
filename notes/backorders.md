@@ -80,3 +80,9 @@ No test records were written to the real table (all testing used a mocked Airtab
 ## Changelog
 - 2026-11-18: table, fields and automation created (approved by Stephen); Purchasing v121 Backorders tab; Catching v179
   creates the record from a Back ordered note.
+
+## 2026-11-18 · Slack ping is on (OOS channel, with mentions)
+- Mike's Slack ID `U084CGXQ1M0` is in the **Purchasing Slack ID** formula (`fldAYQa1icSUMYVGN`), so the message @mentions Mike and the order's sales rep (Patrick `U084V81Q5R7`, Chris H `U084HD7QNQK`, from Orders' Slack ID).
+- **"SLACK: Backorder back in stock / ETA"** (`wflQVIrPATLTy9GjF`) is ON. It posts to the out-of-stock channel (`C084R0B0G11`). Stephen: "so OOS is it for now!"
+- Direct messages were the first choice, but the Slack step uses the OOS automation's Slack connection, and neither the API nor Stephen could change it. To switch later, either the person who owns that connection changes "Send to", or the automation is duplicated under another Slack connection.
+- Added for that: **Rep Slack (text)** (`fldAEUSPKz1PhU5zK`, the rep's ID as plain text) for conditional DM branches. Not used yet.
