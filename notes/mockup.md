@@ -3828,3 +3828,46 @@ Stephen (tote 11221, Econscious EC8056 Natural, the art drawn over the straps): 
 - Editable proof: page 1 groups … Garment · FRONT, Art · 11221-A, **Handles**, Layout, Chips, Text.
 - Pick up: setup.json carries the mask; a fresh browser picks it up, same mask, both pages identical. No Airtable writes, no errors.
 - Not tested: real vendor photos (JPEG noise, real stitching), a photo the vendor's server doesn't let the page read (the tool says so and stops), very large photos (the wand works at the photo's full size).
+
+## 2026-11-18 · v284 · Traced art sends a vector file; less noise in the trace
+Stephen: "I did a vector trace in mockup creator and it only downloads a PSD file vs a cleaned up Vector file....also it is leaving a lot of noise in the file." The art: a customer's illustrated back print, order unknown (an outside designer's 3-page Illustrator PDF; the back print is a CMYK picture, 4000 × 4000 px with a soft mask, placed at ~580 ppi; hand-drawn hatching).
+
+**Why only a PSD:** traced art is a picture as far as the setup files go (v146 / v163: an upscale or trace → the PSD). The trace's .svg was only on "Download .svg".
+
+**Traced art now sends `<stem>-TRACED.ai` + the PSD** (Seps › Production Files at attach, and Download setup file), e.g. `11300 - 11300B-NICKNAME-BACK-TRACED.ai` and `11300 - 11300B-NICKNAME-BACK.psd`. "-TRACED" says it's the machine-traced vector the separator uses (the PSD is the same art in pixels).
+- PDF-based .ai, as the other setup .ai files (v146 / v277). The page is the print size (12″ wide → 864 pt; height from the art).
+- One group per ink (a Form XObject), named as on the proof, filled with a spot colour of that name (a Separation, so Illustrator lists it as a spot swatch), in the Colours tab's order when one is set (first on top). With no order set: the biggest ink at the bottom, dark inks (the outlines) on top.
+- The inks are **stacked**: each ink's shape also runs under the inks above it, so no gaps show between inks (Illustrator knocks out the lower ink when it separates). The bottom ink is the whole silhouette.
+- BASE: when the proof has a BASE chip (as v279's PSD), a white BASE group at the bottom = the outline of all the inks.
+- Each group is also a PDF layer named by the ink. Illustrator drops PDF layers (v146), so there they are groups; Acrobat shows layers.
+- If the order changes in the Colours tab, an ink is erased or merged, or the art is retyped / thickened after the trace, the .ai is traced again from the traced art as it is (~5 s), in the right order.
+- If the .ai can't be written, `<stem>-TRACED.svg` with the same groups (ids = ink names, real inches) goes instead (not seen in the tests).
+- The 635 PSD still goes, made from the traced art; it is now flat inks only: the PSD writer's "tones" finder is off for traced art (before this, a pick-up of the traced art gave a PSD with 6 M soft pixels in two inks, 20 MB instead of 14).
+- "Download .svg" stays, now one group per ink, stacked.
+- Pick up: the trace's svg, clean-up level and sizes are kept with the job (v281 already kept the svg), so the .ai still goes after a pick-up, on this computer and from Drive.
+
+**Less noise: Clean-up Fine / Normal (default) / Clean.** Shows under the art's quality line once the art is traced; a change traces again from the original.
+- Each pixel goes to one ink. Normal and Clean: a run of an ink under 3 px wide whose colour is better explained as a blend of the two inks beside it goes to the nearer of those two (the soft edge between black and tan read as olive and became an olive outline round every black line). A real thin line in its own colour stays.
+- Specks: islands of ink and holes in ink smaller than Fine 0.05 / Normal 0.15 / Clean 0.4 mm² **at the print size** go to the ink round them (a hole is filled, not made see-through; a speck outside the art goes). A dash at least 0.28 mm (~1 pt) thick and 0.8 mm long always stays.
+- Potrace's speck size (turdsize) and smoothing (opttolerance 0.02 / 0.04 / 0.08 mm; corners alphamax 0.9 / 1 / 1.15) are set in mm at the print size, not pixels.
+- The quality line says it once: "Vector trace (from ~247 dpi): 6 inks, 3,947 specks cleaned up. Check small details before seps." The toast only says it traced.
+- v123 / v124's shade folding is unchanged (none needed here: all 6 inks are real).
+
+**Other fixes in this flow**
+- A PDF that is a picture: its dpi is now the picture under the piece picked, at its placed size (from the page's transforms). v129 used the widest picture on the page over the page's width: this file's 5001 px header strips gave 357 ppi, so the hawk read ~152 dpi at 12″; it is ~247.
+- Colours and transparency of the soft-masked CMYK picture are right: pdf.js converts the CMYK (DeviceCMYK, no profile), the soft mask gives the arch its clean edge, and "Drop the background colour" in the picker takes the page's peach out without touching the tan ink.
+- The thin-line check on traced art no longer takes its anti-aliased edges for an extra colour (it listed one, "463"). It still flags spots in 4 inks on this art at 12″ (not checked one by one: use Show where).
+- Picker note: this page has a full-page background, so there are no numbered pieces: drag a box round the back design (the background drop is ticked for you).
+
+**Tested** (Playwright, Chromium, mocked Airtable / Drive / worker; the customer's PDF locally only, nothing kept in the repo):
+- Opened through the picker (artboard 1, a box round the back design, background dropped): 2939 × 3729 px, 6 inks — sage #83a383 39.8%, black #19201e 16.4%, tan #daaa73 13.9%, olive #a9802c 10.3%, mustard #e38b2c 10.2%, red-orange #e26324 9.5%. The picture's own CMYK values have the same 6 flat colours (plus rich black), so 6 is the real count.
+- v283's trace at 12″: 6 inks, 5,256 subpaths, a see-through gap and an olive / brown sliver along every edge between inks.
+- v284 at 12″ (3600 × 4568 at 300 dpi): Fine 26,104 specks (mostly edge bits; soft edges kept), Normal 3,947, Clean 3,993; 1,125–1,248 subpaths; no gaps. At 14″: Normal 3,883 specks. The stars, hatching and lettering all stay (red / blue maps of what changed checked).
+- Time (Trace click to done, this 4000 px picture): 12″ 5–10 s, 14″ ~11 s (v283: 8.7 / 10.8 s). Most of it is Potrace (2–7 s). A clean-up change takes the same again. The setup files then take ~18 s (12″, mostly the 635 PSD).
+- Setup files made right after a trace wait for the ink scan (the .ai was missed once in a test when made in the same instant).
+- The .ai (12″): one page 864 × 1096.3 pt = 12 × 15.23″; 6 groups / 6 layers with their spot names and colours; subpaths 1 (bottom, the silhouette) / 52 / 303 / 497 / 562 / 477 (black, on top); 0.55 MB. On a black tee: BASE + 6 (BASE = the silhouette, white). A reversed colour order: traced again, groups in that order. Rendered with pdftoppm against the source: mean difference 4.4 levels, 0.03% of pixels over 64.
+- The PSD: 7620 × 9669 at 635 ppi, the same ink names, read by psd-tools.
+- Attach: Production Files got `…-TRACED.ai` (application/pdf) + `.psd`; message "… -TRACED.ai is the traced vector (a group per ink: …)". Pick up (same computer and a fresh browser from Drive): same svg, same .ai.
+- Unchanged vs v283 (setup files, white and black tee): a flat PNG logo (PSD byte for byte), a vector PDF as opened (the original, byte for byte), a vector PDF with an ink changed (rebuilt .ai, identical but for its date), the synthetic template .ai (art-only .ai + PSD byte for byte).
+- Not tested: opening the .ai in Illustrator (groups, spot swatches); the svg fallback.
+- **Worth knowing:** the trace is good enough to separate from here (6 flat inks, clean edges), but it's still a trace of a ~247 dpi picture (at 12″): small hatch ends get rounded. The designer placed this art in Illustrator as a flattened picture; if they have it as vector (or as layered, higher-res art), that is better than any trace: worth asking for.
