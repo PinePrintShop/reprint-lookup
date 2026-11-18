@@ -17,7 +17,7 @@
 | App | Permanent link | Opens now |
 |---|---|---|
 | Operator | `pine-operator.html` | v139 (signed packet = ✓ Signed; skipped mockup initials are a grey note) |
-| Catching | `pine-catching.html` | v179 (a Back ordered note with sizes also makes a Backorders record for Purchasing; notes/backorders.md) |
+| Catching | `pine-catching.html` | v180 (a line item marked done on a shared print stays done after a refresh; 11022) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v108 (signed packet = ✓ Signed; one signed row per colourway) |
 | Purchasing | `pine-purchasing.html` | v124 (Tab moves between Blank cost boxes) · was v123 (View email shows the email in the app, no Google sign-in, with worker v55; Backorders tab since v121) |
