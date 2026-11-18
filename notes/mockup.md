@@ -3964,3 +3964,28 @@ Around it:
   - a vector PDF with an ink changed: only its date differs;
   - the synthetic template .ai: .ai and PSD byte for byte.
 - Not tested: opening the files in Photoshop; a RIP / seps run; a printed test.
+
+## 2026-11-18 · v288 · "Multiple Locations": Prints on, per garment
+Stephen (11231, Comfort Colors 1717 - Brick; 11231-A Left Chest, 11231-B "Multiple Locations" with art "image 6 — Back.png"): "when it is assigned multiple locations....meaning it could be a back print or a front print....it doesn't pull up the other garment view meaning for this colorway it get a back print".
+
+**Cause:** the Imprints location option "Multiple Locations" had no code (`LOC_CODE`), so it fell to 'Other', and `sideOf` reads 'Other' as front: no back view, front defaults, "MULTIPLE LOCATIONS" on the proof and in the file names. The Airtable options (read only, 2026-11-18): Bandana, Front, Left Chest, Back, Flatstock, Left Sleeve, Right Sleeve, Back Hem, Size Tag, Pocket, Front Hem, Hood, Right Chest, Tea Towel, **Multiple Locations**, Outsourced Bandana. "Multiple Locations" is the only ambiguous one (the code also takes "Other" / "See notes" if they're ever added). Blank stays as before.
+
+**What's new**
+- A Multiple Locations imprint gets **Prints on: Front · Back · Left sleeve · Right sleeve · Left chest** right under the imprint tabs, so it's there whichever sidebar tab is open and before any art is opened. Nothing changes for other imprints.
+- **Per garment (line):** one Multiple Locations imprint can be a back print on Brick and a front print on Pepper. `SPOT_L[impId][lineId]`.
+- **Guess until someone picks:** the art's file name ("Back.png", "…-BACK-…", "FullBack", "front", "LC" / "left chest" / "pocket", "left / right sleeve", "sleeve" → left sleeve), then the Airtable file name, then the imprint's print / ink notes, then the line's proofing / sales notes ("full back print"; a spot another imprint on the line already has is skipped, so "left chest logo and a full back print" → Back when A is the left chest), else Front. Said once: "**Back** — from the file name. Tap to confirm (each garment has its own)." After a tap: "Airtable says Multiple Locations. Picked for 1717 Brick; each garment has its own."
+- Bare "LS" / "RS" aren't read (on the shop's notes "LS" is usually long sleeve), and "Black" / "Background" don't read as back.
+- The pick is the imprint's location for that garment everywhere a normal Back / Front is used: `sideOf` (the back photo shows for Back), the usual width / most when the file has no size, the default spot (a hoodie back 5″), the placement text, the proof's "BACK - 11231-B", close-ups (garments with different spots get their own close-up), file names (`11231 - 11231B-…-BACK.psd`), the setup files and the ink data for Sep Maker. File names take the garment's own spot also when the files are made for another line than the one open (Attach to all, art to Drive): `fileStem(im, line)`.
+- Spot (inches) is per garment for these imprints (`PLACE_L`), so "Same spot on all garments / Own spot" isn't offered for them. Changing Prints on puts the print at the new spot's usual place on that garment (and a width that was only the usual one follows).
+- **Kept with the setup** (`spotL`, only on Multiple Locations imprints) on this computer and in the Drive setup.json; Pick up brings each garment's pick back. An older setup has none: the guess as above.
+
+**Tested** (Playwright, mocked Airtable through the real order load, mocked Drive / worker, made-up order 11301: Brick and Pepper 1717, A Left Chest, B Multiple Locations):
+- Before art: Prints on shows, Front to start. Opening "image 6 — Back.png" → Back from the file name; the mockup shows front + back photos, the print on the back; setup file `…-BACK.psd`; the ink data says Back.
+- Proof (Brick): "BACK - 11301-B", no "MULTIPLE LOCATIONS". Pepper: starts from the same guess (Back), tap Front → front view only, `…-FRONT.psd`, "FRONT - 11301-B" on Pepper's pages while Brick's pages keep BACK; back to Brick → Back.
+- `setupFiles` for each line from the other line open: BACK / FRONT. 11301-A Left Chest unchanged (3.75″ off center).
+- Pick up on the same computer (page closed and opened) and in a fresh browser from Drive: Brick Back, Pepper Front, both "picked".
+- Guesses from imprint notes and line notes; a list of file names and notes (above).
+- Phone (390) and iPad (820): no sideways scroll; the five buttons fit, 12px type, 36px tall.
+- No console errors. Practice: 0 Airtable writes, 0 Drive uploads.
+- **Unchanged vs v287** (made-up 11302: Front PNG, Back PNG, Left Chest vector PDF on a Brick 1717): the three setup files byte for byte, setup names, the setup.json (times blanked), all 4 proof pages, placement, sides, proof name.
+- Not tested: real order 11231 (made-up names only); an Attach to Airtable outside practice.
