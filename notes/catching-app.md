@@ -587,3 +587,37 @@ Backorders) works, with a Slack ping to purchasing and the rep when it's back in
   Vendor / Notes; Customer changed, Other and Back ordered without sizes → no POST and the same requests as v178; practice
   0 writes; POST fails → error, Done again → 1 record; POST saved but answer lost → Done again finds it, no second POST;
   a normal catch with no note → the same 38 requests as v178; no text under 12px, no sideways scroll, no errors.
+
+## 2026-11-18 · v180: a line item marked done on a shared print stays done after a refresh (11022)
+Stephen: "I keep clicking done on 11022 for the ones that are done and when I refresh ... it brings the ones I just completed back".
+- **Why:** 11022 has 5 imprints (A…E) shared by 10 line items, so one imprint is on several cards. Since v126 Catching ticks
+  Caught on an imprint only when the **last** card sharing it is done (so an open card never disappears). Until then the
+  "done" lived only in this iPad's tally, and on a reload v146's rule ("still in the queue = the Caught write didn't land")
+  put every one of those cards back.
+- **Fix (same iPad):** when ✓ Done holds an imprint write for an open sibling card, the tally saves it as held (the imprint
+  ids + the time). After a reload / Refresh the card stays done (in Completed, out of the queue) as long as the imprint is
+  still not Caught and a card that isn't done still shares it. Completed marks it **"This iPad only · 2 more on this
+  print"** (tooltip explains).
+  - The last sibling's Done writes Caught + Caught At (+ Run Finished for Emb / Heat) on the imprint exactly as before,
+    also when the earlier siblings were done before a reload (restored held cards count as done), and the order status
+    moves then (Partially Completed → Caught - Awaiting Ship / Completed).
+  - A real failed Caught write still puts the card back (never saved as held). A held card whose sibling is gone from
+    today's list (or whose imprint got caught elsewhere) goes back to the queue, so Done writes as before.
+  - Non-shared imprints, reprint cards (v127/v129), + Report damage (v175, damage only, the card stays held), the note
+    (v178), Backorders (v179): unchanged.
+- **Not fixed: the other Catching iPad.** It still doesn't know these cards are done, and if it does the last card it
+  holds too (it sees ours as open), so the imprint isn't Caught until one iPad has done all its cards. That needs the held
+  "done" in Airtable. Checked read-only on 11/18: no existing field fits. Line Items has nothing per-line "caught" (Extras
+  Recorded is only for extras and drives the packing slip; Final Notes / Shipping Notes are text people read); Imprints'
+  Caught / Quality Checked are per imprint, not per card. **Proposed (ask Stephen):** Imprints › **Caught Cards**, long
+  text: one line per card done while the print waits, `<line item record id>[:p1|:p2] <ISO time>` (split halves share a
+  line item). No automation watches Imprints for anything but Screens Burned, Vendor, Proof Changes, record created and
+  one view (UPC). With it, the load would treat a card listed there as done on every device, and the guard would count it.
+- APP_VER 180. Permanent link → v180. The held "signed page as the main mockup" build becomes **v181** (pandadoc.md).
+- **Tested** (Playwright, mocked Airtable, made-up order 12410 shaped like 11022: 12410-A on 3 line items, 12410-B on a
+  4th; 1024×768): B done → 1 Caught PATCH (B), order Partially Completed; 2 of the 3 A cards done → no Caught, no order
+  write; reload → both stay in Completed with the tag, the 3rd stays in the queue; 3rd done → exactly 1 Caught PATCH (A),
+  order → Caught - Awaiting Ship; v179 on the same steps brings both back (the bug). Caught PATCH fails → the card comes
+  back (B, and the last A card while the 2 held stay done, also after a reload), Done again writes. Sibling gone → held
+  cards return to the queue and Done writes once. Late damage on a held card → Order Issue + Damage Detail only. Practice:
+  0 writes. A normal day (12401, 12404, and both 12402 line items done in one go, no reload): the same 49 requests as v179. No page errors, no text under 12px.
