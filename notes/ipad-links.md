@@ -20,14 +20,14 @@
 | Catching | `pine-catching.html` | v179 (a Back ordered note with sizes also makes a Backorders record for Purchasing; notes/backorders.md) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v108 (signed packet = ✓ Signed; one signed row per colourway) |
-| Purchasing | `pine-purchasing.html` | v123 (View email shows the email in the app, no Google sign-in, with worker v55; Backorders tab since v121) |
+| Purchasing | `pine-purchasing.html` | v124 (Tab moves between Blank cost boxes) · was v123 (View email shows the email in the app, no Google sign-in, with worker v55; Backorders tab since v121) |
 | Receiving | `receiving.html` | receiving-dashboard v91 (Re-prints tab: line cards open to the re-print sizes; "Replacements received" ticks Replacements Received?, which posts the re-print Slack message) |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |
 | Seps | `seps.html` | v55 (splits signed packets into line pages in the background; signed packet = ✓ Signed; one signed row per colourway) |
 | Screens | `screens.html` | v37 (signed packet = ✓ Signed; one signed row per colourway) |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v35 |
+| Schedule | `pine-schedule.html` | v36 (quieter PP suggested pill) · was v35 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v119 |
 | Line Item Review | `pine-line-item-review.html` | v64 (one card per order on Ready to send; Preview approval under Send for signature; ⋯ menu) |
