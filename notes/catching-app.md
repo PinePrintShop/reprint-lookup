@@ -621,3 +621,44 @@ Stephen: "I keep clicking done on 11022 for the ones that are done and when I re
   back (B, and the last A card while the 2 held stay done, also after a reload), Done again writes. Sibling gone → held
   cards return to the queue and Done writes once. Late damage on a held card → Order Issue + Damage Detail only. Practice:
   0 writes. A normal day (12401, 12404, and both 12402 line items done in one go, no reload): the same 49 requests as v179. No page errors, no text under 12px.
+
+## 2026-11-18 · v181: both Catching iPads see a held "done" (Imprints › Caught Cards)
+Follow-up to v180. Stephen approved the field; it was created as **Imprints › Caught Cards** (`fld1cGivRncxRIZep`, long text).
+Checked read-only on 11/18: no automation watches it (Imprints automations only fire on Screens Burned, Vendor, Proof
+Changes, record created and the UPC view).
+- **Format:** one line per card done while its print waits: `<line item record id>[:p1|:p2] <ISO time>`. The `:p1`/`:p2`
+  is for split halves, which share a line item.
+- **✓ Done with the imprint held** (another card on that print still open, the v126 guard):
+  - read the imprint fresh, then add this card's line to Caught Cards. The other iPad's lines are kept; a line that is
+    already there is not added again.
+  - The v180 local held mark is kept too.
+  - If the fresh read shows every other open card on that print is already listed (the other iPad did them while this
+    iPad wasn't refreshed), nothing is waiting: the imprint is caught now. Those cards move to Completed on this iPad.
+- **Load:** Caught Cards is read with the imprints. A card listed on all its imprints is done on every iPad: it goes to
+  Completed with **"Waiting on N more on this print"** ("This iPad only" is gone). The guard counts it as done.
+- **The last card** writes Caught + Caught At (+ Run Finished for Emb / Heat) and empties Caught Cards **in the same PATCH**.
+  The empty value only goes out for a print that is on more than one card or had lines, so an unshared imprint sends the
+  same PATCH as v180.
+- **Failures:** a failed fresh read or PATCH puts the card back in the queue, as before. If the PATCH saved but the answer
+  was lost, Done again finds the line and sends nothing more.
+- **Reprints:** a reprint card ignores lines older than its reprint issue (the issue's created time, `rpSince`). Leftover
+  lines from an original run that never finished can't close the reprint. A reprint's own lines are written after the issue,
+  so they count.
+- Practice fakes the writes (the fresh read still happens). Late damage on a card done on the other iPad: damage only.
+- **Requests:** the load reads one more field. A day with no shared print sends the same writes in the same order as
+  v180. A shared print now adds 1 GET + 1 PATCH per held card, and the last card's Caught PATCH carries `Caught Cards: ""`.
+- APP_VER 181. Permanent link → v181. The held "signed page as the main mockup" build becomes **v182** (pandadoc.md).
+- **Tested** (Playwright, two browser contexts = iPad A and iPad B on one mocked Airtable, made-up order 12410: 12410-A on
+  3 line items, 12410-B on a 4th; 1024×768):
+  - A does B → 1 Caught PATCH, no Caught Cards. A does 2 of the 3 A cards → 2 fresh reads + 2 Caught Cards PATCHes, both
+    lines saved, no Caught, no order write.
+  - B loads → those 2 in Completed with "Waiting on 1 more on this print", the 3rd open. B does it → exactly 1 imprint PATCH
+    (Caught + Caught At + Caught Cards ""), order → Caught - Awaiting Ship. Reload both → all 4 done on both.
+  - Both open, no reloads: A does 1, B does 2 (A's line kept), A does 3 → its fresh read finds 2 listed → caught, card 2
+    moves to Completed on A.
+  - Caught Cards PATCH fails → card back, nothing saved. Saved but answer lost → Done again sends no second PATCH. Last
+    card's Caught PATCH fails → card back, Caught Cards untouched; retry → caught and emptied.
+  - Late damage on an A-done card on B → Order Issue + Damage Detail only. Practice: 0 writes, held still survives a reload.
+  - Reprint / split / parser unit checks. A normal day with no shared print (12401, 12404): same 34 requests (7 writes, same
+    order) as v180, apart from the added read field.
+  - No page errors, no text under 12px.
