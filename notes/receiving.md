@@ -352,3 +352,33 @@ Rollout step 4 of `notes/side-panel.md`. Stephen (2026-11-10): the standard 346,
   - Practice: 0 writes.
   - Screenshots at 1100 / 1440 / 1920 / 390. No sideways scroll, nothing under 12px, no console errors.
 - **Still open:** at 1100–1400 the filter tabs scroll sideways (only All and Prints soon show at 1100), as in v88.
+
+## 2026-11-18 · v90: RE-PRINT replacements are received in Receiving
+Mike (purchasing): Line Items **Replacements Received?** (`fldeGE2Lyi4ZOA1zF`) "should be ticked when replacements arrive". Until now it was ticked by hand, almost never (none of the 4 open re-prints on Nov 18 had it).
+
+### What ticking it does (read 2026-11-18, nothing changed in Airtable)
+- Automation **SLACK: Re-Print Garments Received** (`wflrBwlHvRhSyx1PG`, deployed). Trigger: a Line Item matches Replacements Received? = ✓ AND Replacements Ordered? (`fldEZmyBBJzI4mrOb`) = ✓. One action: Slack post as "Re-prints Received Bot" (:repeat:) to channel `C088030D1B9`: ":soap::tshirt: The garments for the re-print job: *<order>* have arrived! Let's get it done :rocket:" (the order is the line's Order link name).
+- It fires when the line starts matching, so unticking and ticking again posts again.
+- Schedule v34 reads the same box: its "Replacements not in" tag on the re-print goes away.
+
+### What v90 does
+- **Re-prints tab** (next to Mis-ships, with a count of orders): the line items with Replacements Ordered? ✓, Replacements Received? not ✓ and **Reprint Qty** (`fldatIwNPZdUHXWgp`) > 0. Reprint Qty is the rollup of RE-PRINT Order Issues that are In progress, so an old re-print that was never ticked doesn't come back. One extra read at load; if it fails, the tab says so and the rest of Receiving loads as in v89.
+- Each line: a hatched **RE-PRINT replacements** tag (cream/white stripes, black edge, like Schedule's re-prints), PO # (For Reprints), the re-print pieces, and **What purchasing ordered** (Replacement Order, e.g. "PO 101990 · S&S Activewear - Denver: 6 M, 12 L, 6 XL").
+- **Replacements received** (the screen's one yellow button; other lines get black buttons). It asks first, says the line's first receive stays as it is, and says Airtable will post in Slack. Then **one write**: PATCH that line item `{fldeGE2Lyi4ZOA1zF: true}`. Nothing else is written: no counts, no Received, no order status.
+- The line then shows **Replacements received ✓ (purchasing + scheduling notified)** and the order card shows "✓ Replacements in" until the next Refresh drops it.
+- Two panes from 1100px as on the other tabs (list of re-print orders on the left, the picked order on the right); below that, every re-print order is an open card.
+- **On the other tabs:** an order with a re-print still waiting has a **Re-print waiting** tag (list card and open order). A line on the board that is waiting has "RE-PRINT replacements coming".
+- **Normal receiving is unchanged:** same reads (plus the one re-print read), same writes, same staging.
+- **Practice** fakes the tick: "Practice: replacements received (not saved)", 0 writes.
+
+### Tested (Playwright, mocked Airtable, made-up names)
+- **Normal run, v89 vs v90** at 1440, 1100 and 390: the same scripted run (load, open orders, every tab, search, sort, receive a line with its stage write, Promo and back) makes identical requests and writes. The only difference is v90's one re-print read.
+- **Re-print receive** at 1440, 1100 and 390: the tab counts 2 orders. Replacements received → the confirm (mentions Slack) → exactly **one PATCH**, `fldeGE2Lyi4ZOA1zF: true` on that line. The confirmation shows, and the count drops to 1. One yellow button in the list area.
+- **Practice:** the same run makes 0 writes. The normal practice run also makes 0 writes.
+- **Re-print read fails (500):** the board loads as usual. The tab shows "!" and "Couldn't load the re-prints".
+- No sideways scroll, nothing under 12px, no console errors.
+
+### Open
+- Re-prints that use garments already in the shop (nothing ordered) never show here, since Replacements Ordered? isn't ticked.
+- The vendor menu doesn't filter the Re-prints tab, but search does.
+- Proposed Airtable "Reprint Ready?" formula for Stephen: see the v90 hand-off (not built).
