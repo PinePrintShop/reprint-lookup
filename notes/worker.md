@@ -538,3 +538,37 @@ The worker half of Backorders (notes/backorders.md; Stephen approved the table a
 - Health entry. 8 other routes answer byte-for-byte as v53, and the v53 suite passes on v54 apart from the version number (50/52).
 
 **Stephen deploys it:** worker-copy.html → Copy worker v54 → paste into Cloudflare → Deploy. Keep both Cron Triggers. No new secret.
+
+## 2026-11-18 · v55 · invoice email preview, confirmation attached in QuickBooks
+AS Colour's order confirmation (their bill; LA Apparel and SLC sometimes too) is the email itself, with no PDF. Purchasing v122 opened it in Gmail, which only works in a browser signed in to purchasing@. Stephen wants a preview anyone can review without a Google login.
+
+**v55**
+- **`GET /proxy/invoices/email?id=<message>`**: same gate as `/invoices/attachment` (the apps' Airtable token, and only emails under the "2. Invoices" labels, else 403). Read-only, GET only. No Claude call.
+  - Returns `{ok, id, from, to, subject, date, vendorLabel, html, text, attachments:[{filename, mimeType, size, isPdf}]}`.
+  - **html** is the email's text/html part, cleaned on the worker (`invSanitize`, an allowlist):
+    - Kept: tables, paragraphs, headings, lists, bold/italic, font/center, and layout attributes (align, width, colspan, bgcolor, border, cellpadding…).
+    - Dropped with their content: script, style, iframe, object, embed, svg, head/title, noscript, textarea, select, video/audio. Dropped tags, text kept: form, input, button, link, meta, base, html/body and anything else not on the list.
+    - No `on*` attributes, nothing with `javascript:` / `data:` / `url()` / `expression` (checked after decoding entities).
+    - Inline styles keep only declarations that can't load anything (no `url()`, `@import`, `expression`, `behavior`, backslash escapes, `position`, `background-image`).
+    - Images are removed. Their alt text stays as `[alt]`. Remote, `cid:` and `data:` images never load.
+    - Links become plain underlined text, with the address in a tooltip (title).
+  - **text** is the text/plain part, or the html as text.
+  - Bodies are decoded from Gmail's base64url. If the part is still quoted-printable or base64 (checked strictly, so text Gmail already decoded isn't decoded twice), that is decoded too. Then the charset: utf-8, iso-8859-1 / windows-1252 / us-ascii, or any other the runtime knows. A big body that Gmail keeps as an attachment id is fetched.
+  - Over 1.5 MB → 413 `too_big` ("That email is too big to preview… Open it in Gmail."). A body that's too big is never downloaded.
+- **Send to QuickBooks:** when the bill's email has no PDF, the email is attached instead, as a text file "<Vendor> <doc #> confirmation.txt" (the headers, then the email text). It goes through the same Attachable upload as the PDF (`qboUpload`, shared).
+  - As with the PDF, a failed attachment doesn't undo the bill. The note says "Confirmation not attached: …".
+  - The answer adds `attachedAs: "pdf" | "txt"`. `attached` is still true/false.
+  - The PDF upload is byte-for-byte as v54.
+- `/proxy/version` → 55. `/proxy/health` is unchanged apart from the version. Every v54 route answers as before (on v54, `/invoices/email` is the "Unknown invoices route" 404, which Purchasing v123 uses to fall back to Gmail).
+
+**Tested** in Node with Gmail, Airtable, QuickBooks and KV mocked (scratchpad inv55/w55test.mjs, 78/78):
+- Gate: 401 with no token or a token that can't read Pine. 403 for an email outside the invoice labels. 400 for a bad or missing id. POST is refused. Only GET calls go out, and Claude isn't called.
+- Multipart html + text, headers, vendorLabel. Text from the html when there's no text part.
+- Quoted-printable (`=3D`, `=C3=A9`, soft breaks), ISO-8859-1 and windows-1252, a still-base64 body, base64url characters, and a body kept as an attachment id. Text Gmail already decoded is not decoded twice.
+- Removed: script, onerror/onload/onclick, `javascript:` (also entity-encoded or mixed case), remote/cid/data images (alt kept), style/link/meta/base/iframe/object/embed/form/input/button/svg, css `url()`/expression/behavior, comments, and a split `<scr<script>ipt>`. Only allowlisted tags remain.
+- Size cap: 413 from Gmail's size and from the decoded length.
+- Attachments list with isPdf (no attachment ids or urls in it).
+- QuickBooks: an AS Colour confirmation gets "AS Colour A10001 confirmation.txt" (text/plain, headers + text). An S&S invoice with a PDF gets the PDF, byte-for-byte as v54. The bill itself is the same as v54. A failed upload keeps the bill, with the note. An html-only confirmation becomes readable text.
+- 14 routes answer byte-for-byte as v54, and so does health apart from the version. The v54 suite passes on v55 apart from the version number (68/70).
+
+**Stephen deploys it:** worker-copy.html → Copy worker v55 → paste into Cloudflare → Deploy. Keep both Cron Triggers. No new secret or binding.

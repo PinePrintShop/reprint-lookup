@@ -72,3 +72,8 @@ The same day, Garrett's QuickBooks connect returned `Intuit token 401: invalid_c
 - Invoices now save themselves every hour and get matched to Purchasing lines; see notes/worker.md (v47).
 - The old **Matched lines** field (`fldsmatWtCBggl0xV`) links to Garments by mistake (inverse `fldIbdLip99WGPEEQ` on Garments).
   It's unused; asked Stephen before deleting it.
+
+## 2026-11-18 · worker v55 + Purchasing v123
+- Bills whose email has no PDF (AS Colour order confirmations; LA Apparel and SLC sometimes) can now be read in Purchasing without signing in to Google. View email shows a cleaned copy of the email from `GET /proxy/invoices/email`.
+- Send to QuickBooks attaches such an email to the bill as "<Vendor> <doc #> confirmation.txt" (the PDF when there is one, as before).
+- No Airtable field changes. Details are in notes/worker.md (v55) and notes/purchasing-flow.md (v123).
