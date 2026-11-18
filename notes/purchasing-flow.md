@@ -676,3 +676,9 @@ Stephen approved (11/18) a home for back-ordered garments (customer paid, we pri
   - The preview opens with cleaned content, and no script runs inside it, even with raw `<script>`/`onerror`/`svg onload` html.
   - It falls back to Gmail on the v54 404. A text-only invoice works. A real PDF still opens in a tab.
   - Desktop 1440 and phone 390, with no console errors and no horizontal scroll. Practice mode makes 0 Airtable writes and sends nothing to QuickBooks.
+
+## 2026-11-18 · v124: Tab goes to the next Blank cost box
+- Mike: "if I hit tab I expect it to go to the next box. However, it just goes to somewhere else and I have to hit tab a bunch of times."
+- Why: saving a cost re-draws the line, which threw away the box the browser was about to move to.
+- Now Tab saves and moves to the next Blank cost box on the page (Shift+Tab goes back), across lines, in Ordering and Invoice check, with the box's text selected so typing replaces it. Past the last box, Tab works as normal.
+- Tested (Playwright, mocked Airtable, practice): box 1 → box 2 on the same line → the next line's box → Shift+Tab back.

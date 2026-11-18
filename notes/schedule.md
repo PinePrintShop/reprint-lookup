@@ -753,3 +753,8 @@ Stephen: "a suggest Ping Pong sounds good and that will allow us to review them 
 - **Practice:** switching from the panel plus Save this plan made 0 writes.
 - **v34 vs v35:** the same flow (every view, refresh, one Lock in) made identical reads (32) and identical writes (1).
 - **Layout:** no text under 12px, no sideways scroll at 390 and 1024, and no page errors.
+
+## 2026-11-18 · v36: quieter "PP suggested" pill
+- Mike: the "PP Suggested" button at the top of the day is "a little too big and distracting ... just a black button with white text".
+- On the black day headers the pill is now black with white text and a faint grey outline, only as wide as its words, on its own line under the day name. Month view and the Ping Pong suggestions list keep the cream pill.
+- CSS only; the v35 tests pass apart from the old "pill is cream" check.
