@@ -3911,3 +3911,9 @@ Stephen (a one-colour distressed tattoo-style design, 11230-A front, white on a 
 - Unchanged vs v284 (setup files, white and black tee): a made-up flat PNG logo (PSD byte for byte), a vector PDF as opened (byte for byte), a vector PDF with an ink changed (identical but for its date), the synthetic template .ai (.ai + PSD byte for byte; the first template case comes out one of two ways in both versions, a timing quirk of the test, the same two files). Texture isn't found in any of them.
 - Not tested: opening the files in Photoshop / Illustrator; a printed test.
 - **Worth knowing:** this art is ~80 ppi at 13″. The grain kept is a good guess at the distress from a blurred copy of it, not the real one: holes come out a little bigger and clumpier than in the designer's file. The customer's full-size art (or the vector with its texture) would beat any upscale: worth asking for.
+
+## 2026-11-18 · v286: Upscale and Trace always show
+- Stephen: "where did the upscale section go?" … "it shows up when I change a size" … "can it show up always?"
+- Before (since v118) both buttons hid when the art was print ready at its size. Now they show for any flat raster art (and a picture inside a PDF), print ready or not. Vector and photo-like art still don't get them.
+- Tested: the 11230-A art at 3″ (351 dpi): v285 hid both, v286 shows both; at 13.1″ (80 dpi) both versions show them.
+
