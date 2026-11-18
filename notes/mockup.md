@@ -3917,3 +3917,50 @@ Stephen (a one-colour distressed tattoo-style design, 11230-A front, white on a 
 - Before (since v118) both buttons hid when the art was print ready at its size. Now they show for any flat raster art (and a picture inside a PDF), print ready or not. Vector and photo-like art still don't get them.
 - Tested: the 11230-A art at 3″ (351 dpi): v285 hid both, v286 shows both; at 13.1″ (80 dpi) both versions show them.
 
+
+## 2026-11-18 · v287 · Texture: Keep all / Dots / Smooth
+Stephen re-ran 11230-A front (EZP WHT on a black tee, ~13.1″) in v285: "Looks a little worse" and "I want all the texture". His PSD (8320 × 11433; Inks › BASE, EZP WHT; Approved art) is 20.54% ink, 0% soft, 334 small holes: v285's Keep didn't run, and the stippled fades are solid blobs joining the hatch lines.
+
+**Why Keep didn't run.** Not reproduced byte for byte: his art fills its frame edge to edge (11433 tall), so his source file isn't exactly the PNG we have. The same flow with our PNG (EZP WHT chip, black tee, BASE, 13.1″, fresh open and pick-up) did run Keep. v285 had gates that could switch it off without saying:
+- the texture check was skipped when the colour scan called the art blended or photo-like (the same art enlarged 2× scans as "not flat": no check, no Texture buttons);
+- art already upscaled got no texture in the PSD;
+- a picture inside a PDF (drawn by pdf.js at 635) was left out;
+- the PSD writer checked each ink again on its own copy, which could disagree with the page.
+
+Now the page decides once and the writer does what it's told for every ink, in every path (raster, upscaled, picture in a PDF, BASE). The page checks the original, on a copy at most 1600 px long (so size doesn't change the answer), in every ink and in the see-through.
+
+**Keep all (new, to start when texture is found).** Stephen wants all the texture. At ~80 ppi the grain and fades are grey mottle: any hard cut either fills them (v284) or makes blobs (v285). Keep all sends the art's own soft see-through in every ink layer, the BASE and Approved art, so the separator's halftone prints it as the original looks. It's enlarged smoothly (Catmull-Rom): no blur, no cut, no hole filling. Two small touches:
+- The art's solid (~250, 98%) is set to 100%, so solids don't print as a 98% screen with pin holes. The 90th percentile of the ink over 50% counts as solid.
+- Under 3% goes clear and over 97% goes solid (noise and edge fuzz).
+
+Around it:
+- Said once under the buttons: "The setup PSD keeps the art's own soft grain and fades, for seps to halftone as it looks."
+- **Dots** = v285's Keep (grain cut into solid holes and dots, crisp edges). **Smooth** = v284.
+- **Upscale** with Keep all: enlarged smoothly and soft (the see-through isn't snapped); colours still go to the nearest ink.
+- **Trace**: a vector can't be soft, so the trace cuts the grain into dots (Fine, as v285). It says so once: "A trace can't be soft: its grain is cut into dots. Back to the original keeps all of it in the setup PSD." Keep all and Dots trace the same; Smooth traces at Normal.
+- Kept with the job (Pick up): Dots or Smooth is saved; nothing saved means Keep all.
+- Worth knowing for seps: Keep all also keeps the original's soft edges (about 0.3 mm of ramp at 80 ppi). Halftoned, line edges get a fine dot fringe, as the original would. Dots gives crisp edges if that matters more.
+
+**Tested** (Playwright, mocked Airtable / Drive / worker; customer art locally only): the real flow, EZP WHT chip, black tee (BASE), white ink, 13.1″ (8320 px at 635 ppi).
+
+| PSD | Ink | Soft px | Off from the original |
+|---|---|---|---|
+| Original (80 ppi) | 19.46% | – | – |
+| Stephen's v285 PSD | 20.54% | 0% | (another frame) |
+| Smooth (= v284 / v286, byte for byte) | 20.45% | 2.0% | 10.4 (34.9 in the ink) |
+| Dots (= v285 Keep, same pixels) | 19.75% | 0% | 11.9 (40.4) |
+| **Keep all** | **19.59%** | 25.6% | **0.8 (2.4)** |
+| Keep all after Upscale | 19.60% | 25.0% | 2.8 (8.9) |
+| Trace (Keep all → dots) | 19.88% | 0% | 16.6 (55.8) |
+
+- "Off from the original": the PSD shrunk back to the art's own 1052 × 1445 and compared pixel by pixel (average difference in alpha, 0–255). Keep all is the original enlarged.
+- BASE, EZP WHT and Approved art are the same soft mask in Keep all (19.59%, 25.6% soft, 5.2% fully solid).
+- Times (setup files, 13.1″): Keep all 10.8 s, Dots 8.0 s, Smooth 8.0 s; upscale 3.7 s; trace 6.4 s.
+- Pick up (fresh browser, from Drive): Keep all and Dots come back as they were; the PSDs are byte for byte the first ones.
+- The same art enlarged 2×, and the art on a black background: v286 ran no texture check; v287 finds it (both go through the soft "tones" path anyway).
+- Unchanged vs v286 (setup files, white and black tee):
+  - a flat PNG logo: PSD byte for byte;
+  - a vector PDF: byte for byte;
+  - a vector PDF with an ink changed: only its date differs;
+  - the synthetic template .ai: .ai and PSD byte for byte.
+- Not tested: opening the files in Photoshop; a RIP / seps run; a printed test.
