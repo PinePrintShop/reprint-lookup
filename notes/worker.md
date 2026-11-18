@@ -487,3 +487,54 @@ The flow agreed with Stephen on 2026-11-05 (pandadoc.md), and today "go". Stephe
 - 9 other routes answer byte-for-byte as v52.
 
 **Stephen deploys it:** worker-copy.html → Copy worker v53 → paste into Cloudflare → Deploy. Keep both Cron Triggers. No new secret. Then signed-check.html shows the runs.
+
+## 2026-11-18 · v54 · backorder stock watch
+The worker half of Backorders (notes/backorders.md; Stephen approved the table and its Slack ping today).
+
+**v54**
+- **`backorderSweep`**, in the 15-minute cron, next to the folder and signed sweeps. The invoice cron is unchanged (it doesn't run it).
+  - **Writes only 4 Backorders fields:** Status, Stock Found, Stock Checked At, Status Changed At.
+  - **Status only ever goes Waiting → Back in stock or Waiting → ETA reached.** Other statuses are never touched, so a record can't flip back and forth. Right before a status write, the worker reads the Status again, so a backorder Purchasing just set to Ordered keeps Ordered.
+- **Stock (S&S, SanMar, AS Colour):**
+  - Up to 4 Waiting backorders a run (`BACKORDER_MAX`), never-checked ones first, then the oldest Stock Checked At.
+  - Each one at most every 3 hours (`STOCK_EVERY_H`).
+  - For each missing size (Sizes "M:2, L:4"), the worker gets the stock for that style + colour + size, summed over warehouses:
+    - S&S: `/styles/?search=` finds the style id, checking the brand ("Independent" = "Independent Trading Co."). The id is remembered while the worker stays loaded. Then `/products/?styleid=`. Dropship (DS) never counts as stock.
+    - SanMar: the inventory call, with Purchasing's style codes (BC…, NL…, house brands as typed). productinfo is called only when the colour needs SanMar's full names.
+    - AS Colour: variants + `inventory/items`.
+  - Colours are matched with Purchasing v109's rules. For S&S, the Garment's S&S colour is used when the backorder has a Garment ID.
+  - **Every size has stock ≥ qty + `BACKORDER_CUSHION` (0):**
+    - Status → Back in stock.
+    - Stock Found reads "S&S: XL 14 (KS 9, NV 5) · checked 11/18 2:15p", plus "· all at KS" when one warehouse has everything.
+    - Stock Checked At and Status Changed At are set to now.
+  - **Otherwise:** only Stock Found ("S&S: L 3 of 4 (KS 3), XL 0 · checked …") and Stock Checked At change.
+  - **Style or colour not found:** Stock Found reads "couldn't match at S&S: <why> · checked …" and that backorder isn't tried again for 24 h.
+  - **The vendor doesn't answer:** nothing is written, and it's tried again next run.
+- **ETA (SLC, Carolina Creative, Mill direct, Other, or no vendor):**
+  - A Waiting backorder whose Estimated Restock is today or earlier (Fort Collins day) → ETA reached, with Status Changed At = now.
+  - One filtered query a run, at most 10 records a run. Stock Found isn't changed.
+- **Budget:** its own `BACKORDER_BUDGET` (default 10):
+  - Usually 1 ETA query, 1 stock query, 1–2 vendor calls per backorder, 1 status re-read, 1 write and 1 KV.
+  - Before each backorder it keeps back the calls the write needs. Backorders it can't afford wait for the next run.
+  - The folder sweep keeps its 30 and the signed sweep its 10.
+- **`GET /proxy/backorders/check?id=rec…`** (Airtable token, like the drive routes): runs one check now, without the 3 h / 24 h wait.
+  - It returns the result (found text, sizes, new status) and writes nothing.
+  - With `&write=1` it writes, with the same rules. It uses the caller's Airtable sign-in, and the worker's token if that sign-in can't write. This is for Purchasing's "Check stock now".
+- **`/proxy/health`** has `backorders`: when the last run was, checked / back in stock / ETA reached / still waiting / couldn't match / due / later / errors / calls (counts only).
+- `/proxy/version` → 54. Settings, all optional: `BACKORDER_BUDGET`, `BACKORDER_MAX`, `STOCK_EVERY_H`, `BACKORDER_CUSHION`.
+
+**Tested** in Node with Airtable, S&S, SanMar, AS Colour, Google and KV mocked (scratchpad bo54/w54test.mjs, 70/70):
+- S&S in stock gives Back in stock with the text (dropship not counted). Partial stock stays Waiting.
+- SanMar works with its short catalog colour ("Dk Hthr Grey"), and through productinfo ("Sfty Grn" = Safety Green). AS Colour short stock stays Waiting.
+- Independent IND4000 is found with the Garment's S&S colour. "Gildan 5000" never takes another brand's 5000.
+- Unmatched style or colour: the message is written, it's not retried within 24 h, and it is retried after.
+- Mill direct with yesterday's ETA and SLC with today's go to ETA reached. Future or blank ETAs are untouched.
+- Cancelled, Ordered and ETA reached records are untouched, and Back in stock never flips back.
+- A record set to Ordered between the check and the write keeps Ordered.
+- 3-hour interval. The budget holds (default 10, `BACKORDER_BUDGET`=5, `BACKORDER_MAX`=2), with oldest first and the rest on later runs.
+- The folder and signed sweeps still run. The invoice cron doesn't run the backorder sweep.
+- Cushion. A vendor error writes nothing.
+- Check route: 401 without a valid token; dry run writes nothing; write=1 writes with the caller's sign-in; an Ordered record gets Stock Found only; worker-token fallback.
+- Health entry. 8 other routes answer byte-for-byte as v53, and the v53 suite passes on v54 apart from the version number (50/52).
+
+**Stephen deploys it:** worker-copy.html → Copy worker v54 → paste into Cloudflare → Deploy. Keep both Cron Triggers. No new secret.
