@@ -16,16 +16,16 @@
 
 | App | Permanent link | Opens now |
 |---|---|---|
-| Operator | `pine-operator.html` | v138 (the signed mockup under the job's proof) |
+| Operator | `pine-operator.html` | v139 (signed packet = ✓ Signed; skipped mockup initials are a grey note) |
 | Catching | `pine-catching.html` | v177 (signed packet = ✓ Signed; no PandaDoc link; skipped mockup initials are a grey note) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
-| Ink Queue | `pine-ink-queue.html` | v107 (the signed mockup under the job's mockup) |
+| Ink Queue | `pine-ink-queue.html` | v108 (signed packet = ✓ Signed; one signed row per colourway) |
 | Purchasing | `pine-purchasing.html` | v120 (Past orders show each PO's vendor invoice; shared side panel) |
 | Receiving | `receiving.html` | receiving-dashboard v89 (shared side panel: 346 list, compact cards) |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |
-| Seps | `seps.html` | v54 (splits signed packets into line pages in the background; the signed mockup under the job's mockup) |
-| Screens | `screens.html` | v36 (the signed mockup under the imprint's mockup) |
+| Seps | `seps.html` | v55 (splits signed packets into line pages in the background; signed packet = ✓ Signed; one signed row per colourway) |
+| Screens | `screens.html` | v37 (signed packet = ✓ Signed; one signed row per colourway) |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v33 |
 | Pine Central | `pine-central.html` | v176 |
