@@ -652,3 +652,11 @@ Stephen approved (11/18) a home for back-ordered garments (customer paid, we pri
   (one field + Status Changed At), Cancelled after confirm, Order these → Olathe cart {M:2, L:4} with no write, reload
   keeps it, ✓ Ordered → one Backorders PATCH (Ordered, PO 111826, S&S - Olathe, KS) and no Line Items write, manual add
   POST body, practice 0 writes, no sideways scroll at 1100 / 390, nothing under 12px, one yellow button, no errors.
+
+## 2026-11-18 · v122: View PDF for AS Colour
+- Stephen: "the ASColour PDFs are not opening in a new tab and not doing anything really."
+- Why: AS Colour's order confirmation (which is their bill) is the email text, with no PDF. The worker's attachment route had nothing to send, or only the first attachment (a logo), so the tab stayed blank or closed with an error.
+- Now: order confirmations say **View email**. When the email has no PDF (404, or the file isn't a PDF by its first bytes), the tab opens that email in Gmail as purchasing@pineprintshop.com. A real PDF sent as "octet-stream" opens as a PDF. Other vendors' PDFs are unchanged.
+- **Mark checked** only sets Status = Checked. **Send to QuickBooks** is a separate button that appears after; the worker makes the bill only when there's no QuickBooks bill ID, and says "Already in QuickBooks" if it finds one. Nothing sends on its own.
+- Tested with a mocked worker: no attachment → Gmail, logo only → Gmail, octet-stream PDF → PDF, normal PDF → PDF (same as v121).
+
