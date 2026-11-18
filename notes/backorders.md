@@ -5,9 +5,8 @@ record per back-ordered garment, a Backorders tab in Purchasing, Catching create
 and the order's sales rep when a backorder comes back in stock or its ETA arrives. Telling the customer is the rep's job, from
 that ping.
 
-Not in this round (fields are ready for them): the worker's stock watch (writes Stock Found / Stock Checked At and flips
-Status to Back in stock), the ETA check (flips Status to ETA reached on the Estimated Restock date), and the Schedule /
-Shipping hookups (Received → print, Printed → ship).
+The worker's stock watch and ETA check came in worker v54 (below, "Stock watch"). Still to come: the Schedule / Shipping
+hookups (Received → print, Printed → ship) and Purchasing's "Check stock now" button (the worker route is ready).
 
 ## Flow
 1. **Catching v179:** Note › Back ordered with pieces per size › ✓ Done (or Save after the fact). Besides the Shipping Notes
@@ -74,9 +73,33 @@ No test records were written to the real table (all testing used a mocked Airtab
   people). `U084HFTQYJW` is tagged by "Thread To Order" and "Re-digitizing Alerts", but nothing says that's Mike, so it wasn't
   used. To turn it on: (1) put Mike's id in the **Purchasing Slack ID** formula (`"U…"`), (2) confirm the channel (or pick
   another in the Slack step), (3) Test, then turn on in Airtable.
-- Nothing in the apps sets Back in stock / ETA reached yet, so it has nothing to send until the stock watch / ETA check exist
-  (Stephen can test by setting a status by hand on a test record, then deleting it).
+- Worker v54 sets Back in stock / ETA reached (2026-11-18). Until the automation is on, those changes post nothing. Turning it on
+  doesn't post for backorders already in those statuses: Airtable fires only when a record starts matching after that.
+
+## Stock watch (worker v54)
+The worker writes only Status, Stock Found, Stock Checked At and Status Changed At. It changes Status only from Waiting:
+- to **Back in stock** (S&S, SanMar, AS Colour), or
+- to **ETA reached** (vendors with no stock feed).
+
+Every other status is left alone, and the Status is read again right before writing. So the Slack automation fires once
+per backorder.
+
+**Stock:** every 15 minutes, up to 4 Waiting backorders from S&S / SanMar / AS Colour are checked, never-checked ones first,
+then the oldest check. Each one is checked at most every 3 h.
+- The worker looks up the style + colour + each missing size, summing the warehouses.
+- **All sizes in stock:** Back in stock, and Stock Found reads `S&S: XL 14 (KS 9, NV 5) · checked 11/18 2:15p`.
+- **Otherwise:** only Stock Found (`S&S: L 3 of 4 (KS 3), XL 0 · checked …`) and Stock Checked At change.
+- **No match:** `couldn't match at S&S: <why> · checked …`, and that backorder isn't tried again for 24 h.
+
+**ETA:** SLC / Carolina Creative / Mill direct / Other (or no vendor) with an Estimated Restock of today or earlier go to
+ETA reached. Stock Found isn't changed.
+
+**Check one now:** `GET /proxy/backorders/check?id=rec…` (Airtable token) returns the result. `&write=1` also saves it.
+
+Settings, details and tests: notes/worker.md (v54).
 
 ## Changelog
 - 2026-11-18: table, fields and automation created (approved by Stephen); Purchasing v121 Backorders tab; Catching v179
   creates the record from a Back ordered note.
+- 2026-11-18: worker v54, the stock watch and ETA check (above). Status only goes Waiting → Back in stock / ETA reached. Tested
+  with mocks only; no test records in the real table. The Slack automation is still off, so nothing posts until it's turned on.
