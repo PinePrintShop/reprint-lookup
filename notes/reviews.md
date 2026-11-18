@@ -251,3 +251,12 @@
   - **Then:** it emails the link ("Your Pine review link", from "Pine Print Shop", with a "don't forward" note), and clears Email link.
 - **It's off until Stephen reviews it and turns it on** in Airtable.
 - Until it's on, the **Email link** button only stores the link; nothing is emailed. Whitney's link was waiting there on Nov 16; it goes out as soon as the automation is turned on.
+
+### 2026-11-18 · Base tidy-up
+- **Deleted:** the empty Chris H → Patrick peer row (its writer had been cleared). Chris H is Patrick's manager, so he shouldn't peer-review him.
+- **Already gone:** "Table 1" (Stephen deleted it).
+- **Renamed the automatic link fields in People** to plain names: Manages (from "From field: Lead"), Writes, Reviewed in. The worker doesn't use them.
+- **Checked:**
+  - no assignment rows are missing a writer, subject, cycle or kind;
+  - the email automation has 4 successful runs (Nov 16).
+- **Both cycles are Open.** 21 peer reviews assigned so far; Gia and Erik have none yet.
