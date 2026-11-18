@@ -305,3 +305,6 @@ Stephen: sort the signed pages by imprint ID, "similar to how we scan it in the 
 
 ## 2026-11-18 · Catching v178 is taken (Not printed / note)
 - Catching v178 shipped the "Not printed / note" box (catching-app.md). The held "signed page as the main mockup" Catching build becomes **Catching v179** when it's released (APP_VER 179, on top of v178). The other held numbers are unchanged (Seps v56, Screens v38, Ink v109, Operator v140).
+
+## 2026-11-18 · Catching v179 is taken (Backorders)
+- Catching v179 creates a Backorders record from a Back ordered note (catching-app.md, backorders.md). The held "signed page as the main mockup" Catching build becomes **Catching v180** when it's released (APP_VER 180, on top of v179). The other held numbers are unchanged (Seps v56, Screens v38, Ink v109, Operator v140).
