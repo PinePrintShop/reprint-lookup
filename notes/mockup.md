@@ -4021,3 +4021,9 @@ Stephen: "lean towards looser so we suggest in-stock colors....and if they are b
 - (c) Imprint "PMS 2728, Black" and ink notes "Pantone Cool Gray 9 for the outline", on a black tee (OW): 2728 / Black / Cool Gray 9 "from the order" (not the in-stock 2126). The green is still matched (347OW, not in stock). The Seps ink data carries the names.
 - (d) Practice: 0 Airtable writes. No console errors. v289 on screen.
 - Not tested: a real order or real Inks table counts; a sep .psd (its path is unchanged).
+
+## 2026-11-19 · v290: the sign-in warning says what Airtable refused
+- Garrett's new key loaded orders, then showed "This key can't save" right after Save. Any 401/403, a read too, showed that one line, so we couldn't tell what failed.
+- Now it names the action and table: "Airtable refused reading Garments (403 · INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND)" or "… saving to Line Items (403 · INVALID_PERMISSIONS) — this key can't save there". The console also logs the request.
+- Tested with mocked Airtable: a refused read and a refused save each show their own line. Nothing else changed.
+
