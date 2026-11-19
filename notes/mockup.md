@@ -3989,3 +3989,35 @@ Stephen (11231, Comfort Colors 1717 - Brick; 11231-A Left Chest, 11231-B "Multip
 - No console errors. Practice: 0 Airtable writes, 0 Drive uploads.
 - **Unchanged vs v287** (made-up 11302: Front PNG, Back PNG, Left Chest vector PDF on a Brick 1717): the three setup files byte for byte, setup names, the setup.json (times blanked), all 4 proof pages, placement, sides, proof name.
 - Not tested: real order 11231 (made-up names only); an Attach to Airtable outside practice.
+
+## 2026-11-19 · v289 · Ink suggestions: assigned first, then in stock (looser)
+Stephen: "lean towards looser so we suggest in-stock colors....and if they are brand specific sales usually calls that out and if it is .AI and it has assigned pantones we just need to make sure to start with those".
+
+**Before (v31–v288):** each art colour got the nearest ink, but an ink mixed often could win by up to 3.5 ΔE, counted across **all** types (`INK_ANY`). So an ink mixed 200× as OW won on a direct-to-fabric job too, while "in stock" on the swatch only showed for the garment's own type.
+
+**Now, for each art colour, in this order:**
+1. **Assigned names, never changed by matching.**
+   - The file's own: spot colours in an .ai/.pdf, ink channels in a .psd, ink-named layers. The swatch says "· from the file".
+   - The attached proof's callouts ("· from the proof").
+   - The Pantones sales typed on the imprint ("· from the order"). This now also reads "PMS 286", "Pantone 286 C" and "Cool Gray 9" (before, these weren't recognised and were dropped), plus "PMS …" / "Pantone …" / "Cool / Warm Gray n" written in the imprint's ink notes. They're matched to the art's colours one to one, nearest first (ΔE 45, as v107).
+   - **More .ai spots used:** a spot the ΔE 15 pass missed now names a colour nobody has named. Matching is one to one, nearest first, by the spot's file colour or its Pantone's own colour, within ΔE 30, and only when there are at least as many unnamed colours as leftover spots. Example: PANTONE 286 C with CMYK alternate 100/75/0/2 draws as a much brighter blue than pdf.js shows; v288 called it 2145.
+2. **In stock for this garment's type:** the closest Pine ink mixed before as OW (white or cream base), DC (discharge) or direct (otherwise), with SOW counting as OW. It must be within **`STOCK_DE = 8`**, measured with the app's Lab distance (CIE76, the same `dist2` used everywhere in Mockup Maker). A small tie-break goes toward much-mixed inks: `STOCK_TIE = min(1, 0.5·log10(1+mixes))`, so at most 1 ΔE. Only that type's mixes count (`INK_STOCK['286|OW']`), not `INK_ANY`.
+3. **Otherwise** the nearest Pantone / Pine ink, tagged "not in stock".
+- The type follows the imprint on the garment being worked on (`inkSuffix`). Changing the garment or the Underbase picks again (`stockPick`, checked in `inkGroups`). Embroidery and transfers get the plain nearest, not stock.
+- **Swatch:** "in stock", or "in stock · ΔE 5" when it was picked over a closer Pantone. The tooltip names the closer one ("the closest Pantone is 2728 (ΔE 3.1)"). Tap the swatch to pick another ink, as before.
+- **Said once:** the source is on each swatch, so the flag lines no longer repeat the names ("Spot colours from the file: …", "Ink names from the imprint's Pantones: …", the channel list). The ✓ "matches the imprint" mark is dropped on swatches already marked "from the order".
+- **Unchanged:** proof chips, setup PSD layer names, the Seps ink data and INKORD all take the chosen names, as before. A sep's channels (`fromFile`) and spot names are never re-picked. Vendor and garment logic are untouched. Inks are still read once a day, read-only (`pine_mk_inkstock_v2`).
+
+**Tested** (Playwright, mocked Airtable Inks table with made-up mixes: a blue's neighbour 2126 mixed 150× OW + 50× SOW; 186 mixed 5× direct, its neighbour 199 12× discharge; Black in all three types; 2258 in all three types but ΔE 10 from the green; quick mockup, made-up names, `mk289/t289.js`):
+- (a) Flat PNG with 4 colours (2728 blue, 186 red, black, 347 green):
+  - OW: 2126OW "in stock · ΔE 5", 186OW "not in stock", Black "in stock", 347OW "not in stock" (2258 is beyond 8).
+  - Direct: 2728 "not in stock" (the OW-only 2126 gets no bonus), 186 "in stock".
+  - Discharge: 199 DC "in stock · ΔE 5", 2728 DC.
+  - Proof chips, setup PSD layer names and Seps ink data carry those names in all three cases.
+  - **Regression:** v288 picked 2126 on the direct job.
+- (b) Vector PDF with spot swatches Brand Red (CMYK), PANTONE 7621 C (Lab) and PANTONE 286 C (CMYK), with 7620 mixed 300× in stock:
+  - Result: BRAND RED · 7621 · 286, each "from the file". 7621 isn't swapped for 7620.
+  - v288 gave BRAND RED · 7621 · 2145, so the names v288 kept are the same.
+- (c) Imprint "PMS 2728, Black" and ink notes "Pantone Cool Gray 9 for the outline", on a black tee (OW): 2728 / Black / Cool Gray 9 "from the order" (not the in-stock 2126). The green is still matched (347OW, not in stock). The Seps ink data carries the names.
+- (d) Practice: 0 Airtable writes. No console errors. v289 on screen.
+- Not tested: a real order or real Inks table counts; a sep .psd (its path is unchanged).
