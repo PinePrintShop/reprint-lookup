@@ -260,3 +260,13 @@
   - no assignment rows are missing a writer, subject, cycle or kind;
   - the email automation has 4 successful runs (Nov 16).
 - **Both cycles are Open.** 21 peer reviews assigned so far; Gia and Erik have none yet.
+
+### 2026-11-19 · Peer pairs final
+- **39 peer reviews:** every one of the 16 people gets 2–3, and nobody writes more than 3.
+- **Fixes along the way:**
+  - two of Adrianna's were re-pointed (to Nicole and Patrick);
+  - Chris H → Mike added;
+  - Whitney → Nicole removed;
+  - Jillyan → Nicole added.
+- **Annabelle moved to Whitney's crew,** so her manager review was switched from Nicole to Whitney (not started yet). Nicole now has 7 manager reviews, Whitney 3.
+- **About the third peer (told Stephen):** it moves the score by about 0.1–0.3 at most. It matters as a safety net: peer comments need 2 sent, so anyone with exactly 2 shows no peer comments if one reviewer misses it. Plan a mid-cycle check (around Nov 25) for unsent peer reviews.
