@@ -18,6 +18,11 @@ Single-file HTML apps on GitHub Pages (`https://pineprintshop.github.io/reprint-
 - Add a dated entry to the app's file in `notes/` describing what changed and why.
 - **Design for the app's device first:** iPad apps are Operator and Catching. Desktop apps are Purchasing, Receiving, Seps, Screens, Ink, the Damage Log, Schedule and the office apps (Price-O-Matic, Line Item Review, Create order, KPIs, Reprints). The Production Board is a wall TV. On desktop, use the full screen width (two-pane on wide screens). The full list is in `notes/ipad-links.md`.
 
+## Floor apps: include the team (Stephen, 2026-11-19)
+- **Before changing Catching or Operator** (anything beyond a pure bug fix): remind Stephen to run it by the people who use it first — the catchers for Catching, the press operators for Operator. Say what will change on their screen in one or two plain lines he can show them, and build it to practice mode so they can try it (`?practice=1`) before it goes live.
+- **When it ships:** give Stephen a short "what's new for the floor" note (2–4 lines, what to tap differently) to share at the next check-in.
+- **Check-ins:** follow the schedule in `notes/team-checkins.md`. Log what the team asked for there, and check that file before planning floor-app work.
+
 ## Airtable
 - Talk to Stephen before large Airtable changes (new fields, changed options, bulk edits). Small additive changes are OK once agreed.
 - Watch automations before writing test records. Creating an Order Issue sends an email, for example.
