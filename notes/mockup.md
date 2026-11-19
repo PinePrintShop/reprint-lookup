@@ -4027,3 +4027,9 @@ Stephen: "lean towards looser so we suggest in-stock colors....and if they are b
 - Now it names the action and table: "Airtable refused reading Garments (403 · INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND)" or "… saving to Line Items (403 · INVALID_PERMISSIONS) — this key can't save there". The console also logs the request.
 - Tested with mocked Airtable: a refused read and a refused save each show their own line. Nothing else changed.
 
+## 2026-11-19 · v291: black is Black
+- Stephen: "can we not have black always be 419OW seems to be happening a lot with that one".
+- Why: v289's in-stock rule let a much-mixed near-black (419 OW) win over Black whenever it was within ΔE 8, and Black is rarely logged as a mix.
+- Now Black and White are house inks we always have: an art colour that is near-black (L* under 25, chroma under 10) is Black, near-white (L* over 92, chroma under 6) is White, on every garment type, tagged "in stock". Tinted colours still use the in-stock rule; assigned names (from the file / order) are untouched.
+- Tested: with 419 OW mixed 80×, black art went 419 → Black (v290 → v291); a navy (35,40,90) still matches its Pantone; the v289 ink tests all pass on v291.
+
