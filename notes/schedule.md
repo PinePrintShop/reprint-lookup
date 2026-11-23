@@ -765,3 +765,8 @@ Stephen: "a suggest Ping Pong sounds good and that will allow us to review them 
 - Now grey cards show "✓ Printed" (tooltip: "Run Finished ticked", "when it was caught" for heat press / embroidery). Search lists printed jobs too, tagged "✓ Printed"; the Airtable search now returns the newest 50 matches (sorted by date desc) and shows them by date.
 - Read-only change. Tested (Playwright, mocked Airtable): a printed job is found by search with the tag, the card shows ✓ Printed; v36 didn't find it. v35 suite still passes (except the old "pill is cream" check and the noisy request count).
 
+
+## 2026-11-23 · v38: sales rep in a job's details
+- Mike: "when I click a card, I'd love to see the sales person in that list of info".
+- The job pop-up now shows **Sales rep** under Customer, from the imprint's lookup of the order's Sales Rep (`fldD6JJ83pQ2LtEPk`). One more field on the existing reads; nothing written.
+- Tested (Playwright, mocked Airtable): the field is requested, plain and {name} lookup values parse, and the pop-up shows "Sales rep · Patrick"; no errors.
