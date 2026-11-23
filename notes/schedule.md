@@ -758,3 +758,10 @@ Stephen: "a suggest Ping Pong sounds good and that will allow us to review them 
 - Mike: the "PP Suggested" button at the top of the day is "a little too big and distracting ... just a black button with white text".
 - On the black day headers the pill is now black with white text and a faint grey outline, only as wide as its words, on its own line under the day name. Month view and the Ping Pong suggestions list keep the cream pill.
 - CSS only; the v35 tests pass apart from the old "pill is cream" check.
+
+## 2026-11-23 · v37: search finds printed jobs; grey cards say why
+- Mike: search "doesn't seem to want to pull up anything that has been completed or greyed out … not sure what it means when the job card is greyed out … Super Yaki 11168 is greyed out for a heat press impression but not the garment impressions."
+- A grey card = **Run Finished** is ticked on that imprint (it's printed). Operator ticks it when a press run ends; Embroidery / Heat press have no Operator iPad, so Catching ticks it when the job is caught. That's why one print of an order can be grey while its screen prints aren't.
+- Now grey cards show "✓ Printed" (tooltip: "Run Finished ticked", "when it was caught" for heat press / embroidery). Search lists printed jobs too, tagged "✓ Printed"; the Airtable search now returns the newest 50 matches (sorted by date desc) and shows them by date.
+- Read-only change. Tested (Playwright, mocked Airtable): a printed job is found by search with the tag, the card shows ✓ Printed; v36 didn't find it. v35 suite still passes (except the old "pill is cream" check and the noisy request count).
+
