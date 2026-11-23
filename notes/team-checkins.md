@@ -11,20 +11,24 @@ Applies most to the iPad apps the floor lives in: **Catching** (catchers, 2 iPad
 4. Pure bug fixes (something broken) can ship first and be mentioned after.
 
 ## After an update
-- A 2–4 line "what's new" for the floor: what to tap differently. Share it at the next huddle.
+- A 2–4 line "what's new" for the floor: what to tap differently. Share it at the next Wednesday huddle.
 - Ask at the end of the first day: anything confusing or slower?
 
 ## Schedule (proposal — adjust to the shop's rhythm)
 | When | Who | How long | What |
 |---|---|---|---|
-| Weekly, Tuesday after the morning huddle | Catchers + one operator | 10 min at the iPads | What slowed you down this week? Anything you tapped twice? Try anything new in practice mode. |
-| Every 2 weeks, Thursday | Press operators | 10 min | Same questions for Operator (setup/run timers, head settings, proof on press). |
+| Weekly, Wednesday at the huddle | Catchers + one operator | 10 min at the iPads | What slowed you down this week? Anything you tapped twice? Try anything new in practice mode. |
+| Every 2 weeks, Wednesday (after the huddle) | Press operators | 10 min | Same questions for Operator (setup/run timers, head settings, proof on press). |
 | Monthly, first Monday | Production manager, purchasing, receiving, art | 20 min | Desktop apps: Damage Log, Purchasing, Receiving, Seps/Screens/Ink, Mockup Maker. Top 3 asks. |
 | Quarterly | Everyone | 30 min | Bigger changes coming; what to stop, start, keep. |
 
 Keep it short and at the station. One person (Stephen or the production manager) writes the asks in the log below. Build from the log, smallest friction first.
 
+Huddles are Wednesdays only (Stephen, 2026-11-23), so the floor check-ins ride on the Wednesday huddle.
+
 ## Log
 | Date | App | Who | Ask / reaction | Status |
 |---|---|---|---|---|
 | 2026-11-19 | – | Stephen | Set up this schedule; include the team before Catching/Operator updates | started |
+| 2026-11-23 | Operator | Stephen | Operators only see today; tomorrow is still written on the board; no week overview | idea: Week ahead in Operator — show the operators first |
+| 2026-11-23 | all | Stephen | Internal order status page, its own app every app can open | idea |
