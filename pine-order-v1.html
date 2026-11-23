@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<!-- Order v1 (2026-11-23): one internal page per order, so every department sees the same picture.
+     Stephen: better communication between departments ("has come up in a few reviews"). First piece: an order status page
+     that every app can open (links into the other apps come after the review; notes/order-page.md lists where they go).
+     - Open with order.html?order=11164 (order #) or ?id=rec… (Orders record id). Search by order # or customer; with nothing
+       open, the active orders (due soonest first) and the orders you opened lately are there to pick from.
+     - Header: order #, customer, status, rep, due date + Hard deadline / ASAP, ship method / pick-up, pcs, paid, turnaround.
+     - Where it is now: Proof → Garments → Pre-press → Scheduled → Printed → Caught → Shipped / Picked up, each done / now /
+       waiting with the date and who when Airtable has it, and what is holding the order up, in plain words.
+     - Imprints, line items, issues (Order Issues + Backorders) and every department's notes in one place.
+     - Read-only: GET requests only, nothing is ever written. ?practice=1 works (there is nothing to fake).
+     Field IDs come from the apps that write them (Schedule v37, Catching v181, Receiving v91, Purchasing v124, Seps v55,
+     Screens v37, Damage Log v25, Line Item Review v64, worker v55 /proxy/mockups); see notes/order-page.md. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Order v1 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<link rel="stylesheet" href="pine-office-v1.css">
+<script src="pine-update.js" data-link="order.html"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+body{overflow-x:hidden}
+a{color:inherit}
+.p-filters{position:sticky;top:64px;z-index:20}
+@media (min-width:701px){ .p-filters{padding-left:var(--p-page-x);padding-right:var(--p-page-x)} }
+.wrap{padding:16px var(--p-page-x) 48px;max-width:2200px;margin:0 auto}
+.msg{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:20px;display:flex;flex-direction:column;gap:6px;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.msg b{font-size:var(--p-fs-m);color:var(--p-black)}
+.msg.is-alert{border-color:var(--p-alert);color:#7A1414}
+.hint{color:var(--p-ink-3);font-size:var(--p-fs-s)}
+.sec{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:24px 0 10px}
+.sec:first-child{margin-top:0}
+.sec .hint{font-size:var(--p-fs-xs)}
+
+/* home: active + search results */
+.olist{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:8px}
+.olist .p-off-orow+.p-off-orow{margin-top:0}
+.p-off-orow .p-tag{flex:none}
+@media (max-width:420px){ .olist{grid-template-columns:minmax(0,1fr)} }
+
+/* order header */
+.oh{margin-bottom:16px;flex-wrap:wrap}
+.oh .p-off-oh-cust{font-size:22px}
+.oh-l2 span+span::before{content:"·";margin-right:12px;color:var(--p-ink-3)}
+.oh .p-off-oh-nums{gap:20px}
+.oh .p-num small{white-space:nowrap}
+.cancel{margin-bottom:16px}
+
+/* layout: pipeline + notes left, imprints / lines / issues right */
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:1000px){ .grid{grid-template-columns:minmax(360px,5fr) minmax(0,7fr);gap:20px;align-items:start} }
+@media (min-width:1600px){ .grid{grid-template-columns:minmax(420px,4fr) minmax(0,7fr)} }
+.col{min-width:0}
+/* one column (iPad portrait, phone): the pipeline, then imprints / lines / issues, then the notes */
+.notes-wrap{margin-top:24px}
+@media (max-width:999px){ .col-l{display:contents} .pipe{order:1} .col-r{order:2} .notes-wrap{order:3;margin-top:8px} }
+
+/* where it is now */
+.now{background:var(--p-white);border:2px solid var(--p-black);border-radius:var(--p-r-lg);padding:14px 16px;margin-bottom:12px}
+.now-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.now-h .p-label{color:var(--p-ink-2)}
+.now-stage{font:900 22px/1.1 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em}
+.now ul{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.now li{font-size:var(--p-fs-s);padding:6px 10px;border-radius:var(--p-r);background:var(--p-yellow-lt);border-left:4px solid var(--p-yellow)}
+.now li.is-alert{background:var(--p-alert-lt);border-left-color:var(--p-alert);color:#7A1414}
+.now li b{font-weight:800}
+.now .ok{margin-top:8px;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.stages{list-style:none;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:6px 0}
+.st{display:grid;grid-template-columns:32px minmax(0,1fr);gap:0 12px;padding:10px 16px;position:relative}
+.st::before{content:"";position:absolute;left:31px;top:0;bottom:0;width:2px;background:var(--p-line)}
+.st:first-child::before{top:22px}.st:last-child::before{bottom:calc(100% - 22px)}
+.st-dot{position:relative;z-index:1;width:28px;height:28px;border-radius:50%;border:2px solid var(--p-line-strong);background:var(--p-white);display:flex;align-items:center;justify-content:center;font:800 14px/1 var(--p-sans);margin-top:-2px}
+.st.is-done .st-dot{background:var(--p-black);border-color:var(--p-black);color:var(--p-white)}
+.st.is-now{background:var(--p-yellow-lt);box-shadow:inset 4px 0 0 var(--p-yellow)}
+.st.is-now .st-dot{background:var(--p-yellow);border-color:var(--p-black)}
+.st.is-na .st-name{color:var(--p-ink-3)}
+.st-h{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap}
+.st-name{font:800 var(--p-fs-m)/1.3 var(--p-sans)}
+.st-when{font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.st-d{list-style:none;font-size:var(--p-fs-s);color:var(--p-ink-2);margin-top:3px;display:flex;flex-direction:column;gap:2px}
+.st-d b{color:var(--p-black);font-weight:700}
+.st-d .bad{color:var(--p-alert);font-weight:700}
+.st .p-tag{height:22px;font-size:var(--p-fs-xs)}
+
+/* notes */
+.notes{display:flex;flex-direction:column;gap:8px}
+.note{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:10px 14px}
+.note-h{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;font-size:var(--p-fs-xs);color:var(--p-ink-2);margin-bottom:4px}
+.note-h .p-tag{height:22px;font-size:var(--p-fs-xs)}
+.note-h .when{margin-left:auto}
+.note-t{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--p-fs-s);line-height:1.45}
+.note-t.is-long{max-height:8.7em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent)}
+.note .more{margin-top:4px;min-height:32px}
+
+/* imprints */
+.imp{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:12px}
+.imp+.imp,.li+.li,.iss+.iss{margin-top:8px}
+.thumb{position:relative;display:flex;align-items:center;justify-content:center;width:132px;height:132px;border:1px solid var(--p-line);border-radius:var(--p-r);background:var(--p-white);overflow:hidden;text-decoration:none}
+.thumb img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.thumb .p-tag{position:absolute;left:4px;bottom:4px;height:22px;font-size:var(--p-fs-xs)}
+.thumb.none{background:var(--p-cream-lt);color:var(--p-ink-3);font-size:var(--p-fs-xs);text-align:center;padding:8px}
+.imp-h{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.imp-h b{font-size:var(--p-fs-m)}
+.imp-sub{font-size:var(--p-fs-s);color:var(--p-ink-2);margin-top:2px}
+.chk{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 16px;margin-top:8px;font-size:var(--p-fs-s)}
+.chk li{display:flex;gap:6px;align-items:baseline;min-width:0}
+.chk i{font-style:normal;flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--p-line-strong);display:inline-flex;align-items:center;justify-content:center;font:800 12px/1 var(--p-sans);transform:translateY(3px)}
+.chk li.is-done i{background:var(--p-black);border-color:var(--p-black);color:var(--p-white)}
+.chk li.is-wait i{background:var(--p-yellow);border-color:var(--p-black)}
+.chk li.is-na{color:var(--p-ink-3)}
+.chk span{min-width:0;overflow-wrap:anywhere}
+.chk small{color:var(--p-ink-2);font-size:var(--p-fs-xs)}
+.inks{margin-top:8px;font-size:var(--p-fs-s);overflow-wrap:anywhere}
+.inks .p-label{margin-right:6px}
+.imp-links{margin-top:6px;display:flex;gap:4px 14px;flex-wrap:wrap}
+@media (max-width:560px){ .imp{grid-template-columns:88px minmax(0,1fr);gap:10px} .thumb{width:88px;height:88px} }
+
+/* line items */
+.li{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:12px}
+.li-h{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.li-h b{font-size:var(--p-fs-m)}
+.li-sub{font-size:var(--p-fs-s);color:var(--p-ink-2);margin-top:2px}
+.li .p-tags{margin-top:8px}
+.sz{margin-top:8px;overflow-x:auto;max-width:100%}
+.sz table{border-collapse:collapse;font-size:var(--p-fs-s);font-variant-numeric:tabular-nums}
+.sz th,.sz td{padding:3px 10px 3px 0;text-align:right;white-space:nowrap}
+.sz th{font:700 var(--p-fs-xs)/1.2 var(--p-sans);color:var(--p-ink-2);text-transform:uppercase;letter-spacing:.03em}
+.sz th:first-child,.sz td:first-child{text-align:left;padding-right:14px}
+.sz td.short{color:var(--p-alert);font-weight:700}
+.sz tr.tot td,.sz tr.tot th{font-weight:800}
+
+/* issues */
+.iss{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:12px}
+.iss.is-open{border-left:4px solid var(--p-alert)}
+.iss.is-wait{border-left:4px solid var(--p-yellow)}
+.iss-h{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.iss-h b{font-size:var(--p-fs-m)}
+.iss-sub{font-size:var(--p-fs-s);color:var(--p-ink-2);margin-top:2px}
+.iss-t{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--p-fs-s);margin-top:6px}
+.empty{font-size:var(--p-fs-s);color:var(--p-ink-3);padding:4px 2px}
+.loading{font-size:var(--p-fs-s);color:var(--p-ink-3);padding:8px 2px}
+</style>
+</head>
+<body class="p-app p-off">
+<header class="p-bar p-off-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Order</span><span class="p-bar-ver" id="ver">v1</span>
+  <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Load the order again and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="p-menu" id="gear" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row"><div class="p-menu-label">Airtable token</div>
+      <div class="p-menu-line"><input id="tokIn" class="p-input" type="password" placeholder="pat…" autocomplete="off" aria-label="Airtable token"><button class="p-btn p-btn-dark" id="tokSave" type="button">Save</button></div>
+      <p id="tokHint" class="hint"></p></div>
+    <div class="p-menu-row"><div class="p-menu-label">Practice</div><p class="hint" id="pracHint">This page only reads Airtable, so practice and live look the same.</p></div>
+  </div>
+</header>
+<form class="p-filters" id="findForm" role="search">
+  <input id="q" class="p-input p-search" type="search" placeholder="Order # or customer" autocomplete="off" aria-label="Find an order">
+  <button class="p-btn p-btn-dark" type="submit">Find</button>
+  <button class="p-btn" type="button" id="homeBtn" hidden>Active orders</button>
+  <div class="p-chips p-chips-inline" id="recent" aria-label="Opened lately" hidden></div>
+</form>
+<main class="wrap" id="main"><div class="loading">Loading…</div></main>
+<script>
+var BASE='appJkaLk8DykjsgHR';
+var T={ord:'tbl8Tf0AeS9gnHOOS',li:'tblJx5UlwO7oMSk5H',imp:'tbln9oAGvz2PNBZLV',iss:'tblEplYB3mtIBBcpi',bo:'tblYvkScMwZ8HwdDP'};
+/* Orders (field IDs as in Shipping v12, Damage Log v25, Receiving v91, pine-signed.js) */
+var O={num:'fld4S3B5yJANKlE7l',cust:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',rep:'fldSPnWlnzz48ZZDD',due:'fldphJYdlBNS0dmAK',hard:'fldMFfWyYJ6ZQDte6',
+  ship:'fldrjFuIBn45ewFU5',pcs:'fldWQYE3o2IZjZXSU',paid:'fld5RAeEEGMltdES0',completed:'fldaqChiFnKJ5HN1N',turn:'fldgqHgqks65JXTid',toDue:'fldMHViMzZcmBqOzm',
+  lines:'fldU6fgrz6sU3wyIZ',prints:'fldFbR56c4K4xRow7',issues:'fldBQ2Zm9j1ZCMLrs',bos:'fldHMjz2FH70tUjzK',panda:'fldqIIPwPEJXL7Efu',packet:'fldSwLl9yIMSXcT0Y',
+  signedAt:'fld2h7L1aqDHPfcQM',tracking:'fldLjGNoUKrxuX0O7',carrier:'fldjSezoa5NtveYvm',shipDate:'fldlMlDIr9hLYFfbL',boxes:'fldu7dXQAwg3S974s',
+  notes:'fldh9WFXo6qhAahaQ',orderNotes:'fldzzDJNF6rvTCmRq',handoff:'fldu2NmUdYx6yd9DU',refundReq:'fldga8BAM7XzmgDI9',art:'flddst7TDoJfSqb0s',created:'fldXUjQHSeRaW5per'};
+/* Line Items */
+var L={garment:'fldKhz9uZgXwfeIto',colour:'fldoXTRyLP4SshFZ0',nick:'fldKb7r8o7uvj1iEd',ptype:'fld8LIkrBXv8WoRRb',imps:'fldTFz4ZzfOthqkg6',impIds:'fldmGRcdXyvheWjmv',
+  total:'fldFfuKAcduwWQp8g',ordered:'fldBnjGyTLLjzz97l',orderedAt:'fldhDUejzo0Q4X92k',received:'fldwaSkM0sJJ2oYsQ',receivedAt:'fldmMViJMYizJfOev',
+  po:'fldIUAnkNscvEVDjU',supplier:'fldj5Oq8JVUocLzS2',arrival:'fld9EfCdiP8cgSepO',stock:'fldH2Hdp1kk5LmlY9',
+  misship:'fldDlrzYoe2q31K0U',misshipRes:'fldt0vrDUpL3eKatw',misshipDet:'fldQP8hzBdUXl50Io',
+  rpOrdered:'fldEZmyBBJzI4mrOb',rpReceived:'fldeGE2Lyi4ZOA1zF',rpPo:'fldcaFxMwfli5cR2K',rpOrder:'fldLaOaYriGPxxQMu',rpQty:'fldatIwNPZdUHXWgp',
+  proofs:'flddhvdkKI31tFTdX',signed:'fldYeu8XZgBNSQ3N6',check:'fldzHcS22EcdZ3xwN',proofOk:'fldsVU7LXUN6LszvB',proofAt:'fldvrHQZfKTE4H0BB',
+  issues:'fldHCpuwNVpgkcwHp',bos:'fldY9KHcYHQi88P1j',
+  proofing:'fldWdnT83KLEvBrg4',sales:'fldG3tzTzUC3QQJ1I',lineNotes:'fldF378cgWuOcWNL6',prodNotes:'fld4FjoCQ5bXdwjJj',shipNotes:'fld7rY74m37acM2Ik',
+  finNotes:'fldqsj7nZgHrtRbEn',dmgNotes:'fldluAKxFLXEDVwqP'};
+/* sizes: [label, ordered, extras, received (Actual)] — Receiving v91 / worker /proxy/mockups */
+var SIZES=[['XS','fldVA9ZmYxhDxtnYZ','fldKcVhxgaclD1csp','fldam6SyOjB3VebzQ'],['S','fldCZr5lB6Jx80lfG','fldgf19Xi1VDqro4Q','fldM6F2oo5fV9zPse'],
+  ['M','fldzTs1qKe9IBxxSn','fldWxiQEIFsqwxFW1','fldejqlR3EGch1svc'],['L','fldnRLJxjUDa1mQTj','fldclPpJQpcXuT4Wn','fldn3bdKPd3LkuuP3'],
+  ['XL','fldTRgdexcpBXXQPv','fldWjibddJoIC1JGu','fldVsaOkMG6JglWv3'],['2XL','fldin7j6uGO0uRTec','fldgd2JZCSS3YBYX2','fld1YCamiJYBRjoZL'],
+  ['3XL','fldpltq9fdRkrvIvt','fldbht14x4cRBPRVL','fld1itap3IIl4UbST'],['4XL','fldrsci7JnToa43Zd','fldLyB756Va085UDj','fldkPODsJyE4OZXXZ'],
+  ['5XL','fldchnRSKFukouW6N','fldHZ0WmjhzF34noZ','fldJpbBIdckvwHj7K'],['6XL','fldI8gTtsEJwg33BI',null,null],['OSFA','fld2bgIlmPbANgLVK','fldKS4Jk6aZvxR4Nn','fldcseeXJjlFbIBhA']];
+/* Imprints (Schedule v37, Catching v181, Seps / Screens / Ink) */
+var I={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',inks:'fldMM5hp8kEpo3KKT',
+  pantone:'fldzEbYXESOVnYrtw',sepd:'fldlMcHtldbifKzDN',sepdAt:'fldCkjATjNnBb7Aam',separator:'fldTPKgZroX532qER',burned:'fldEL51Nwrxuyn9Zo',burnedAt:'fldGE6YUG5NWIqq1g',
+  inksReady:'fld2a1CPcDMSD26PS',inksAt:'fldnNmTNevL1AHrXQ',trims:'fldHqiXg8OqOc1dcV',start:'fldfqtIgcEfIlIeQk',equip:'fldv59OGU7EkBVofo',locked:'fldYD2VrhaLfkXXkw',
+  rpLock:'flduvuUWAzzDYby6y',setup:'fldsYmRn7FwmWCH97',running:'fldmnZof3Dce60JKv',finished:'fldFuDZ68QdUMt3pM',finishedAt:'fldtoIc7CRd5sXeBS',operator:'fldOsVUlfs3U847oO',
+  caught:'fldIo2EmE7b25vtfS',caughtAt:'fldfwVYinDPnvwOJn',lines:'fldsvntAy1QHEoDAg',qty:'fldFipR4ddfqMPeAX',repeat:'flda9L7041ahNZT0b',
+  printNotes:'fldNuEzGIYI8FWqXu',inkNotes:'fldk0Zbjyuh5NEIE8',schedNotes:'fldjlfaH3dOBCtuTM',jobComments:'fldnBE4NLaajisvcb'};
+/* Order Issues (Damage Log v25) */
+var X={id:'fldrDXAUR87KX4vsp',desc:'fldgpnNu2zyw43BFb',status:'fldfLAjmK6XZqki9S',line:'fldZXHOSnXHsMfO7k',res:'fldAT3sfeVSAqTRvk',cat:'fldl1rfconiE3AS4Z',
+  originator:'fldmhkNWneLhdNPLa',pcs:'fldC7uIwyU6QeHbZi',impIds:'fldTIt2Ql4I19VsT0',created:'fldYuJudwBRFz50h0',resDesc:'fldXIX7FW4vGlfUmP',notes:'fldNAA90J3W40EsCQ',
+  approved:'fldpiZYluCb72W1vs',garment:'fldl5nOI7tgZD02Yl'};
+/* Backorders (Catching v181 / Purchasing v124) */
+var B={line:'fldY8R2fhM7vedBTU',vendor:'fldZJ6FyIWHIi3F5n',style:'fldewwkrrVTjHr8eF',colour:'fldrJLSJFesde0bP7',sizes:'fldnPRCNV3gxiGWJ3',qty:'fldOlt5JWDAswq0rZ',
+  status:'fldRkAyDlbvq6zVKi',stock:'fldlPey8fqF3xejlT',eta:'flda5Q2gleN1jYqea',notes:'fld18fwYwUh9Dd5DI',po:'fldqXyLAFn6s4RT12',changed:'fldQaOlNgozDi4hMV'};
+
+var RANK={'Awaiting Proof':0,'Sent - Awaiting Payment':1,'Ready to Order':2,'Ordered - In Production':3,'Pre-press':3,'Delayed - Mis-Shipment - Needs Order':3,
+  'Scheduled, Screened, & Inbound':4,'Received & Staged':4,'On-Press':5,'Delayed - Mis-Print':5,'Delayed - Mis-Print - Needs Order':5,'Caught - Awaiting Ship':6,
+  'Shipped':7,'Completed':7,'Partially Completed':7,'Cancelled / Voided':-1};
+var DONE_ST=['Shipped','Completed','Cancelled / Voided','Partially Completed'];
+var SCREEN_TYPES=['Discharge','No Base W/B','Bleed Blocker + W/B','EZP Base + W/B','Flatstock'];
+var BO_OPEN=['Waiting','Back in stock','ETA reached','Ordered'];
+var PRACTICE=/[?&]practice=1/.test(location.search);
+var S={o:null,lines:[],imps:[],issues:[],bos:[],comments:null,commentsErr:false,part:{},seq:0,home:null};
+
+function $(id){return document.getElementById(id);}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+function token(){return store('pine_at_key')||'';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+/* Airtable values → plain text / arrays */
+function txt(v){ if(v==null) return ''; if(Array.isArray(v)) return v.map(txt).filter(Boolean).join(', '); if(typeof v==='object') return v.name||v.filename||v.text||''; return String(v).trim(); }
+function arr(v){ return v==null||v===''?[]:Array.isArray(v)?v:[v]; }
+function ids(v){ return arr(v).map(function(x){return typeof x==='string'?x:x&&x.id;}).filter(function(x){return /^rec[A-Za-z0-9]{14}$/.test(x||'');}); }
+function num(v){ if(Array.isArray(v)) return v.reduce(function(a,x){return a+num(x);},0); var n=parseFloat(v); return isNaN(n)?0:n; }
+function yes(v){ return Array.isArray(v)?v.some(yes):v===true||v===1||v==='1'||v==='true'; }
+function plural(n,w){ return n+' '+w+(n===1?'':'s'); }
+
+/* dates. Date fields ("2026-11-25") are calendar days; Scheduled Start Time is shop clock time marked Z (08:30Z = 8:30 am,
+   Schedule / Operator); every other date-time is a real moment, shown in this computer's time. */
+var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pd(v){ v=arr(v)[0]; if(!v) return null; var s=String(v); var m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m) return new Date(+m[1],m[2]-1,+m[3]); var d=new Date(s); return isNaN(d)?null:d; }
+function shop(v){ v=arr(v)[0]; if(!v) return null; var d=new Date(String(v)); return isNaN(d)?null:new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCHours(),d.getUTCMinutes()); }
+function day0(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+function today(){ return day0(new Date()); }
+function dd(a,b){ return Math.round((day0(b)-day0(a))/864e5); }
+function fDay(d){ return d?DOW[d.getDay()]+' '+MON[d.getMonth()]+' '+d.getDate():''; }
+function fShort(d){ if(!d) return ''; var s=MON[d.getMonth()]+' '+d.getDate(); return d.getFullYear()!==today().getFullYear()?s+', '+d.getFullYear():s; }
+function fTime(d){ var h=d.getHours(), m=d.getMinutes(); return (h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+(h<12?'a':'p'); }
+function rel(d){ if(!d) return ''; var n=dd(today(),d); return n===0?'today':n===1?'tomorrow':n===-1?'yesterday':(Math.abs(n)<7?fDay(d):fShort(d)); }
+function relT(d){ return d?rel(d)+' '+fTime(d):''; }
+function workdays(a,b){ var n=0, d=day0(a), e=day0(b); while(d<e){ d.setDate(d.getDate()+1); if(d.getDay()%6) n++; } return n; }
+function latest(list){ var m=null; list.forEach(function(d){ if(d&&(!m||d>m)) m=d; }); return m; }
+
+/* ---------- Airtable (GET only) ---------- */
+function AtErr(msg,status){ this.message=msg; this.status=status; }
+async function at(path,tries){
+  tries=tries||0;
+  var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+path,{headers:{Authorization:'Bearer '+token()}});
+  if(r.status===429&&tries<3){ await new Promise(function(res){setTimeout(res,1100*(tries+1));}); return at(path,tries+1); }
+  var j=await r.json().catch(function(){return {};});
+  if(!r.ok) throw new AtErr((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status),r.status);
+  return j;
+}
+function fq(fields){ return fields.map(function(f){return '&fields%5B%5D='+f;}).join(''); }
+async function list(tbl,o){
+  var out=[], off='';
+  do{ var j=await at(tbl+'?returnFieldsByFieldId=true&pageSize=100'+(o.formula?'&filterByFormula='+encodeURIComponent(o.formula):'')+(o.max?'&maxRecords='+o.max:'')+
+      (o.sort?'&sort%5B0%5D%5Bfield%5D='+encodeURIComponent(o.sort)+'&sort%5B0%5D%5Bdirection%5D='+(o.dir||'asc'):'')+fq(o.fields)+(off?'&offset='+encodeURIComponent(off):''));
+    out=out.concat(j.records||[]); off=j.offset||''; }while(off&&(!o.max||out.length<o.max));
+  return out;
+}
+async function byIds(tbl,list_,fields){
+  var u=list_.filter(function(x,i){return list_.indexOf(x)===i;}), parts=[];
+  for(var i=0;i<u.length;i+=40) parts.push(list(tbl,{formula:'OR('+u.slice(i,i+40).map(function(id){return "RECORD_ID()='"+id+"'";}).join(',')+')',fields:fields}));
+  var got=[].concat.apply([],await Promise.all(parts)), map={}; got.forEach(function(r){map[r.id]=r;});
+  return u.map(function(id){return map[id];}).filter(Boolean);   // keep the order's own order
+}
+function vals(o){ return Object.keys(o).map(function(k){return o[k];}); }
+var LINE_FIELDS=vals(L).concat([].concat.apply([],SIZES.map(function(s){return s.slice(1).filter(Boolean);})));
+
+/* ---------- routing ---------- */
+function params(){ return new URLSearchParams(location.search); }
+function go(q,push){ var p=params(), keep=PRACTICE?'practice=1':''; var s=[q,keep].filter(Boolean).join('&'); var url=location.pathname+(s?'?'+s:'');
+  if(push) history.pushState(null,'',url); else history.replaceState(null,'',url); route(); }
+function route(){
+  var p=params(), on=(p.get('order')||'').replace(/\D/g,''), id=p.get('id')||'';
+  if(!token()){ showMenu(true); $('main').innerHTML='<div class="msg"><b>Paste the Airtable token</b>Open ⚙ (top right) and paste it once. It stays on this computer.</div>'; return; }
+  if(/^rec[A-Za-z0-9]{14}$/.test(id)) return openOrder({id:id});
+  if(on) return openOrder({num:on});
+  if(p.get('q')){ $('q').value=p.get('q'); return search(p.get('q'),true); }
+  home();
+}
+window.addEventListener('popstate',route);
+
+/* ---------- home: active orders + recent ---------- */
+var HOME_FIELDS=[O.num,O.cust,O.status,O.due,O.hard,O.rep,O.pcs];
+function orow(r){ var f=r.fields, st=txt(f[O.status]), due=pd(f[O.due]), late=due&&dd(today(),due)<0&&DONE_ST.indexOf(st)<0;
+  return '<button class="p-off-orow" type="button" data-num="'+esc(txt(f[O.num]))+'"><span class="p-id">#'+esc(txt(f[O.num]))+'</span>'+
+    '<span class="p-off-orow-cust">'+esc(txt(f[O.cust])||'No customer')+'</span>'+
+    '<span class="p-off-orow-sub">'+esc([st,due?'Due '+fDay(due):'',txt(f[O.rep])].filter(Boolean).join(' · '))+'</span>'+
+    '<span class="p-off-orow-end">'+(late?'<span class="p-tag p-tag-alert">Late</span>':txt(f[O.hard])==='Hard Deadline'?'<span class="p-tag">Hard</span>':'')+'</span></button>'; }
+function bindRows(root){ root.querySelectorAll('[data-num]').forEach(function(b){ b.onclick=function(){ go('order='+b.dataset.num,true); }; }); }
+async function home(){
+  S.o=null; $('homeBtn').hidden=true; document.title='Order v1 — Pine'; renderRecent();
+  var seq=++S.seq, m=$('main');
+  if(!S.home) m.innerHTML='<div class="loading">Loading active orders…</div>';
+  try{
+    if(!S.home) S.home=await list(T.ord,{formula:'AND({Invoice / Order Number},'+DONE_ST.map(function(s){return "{Order Status}!='"+s+"'";}).join(',')+')',fields:HOME_FIELDS,max:300});
+    if(seq!==S.seq) return;
+    var rows=S.home.slice().sort(function(a,b){ var x=pd(a.fields[O.due]), y=pd(b.fields[O.due]); return (x?x.getTime():9e15)-(y?y.getTime():9e15); });
+    m.innerHTML='<div class="sec"><span class="p-section">Active orders <span class="p-count">'+rows.length+'</span></span><span class="hint">Due soonest first. Search by order # or customer above.</span></div>'+
+      (rows.length?'<div class="olist">'+rows.map(orow).join('')+'</div>':'<div class="empty">No active orders.</div>');
+    bindRows(m);
+  }catch(e){ if(seq===S.seq) fail(e); }
+}
+function recentList(){ try{ return JSON.parse(store('pine_order_recent')||'[]')||[]; }catch(e){ return []; } }
+function addRecent(n,c){ var l=recentList().filter(function(x){return x.n!==n;}); l.unshift({n:n,c:c}); store('pine_order_recent',JSON.stringify(l.slice(0,6))); }
+function renderRecent(){ var l=recentList(), cur=S.o&&txt(S.o.fields[O.num]); l=l.filter(function(x){return x.n!==cur;});
+  $('recent').hidden=!l.length;
+  $('recent').innerHTML=l.map(function(x){return '<button class="p-tab" type="button" data-num="'+esc(x.n)+'" title="'+esc(x.c)+'">#'+esc(x.n)+'</button>';}).join('');
+  bindRows($('recent')); }
+
+/* ---------- search ---------- */
+async function search(q,fromUrl){
+  q=String(q||'').trim(); if(!q) return home();
+  var seq=++S.seq, m=$('main'); S.o=null; $('homeBtn').hidden=false; renderRecent();
+  m.innerHTML='<div class="loading">Finding “'+esc(q)+'”…</div>';
+  var digits=/^#?\d{3,7}$/.test(q), s=q.replace(/^#/,'').replace(/["\\]/g,'');
+  var f=digits?'{Invoice / Order Number}='+s:"FIND(LOWER(\""+s+"\"),LOWER({[TEXT] Customer Name}&''))";
+  try{
+    var rows=await list(T.ord,{formula:f,fields:HOME_FIELDS,max:40,sort:'Creation Date',dir:'desc'});
+    if(seq!==S.seq) return;
+    if(digits&&rows.length===1&&!fromUrl) return go('order='+txt(rows[0].fields[O.num]),true);
+    m.innerHTML='<div class="sec"><span class="p-section">Found <span class="p-count">'+rows.length+'</span></span><span class="hint">“'+esc(q)+'”, newest first</span></div>'+
+      (rows.length?'<div class="olist">'+rows.map(orow).join('')+'</div>':'<div class="empty">No order matches. Try the order number or part of the customer name.</div>');
+    bindRows(m);
+  }catch(e){ if(seq===S.seq) fail(e); }
+}
+function fail(e){ var auth=e&&(e.status===401||e.status===403);
+  $('main').innerHTML='<div class="msg is-alert"><b>'+(auth?'Airtable refused the token':'Could not load from Airtable')+'</b>'+esc(e&&e.message||e)+(auth?' · Check the token in ⚙.':' · Tap Refresh to try again.')+'</div>';
+  if(auth) showMenu(true); }
+
+/* ---------- one order ---------- */
+async function openOrder(k){
+  var seq=++S.seq, m=$('main'); $('homeBtn').hidden=false;
+  S.o=null; S.lines=[]; S.imps=[]; S.issues=[]; S.bos=[]; S.comments=null; S.commentsErr=false; S.part={};
+  m.innerHTML='<div class="loading">Loading order '+esc(k.num||'')+'…</div>';
+  try{
+    var rows=await list(T.ord,{formula:k.id?"RECORD_ID()='"+k.id+"'":'{Invoice / Order Number}='+k.num,fields:vals(O),max:1});
+    if(seq!==S.seq) return;
+    if(!rows.length){ m.innerHTML='<div class="msg"><b>No order '+esc(k.num||k.id)+'</b>Check the number, or search by customer above.</div>'; return; }
+    var o=S.o=rows[0], f=o.fields;
+    addRecent(txt(f[O.num]),txt(f[O.cust])); renderRecent();
+    document.title='#'+txt(f[O.num])+' '+txt(f[O.cust])+' — Order';
+    render();                                                             // header first
+    var pL=byIds(T.li,ids(f[O.lines]),LINE_FIELDS), pI=byIds(T.imp,ids(f[O.prints]),vals(I)),
+        pX=byIds(T.iss,ids(f[O.issues]),vals(X)), pB=byIds(T.bo,ids(f[O.bos]),vals(B));
+    var lines=await pL; if(seq!==S.seq) return; S.lines=lines; S.part.lines=true;
+    var moreI=[], moreX=[], moreB=[];
+    lines.forEach(function(l){ ids(l.fields[L.imps]).forEach(function(x){moreI.push(x);}); ids(l.fields[L.issues]).forEach(function(x){moreX.push(x);}); ids(l.fields[L.bos]).forEach(function(x){moreB.push(x);}); });
+    var r=await Promise.all([pI,pX,pB]); if(seq!==S.seq) return;
+    var have=function(a,list_){ return list_.filter(function(x){ return !a.some(function(r){return r.id===x;}); }); };
+    var extra=await Promise.all([byIds(T.imp,have(r[0],moreI),vals(I)),byIds(T.iss,have(r[1],moreX),vals(X)),byIds(T.bo,have(r[2],moreB),vals(B))]);
+    if(seq!==S.seq) return;
+    S.imps=sortImps(r[0].concat(extra[0])); S.issues=r[1].concat(extra[1]); S.bos=r[2].concat(extra[2]); S.part.all=true;
+    render();
+    loadComments(seq);
+  }catch(e){ if(seq===S.seq) fail(e); }
+}
+function sortImps(list_){ return list_.sort(function(a,b){ return txt(a.fields[I.id]).localeCompare(txt(b.fields[I.id]),undefined,{numeric:true}); }); }
+/* Line Item comments (the record comments API, as Line Item Review); needs the token's comments read scope */
+async function loadComments(seq){
+  var out=[];
+  try{
+    await Promise.all(S.lines.map(async function(l){ var j=await at(T.li+'/'+l.id+'/comments?pageSize=100');
+      (j.comments||[]).forEach(function(c){ out.push({line:l,c:c}); }); }));
+  }catch(e){ S.commentsErr=true; }
+  if(seq!==S.seq) return; S.comments=out; renderNotes();
+}
+
+/* ---------- model ---------- */
+function impKind(f){ var t=txt(f[I.type]); if(SCREEN_TYPES.indexOf(t)>=0) return 'screen'; if(/^Finishing/.test(t)) return 'finish'; if(t==='Embroidery') return 'emb';
+  if(t) return 'trim'; return num(f[I.screens])>0?'screen':'other'; }
+function impLabel(f){ return txt(f[I.id])||'Imprint'; }
+function lineName(l){ var f=l.fields; return txt(f[L.garment])||txt(f[L.nick])||'Line item'; }
+function lineQty(f){ var o=0,e=0,a=0; SIZES.forEach(function(s){ o+=num(f[s[1]]); if(s[2]) e+=num(f[s[2]]); if(s[3]) a+=num(f[s[3]]); }); return {ord:o,ext:e,want:o+e,act:a}; }
+function isGarment(l){ var t=txt(l.fields[L.ptype]); return !/^(Artwork|Pre-Order Setup Fees|Misc\.)$/.test(t)&&(lineQty(l.fields).ord>0||num(l.fields[L.total])>0); }
+function boOpen(b){ return BO_OPEN.indexOf(txt(b.fields[B.status]))>=0; }
+function boText(b){ var f=b.fields; return [txt(f[B.style]),txt(f[B.colour])].filter(Boolean).join(' ')+(txt(f[B.sizes])?' · '+txt(f[B.sizes]):'')+(num(f[B.qty])?' ×'+num(f[B.qty]):''); }
+function issueOpen(x){ var s=txt(x.fields[X.status]); return s==='Awaiting Review'||s==='In progress'; }
+function pickup(){ return /pick-?up/i.test(txt(S.o.fields[O.ship])); }
+function linesOfImp(im){ var li=ids(im.fields[I.lines]); return S.lines.filter(function(l){ return li.indexOf(l.id)>=0||ids(l.fields[L.imps]).indexOf(im.id)>=0; }); }
+
+/* The seven stages. state: done | now | wait | na. d = detail lines (html), b = what holds it up ({t, alert}) */
+function stages(){
+  var f=S.o.fields, st=txt(f[O.status]), rank=RANK[st]==null?0:RANK[st], lines=S.lines, imps=S.imps, all=!!S.part.all;
+  var out=[];
+  /* 1 Proof */
+  (function(){ var s={k:'proof',name:'Proof',d:[],b:[]};
+    var signedAt=pd(f[O.signedAt]), packet=arr(f[O.packet]).length>0, sent=!!txt(f[O.panda])||rank>=1;
+    var withProof=lines.filter(function(l){return arr(l.fields[L.proofs]).length;}), ok=lines.filter(function(l){return yes(l.fields[L.proofOk]);});
+    var sLines=lines.filter(function(l){return arr(l.fields[L.signed]).length;});
+    var signed=!!(signedAt||packet)||(lines.length&&sLines.length===lines.length);
+    if(signed){ s.state='done'; s.when=signedAt?'Signed '+rel(signedAt):'Signed'; }
+    else if(rank>=2){ s.state='done'; s.when='Approved'; s.d.push('No signed packet saved in Airtable'); }
+    else if(sent){ s.state='now'; s.when='Sent'; s.b.push({t:'Waiting on the customer to sign the proof'}); }
+    else if(withProof.length){ s.state='now'; s.when='In review'; s.b.push({t:'Proofs in review: '+ok.length+' of '+lines.length+' lines approved'}); }
+    else { s.state=lines.length||!all?'wait':'wait'; s.b.push({t:'Waiting on proofs from Art'}); }
+    if(lines.length) s.d.push('<b>'+sLines.length+' of '+lines.length+'</b> lines have their signed page'+(withProof.length<lines.length?' · '+(lines.length-withProof.length)+' without a proof':''));
+    lines.forEach(function(l){ var c=txt(l.fields[L.check]); if(!c) return; var first=c.split('\n')[0], ii=txt(l.fields[L.impIds])||lineName(l);
+      if(/^\s*CHECK/i.test(first)) s.b.push({t:ii+': signed page doesn\'t match ('+first.replace(/^\s*CHECK\s*·?\s*/i,'')+')',alert:true});
+      else if(/^\s*NOT INITIALED/i.test(first)) s.b.push({t:ii+': customer didn\'t initial the proof'+(first.match(/page \d+/i)?' ('+first.match(/page \d+/i)[0]+')':'')}); });
+    var paid=pd(f[O.paid]);
+    s.d.push(paid?'Paid '+rel(paid):'<span>Not paid yet</span>');
+    if(!paid&&signed&&rank<3) s.b.push({t:'Waiting on payment'});
+    out.push(s); })();
+  /* 2 Garments */
+  (function(){ var s={k:'garments',name:'Garments',d:[],b:[]};
+    var g=lines.filter(isGarment), ord=g.filter(function(l){return yes(l.fields[L.ordered])||yes(l.fields[L.stock]);}), rec=g.filter(function(l){return yes(l.fields[L.received]);});
+    var pos=[]; g.forEach(function(l){ var p=txt(l.fields[L.po]), v=txt(l.fields[L.supplier]); if(p) pos.push(p+(v?' ('+v+')':'')); });
+    pos=pos.filter(function(x,i){return pos.indexOf(x)===i;});
+    if(!g.length){ s.state=all?'na':'wait'; s.when=all?'No garments to order':''; }
+    else if(rec.length===g.length){ s.state='done'; var t=latest(rec.map(function(l){return pd(l.fields[L.receivedAt]);})); s.when='All in'+(t?' '+rel(t):''); }
+    else if(ord.length){ s.state='now'; s.when=rec.length?rec.length+' of '+g.length+' lines in':'Ordered'; }
+    else s.state='wait';
+    if(g.length) s.d.push('Ordered <b>'+ord.length+' of '+g.length+'</b>'+(pos.length?' · PO '+esc(pos.join(', ')):''));
+    if(g.length&&rec.length) s.d.push('In <b>'+rec.length+' of '+g.length+'</b>');
+    g.forEach(function(l){ var lf=l.fields, q=lineQty(lf), nm=lineName(l);
+      if(yes(lf[L.misship])&&!yes(lf[L.misshipRes])) s.b.push({t:'Mis-ship on '+nm+(txt(lf[L.misshipDet])?': '+txt(lf[L.misshipDet]).split('\n')[0]:''),alert:true});
+      if(yes(lf[L.received])&&q.act>0&&q.act<q.want) s.d.push('<span class="bad">'+esc(nm)+': '+q.act+' of '+q.want+' in</span>');
+      if(!yes(lf[L.received])&&(yes(lf[L.ordered])||yes(lf[L.stock]))){ var eta=pd(lf[L.arrival]); s.b.push({t:'Not in yet: '+nm+(txt(lf[L.po])?' (PO '+txt(lf[L.po])+')':'')+(eta?' · expected '+rel(eta):'')}); }
+      if(!yes(lf[L.ordered])&&!yes(lf[L.stock])&&rank>=2) s.b.push({t:'Not ordered yet: '+nm}); });
+    S.bos.filter(boOpen).forEach(function(b){ var bf=b.fields, eta=pd(bf[B.eta]), stt=txt(bf[B.status]);
+      s.b.push({t:'Backorder: '+boText(b)+' · '+stt+(eta?' · restock '+rel(eta):'')+(stt==='Back in stock'&&txt(bf[B.stock])?' · '+txt(bf[B.stock]).split('\n')[0]:'')}); });
+    out.push(s); })();
+  /* 3 Pre-press */
+  (function(){ var s={k:'prepress',name:'Pre-press',d:[],b:[]};
+    var need=imps.filter(function(im){ var k=impKind(im.fields); return k==='screen'||k==='trim'; }), done=0, any=0, when=[], who=[];
+    need.forEach(function(im){ var x=im.fields, k=impKind(x), id=impLabel(x), miss=[];
+      if(k==='screen'){ if(!yes(x[I.sepd])) miss.push('not sep\'d'); if(!yes(x[I.burned])) miss.push('screens not burned'); if(!yes(x[I.inksReady])) miss.push('inks not mixed');
+        if(yes(x[I.sepd])||yes(x[I.burned])||yes(x[I.inksReady])) any++;
+        when.push(pd(x[I.sepdAt]),pd(x[I.burnedAt]),pd(x[I.inksAt])); if(txt(x[I.separator])) who.push(txt(x[I.separator])); }
+      else { if(!yes(x[I.trims])) miss.push(yes(x[I.sepd])?'transfers ordered, not in yet':'transfers / trims not in'); else any++; }
+      var d=shop(x[I.start]), soon=!!d&&dd(today(),d)>=0&&dd(today(),d)<=1&&!yes(x[I.finished]);   // prints today / tomorrow: say so first
+      if(!miss.length) done++; else s.b.push({t:id+(soon?' prints '+rel(d)+': ':': ')+miss.join(', '),soon:soon}); });
+    s.b.sort(function(a,b){return (b.soon?1:0)-(a.soon?1:0);});
+    if(!need.length){ s.state=all?'na':'wait'; s.when=all&&imps.length?'Nothing to prep':''; }
+    else if(done===need.length){ s.state='done'; var t=latest(when); s.when='Ready'+(t?' '+rel(t):''); }
+    else { s.state=any||done?'now':'wait'; s.when=done+' of '+need.length+' ready'; }
+    if(need.length) s.d.push(need.map(function(im){ var x=im.fields, k=impKind(x), ok=k==='screen'?yes(x[I.sepd])&&yes(x[I.burned])&&yes(x[I.inksReady]):yes(x[I.trims]);
+      return '<b>'+esc(impLabel(x))+'</b> '+(ok?'✓':'…'); }).join(' · '));
+    who=who.filter(function(x,i){return who.indexOf(x)===i;}); if(who.length) s.d.push('Sep\'d by '+esc(who.join(', ')));
+    out.push(s); })();
+  /* 4 Scheduled */
+  (function(){ var s={k:'scheduled',name:'Scheduled',d:[],b:[]};
+    var pr=imps.filter(function(im){return impKind(im.fields)!=='finish';}), sch=pr.filter(function(im){return shop(im.fields[I.start]);});
+    if(!pr.length){ s.state=all?'na':'wait'; }
+    else if(sch.length===pr.length){ s.state='done'; var first=sch.map(function(im){return shop(im.fields[I.start]);}).sort(function(a,b){return a-b;})[0]; s.when=rel(first)+' '+fTime(first); }
+    else { s.state=sch.length?'now':'wait'; s.when=sch.length?sch.length+' of '+pr.length+' on the schedule':''; }
+    sch.forEach(function(im){ var x=im.fields, d=shop(x[I.start]);
+      s.d.push('<b>'+esc(impLabel(x))+'</b> '+esc(pressName(txt(x[I.equip])))+' · '+esc(relT(d))+(yes(x[I.rpLock])?' · re-print locked':yes(x[I.locked])?' · locked':'')); });
+    pr.filter(function(im){return !shop(im.fields[I.start]);}).forEach(function(im){ if(rank>=2) s.b.push({t:impLabel(im.fields)+': not on the schedule yet'}); });
+    out.push(s); })();
+  /* 5 Printed */
+  (function(){ var s={k:'printed',name:'Printed',d:[],b:[]};
+    var pr=imps.filter(function(im){return impKind(im.fields)!=='finish';}), fin=pr.filter(function(im){return yes(im.fields[I.finished]);}),
+        run=pr.filter(function(im){return !yes(im.fields[I.finished])&&(yes(im.fields[I.running])||yes(im.fields[I.setup]));});
+    if(!pr.length) s.state=all?'na':'wait';
+    else if(fin.length===pr.length){ s.state='done'; var t=latest(fin.map(function(im){return pd(im.fields[I.finishedAt]);})); s.when=t?'Finished '+rel(t):'Finished'; }
+    else { s.state=fin.length||run.length?'now':'wait'; s.when=fin.length||run.length?fin.length+' of '+pr.length+' printed':''; }
+    fin.forEach(function(im){ var x=im.fields, t=pd(x[I.finishedAt]); s.d.push('<b>'+esc(impLabel(x))+'</b> ✓ '+esc([t?relT(t):'',txt(x[I.operator])].filter(Boolean).join(' · '))); });
+    run.forEach(function(im){ var x=im.fields; s.d.push('<b>'+esc(impLabel(x))+'</b> '+(yes(x[I.running])?'printing now':'setting up')+(txt(x[I.operator])?' · '+esc(txt(x[I.operator])):'')); });
+    out.push(s); })();
+  /* 6 Caught */
+  (function(){ var s={k:'caught',name:'Caught',d:[],b:[]};
+    var pr=imps.filter(function(im){return impKind(im.fields)!=='finish';}), c=pr.filter(function(im){return yes(im.fields[I.caught]);});
+    if(!pr.length) s.state=all?'na':'wait';
+    else if(c.length===pr.length){ s.state='done'; var t=latest(c.map(function(im){return pd(im.fields[I.caughtAt]);})); s.when=t?'Caught '+rel(t):'Caught'; }
+    else { s.state=c.length?'now':'wait'; s.when=c.length?c.length+' of '+pr.length+' caught':''; }
+    c.forEach(function(im){ var t=pd(im.fields[I.caughtAt]); s.d.push('<b>'+esc(impLabel(im.fields))+'</b> ✓'+(t?' '+esc(relT(t)):'')); });
+    var dmg=S.issues.reduce(function(a,x){return a+num(x.fields[X.pcs]);},0);
+    if(dmg) s.d.push('<span class="bad">'+plural(dmg,'damaged piece')+'</span> · see Issues');
+    if(num(f[O.boxes])) s.d.push(plural(num(f[O.boxes]),'box')+' packed');
+    S.issues.filter(issueOpen).forEach(function(x){ var xf=x.fields; s.b.push({t:'Open issue: '+(txt(xf[X.res])||'needs a decision')+' · '+(txt(xf[X.impIds])||txt(xf[X.garment])||'')+(num(xf[X.pcs])?' · '+plural(num(xf[X.pcs]),'pc'):''),alert:txt(xf[X.status])==='Awaiting Review'}); });
+    out.push(s); })();
+  /* 7 Shipped / Picked up */
+  (function(){ var pu=pickup(), s={k:'out',name:pu?'Picked up':'Shipped',d:[],b:[]};
+    var shipD=pd(f[O.shipDate]), comp=pd(f[O.completed]), trk=txt(f[O.tracking]);
+    if(rank>=7){ s.state='done'; s.when=(pu?'Picked up':'Shipped')+((shipD||comp)?' '+rel(shipD||comp):''); }
+    else if(rank===6){ s.state='now'; s.when=pu?'Ready for pick-up':'Waiting to ship'; s.b.push({t:pu?'Caught and packed: waiting for the customer to pick up':'Caught and packed: waiting to ship'}); }
+    else s.state='wait';
+    s.d.push(esc(txt(f[O.ship])||'No ship method set'));
+    if(trk) s.d.push(trackHtml(txt(f[O.carrier]),trk));
+    out.push(s); })();
+  /* order status floor: a finished / caught order shouldn't read as waiting on an old step nobody ticked */
+  var floor=rank>=7?7:rank===6?6:0;
+  out.forEach(function(s,i){ if(i<floor&&s.state!=='done'&&s.state!=='na'){ s.state='done'; s.when=s.when||'Done'; s.b=s.b.filter(function(b){return b.alert;}); } });
+  return out;
+}
+function pressName(e){ return ({'Press 1 - ROQ NEXT':'Press 1','Press 2 - ROQ YOU':'Press 2','Press 1 & 2 - SPLIT':'Press 1 & 2','Flatstock - M&R Saturn':'Flatstock','Embroidery - TAJIMA 6-Head':'Embroidery'})[e]||e||'No press'; }
+function trackHtml(carrier,t){ var u=/^1Z/i.test(t)?'https://www.ups.com/track?tracknum='+encodeURIComponent(t):/fedex/i.test(carrier)||/^\d{12,15}$/.test(t)?'https://www.fedex.com/fedextrack/?trknbr='+encodeURIComponent(t):/usps/i.test(carrier)||/^\d{20,22}$/.test(t)?'https://tools.usps.com/go/TrackConfirmAction?tLabels='+encodeURIComponent(t):'';
+  return esc(carrier?carrier+' ':'')+(u?'<a class="p-off-link" href="'+u+'" target="_blank" rel="noopener">'+esc(t)+' ↗</a>':esc(t)); }
+
+/* ---------- render ---------- */
+function render(){
+  if(!S.o) return;
+  var f=S.o.fields, st=txt(f[O.status]), rank=RANK[st]==null?0:RANK[st], rec=S.o.id, on=txt(f[O.num]);
+  var due=pd(f[O.due]), hard=txt(f[O.hard]), paid=pd(f[O.paid]), comp=pd(f[O.completed]);
+  var dueTxt=''; if(due){ var w=rank<7?(due>=today()?workdays(today(),due):-workdays(due,today())):null;
+    dueTxt=fDay(due)+(w==null?'':w===0?' (today)':w>0?' (in '+plural(w,'work day')+')':' ('+plural(-w,'work day')+' late)'); }
+  var turn=comp&&num(f[O.turn])?plural(num(f[O.turn]),'work day')+' turnaround':paid&&rank<7?'Day '+workdays(paid,new Date())+' since paid':'';
+  var late=due&&rank>=0&&rank<7&&due<today();
+  var links=[['mockups.html?o='+rec,'Mockups'],
+    rank<=1?['pine-line-item-review.html?order='+encodeURIComponent(on),'Line Item Review']:null,
+    ['receiving.html','Receiving'],['pine-schedule.html','Schedule'],['damage-log.html','Damage Log'],
+    txt(f[O.art])?[txt(f[O.art]),'Art folder']:null,
+    ['https://airtable.com/'+BASE+'/'+T.ord+'/'+rec,'Airtable']].filter(Boolean);
+  var h='<section class="p-off-oh oh"><div class="p-off-oh-main">'+
+    '<div class="p-off-oh-l1"><span class="p-id p-off-oh-id">#'+esc(on)+'</span><span class="p-off-oh-cust">'+esc(txt(f[O.cust])||'No customer')+'</span>'+
+      '<span class="p-tags">'+(st?'<span class="p-tag '+(/^Delayed|Cancelled/.test(st)?'p-tag-alert':rank>=7?'p-tag-done':'p-tag-soft')+'">'+esc(st)+'</span>':'')+
+      (hard==='Hard Deadline'?'<span class="p-tag">Hard deadline</span>':hard?'<span class="p-tag p-tag-soft">'+esc(hard)+'</span>':'')+(late?'<span class="p-tag p-tag-alert">Past due</span>':'')+'</span></div>'+
+    '<div class="p-off-oh-l2 oh-l2">'+[txt(f[O.rep])?'<span>Rep <b>'+esc(txt(f[O.rep]))+'</b></span>':'',due?'<span>Due <b>'+esc(dueTxt)+'</b></span>':'<span>No due date</span>',
+      txt(f[O.ship])?'<span>'+esc(txt(f[O.ship]))+'</span>':'',paid?'<span>Paid '+esc(fShort(paid))+'</span>':'<span>Not paid</span>',turn?'<span>'+esc(turn)+'</span>':''].join('')+'</div>'+
+    '<div class="p-off-links">'+links.map(function(x){return '<a class="p-off-link" href="'+esc(x[0])+'" target="_blank" rel="noopener">'+esc(x[1])+' ↗</a>';}).join('')+'</div></div>'+
+    '<div class="p-off-oh-nums"><div class="p-num"><small>Pcs</small><b>'+num(f[O.pcs])+'</b></div><div class="p-num"><small>Lines</small><b>'+ids(f[O.lines]).length+'</b></div>'+
+    '<div class="p-num"><small>Imprints</small><b>'+(S.part.all?S.imps.length:ids(f[O.prints]).length)+'</b></div></div></section>';
+  if(st==='Cancelled / Voided') h+='<div class="p-note p-note-alert cancel">This order is cancelled.</div>';
+  if(!S.part.all){ $('main').innerHTML=h+'<div class="loading">Loading line items, imprints and issues…</div>'; return; }
+  /* "Now" = every step that has started but isn't done (Garments, Pre-press and Scheduled often run side by side), plus the
+     first step that isn't done. What holds it up = those steps' waits + a real problem from any step. */
+  var ss=stages(), first=ss.find(function(s){return s.state!=='done'&&s.state!=='na';});
+  if(first) first.state='now';
+  var cur=ss.filter(function(s){return s.state==='now';});
+  var blocks=[]; if(/^Delayed/.test(st)) blocks.push({t:'Order status: '+st,alert:true}); if(late) blocks.push({t:'Past the due date ('+fDay(due)+')',alert:true});
+  ss.forEach(function(s){ s.b.forEach(function(b){ if(b.alert||s.state==='now') blocks.push(b); }); });
+  blocks.sort(function(a,b){return (b.alert?1:0)-(a.alert?1:0);});
+  var left='<div class="pipe"><div class="sec"><span class="p-section">Where it is now</span></div>'+
+    '<div class="now"><div class="now-h"><span class="p-label">Now</span><span class="now-stage">'+(cur.length?esc(cur.map(function(s){return s.name;}).join(' · ')):st==='Cancelled / Voided'?'Cancelled':'Done')+'</span></div>'+
+      (blocks.length?'<ul>'+blocks.map(function(b){return '<li class="'+(b.alert?'is-alert':'')+'"><b>'+(b.alert?'Problem: ':'Waiting on: ')+'</b>'+esc(b.t)+'</li>';}).join('')+'</ul>':'<p class="ok">Nothing is holding it up.</p>')+'</div>'+
+    '<ol class="stages">'+ss.map(function(s){ var dot=s.state==='done'?'✓':s.state==='now'?'●':s.state==='na'?'–':'';
+      return '<li class="st is-'+s.state+'"><span class="st-dot" aria-hidden="true">'+dot+'</span><div><div class="st-h"><span class="st-name">'+esc(s.name)+'</span>'+
+        (s.when?'<span class="st-when">'+esc(s.when)+'</span>':s.state==='wait'?'<span class="st-when">Not yet</span>':'')+'</div>'+
+        (s.d.length?'<ul class="st-d">'+s.d.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>':'')+'</div></li>'; }).join('')+'</ol></div>'+
+    '<div class="notes-wrap"><div class="sec"><span class="p-section">Notes</span><span class="hint">every department, newest first</span></div><div class="notes" id="notes"></div></div>';
+  var right='<div class="sec"><span class="p-section">Imprints <span class="p-count">'+S.imps.length+'</span></span></div>'+(S.imps.length?S.imps.map(impHtml).join(''):'<div class="empty">No imprints linked yet.</div>')+
+    '<div class="sec"><span class="p-section">Line items <span class="p-count">'+S.lines.length+'</span></span></div>'+(S.lines.length?S.lines.map(lineHtml).join(''):'<div class="empty">No line items yet.</div>')+
+    '<div class="sec"><span class="p-section">Issues <span class="p-count">'+(S.issues.length+S.bos.length)+'</span></span><span class="hint">damage, refunds, re-prints, backorders</span></div>'+
+    (S.issues.length+S.bos.length?S.issues.map(issueHtml).join('')+S.bos.map(boHtml).join(''):'<div class="empty">No issues or backorders.</div>');
+  $('main').innerHTML=h+'<div class="grid"><div class="col col-l">'+left+'</div><div class="col col-r">'+right+'</div></div>';
+  renderNotes();
+}
+function thumbFor(im){ var ls=linesOfImp(im);
+  for(var k=0;k<2;k++) for(var i=0;i<ls.length;i++){ var a=arr(ls[i].fields[k?L.proofs:L.signed])[0]; if(a){ var t=a.thumbnails&&(a.thumbnails.large||a.thumbnails.small); var img=t?t.url:(/^image\//.test(a.type||'')?a.url:'');
+      if(img) return {img:img,full:a.url,signed:!k}; } }
+  return null; }
+function chk(state,label,sub){ return '<li class="is-'+state+'"><i>'+(state==='done'?'✓':'')+'</i><span>'+label+(sub?' <small>'+esc(sub)+'</small>':'')+'</span></li>'; }
+function impHtml(im){
+  var x=im.fields, k=impKind(x), th=thumbFor(im), start=shop(x[I.start]), fin=pd(x[I.finishedAt]), cAt=pd(x[I.caughtAt]);
+  var c=[];
+  if(k==='screen'){
+    c.push(chk(yes(x[I.sepd])?'done':'wait','Sep\'d',[yes(x[I.sepd])&&pd(x[I.sepdAt])?fShort(pd(x[I.sepdAt])):'',txt(x[I.separator])].filter(Boolean).join(' · ')));
+    c.push(chk(yes(x[I.burned])?'done':'wait',(num(x[I.screens])?plural(num(x[I.screens]),'screen'):'Screens')+(yes(x[I.burned])?' burned':' not burned'),yes(x[I.burned])&&pd(x[I.burnedAt])?fShort(pd(x[I.burnedAt])):''));
+    c.push(chk(yes(x[I.inksReady])?'done':'wait',yes(x[I.inksReady])?'Inks mixed':'Inks not mixed',yes(x[I.inksReady])&&pd(x[I.inksAt])?fShort(pd(x[I.inksAt])):''));
+  } else if(k==='trim') c.push(chk(yes(x[I.trims])?'done':'wait',yes(x[I.trims])?'Transfers / trims in':yes(x[I.sepd])?'Transfers ordered':'Transfers / trims not in'));
+  c.push(chk(start?'done':'wait',start?esc(pressName(txt(x[I.equip])))+' · '+esc(relT(start)):'Not scheduled',start?(yes(x[I.rpLock])?'re-print locked':yes(x[I.locked])?'locked':''):''));
+  c.push(chk(yes(x[I.finished])?'done':(yes(x[I.running])||yes(x[I.setup]))?'wait':'',yes(x[I.finished])?'Printed':yes(x[I.running])?'Printing now':yes(x[I.setup])?'Setting up':'Not printed',
+    [yes(x[I.finished])&&fin?relT(fin):'',txt(x[I.operator])].filter(Boolean).join(' · ')));
+  c.push(chk(yes(x[I.caught])?'done':'',yes(x[I.caught])?'Caught':'Not caught',yes(x[I.caught])&&cAt?relT(cAt):''));
+  var inks=txt(x[I.inks]), pms=txt(x[I.pantone]);
+  return '<article class="imp">'+(th?'<a class="thumb" href="'+esc(th.full)+'" target="_blank" rel="noopener" title="Open the '+(th.signed?'signed page':'proof')+'"><img src="'+esc(th.img)+'" alt="'+(th.signed?'Signed proof':'Proof')+' for '+esc(impLabel(x))+'" loading="lazy">'+(th.signed?'<span class="p-tag p-tag-done">✓ Signed</span>':'')+'</a>':'<div class="thumb none">No proof yet</div>')+
+    '<div><div class="imp-h"><span class="p-id">'+esc(impLabel(x))+'</span><b>'+esc(txt(x[I.loc])||'No location')+'</b>'+(yes(x[I.repeat])?'<span class="p-tag p-tag-soft">Reorder</span>':'')+'</div>'+
+    '<div class="imp-sub">'+esc([txt(x[I.type])||'No method',txt(x[I.nick]),num(x[I.qty])?num(x[I.qty])+' pcs':''].filter(Boolean).join(' · '))+'</div>'+
+    '<ul class="chk">'+c.join('')+'</ul>'+
+    (inks||pms?'<div class="inks"><span class="p-label">Inks</span>'+esc(inks||'—')+(pms&&inks.indexOf(pms)<0?' · Pantone '+esc(pms):'')+'</div>':'')+
+    '<div class="imp-links"><a class="p-off-link" href="pine-catching.html?job='+im.id+'" target="_blank" rel="noopener">Catching ↗</a></div></div></article>';
+}
+function lineHtml(l){
+  var f=l.fields, q=lineQty(f), rec=yes(f[L.received]), tags=[];
+  tags.push(yes(f[L.stock])?'<span class="p-tag p-tag-done">From stock</span>':yes(f[L.ordered])?'<span class="p-tag p-tag-done">Ordered ✓</span>':'<span class="p-tag p-tag-wait">Not ordered</span>');
+  if(rec) tags.push(q.act&&q.act<q.want?'<span class="p-tag p-tag-alert">In, '+(q.want-q.act)+' short</span>':'<span class="p-tag p-tag-done">In ✓</span>');
+  else if(yes(f[L.ordered])){ var eta=pd(f[L.arrival]); tags.push('<span class="p-tag p-tag-wait">Not in yet'+(eta?' · expected '+esc(rel(eta)):'')+'</span>'); }
+  if(yes(f[L.misship])) tags.push(yes(f[L.misshipRes])?'<span class="p-tag p-tag-soft">Mis-ship resolved</span>':'<span class="p-tag p-tag-alert">Mis-ship</span>');
+  if(yes(f[L.rpOrdered])) tags.push('<span class="p-tag '+(yes(f[L.rpReceived])?'p-tag-done':'p-tag-wait')+'">Re-print garments '+(yes(f[L.rpReceived])?'in ✓':'ordered')+(txt(f[L.rpPo])?' · PO '+esc(txt(f[L.rpPo])):'')+'</span>');
+  else if(num(f[L.rpQty])) tags.push('<span class="p-tag p-tag-wait">Re-print '+num(f[L.rpQty])+' pcs · replacements not ordered</span>');
+  S.bos.filter(function(b){return ids(b.fields[B.line]).indexOf(l.id)>=0;}).forEach(function(b){ tags.push('<span class="p-tag '+(boOpen(b)?'p-tag-wait':'p-tag-soft')+'">Backorder · '+esc(txt(b.fields[B.status]))+'</span>'); });
+  var cols=SIZES.filter(function(s){ return num(f[s[1]])||(s[2]&&num(f[s[2]]))||(s[3]&&num(f[s[3]])); });
+  var row=function(lbl,fn,cls){ return '<tr'+(cls?' class="'+cls+'"':'')+'><th scope="row">'+lbl+'</th>'+cols.map(fn).join('')+'</tr>'; };
+  var tbl=cols.length?'<div class="sz"><table><tr><th></th>'+cols.map(function(s){return '<th scope="col">'+s[0]+'</th>';}).join('')+'<th scope="col">Total</th></tr>'+
+    '<tr><th scope="row">Ordered</th>'+cols.map(function(s){return '<td>'+(num(f[s[1]])||'')+'</td>';}).join('')+'<td>'+q.ord+'</td></tr>'+
+    (q.ext?'<tr><th scope="row">Extras</th>'+cols.map(function(s){return '<td>'+(s[2]&&num(f[s[2]])||'')+'</td>';}).join('')+'<td>'+q.ext+'</td></tr>':'')+
+    (rec||q.act?'<tr class="tot"><th scope="row">In</th>'+cols.map(function(s){ var w=num(f[s[1]])+(s[2]?num(f[s[2]]):0), a=s[3]?num(f[s[3]]):0; return '<td class="'+(rec&&a<w?'short':'')+'">'+a+'</td>';}).join('')+'<td class="'+(q.act<q.want?'short':'')+'">'+q.act+'</td></tr>':'')+
+    '</table></div>':'';
+  var impBadges=txt(f[L.impIds]).split(/,\s*/).filter(Boolean).map(function(x){return '<span class="p-id">'+esc(x)+'</span>';}).join('');
+  return '<article class="li"><div class="li-h"><b>'+esc(lineName(l))+'</b>'+impBadges+'</div>'+
+    '<div class="li-sub">'+esc([txt(f[L.colour]),txt(f[L.nick]),txt(f[L.ptype]),txt(f[L.po])?'PO '+txt(f[L.po]):'',txt(f[L.supplier])].filter(Boolean).join(' · '))+'</div>'+
+    tbl+'<div class="p-tags">'+tags.join('')+'</div></article>';
+}
+function issueHtml(x){ var f=x.fields, st=txt(f[X.status]), open=issueOpen(x), cr=pd(f[X.created])||pd(x.createdTime);
+  var t=[txt(f[X.desc]),txt(f[X.resDesc])?'Resolution: '+txt(f[X.resDesc]):''].filter(Boolean).join('\n');
+  return '<article class="iss'+(st==='Awaiting Review'?' is-open':open?' is-wait':'')+'"><div class="iss-h"><b>'+esc(txt(f[X.res])||'Issue')+'</b>'+
+    '<span class="p-tag '+(st==='Awaiting Review'?'p-tag-alert':open?'p-tag-wait':'p-tag-done')+'">'+esc(st||'No status')+'</span>'+(num(f[X.pcs])?'<span class="p-tag p-tag-soft">'+plural(num(f[X.pcs]),'pc')+'</span>':'')+'</div>'+
+    '<div class="iss-sub">'+esc([txt(f[X.impIds]),txt(f[X.garment]),txt(f[X.cat]),txt(f[X.originator])?'by '+txt(f[X.originator]):'',cr?fShort(cr):''].filter(Boolean).join(' · '))+'</div>'+
+    (t?'<div class="iss-t">'+esc(t)+'</div>':'')+'</article>'; }
+function boHtml(b){ var f=b.fields, st=txt(f[B.status]), open=boOpen(b), eta=pd(f[B.eta]);
+  return '<article class="iss'+(open?' is-wait':'')+'"><div class="iss-h"><b>Backorder · '+esc(boText(b))+'</b><span class="p-tag '+(open?'p-tag-wait':st==='Cancelled'?'p-tag-soft':'p-tag-done')+'">'+esc(st||'No status')+'</span></div>'+
+    '<div class="iss-sub">'+esc([txt(f[B.vendor]),txt(f[B.po])?'PO '+txt(f[B.po]):'',eta?'restock '+fShort(eta):'',pd(f[B.changed])?'updated '+fShort(pd(f[B.changed])):''].filter(Boolean).join(' · '))+'</div>'+
+    (txt(f[B.stock])?'<div class="iss-t">Stock found: '+esc(txt(f[B.stock]))+'</div>':'')+(txt(f[B.notes])?'<div class="iss-t">'+esc(txt(f[B.notes]))+'</div>':'')+'</article>'; }
+
+/* every department's notes, labelled. Comments carry a date; the note fields don't, so they follow in department order. */
+var DEPTS=['Sales','Art','Office','Purchasing','Receiving','Pre-press','Ink','Schedule','Press','Catching','Finishing','Shipping'];
+function noteItems(){
+  var f=S.o.fields, out=[], add=function(dept,src,t,when,who){ t=txt(t); if(t) out.push({dept:dept,src:src,t:t,when:when||null,who:who||''}); };
+  add('Office','Order notes',f[O.orderNotes]); add('Office','Order · Notes',f[O.notes]); add('Catching','Packing handoff',f[O.handoff]); add('Office','Refund request',f[O.refundReq]);
+  S.lines.forEach(function(l){ var x=l.fields, n=lineName(l);
+    add('Sales','Sales notes · '+n,x[L.sales]); add('Art','Proofing notes · '+n,x[L.proofing]); add('Purchasing','Line notes · '+n,x[L.lineNotes]);
+    add('Purchasing','Production notes · '+n,x[L.prodNotes]); add('Purchasing','Replacement order · '+n,x[L.rpOrder]); add('Receiving','Mis-ship · '+n,x[L.misshipDet]);
+    add('Art','Signed proof check · '+n,x[L.check]); add('Catching','Damages · '+n,x[L.dmgNotes]); add('Finishing','Finishing notes · '+n,x[L.finNotes]); add('Shipping','Shipping notes · '+n,x[L.shipNotes]); });
+  S.imps.forEach(function(im){ var x=im.fields, id=impLabel(x);
+    add('Pre-press','Print notes · '+id,x[I.printNotes]); add('Ink','Ink notes · '+id,x[I.inkNotes]); add('Schedule','Scheduling notes · '+id,x[I.schedNotes]); add('Press','Job comments · '+id,x[I.jobComments]); });
+  (S.comments||[]).forEach(function(c){ var t=String(c.c.text||''), m=t.match(/^\[([^\]]+)\]\s*/), who=m?m[1]:(c.c.author&&(c.c.author.name||c.c.author.email))||'';
+    add('Comment','Line comment · '+lineName(c.line),m?t.slice(m[0].length):t,pd(c.c.createdTime),who); });
+  out.sort(function(a,b){ if(a.when&&b.when) return b.when-a.when; if(a.when) return -1; if(b.when) return 1; return DEPTS.indexOf(a.dept)-DEPTS.indexOf(b.dept); });
+  return out;
+}
+function renderNotes(){
+  var el=$('notes'); if(!el||!S.o) return;
+  var items=noteItems();
+  el.innerHTML=(items.length?items.map(function(n,i){ var long=n.t.split('\n').length>6||n.t.length>420;
+    return '<div class="note"><div class="note-h"><span class="p-tag p-tag-soft">'+esc(n.dept)+'</span><span>'+esc(n.src)+'</span>'+
+      (n.when||n.who?'<span class="when">'+esc([n.who,n.when?relT(n.when):''].filter(Boolean).join(' · '))+'</span>':'')+'</div>'+
+      '<div class="note-t'+(long?' is-long':'')+'" id="nt'+i+'">'+esc(n.t)+'</div>'+(long?'<button class="p-btn p-btn-quiet more" type="button" data-n="'+i+'">Show all</button>':'')+'</div>'; }).join('')
+    :'<div class="empty">No notes on this order.</div>')+
+    (S.comments==null?'<div class="loading">Loading line comments…</div>':S.commentsErr?'<div class="empty">Line comments didn\'t load (the token may not have the comments read scope).</div>':'');
+  el.querySelectorAll('.more').forEach(function(b){ b.onclick=function(){ var t=$('nt'+b.dataset.n); var open=t.classList.toggle('is-long'); b.textContent=open?'Show all':'Show less'; }; });
+}
+
+/* ---------- bar, menu, search box ---------- */
+function showMenu(on){ $('gear').hidden=!on; $('gearBtn').setAttribute('aria-expanded',on);
+  if(on){ $('tokHint').textContent=token()?'A token is saved on this computer.':'No token yet: paste it to load orders.'; setTimeout(function(){$('tokIn').focus();},0); } }
+$('gearBtn').onclick=function(){ showMenu($('gear').hidden); };
+document.addEventListener('pointerdown',function(e){ if(!$('gear').hidden&&!e.target.closest('#gear,#gearBtn')&&token()) showMenu(false); });
+$('tokSave').onclick=function(){ var v=$('tokIn').value.trim(); if(!v) return; store('pine_at_key',v); $('tokIn').value=''; showMenu(false); S.home=null; route(); };
+$('tokIn').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); $('tokSave').click(); } });
+$('findForm').onsubmit=function(e){ e.preventDefault(); var q=$('q').value.trim(); if(!q) return go('',true); $('q').blur();
+  if(/^#?\d{3,7}$/.test(q)) return go('order='+q.replace(/\D/g,''),true); go('q='+encodeURIComponent(q),true); };
+$('homeBtn').onclick=function(){ $('q').value=''; go('',true); };
+$('refreshBtn').onclick=async function(){ try{ if(window.PineUpdate&&PineUpdate.check&&await PineUpdate.check()) return; }catch(e){} S.home=null; route(); };
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!$('gear').hidden) showMenu(false);
+  if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){ e.preventDefault(); $('q').focus(); } });
+window.pineBusy=function(){ return false; };   // read-only: nothing is ever mid-task, so a new version can load straight away
+if(PRACTICE) $('practicePill').hidden=false;
+route();
+</script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>
