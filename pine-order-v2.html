@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<!-- Order v2 (2026-11-23): simpler, status + mock-ups. Stephen on v1: "I think we can try and simplify it and really just focus
+     in the status and maybe the mock-ups."
+     - Header: order #, customer, status, due (+ work days left / late), Hard deadline, pick-up / ship method. v1's link row is one
+       small "Open in…" menu (Mockups page, Line Item Review, Receiving, Schedule, Damage Log, Art folder, Airtable).
+     - Status is the main thing: a big "Now: <step>", the 7 steps as one horizontal progress bar (✓ / now / not yet, one date or
+       count each), then only what's holding the order up (at most 4 lines, problems first; red only for real problems), or
+       "On track".
+     - Mock-ups: one big proof per imprint × garment colour (signed page first, else the proof), captioned with the imprint ID,
+       location, colour and its own short status ("Press 1 · tomorrow 8:30a · sep ✓ screens ✓ inks ✓"). Tap = lightbox.
+     - Gone from v1: line-item size tables, the notes list, the issues list (an open issue is a blocker line), per-step detail
+       lists, line comments (so one GET per line fewer). Same data loading otherwise; still GET only.
+     v1 notes below. -->
+<!-- Order v1 (2026-11-23): one internal page per order, so every department sees the same picture.
+     Stephen: better communication between departments ("has come up in a few reviews"). First piece: an order status page
+     that every app can open (links into the other apps come after the review; notes/order-page.md lists where they go).
+     - Open with order.html?order=11164 (order #) or ?id=rec… (Orders record id). Search by order # or customer; with nothing
+       open, the active orders (due soonest first) and the orders you opened lately are there to pick from.
+     - Header: order #, customer, status, rep, due date + Hard deadline / ASAP, ship method / pick-up, pcs, paid, turnaround.
+     - Where it is now: Proof → Garments → Pre-press → Scheduled → Printed → Caught → Shipped / Picked up, each done / now /
+       waiting with the date and who when Airtable has it, and what is holding the order up, in plain words.
+     - Imprints, line items, issues (Order Issues + Backorders) and every department's notes in one place.
+     - Read-only: GET requests only, nothing is ever written. ?practice=1 works (there is nothing to fake).
+     Field IDs come from the apps that write them (Schedule v37, Catching v181, Receiving v91, Purchasing v124, Seps v55,
+     Screens v37, Damage Log v25, Line Item Review v64, worker v55 /proxy/mockups); see notes/order-page.md. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Order v2 — Pine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap">
+<link rel="stylesheet" href="pine-style-v2.css">
+<link rel="stylesheet" href="pine-office-v1.css">
+<script src="pine-update.js" data-link="order.html"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{min-height:100%;background:var(--p-cream-lt)}
+body{overflow-x:hidden}
+a{color:inherit}
+.p-filters{position:sticky;top:64px;z-index:20}
+@media (min-width:701px){ .p-filters{padding-left:var(--p-page-x);padding-right:var(--p-page-x)} }
+.wrap{padding:16px var(--p-page-x) 48px;max-width:2200px;margin:0 auto}
+.msg{background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);padding:20px;display:flex;flex-direction:column;gap:6px;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.msg b{font-size:var(--p-fs-m);color:var(--p-black)}
+.msg.is-alert{border-color:var(--p-alert);color:#7A1414}
+.hint{color:var(--p-ink-3);font-size:var(--p-fs-s)}
+.sec{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:24px 0 10px}
+.sec:first-child{margin-top:0}
+.sec .hint{font-size:var(--p-fs-xs)}
+.empty{font-size:var(--p-fs-s);color:var(--p-ink-3);padding:4px 2px}
+.loading{font-size:var(--p-fs-s);color:var(--p-ink-3);padding:8px 2px}
+
+/* home: active + search results */
+.olist{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:8px}
+.olist .p-off-orow+.p-off-orow{margin-top:0}
+.p-off-orow .p-tag{flex:none}
+@media (max-width:420px){ .olist{grid-template-columns:minmax(0,1fr)} }
+
+/* v2 header: one or two lines + one "Open in…" menu */
+.oh{display:flex;align-items:center;gap:8px 16px;margin-bottom:12px}
+.oh-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:4px}
+.oh-l1{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.oh-cust{font:800 22px/1.2 var(--p-sans);text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere;min-width:0}
+.oh-l2{font-size:var(--p-fs-m);color:var(--p-ink-2)}
+.oh-l2 b{color:var(--p-black)}
+.oh-l2 .late{color:var(--p-alert);font-weight:800}
+.open{position:relative;flex:none;align-self:flex-start}
+.open .p-menu{top:calc(100% + 6px);right:0;width:240px;padding:6px}
+.open .p-menu a{display:flex;align-items:center;min-height:var(--p-tap);padding:0 12px;border-radius:var(--p-r);font:700 var(--p-fs-s)/1.2 var(--p-sans);text-decoration:none;color:var(--p-black)}
+.open .p-menu a:hover{background:var(--p-cream)}
+
+/* v2 status: the main thing */
+.status{background:var(--p-white);border:2px solid var(--p-black);border-radius:var(--p-r-lg);padding:16px 20px}
+.now{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap}
+.now .p-label{font-size:var(--p-fs-s)}
+.now-stage{font:900 34px/1.05 var(--p-display);text-transform:uppercase;letter-spacing:.005em;word-spacing:.08em}
+.now-when{font-size:var(--p-fs-m);color:var(--p-ink-2)}
+.bar{list-style:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin:18px 0 4px}
+.bs{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:0 4px;min-width:0}
+.bs::before{content:"";position:absolute;top:15px;left:-50%;right:50%;height:4px;background:var(--p-line)}
+.bs:first-child::before{display:none}
+.bs.is-done::before,.bs.is-now::before{background:var(--p-black)}
+.bs-dot{position:relative;z-index:1;width:34px;height:34px;border-radius:50%;border:2px solid var(--p-line-strong);background:var(--p-white);display:flex;align-items:center;justify-content:center;font:800 16px/1 var(--p-sans)}
+.bs.is-done .bs-dot{background:var(--p-black);border-color:var(--p-black);color:var(--p-white)}
+.bs.is-now .bs-dot{background:var(--p-yellow);border:3px solid var(--p-black)}
+.bs.is-na .bs-dot{border-style:dashed}
+.bs-name{font:800 var(--p-fs-s)/1.2 var(--p-sans);overflow-wrap:anywhere}
+.bs.is-wait .bs-name,.bs.is-na .bs-name{color:var(--p-ink-3)}
+.bs-when{font-size:var(--p-fs-xs);color:var(--p-ink-2);line-height:1.25;overflow-wrap:anywhere}
+.blocks{list-style:none;margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.blocks li{font-size:var(--p-fs-m);padding:8px 12px;border-radius:var(--p-r);background:var(--p-yellow-lt);border-left:4px solid var(--p-yellow)}
+.blocks li.is-alert{background:var(--p-alert-lt);border-left-color:var(--p-alert);color:#7A1414}
+.blocks li b{font-weight:800}
+.blocks li.more{background:none;border:0;padding:0 12px;font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.ontrack{margin-top:14px;font:800 var(--p-fs-m)/1.3 var(--p-sans);display:flex;align-items:center;gap:8px}
+.ontrack i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--p-black);color:var(--p-white);font-size:13px}
+@media (max-width:700px){
+  .oh{flex-wrap:wrap}
+  .status{padding:14px}
+  .now-stage{font-size:26px}
+  .bar{grid-template-columns:minmax(0,1fr);margin-top:12px}
+  .bs{flex-direction:row;align-items:center;text-align:left;gap:10px;padding:5px 0}
+  .bs::before{top:-50%;bottom:50%;left:15px;right:auto;width:4px;height:auto}
+  .bs-name{flex:none;width:96px}
+  .bs-dot{width:32px;height:32px;flex:none}
+}
+
+/* v2 mock-ups: one per imprint × garment colour */
+.mocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+@media (min-width:1600px){ .mocks{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))} }
+@media (max-width:640px){ .mocks{grid-template-columns:minmax(0,1fr)} }
+.mk{display:flex;flex-direction:column;background:var(--p-white);border:1px solid var(--p-line);border-radius:var(--p-r-lg);overflow:hidden;min-width:0}
+.mk-img{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;background:var(--p-white);border:0;border-bottom:1px solid var(--p-line);padding:8px;cursor:zoom-in;width:100%;font:inherit}
+.mk-img img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.mk-img .p-tag{position:absolute;left:8px;top:8px}
+.mk-img.none{cursor:default;background:var(--p-cream-lt);color:var(--p-ink-3);font-size:var(--p-fs-s)}
+.mk-cap{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px}
+.mk-h{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap}
+.mk-h b{font-size:var(--p-fs-m)}
+.mk-h .on{font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.mk-st{font-size:var(--p-fs-s);color:var(--p-ink-2)}
+.mk-st b{color:var(--p-black)}
+.mk-st .no{color:var(--p-black);font-weight:800;background:var(--p-yellow-lt);padding:0 4px;border-radius:3px;white-space:nowrap}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:200;background:rgba(20,20,18,.94);display:flex;flex-direction:column;color:var(--p-white)}
+.lb-top{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.lb-cap{flex:1;min-width:0;font:700 var(--p-fs-m)/1.3 var(--p-sans)}
+.lb-cap small{display:block;font-weight:400;font-size:var(--p-fs-s);color:rgba(255,255,255,.8)}
+.lb .p-btn{background:transparent;color:var(--p-white);border-color:rgba(255,255,255,.6);text-decoration:none}
+.lb .p-btn:hover{background:rgba(255,255,255,.1)}
+.lb-main{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 8px 16px}
+.lb-main img{height:100%;width:auto;max-width:calc(100% - 128px);max-height:100%;object-fit:contain;background:var(--p-white);border-radius:var(--p-r)}
+.lb-nav{flex:none;width:52px;height:72px;border-radius:var(--p-r);border:2px solid rgba(255,255,255,.5);background:transparent;color:var(--p-white);font:800 30px/1 var(--p-sans);cursor:pointer}
+.lb-nav:disabled{opacity:.25;cursor:default}
+@media (max-width:640px){ .lb-main img{max-width:100%} .lb-nav{position:absolute;bottom:24px;width:56px;height:56px;background:rgba(20,20,18,.7)} .lb-prev{left:16px} .lb-next{right:16px} }
+</style>
+</head>
+<body class="p-app p-off">
+<header class="p-bar p-off-bar">
+  <span class="p-mark"><span class="p-logo" aria-hidden="true"></span></span>
+  <span class="p-bar-app">Order</span><span class="p-bar-ver" id="ver">v1</span>
+  <span class="p-tag p-tag-wait" id="practicePill" hidden>Practice</span>
+  <div class="p-bar-sp">
+    <button class="p-barbtn" id="refreshBtn" type="button" title="Load the order again and check for a new version">&#8635; <span class="p-barbtn-word">Refresh</span></button>
+    <button class="p-barbtn p-barbtn-icon" id="gearBtn" type="button" aria-label="Settings" aria-expanded="false" title="Settings">&#9881;</button>
+  </div>
+  <div class="p-menu" id="gear" role="dialog" aria-label="Settings" hidden>
+    <div class="p-menu-row"><div class="p-menu-label">Airtable token</div>
+      <div class="p-menu-line"><input id="tokIn" class="p-input" type="password" placeholder="pat…" autocomplete="off" aria-label="Airtable token"><button class="p-btn p-btn-dark" id="tokSave" type="button">Save</button></div>
+      <p id="tokHint" class="hint"></p></div>
+    <div class="p-menu-row"><div class="p-menu-label">Practice</div><p class="hint" id="pracHint">This page only reads Airtable, so practice and live look the same.</p></div>
+  </div>
+</header>
+<form class="p-filters" id="findForm" role="search">
+  <input id="q" class="p-input p-search" type="search" placeholder="Order # or customer" autocomplete="off" aria-label="Find an order">
+  <button class="p-btn p-btn-dark" type="submit">Find</button>
+  <button class="p-btn" type="button" id="homeBtn" hidden>Active orders</button>
+  <div class="p-chips p-chips-inline" id="recent" aria-label="Opened lately" hidden></div>
+</form>
+<main class="wrap" id="main"><div class="loading">Loading…</div></main>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Mock-up" hidden>
+  <div class="lb-top"><div class="lb-cap" id="lbCap"></div><a class="p-btn" id="lbPdf" href="#" target="_blank" rel="noopener">Open PDF ↗</a><button class="p-btn" type="button" id="lbX">✕ Close</button></div>
+  <div class="lb-main"><button class="lb-nav lb-prev" type="button" id="lbPrev" aria-label="Previous mock-up">‹</button><img id="lbImg" alt=""><button class="lb-nav lb-next" type="button" id="lbNext" aria-label="Next mock-up">›</button></div>
+</div>
+<script>
+var BASE='appJkaLk8DykjsgHR';
+var T={ord:'tbl8Tf0AeS9gnHOOS',li:'tblJx5UlwO7oMSk5H',imp:'tbln9oAGvz2PNBZLV',iss:'tblEplYB3mtIBBcpi',bo:'tblYvkScMwZ8HwdDP'};
+/* Orders (field IDs as in Shipping v12, Damage Log v25, Receiving v91, pine-signed.js) */
+var O={num:'fld4S3B5yJANKlE7l',cust:'fldoRraeYHsgfeWhj',status:'fldhS4z28CdGmS1j5',rep:'fldSPnWlnzz48ZZDD',due:'fldphJYdlBNS0dmAK',hard:'fldMFfWyYJ6ZQDte6',
+  ship:'fldrjFuIBn45ewFU5',pcs:'fldWQYE3o2IZjZXSU',paid:'fld5RAeEEGMltdES0',completed:'fldaqChiFnKJ5HN1N',turn:'fldgqHgqks65JXTid',toDue:'fldMHViMzZcmBqOzm',
+  lines:'fldU6fgrz6sU3wyIZ',prints:'fldFbR56c4K4xRow7',issues:'fldBQ2Zm9j1ZCMLrs',bos:'fldHMjz2FH70tUjzK',panda:'fldqIIPwPEJXL7Efu',packet:'fldSwLl9yIMSXcT0Y',
+  signedAt:'fld2h7L1aqDHPfcQM',tracking:'fldLjGNoUKrxuX0O7',carrier:'fldjSezoa5NtveYvm',shipDate:'fldlMlDIr9hLYFfbL',boxes:'fldu7dXQAwg3S974s',
+  notes:'fldh9WFXo6qhAahaQ',orderNotes:'fldzzDJNF6rvTCmRq',handoff:'fldu2NmUdYx6yd9DU',refundReq:'fldga8BAM7XzmgDI9',art:'flddst7TDoJfSqb0s',created:'fldXUjQHSeRaW5per'};
+/* Line Items */
+var L={garment:'fldKhz9uZgXwfeIto',colour:'fldoXTRyLP4SshFZ0',nick:'fldKb7r8o7uvj1iEd',ptype:'fld8LIkrBXv8WoRRb',imps:'fldTFz4ZzfOthqkg6',impIds:'fldmGRcdXyvheWjmv',
+  total:'fldFfuKAcduwWQp8g',ordered:'fldBnjGyTLLjzz97l',orderedAt:'fldhDUejzo0Q4X92k',received:'fldwaSkM0sJJ2oYsQ',receivedAt:'fldmMViJMYizJfOev',
+  po:'fldIUAnkNscvEVDjU',supplier:'fldj5Oq8JVUocLzS2',arrival:'fld9EfCdiP8cgSepO',stock:'fldH2Hdp1kk5LmlY9',
+  misship:'fldDlrzYoe2q31K0U',misshipRes:'fldt0vrDUpL3eKatw',misshipDet:'fldQP8hzBdUXl50Io',
+  rpOrdered:'fldEZmyBBJzI4mrOb',rpReceived:'fldeGE2Lyi4ZOA1zF',rpPo:'fldcaFxMwfli5cR2K',rpOrder:'fldLaOaYriGPxxQMu',rpQty:'fldatIwNPZdUHXWgp',
+  proofs:'flddhvdkKI31tFTdX',signed:'fldYeu8XZgBNSQ3N6',check:'fldzHcS22EcdZ3xwN',proofOk:'fldsVU7LXUN6LszvB',proofAt:'fldvrHQZfKTE4H0BB',
+  issues:'fldHCpuwNVpgkcwHp',bos:'fldY9KHcYHQi88P1j',
+  proofing:'fldWdnT83KLEvBrg4',sales:'fldG3tzTzUC3QQJ1I',lineNotes:'fldF378cgWuOcWNL6',prodNotes:'fld4FjoCQ5bXdwjJj',shipNotes:'fld7rY74m37acM2Ik',
+  finNotes:'fldqsj7nZgHrtRbEn',dmgNotes:'fldluAKxFLXEDVwqP'};
+/* sizes: [label, ordered, extras, received (Actual)] — Receiving v91 / worker /proxy/mockups */
+var SIZES=[['XS','fldVA9ZmYxhDxtnYZ','fldKcVhxgaclD1csp','fldam6SyOjB3VebzQ'],['S','fldCZr5lB6Jx80lfG','fldgf19Xi1VDqro4Q','fldM6F2oo5fV9zPse'],
+  ['M','fldzTs1qKe9IBxxSn','fldWxiQEIFsqwxFW1','fldejqlR3EGch1svc'],['L','fldnRLJxjUDa1mQTj','fldclPpJQpcXuT4Wn','fldn3bdKPd3LkuuP3'],
+  ['XL','fldTRgdexcpBXXQPv','fldWjibddJoIC1JGu','fldVsaOkMG6JglWv3'],['2XL','fldin7j6uGO0uRTec','fldgd2JZCSS3YBYX2','fld1YCamiJYBRjoZL'],
+  ['3XL','fldpltq9fdRkrvIvt','fldbht14x4cRBPRVL','fld1itap3IIl4UbST'],['4XL','fldrsci7JnToa43Zd','fldLyB756Va085UDj','fldkPODsJyE4OZXXZ'],
+  ['5XL','fldchnRSKFukouW6N','fldHZ0WmjhzF34noZ','fldJpbBIdckvwHj7K'],['6XL','fldI8gTtsEJwg33BI',null,null],['OSFA','fld2bgIlmPbANgLVK','fldKS4Jk6aZvxR4Nn','fldcseeXJjlFbIBhA']];
+/* Imprints (Schedule v37, Catching v181, Seps / Screens / Ink) */
+var I={id:'fldDFfwFQ9B20n2kT',nick:'fldyGOHRKNz00MaYQ',type:'fldjNCuaGOkWgzH2K',loc:'fldKQIL0rSJBSeC8S',screens:'fld8rgkIj1RPO97QU',inks:'fldMM5hp8kEpo3KKT',
+  pantone:'fldzEbYXESOVnYrtw',sepd:'fldlMcHtldbifKzDN',sepdAt:'fldCkjATjNnBb7Aam',separator:'fldTPKgZroX532qER',burned:'fldEL51Nwrxuyn9Zo',burnedAt:'fldGE6YUG5NWIqq1g',
+  inksReady:'fld2a1CPcDMSD26PS',inksAt:'fldnNmTNevL1AHrXQ',trims:'fldHqiXg8OqOc1dcV',start:'fldfqtIgcEfIlIeQk',equip:'fldv59OGU7EkBVofo',locked:'fldYD2VrhaLfkXXkw',
+  rpLock:'flduvuUWAzzDYby6y',setup:'fldsYmRn7FwmWCH97',running:'fldmnZof3Dce60JKv',finished:'fldFuDZ68QdUMt3pM',finishedAt:'fldtoIc7CRd5sXeBS',operator:'fldOsVUlfs3U847oO',
+  caught:'fldIo2EmE7b25vtfS',caughtAt:'fldfwVYinDPnvwOJn',lines:'fldsvntAy1QHEoDAg',qty:'fldFipR4ddfqMPeAX',repeat:'flda9L7041ahNZT0b',
+  printNotes:'fldNuEzGIYI8FWqXu',inkNotes:'fldk0Zbjyuh5NEIE8',schedNotes:'fldjlfaH3dOBCtuTM',jobComments:'fldnBE4NLaajisvcb'};
+/* Order Issues (Damage Log v25) */
+var X={id:'fldrDXAUR87KX4vsp',desc:'fldgpnNu2zyw43BFb',status:'fldfLAjmK6XZqki9S',line:'fldZXHOSnXHsMfO7k',res:'fldAT3sfeVSAqTRvk',cat:'fldl1rfconiE3AS4Z',
+  originator:'fldmhkNWneLhdNPLa',pcs:'fldC7uIwyU6QeHbZi',impIds:'fldTIt2Ql4I19VsT0',created:'fldYuJudwBRFz50h0',resDesc:'fldXIX7FW4vGlfUmP',notes:'fldNAA90J3W40EsCQ',
+  approved:'fldpiZYluCb72W1vs',garment:'fldl5nOI7tgZD02Yl'};
+/* Backorders (Catching v181 / Purchasing v124) */
+var B={line:'fldY8R2fhM7vedBTU',vendor:'fldZJ6FyIWHIi3F5n',style:'fldewwkrrVTjHr8eF',colour:'fldrJLSJFesde0bP7',sizes:'fldnPRCNV3gxiGWJ3',qty:'fldOlt5JWDAswq0rZ',
+  status:'fldRkAyDlbvq6zVKi',stock:'fldlPey8fqF3xejlT',eta:'flda5Q2gleN1jYqea',notes:'fld18fwYwUh9Dd5DI',po:'fldqXyLAFn6s4RT12',changed:'fldQaOlNgozDi4hMV'};
+
+var RANK={'Awaiting Proof':0,'Sent - Awaiting Payment':1,'Ready to Order':2,'Ordered - In Production':3,'Pre-press':3,'Delayed - Mis-Shipment - Needs Order':3,
+  'Scheduled, Screened, & Inbound':4,'Received & Staged':4,'On-Press':5,'Delayed - Mis-Print':5,'Delayed - Mis-Print - Needs Order':5,'Caught - Awaiting Ship':6,
+  'Shipped':7,'Completed':7,'Partially Completed':7,'Cancelled / Voided':-1};
+var DONE_ST=['Shipped','Completed','Cancelled / Voided','Partially Completed'];
+var SCREEN_TYPES=['Discharge','No Base W/B','Bleed Blocker + W/B','EZP Base + W/B','Flatstock'];
+var BO_OPEN=['Waiting','Back in stock','ETA reached','Ordered'];
+var PRACTICE=/[?&]practice=1/.test(location.search);
+var S={o:null,lines:[],imps:[],issues:[],bos:[],comments:null,commentsErr:false,part:{},seq:0,home:null};
+
+function $(id){return document.getElementById(id);}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+function token(){return store('pine_at_key')||'';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+/* Airtable values → plain text / arrays */
+function txt(v){ if(v==null) return ''; if(Array.isArray(v)) return v.map(txt).filter(Boolean).join(', '); if(typeof v==='object') return v.name||v.filename||v.text||''; return String(v).trim(); }
+function arr(v){ return v==null||v===''?[]:Array.isArray(v)?v:[v]; }
+function ids(v){ return arr(v).map(function(x){return typeof x==='string'?x:x&&x.id;}).filter(function(x){return /^rec[A-Za-z0-9]{14}$/.test(x||'');}); }
+function num(v){ if(Array.isArray(v)) return v.reduce(function(a,x){return a+num(x);},0); var n=parseFloat(v); return isNaN(n)?0:n; }
+function yes(v){ return Array.isArray(v)?v.some(yes):v===true||v===1||v==='1'||v==='true'; }
+function plural(n,w){ return n+' '+w+(n===1?'':'s'); }
+
+/* dates. Date fields ("2026-11-25") are calendar days; Scheduled Start Time is shop clock time marked Z (08:30Z = 8:30 am,
+   Schedule / Operator); every other date-time is a real moment, shown in this computer's time. */
+var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pd(v){ v=arr(v)[0]; if(!v) return null; var s=String(v); var m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m) return new Date(+m[1],m[2]-1,+m[3]); var d=new Date(s); return isNaN(d)?null:d; }
+function shop(v){ v=arr(v)[0]; if(!v) return null; var d=new Date(String(v)); return isNaN(d)?null:new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCHours(),d.getUTCMinutes()); }
+function day0(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+function today(){ return day0(new Date()); }
+function dd(a,b){ return Math.round((day0(b)-day0(a))/864e5); }
+function fDay(d){ return d?DOW[d.getDay()]+' '+MON[d.getMonth()]+' '+d.getDate():''; }
+function fShort(d){ if(!d) return ''; var s=MON[d.getMonth()]+' '+d.getDate(); return d.getFullYear()!==today().getFullYear()?s+', '+d.getFullYear():s; }
+function fTime(d){ var h=d.getHours(), m=d.getMinutes(); return (h%12||12)+(m?':'+String(m).padStart(2,'0'):'')+(h<12?'a':'p'); }
+function rel(d){ if(!d) return ''; var n=dd(today(),d); return n===0?'today':n===1?'tomorrow':n===-1?'yesterday':(Math.abs(n)<7?fDay(d):fShort(d)); }
+function relT(d){ return d?rel(d)+' '+fTime(d):''; }
+function workdays(a,b){ var n=0, d=day0(a), e=day0(b); while(d<e){ d.setDate(d.getDate()+1); if(d.getDay()%6) n++; } return n; }
+function latest(list){ var m=null; list.forEach(function(d){ if(d&&(!m||d>m)) m=d; }); return m; }
+
+/* ---------- Airtable (GET only) ---------- */
+function AtErr(msg,status){ this.message=msg; this.status=status; }
+async function at(path,tries){
+  tries=tries||0;
+  var r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+path,{headers:{Authorization:'Bearer '+token()}});
+  if(r.status===429&&tries<3){ await new Promise(function(res){setTimeout(res,1100*(tries+1));}); return at(path,tries+1); }
+  var j=await r.json().catch(function(){return {};});
+  if(!r.ok) throw new AtErr((j.error&&(j.error.message||j.error.type))||('Airtable '+r.status),r.status);
+  return j;
+}
+function fq(fields){ return fields.map(function(f){return '&fields%5B%5D='+f;}).join(''); }
+async function list(tbl,o){
+  var out=[], off='';
+  do{ var j=await at(tbl+'?returnFieldsByFieldId=true&pageSize=100'+(o.formula?'&filterByFormula='+encodeURIComponent(o.formula):'')+(o.max?'&maxRecords='+o.max:'')+
+      (o.sort?'&sort%5B0%5D%5Bfield%5D='+encodeURIComponent(o.sort)+'&sort%5B0%5D%5Bdirection%5D='+(o.dir||'asc'):'')+fq(o.fields)+(off?'&offset='+encodeURIComponent(off):''));
+    out=out.concat(j.records||[]); off=j.offset||''; }while(off&&(!o.max||out.length<o.max));
+  return out;
+}
+async function byIds(tbl,list_,fields){
+  var u=list_.filter(function(x,i){return list_.indexOf(x)===i;}), parts=[];
+  for(var i=0;i<u.length;i+=40) parts.push(list(tbl,{formula:'OR('+u.slice(i,i+40).map(function(id){return "RECORD_ID()='"+id+"'";}).join(',')+')',fields:fields}));
+  var got=[].concat.apply([],await Promise.all(parts)), map={}; got.forEach(function(r){map[r.id]=r;});
+  return u.map(function(id){return map[id];}).filter(Boolean);   // keep the order's own order
+}
+function vals(o){ return Object.keys(o).map(function(k){return o[k];}); }
+var LINE_FIELDS=vals(L).concat([].concat.apply([],SIZES.map(function(s){return s.slice(1).filter(Boolean);})));
+
+/* ---------- routing ---------- */
+function params(){ return new URLSearchParams(location.search); }
+function go(q,push){ var p=params(), keep=PRACTICE?'practice=1':''; var s=[q,keep].filter(Boolean).join('&'); var url=location.pathname+(s?'?'+s:'');
+  if(push) history.pushState(null,'',url); else history.replaceState(null,'',url); route(); }
+function route(){
+  var p=params(), on=(p.get('order')||'').replace(/\D/g,''), id=p.get('id')||'';
+  if(!token()){ showMenu(true); $('main').innerHTML='<div class="msg"><b>Paste the Airtable token</b>Open ⚙ (top right) and paste it once. It stays on this computer.</div>'; return; }
+  if(/^rec[A-Za-z0-9]{14}$/.test(id)) return openOrder({id:id});
+  if(on) return openOrder({num:on});
+  if(p.get('q')){ $('q').value=p.get('q'); return search(p.get('q'),true); }
+  home();
+}
+window.addEventListener('popstate',route);
+
+/* ---------- home: active orders + recent ---------- */
+var HOME_FIELDS=[O.num,O.cust,O.status,O.due,O.hard,O.rep,O.pcs];
+function orow(r){ var f=r.fields, st=txt(f[O.status]), due=pd(f[O.due]), late=due&&dd(today(),due)<0&&DONE_ST.indexOf(st)<0;
+  return '<button class="p-off-orow" type="button" data-num="'+esc(txt(f[O.num]))+'"><span class="p-id">#'+esc(txt(f[O.num]))+'</span>'+
+    '<span class="p-off-orow-cust">'+esc(txt(f[O.cust])||'No customer')+'</span>'+
+    '<span class="p-off-orow-sub">'+esc([st,due?'Due '+fDay(due):'',txt(f[O.rep])].filter(Boolean).join(' · '))+'</span>'+
+    '<span class="p-off-orow-end">'+(late?'<span class="p-tag p-tag-alert">Late</span>':txt(f[O.hard])==='Hard Deadline'?'<span class="p-tag">Hard</span>':'')+'</span></button>'; }
+function bindRows(root){ root.querySelectorAll('[data-num]').forEach(function(b){ b.onclick=function(){ go('order='+b.dataset.num,true); }; }); }
+async function home(){
+  S.o=null; $('homeBtn').hidden=true; document.title='Order v2 — Pine'; renderRecent();
+  var seq=++S.seq, m=$('main');
+  if(!S.home) m.innerHTML='<div class="loading">Loading active orders…</div>';
+  try{
+    if(!S.home) S.home=await list(T.ord,{formula:'AND({Invoice / Order Number},'+DONE_ST.map(function(s){return "{Order Status}!='"+s+"'";}).join(',')+')',fields:HOME_FIELDS,max:300});
+    if(seq!==S.seq) return;
+    var rows=S.home.slice().sort(function(a,b){ var x=pd(a.fields[O.due]), y=pd(b.fields[O.due]); return (x?x.getTime():9e15)-(y?y.getTime():9e15); });
+    m.innerHTML='<div class="sec"><span class="p-section">Active orders <span class="p-count">'+rows.length+'</span></span><span class="hint">Due soonest first. Search by order # or customer above.</span></div>'+
+      (rows.length?'<div class="olist">'+rows.map(orow).join('')+'</div>':'<div class="empty">No active orders.</div>');
+    bindRows(m);
+  }catch(e){ if(seq===S.seq) fail(e); }
+}
+function recentList(){ try{ return JSON.parse(store('pine_order_recent')||'[]')||[]; }catch(e){ return []; } }
+function addRecent(n,c){ var l=recentList().filter(function(x){return x.n!==n;}); l.unshift({n:n,c:c}); store('pine_order_recent',JSON.stringify(l.slice(0,6))); }
+function renderRecent(){ var l=recentList(), cur=S.o&&txt(S.o.fields[O.num]); l=l.filter(function(x){return x.n!==cur;});
+  $('recent').hidden=!l.length;
+  $('recent').innerHTML=l.map(function(x){return '<button class="p-tab" type="button" data-num="'+esc(x.n)+'" title="'+esc(x.c)+'">#'+esc(x.n)+'</button>';}).join('');
+  bindRows($('recent')); }
+
+/* ---------- search ---------- */
+async function search(q,fromUrl){
+  q=String(q||'').trim(); if(!q) return home();
+  var seq=++S.seq, m=$('main'); S.o=null; $('homeBtn').hidden=false; renderRecent();
+  m.innerHTML='<div class="loading">Finding “'+esc(q)+'”…</div>';
+  var digits=/^#?\d{3,7}$/.test(q), s=q.replace(/^#/,'').replace(/["\\]/g,'');
+  var f=digits?'{Invoice / Order Number}='+s:"FIND(LOWER(\""+s+"\"),LOWER({[TEXT] Customer Name}&''))";
+  try{
+    var rows=await list(T.ord,{formula:f,fields:HOME_FIELDS,max:40,sort:'Creation Date',dir:'desc'});
+    if(seq!==S.seq) return;
+    if(digits&&rows.length===1&&!fromUrl) return go('order='+txt(rows[0].fields[O.num]),true);
+    m.innerHTML='<div class="sec"><span class="p-section">Found <span class="p-count">'+rows.length+'</span></span><span class="hint">“'+esc(q)+'”, newest first</span></div>'+
+      (rows.length?'<div class="olist">'+rows.map(orow).join('')+'</div>':'<div class="empty">No order matches. Try the order number or part of the customer name.</div>');
+    bindRows(m);
+  }catch(e){ if(seq===S.seq) fail(e); }
+}
+function fail(e){ var auth=e&&(e.status===401||e.status===403);
+  $('main').innerHTML='<div class="msg is-alert"><b>'+(auth?'Airtable refused the token':'Could not load from Airtable')+'</b>'+esc(e&&e.message||e)+(auth?' · Check the token in ⚙.':' · Tap Refresh to try again.')+'</div>';
+  if(auth) showMenu(true); }
+
+/* ---------- one order ---------- */
+async function openOrder(k){
+  var seq=++S.seq, m=$('main'); $('homeBtn').hidden=false;
+  S.o=null; S.lines=[]; S.imps=[]; S.issues=[]; S.bos=[]; S.part={};
+  m.innerHTML='<div class="loading">Loading order '+esc(k.num||'')+'…</div>';
+  try{
+    var rows=await list(T.ord,{formula:k.id?"RECORD_ID()='"+k.id+"'":'{Invoice / Order Number}='+k.num,fields:vals(O),max:1});
+    if(seq!==S.seq) return;
+    if(!rows.length){ m.innerHTML='<div class="msg"><b>No order '+esc(k.num||k.id)+'</b>Check the number, or search by customer above.</div>'; return; }
+    var o=S.o=rows[0], f=o.fields;
+    addRecent(txt(f[O.num]),txt(f[O.cust])); renderRecent();
+    document.title='#'+txt(f[O.num])+' '+txt(f[O.cust])+' — Order';
+    render();                                                             // header first
+    var pL=byIds(T.li,ids(f[O.lines]),LINE_FIELDS), pI=byIds(T.imp,ids(f[O.prints]),vals(I)),
+        pX=byIds(T.iss,ids(f[O.issues]),vals(X)), pB=byIds(T.bo,ids(f[O.bos]),vals(B));
+    var lines=await pL; if(seq!==S.seq) return; S.lines=lines; S.part.lines=true;
+    var moreI=[], moreX=[], moreB=[];
+    lines.forEach(function(l){ ids(l.fields[L.imps]).forEach(function(x){moreI.push(x);}); ids(l.fields[L.issues]).forEach(function(x){moreX.push(x);}); ids(l.fields[L.bos]).forEach(function(x){moreB.push(x);}); });
+    var r=await Promise.all([pI,pX,pB]); if(seq!==S.seq) return;
+    var have=function(a,list_){ return list_.filter(function(x){ return !a.some(function(r){return r.id===x;}); }); };
+    var extra=await Promise.all([byIds(T.imp,have(r[0],moreI),vals(I)),byIds(T.iss,have(r[1],moreX),vals(X)),byIds(T.bo,have(r[2],moreB),vals(B))]);
+    if(seq!==S.seq) return;
+    S.imps=sortImps(r[0].concat(extra[0])); S.issues=r[1].concat(extra[1]); S.bos=r[2].concat(extra[2]); S.part.all=true;
+    render();
+  }catch(e){ if(seq===S.seq) fail(e); }
+}
+function sortImps(list_){ return list_.sort(function(a,b){ return txt(a.fields[I.id]).localeCompare(txt(b.fields[I.id]),undefined,{numeric:true}); }); }
+/* ---------- model ---------- */
+function impKind(f){ var t=txt(f[I.type]); if(SCREEN_TYPES.indexOf(t)>=0) return 'screen'; if(/^Finishing/.test(t)) return 'finish'; if(t==='Embroidery') return 'emb';
+  if(t) return 'trim'; return num(f[I.screens])>0?'screen':'other'; }
+function impLabel(f){ return txt(f[I.id])||'Imprint'; }
+function lineName(l){ var f=l.fields; return txt(f[L.garment])||txt(f[L.nick])||'Line item'; }
+function lineQty(f){ var o=0,e=0,a=0; SIZES.forEach(function(s){ o+=num(f[s[1]]); if(s[2]) e+=num(f[s[2]]); if(s[3]) a+=num(f[s[3]]); }); return {ord:o,ext:e,want:o+e,act:a}; }
+function isGarment(l){ var t=txt(l.fields[L.ptype]); return !/^(Artwork|Pre-Order Setup Fees|Misc\.)$/.test(t)&&(lineQty(l.fields).ord>0||num(l.fields[L.total])>0); }
+function boOpen(b){ return BO_OPEN.indexOf(txt(b.fields[B.status]))>=0; }
+function boText(b){ var f=b.fields; return [txt(f[B.style]),txt(f[B.colour])].filter(Boolean).join(' ')+(txt(f[B.sizes])?' · '+txt(f[B.sizes]):'')+(num(f[B.qty])?' ×'+num(f[B.qty]):''); }
+function issueOpen(x){ var s=txt(x.fields[X.status]); return s==='Awaiting Review'||s==='In progress'; }
+function pickup(){ return /pick-?up/i.test(txt(S.o.fields[O.ship])); }
+function linesOfImp(im){ var li=ids(im.fields[I.lines]); return S.lines.filter(function(l){ return li.indexOf(l.id)>=0||ids(l.fields[L.imps]).indexOf(im.id)>=0; }); }
+
+/* The seven stages. state: done | now | wait | na. d = detail lines (html), b = what holds it up ({t, alert}) */
+function stages(){
+  var f=S.o.fields, st=txt(f[O.status]), rank=RANK[st]==null?0:RANK[st], lines=S.lines, imps=S.imps, all=!!S.part.all;
+  var out=[];
+  /* 1 Proof */
+  (function(){ var s={k:'proof',name:'Proof',d:[],b:[]};
+    var signedAt=pd(f[O.signedAt]), packet=arr(f[O.packet]).length>0, sent=!!txt(f[O.panda])||rank>=1;
+    var withProof=lines.filter(function(l){return arr(l.fields[L.proofs]).length;}), ok=lines.filter(function(l){return yes(l.fields[L.proofOk]);});
+    var sLines=lines.filter(function(l){return arr(l.fields[L.signed]).length;});
+    var signed=!!(signedAt||packet)||(lines.length&&sLines.length===lines.length);
+    if(signed){ s.state='done'; s.when=signedAt?'Signed '+rel(signedAt):'Signed'; }
+    else if(rank>=2){ s.state='done'; s.when='Approved'; s.d.push('No signed packet saved in Airtable'); }
+    else if(sent){ s.state='now'; s.when='Sent'; s.b.push({t:'Waiting on the customer to sign the proof'}); }
+    else if(withProof.length){ s.state='now'; s.when='In review'; s.b.push({t:'Proofs in review: '+ok.length+' of '+lines.length+' lines approved'}); }
+    else { s.state=lines.length||!all?'wait':'wait'; s.b.push({t:'Waiting on proofs from Art'}); }
+    if(lines.length) s.d.push('<b>'+sLines.length+' of '+lines.length+'</b> lines have their signed page'+(withProof.length<lines.length?' · '+(lines.length-withProof.length)+' without a proof':''));
+    lines.forEach(function(l){ var c=txt(l.fields[L.check]); if(!c) return; var first=c.split('\n')[0], ii=txt(l.fields[L.impIds])||lineName(l);
+      if(/^\s*CHECK/i.test(first)) s.b.push({t:ii+': signed page doesn\'t match ('+first.replace(/^\s*CHECK\s*·?\s*/i,'')+')',alert:true});
+      else if(/^\s*NOT INITIALED/i.test(first)) s.b.push({t:ii+': customer didn\'t initial the proof'+(first.match(/page \d+/i)?' ('+first.match(/page \d+/i)[0]+')':'')}); });
+    var paid=pd(f[O.paid]);
+    s.d.push(paid?'Paid '+rel(paid):'<span>Not paid yet</span>');
+    if(!paid&&signed&&rank<3) s.b.push({t:'Waiting on payment'});
+    out.push(s); })();
+  /* 2 Garments */
+  (function(){ var s={k:'garments',name:'Garments',d:[],b:[]};
+    var g=lines.filter(isGarment), ord=g.filter(function(l){return yes(l.fields[L.ordered])||yes(l.fields[L.stock]);}), rec=g.filter(function(l){return yes(l.fields[L.received]);});
+    var pos=[]; g.forEach(function(l){ var p=txt(l.fields[L.po]), v=txt(l.fields[L.supplier]); if(p) pos.push(p+(v?' ('+v+')':'')); });
+    pos=pos.filter(function(x,i){return pos.indexOf(x)===i;});
+    if(!g.length){ s.state=all?'na':'wait'; s.when=all?'No garments to order':''; }
+    else if(rec.length===g.length){ s.state='done'; var t=latest(rec.map(function(l){return pd(l.fields[L.receivedAt]);})); s.when='All in'+(t?' '+rel(t):''); }
+    else if(ord.length){ s.state='now'; s.when=rec.length?rec.length+' of '+g.length+' lines in':'Ordered'; }
+    else s.state='wait';
+    if(g.length) s.d.push('Ordered <b>'+ord.length+' of '+g.length+'</b>'+(pos.length?' · PO '+esc(pos.join(', ')):''));
+    if(g.length&&rec.length) s.d.push('In <b>'+rec.length+' of '+g.length+'</b>');
+    g.forEach(function(l){ var lf=l.fields, q=lineQty(lf), nm=lineName(l);
+      if(yes(lf[L.misship])&&!yes(lf[L.misshipRes])) s.b.push({t:'Mis-ship on '+nm+(txt(lf[L.misshipDet])?': '+txt(lf[L.misshipDet]).split('\n')[0]:''),alert:true});
+      if(yes(lf[L.received])&&q.act>0&&q.act<q.want) s.d.push('<span class="bad">'+esc(nm)+': '+q.act+' of '+q.want+' in</span>');
+      if(!yes(lf[L.received])&&(yes(lf[L.ordered])||yes(lf[L.stock]))){ var eta=pd(lf[L.arrival]); s.b.push({t:'Not in yet: '+nm+(txt(lf[L.po])?' (PO '+txt(lf[L.po])+')':'')+(eta?' · expected '+rel(eta):'')}); }
+      if(!yes(lf[L.ordered])&&!yes(lf[L.stock])&&rank>=2) s.b.push({t:'Not ordered yet: '+nm}); });
+    S.bos.filter(boOpen).forEach(function(b){ var bf=b.fields, eta=pd(bf[B.eta]), stt=txt(bf[B.status]);
+      s.b.push({t:'Backorder: '+boText(b)+' · '+stt+(eta?' · restock '+rel(eta):'')+(stt==='Back in stock'&&txt(bf[B.stock])?' · '+txt(bf[B.stock]).split('\n')[0]:'')}); });
+    out.push(s); })();
+  /* 3 Pre-press */
+  (function(){ var s={k:'prepress',name:'Pre-press',d:[],b:[]};
+    var need=imps.filter(function(im){ var k=impKind(im.fields); return k==='screen'||k==='trim'; }), done=0, any=0, when=[], who=[];
+    need.forEach(function(im){ var x=im.fields, k=impKind(x), id=impLabel(x), miss=[];
+      if(k==='screen'){ if(!yes(x[I.sepd])) miss.push('not sep\'d'); if(!yes(x[I.burned])) miss.push('screens not burned'); if(!yes(x[I.inksReady])) miss.push('inks not mixed');
+        if(yes(x[I.sepd])||yes(x[I.burned])||yes(x[I.inksReady])) any++;
+        when.push(pd(x[I.sepdAt]),pd(x[I.burnedAt]),pd(x[I.inksAt])); if(txt(x[I.separator])) who.push(txt(x[I.separator])); }
+      else { if(!yes(x[I.trims])) miss.push(yes(x[I.sepd])?'transfers ordered, not in yet':'transfers / trims not in'); else any++; }
+      var d=shop(x[I.start]), soon=!!d&&dd(today(),d)>=0&&dd(today(),d)<=1&&!yes(x[I.finished]);   // prints today / tomorrow: say so first
+      if(!miss.length) done++; else s.b.push({t:id+(soon?' prints '+rel(d)+': ':': ')+miss.join(', '),soon:soon}); });
+    s.b.sort(function(a,b){return (b.soon?1:0)-(a.soon?1:0);});
+    if(!need.length){ s.state=all?'na':'wait'; s.when=all&&imps.length?'Nothing to prep':''; }
+    else if(done===need.length){ s.state='done'; var t=latest(when); s.when='Ready'+(t?' '+rel(t):''); }
+    else { s.state=any||done?'now':'wait'; s.when=done+' of '+need.length+' ready'; }
+    if(need.length) s.d.push(need.map(function(im){ var x=im.fields, k=impKind(x), ok=k==='screen'?yes(x[I.sepd])&&yes(x[I.burned])&&yes(x[I.inksReady]):yes(x[I.trims]);
+      return '<b>'+esc(impLabel(x))+'</b> '+(ok?'✓':'…'); }).join(' · '));
+    who=who.filter(function(x,i){return who.indexOf(x)===i;}); if(who.length) s.d.push('Sep\'d by '+esc(who.join(', ')));
+    out.push(s); })();
+  /* 4 Scheduled */
+  (function(){ var s={k:'scheduled',name:'Scheduled',d:[],b:[]};
+    var pr=imps.filter(function(im){return impKind(im.fields)!=='finish';}), sch=pr.filter(function(im){return shop(im.fields[I.start]);});
+    if(!pr.length){ s.state=all?'na':'wait'; }
+    else if(sch.length===pr.length){ s.state='done'; var first=sch.map(function(im){return shop(im.fields[I.start]);}).sort(function(a,b){return a-b;})[0]; s.when=rel(first)+' '+fTime(first); }
+    else { s.state=sch.length?'now':'wait'; s.when=sch.length?sch.length+' of '+pr.length+' on the schedule':''; }
+    sch.forEach(function(im){ var x=im.fields, d=shop(x[I.start]);
+      s.d.push('<b>'+esc(impLabel(x))+'</b> '+esc(pressName(txt(x[I.equip])))+' · '+esc(relT(d))+(yes(x[I.rpLock])?' · re-print locked':yes(x[I.locked])?' · locked':'')); });
+    pr.filter(function(im){return !shop(im.fields[I.start]);}).forEach(function(im){ if(rank>=2) s.b.push({t:impLabel(im.fields)+': not on the schedule yet'}); });
+    out.push(s); })();
+  /* 5 Printed */
+  (function(){ var s={k:'printed',name:'Printed',d:[],b:[]};
+    var pr=imps.filter(function(im){return impKind(im.fields)!=='finish';}), fin=pr.filter(function(im){return yes(im.fields[I.finished]);}),
+        run=pr.filter(function(im){return !yes(im.fields[I.finished])&&(yes(im.fields[I.running])||yes(im.fields[I.setup]));});
+    if(!pr.length) s.state=all?'na':'wait';
+    else if(fin.length===pr.length){ s.state='done'; var t=latest(fin.map(function(im){return pd(im.fields[I.finishedAt]);})); s.when=t?'Finished '+rel(t):'Finished'; }
+    else { s.state=fin.length||run.length?'now':'wait'; s.when=fin.length||run.length?fin.length+' of '+pr.length+' printed':''; }
+    fin.forEach(function(im){ var x=im.fields, t=pd(x[I.finishedAt]); s.d.push('<b>'+esc(impLabel(x))+'</b> ✓ '+esc([t?relT(t):'',txt(x[I.operator])].filter(Boolean).join(' · '))); });
+    run.forEach(function(im){ var x=im.fields; s.d.push('<b>'+esc(impLabel(x))+'</b> '+(yes(x[I.running])?'printing now':'setting up')+(txt(x[I.operator])?' · '+esc(txt(x[I.operator])):'')); });
+    out.push(s); })();
+  /* 6 Caught */
+  (function(){ var s={k:'caught',name:'Caught',d:[],b:[]};
+    var pr=imps.filter(function(im){return impKind(im.fields)!=='finish';}), c=pr.filter(function(im){return yes(im.fields[I.caught]);});
+    if(!pr.length) s.state=all?'na':'wait';
+    else if(c.length===pr.length){ s.state='done'; var t=latest(c.map(function(im){return pd(im.fields[I.caughtAt]);})); s.when=t?'Caught '+rel(t):'Caught'; }
+    else { s.state=c.length?'now':'wait'; s.when=c.length?c.length+' of '+pr.length+' caught':''; }
+    c.forEach(function(im){ var t=pd(im.fields[I.caughtAt]); s.d.push('<b>'+esc(impLabel(im.fields))+'</b> ✓'+(t?' '+esc(relT(t)):'')); });
+    var dmg=S.issues.reduce(function(a,x){return a+num(x.fields[X.pcs]);},0);
+    if(dmg) s.d.push('<span class="bad">'+plural(dmg,'damaged piece')+'</span> · see Issues');
+    if(num(f[O.boxes])) s.d.push(plural(num(f[O.boxes]),'box')+' packed');
+    S.issues.filter(issueOpen).forEach(function(x){ var xf=x.fields; s.b.push({t:'Open issue: '+(txt(xf[X.res])||'needs a decision')+' · '+(txt(xf[X.impIds])||txt(xf[X.garment])||'')+(num(xf[X.pcs])?' · '+plural(num(xf[X.pcs]),'pc'):''),alert:txt(xf[X.status])==='Awaiting Review'}); });
+    out.push(s); })();
+  /* 7 Shipped / Picked up */
+  (function(){ var pu=pickup(), s={k:'out',name:pu?'Picked up':'Shipped',d:[],b:[]};
+    var shipD=pd(f[O.shipDate]), comp=pd(f[O.completed]), trk=txt(f[O.tracking]);
+    if(rank>=7){ s.state='done'; s.when=(pu?'Picked up':'Shipped')+((shipD||comp)?' '+rel(shipD||comp):''); }
+    else if(rank===6){ s.state='now'; s.when=pu?'Ready for pick-up':'Waiting to ship'; s.b.push({t:pu?'Caught and packed: waiting for the customer to pick up':'Caught and packed: waiting to ship'}); }
+    else s.state='wait';
+    s.d.push(esc(txt(f[O.ship])||'No ship method set'));
+    if(trk) s.d.push(trackHtml(txt(f[O.carrier]),trk));
+    out.push(s); })();
+  /* order status floor: a finished / caught order shouldn't read as waiting on an old step nobody ticked */
+  var floor=rank>=7?7:rank===6?6:0;
+  out.forEach(function(s,i){ if(i<floor&&s.state!=='done'&&s.state!=='na'){ s.state='done'; s.when=s.when||'Done'; s.b=s.b.filter(function(b){return b.alert;}); } });
+  return out;
+}
+function pressName(e){ return ({'Press 1 - ROQ NEXT':'Press 1','Press 2 - ROQ YOU':'Press 2','Press 1 & 2 - SPLIT':'Press 1 & 2','Flatstock - M&R Saturn':'Flatstock','Embroidery - TAJIMA 6-Head':'Embroidery'})[e]||e||'No press'; }
+function trackHtml(carrier,t){ var u=/^1Z/i.test(t)?'https://www.ups.com/track?tracknum='+encodeURIComponent(t):/fedex/i.test(carrier)||/^\d{12,15}$/.test(t)?'https://www.fedex.com/fedextrack/?trknbr='+encodeURIComponent(t):/usps/i.test(carrier)||/^\d{20,22}$/.test(t)?'https://tools.usps.com/go/TrackConfirmAction?tLabels='+encodeURIComponent(t):'';
+  return esc(carrier?carrier+' ':'')+(u?'<a class="p-off-link" href="'+u+'" target="_blank" rel="noopener">'+esc(t)+' ↗</a>':esc(t)); }
+
+/* ---------- render (v2: header, status, mock-ups) ---------- */
+var MAX_BLOCKS=4;
+function render(){
+  if(!S.o) return;
+  var f=S.o.fields, st=txt(f[O.status]), rank=RANK[st]==null?0:RANK[st], rec=S.o.id, on=txt(f[O.num]);
+  var due=pd(f[O.due]), hard=txt(f[O.hard]), pu=pickup(), late=due&&rank>=0&&rank<7&&due<today();
+  var dueTxt='No due date';
+  if(due){ var w=rank<7?(due>=today()?workdays(today(),due):-workdays(due,today())):null;
+    dueTxt='Due <b>'+esc(fDay(due))+'</b>'+(w==null?'':w===0?' · today':w>0?' · '+plural(w,'work day')+' left':' · <span class="late">'+plural(-w,'work day')+' late</span>'); }
+  var links=[['mockups.html?o='+rec,'Mockups page (signed packet)'],
+    rank<=1?['pine-line-item-review.html?order='+encodeURIComponent(on),'Line Item Review']:null,
+    ['receiving.html','Receiving'],['pine-schedule.html','Schedule'],['damage-log.html','Damage Log'],
+    txt(f[O.art])?[txt(f[O.art]),'Art folder']:null,['https://airtable.com/'+BASE+'/'+T.ord+'/'+rec,'Airtable record']].filter(Boolean);
+  var shipTxt=pu?'Pick-up':(txt(f[O.ship])||'');
+  var h='<section class="oh"><div class="oh-main"><div class="oh-l1"><span class="p-id p-off-oh-id">#'+esc(on)+'</span><span class="oh-cust">'+esc(txt(f[O.cust])||'No customer')+'</span>'+
+      (st?'<span class="p-tag '+(/^Delayed|Cancelled/.test(st)?'p-tag-alert':rank>=7?'p-tag-done':'p-tag-soft')+'">'+esc(st)+'</span>':'')+
+      (hard==='Hard Deadline'?'<span class="p-tag">Hard deadline</span>':'')+'</div>'+
+    '<div class="oh-l2">'+dueTxt+(shipTxt?' · '+esc(shipTxt):'')+(txt(f[O.tracking])?' · '+trackHtml(txt(f[O.carrier]),txt(f[O.tracking])):'')+'</div></div>'+
+    '<div class="open"><button class="p-btn" type="button" id="openBtn" aria-expanded="false" aria-haspopup="true">Open in… ▾</button>'+
+      '<div class="p-menu" id="openMenu" hidden>'+links.map(function(x){return '<a href="'+esc(x[0])+'" target="_blank" rel="noopener">'+esc(x[1])+' ↗</a>';}).join('')+'</div></div></section>';
+  if(!S.part.all){ $('main').innerHTML=h+'<div class="status"><div class="loading">Loading where it is…</div></div>'; bindOpen(); return; }
+  /* "Now" = every step that has started but isn't done, plus the first step that isn't done */
+  var ss=stages(), first=ss.find(function(s){return s.state!=='done'&&s.state!=='na';});
+  if(first) first.state='now';
+  var cur=ss.filter(function(s){return s.state==='now';}), last=ss.slice().reverse().find(function(s){return s.state==='done';});
+  var blocks=[]; if(/^Delayed/.test(st)) blocks.push({t:'Order status is '+st,alert:true}); if(late) blocks.push({t:'Past the due date ('+fDay(due)+')',alert:true});
+  ss.forEach(function(s){ s.b.forEach(function(b){ if(b.alert||s.state==='now') blocks.push(b); }); });
+  blocks.sort(function(a,b){ return (b.alert?2:b.soon?1:0)-(a.alert?2:a.soon?1:0); });
+  var extra=blocks.length-MAX_BLOCKS;
+  var nowName=cur.length?cur.map(function(s){return s.name;}).join(' · '):st==='Cancelled / Voided'?'Cancelled':(last?last.name:'Done');
+  var nowWhen=cur.length?(cur.length===1?cur[0].when:''):(last&&last.when)||'';
+  h+='<section class="status" aria-label="Status"><div class="now"><span class="p-label">Now</span><span class="now-stage">'+esc(nowName)+'</span>'+(nowWhen?'<span class="now-when">'+esc(nowWhen)+'</span>':'')+'</div>'+
+    '<ol class="bar">'+ss.map(function(s){ var dot=s.state==='done'?'✓':s.state==='now'?'●':s.state==='na'?'–':'';
+      var when=s.state==='na'?'Not needed':s.when||(s.state==='wait'?'Not yet':'');
+      return '<li class="bs is-'+s.state+'"><span class="bs-dot" aria-hidden="true">'+dot+'</span><span class="bs-name">'+esc(s.name)+'</span><span class="bs-when">'+esc(when)+'</span></li>'; }).join('')+'</ol>'+
+    (blocks.length?'<ul class="blocks">'+blocks.slice(0,MAX_BLOCKS).map(function(b){return '<li class="'+(b.alert?'is-alert':'')+'"><b>'+(b.alert?'Problem: ':'Waiting on: ')+'</b>'+esc(b.t)+'</li>';}).join('')+
+      (extra>0?'<li class="more">and '+extra+' more</li>':'')+'</ul>'
+      :st==='Cancelled / Voided'?'':'<p class="ontrack"><i aria-hidden="true">✓</i>'+(cur.length?'On track':'Done · nothing open')+'</p>')+'</section>';
+  var mk=mockups();
+  h+='<div class="sec"><span class="p-section">Mock-ups <span class="p-count">'+mk.length+'</span></span><span class="hint">signed page first · tap to open big</span></div>'+
+    (mk.length?'<div class="mocks">'+mk.map(mockHtml).join('')+'</div>':'<div class="empty">No imprints linked yet.</div>');
+  if(st==='Cancelled / Voided') h=h.replace('<section class="status"','<div class="p-note p-note-alert" style="margin-bottom:12px">This order is cancelled.</div><section class="status"');
+  $('main').innerHTML=h; bindOpen();
+  $('main').querySelectorAll('[data-mk]').forEach(function(b){ b.onclick=function(){ lbOpen(+b.dataset.mk); }; });
+}
+function bindOpen(){ var b=$('openBtn'), m=$('openMenu'); if(!b) return;
+  b.onclick=function(e){ e.stopPropagation(); m.hidden=!m.hidden; b.setAttribute('aria-expanded',!m.hidden); };
+  m.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(){ m.hidden=true; b.setAttribute('aria-expanded','false'); }); }); }
+document.addEventListener('pointerdown',function(e){ var m=$('openMenu'); if(m&&!m.hidden&&!e.target.closest('.open')){ m.hidden=true; $('openBtn').setAttribute('aria-expanded','false'); } });
+
+/* one tile per imprint × garment colour: the line's Signed Proof page first, else its proof */
+function attImg(a){ var t=a&&a.thumbnails; return {img:t&&(t.large||t.small)?(t.large||t.small).url:(/^image\//.test(a.type||'')?a.url:''),big:t&&t.full?t.full.url:t&&t.large?t.large.url:(/^image\//.test(a.type||'')?a.url:''),url:a.url}; }
+function mockups(){
+  var out=[];
+  S.imps.forEach(function(im){ var ls=linesOfImp(im), seen={};
+    if(!ls.length) out.push({im:im,colour:'',pic:null,signed:false});
+    ls.forEach(function(l){ var c=txt(l.fields[L.colour])||lineName(l), k=c.toLowerCase(); if(seen[k]) return; seen[k]=1;
+      var s=arr(l.fields[L.signed])[0], p=arr(l.fields[L.proofs])[0], a=s||p, pic=a?attImg(a):null;
+      out.push({im:im,colour:c,garment:lineName(l),pic:pic&&pic.img?pic:null,signed:!!s,notInit:/^\s*NOT INITIALED/i.test(txt(l.fields[L.check]))}); }); });
+  S.mk=out; return out;
+}
+/* the imprint's own short status: "Press 1 · tomorrow 8:30a · screens ✓ inks ✓" */
+function impStatus(x){
+  var k=impKind(x), d=shop(x[I.start]), p=[];
+  if(yes(x[I.caught])){ var c=pd(x[I.caughtAt]); return '<b>Caught ✓</b>'+(c?' '+esc(rel(c)):''); }
+  if(yes(x[I.finished])){ var f=pd(x[I.finishedAt]); return '<b>Printed ✓</b>'+(f?' '+esc(relT(f)):'')+(txt(x[I.operator])?' · '+esc(txt(x[I.operator])):'')+' · not caught yet'; }
+  if(yes(x[I.running])) return '<b>Printing now</b> · '+esc(pressName(txt(x[I.equip])));
+  if(yes(x[I.setup])) return '<b>Setting up</b> · '+esc(pressName(txt(x[I.equip])));
+  p.push(d?'<b>'+esc(pressName(txt(x[I.equip])))+' · '+esc(relT(d))+'</b>'+(yes(x[I.rpLock])?' · re-print locked':yes(x[I.locked])?' · locked':''):'<span class="no">not scheduled</span>');
+  var mark=function(ok,word){ return ok?esc(word)+' ✓':'<span class="no">'+esc(word)+' ✗</span>'; };
+  if(k==='screen') p.push(mark(yes(x[I.sepd]),'sep')+' '+mark(yes(x[I.burned]),'screens')+' '+mark(yes(x[I.inksReady]),'inks'));
+  else if(k==='trim') p.push(mark(yes(x[I.trims]),'transfers'));
+  return p.join(' · ');
+}
+function mockHtml(m,i){ var x=m.im.fields, id=impLabel(x);
+  var alt=(m.signed?'Signed proof':'Proof')+' for '+id+(m.colour?' on '+m.colour:'');
+  return '<article class="mk">'+(m.pic?'<button class="mk-img" type="button" data-mk="'+i+'" aria-label="Open '+esc(alt)+' big"><img src="'+esc(m.pic.img)+'" alt="'+esc(alt)+'" loading="lazy">'+
+      (m.signed?'<span class="p-tag p-tag-done">✓ Signed</span>':'<span class="p-tag p-tag-soft">Proof · not signed</span>')+'</button>':'<div class="mk-img none">No proof yet</div>')+
+    '<div class="mk-cap"><div class="mk-h"><span class="p-id">'+esc(id)+'</span><b>'+esc(txt(x[I.loc])||'No location')+'</b>'+(m.colour?' <span class="on">on '+esc(m.colour)+'</span>':'')+'</div>'+
+    '<div class="mk-st">'+impStatus(x)+(m.notInit?' · <span class="no">proof not initialed</span>':'')+'</div></div></article>'; }
+
+/* lightbox: big proof, ‹ › / ← → through the order's mock-ups, Esc closes */
+var LB={i:0,list:[]};
+function lbOpen(i){ LB.list=(S.mk||[]).map(function(m,k){return {m:m,k:k};}).filter(function(x){return x.m.pic;}); LB.i=Math.max(0,LB.list.findIndex(function(x){return x.k===i;})); $('lb').hidden=false; lbShow(); $('lbX').focus(); }
+function lbShow(){ var e=LB.list[LB.i]; if(!e) return; var m=e.m, x=m.im.fields;
+  $('lbImg').src=m.pic.big||m.pic.img; $('lbImg').alt=(m.signed?'Signed proof':'Proof')+' for '+impLabel(x);
+  $('lbCap').innerHTML=esc(impLabel(x)+' · '+(txt(x[I.loc])||'No location')+(m.colour?' · '+m.colour:''))+'<small>'+(m.signed?'Signed page':'Proof (not signed yet)')+' · '+(LB.i+1)+' of '+LB.list.length+'</small>';
+  $('lbPdf').href=m.pic.url||m.pic.big; $('lbPrev').disabled=LB.i===0; $('lbNext').disabled=LB.i>=LB.list.length-1; }
+function lbClose(){ $('lb').hidden=true; $('lbImg').removeAttribute('src'); }
+function lbStep(d){ var n=LB.i+d; if(n<0||n>=LB.list.length) return; LB.i=n; lbShow(); }
+$('lbX').onclick=lbClose; $('lbPrev').onclick=function(){lbStep(-1);}; $('lbNext').onclick=function(){lbStep(1);};
+$('lb').addEventListener('click',function(e){ if(e.target.id==='lb'||e.target.classList.contains('lb-main')) lbClose(); });
+document.addEventListener('keydown',function(e){ if($('lb').hidden) return; if(e.key==='Escape') lbClose(); else if(e.key==='ArrowLeft') lbStep(-1); else if(e.key==='ArrowRight') lbStep(1); });
+
+/* ---------- bar, menu, search box ---------- */
+function showMenu(on){ $('gear').hidden=!on; $('gearBtn').setAttribute('aria-expanded',on);
+  if(on){ $('tokHint').textContent=token()?'A token is saved on this computer.':'No token yet: paste it to load orders.'; setTimeout(function(){$('tokIn').focus();},0); } }
+$('gearBtn').onclick=function(){ showMenu($('gear').hidden); };
+document.addEventListener('pointerdown',function(e){ if(!$('gear').hidden&&!e.target.closest('#gear,#gearBtn')&&token()) showMenu(false); });
+$('tokSave').onclick=function(){ var v=$('tokIn').value.trim(); if(!v) return; store('pine_at_key',v); $('tokIn').value=''; showMenu(false); S.home=null; route(); };
+$('tokIn').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); $('tokSave').click(); } });
+$('findForm').onsubmit=function(e){ e.preventDefault(); var q=$('q').value.trim(); if(!q) return go('',true); $('q').blur();
+  if(/^#?\d{3,7}$/.test(q)) return go('order='+q.replace(/\D/g,''),true); go('q='+encodeURIComponent(q),true); };
+$('homeBtn').onclick=function(){ $('q').value=''; go('',true); };
+$('refreshBtn').onclick=async function(){ try{ if(window.PineUpdate&&PineUpdate.check&&await PineUpdate.check()) return; }catch(e){} S.home=null; route(); };
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!$('gear').hidden) showMenu(false);
+  if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){ e.preventDefault(); $('q').focus(); } });
+window.pineBusy=function(){ return false; };   // read-only: nothing is ever mid-task, so a new version can load straight away
+if(PRACTICE) $('practicePill').hidden=false;
+route();
+</script>
+<script>if(window.PineUpdate&&PineUpdate.ver)document.getElementById('ver').textContent='v'+PineUpdate.ver;</script>
+</body>
+</html>
