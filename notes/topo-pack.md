@@ -117,3 +117,9 @@ Stephen (PO0003354, Topo × New Belgium reorder, order 11056): "I don't have sku
   - The New Belgium PO reads 5 lines (48/60/84/84/60) and the address.
   - The packing list fits 1 Letter landscape page; the labels PDF builds.
   - The 11011 PO (PO0003352, with SKUs) still reads 10 SKUs / 500 pcs and the Baja address, as in v10.
+
+## 2026-11-23 · v12: POs with an Expected Receipt Date column
+- Stephen, PO0003364 (Topo x Pine SF Graphics): "saying it can't read this PO".
+- Its lines run SKU · UPC · "<product> (<colour>, <size>)" · Style Code · Schedule B · **Expected Receipt Date** (11/25/26) · qty · $rate. The line pattern expected the qty right after Schedule B, so no lines matched ("no items found").
+- Now the date column is optional (and a Style Code value printed beside it is skipped). The memo no longer picks up the Receive By date.
+- Tested in the page with Topo's PDFs: PO 3364 → 4 SKUs · 50 pcs (S 10, M 15, L 15, XL 10); PO 3352 (10 SKUs · 500 pcs) and PO 3354 (no SKUs, 5 lines · 336 pcs) read exactly as in v11.
