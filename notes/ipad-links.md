@@ -27,7 +27,7 @@
 | Seps | `seps.html` | v55 (splits signed packets into line pages in the background; signed packet = ✓ Signed; one signed row per colourway) |
 | Screens | `screens.html` | v37 (signed packet = ✓ Signed; one signed row per colourway) |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
-| Schedule | `pine-schedule.html` | v37 (search finds printed jobs; grey = ✓ Printed) · v36 (quieter PP suggested pill) · was v35 |
+| Schedule | `pine-schedule.html` | v38 (sales rep in job details) · v37 (search finds printed jobs; grey = ✓ Printed) · v36 (quieter PP suggested pill) · was v35 |
 | Pine Central | `pine-central.html` | v176 |
 | Price-O-Matic | `price-o-matic.html` | v119 |
 | Line Item Review | `pine-line-item-review.html` | v64 (one card per order on Ready to send; Preview approval under Send for signature; ⋯ menu) |
