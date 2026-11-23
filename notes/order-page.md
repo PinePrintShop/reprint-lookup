@@ -1,4 +1,51 @@
-# Order page (`order.html` → `pine-order-v1.html`)
+# Order page (`order.html` → `pine-order-v2.html`)
+
+## 2026-11-23 · v2: status and mock-ups only
+**Why:** Stephen on v1: "I think we can try and simplify it and really just focus in the status and maybe the mock-ups."
+
+**Same as v1:**
+- data loading: the order, then line items, imprints, Order Issues and Backorders by record ID
+- the step rules and the fields that feed them (table under v1)
+- the home screen: active orders, search, recent chips
+- read-only: GET only; `?practice=1` shows the tag
+
+**Kept on the page:**
+1. **Header (two lines):**
+   - order #, customer, status tag, Hard deadline
+   - due date with work days left (or late in red), Pick-up / ship method, and the tracking link once shipped
+   - v1's link row is now one small **Open in… ▾** menu: Mockups page (signed packet), Line Item Review (while proofing), Receiving, Schedule, Damage Log, Art folder, Airtable record. It closes on an outside tap.
+2. **Status, the main thing:**
+   - a big **NOW: <step>**: every step that's started but not done, plus the first step not done (e.g. "GARMENTS · PRE-PRESS"). When nothing is open, it's the last step done ("PICKED UP" + date).
+   - **progress bar:** the 7 steps in one row (Proof → Garments → Pre-press → Scheduled → Printed → Caught → Shipped / Picked up). Each is ✓ (black), now (yellow) or not yet (empty), with one date or count under it. On a phone the bar stands up as a list.
+   - **blockers only:** at most 4 lines, problems first, then "prints today / tomorrow", then the rest; "and N more" if there are more. Red only for real problems: an issue Awaiting Review, a mis-ship, a CHECK, a Delayed status, past due. An open Order Issue is just a blocker line now.
+   - nothing blocking → one line, "On track" (or "Done · nothing open" for a finished order).
+3. **Mock-ups:** one big tile per imprint × garment colour, 300–360px wide in a grid.
+   - The picture is the line's Signed Proof page, else its Proof Images file, tagged "✓ Signed" or "Proof · not signed".
+   - Caption: imprint ID, location, "on <colour>", then the imprint's short status. Examples: "Press 1 · tomorrow 8:30a · locked · sep ✓ screens ✓ inks ✓", "Printed ✓ … · not caught yet", "Caught ✓ Tue Nov 17". Missing prep shows on a yellow wash ("screens ✗"); "proof not initialed" shows when Signed Check says so.
+   - Tap a tile for the **lightbox**: big image (Airtable's full thumbnail), ‹ › or ← → through the order's mock-ups, Open PDF ↗, ✕ / Esc / a tap outside closes it.
+
+**Layout:** desktop has the status across the top and the mock-ups in a grid below. iPad and phone stack the same way (one column of mock-ups on a phone).
+
+**Removed:**
+- line-item size tables
+- the notes list and the Line Item comment reads (one GET per line fewer: 6 GETs for the test order, was 8)
+- the issues / backorders list
+- the per-step detail lists
+- the imprint cards (replaced by the mock-ups)
+
+The v1 gaps still apply (no "sent" date, last-modified dates, embroidery has no prep step, re-print prep fields unused).
+
+**Tested** (Playwright, mocked Airtable, made-up names; scratchpad `order2/t2.js`, 55 checks):
+- **Mid-production order:**
+  - Now = GARMENTS · PRE-PRESS, with the bar ✓ ● ● ✓ ○ ○ ○.
+  - 4 blockers: the open issue red first, then 11164-B prints tomorrow (screens / inks), the Pepper line not in, the backorder.
+  - 3 mock-ups (A and B on Black, C on Pepper), signed pages, each with its status.
+  - The lightbox opens on the tapped tile, steps with →, closes on Esc.
+  - The Open in… menu.
+- **Pick-up order (by `?id=`):** all ✓, "Picked up Wed Nov 18", "Done · nothing open", not called late.
+- **Ship order (by typing the #):** UPS tracking in the header, Now = Shipped Fri Nov 20, unsigned proof labelled.
+- **Finding orders:** home, customer search, recent chip, no token.
+- **Every run:** zero non-GET requests, no console errors, nothing under 12px, no sideways scroll at 1440 / 1024 / 390.
 
 ## 2026-11-23 · v1 for review (internal order status page)
 **Why:** Stephen wants better communication between departments ("has come up in a few reviews"). The first piece is one internal page per order that every app can open. Then sales, art, purchasing, receiving, pre-press, the presses, catching and shipping all see the same picture.
