@@ -4068,3 +4068,8 @@ Three fixes from Stephen.
   - The clip label still fits the art to its artwork area, so on the mockup the art is a little bigger than on the vendor proof.
 
 Tested with mocked Airtable in practice mode: the proof page with three imprints (before and after), dragging the shoulder mark on your own photo (v292 vs v293), and opening the 11229 proof PDF on a Hem Label imprint (shape L2, label colour, art). No page errors.
+
+## 2026-11-24 — v294
+Stephen dropped "11229 | WOVEN CLIP LABEL-CUSTOMER PROOF.pdf" into v293 for the hem tag and still got the "Art in … — Put the whole page on the shirt" window. Any PDF with "proof" in its name goes to the old-proof art puller before the art is read, so v293's clip label check never ran. v293 had been tested by opening the file as art, which skips the puller. Now a PDF whose page is a Pine clip label proof skips the puller and opens as the label's artwork area, with its size and colour, the same as v293. Other proof PDFs open in the puller as before.
+
+Tested: dropping the 11229 file on a Hem Label imprint. v293 opened the puller; v294 opens the label art (3/4" Square, label colour, 0.44″ art). No page errors.
