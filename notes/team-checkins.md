@@ -32,3 +32,4 @@ Huddles are Wednesdays only (Stephen, 2026-11-23), so the floor check-ins ride o
 | 2026-11-19 | – | Stephen | Set up this schedule; include the team before Catching/Operator updates | started |
 | 2026-11-23 | Operator | Stephen | Operators only see today; tomorrow is still written on the board; no week overview | idea: Week ahead in Operator — show the operators first |
 | 2026-11-23 | all | Stephen | Internal order status page, its own app every app can open | idea |
+| 2026-11-24 | Catching | Catchers (via Stephen) | OK to hide a print not on a line item / order · tapping a line item jumps the list to the top | done in v182 |
