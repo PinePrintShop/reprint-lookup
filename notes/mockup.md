@@ -4073,3 +4073,23 @@ Tested with mocked Airtable in practice mode: the proof page with three imprints
 Stephen dropped "11229 | WOVEN CLIP LABEL-CUSTOMER PROOF.pdf" into v293 for the hem tag and still got the "Art in … — Put the whole page on the shirt" window. Any PDF with "proof" in its name goes to the old-proof art puller before the art is read, so v293's clip label check never ran. v293 had been tested by opening the file as art, which skips the puller. Now a PDF whose page is a Pine clip label proof skips the puller and opens as the label's artwork area, with its size and colour, the same as v293. Other proof PDFs open in the puller as before.
 
 Tested: dropping the 11229 file on a Hem Label imprint. v293 opened the puller; v294 opens the label art (3/4" Square, label colour, 0.44″ art). No page errors.
+
+## 2026-11-24 — v295
+Stephen on 11252 (front print, Front Hem clip label, left sleeve embroidery, size tag): "grabbed the artwork but not seeing anything on the mockup", then "Proofs are still looking a little wonky".
+
+- **A hem label sits on the hem.** Every front print started 3″ below the collar in the middle, so the ¾″ label was drawn under the big front print. Now an imprint whose location says Hem (Front Hem, Hem Label…) starts on the bottom hem, wearer's left:
+  - Its top is at the top of the rib (hoodie or sweatshirt) or the hem stitch (tee), about 3″ in from the side seam.
+  - It's fitted to the photo's own hem and side edge until someone moves it.
+  - Placement reads "On the hem · 3″ from the left side seam".
+  - A label left at the old start moves to the hem.
+- **Three blocks on the left of an embroidery proof** (print, clip label, embroidery) ran into APPROVED, even at the smallest size allowed (60%). When the usual layout would go under 80%:
+  - each heading goes on one line when it fits
+  - the blocks start right under Fabric Content
+  - they may shrink to 55%
+
+  Two-block proofs come out pixel-identical to v294.
+- Tested with mocked Airtable in practice mode:
+  - a four-imprint proof (front print, Front Hem clip label, left sleeve embroidery, size tag): before it ran into APPROVED, now it fits
+  - the hem label spot on a tee photo
+  - regression on a normal print job: all the same
+  - the two-block embroidery proof: identical to v294
