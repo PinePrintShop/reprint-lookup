@@ -24,7 +24,7 @@
 | Receiving | `receiving.html` | receiving-dashboard v91 (Re-prints tab: line cards open to the re-print sizes; "Replacements received" ticks Replacements Received?, which posts the re-print Slack message) |
 | Shipping (desktop, shipping computer) | `pine-shipping.html` | v12 (shared side panel) |
 | Production Board | `pine-production-board.html` | v48 |
-| Seps | `seps.html` | v55 (splits signed packets into line pages in the background; signed packet = ✓ Signed; one signed row per colourway) |
+| Seps | `seps.html` | v56 (Sep review flags: ⚑ tag, past sep versions with Best match, Done – no change / sep edited) · v55 (splits signed packets into line pages in the background; signed packet = ✓ Signed; one signed row per colourway) |
 | Screens | `screens.html` | v37 (signed packet = ✓ Signed; one signed row per colourway) |
 | Day Fill | `pine-day-fill.html` | v15 (replaced by Schedule) |
 | Schedule | `pine-schedule.html` | v38 (sales rep in job details) · v37 (search finds printed jobs; grey = ✓ Printed) · v36 (quieter PP suggested pill) · was v35 |
