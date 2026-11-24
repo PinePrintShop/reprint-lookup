@@ -662,3 +662,12 @@ Changes, record created and the UPC view).
   - Reprint / split / parser unit checks. A normal day with no shared print (12401, 12404): same 34 requests (7 writes, same
     order) as v180, apart from the added read field.
   - No page errors, no text under 12px.
+
+## 2026-11-24 — v182
+The catching team OK'd both changes at the Wednesday check-in (Stephen: "We are good to fix that if an imprint isn't assigned to a line item don't show it" · "when they click into a line item it jumps to the top vs stays on the line item so they can move through that order").
+
+- **The Line items list keeps its place.** Every tap on a line item redrew the screen, and the list scrolled back to the top. With a job further down (the schedule moves things around), the catcher had to scroll down again for the next one. Now the list keeps its scroll, and the open line item is scrolled into view only if it would be hidden. This works in landscape (the list down the side) and portrait (the list across the top).
+- **A print that isn't on an order doesn't show.** 11176-B was taken off its order but stayed scheduled. Its line item had been unlinked from the order too, so Catching (which already skipped a print with no line item) still showed it, under 11176 from its ID. Now a card whose line item has no order is left out as well. The 11176-B schedule was also cleared in Airtable by hand.
+- Tested with mocked Airtable in practice mode: 14 jobs on Press 2 plus a leftover like 11176-B. In v181 the leftover showed, and tapping a job near the bottom sent the list to the top with that job out of view, in both landscape and portrait. In v182 the leftover is gone, the list stays put and the tapped job stays visible. No page errors.
+
+What's new for the floor: tap a line item and the list stays where you were, so you can work down an order without scrolling back. Prints taken off an order no longer show up.

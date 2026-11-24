@@ -17,7 +17,7 @@
 | App | Permanent link | Opens now |
 |---|---|---|
 | Operator | `pine-operator.html` | v139 (signed packet = ✓ Signed; skipped mockup initials are a grey note) |
-| Catching | `pine-catching.html` | v181 (a line item done on a shared print shows done on both Catching iPads: Imprints › Caught Cards; 11022) |
+| Catching | `pine-catching.html` | v182 (the Line items list stays where it was when you tap a line item; a print whose line item isn't on an order doesn't show) · v181 (a line item done on a shared print shows done on both Catching iPads: Imprints › Caught Cards; 11022) |
 | Damage Log | `damage-log.html` | v25 (+ Add damage for damage found after Catching) |
 | Ink Queue | `pine-ink-queue.html` | v108 (signed packet = ✓ Signed; one signed row per colourway) |
 | Purchasing | `pine-purchasing.html` | v124 (Tab moves between Blank cost boxes) · was v123 (View email shows the email in the app, no Google sign-in, with worker v55; Backorders tab since v121) |
