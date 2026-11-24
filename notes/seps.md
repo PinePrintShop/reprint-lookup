@@ -352,3 +352,25 @@ Stephen: "it isn't not signed if the main invoice is signed and the terms are si
 - **Tested** (Playwright, mocked Airtable, practice): the v54 scripted run sends the same Airtable requests on v55 at 1440 and 390, once the Colour field and the order packet reads are set aside; 0 writes, no errors. At 1440, 1100 and 390: shared imprint (Hazy Pink "✓ Signed · Signed page · Whole packet", Bone "✓ Signed"; Signed page opens Hazy Pink's page, Whole packet the packet), packet only ("✓ Signed · Whole packet"), mockup not initialed (grey note, nothing red), no packet ("Not signed yet"), CHECK (red, Whole packet says "No signed packet on this order yet"). Nothing under 12px, no horizontal scroll.
 - The v54 background split (pine-signed.js) is unchanged.
 - The held "signed page as the main mockup" build (its own seps-v54) becomes v56 when it's released.
+
+## 2026-11-24 — v56: Sep review flags
+Why: 11127 reused 9073's light-garment sep on Navy and Black (the left chest base went under the green only; the back reused unchanged). Stephen: a heads-up when a reprint's past sep may need changes for a new garment or print method. Spec: the "Sep Review Flag – Spec" doc (phase 1, manual, no automation).
+
+- **Flagging (Airtable interface):** a line item's **Sep Review Needed** checkbox (Line Items `fldBvqAHtSOiT2K1O`), on the order page next to Repeat? / Previous Imprint IDs. **Sep Review Flagged By / At** (`fld0Xydn29wX7NKxi` / `fldhk4gJJZ4AHGynH`) record who ticked it and when.
+- **Seps:** the imprint's job card gets a yellow "⚑ Sep review" tag. The job flows as usual and nothing is held up. The open job shows:
+  - who flagged it and when
+  - the flagged garments, the note (Sep Review Note `fldMc4ucVIVc9Yt5S`) and Proofing Notes
+  - **Versions of this design:** up the Previous Imprint chain to the first imprint, then every imprint that repeats it (3 levels). Each shows what it was made for (its line items' garments), type, screens, sep file and its last Sep Review History line.
+  - **Best match:** the same colours first, then light vs dark. "Use this sep" links that version's sep file (saved when marked sep'd).
+- **Done – no change / Done – sep edited** does three things:
+  - unticks Sep Review Needed on the flagged lines
+  - sets **Sep Review** (`fldh76ualgDFOinhp`)
+  - adds a line to the imprint's **Sep Review History** (Imprints `fld2ka70Wye1BszAa`), e.g. "Nov 24, 2026 · Whitney · sep edited · for Navy, Black · \"note\"". "Who" is the separator picked on the job, else "Seps".
+- Refresh re-reads the flags. Practice mode fakes the writes. Closing a line flagged for several imprints closes it for all of them, and the banner says which other imprints are on it.
+- Unused fields to delete later (with OK): Sep Review Requested, Sep Review Closed. Sep Review Changed By / At track the outcome dropdown.
+- Tested with mocked Airtable: a made-up 11127-A (prev 9073-A) flagged on Navy and Black, plus another version 10500-A (Black, edited).
+  - The tag shows on the flagged job only.
+  - Both versions are listed, with 10500-A as Best match.
+  - Use this sep links its file.
+  - Done writes the 2 line items (checkbox off, outcome) and the history line; practice mode writes nothing.
+  - No page errors.
