@@ -4050,3 +4050,21 @@ Stephen, with a Bella+Canvas 3501 long-sleeve tee in dark green (front photo rig
   - "Bella Canvas 3501 - Forest" (LS Tee) with a front logo and a 2.5 × 11″ vine: LEFT SLEEVE is a 24.5″ sleeve with the vine inside, at its real size; the vine runs down the front photo's sleeve; proof page 1 the same. Width 22″ + Widen: the whole shirt and the vine stay in the panel (v291: the vine was cut off at the edge).
   - Gildan 18000 Sweatshirt: long sleeve with a rib cuff. 3501CVC with no type: long. A 2.5 × 22″ file on a long sleeve: not taken at its size, kept to 20″ long.
   - Regression, v291 vs v292 pixel compares: a 1717 tee with a 3″ sleeve print, and front-only 1717 / 3501 / 18000 / stand-in jobs. Every proof page identical except the sleeve placement text; the mockup canvas differs only in the wrapped shoulder label. No console errors.
+
+## 2026-11-24 — v293
+Three fixes from Stephen.
+
+- **Embroidery proof with a size tag** ("when we have embroidery and heat press size tags the mockup gets a little wild", on a front print + left sleeve embroidery + Supacolour size tag). The tag was a third block in the left column. Three blocks didn't fit even at the smallest size, because the chips and the Supacolour logo never shrank, so the last block ran under APPROVED. The tag itself was never drawn either. Now:
+  - The size tag goes in the empty space under the garment, left of the sew-out box. It shows SIZE TAG – ID, width and height, placement, the Supacolour logo (or ink chips) and the tag on the garment colour, like a print proof's tag section. Its box shrinks to the space available.
+  - The left column keeps the print and embroidery blocks. With two or more sew-out boxes there's no room under the garment, so the tag stays in the left column as before.
+  - The chips and the Supacolour logo now shrink along with the blocks.
+- **Hoodie length mark** ("still having issues with the hoodie length slide....this one isn't moving for me at all", a Known Supply hoodie on his own photo). A shoulder mark set by hand only counted on vendor photos. On your own photo it was saved and labelled "set by hand" but ignored, so the hood stayed at the standard 4.5″ and the mark didn't move. Now it counts on your own flat photos too. A photo of a person keeps its own height. Tested: dragging moved the mark in v293 and not in v292.
+- **Clip label proof PDF → the label art** ("also need to be able to pull out this hem tag image for a mockup", the 11229 woven clip label proof). Open the proof PDF as the art of a Hem Label / clip label imprint:
+  - It opens as just the label's front artwork area (the first green ARTWORK AREA box, cut inside its line), so no guide lines come along. There's no picker.
+  - The label colour is read from the proof and becomes the clip label's colour.
+  - The VISIBLE AREA size picks the matching clip label (0.75″ × 0.875″ → 3/4″ Square).
+  - The art's own width is measured in real inches (0.44″ on 11229).
+  - The template's "1. Place Artwork Here" layer was empty; the art sits on the label-size layer with the diagrams. That's why the green box is used instead of the layers.
+  - The clip label still fits the art to its artwork area, so on the mockup the art is a little bigger than on the vendor proof.
+
+Tested with mocked Airtable in practice mode: the proof page with three imprints (before and after), dragging the shoulder mark on your own photo (v292 vs v293), and opening the 11229 proof PDF on a Hem Label imprint (shape L2, label colour, art). No page errors.
